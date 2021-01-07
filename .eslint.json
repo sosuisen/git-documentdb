@@ -1,0 +1,52 @@
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": [
+    "standardize",
+    "standardize/typescript",
+    "plugin:prettierx/standardize-bundle",
+    "plugin:prettierx/@typescript-eslint"
+  ],
+  "plugins": ["@typescript-eslint", "prettierx"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.eslint.json",
+    "sourceType": "module"
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [
+          ".js",
+          ".jsx",
+          ".json",
+          ".ts",
+          ".tsx"
+        ]
+      }
+    }
+  },
+
+  "rules": {
+    "unicorn/no-unreadable-array-destructuring": "off",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "TSEnumDeclaration",
+        "message": "Don't declare enums"
+      }
+    ],
+    "@typescript-eslint/no-parameter-properties": "off",
+    "@typescript-eslint/interface-name-prefix": [0],
+    "prettierx/options": ["error", {
+       "singleQuote": true,
+       "jsxSingleQuote": true,
+       "breakBeforeElse": true,
+       "semi": true,
+       "trailingComma": "es5"
+    }]
+  }
+}
