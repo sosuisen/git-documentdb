@@ -55,7 +55,7 @@ export class GitDocumentDB {
    * @throws *CannotCreateDirectoryError* You may not have write permission.
    */
   open = async (): Promise<{ isNew: boolean }> => {
-    await fs.ensureDir(this._initOptions.localDir).catch((err:Error) => { throw new CannotCreateDirectoryError();});
+    await fs.ensureDir(this._initOptions.localDir).catch((err:Error) => { throw new CannotCreateDirectoryError(err.message);});
 
     this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(err => err);
     /*
