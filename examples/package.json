@@ -1,0 +1,17 @@
+{
+  "name": "git-documentdb-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rm -rf dist/ && tsc"
+  },
+  "author": "",
+  "license": "MPL-2.0",
+  "dependencies": {
+    "git-documentdb": "../"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.3"
+  }
+}
