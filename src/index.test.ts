@@ -4,10 +4,11 @@ import path from 'path';
 import { CannotCreateDirectoryError } from './error';
 import { GitDocumentDB } from './index';
 
+const dbName = 'ddb_test_repository';
+
 describe('Create database (1)', () => {
   const readonlyDir = './test_repos01_readonly/';
   const localDir = './test_repos01';
-  const dbName = 'ddb_test_repository01';
    
   beforeAll(() => {
     if(process.platform !== 'win32') {
@@ -40,7 +41,6 @@ describe('Create database (1)', () => {
 
 describe('Create database (2)', () => {
   const localDir = './test_repos02';
-  const dbName = 'ddb_test_repository02';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
@@ -68,7 +68,6 @@ describe('Create database (2)', () => {
 
 describe('Open and close database', () => {
   const localDir = './test_repos03';
-  const dbName = 'ddb_test_repository03';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
@@ -102,7 +101,6 @@ describe('Open and close database', () => {
 
 describe('CRUD', () => {
   const localDir = './test_repos04';
-  const dbName = 'ddb_test_repository04';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
