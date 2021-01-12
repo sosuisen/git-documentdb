@@ -1,6 +1,7 @@
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
+import { CannotCreateDirectoryError } from './error';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
@@ -34,6 +35,9 @@ const repositoryInitOptionFlags = {
 };
 
 
+/**
+ * @module Class
+ */
 export class GitDocumentDB {
   private _initOptions: dbOption;
   private _currentRepository: nodegit.Repository | undefined;
@@ -47,8 +51,12 @@ export class GitDocumentDB {
 
   /**
    * Create a database or open an existing one.
+   * If localDir does not exist, it is created.
+   * @throws CannotCreateDirectoryError 
    */
   open = async (): Promise<{ isNew: boolean }> => {
+    await fs.ensureDir(this._initOptions.localDir).catch((err:Error) => { throw new CannotCreateDirectoryError();});
+
     this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(err => err);
     /*
       nodegit.Repository.open() returns:
@@ -105,7 +113,7 @@ export class GitDocumentDB {
         const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
         commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
       }
-      console.log(commitId.tostrS());
+      // console.log(commitId.tostrS());
       return commitId.tostrS();
     }
   }
@@ -141,37 +149,3 @@ export class GitDocumentDB {
     return true;
   };
 }
-
-export const example = async () => {
-
-  var fileName = "newfile.txt";
-  var fileContent = "hello world";
-  var repoDir = "../newRepo";
-
-  var repository: nodegit.Repository;
-  var index: nodegit.Index;
-  try {
-    await fs.ensureDir(path.resolve(__dirname, repoDir));
-    repository = await nodegit.Repository.init(path.resolve(__dirname, repoDir), 0);
-    await fs.writeFile(path.join(repository.workdir(), fileName), fileContent);
-
-    index = await repository.refreshIndex();
-    await index.addByPath(fileName);
-    await index.write();
-    const oid = await index.writeTree();
-    console.log(oid.tostrS());
-
-    var author = nodegit.Signature.now("Scott Chacon", "schacon@gmail.com");
-    var committer = nodegit.Signature.now("Scott A Chacon", "scott@github.com");
-
-    // Since we're creating an inital commit, it has no parents. Note that unlike
-    // normal we don't get the head either, because there isn't one yet.
-    const commitId = await repository.createCommit("HEAD", author, committer, "message", oid, []);
-    console.log("New Commit: ", commitId);
-
-  }
-  catch (e) {
-    console.error(e);
-  }
-};
-
