@@ -4,7 +4,7 @@
   "description": "Offline First Document DB using Git",
   "main": "dist/main.js",
   "scripts": {
-    "build": "webpack",
+    "build": "rm -rf dist/* && tsc",
     "test": "jest",
     "doc": "npx typedoc --out docs --exclude src/*test.ts src"
   },

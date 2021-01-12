@@ -3,6 +3,8 @@
     "allowJs": true,
     "module": "commonjs",
     "target": "ES2019",
+    "declaration": true,
+    "declarationMap": true,
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
@@ -19,4 +21,7 @@
   "include": [
     "src/**/*",
   ],
+  "exclude": [
+     "src/**/*test.ts"
+  ]
 }
