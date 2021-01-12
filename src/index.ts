@@ -52,7 +52,7 @@ export class GitDocumentDB {
   /**
    * Create a database or open an existing one.
    * If localDir does not exist, it is created.
-   * @throws CannotCreateDirectoryError 
+   * @throws *CannotCreateDirectoryError* You may not have write permission.
    */
   open = async (): Promise<{ isNew: boolean }> => {
     await fs.ensureDir(this._initOptions.localDir).catch((err:Error) => { throw new CannotCreateDirectoryError();});
