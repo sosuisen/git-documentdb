@@ -13,7 +13,7 @@ type dbOption = {
   localDir: string,
 };
 
-const databaseName = 'git-documentdb';
+const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
 const defaultDescription = `${databaseName}: ${databaseVersion}`;
 
@@ -106,16 +106,20 @@ export class GitDocumentDB {
         result.isValidVersion = false;
         return '';
       });
-    if ((new RegExp('^' + databaseVersion)).test(description)) {
+    if ((new RegExp('^' + databaseName)).test(description)) {
       result.isCreatedByGitDDB = true;
       if ((new RegExp('^' + defaultDescription)).test(description)) {
-        console.error('Database is not created by git-documentdb.');
         result.isValidVersion = true;
       }
       else {
-        console.error('Database version is invalid.');
+        console.warn('Database version is invalid.');
         result.isValidVersion = false;
       }
+    }
+    else {
+      console.warn('Database is not created by git-documentdb.');
+      result.isCreatedByGitDDB = false;
+      result.isValidVersion = false;
     }
     return result;
   }
