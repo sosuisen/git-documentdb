@@ -81,20 +81,22 @@ export class GitDocumentDB {
       isCreatedByGitDDB: true,
       isValidVersion: true,
     }
-    // nodegit.Repository.open() throw error if the path does not exist, however this exception has been already checked in fs.ensureDir.
+    /** 
+     * nodegit.Repository.open() throws an error if the specified repository does not exist.
+     * open() also throws an error if the path is invalid or not writable, 
+     * however this case has been already checked in fs.ensureDir.
+     */
     this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(async (err) => {
-      if (!(this._currentRepository instanceof nodegit.Repository)) {
-        // console.debug(`Create new repository: ${pathToRepo}`);
-        const isBare = 0;
-        const options: RepositoryInitOptions = {
-          description: defaultDescription,
-          flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
-          initialHead: 'main',
-        };
-        result.isNew = true;
-        // @ts-ignore
-        return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
-      }
+      // console.debug(`Create new repository: ${pathToRepo}`);
+      const isBare = 0;
+      const options: RepositoryInitOptions = {
+        description: defaultDescription,
+        flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
+        initialHead: 'main',
+      };
+      result.isNew = true;
+      // @ts-ignore
+      return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
     });
 
     // Check git description
