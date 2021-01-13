@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -45,7 +45,7 @@ describe('Create repository (1)', () => {
     }
   });
 
-  test('Create a new repository', async () => {
+  test('open(): Create a new repository', async () => {
     // Windows does not support permission option of fs.mkdir().
     if (process.platform === 'win32') {
       console.warn(`You must create ${readonlyDir} directory by hand, click [disable inheritance] button, and remove write permission of Authenticated Users.`);
@@ -79,7 +79,7 @@ describe('Create repository (2)', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('Create a new repository', async () => {
+  test('open(): Create a new repository', async () => {
     // Create db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true });
     // Destroy db
@@ -90,7 +90,7 @@ describe('Create repository (2)', () => {
 });
 
 
-describe('Open and close repository', () => {
+describe('Open, close and destroy repository', () => {
   const localDir = './test/database03';
   const dbName = './test_repos03';
 
@@ -107,7 +107,7 @@ describe('Open and close repository', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('Open and close an existing repository', async () => {
+  test('open(), close() and destroy(): Open an existing repository', async () => {
     // Create db
     await gitDDB.open();
 
@@ -124,7 +124,7 @@ describe('Open and close repository', () => {
   });
 
 
-  test('Open a repository created by another app', async () => {
+  test('open(): Open a repository created by another app', async () => {
     const dbNameA = 'test_repos03A';
     const gitDDB_A: GitDocumentDB = new GitDocumentDB({
       dbName: dbNameA,
@@ -136,7 +136,7 @@ describe('Open and close repository', () => {
       initialHead: 'main'
     };
     // Create git repository with invalid description
-    await fs.ensureDir(localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
+    await fs.ensureDir(localDir);
     // @ts-ignore
     await nodegit.Repository.initExt(path.resolve(localDir, dbNameA), optionsA).catch(err => { throw new Error(err) });
     gitDDB.close();
@@ -146,7 +146,7 @@ describe('Open and close repository', () => {
   });
 
 
-  test('Open a repository created by another version', async () => {
+  test('open(): Open a repository created by another version', async () => {
     const dbNameB = 'test_repos03B';
     const gitDDB_B: GitDocumentDB = new GitDocumentDB({
       dbName: dbNameB,
@@ -158,7 +158,7 @@ describe('Open and close repository', () => {
       initialHead: 'main'
     };
     // Create git repository with invalid description
-    await fs.ensureDir(localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
+    await fs.ensureDir(localDir);
     // @ts-ignore
     await nodegit.Repository.initExt(path.resolve(localDir, dbNameB), optionsB).catch(err => { throw new Error(err) });
     gitDDB.close();
@@ -169,7 +169,7 @@ describe('Open and close repository', () => {
 });
 
 
-describe('CRUD', () => {
+describe('Create a document', () => {
   const localDir = './test/database04';
   const dbName = './test_repos04';
 
@@ -186,37 +186,115 @@ describe('CRUD', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('Create a new document', async () => {
-    // Create db
+  test('put(): Create a document', async () => {
     await gitDDB.open();
 
+    // Create
     await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
-    /**
+    // Available id [a-zA-Z0-9] _ - ( ) .（ただしピリオドはファイル名末尾には使用不可）
+    await expect(gitDDB.put({ id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(CannotWriteDataError);
+
+     /**
      * TODO
-     * - 初期化のときに main ブランチを追加し、HEADがそこを指すようにする。
-     * - 書き込みエラーのチェック    
+     * - readonly の書き込みエラーのチェック    
      */
+
+
+    await gitDDB.destroy();
+  });
+});
+    
+
+describe('Read a document', () => {
+  const localDir = './test/database05';
+  const dbName = './test_repos05';
+
+  const gitDDB: GitDocumentDB = new GitDocumentDB({
+    dbName: dbName,
+    localDir: localDir
   });
 
-  /*
-    test('Update an existing document', () => {
-      expect(gitDDB.put({ id: 'prof01', name: 'mari' })).toEqual({ id: 'prof01', name: 'mari' });
-    });
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('get(): Read an existing document', async () => {
+    await gitDDB.open();
+
+    // Create
+    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+
+    // Get
+    await expect(gitDDB.get('prof01')).toEqual({ id: 'prof01', name: 'mari' });
+
+
+    await gitDDB.destroy();    
+  });
+});
+
+
+describe('Update a document', () => {
+  const localDir = './test/database06';
+  const dbName = './test_repos06';
+
+  const gitDDB: GitDocumentDB = new GitDocumentDB({
+    dbName: dbName,
+    localDir: localDir
+  });
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('put(): Update a existing document', async () => {
+    await gitDDB.open();
+
+    // Create
+    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+
+    // Update
+    await expect(gitDDB.put({ id: 'prof01', name: 'mari' })).toEqual({ id: 'prof01', name: 'mari' });
   
-  
-    test('Fetch a document', () => {
-      expect(gitDDB.get('prof01')).toEqual({ id: 'prof01', name: 'mari' });
-    })
-  
-  
-    test('Delete the document', () => {
-      expect(gitDDB.delete('prof01')).toEqual({ id: 'prof01', name: 'mari' });
-    })
-  
-  
-    test('Create another document', () => {
-      expect(gitDDB.put({ id: 'prof02', name: 'yuzu' })).toEqual({ id: 'prof02', name: 'yuzu' });
-    });
-  */
+
+    await gitDDB.destroy();    
+  });
+});
+
+
+describe('Delete a document', () => {
+  const localDir = './test/database07';
+  const dbName = './test_repos07';
+
+  const gitDDB: GitDocumentDB = new GitDocumentDB({
+    dbName: dbName,
+    localDir: localDir
+  });
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('delete()', async () => {
+    await gitDDB.open();
+
+    // Create
+    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+
+    // Delete
+    await expect(gitDDB.delete('prof01')).toEqual({ id: 'prof01', name: 'mari' });
+  });
+
 });

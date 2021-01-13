@@ -11,3 +11,10 @@ export class CannotCreateDirectoryError extends BaseError {
     super(e);
   }
 }
+
+export class CannotWriteDataError extends BaseError {
+  constructor(e = 'Cannot write data') {
+    super(e);
+  }
+}
+
