@@ -112,12 +112,12 @@ export class GitDocumentDB {
         result.isValidVersion = true;
       }
       else {
-        console.warn('Database version is invalid.');
+        // console.warn('Database version is invalid.');
         result.isValidVersion = false;
       }
     }
     else {
-      console.warn('Database is not created by git-documentdb.');
+      // console.warn('Database is not created by git-documentdb.');
       result.isCreatedByGitDDB = false;
       result.isValidVersion = false;
     }
@@ -129,6 +129,9 @@ export class GitDocumentDB {
   }
 
   put = async (doc: { [key: string]: string }) => {
+    /**
+     * TODO: 可能なファイル名をチェック。
+     */
     if (this._currentRepository === undefined) {
       throw new Error('Repository is closed');
     }
@@ -164,12 +167,13 @@ export class GitDocumentDB {
     }
   }
 
-  get = (id: string) => {
+  get = async (id: string) => {
     const doc = { id: 'prof01', name: 'mari' };
+
     return doc;
   };
 
-  delete = (id: string) => {
+  delete = async (id: string) => {
     const doc = { id: 'prof01', name: 'mari' };
     return doc;
   };
