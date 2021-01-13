@@ -28,7 +28,7 @@ const repositoryInitOptionFlags = {
 };
 
 
-describe('Create database (1)', () => {
+describe('Create repository (1)', () => {
   const readonlyDir = './test/readonly/';
   const localDir = './test/database01';
   const dbName = './test_repos01';
@@ -45,7 +45,7 @@ describe('Create database (1)', () => {
     }
   });
 
-  test('Create a new database', async () => {
+  test('Create a new repository', async () => {
     // Windows does not support permission option of fs.mkdir().
     if (process.platform === 'win32') {
       console.warn(`You must create ${readonlyDir} directory by hand, click [disable inheritance] button, and remove write permission of Authenticated Users.`);
@@ -62,7 +62,7 @@ describe('Create database (1)', () => {
   });
 });
 
-describe('Create database (2)', () => {
+describe('Create repository (2)', () => {
   const localDir = './test/database02';
   const dbName = './test_repos02';
 
@@ -79,7 +79,7 @@ describe('Create database (2)', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('Create a new database', async () => {
+  test('Create a new repository', async () => {
     // Create db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true });
     // Destroy db
@@ -90,7 +90,7 @@ describe('Create database (2)', () => {
 });
 
 
-describe('Open and close database', () => {
+describe('Open and close repository', () => {
   const localDir = './test/database03';
   const dbName = './test_repos03';
 
@@ -107,7 +107,7 @@ describe('Open and close database', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('Open and close an existing database', async () => {
+  test('Open and close an existing repository', async () => {
     // Create db
     await gitDDB.open();
 
@@ -124,7 +124,7 @@ describe('Open and close database', () => {
   });
 
 
-  test('Open a database created by another app', async () => {
+  test('Open a repository created by another app', async () => {
     const dbNameA = 'test_repos03A';
     const gitDDB_A: GitDocumentDB = new GitDocumentDB({
       dbName: dbNameA,
@@ -146,7 +146,7 @@ describe('Open and close database', () => {
   });
 
 
-  test('Open a database created by another version', async () => {
+  test('Open a repository created by another version', async () => {
     const dbNameB = 'test_repos03B';
     const gitDDB_B: GitDocumentDB = new GitDocumentDB({
       dbName: dbNameB,
