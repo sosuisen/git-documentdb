@@ -13,6 +13,10 @@ type dbOption = {
   localDir: string,
 };
 
+const databaseName = 'git-documentdb';
+const databaseVersion = '1.0';
+const defaultDescription = `${databaseName}: ${databaseVersion}`;
+
 interface RepositoryInitOptions {
   description?: string;
   initialHead?: string;
@@ -69,27 +73,48 @@ export class GitDocumentDB {
    * @throws *CannotCreateDirectoryError* You may not have write permission.
    */
   open = async (): Promise<{ isNew: boolean }> => {
-    await fs.ensureDir(this._initOptions.localDir).catch((err:Error) => { throw new CannotCreateDirectoryError(err.message);});
+    await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
 
-    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(err => err);
-    /*
-      nodegit.Repository.open() returns:
-        error message if the path does not exist,
-        empty Repository if the path is directory that is not a git working directory.
-    */
-    if (!(this._currentRepository instanceof nodegit.Repository)) {
-      // console.debug(`Create new repository: ${pathToRepo}`);
-      const isBare = 0;
-      const options: RepositoryInitOptions = {
-        flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
-        initialHead: 'main',
-      };
-      // @ts-ignore
-      this._currentRepository = await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
-      return { isNew: true };
-    };
+    const result = {
+      isNew: false,
+      isCreatedByGitDDB: true,
+      isValidVersion: true,
+    }
+    // nodegit.Repository.open() throw error if the path does not exist, however this exception has been already checked in fs.ensureDir.
+    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(async (err) => {
+      if (!(this._currentRepository instanceof nodegit.Repository)) {
+        // console.debug(`Create new repository: ${pathToRepo}`);
+        const isBare = 0;
+        const options: RepositoryInitOptions = {
+          description: defaultDescription,
+          flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
+          initialHead: 'main',
+        };
+        result.isNew = true;
+        // @ts-ignore
+        return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
+      }
+    });
 
-    return { isNew: false };
+    // Check git description
+    const description = await fs.readFile(path.resolve(this._workingDirectory, '.git', 'description'), 'utf8')
+      .catch(err => {
+        result.isCreatedByGitDDB = false;
+        result.isValidVersion = false;
+        return '';
+      });
+    if ((new RegExp('^' + databaseVersion)).test(description)) {
+      result.isCreatedByGitDDB = true;
+      if ((new RegExp('^' + defaultDescription)).test(description)) {
+        console.error('Database is not created by git-documentdb.');
+        result.isValidVersion = true;
+      }
+      else {
+        console.error('Database version is invalid.');
+        result.isValidVersion = false;
+      }
+    }
+    return result;
   }
 
   isOpened = () => {
