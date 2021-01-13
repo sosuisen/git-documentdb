@@ -4,11 +4,11 @@ import path from 'path';
 import { CannotCreateDirectoryError } from './error';
 import { GitDocumentDB } from './index';
 
-const dbName = 'ddb_test_repository';
+const localDir = './test/database';
 
 describe('Create database (1)', () => {
-  const readonlyDir = './test_repos01_readonly/';
-  const localDir = './test_repos01';
+  const readonlyDir = './test/readonly/';
+  const dbName = './test_repos01';
    
   beforeAll(() => {
     if(process.platform !== 'win32') {
@@ -32,7 +32,7 @@ describe('Create database (1)', () => {
     }
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: readonlyDir + localDir
+      localDir: readonlyDir + 'database'
     });
     // You don't have permission
     await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotCreateDirectoryError);
@@ -40,7 +40,7 @@ describe('Create database (1)', () => {
 });
 
 describe('Create database (2)', () => {
-  const localDir = './test_repos02';
+  const dbName = './test_repos02';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
@@ -67,7 +67,7 @@ describe('Create database (2)', () => {
 
 
 describe('Open and close database', () => {
-  const localDir = './test_repos03';
+  const dbName = './test_repos03';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
@@ -100,7 +100,7 @@ describe('Open and close database', () => {
 });
 
 describe('CRUD', () => {
-  const localDir = './test_repos04';
+  const dbName = './test_repos04';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
@@ -112,7 +112,7 @@ describe('CRUD', () => {
   });
 
   afterAll(() => {
-//    fs.removeSync(path.resolve(localDir));
+    fs.removeSync(path.resolve(localDir));
   });
 
   test('Create a new document', async () => {
