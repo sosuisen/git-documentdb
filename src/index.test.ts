@@ -90,7 +90,7 @@ describe('Open and close database', () => {
     expect(gitDDB.close()).toBeTruthy();
 
     // Open existing db
-    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false });
+    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: true, isValidVersion: true });
     expect(gitDDB.isOpened()).toBeTruthy();
 
     // Destroy() closes db automatically
