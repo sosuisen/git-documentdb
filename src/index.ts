@@ -43,6 +43,20 @@ export class GitDocumentDB {
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
 
+  /**
+   * Constructor
+   * @param _option
+   * <pre>
+   *{ 
+   *  localDir: &lt;Local directory path for the database of GitDocumentDB&gt;, 
+   *  dbName: &lt;Name of a git repository&gt;
+   *}
+   *</pre>
+   *  The path to the git working directory will be localDir/dbName.
+   *  <br><br>
+   *  GitDocumentDB can load a git repository that is not created by git-documentdb module,
+   *  however correct behavior is not guaranteed.
+   */
   constructor(_option: dbOption) {
     this._initOptions = _option;
     this._workingDirectory = path.resolve(this._initOptions.localDir, this._initOptions.dbName);
