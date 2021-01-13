@@ -105,6 +105,3 @@ dist
 
 # test
 test_repos*
-
-# examples
-dist_examples/
