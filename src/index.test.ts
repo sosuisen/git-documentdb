@@ -25,7 +25,7 @@ describe('Create database (1)', () => {
   test('Create a new database', async () => {
       // Windows does not support permission option of fs.mkdir().
     if(process.platform === 'win32') {
-      console.log(`You must create ${readonlyDir} directory by hand and remove write permission of Authenticated Users.`);
+      console.log(`You must create ${readonlyDir} directory by hand, click [disable inheritance] button, and remove write permission of Authenticated Users.`);
     }
     else{
       await fs.mkdir(readonlyDir, {mode: 0o400});
