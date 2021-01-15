@@ -196,7 +196,7 @@ describe('Create a document', () => {
     /**
      * KeyNotFound
      */
-    await expect(gitDDB.put({ id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(CannotWriteDataError);
+    await expect(gitDDB.put('<test>', { id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(CannotWriteDataError);
 
     /**
      * InvalidKeyCharacter
@@ -209,7 +209,7 @@ describe('Create a document', () => {
     /*
      * Put a new JSON Object
      */
-    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     /*
      * Put a new text
@@ -246,7 +246,7 @@ describe('Read a document', () => {
     await gitDDB.open();
 
     // Create
-    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     // Get
     await expect(gitDDB.get('prof01')).toEqual({ id: 'prof01', name: 'mari' });
@@ -278,10 +278,10 @@ describe('Update a document', () => {
     await gitDDB.open();
 
     // Create
-    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     // Update
-    await expect(gitDDB.put({ id: 'prof01', name: 'mari' })).toEqual({ id: 'prof01', name: 'mari' });
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'mari' })).toEqual({ id: 'prof01', name: 'mari' });
   
 
     await gitDDB.destroy();    
@@ -310,7 +310,7 @@ describe('Delete a document', () => {
     await gitDDB.open();
 
     // Create
-    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     // Delete
     await expect(gitDDB.delete('prof01')).toEqual({ id: 'prof01', name: 'mari' });
