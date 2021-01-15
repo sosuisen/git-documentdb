@@ -71,9 +71,14 @@ export class GitDocumentDB {
    * Create a repository or open an existing one.
    * If localDir does not exist, it is created.
    * @throws *CannotCreateDirectoryError* You may not have write permission.
-   * TODO: 戻り値の説明
+   * @returns 
+   * - isNew: Is a repository newly created or existing?<br>
+   * - isCreatedByGitDDB: Is a repository created by git-documentDB or other methods?<br>
+   * - isValidVersion: Is a repository version equaled to the current databaseVersion of git-documentDB?<br>
+   * The version is described in .git/description.
    */
-  open = async (): Promise<{ isNew: boolean }> => {
+  open = async () => {
+
     await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
 
     const result = {
