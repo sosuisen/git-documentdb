@@ -4,9 +4,10 @@
   "description": "Offline First Document DB using Git",
   "main": "dist/main.js",
   "scripts": {
-    "build": "rm -rf dist/* && tsc",
+    "build": "rm -rf dist/* && npm run lint && tsc",
     "test": "jest",
-    "doc": "npx typedoc --out docs --exclude src/*test.ts src"
+    "doc": "npx typedoc --out docs --exclude src/*test.ts src",
+    "lint": "eslint --fix --ext .ts"
   },
   "repository": {
     "type": "git",
