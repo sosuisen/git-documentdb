@@ -248,9 +248,7 @@ describe('Read document', () => {
 
   test('get(): Read an existing document', async () => {
     await gitDDB.open();
-
-    // Create
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await gitDDB.put('prof01', { id: 'prof01', name: 'shirase' });
 
     // Get
     await expect(gitDDB.get('prof01')).resolves.toEqual({ id: 'prof01', name: 'mari' });
@@ -280,9 +278,7 @@ describe('Update document', () => {
 
   test('put(): Update a existing document', async () => {
     await gitDDB.open();
-
-    // Create
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await gitDDB.put('prof01', { id: 'prof01', name: 'shirase' });
 
     // Update
     await expect(gitDDB.put('prof01', { id: 'prof01', name: 'mari' })).resolves.toMatch(/^[a-z0-9]{40}$/);
@@ -312,8 +308,7 @@ describe('Delete document', () => {
   test('delete()', async () => {
     await gitDDB.open();
 
-    // Create
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await gitDDB.put('prof01', { id: 'prof01', name: 'shirase' });
 
     // Delete
     await expect(gitDDB.delete('prof01')).resolves.toEqual({ id: 'prof01', name: 'mari' });
