@@ -156,13 +156,14 @@ export class GitDocumentDB {
   /**
    * put() add a set of key and its value to the database.<br>
    * <br>
-   * NOTE: put() does not check a write permission of your file system (unlike open()). 
+   * NOTE: put() does not check a write permission of your file system (unlike open()).
    * @param key
    * key only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**.<br>
    * Do not use a period at the end.<br>
    * A length of key value must be equal to or less than MAX_LENGTH_OF_KEY(64).
    * @param value
-   * JSON Object, text or binary data
+   * JSON Object, text or binary data<br>
+   * NOTE: An empty document is created when value is undefined.
    * @returns
    * Promise that returns a commit hash (40 character SHA-1 checksum)
    * @throws *RepositoryNotOpen*
@@ -173,6 +174,10 @@ export class GitDocumentDB {
   put = async (key: string, value: any) => {
     if (this._currentRepository === undefined) {
       throw new RepositoryNotOpenError();
+    }
+
+    if (value === undefined) {
+      value = '';
     }
 
     try {
