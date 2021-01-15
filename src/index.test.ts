@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, InvalidKeyCharacterError, InvalidWorkingDirectoryPathLengthError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -28,10 +28,9 @@ const repositoryInitOptionFlags = {
 };
 
 
-describe('Create repository (1)', () => {
+describe('Create repository', () => {
   const readonlyDir = './test/readonly/';
   const localDir = './test/database01_1';
-  const dbName = './test_repos01_';
 
   beforeAll(() => {
     if (process.platform !== 'win32') {
@@ -46,6 +45,7 @@ describe('Create repository (1)', () => {
   });
 
   test('open(): Try to create a new repository on a readonly filesystem.', async () => {
+    const dbName = './test_repos01_1';
     // Windows does not support permission option of fs.mkdir().
     if (process.platform === 'win32') {
       console.warn(`You must create ${readonlyDir} directory by hand, click [disable inheritance] button, and remove write permission of Authenticated Users.`);
@@ -60,26 +60,16 @@ describe('Create repository (1)', () => {
     // You don't have permission
     await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotCreateDirectoryError);
   });
-});
 
-describe('Create repository (2)', () => {
-  const localDir = './test/database01_2';
-  const dbName = './test_repos01_2';
-
-  const gitDDB: GitDocumentDB = new GitDocumentDB({
-    dbName: dbName,
-    localDir: localDir
-  });
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
 
   test('open(): Create and destroy a new repository.', async () => {
+    const dbName = './test_repos01_2';
+
+    const gitDDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
     // Create db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true });
     // Destroy db
@@ -87,8 +77,20 @@ describe('Create repository (2)', () => {
     // fs.access() throw error when a file cannot be accessed.    
     await expect(fs.access(path.resolve(localDir, dbName))).rejects.toMatchObject({ name: 'Error', code: 'ENOENT' });
   });
-});
 
+
+  test('open(): Try to create a long name repository.', async () => {
+    const dbName = './0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
+    // Code must be wrapped by () => {} to test exception
+    // https://jestjs.io/docs/en/expect#tothrowerror
+    expect(() => {
+      new GitDocumentDB({
+        dbName: dbName,
+        localDir: localDir
+      });
+    }).toThrowError(InvalidWorkingDirectoryPathLengthError);
+  });
+});
 
 describe('Open, close and destroy repository', () => {
   const localDir = './test/database02_1';
