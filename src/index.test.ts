@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, InvalidKeyCharacterError, InvalidWorkingDirectoryPathLengthError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -173,12 +173,6 @@ describe('Open, close and destroy repository', () => {
 
 describe('Create document', () => {
   const localDir = './test/database03';
-  const dbName = './test_repos03';
-
-  const gitDDB: GitDocumentDB = new GitDocumentDB({
-    dbName: dbName,
-    localDir: localDir
-  });
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -188,44 +182,53 @@ describe('Create document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('put(): Create a document', async () => {
     /**
      * Repository not open
      */
 
+  test('put(): key includes invalid character.', async () => {
+    const dbName = './test_repos03_2';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
     await gitDDB.open();
-
-    /**
-     * InvalidKeyCharacter
-     */
     await expect(gitDDB.put('<test>', { id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyCharacterError);
-
-
-    /**
-     * InvalidKeyLength
-     */
-
-    /*
-     * Put a new JSON Object
-     */
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
-
-    /*
-     * Put a new text
-     */
-
-    /*
-     * Put a new binary
-     */
-
-    /**
-     * KeyNotFound
-     */
-//    await expect(gitDDB.put('test', { id: 'test', name: 'shirase' })).rejects.toBeInstanceOf(CannotWriteDataError);
-
-
     await gitDDB.destroy();
   });
+
+
+  test('put(): key length is invalid.', async () => {
+    const dbName = './test_repos03_3';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    await expect(gitDDB.put('0123456789012345678901234567890123456789012345678901234567890123456789', { id: 'test', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);
+    await expect(gitDDB.put('', { id: 'test', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);    
+    await gitDDB.destroy();
+  });
+
+  test('put(): Put a JSON Object.', async () => {
+    const dbName = './test_repos03_4';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await gitDDB.destroy();
+  });
+
+  test.todo('Put an undefined value');
+
+  test.todo('Put a new text');
+
+  test.todo('Put a new binary');
+
+  test.todo('Test CannotWriteDataError');
+
 });
 
 
