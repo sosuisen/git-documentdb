@@ -1,3 +1,3 @@
 # Git DocumentDB
 
-Offline First Document DB using Git
+Offline-first DocumentDB using Git

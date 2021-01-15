@@ -1,7 +1,7 @@
 {
   "name": "git-documentdb",
   "version": "0.1.0",
-  "description": "Offline First Document DB using Git",
+  "description": "Offline-first DocumentDB using Git",
   "main": "dist/main.js",
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc",
