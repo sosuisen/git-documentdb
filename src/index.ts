@@ -1,7 +1,7 @@
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError } from './error';
+import { CannotCreateDirectoryError, InvalidKeyCharacterError, InvalidKeyLengthError, RepositoryNotOpenError } from './error';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
@@ -128,43 +128,78 @@ export class GitDocumentDB {
     return this._currentRepository === undefined ? false : true;
   }
 
-  put = async (doc: { [key: string]: string }) => {
-    /**
-     * TODO: 可能なファイル名をチェック。
-     */
-    if (this._currentRepository === undefined) {
-      throw new Error('Repository is closed');
+  /**
+   * @throws *InvalidKeyCharacterError*
+   * @throws *InvalidKeyLengthError* 
+   */
+  validateKey = (id: string) => {
+    if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]]/) || id.match(/\.$/)) {
+      throw new InvalidKeyCharacterError();
     }
-    if (doc['id'] === undefined) {
-      throw new Error('id not exists');
+    if (id.length === 0 || id.length > 64) {
+      throw new InvalidKeyLengthError();
+    }
+  }
+
+  /**
+   * put() add a set of key and its value to the database.<br>
+   * <br>
+   * NOTE: put() does not check a write permission of your file system (unlike open()). 
+   * @param key
+   * key only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**.<br>
+   * Do not use a period at the end.<br>
+   * A length of key value must be equal to or less than 64.
+   * @param value
+   * JSON Object, text or binary data
+   * @returns
+   * Promise that returns a commit hash (40 character SHA-1 checksum)
+   * @throws *RepositoryNotOpen*
+   * @throws *InvalidKeyCharacterError*
+   * @throws *InvalidKeyLengthError* 
+   */
+  put = async (key: string, value: any) => {
+    if (this._currentRepository === undefined) {
+      throw new RepositoryNotOpenError();
+    }
+
+    try {
+      this.validateKey(key);
+    } catch (err) { throw err; }
+
+    let data = '';
+    try {
+      data = JSON.stringify(value);
+    } catch (err) {
+      // not json
+      data = value;
+    }
+
+    const filePath = path.resolve(this._workingDirectory, key);
+    await fs.writeFile(filePath, data);
+
+    const index = await this._currentRepository.refreshIndex(); // read latest index
+
+    await index.addByPath(key); // stage
+    await index.write(); // flush changes to index
+    const changes = await index.writeTree(); // get reference to a set of changes
+
+    const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+    const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+
+    // Calling nameToId() for HEAD throws error when this is first commit.
+    const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+    let commitId;
+    if (!head) {
+      // First commit
+      commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
     }
     else {
-      const filePath = path.resolve(this._workingDirectory, doc.id);
-      await fs.writeFile(filePath, JSON.stringify(doc));
-
-      const index = await this._currentRepository.refreshIndex(); // read latest index
-
-      await index.addByPath(doc.id); // stage
-      await index.write(); // flush changes to index
-      const changes = await index.writeTree(); // get reference to a set of changes
-
-      const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-      const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-      // Calling nameToId() for HEAD throws error when this is first commit.
-      const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
-      let commitId;
-      if (!head) {
-        // First commit
-        commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
-      }
-      else {
-        const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
-      }
-      // console.log(commitId.tostrS());
-      return commitId.tostrS();
+      const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
     }
+    // console.log(commitId.tostrS());
+    return commitId.tostrS();
+
   }
 
   get = async (id: string) => {
