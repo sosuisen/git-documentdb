@@ -253,15 +253,15 @@ describe('Read document', () => {
     await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     // Get
-    await expect(gitDDB.get('prof01')).toEqual({ id: 'prof01', name: 'mari' });
+    await expect(gitDDB.get('prof01')).resolves.toEqual({ id: 'prof01', name: 'mari' });
 
 
-    await gitDDB.destroy();    
+    await gitDDB.destroy();
   });
 });
 
 
-describe('Update a document', () => {
+describe('Update document', () => {
   const localDir = './test/database06';
   const dbName = './test_repos06';
 
@@ -285,15 +285,14 @@ describe('Update a document', () => {
     await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     // Update
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'mari' })).toEqual({ id: 'prof01', name: 'mari' });
-  
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'mari' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
-    await gitDDB.destroy();    
+    await gitDDB.destroy();
   });
 });
 
 
-describe('Delete a document', () => {
+describe('Delete document', () => {
   const localDir = './test/database07';
   const dbName = './test_repos07';
 
@@ -317,7 +316,7 @@ describe('Delete a document', () => {
     await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     // Delete
-    await expect(gitDDB.delete('prof01')).toEqual({ id: 'prof01', name: 'mari' });
+    await expect(gitDDB.delete('prof01')).resolves.toEqual({ id: 'prof01', name: 'mari' });
   });
 
 });
