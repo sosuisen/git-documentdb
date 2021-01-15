@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc",
-    "test": "jest",
+    "test": "npm run lint && jest",
     "doc": "npx typedoc --out docs --exclude src/*test.ts src",
     "lint": "eslint --fix --ext .ts"
   },
