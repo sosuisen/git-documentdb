@@ -30,8 +30,8 @@ const repositoryInitOptionFlags = {
 
 describe('Create repository (1)', () => {
   const readonlyDir = './test/readonly/';
-  const localDir = './test/database01';
-  const dbName = './test_repos01';
+  const localDir = './test/database01_1';
+  const dbName = './test_repos01_';
 
   beforeAll(() => {
     if (process.platform !== 'win32') {
@@ -63,8 +63,8 @@ describe('Create repository (1)', () => {
 });
 
 describe('Create repository (2)', () => {
-  const localDir = './test/database02';
-  const dbName = './test_repos02';
+  const localDir = './test/database01_2';
+  const dbName = './test_repos01_2';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
@@ -95,10 +95,10 @@ describe('Create repository (2)', () => {
 
 
 describe('Open, close and destroy repository', () => {
-  const localDir = './test/database03';
-  const dbName = './test_repos03';
+  const localDir = './test/database02_1';
+  let dbName = './test_repos02_1';
 
-  const gitDDB: GitDocumentDB = new GitDocumentDB({
+  let gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
     localDir: localDir
   });
@@ -128,10 +128,10 @@ describe('Open, close and destroy repository', () => {
   });
 
 
-  test('open(): Open a repository created by another app', async () => {
-    const dbNameA = 'test_repos03A';
-    const gitDDB_A: GitDocumentDB = new GitDocumentDB({
-      dbName: dbNameA,
+  test('open(): Open a repository created by another app.', async () => {
+    dbName = 'test_repos02_2';
+    gitDDB = new GitDocumentDB({
+      dbName: dbName,
       localDir: localDir
     });
     const optionsA: RepositoryInitOptions = {
@@ -145,15 +145,15 @@ describe('Open, close and destroy repository', () => {
     await nodegit.Repository.initExt(path.resolve(localDir, dbNameA), optionsA).catch(err => { throw new Error(err) });
     gitDDB.close();
 
-    await expect(gitDDB_A.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: false, isValidVersion: false });
-    await gitDDB_A.destroy();
+    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: false, isValidVersion: false });
+    await gitDDB.destroy();
   });
 
 
-  test('open(): Open a repository created by another version', async () => {
-    const dbNameB = 'test_repos03B';
-    const gitDDB_B: GitDocumentDB = new GitDocumentDB({
-      dbName: dbNameB,
+  test('open(): Open a repository created by another version.', async () => {
+    dbName = 'test_repos02_3';
+    gitDDB = new GitDocumentDB({
+      dbName: dbName,
       localDir: localDir
     });
     const optionsB: RepositoryInitOptions = {
@@ -167,15 +167,15 @@ describe('Open, close and destroy repository', () => {
     await nodegit.Repository.initExt(path.resolve(localDir, dbNameB), optionsB).catch(err => { throw new Error(err) });
     gitDDB.close();
 
-    await expect(gitDDB_B.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: true, isValidVersion: false });
-    await gitDDB_B.destroy();
+    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: true, isValidVersion: false });
+    await gitDDB.destroy();
   });  
 });
 
 
 describe('Create a document', () => {
-  const localDir = './test/database04';
-  const dbName = './test_repos04';
+  const localDir = './test/database03';
+  const dbName = './test_repos03';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
