@@ -79,7 +79,11 @@ describe('Create repository (2)', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('open(): Create a new repository', async () => {
+  test('open(): Create and destroy a new repository', async () => {
+    /**
+     * TODO: check length
+     */
+
     // Create db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true });
     // Destroy db
@@ -187,17 +191,36 @@ describe('Create a document', () => {
   });
 
   test('put(): Create a document', async () => {
+    /**
+     * Repository not open
+     */
+
     await gitDDB.open();
 
-    // Create
-    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
-
-    // Available id [a-zA-Z0-9] _ - ( ) .（ただしピリオドはファイル名末尾には使用不可）
+    /**
+     * KeyNotFound
+     */
     await expect(gitDDB.put({ id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(CannotWriteDataError);
 
-     /**
-     * TODO
-     * - readonly の書き込みエラーのチェック    
+    /**
+     * InvalidKeyCharacter
+     */
+
+    /**
+     * InvalidKeyLength
+     */
+
+    /*
+     * Put a new JSON Object
+     */
+    await expect(gitDDB.put({ id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+
+    /*
+     * Put a new text
+     */
+
+    /*
+     * Put a new binary
      */
 
 
