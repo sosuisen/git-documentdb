@@ -2,6 +2,7 @@ import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
 import { CannotCreateDirectoryError, InvalidKeyCharacterError, InvalidKeyLengthError, RepositoryNotOpenError } from './error';
+import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH} from './const';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
