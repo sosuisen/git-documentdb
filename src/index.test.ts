@@ -182,9 +182,15 @@ describe('Create document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-    /**
-     * Repository not open
-     */
+  test('put(): Repository is not opened.', async () => {
+    const dbName = './test_repos03_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).rejects.toThrowError(RepositoryNotOpenError);
+    await gitDDB.destroy();
+  });
 
   test('put(): key includes invalid character.', async () => {
     const dbName = './test_repos03_2';
