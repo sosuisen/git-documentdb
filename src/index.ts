@@ -222,12 +222,12 @@ export class GitDocumentDB {
   get = async (id: string) => {
     const doc = { id: 'prof01', name: 'mari' };
 
-    return doc;
+    return Promise.resolve(doc);
   };
 
   delete = async (id: string) => {
     const doc = { id: 'prof01', name: 'mari' };
-    return doc;
+    return Promise.resolve(doc);
   };
 
   close = () => {
