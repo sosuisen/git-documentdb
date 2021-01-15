@@ -1,7 +1,7 @@
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, InvalidKeyCharacterError, InvalidKeyLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH} from './const';
 
 const gitAuthor = {
@@ -57,7 +57,8 @@ export class GitDocumentDB {
    *  dbName: &lt;Name of a git repository&gt;
    *}
    *</pre>
-   *  The path to the git working directory will be localDir/dbName.
+   *  The git working directory will be localDir/dbName.<br>
+   *  The length of the working directory path must be equal to or lesser than MAX_LENGTH_OF_WORKING_DIRECTORY_PAT(195).
    *  <br><br>
    *  GitDocumentDB can load a git repository that is not created by git-documentdb module,
    *  however correct behavior is not guaranteed.
@@ -65,6 +66,9 @@ export class GitDocumentDB {
   constructor(_option: dbOption) {
     this._initOptions = _option;
     this._workingDirectory = path.resolve(this._initOptions.localDir, this._initOptions.dbName);
+    if(this._workingDirectory.length === 0 || this._workingDirectory.length > MAX_LENGTH_OF_WORKING_DIRECTORY_PATH){
+      throw new InvalidWorkingDirectoryPathLengthError();
+    }
   }
 
 
