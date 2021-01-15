@@ -2,7 +2,7 @@ import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
 import { CannotCreateDirectoryError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
-import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH} from './const';
+import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
@@ -66,8 +66,9 @@ export class GitDocumentDB {
    */
   constructor(_option: dbOption) {
     this._initOptions = _option;
+    // Get full-path
     this._workingDirectory = path.resolve(this._initOptions.localDir, this._initOptions.dbName);
-    if(this._workingDirectory.length === 0 || this._workingDirectory.length > MAX_LENGTH_OF_WORKING_DIRECTORY_PATH){
+    if (this._workingDirectory.length === 0 || this._workingDirectory.length > MAX_LENGTH_OF_WORKING_DIRECTORY_PATH) {
       throw new InvalidWorkingDirectoryPathLengthError();
     }
   }
