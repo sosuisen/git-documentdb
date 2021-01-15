@@ -1,3 +1,5 @@
+import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
+
 class BaseError extends Error {
   constructor(e?: string) {
     super(e);
@@ -18,3 +20,8 @@ export class CannotWriteDataError extends BaseError {
   }
 }
 
+export class InvalidWorkingDirectoryPathLengthError extends BaseError {
+  constructor(e = `Invalid path length: A length of working directory path must be equal to or less than ${MAX_LENGTH_OF_WORKING_DIRECTORY_PATH}.`) {
+    super(e);
+  }
+}
