@@ -132,7 +132,7 @@ describe('Open, close and destroy repository', () => {
       dbName: dbName,
       localDir: localDir
     });
-    const optionsA: RepositoryInitOptions = {
+    const options: RepositoryInitOptions = {
       description: 'another app',
       flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
       initialHead: 'main'
@@ -140,7 +140,7 @@ describe('Open, close and destroy repository', () => {
     // Create git repository with invalid description
     await fs.ensureDir(localDir);
     // @ts-ignore
-    await nodegit.Repository.initExt(path.resolve(localDir, dbNameA), optionsA).catch(err => { throw new Error(err) });
+    await nodegit.Repository.initExt(path.resolve(localDir, dbName), options).catch(err => { throw new Error(err) });
     gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: false, isValidVersion: false });
@@ -154,7 +154,7 @@ describe('Open, close and destroy repository', () => {
       dbName: dbName,
       localDir: localDir
     });
-    const optionsB: RepositoryInitOptions = {
+    const options: RepositoryInitOptions = {
       description: 'GitDocumentDB: 0.1',
       flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
       initialHead: 'main'
@@ -162,16 +162,16 @@ describe('Open, close and destroy repository', () => {
     // Create git repository with invalid description
     await fs.ensureDir(localDir);
     // @ts-ignore
-    await nodegit.Repository.initExt(path.resolve(localDir, dbNameB), optionsB).catch(err => { throw new Error(err) });
+    await nodegit.Repository.initExt(path.resolve(localDir, dbName), options).catch(err => { throw new Error(err) });
     gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: true, isValidVersion: false });
     await gitDDB.destroy();
-  });  
+  });
 });
 
 
-describe('Create a document', () => {
+describe('Create document', () => {
   const localDir = './test/database03';
   const dbName = './test_repos03';
 
@@ -221,13 +221,18 @@ describe('Create a document', () => {
      * Put a new binary
      */
 
+    /**
+     * KeyNotFound
+     */
+//    await expect(gitDDB.put('test', { id: 'test', name: 'shirase' })).rejects.toBeInstanceOf(CannotWriteDataError);
+
 
     await gitDDB.destroy();
   });
 });
-    
 
-describe('Read a document', () => {
+
+describe('Read document', () => {
   const localDir = './test/database05';
   const dbName = './test_repos05';
 
