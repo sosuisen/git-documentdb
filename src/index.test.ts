@@ -45,7 +45,7 @@ describe('Create repository (1)', () => {
     }
   });
 
-  test('open(): Create a new repository', async () => {
+  test('open(): Try to create a new repository on a readonly filesystem.', async () => {
     // Windows does not support permission option of fs.mkdir().
     if (process.platform === 'win32') {
       console.warn(`You must create ${readonlyDir} directory by hand, click [disable inheritance] button, and remove write permission of Authenticated Users.`);
@@ -79,11 +79,7 @@ describe('Create repository (2)', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('open(): Create and destroy a new repository', async () => {
-    /**
-     * TODO: check length
-     */
-
+  test('open(): Create and destroy a new repository.', async () => {
     // Create db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true });
     // Destroy db
@@ -111,7 +107,7 @@ describe('Open, close and destroy repository', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('open(), close() and destroy(): Open an existing repository', async () => {
+  test('open(), close() and destroy(): Open an existing repository.', async () => {
     // Create db
     await gitDDB.open();
 
