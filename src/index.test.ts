@@ -196,13 +196,10 @@ describe('Create document', () => {
     await gitDDB.open();
 
     /**
-     * KeyNotFound
-     */
-    await expect(gitDDB.put('<test>', { id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(CannotWriteDataError);
-
-    /**
      * InvalidKeyCharacter
      */
+    await expect(gitDDB.put('<test>', { id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyCharacterError);
+
 
     /**
      * InvalidKeyLength
