@@ -62,6 +62,7 @@ export class GitDocumentDB {
    *  <br><br>
    *  GitDocumentDB can load a git repository that is not created by git-documentdb module,
    *  however correct behavior is not guaranteed.
+   * @throws *InvalidWorkingDirectoryPathLengthError*
    */
   constructor(_option: dbOption) {
     this._initOptions = _option;
