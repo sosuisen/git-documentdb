@@ -1,7 +1,7 @@
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
 
 const gitAuthor = {
@@ -168,6 +168,7 @@ export class GitDocumentDB {
    * @throws *RepositoryNotOpen*
    * @throws *InvalidKeyCharacterError*
    * @throws *InvalidKeyLengthError* 
+   * @throws *CannotWriteData*
    */
   put = async (key: string, value: any) => {
     if (this._currentRepository === undefined) {
@@ -185,29 +186,33 @@ export class GitDocumentDB {
       // not json
       data = value;
     }
-
-    const filePath = path.resolve(this._workingDirectory, key);
-    await fs.writeFile(filePath, data);
-
-    const index = await this._currentRepository.refreshIndex(); // read latest index
-
-    await index.addByPath(key); // stage
-    await index.write(); // flush changes to index
-    const changes = await index.writeTree(); // get reference to a set of changes
-
-    const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-    const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-    // Calling nameToId() for HEAD throws error when this is first commit.
-    const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+    
     let commitId;
-    if (!head) {
-      // First commit
-      commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
-    }
-    else {
-      const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+    try {
+      const filePath = path.resolve(this._workingDirectory, key);
+      await fs.writeFile(filePath, data);
+
+      const index = await this._currentRepository.refreshIndex(); // read latest index
+
+      await index.addByPath(key); // stage
+      await index.write(); // flush changes to index
+      const changes = await index.writeTree(); // get reference to a set of changes
+
+      const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+      const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+
+      // Calling nameToId() for HEAD throws error when this is first commit.
+      const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+      if (!head) {
+        // First commit
+        commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
+      }
+      else {
+        const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+        commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+      }
+    } catch (err) {
+      throw new CannotWriteDataError(err.message);
     }
     // console.log(commitId.tostrS());
     return commitId.tostrS();
