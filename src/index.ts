@@ -146,7 +146,7 @@ export class GitDocumentDB {
     if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]]/) || id.match(/\.$/)) {
       throw new InvalidKeyCharacterError();
     }
-    if (id.length === 0 || id.length > 64) {
+    if (id.length === 0 || id.length > MAX_LENGTH_OF_KEY) {
       throw new InvalidKeyLengthError();
     }
   }
@@ -158,7 +158,7 @@ export class GitDocumentDB {
    * @param key
    * key only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**.<br>
    * Do not use a period at the end.<br>
-   * A length of key value must be equal to or less than 64.
+   * A length of key value must be equal to or less than MAX_LENGTH_OF_KEY(64).
    * @param value
    * JSON Object, text or binary data
    * @returns
