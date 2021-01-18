@@ -238,13 +238,49 @@ export class GitDocumentDB {
 
   }
 
-  get = async (id: string) => {
-    const doc = { _id: 'prof01', name: 'mari' };
+  /**
+   * 
+   * @param _id 
+   * @throw *RepositoryNotOpenError*
+   * @throw *DocumentIdNotFoundError* 
+   * @throw *DocumentNotFoundError*
+   * @throw *InvalidJsonObjectError*
+   */
+  get = async (_id: string) => {
+    if (this._currentRepository === undefined) {
+      throw new RepositoryNotOpenError();
+    }
 
-    return Promise.resolve(doc);
+    if (_id === undefined) {
+      throw new DocumentIdNotFoundError();
+    }
+
+    // Calling nameToId() for HEAD throws error when this is first commit.
+    const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+    let document;
+    if (!head) {
+      throw new DocumentNotFoundError();
+    }
+    else {
+      const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      const entry = await commit.getEntry(_id);
+      if (entry) {
+        const blob = await entry.getBlob();
+        try {
+          document = JSON.parse(blob.toString());
+          document['_id'] = _id;
+        } catch (e) {
+          throw new InvalidJsonObjectError();
+        }
+      }
+      else {
+        throw new DocumentNotFoundError();
+      }
+    }
+    return document;
   };
 
-  delete = async (id: string) => {
+  delete = async (_id: string) => {
     const doc = { _id: 'prof01', name: 'mari' };
     return Promise.resolve(doc);
   };
