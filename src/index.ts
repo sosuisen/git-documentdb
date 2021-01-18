@@ -1,7 +1,7 @@
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, DocumentIdNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, DocumentIdNotFoundError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
 
 const gitAuthor = {
@@ -168,11 +168,13 @@ export class GitDocumentDB {
    * @returns
    * Promise that returns a commit hash (40 character SHA-1 checksum)
    * @throws *RepositoryNotOpen*
+   * @throws *InvalidJsonObjectError*
+   * @throws *DocumentIdNotFoundError*
    * @throws *InvalidKeyCharacterError*
    * @throws *InvalidKeyLengthError* 
-   * @throws *CannotWriteData*
+   * @throws *CannotWriteDataError*
    */
-  put = async (document:{[key: string]: string}) => {
+  put = async (document: { [key: string]: string }) => {
     if (this._currentRepository === undefined) {
       throw new RepositoryNotOpenError();
     }
@@ -198,7 +200,7 @@ export class GitDocumentDB {
       // not json
       throw new InvalidJsonObjectError();
     }
-    
+
     let file_sha, commit_sha: string;
     try {
       const filePath = path.resolve(this._workingDirectory, key);
