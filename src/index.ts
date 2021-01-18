@@ -266,7 +266,7 @@ export class GitDocumentDB {
     }
     else {
       const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      const entry = await commit.getEntry(_id);
+      const entry = await commit.getEntry(_id).catch(err => { throw new DocumentNotFoundError(err.message)});
       if (entry) {
         const blob = await entry.getBlob();
         try {
