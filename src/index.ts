@@ -148,7 +148,7 @@ export class GitDocumentDB {
    * @throws *InvalidKeyLengthError* 
    */
   validateKey = (id: string) => {
-    if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]]/) || id.match(/\.$/)) {
+    if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]\/]/) || id.match(/\.$/)) {
       throw new InvalidKeyCharacterError();
     }
     if (id.length === 0 || id.length > MAX_LENGTH_OF_KEY) {
@@ -162,7 +162,7 @@ export class GitDocumentDB {
    * NOTE: put() does not check a write permission of your file system (unlike open()).
    * @param document
    * A document must be a JSON Object that matches the following conditions:<br>
-   * It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**.<br>
+   * It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.<br>
    * Do not use a period at the end of an '_id' value.<br>
    * A length of an '_id' value must be equal to or less than MAX_LENGTH_OF_KEY(64).
    * @returns
@@ -173,6 +173,7 @@ export class GitDocumentDB {
    * @throws *InvalidKeyCharacterError*
    * @throws *InvalidKeyLengthError* 
    * @throws *CannotWriteDataError*
+   * @throws *CannotCreateDirectoryError*
    */
   put = async (document: { [key: string]: string }) => {
     if (this._currentRepository === undefined) {
@@ -204,6 +205,8 @@ export class GitDocumentDB {
     let file_sha, commit_sha: string;
     try {
       const filePath = path.resolve(this._workingDirectory, key);
+      const dir = path.dirname(filePath);
+      await fs.ensureDir(dir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
       await fs.writeFile(filePath, data);
 
       const index = await this._currentRepository.refreshIndex(); // read latest index
