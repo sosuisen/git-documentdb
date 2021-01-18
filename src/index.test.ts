@@ -58,7 +58,7 @@ describe('Create repository', () => {
       localDir: readonlyDir + 'database'
     });
     // You don't have permission
-    await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotCreateDirectoryError);
+    await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
   });
 
 
@@ -91,6 +91,7 @@ describe('Create repository', () => {
     }).toThrowError(InvalidWorkingDirectoryPathLengthError);
   });
 });
+
 
 describe('Open, close and destroy repository', () => {
   const localDir = './test/database02_1';
@@ -225,7 +226,7 @@ describe('Create document', () => {
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyCharacterError);
+    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(InvalidKeyCharacterError);
     await gitDDB.destroy();
   });
 
@@ -237,8 +238,8 @@ describe('Create document', () => {
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: '0123456789012345678901234567890123456789012345678901234567890123456789', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);
-    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);
+    await expect(gitDDB.put({ _id: '0123456789012345678901234567890123456789012345678901234567890123456789', name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
+    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
     await gitDDB.destroy();
   });
 
