@@ -262,6 +262,25 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
+
+  test('put(): Put a JSON Object into subdirectory.', async () => {
+    const dbName = './test_repos03_7';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    const _id = 'dir01/prof01';
+    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject(
+      {
+        _id: expect.stringContaining(_id),
+        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
+      }
+    );
+    await gitDDB.destroy();
+  });
+
   test.todo('Check whether _id property is excluded from the repository document')
 
   test.todo('Put a new text');
@@ -275,12 +294,6 @@ describe('Create document', () => {
 
 describe('Read document', () => {
   const localDir = './test/database05';
-  const dbName = './test_repos05';
-
-  const gitDDB: GitDocumentDB = new GitDocumentDB({
-    dbName: dbName,
-    localDir: localDir
-  });
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -291,13 +304,33 @@ describe('Read document', () => {
   });
 
   test('get(): Read an existing document', async () => {
+    const dbName = './test_repos05_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
     await gitDDB.open();
-    await gitDDB.put({ _id: 'prof01', name: 'shirase' });
-
+    const _id = 'prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
-    await expect(gitDDB.get('prof01')).resolves.toEqual({ _id: 'prof01', name: 'shirase' });
+    await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
+    await gitDDB.destroy();
+  });
 
 
+  test('get(): Read an existing document in subdirectory', async () => {
+    const dbName = './test_repos05_2';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
+    await gitDDB.open();
+    const _id = 'dir01/prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
+    // Get
+    await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
     await gitDDB.destroy();
   });
 
