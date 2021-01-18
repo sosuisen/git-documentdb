@@ -38,6 +38,18 @@ export class InvalidKeyLengthError extends BaseError {
   }
 }
 
+export class InvalidJsonObjectError extends BaseError {
+  constructor(e = `Invalid JSON object`) {
+    super(e);
+  }
+}
+
+export class DocumentIdNotFoundError extends BaseError {
+  constructor(e = `Document id not found: A document must have an '_id' key`) {
+    super(e);
+  }
+}
+
 export class RepositoryNotOpenError extends BaseError {
   constructor(e = 'Repository not opened') {
     super(e);

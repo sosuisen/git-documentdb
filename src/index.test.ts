@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, DocumentIdNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -188,46 +188,73 @@ describe('Create document', () => {
       dbName: dbName,
       localDir: localDir
     });
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB.put({ _id: 'prof01', name: 'shirase' })).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
-  test('put(): key includes invalid character.', async () => {
+
+  test('put(): Put an undefined value', async () => {
     const dbName = './test_repos03_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put('<test>', { id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyCharacterError);
+    // @ts-ignore
+    await expect(gitDDB.put(undefined)).rejects.toThrowError(InvalidJsonObjectError);
     await gitDDB.destroy();
   });
 
 
-  test('put(): key length is invalid.', async () => {
+  test('put(): An _id is not found.', async () => {
     const dbName = './test_repos03_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put('0123456789012345678901234567890123456789012345678901234567890123456789', { id: 'test', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);
-    await expect(gitDDB.put('', { id: 'test', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);    
+    await expect(gitDDB.put({ name: 'shirase' })).rejects.toThrowError(DocumentIdNotFoundError);
     await gitDDB.destroy();
   });
 
-  test('put(): Put a JSON Object.', async () => {
+
+  test('put(): key includes invalid character.', async () => {
     const dbName = './test_repos03_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyCharacterError);
     await gitDDB.destroy();
   });
 
-  test.todo('Put an undefined value');
+
+  test('put(): key length is invalid.', async () => {
+    const dbName = './test_repos03_5';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    await expect(gitDDB.put({ _id: '0123456789012345678901234567890123456789012345678901234567890123456789', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);
+    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toBeInstanceOf(InvalidKeyLengthError);
+    await gitDDB.destroy();
+  });
+
+
+  test('put(): Put a JSON Object.', async () => {
+    const dbName = './test_repos03_6';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    await expect(gitDDB.put({ _id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await gitDDB.destroy();
+  });
+
+
 
   test.todo('Put a new text');
 
@@ -257,10 +284,10 @@ describe('Read document', () => {
 
   test('get(): Read an existing document', async () => {
     await gitDDB.open();
-    await gitDDB.put('prof01', { id: 'prof01', name: 'shirase' });
+    await gitDDB.put({ _id: 'prof01', name: 'shirase' });
 
     // Get
-    await expect(gitDDB.get('prof01')).resolves.toEqual({ id: 'prof01', name: 'mari' });
+    await expect(gitDDB.get('prof01')).resolves.toEqual({ _id: 'prof01', name: 'mari' });
 
 
     await gitDDB.destroy();
@@ -287,10 +314,10 @@ describe('Update document', () => {
 
   test('put(): Update a existing document', async () => {
     await gitDDB.open();
-    await gitDDB.put('prof01', { id: 'prof01', name: 'shirase' });
+    await gitDDB.put({ _id: 'prof01', name: 'shirase' });
 
     // Update
-    await expect(gitDDB.put('prof01', { id: 'prof01', name: 'mari' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    await expect(gitDDB.put({ _id: 'prof01', name: 'mari' })).resolves.toMatch(/^[a-z0-9]{40}$/);
 
     await gitDDB.destroy();
   });
@@ -317,10 +344,10 @@ describe('Delete document', () => {
   test('delete()', async () => {
     await gitDDB.open();
 
-    await gitDDB.put('prof01', { id: 'prof01', name: 'shirase' });
+    await gitDDB.put({ _id: 'prof01', name: 'shirase' });
 
     // Delete
-    await expect(gitDDB.delete('prof01')).resolves.toEqual({ id: 'prof01', name: 'mari' });
+    await expect(gitDDB.delete('prof01')).resolves.toEqual({ _id: 'prof01', name: 'mari' });
   });
 
 });
