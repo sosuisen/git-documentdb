@@ -192,7 +192,7 @@ export class GitDocumentDB {
       this.validateKey(document._id);
     } catch (err) { throw err; }
 
-    const key = document._id;
+    const _id = document._id;
     let data = '';
     try {
       delete document.id;
@@ -204,18 +204,18 @@ export class GitDocumentDB {
 
     let file_sha, commit_sha: string;
     try {
-      const filePath = path.resolve(this._workingDirectory, key);
+      const filePath = path.resolve(this._workingDirectory, _id);
       const dir = path.dirname(filePath);
       await fs.ensureDir(dir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
       await fs.writeFile(filePath, data);
 
       const index = await this._currentRepository.refreshIndex(); // read latest index
 
-      await index.addByPath(key); // stage
+      await index.addByPath(_id); // stage
       await index.write(); // flush changes to index
       const changes = await index.writeTree(); // get reference to a set of changes
 
-      const entry = index.getByPath(key, 0); // https://www.nodegit.org/api/index/#STAGE
+      const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
       file_sha = entry.id.tostrS();
 
       const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
@@ -237,7 +237,7 @@ export class GitDocumentDB {
       throw new CannotWriteDataError(err.message);
     }
     // console.log(commitId.tostrS());
-    return { _id: key, file_sha: file_sha, commit_sha: commit_sha };
+    return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
 
   }
 
