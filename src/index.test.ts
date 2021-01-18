@@ -233,7 +233,7 @@ describe('Create document', () => {
 
   test.todo('Put a new binary');
 
-  test.todo('Test CannotWriteDataError');
+  test.todo('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
 
 });
 
