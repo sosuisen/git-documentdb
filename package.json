@@ -7,7 +7,8 @@
     "build": "rm -rf dist/* && npm run lint && tsc",
     "test": "npm run lint && jest",
     "doc": "npx typedoc --out docs --exclude src/*test.ts src",
-    "lint": "eslint --fix --ext .ts"
+    "lint": "eslint --fix --ext .ts",
+    "prepublishOnly": "npm run build"    
   },
   "repository": {
     "type": "git",
