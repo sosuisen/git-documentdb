@@ -199,7 +199,7 @@ export class GitDocumentDB {
       throw new InvalidJsonObjectError();
     }
     
-    let commitId;
+    let file_sha, commit_sha: string;
     try {
       const filePath = path.resolve(this._workingDirectory, key);
       await fs.writeFile(filePath, data);
@@ -210,24 +210,29 @@ export class GitDocumentDB {
       await index.write(); // flush changes to index
       const changes = await index.writeTree(); // get reference to a set of changes
 
+      const entry = index.getByPath(key, 0); // https://www.nodegit.org/api/index/#STAGE
+      file_sha = entry.id.tostrS();
+
       const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
       const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
 
       // Calling nameToId() for HEAD throws error when this is first commit.
       const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+      let commit;
       if (!head) {
         // First commit
-        commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
+        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
       }
       else {
         const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        commitId = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
       }
+      commit_sha = commit.tostrS();
     } catch (err) {
       throw new CannotWriteDataError(err.message);
     }
     // console.log(commitId.tostrS());
-    return commitId.tostrS();
+    return { _id: key, file_sha: file_sha, commit_sha: commit_sha };
 
   }
 

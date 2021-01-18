@@ -251,7 +251,14 @@ describe('Create document', () => {
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: 'prof01', name: 'shirase' })).resolves.toMatch(/^[a-z0-9]{40}$/);
+    const _id = 'prof01';
+    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject(
+      {
+        _id: expect.stringContaining(_id),
+        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
+      }
+    );
     await gitDDB.destroy();
   });
 
@@ -318,8 +325,14 @@ describe('Update document', () => {
     await gitDDB.put({ _id: 'prof01', name: 'shirase' });
 
     // Update
-    await expect(gitDDB.put({ _id: 'prof01', name: 'mari' })).resolves.toMatch(/^[a-z0-9]{40}$/);
-
+    const _id = 'prof01';
+    await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject(
+      {
+        _id: expect.stringContaining(_id),
+        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
+      }
+    );
     await gitDDB.destroy();
   });
 });
