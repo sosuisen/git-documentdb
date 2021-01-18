@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -397,11 +397,19 @@ describe('Delete document', () => {
 
   test('delete()', async () => {
     await gitDDB.open();
-
-    await gitDDB.put({ _id: 'prof01', name: 'shirase' });
-
+    const _id = 'prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
     // Delete
-    await expect(gitDDB.delete('prof01')).resolves.toEqual({ _id: 'prof01', name: 'mari' });
+    await expect(gitDDB.delete(_id)).resolves.toMatchObject(
+      {
+        _id: expect.stringContaining(_id),
+        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
+      }
+    );
+    await expect(gitDDB.get(_id)).rejects.toThrowError(DocumentNotFoundError);
+
+    await gitDDB.destroy();
   });
 
 });

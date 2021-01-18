@@ -1,7 +1,7 @@
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError } from './error';
 import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
 
 const gitAuthor = {
@@ -276,16 +276,65 @@ export class GitDocumentDB {
           throw new InvalidJsonObjectError();
         }
       }
-      else {
-        throw new DocumentNotFoundError();
-      }
     }
     return document;
   };
 
+  /**
+   * 
+   * @param _id 
+   * @throws **RepositoryNotOpenError**
+   * @throws **DocumentIdNotFoundError**
+   */
   delete = async (_id: string) => {
-    const doc = { _id: 'prof01', name: 'mari' };
-    return Promise.resolve(doc);
+    if (this._currentRepository === undefined) {
+      throw new RepositoryNotOpenError();
+    }
+
+    if (_id === undefined) {
+      throw new UndefinedDocumentIdError();
+    }
+
+    let file_sha, commit_sha: string;
+
+    let index;
+    try {
+      index = await this._currentRepository.refreshIndex();
+
+      const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
+      if (entry === undefined) {
+        throw new DocumentNotFoundError();
+      }
+      file_sha = entry.id.tostrS();
+
+      await index.removeByPath(_id); // stage
+      await index.write(); // flush changes to index
+    } catch (err) { throw new CannotDeleteDataError(err.message) }
+
+
+    try {
+      const changes = await index.writeTree(); // get reference to a set of changes
+
+      const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+      const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+
+      // Calling nameToId() for HEAD throws error when this is first commit.
+      const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+      let commit;
+      if (!head) {
+        // First commit
+        throw new DocumentNotFoundError();
+      }
+      else {
+        const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+      }
+      commit_sha = commit.tostrS();
+    } catch (err) {
+      throw new CannotDeleteDataError(err.message);
+    }
+
+    return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
   };
 
   close = () => {
