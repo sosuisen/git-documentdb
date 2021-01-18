@@ -73,6 +73,9 @@ export class GitDocumentDB {
     }
   }
 
+  workingDir = () => {
+    return this._workingDirectory;
+  }
 
   /**
    * Create a repository or open an existing one.
