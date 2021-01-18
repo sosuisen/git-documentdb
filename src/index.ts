@@ -1,7 +1,7 @@
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, DocumentIdNotFoundError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
 
 const gitAuthor = {
@@ -185,7 +185,7 @@ export class GitDocumentDB {
     }
 
     if (document['_id'] === undefined) {
-      throw new DocumentIdNotFoundError();
+      throw new UndefinedDocumentIdError();
     }
 
     try {
@@ -255,7 +255,7 @@ export class GitDocumentDB {
     }
 
     if (_id === undefined) {
-      throw new DocumentIdNotFoundError();
+      throw new UndefinedDocumentIdError();
     }
 
     // Calling nameToId() for HEAD throws error when this is first commit.
