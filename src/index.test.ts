@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, DocumentIdNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -214,7 +214,7 @@ describe('Create document', () => {
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ name: 'shirase' })).rejects.toThrowError(DocumentIdNotFoundError);
+    await expect(gitDDB.put({ name: 'shirase' })).rejects.toThrowError(UndefinedDocumentIdError);
     await gitDDB.destroy();
   });
 

@@ -44,8 +44,8 @@ export class InvalidJsonObjectError extends BaseError {
   }
 }
 
-export class DocumentIdNotFoundError extends BaseError {
-  constructor(e = `Document id not found: A document must have an '_id' key`) {
+export class UndefinedDocumentIdError extends BaseError {
+  constructor(e = `Document id is undefined: A document must have an '_id' key`) {
     super(e);
   }
 }
