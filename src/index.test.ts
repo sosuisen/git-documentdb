@@ -262,7 +262,7 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-
+  test.todo('Check whether _id property is excluded from the repository document')
 
   test.todo('Put a new text');
 
@@ -295,11 +295,16 @@ describe('Read document', () => {
     await gitDDB.put({ _id: 'prof01', name: 'shirase' });
 
     // Get
-    await expect(gitDDB.get('prof01')).resolves.toEqual({ _id: 'prof01', name: 'mari' });
+    await expect(gitDDB.get('prof01')).resolves.toEqual({ _id: 'prof01', name: 'shirase' });
 
 
     await gitDDB.destroy();
   });
+
+  test.todo('Check RepositoryNotOpenError.');
+  test.todo('Check whether a document does not exist when the database is empty.');
+  test.todo('Check whether a document does not exists when it has not been put yet.');
+  test.todo('Check InvalidJsonObjectError.');  
 });
 
 
@@ -322,10 +327,9 @@ describe('Update document', () => {
 
   test('put(): Update a existing document', async () => {
     await gitDDB.open();
-    await gitDDB.put({ _id: 'prof01', name: 'shirase' });
-
+    const _id = 'prof01';    
+    await gitDDB.put({ _id: _id, name: 'shirase' });
     // Update
-    const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject(
       {
         _id: expect.stringContaining(_id),
@@ -333,6 +337,9 @@ describe('Update document', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
     );
+    // Get
+    await expect(gitDDB.get('prof01')).resolves.toEqual({ _id: 'prof01', name: 'mari' });
+
     await gitDDB.destroy();
   });
 });

@@ -56,4 +56,9 @@ export class RepositoryNotOpenError extends BaseError {
   }
 }
 
+export class DocumentNotFoundError extends BaseError {
+  constructor(e = 'Document not found') {
+    super(e);
+  }
+}
 
