@@ -168,6 +168,7 @@ export class GitDocumentDB {
     }
   }
 
+
   /**
    * put() add a set of key and its value to the database.<br>
    * <br>
@@ -378,7 +379,7 @@ export class GitDocumentDB {
    * - **directory: string** Only get the documents under the specified sub directory. 
    * - **recursive: boolean** Get documents recursively from all sub directories. Default is false.
    */
-  allDocs = async (options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: DocumentInBatch[]}> => {
+  allDocs = async (options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: DocumentInBatch[] }> => {
     if (this._currentRepository === undefined) {
       throw new RepositoryNotOpenError();
     }
@@ -401,9 +402,7 @@ export class GitDocumentDB {
       if (options?.directory) {
         const specifiedTreeEntry = await tree.getEntry(options?.directory);
         if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
-          console.dir('isTree:' + specifiedTreeEntry.name());
           const specifiedTree = await specifiedTreeEntry.getTree();
-          console.dir('got specifiedTree');
           directories.push(specifiedTree);
         }
         else {
