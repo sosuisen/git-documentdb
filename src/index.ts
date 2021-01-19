@@ -18,6 +18,12 @@ const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
 const defaultDescription = `${databaseName}: ${databaseVersion}`;
 
+const dbInfo = {
+  isNew: false,
+  isCreatedByGitDDB: true,
+  isValidVersion: true,
+};
+
 interface RepositoryInitOptions {
   description?: string;
   initialHead?: string;
@@ -46,6 +52,12 @@ type AllDocsOptions = {
   recursive?: boolean
 };
 
+type PutResult = {
+  _id: string,
+  file_sha: string,
+  commit_sha: string
+};
+
 type DocumentInBatch = {
   _id: string,
   file_sha: string,
@@ -59,6 +71,12 @@ export class GitDocumentDB {
   private _initOptions: dbOption;
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
+
+  // @ts-ignore
+  private _atomicQueue: (() => Promise<void>)[];
+  private _isAtomicQueueWorking: boolean = false;
+  // @ts-ignore  
+  private _atomicQueueTimer: NodeJS.Timeout;
 
   /**
    * Constructor
@@ -100,14 +118,16 @@ export class GitDocumentDB {
    * The version is described in .git/description.
    */
   open = async () => {
+    if (this.isOpened()) {
+      return dbInfo;
+    }
 
     await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
 
-    const result = {
-      isNew: false,
-      isCreatedByGitDDB: true,
-      isValidVersion: true,
-    }
+    dbInfo.isNew = false;
+    dbInfo.isCreatedByGitDDB = true
+    dbInfo.isValidVersion = true;
+
     /** 
      * nodegit.Repository.open() throws an error if the specified repository does not exist.
      * open() also throws an error if the path is invalid or not writable, 
@@ -121,7 +141,7 @@ export class GitDocumentDB {
         flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
         initialHead: 'main',
       };
-      result.isNew = true;
+      dbInfo.isNew = true;
       // @ts-ignore
       return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
     });
@@ -129,26 +149,41 @@ export class GitDocumentDB {
     // Check git description
     const description = await fs.readFile(path.resolve(this._workingDirectory, '.git', 'description'), 'utf8')
       .catch(err => {
-        result.isCreatedByGitDDB = false;
-        result.isValidVersion = false;
+        dbInfo.isCreatedByGitDDB = false;
+        dbInfo.isValidVersion = false;
         return '';
       });
     if ((new RegExp('^' + databaseName)).test(description)) {
-      result.isCreatedByGitDDB = true;
+      dbInfo.isCreatedByGitDDB = true;
       if ((new RegExp('^' + defaultDescription)).test(description)) {
-        result.isValidVersion = true;
+        dbInfo.isValidVersion = true;
       }
       else {
         // console.warn('Database version is invalid.');
-        result.isValidVersion = false;
+        dbInfo.isValidVersion = false;
       }
     }
     else {
       // console.warn('Database is not created by git-documentdb.');
-      result.isCreatedByGitDDB = false;
-      result.isValidVersion = false;
+      dbInfo.isCreatedByGitDDB = false;
+      dbInfo.isValidVersion = false;
     }
-    return result;
+
+
+    this._atomicQueue = [];
+    this._atomicQueueTimer = setInterval(async () => {
+      if (this._atomicQueue.length > 0 && !this._isAtomicQueueWorking) {
+        this._isAtomicQueueWorking = true;
+        const func = this._atomicQueue.shift();
+        if(func !== undefined) {
+          func().finally(() => {
+            this._isAtomicQueueWorking = false;          
+          })         
+        }
+      }
+    }, 10);
+
+    return dbInfo;
   }
 
   isOpened = () => {
@@ -188,7 +223,19 @@ export class GitDocumentDB {
    * @throws *CannotWriteDataError*
    * @throws *CannotCreateDirectoryError*
    */
-  put = async (document: { [key: string]: string }) => {
+  put = (document: { [key: string]: string }): Promise<PutResult> => {
+    if (this._currentRepository === undefined) {
+      return Promise.reject(new RepositoryNotOpenError());
+    }
+
+    // put() is atomic.
+    return new Promise((resolve, reject) => {
+      this._atomicQueue.push(() => this.put_nonatomic(document).then(result => resolve(result)).catch(err => reject(err)));
+    });
+  };
+
+
+  put_nonatomic = async (document: { [key: string]: string }): Promise<PutResult> => {
     if (this._currentRepository === undefined) {
       throw new RepositoryNotOpenError();
     }
@@ -352,6 +399,12 @@ export class GitDocumentDB {
 
   close = () => {
     if (this._currentRepository instanceof nodegit.Repository) {
+      
+      clearInterval(this._atomicQueueTimer);
+      this._isAtomicQueueWorking = false;
+      this._atomicQueue = [];
+
+
       if (this._currentRepository.free !== undefined) {
         console.log('Repository.free() is executed in close()');
         this._currentRepository.free();

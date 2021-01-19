@@ -437,7 +437,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   afterAll(() => {
-    //    fs.removeSync(path.resolve(localDir));
+    fs.removeSync(path.resolve(localDir));
   });
 
   test('allDocs()', async () => {
@@ -729,6 +729,86 @@ describe('Fetch a batch of documents', () => {
               _id: expect.stringContaining(_id_p),
               name: name_p
             }
+          },
+        ]
+      });
+
+    await gitDDB.destroy();
+  });
+
+});
+
+
+
+
+describe('Atomic', () => {
+  const localDir = './test/database09';
+  const _id_a = 'apple';
+  const name_a = 'Apple woman';
+  const _id_b = 'banana';
+  const name_b = 'Banana man';
+
+  const _id_c01 = 'citrus/amanatsu';
+  const name_c01 = 'Amanatsu boy';
+  const _id_c02 = 'citrus/yuzu';
+  const name_c02 = 'Yuzu girl';
+  const _id_d = 'durio/durian';
+  const name_d = 'Durian girls';
+  const _id_p = 'pear/Japan/21st';
+  const name_p = '21st century pear';
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('put(): atomic', async () => {
+    const dbName = './test_repos09_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+    await Promise.all([gitDDB.put({ _id: _id_a, name: name_a }),
+    gitDDB.put({ _id: _id_b, name: name_b }),
+    gitDDB.put({ _id: _id_c01, name: name_c01 }),
+    gitDDB.put({ _id: _id_c02, name: name_c02 }),
+    gitDDB.put({ _id: _id_d, name: name_d }),
+    gitDDB.put({ _id: _id_p, name: name_p })]);
+
+
+    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject(
+      {
+        total_rows: 6,
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        rows: [
+          {
+            _id: expect.stringContaining(_id_a),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+          },
+          {
+            _id: expect.stringContaining(_id_b),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+          },
+          {
+            _id: expect.stringContaining(_id_c01),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+          },
+          {
+            _id: expect.stringContaining(_id_c02),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+          },
+          {
+            _id: expect.stringContaining(_id_d),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+          },
+          {
+            _id: expect.stringContaining(_id_p),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
         ]
       });
