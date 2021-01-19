@@ -106,6 +106,7 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#alldocs" class="tsd-kind-icon">all<wbr>Docs</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#close" class="tsd-kind-icon">close</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#delete" class="tsd-kind-icon">delete</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#destroy" class="tsd-kind-icon">destroy</a></li>
@@ -114,6 +115,7 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#open" class="tsd-kind-icon">open</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#put" class="tsd-kind-icon">put</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#validatekey" class="tsd-kind-icon">validate<wbr>Key</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="main.gitdocumentdb.html#workingdir" class="tsd-kind-icon">working<wbr>Dir</a></li>
 							</ul>
 						</section>
 					</div>
@@ -131,7 +133,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L49">src/index.ts:49</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L61">src/index.ts:61</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -176,7 +178,7 @@
 					<div class="tsd-signature tsd-kind-icon">_current<wbr>Repository<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">Repository</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L48">src/index.ts:48</a></li>
+							<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L60">src/index.ts:60</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -186,7 +188,7 @@
 					<div class="tsd-signature tsd-kind-icon">_init<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">dbOption</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L47">src/index.ts:47</a></li>
+							<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L59">src/index.ts:59</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -196,13 +198,49 @@
 					<div class="tsd-signature tsd-kind-icon">_working<wbr>Directory<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L49">src/index.ts:49</a></li>
+							<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L61">src/index.ts:61</a></li>
 						</ul>
 					</aside>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="alldocs" class="tsd-anchor"></a>
+					<h3>all<wbr>Docs</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">all<wbr>Docs<span class="tsd-signature-symbol">(</span>options<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">AllDocsOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>total_rows<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>commit_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>rows<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentInBatch</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>total_rows<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L381">src/index.ts:381</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get all the documents in a repository.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> options: <span class="tsd-signature-type">AllDocsOptions</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<ul>
+											<li><strong>include_docs: boolean</strong> Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.</li>
+											<li><strong>descendant: boolean</strong> Sort results in rows by descendant. Default is false (ascendant).</li>
+											<li><strong>directory: string</strong> Only get the documents under the specified sub directory.</li>
+											<li><strong>recursive: boolean</strong> Get documents recursively from all sub directories. Default is false.</li>
+										</ul>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>total_rows<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-symbol">{ </span>commit_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>rows<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">DocumentInBatch</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">; </span>total_rows<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="close" class="tsd-anchor"></a>
 					<h3>close</h3>
@@ -213,7 +251,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L227">src/index.ts:227</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L352">src/index.ts:352</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -224,22 +262,32 @@
 					<a name="delete" class="tsd-anchor"></a>
 					<h3>delete</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">delete<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">delete<span class="tsd-signature-symbol">(</span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>commit_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>file_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L222">src/index.ts:222</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L301">src/index.ts:301</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>throws</dt>
+									<dd><p><strong>RepositoryNotOpenError</strong></p>
+									</dd>
+									<dt>throws</dt>
+									<dd><p><strong>DocumentIdNotFoundError</strong></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>id: <span class="tsd-signature-type">string</span></h5>
+									<h5>_id: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>commit_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>file_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -253,7 +301,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L238">src/index.ts:238</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L363">src/index.ts:363</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -264,22 +312,38 @@
 					<a name="get" class="tsd-anchor"></a>
 					<h3>get</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<span class="tsd-signature-symbol">(</span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">get<span class="tsd-signature-symbol">(</span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L216">src/index.ts:216</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L264">src/index.ts:264</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<dl class="tsd-comment-tags">
+									<dt>throw</dt>
+									<dd><p><em>RepositoryNotOpenError</em></p>
+									</dd>
+									<dt>throw</dt>
+									<dd><p><em>DocumentIdNotFoundError</em></p>
+									</dd>
+									<dt>throw</dt>
+									<dd><p><em>DocumentNotFoundError</em></p>
+									</dd>
+									<dt>throw</dt>
+									<dd><p><em>InvalidJsonObjectError</em></p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>id: <span class="tsd-signature-type">string</span></h5>
+									<h5>_id: <span class="tsd-signature-type">string</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -293,7 +357,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L138">src/index.ts:138</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L154">src/index.ts:154</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -310,7 +374,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L86">src/index.ts:86</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L102">src/index.ts:102</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -338,13 +402,13 @@
 					<a name="put" class="tsd-anchor"></a>
 					<h3>put</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">put<span class="tsd-signature-symbol">(</span>key<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">put<span class="tsd-signature-symbol">(</span>document<span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">{}</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>commit_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>file_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L171">src/index.ts:171</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L190">src/index.ts:190</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -358,31 +422,43 @@
 									<dd><p><em>RepositoryNotOpen</em></p>
 									</dd>
 									<dt>throws</dt>
+									<dd><p><em>InvalidJsonObjectError</em></p>
+									</dd>
+									<dt>throws</dt>
+									<dd><p><em>DocumentIdNotFoundError</em></p>
+									</dd>
+									<dt>throws</dt>
 									<dd><p><em>InvalidKeyCharacterError</em></p>
 									</dd>
 									<dt>throws</dt>
 									<dd><p><em>InvalidKeyLengthError</em></p>
+									</dd>
+									<dt>throws</dt>
+									<dd><p><em>CannotWriteDataError</em></p>
+									</dd>
+									<dt>throws</dt>
+									<dd><p><em>CannotCreateDirectoryError</em></p>
 									</dd>
 								</dl>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>key: <span class="tsd-signature-type">string</span></h5>
+									<h5>document: <span class="tsd-signature-symbol">{}</span></h5>
 									<div class="tsd-comment tsd-typography">
-										<p>key only allows <strong>a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]</strong>.<br>
-											Do not use a period at the end.<br>
-										A length of key value must be equal to or less than MAX_LENGTH_OF_KEY(64).</p>
+										<p>A document must be a JSON Object that matches the following conditions:<br>
+											It must have an &#39;_id&#39; key, which value only allows <strong>a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]</strong>.<br>
+											Do not use a period at the end of an &#39;_id&#39; value.<br>
+										A length of an &#39;_id&#39; value must be equal to or less than MAX_LENGTH_OF_KEY(64).</p>
 									</div>
-								</li>
-								<li>
-									<h5>value: <span class="tsd-signature-type">any</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>JSON Object, text or binary data</p>
-									</div>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter-index-signature">
+											<h5><span class="tsd-signature-symbol">[</span>key: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">string</span></h5>
+										</li>
+									</ul>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-symbol">{ </span>_id<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>commit_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">; </span>file_sha<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol">&gt;</span></h4>
 							<p>Promise that returns a commit hash (40 character SHA-1 checksum)</p>
 						</li>
 					</ul>
@@ -397,7 +473,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/fe3db46/src/index.ts#L146">src/index.ts:146</a></li>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L162">src/index.ts:162</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -417,6 +493,23 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="workingdir" class="tsd-anchor"></a>
+					<h3>working<wbr>Dir</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">working<wbr>Dir<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/sosuisen/git-documentdb/blob/77756f0/src/index.ts#L88">src/index.ts:88</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -448,7 +541,13 @@
 						<a href="main.cannotcreatedirectoryerror.html" class="tsd-kind-icon">Cannot<wbr>Create<wbr>Directory<wbr>Error</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="main.cannotdeletedataerror.html" class="tsd-kind-icon">Cannot<wbr>Delete<wbr>Data<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="main.cannotwritedataerror.html" class="tsd-kind-icon">Cannot<wbr>Write<wbr>Data<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="main.documentnotfounderror.html" class="tsd-kind-icon">Document<wbr>Not<wbr>Found<wbr>Error</a>
 					</li>
 				</ul>
 				<ul class="current">
@@ -466,6 +565,9 @@
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-private">
 								<a href="main.gitdocumentdb.html#_workingdirectory" class="tsd-kind-icon">_working<wbr>Directory</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="main.gitdocumentdb.html#alldocs" class="tsd-kind-icon">all<wbr>Docs</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="main.gitdocumentdb.html#close" class="tsd-kind-icon">close</a>
@@ -491,10 +593,16 @@
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="main.gitdocumentdb.html#validatekey" class="tsd-kind-icon">validate<wbr>Key</a>
 							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="main.gitdocumentdb.html#workingdir" class="tsd-kind-icon">working<wbr>Dir</a>
+							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="main.invalidjsonobjecterror.html" class="tsd-kind-icon">Invalid<wbr>Json<wbr>Object<wbr>Error</a>
+					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="main.invalidkeycharactererror.html" class="tsd-kind-icon">Invalid<wbr>Key<wbr>Character<wbr>Error</a>
 					</li>
@@ -506,6 +614,9 @@
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="main.repositorynotopenerror.html" class="tsd-kind-icon">Repository<wbr>Not<wbr>Open<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="main.undefineddocumentiderror.html" class="tsd-kind-icon">Undefined<wbr>Document<wbr>IdError</a>
 					</li>
 				</ul>
 			</nav>

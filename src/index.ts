@@ -39,6 +39,18 @@ const repositoryInitOptionFlags = {
   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
 };
 
+type AllDocsOptions = {
+  include_docs?: boolean,
+  descendant?: boolean,
+  directory?: string,
+  recursive?: boolean
+};
+
+type DocumentInBatch = {
+  _id: string,
+  file_sha: string,
+  doc?: { [key: string]: string }
+};
 
 /**
  * @module Class
@@ -357,4 +369,99 @@ export class GitDocumentDB {
     await fs.remove(path.resolve(this._initOptions.localDir)).catch(err => console.error(err));
     return true;
   };
+
+  /**
+   * Get all the documents in a repository.
+   * @param options
+   * - **include_docs: boolean** Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.
+   * - **descendant: boolean** Sort results in rows by descendant. Default is false (ascendant).
+   * - **directory: string** Only get the documents under the specified sub directory. 
+   * - **recursive: boolean** Get documents recursively from all sub directories. Default is false.
+   */
+  allDocs = async (options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: DocumentInBatch[]}> => {
+    if (this._currentRepository === undefined) {
+      throw new RepositoryNotOpenError();
+    }
+
+    // Calling nameToId() for HEAD throws error when this is first commit.
+    const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+    if (!head) {
+      return { total_rows: 0 };
+    }
+    else {
+      const commit_sha = (head as nodegit.Oid).tostrS();
+      const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+
+      const rows: DocumentInBatch[] = [];
+
+      // Breadth-first search
+      const directories: nodegit.Tree[] = [];
+      const tree = await commit.getTree();
+
+      if (options?.directory) {
+        const specifiedTreeEntry = await tree.getEntry(options?.directory);
+        if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
+          console.dir('isTree:' + specifiedTreeEntry.name());
+          const specifiedTree = await specifiedTreeEntry.getTree();
+          console.dir('got specifiedTree');
+          directories.push(specifiedTree);
+        }
+        else {
+          throw new DocumentNotFoundError();
+        }
+      }
+      else {
+        directories.push(tree);
+      }
+      while (directories.length > 0) {
+        const dir = directories.shift();
+        if (dir === undefined) break;
+        const entries = dir.entries();
+
+        // Ascendant (alphabetical order)
+        let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => a.name().localeCompare(b.name());
+        // Descendant (alphabetical order)
+        if (options?.descendant) {
+          sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => -a.name().localeCompare(b.name());
+        }
+        entries.sort(sortFunc);
+
+        while (entries.length > 0) {
+          const entry = entries.shift();
+          if (entry === undefined) break;
+          if (entry?.isDirectory()) {
+            if (options?.recursive) {
+              const subtree = await entry.getTree()
+              directories.push(subtree);
+            }
+          }
+          else {
+            const path = entry.path();
+            let documentInBatch: DocumentInBatch = {
+              _id: path,
+              file_sha: entry.id().tostrS()
+            };
+
+            if (options?.include_docs) {
+              const blob = await entry.getBlob();
+              try {
+                const doc = JSON.parse(blob.toString());
+                doc._id = path;
+                documentInBatch.doc = doc;
+              } catch (err) {
+                throw new InvalidJsonObjectError(err.message);
+              }
+            }
+            rows.push(documentInBatch);
+          }
+        }
+      }
+
+      return {
+        total_rows: rows.length,
+        commit_sha,
+        rows
+      };
+    }
+  }
 }
