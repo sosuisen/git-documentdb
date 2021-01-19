@@ -107,413 +107,417 @@ export class GitDocumentDB {
     return this._workingDirectory;
   }
 
-  /**
-   * Create a repository or open an existing one.
-   * If localDir does not exist, it is created.
-   * @throws *CannotCreateDirectoryError* You may not have write permission.
-   * @returns 
-   * - isNew: Is a repository newly created or existing?<br>
-   * - isCreatedByGitDDB: Is a repository created by git-documentDB or other methods?<br>
-   * - isValidVersion: Is a repository version equaled to the current databaseVersion of git-documentDB?<br>
-   * The version is described in .git/description.
-   */
-  open = async () => {
-    if (this.isOpened()) {
-      return dbInfo;
-    }
+  _pushToAtomicQueue = (func: () => Promise<void>) => {
+    this._atomicQueue.push(func);
+    this._execAtomicQueue();
+  };
 
-    await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
-
-    dbInfo.isNew = false;
-    dbInfo.isCreatedByGitDDB = true
-    dbInfo.isValidVersion = true;
-
-    /** 
-     * nodegit.Repository.open() throws an error if the specified repository does not exist.
-     * open() also throws an error if the path is invalid or not writable, 
-     * however this case has been already checked in fs.ensureDir.
-     */
-    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(async (err) => {
-      // console.debug(`Create new repository: ${pathToRepo}`);
-      const isBare = 0;
-      const options: RepositoryInitOptions = {
-        description: defaultDescription,
-        flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
-        initialHead: 'main',
-      };
-      dbInfo.isNew = true;
-      // @ts-ignore
-      return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
-    });
-
-    // Check git description
-    const description = await fs.readFile(path.resolve(this._workingDirectory, '.git', 'description'), 'utf8')
-      .catch(err => {
-        dbInfo.isCreatedByGitDDB = false;
-        dbInfo.isValidVersion = false;
-        return '';
-      });
-    if ((new RegExp('^' + databaseName)).test(description)) {
-      dbInfo.isCreatedByGitDDB = true;
-      if ((new RegExp('^' + defaultDescription)).test(description)) {
-        dbInfo.isValidVersion = true;
-      }
-      else {
-        // console.warn('Database version is invalid.');
-        dbInfo.isValidVersion = false;
+  _execAtomicQueue = () => {
+    if (this._atomicQueue.length > 0 && !this._isAtomicQueueWorking) {
+      this._isAtomicQueueWorking = true;
+      const func = this._atomicQueue.shift();
+      if (func !== undefined) {
+        func().finally(() => {
+          this._isAtomicQueueWorking = false;
+          this._execAtomicQueue();
+        })
       }
     }
-    else {
-      // console.warn('Database is not created by git-documentdb.');
-      dbInfo.isCreatedByGitDDB = false;
-      dbInfo.isValidVersion = false;
-    }
+  };
 
-
-    this._atomicQueue = [];
-    this._atomicQueueTimer = setInterval(async () => {
-      if (this._atomicQueue.length > 0 && !this._isAtomicQueueWorking) {
-        this._isAtomicQueueWorking = true;
-        const func = this._atomicQueue.shift();
-        if(func !== undefined) {
-          func().finally(() => {
-            this._isAtomicQueueWorking = false;          
-          })         
-        }
-      }
-    }, 10);
-
+/**
+ * Create a repository or open an existing one.
+ * If localDir does not exist, it is created.
+ * @throws *CannotCreateDirectoryError* You may not have write permission.
+ * @returns 
+ * - isNew: Is a repository newly created or existing?<br>
+ * - isCreatedByGitDDB: Is a repository created by git-documentDB or other methods?<br>
+ * - isValidVersion: Is a repository version equaled to the current databaseVersion of git-documentDB?<br>
+ * The version is described in .git/description.
+ */
+open = async () => {
+  if (this.isOpened()) {
     return dbInfo;
   }
 
-  isOpened = () => {
-    return this._currentRepository === undefined ? false : true;
-  }
+  await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
 
-  /**
-   * @throws *InvalidKeyCharacterError*
-   * @throws *InvalidKeyLengthError* 
+  dbInfo.isNew = false;
+  dbInfo.isCreatedByGitDDB = true
+  dbInfo.isValidVersion = true;
+
+  /** 
+   * nodegit.Repository.open() throws an error if the specified repository does not exist.
+   * open() also throws an error if the path is invalid or not writable, 
+   * however this case has been already checked in fs.ensureDir.
    */
-  validateKey = (id: string) => {
-    if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]\/]/) || id.match(/\.$/)) {
-      throw new InvalidKeyCharacterError();
-    }
-    if (id.length === 0 || id.length > MAX_LENGTH_OF_KEY) {
-      throw new InvalidKeyLengthError();
-    }
-  }
+  this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(async (err) => {
+    // console.debug(`Create new repository: ${pathToRepo}`);
+    const isBare = 0;
+    const options: RepositoryInitOptions = {
+      description: defaultDescription,
+      flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
+      initialHead: 'main',
+    };
+    dbInfo.isNew = true;
+    // @ts-ignore
+    return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
+  });
 
-
-  /**
-   * put() add a set of key and its value to the database.<br>
-   * <br>
-   * NOTE: put() does not check a write permission of your file system (unlike open()).
-   * @param document
-   * A document must be a JSON Object that matches the following conditions:<br>
-   * It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.<br>
-   * Do not use a period at the end of an '_id' value.<br>
-   * A length of an '_id' value must be equal to or less than MAX_LENGTH_OF_KEY(64).
-   * @returns
-   * Promise that returns a commit hash (40 character SHA-1 checksum)
-   * @throws *RepositoryNotOpen*
-   * @throws *InvalidJsonObjectError*
-   * @throws *DocumentIdNotFoundError*
-   * @throws *InvalidKeyCharacterError*
-   * @throws *InvalidKeyLengthError* 
-   * @throws *CannotWriteDataError*
-   * @throws *CannotCreateDirectoryError*
-   */
-  put = (document: { [key: string]: string }): Promise<PutResult> => {
-    if (this._currentRepository === undefined) {
-      return Promise.reject(new RepositoryNotOpenError());
-    }
-
-    // put() is atomic.
-    return new Promise((resolve, reject) => {
-      this._atomicQueue.push(() => this.put_nonatomic(document).then(result => resolve(result)).catch(err => reject(err)));
+  // Check git description
+  const description = await fs.readFile(path.resolve(this._workingDirectory, '.git', 'description'), 'utf8')
+    .catch(err => {
+      dbInfo.isCreatedByGitDDB = false;
+      dbInfo.isValidVersion = false;
+      return '';
     });
-  };
-
-
-  put_nonatomic = async (document: { [key: string]: string }): Promise<PutResult> => {
-    if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
+  if ((new RegExp('^' + databaseName)).test(description)) {
+    dbInfo.isCreatedByGitDDB = true;
+    if ((new RegExp('^' + defaultDescription)).test(description)) {
+      dbInfo.isValidVersion = true;
     }
-
-    if (document === undefined) {
-      throw new InvalidJsonObjectError();
+    else {
+      // console.warn('Database version is invalid.');
+      dbInfo.isValidVersion = false;
     }
-
-    if (document['_id'] === undefined) {
-      throw new UndefinedDocumentIdError();
-    }
-
-    try {
-      this.validateKey(document._id);
-    } catch (err) { throw err; }
-
-    const _id = document._id;
-    let data = '';
-    try {
-      delete document._id;
-      data = JSON.stringify(document);
-    } catch (err) {
-      // not json
-      throw new InvalidJsonObjectError();
-    }
-
-    let file_sha, commit_sha: string;
-    try {
-      const filePath = path.resolve(this._workingDirectory, _id);
-      const dir = path.dirname(filePath);
-      await fs.ensureDir(dir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
-      await fs.writeFile(filePath, data);
-
-      const index = await this._currentRepository.refreshIndex(); // read latest index
-
-      await index.addByPath(_id); // stage
-      await index.write(); // flush changes to index
-      const changes = await index.writeTree(); // get reference to a set of changes
-
-      const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
-      file_sha = entry.id.tostrS();
-
-      const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-      const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-      // Calling nameToId() for HEAD throws error when this is first commit.
-      const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
-      let commit;
-      if (!head) {
-        // First commit
-        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
-      }
-      else {
-        const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
-      }
-      commit_sha = commit.tostrS();
-    } catch (err) {
-      throw new CannotWriteDataError(err.message);
-    }
-    // console.log(commitId.tostrS());
-    return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
-
+  }
+  else {
+    // console.warn('Database is not created by git-documentdb.');
+    dbInfo.isCreatedByGitDDB = false;
+    dbInfo.isValidVersion = false;
   }
 
-  /**
-   * 
-   * @param _id 
-   * @throw *RepositoryNotOpenError*
-   * @throw *DocumentIdNotFoundError* 
-   * @throw *DocumentNotFoundError*
-   * @throw *InvalidJsonObjectError*
-   */
-  get = async (_id: string) => {
-    if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
-    }
 
-    if (_id === undefined) {
-      throw new UndefinedDocumentIdError();
-    }
+  this._atomicQueue = [];
+
+  return dbInfo;
+}
+
+isOpened = () => {
+  return this._currentRepository === undefined ? false : true;
+}
+
+/**
+ * @throws *InvalidKeyCharacterError*
+ * @throws *InvalidKeyLengthError* 
+ */
+validateKey = (id: string) => {
+  if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]\/]/) || id.match(/\.$/)) {
+    throw new InvalidKeyCharacterError();
+  }
+  if (id.length === 0 || id.length > MAX_LENGTH_OF_KEY) {
+    throw new InvalidKeyLengthError();
+  }
+}
+
+
+/**
+ * put() add a set of key and its value to the database.<br>
+ * <br>
+ * NOTE: put() does not check a write permission of your file system (unlike open()).
+ * @param document
+ * A document must be a JSON Object that matches the following conditions:<br>
+ * It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.<br>
+ * Do not use a period at the end of an '_id' value.<br>
+ * A length of an '_id' value must be equal to or less than MAX_LENGTH_OF_KEY(64).
+ * @returns
+ * Promise that returns a commit hash (40 character SHA-1 checksum)
+ * @throws *RepositoryNotOpen*
+ * @throws *InvalidJsonObjectError*
+ * @throws *DocumentIdNotFoundError*
+ * @throws *InvalidKeyCharacterError*
+ * @throws *InvalidKeyLengthError* 
+ * @throws *CannotWriteDataError*
+ * @throws *CannotCreateDirectoryError*
+ */
+put = (document: { [key: string]: string }): Promise<PutResult> => {
+  if (this._currentRepository === undefined) {
+    return Promise.reject(new RepositoryNotOpenError());
+  }
+
+  // put() is atomic.
+  return new Promise((resolve, reject) => {
+    this._pushToAtomicQueue(() => this.put_nonatomic(document).then(result => resolve(result)).catch(err => reject(err)));
+  });
+};
+
+
+put_nonatomic = async (document: { [key: string]: string }): Promise<PutResult> => {
+  if (this._currentRepository === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+
+  if (document === undefined) {
+    throw new InvalidJsonObjectError();
+  }
+
+  if (document['_id'] === undefined) {
+    throw new UndefinedDocumentIdError();
+  }
+
+  try {
+    this.validateKey(document._id);
+  } catch (err) { throw err; }
+
+  const _id = document._id;
+  let data = '';
+  try {
+    delete document._id;
+    data = JSON.stringify(document);
+  } catch (err) {
+    // not json
+    throw new InvalidJsonObjectError();
+  }
+
+  let file_sha, commit_sha: string;
+  try {
+    const filePath = path.resolve(this._workingDirectory, _id);
+    const dir = path.dirname(filePath);
+    await fs.ensureDir(dir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
+    await fs.writeFile(filePath, data);
+
+    const index = await this._currentRepository.refreshIndex(); // read latest index
+
+    await index.addByPath(_id); // stage
+    await index.write(); // flush changes to index
+    const changes = await index.writeTree(); // get reference to a set of changes
+
+    const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
+    file_sha = entry.id.tostrS();
+
+    const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+    const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
 
     // Calling nameToId() for HEAD throws error when this is first commit.
     const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
-    let document;
+    let commit;
     if (!head) {
+      // First commit
+      commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
+    }
+    else {
+      const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+    }
+    commit_sha = commit.tostrS();
+  } catch (err) {
+    throw new CannotWriteDataError(err.message);
+  }
+  // console.log(commitId.tostrS());
+  return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
+
+}
+
+/**
+ * 
+ * @param _id 
+ * @throw *RepositoryNotOpenError*
+ * @throw *DocumentIdNotFoundError* 
+ * @throw *DocumentNotFoundError*
+ * @throw *InvalidJsonObjectError*
+ */
+get = async (_id: string) => {
+  if (this._currentRepository === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+
+  if (_id === undefined) {
+    throw new UndefinedDocumentIdError();
+  }
+
+  // Calling nameToId() for HEAD throws error when this is first commit.
+  const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+  let document;
+  if (!head) {
+    throw new DocumentNotFoundError();
+  }
+  else {
+    const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+    const entry = await commit.getEntry(_id).catch(err => { throw new DocumentNotFoundError(err.message) });
+    if (entry) {
+      const blob = await entry.getBlob();
+      try {
+        document = JSON.parse(blob.toString());
+        document['_id'] = _id;
+      } catch (e) {
+        throw new InvalidJsonObjectError();
+      }
+    }
+  }
+  return document;
+};
+
+/**
+ * 
+ * @param _id 
+ * @throws **RepositoryNotOpenError**
+ * @throws **DocumentIdNotFoundError**
+ */
+delete = async (_id: string) => {
+  if (this._currentRepository === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+
+  if (_id === undefined) {
+    throw new UndefinedDocumentIdError();
+  }
+
+  let file_sha, commit_sha: string;
+
+  let index;
+  try {
+    index = await this._currentRepository.refreshIndex();
+
+    const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
+    if (entry === undefined) {
+      throw new DocumentNotFoundError();
+    }
+    file_sha = entry.id.tostrS();
+
+    await index.removeByPath(_id); // stage
+    await index.write(); // flush changes to index
+  } catch (err) { throw new CannotDeleteDataError(err.message) }
+
+
+  try {
+    const changes = await index.writeTree(); // get reference to a set of changes
+
+    const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+    const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+
+    // Calling nameToId() for HEAD throws error when this is first commit.
+    const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+    let commit;
+    if (!head) {
+      // First commit
       throw new DocumentNotFoundError();
     }
     else {
-      const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      const entry = await commit.getEntry(_id).catch(err => { throw new DocumentNotFoundError(err.message) });
-      if (entry) {
-        const blob = await entry.getBlob();
-        try {
-          document = JSON.parse(blob.toString());
-          document['_id'] = _id;
-        } catch (e) {
-          throw new InvalidJsonObjectError();
-        }
-      }
+      const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
     }
-    return document;
-  };
+    commit_sha = commit.tostrS();
+  } catch (err) {
+    throw new CannotDeleteDataError(err.message);
+  }
 
-  /**
-   * 
-   * @param _id 
-   * @throws **RepositoryNotOpenError**
-   * @throws **DocumentIdNotFoundError**
-   */
-  delete = async (_id: string) => {
-    if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
+  return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
+};
+
+close = () => {
+  if (this._currentRepository instanceof nodegit.Repository) {
+    if (this._currentRepository.free !== undefined) {
+      console.log('Repository.free() is executed in close()');
+      this._currentRepository.free();
     }
+    this._currentRepository = undefined;
 
-    if (_id === undefined) {
-      throw new UndefinedDocumentIdError();
-    }
+    this._atomicQueue = [];    
+    this._isAtomicQueueWorking = false;
+  }
+  return true;
+};
 
-    let file_sha, commit_sha: string;
+destroy = async () => {
+  if (this._currentRepository !== undefined) {
+    this.close();
+  }
 
-    let index;
-    try {
-      index = await this._currentRepository.refreshIndex();
+  // If the path does not exists, silently does nothing
+  await fs.remove(path.resolve(this._initOptions.localDir)).catch(err => console.error(err));
+  return true;
+};
 
-      const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
-      if (entry === undefined) {
-        throw new DocumentNotFoundError();
-      }
-      file_sha = entry.id.tostrS();
+/**
+ * Get all the documents in a repository.
+ * @param options
+ * - **include_docs: boolean** Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.
+ * - **descendant: boolean** Sort results in rows by descendant. Default is false (ascendant).
+ * - **directory: string** Only get the documents under the specified sub directory. 
+ * - **recursive: boolean** Get documents recursively from all sub directories. Default is false.
+ */
+allDocs = async (options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: DocumentInBatch[] }> => {
+  if (this._currentRepository === undefined) {
+    throw new RepositoryNotOpenError();
+  }
 
-      await index.removeByPath(_id); // stage
-      await index.write(); // flush changes to index
-    } catch (err) { throw new CannotDeleteDataError(err.message) }
+  // Calling nameToId() for HEAD throws error when this is first commit.
+  const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
+  if (!head) {
+    return { total_rows: 0 };
+  }
+  else {
+    const commit_sha = (head as nodegit.Oid).tostrS();
+    const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
 
+    const rows: DocumentInBatch[] = [];
 
-    try {
-      const changes = await index.writeTree(); // get reference to a set of changes
+    // Breadth-first search
+    const directories: nodegit.Tree[] = [];
+    const tree = await commit.getTree();
 
-      const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-      const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-      // Calling nameToId() for HEAD throws error when this is first commit.
-      const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
-      let commit;
-      if (!head) {
-        // First commit
-        throw new DocumentNotFoundError();
+    if (options?.directory) {
+      const specifiedTreeEntry = await tree.getEntry(options?.directory);
+      if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
+        const specifiedTree = await specifiedTreeEntry.getTree();
+        directories.push(specifiedTree);
       }
       else {
-        const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+        throw new DocumentNotFoundError();
       }
-      commit_sha = commit.tostrS();
-    } catch (err) {
-      throw new CannotDeleteDataError(err.message);
-    }
-
-    return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
-  };
-
-  close = () => {
-    if (this._currentRepository instanceof nodegit.Repository) {
-      
-      clearInterval(this._atomicQueueTimer);
-      this._isAtomicQueueWorking = false;
-      this._atomicQueue = [];
-
-
-      if (this._currentRepository.free !== undefined) {
-        console.log('Repository.free() is executed in close()');
-        this._currentRepository.free();
-      }
-      this._currentRepository = undefined;
-    }
-    return true;
-  };
-
-  destroy = async () => {
-    if (this._currentRepository !== undefined) {
-      this.close();
-    }
-
-    // If the path does not exists, silently does nothing
-    await fs.remove(path.resolve(this._initOptions.localDir)).catch(err => console.error(err));
-    return true;
-  };
-
-  /**
-   * Get all the documents in a repository.
-   * @param options
-   * - **include_docs: boolean** Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.
-   * - **descendant: boolean** Sort results in rows by descendant. Default is false (ascendant).
-   * - **directory: string** Only get the documents under the specified sub directory. 
-   * - **recursive: boolean** Get documents recursively from all sub directories. Default is false.
-   */
-  allDocs = async (options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: DocumentInBatch[] }> => {
-    if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
-    }
-
-    // Calling nameToId() for HEAD throws error when this is first commit.
-    const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
-    if (!head) {
-      return { total_rows: 0 };
     }
     else {
-      const commit_sha = (head as nodegit.Oid).tostrS();
-      const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      directories.push(tree);
+    }
+    while (directories.length > 0) {
+      const dir = directories.shift();
+      if (dir === undefined) break;
+      const entries = dir.entries();
 
-      const rows: DocumentInBatch[] = [];
+      // Ascendant (alphabetical order)
+      let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => a.name().localeCompare(b.name());
+      // Descendant (alphabetical order)
+      if (options?.descendant) {
+        sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => -a.name().localeCompare(b.name());
+      }
+      entries.sort(sortFunc);
 
-      // Breadth-first search
-      const directories: nodegit.Tree[] = [];
-      const tree = await commit.getTree();
-
-      if (options?.directory) {
-        const specifiedTreeEntry = await tree.getEntry(options?.directory);
-        if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
-          const specifiedTree = await specifiedTreeEntry.getTree();
-          directories.push(specifiedTree);
+      while (entries.length > 0) {
+        const entry = entries.shift();
+        if (entry === undefined) break;
+        if (entry?.isDirectory()) {
+          if (options?.recursive) {
+            const subtree = await entry.getTree()
+            directories.push(subtree);
+          }
         }
         else {
-          throw new DocumentNotFoundError();
-        }
-      }
-      else {
-        directories.push(tree);
-      }
-      while (directories.length > 0) {
-        const dir = directories.shift();
-        if (dir === undefined) break;
-        const entries = dir.entries();
+          const path = entry.path();
+          let documentInBatch: DocumentInBatch = {
+            _id: path,
+            file_sha: entry.id().tostrS()
+          };
 
-        // Ascendant (alphabetical order)
-        let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => a.name().localeCompare(b.name());
-        // Descendant (alphabetical order)
-        if (options?.descendant) {
-          sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => -a.name().localeCompare(b.name());
-        }
-        entries.sort(sortFunc);
-
-        while (entries.length > 0) {
-          const entry = entries.shift();
-          if (entry === undefined) break;
-          if (entry?.isDirectory()) {
-            if (options?.recursive) {
-              const subtree = await entry.getTree()
-              directories.push(subtree);
+          if (options?.include_docs) {
+            const blob = await entry.getBlob();
+            try {
+              const doc = JSON.parse(blob.toString());
+              doc._id = path;
+              documentInBatch.doc = doc;
+            } catch (err) {
+              throw new InvalidJsonObjectError(err.message);
             }
           }
-          else {
-            const path = entry.path();
-            let documentInBatch: DocumentInBatch = {
-              _id: path,
-              file_sha: entry.id().tostrS()
-            };
-
-            if (options?.include_docs) {
-              const blob = await entry.getBlob();
-              try {
-                const doc = JSON.parse(blob.toString());
-                doc._id = path;
-                documentInBatch.doc = doc;
-              } catch (err) {
-                throw new InvalidJsonObjectError(err.message);
-              }
-            }
-            rows.push(documentInBatch);
-          }
+          rows.push(documentInBatch);
         }
       }
-
-      return {
-        total_rows: rows.length,
-        commit_sha,
-        rows
-      };
     }
+
+    return {
+      total_rows: rows.length,
+      commit_sha,
+      rows
+    };
   }
+}
 }
