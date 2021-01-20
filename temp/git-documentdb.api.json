@@ -1,0 +1,1334 @@
+{
+  "metadata": {
+    "toolPackage": "@microsoft/api-extractor",
+    "toolVersion": "7.13.0",
+    "schemaVersion": 1003,
+    "oldestForwardsCompatibleVersion": 1001
+  },
+  "kind": "Package",
+  "canonicalReference": "git-documentdb!",
+  "docComment": "",
+  "name": "git-documentdb",
+  "members": [
+    {
+      "kind": "EntryPoint",
+      "canonicalReference": "git-documentdb!",
+      "name": "",
+      "members": [
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!CannotCreateDirectoryError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class CannotCreateDirectoryError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "CannotCreateDirectoryError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!CannotCreateDirectoryError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `CannotCreateDirectoryError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!CannotDeleteDataError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class CannotDeleteDataError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "CannotDeleteDataError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!CannotDeleteDataError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `CannotDeleteDataError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!CannotWriteDataError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class CannotWriteDataError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "CannotWriteDataError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!CannotWriteDataError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `CannotWriteDataError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!DatabaseCloseTimeoutError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class DatabaseCloseTimeoutError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DatabaseCloseTimeoutError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!DatabaseCloseTimeoutError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `DatabaseCloseTimeoutError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!DatabaseClosingError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class DatabaseClosingError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DatabaseClosingError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!DatabaseClosingError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `DatabaseClosingError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!DocumentNotFoundError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class DocumentNotFoundError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DocumentNotFoundError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!DocumentNotFoundError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `DocumentNotFoundError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!GitDocumentDB:class",
+          "docComment": "/**\n * @module Class\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class GitDocumentDB "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "GitDocumentDB",
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#_delete_nonatomic:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_delete_nonatomic: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(_id: string) => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DeleteResult",
+                  "canonicalReference": "git-documentdb!~DeleteResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_delete_nonatomic",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#_execAtomicQueue:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_execAtomicQueue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_execAtomicQueue",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#_pushToAtomicQueue:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_pushToAtomicQueue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(func: () => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<void>) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_pushToAtomicQueue",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#_put_nonatomic:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_put_nonatomic: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(document: {\n        [key: string]: string;\n    }) => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PutResult",
+                  "canonicalReference": "git-documentdb!~PutResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_put_nonatomic",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!GitDocumentDB:constructor(1)",
+              "docComment": "/**\n * Constructor\n *\n * @param _option - <pre> { localDir: &lt;Local directory path for the databases of GitDocumentDB&gt;, dbName: &lt;Name of a git repository&gt; } </pre> The git working directory will be localDir/dbName.<br> The length of the working directory path must be equal to or lesser than MAX_LENGTH_OF_WORKING_DIRECTORY_PAT(195). <br><br> GitDocumentDB can load a git repository that is not created by git-documentdb module, however correct behavior is not guaranteed.\n *\n * @throws\n *\n * *InvalidWorkingDirectoryPathLengthError*\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(_option: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "dbOption",
+                  "canonicalReference": "git-documentdb!~dbOption:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "_option",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#allDocs:member",
+              "docComment": "/**\n * Get all the documents in a repository.\n *\n * @param options - **include_docs: boolean** Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false. - **descendant: boolean** Sort results in rows by descendant. Default is false (ascendant). - **directory: string** Only get the documents under the specified sub directory. - **recursive: boolean** Get documents recursively from all sub directories. Default is false.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "allDocs: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(options?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AllDocsOptions",
+                  "canonicalReference": "git-documentdb!~AllDocsOptions:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined) => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n        total_rows: 0;\n    } | {\n        total_rows: number;\n        commit_sha: string;\n        rows: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DocumentInBatch",
+                  "canonicalReference": "git-documentdb!~DocumentInBatch:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[];\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "allDocs",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 8
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#close:member",
+              "docComment": "/**\n * Close database<br> CRUD operation is not available while closing.<br> Queued operations are executed before database is closed.<br>\n *\n * @param options - **force** Skip queued operations and closes database immediately. - **timeout** Set timeout(msec). Default is 10000.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "close: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(options?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DatabaseCloseOption",
+                  "canonicalReference": "git-documentdb!~DatabaseCloseOption:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<void>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "close",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#delete:member",
+              "docComment": "/**\n * @param _id - \n *\n * @throws\n *\n * **RepositoryNotOpenError**\n *\n * @throws\n *\n * **DocumentIdNotFoundError**\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "delete: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(_id: string) => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DeleteResult",
+                  "canonicalReference": "git-documentdb!~DeleteResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "delete",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#destroy:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "destroy: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<boolean>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "destroy",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#get:member",
+              "docComment": "/**\n * @param _id -  @throw *RepositoryNotOpenError*  @throw *DocumentIdNotFoundError*  @throw *DocumentNotFoundError*  @throw *InvalidJsonObjectError*\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(_id: string) => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<any>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "get",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#isClosing:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isClosing: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isClosing",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#isOpened:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isOpened: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isOpened",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#open:member",
+              "docComment": "/**\n * Create a repository or open an existing one. If localDir does not exist, it is created.\n *\n * @returns - isNew: Is a repository newly created or existing?<br> - isCreatedByGitDDB: Is a repository created by git-documentDB or other methods?<br> - isValidVersion: Is a repository version equaled to the current databaseVersion of git-documentDB?<br> The version is described in .git/description.\n *\n * @throws\n *\n * *CannotCreateDirectoryError* You may not have write permission.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "open: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<{\n        isNew: boolean;\n        isCreatedByGitDDB: boolean;\n        isValidVersion: boolean;\n    }>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "open",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#put:member",
+              "docComment": "/**\n * put() add a set of key and its value to the database.<br> <br> NOTE: put() does not check a write permission of your file system (unlike open()).\n *\n * @param document - A document must be a JSON Object that matches the following conditions:<br> It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.<br> Do not use a period at the end of an '_id' value.<br> A length of an '_id' value must be equal to or less than MAX_LENGTH_OF_KEY(64).\n *\n * @returns Promise that returns a commit hash (40 character SHA-1 checksum)\n *\n * @throws\n *\n * *RepositoryNotOpen*\n *\n * @throws\n *\n * *InvalidJsonObjectError*\n *\n * @throws\n *\n * *DocumentIdNotFoundError*\n *\n * @throws\n *\n * *InvalidKeyCharacterError*\n *\n * @throws\n *\n * *InvalidKeyLengthError*\n *\n * @throws\n *\n * *CannotWriteDataError*\n *\n * @throws\n *\n * *CannotCreateDirectoryError*\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "put: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(document: {\n        [key: string]: string;\n    }) => "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PutResult",
+                  "canonicalReference": "git-documentdb!~PutResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "put",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#validateKey:member",
+              "docComment": "/**\n * @throws\n *\n * *InvalidKeyCharacterError*\n *\n * @throws\n *\n * *InvalidKeyLengthError*\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "validateKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(id: string) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "validateKey",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "git-documentdb!GitDocumentDB#workingDir:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "workingDir: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "workingDir",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!InvalidJsonObjectError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class InvalidJsonObjectError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "InvalidJsonObjectError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!InvalidJsonObjectError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `InvalidJsonObjectError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!InvalidKeyCharacterError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class InvalidKeyCharacterError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "InvalidKeyCharacterError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!InvalidKeyCharacterError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `InvalidKeyCharacterError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!InvalidKeyLengthError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class InvalidKeyLengthError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "InvalidKeyLengthError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!InvalidKeyLengthError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `InvalidKeyLengthError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!InvalidWorkingDirectoryPathLengthError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class InvalidWorkingDirectoryPathLengthError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "InvalidWorkingDirectoryPathLengthError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!InvalidWorkingDirectoryPathLengthError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `InvalidWorkingDirectoryPathLengthError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!RepositoryNotOpenError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class RepositoryNotOpenError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RepositoryNotOpenError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!RepositoryNotOpenError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `RepositoryNotOpenError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "git-documentdb!UndefinedDocumentIdError:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class UndefinedDocumentIdError extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseError",
+              "canonicalReference": "git-documentdb!~BaseError:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "UndefinedDocumentIdError",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "git-documentdb!UndefinedDocumentIdError:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `UndefinedDocumentIdError` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(e?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "e",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        }
+      ]
+    }
+  ]
+}
