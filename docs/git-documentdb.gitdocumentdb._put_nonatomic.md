@@ -2,15 +2,26 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [\_put\_nonatomic](./git-documentdb.gitdocumentdb._put_nonatomic.md)
 
-## GitDocumentDB.\_put\_nonatomic property
+## GitDocumentDB.\_put\_nonatomic() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+This method is used only for internal use. It is published for test purpose.
+
 <b>Signature:</b>
 
 ```typescript
-_put_nonatomic: (document: {
-        [key: string]: string;
-    }) => Promise<PutResult>;
+_put_nonatomic(document: JsonDoc): Promise<PutResult>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  document | [JsonDoc](./git-documentdb.jsondoc.md) |  |
+
+<b>Returns:</b>
+
+Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
+

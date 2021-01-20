@@ -2,20 +2,48 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [put](./git-documentdb.gitdocumentdb.put.md)
 
-## GitDocumentDB.put property
+## GitDocumentDB.put() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Add a JSON document into a database
+Add a document into a database
 
 <b>Signature:</b>
 
 ```typescript
-put: (document: {
-        [key: string]: string;
-    }) => Promise<PutResult>;
+put(document: JsonDoc): Promise<PutResult>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  document | [JsonDoc](./git-documentdb.jsondoc.md) | See [JsonDoc](./git-documentdb.jsondoc.md) for restriction |
+
+<b>Returns:</b>
+
+Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
+
+Promise that returns a commit hash
+
+## Exceptions
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+
+[InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
+
+[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+
+[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+
+[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+
+[CannotWriteDataError](./git-documentdb.cannotwritedataerror.md)
+
+[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md)
 
 ## Remarks
 

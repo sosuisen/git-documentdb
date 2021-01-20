@@ -2,7 +2,7 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [allDocs](./git-documentdb.gitdocumentdb.alldocs.md)
 
-## GitDocumentDB.allDocs property
+## GitDocumentDB.allDocs() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -12,16 +12,37 @@ Get all the documents in a repository.
 <b>Signature:</b>
 
 ```typescript
-allDocs: (options?: AllDocsOptions | undefined) => Promise<{
+allDocs(options?: AllDocsOptions): Promise<{
         total_rows: 0;
     } | {
         total_rows: number;
         commit_sha: string;
-        rows: DocumentInBatch[];
+        rows: JsonDocWithMetadata[];
     }>;
 ```
 
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [AllDocsOptions](./git-documentdb.alldocsoptions.md) | The options specify how to get documents. |
+
+<b>Returns:</b>
+
+Promise&lt;{ total\_rows: 0; } \| { total\_rows: number; commit\_sha: string; rows: [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)<!-- -->\[\]; }&gt;
+
+Promise
+
+## Exceptions
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
+
+[InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
+
 ## Remarks
 
-include\_docs: boolean Include the document itself in each row in the doc property. Otherwise you only get the \_id and file\_sha properties. Default is false.<br> descendant: boolean Sort results in rows by descendant. Default is false (ascendant).<br> directory: string Only get the documents under the specified sub directory. <br> recursive: boolean Get documents recursively from all sub directories. Default is false.
 

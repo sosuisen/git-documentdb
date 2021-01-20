@@ -8,8 +8,7 @@
     "build": "rm -rf dist/* && npm run lint && tsc",
     "test": "npm run lint && jest",
     "doc": "npm run build && npm run api-extractor",
-    "before_push": "npm run build && npm run api-extractor && npm run crlf",
-    "prepublishOnly": "npm run build && npm run test",
+    "prepublish": "npm run build && npm run test && npm run api-extractor && npm run crlf",
     "api-extractor" : "npx api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs",
     "lint": "eslint --fix --ext .ts",
     "crlf": "npx crlf --set=LF docs/* etc/* "

@@ -4,7 +4,7 @@
 
 ```ts
 
-// @public (undocumented)
+// @beta
 export type AllDocsOptions = {
     include_docs?: boolean;
     descendant?: boolean;
@@ -29,7 +29,7 @@ export class CannotWriteDataError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta
 export type DatabaseCloseOption = {
     force?: boolean;
     timeout?: number;
@@ -45,20 +45,24 @@ export class DatabaseClosingError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta
+export type DatabaseInfo = {
+    isNew: boolean;
+    isCreatedByGitDDB: boolean;
+    isValidVersion: boolean;
+};
+
+// @beta
+export type DatabaseOption = {
+    dbName: string;
+    localDir: string;
+};
+
+// @beta
 export type DeleteResult = {
     _id: string;
     file_sha: string;
     commit_sha: string;
-};
-
-// @public (undocumented)
-export type DocumentInBatch = {
-    _id: string;
-    file_sha: string;
-    doc?: {
-        [key: string]: string;
-    };
 };
 
 // @beta (undocumented)
@@ -68,57 +72,40 @@ export class DocumentNotFoundError extends BaseError {
 
 // @beta
 export class GitDocumentDB {
-    // Warning: (ae-forgotten-export) The symbol "dbOption" needs to be exported by the entry point main.d.ts
-    constructor(options: dbOption);
-    allDocs: (options?: AllDocsOptions | undefined) => Promise<{
+    constructor(options: DatabaseOption);
+    allDocs(options?: AllDocsOptions): Promise<{
         total_rows: 0;
     } | {
         total_rows: number;
         commit_sha: string;
-        rows: DocumentInBatch[];
+        rows: JsonDocWithMetadata[];
     }>;
-    close: (options?: DatabaseCloseOption) => Promise<void>;
-    delete: (_id: string) => Promise<DeleteResult>;
-    // (undocumented)
-    _delete_nonatomic: (_id: string) => Promise<DeleteResult>;
-    // (undocumented)
-    destroy: () => Promise<boolean>;
-    // (undocumented)
-    get: (_id: string) => Promise<any>;
-    // (undocumented)
+    close(options?: DatabaseCloseOption): Promise<void>;
+    delete(_id: string): Promise<DeleteResult>;
+    _delete_nonatomic(_id: string): Promise<DeleteResult>;
+    destroy(): Promise<boolean>;
+    get(_id: string): Promise<JsonDoc>;
     isClosing: boolean;
-    // (undocumented)
-    isOpened: () => boolean;
-    open: () => Promise<{
-        isNew: boolean;
-        isCreatedByGitDDB: boolean;
-        isValidVersion: boolean;
-    }>;
-    put: (document: {
-        [key: string]: string;
-    }) => Promise<PutResult>;
-    // (undocumented)
-    _put_nonatomic: (document: {
-        [key: string]: string;
-    }) => Promise<PutResult>;
-    // (undocumented)
-    validateKey: (id: string) => void;
-    // (undocumented)
-    workingDir: () => string;
+    isOpened(): boolean;
+    open(): Promise<DatabaseInfo>;
+    put(document: JsonDoc): Promise<PutResult>;
+    _put_nonatomic(document: JsonDoc): Promise<PutResult>;
+    validateId(id: string): void;
+    workingDir(): string;
     }
 
 // @beta (undocumented)
+export class InvalidIdCharacterError extends BaseError {
+    constructor(e?: string);
+}
+
+// @beta (undocumented)
+export class InvalidIdLengthError extends BaseError {
+    constructor(e?: string);
+}
+
+// @beta (undocumented)
 export class InvalidJsonObjectError extends BaseError {
-    constructor(e?: string);
-}
-
-// @beta (undocumented)
-export class InvalidKeyCharacterError extends BaseError {
-    constructor(e?: string);
-}
-
-// @beta (undocumented)
-export class InvalidKeyLengthError extends BaseError {
     constructor(e?: string);
 }
 
@@ -127,7 +114,19 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta
+export type JsonDoc = {
+    [key: string]: any;
+};
+
+// @beta
+export type JsonDocWithMetadata = {
+    _id: string;
+    file_sha: string;
+    doc?: JsonDoc;
+};
+
+// @beta
 export type PutResult = {
     _id: string;
     file_sha: string;

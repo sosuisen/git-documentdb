@@ -8,7 +8,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, DatabaseCloseTimeoutError } from './error';
+import { CannotCreateDirectoryError,UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, DatabaseCloseTimeoutError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -233,7 +233,7 @@ describe('Create document', () => {
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(InvalidKeyCharacterError);
+    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
     await gitDDB.destroy();
   });
 
@@ -245,8 +245,8 @@ describe('Create document', () => {
       localDir: localDir
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: '0123456789012345678901234567890123456789012345678901234567890123456789', name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
-    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
+    await expect(gitDDB.put({ _id: '0123456789012345678901234567890123456789012345678901234567890123456789', name: 'shirase' })).rejects.toThrowError(InvalidIdLengthError);
+    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toThrowError(InvalidIdLengthError);
     await gitDDB.destroy();
   });
 

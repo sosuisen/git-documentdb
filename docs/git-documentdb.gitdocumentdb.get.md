@@ -2,13 +2,38 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [get](./git-documentdb.gitdocumentdb.get.md)
 
-## GitDocumentDB.get property
+## GitDocumentDB.get() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+Get a document from a database
+
 <b>Signature:</b>
 
 ```typescript
-get: (_id: string) => Promise<any>;
+get(_id: string): Promise<JsonDoc>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  \_id | string | id of a target document |
+
+<b>Returns:</b>
+
+Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
+
+## Exceptions
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+
+[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
+
+[InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
+
