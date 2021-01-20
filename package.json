@@ -7,9 +7,12 @@
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc",
     "test": "npm run lint && jest",
-    "doc": "npx api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs && npx crlf --set=LF docs/* etc/*",
+    "doc": "npm run build && npm run api-extractor",
+    "before_push": "npm run build && npm run api-extractor && npm run crlf",
+    "prepublishOnly": "npm run build && npm run test",
+    "api-extractor" : "npx api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs",
     "lint": "eslint --fix --ext .ts",
-    "prepublishOnly": "npm run build"
+    "crlf": "npx crlf --set=LF docs/* etc/* "
   },
   "repository": {
     "type": "git",

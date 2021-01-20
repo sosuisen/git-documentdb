@@ -4,7 +4,10 @@
 
 ## GitDocumentDB.put property
 
-put() add a set of key and its value to the database.<br> <br> NOTE: put() does not check a write permission of your file system (unlike open()).
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Add a JSON document into a database
 
 <b>Signature:</b>
 
@@ -13,3 +16,8 @@ put: (document: {
         [key: string]: string;
     }) => Promise<PutResult>;
 ```
+
+## Remarks
+
+put() does not check a write permission of your file system (unlike open()).
+

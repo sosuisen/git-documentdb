@@ -4,6 +4,10 @@
 
 ## InvalidJsonObjectError class
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+
 <b>Signature:</b>
 
 ```typescript
@@ -15,5 +19,5 @@ export declare class InvalidJsonObjectError extends BaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(e)](./git-documentdb.invalidjsonobjecterror._constructor_.md) |  | Constructs a new instance of the <code>InvalidJsonObjectError</code> class |
+|  [(constructor)(e)](./git-documentdb.invalidjsonobjecterror._constructor_.md) |  | <b><i>(BETA)</i></b> Constructs a new instance of the <code>InvalidJsonObjectError</code> class |
 

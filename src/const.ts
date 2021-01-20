@@ -1,5 +1,5 @@
 /**
- * @license GitDocumentDB
+ * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
  *
  * This source code is licensed under the Mozilla Public License Version 2.0

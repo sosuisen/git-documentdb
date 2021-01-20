@@ -4,6 +4,9 @@
 
 ## GitDocumentDB.allDocs property
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Get all the documents in a repository.
 
 <b>Signature:</b>
@@ -17,3 +20,8 @@ allDocs: (options?: AllDocsOptions | undefined) => Promise<{
         rows: DocumentInBatch[];
     }>;
 ```
+
+## Remarks
+
+include\_docs: boolean Include the document itself in each row in the doc property. Otherwise you only get the \_id and file\_sha properties. Default is false.<br> descendant: boolean Sort results in rows by descendant. Default is false (ascendant).<br> directory: string Only get the documents under the specified sub directory. <br> recursive: boolean Get documents recursively from all sub directories. Default is false.
+

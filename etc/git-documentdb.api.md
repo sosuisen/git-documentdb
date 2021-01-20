@@ -4,43 +4,72 @@
 
 ```ts
 
+// @public (undocumented)
+export type AllDocsOptions = {
+    include_docs?: boolean;
+    descendant?: boolean;
+    directory?: string;
+    recursive?: boolean;
+};
+
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
 //
-// @public (undocumented)
+// @beta (undocumented)
 export class CannotCreateDirectoryError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class CannotDeleteDataError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class CannotWriteDataError extends BaseError {
     constructor(e?: string);
 }
 
 // @public (undocumented)
+export type DatabaseCloseOption = {
+    force?: boolean;
+    timeout?: number;
+};
+
+// @beta (undocumented)
 export class DatabaseCloseTimeoutError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class DatabaseClosingError extends BaseError {
     constructor(e?: string);
 }
 
 // @public (undocumented)
+export type DeleteResult = {
+    _id: string;
+    file_sha: string;
+    commit_sha: string;
+};
+
+// @public (undocumented)
+export type DocumentInBatch = {
+    _id: string;
+    file_sha: string;
+    doc?: {
+        [key: string]: string;
+    };
+};
+
+// @beta (undocumented)
 export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
 }
 
-// @public
+// @beta
 export class GitDocumentDB {
     // Warning: (ae-forgotten-export) The symbol "dbOption" needs to be exported by the entry point main.d.ts
-    constructor(_option: dbOption);
-    // Warning: (ae-forgotten-export) The symbol "AllDocsOptions" needs to be exported by the entry point main.d.ts
+    constructor(options: dbOption);
     allDocs: (options?: AllDocsOptions | undefined) => Promise<{
         total_rows: 0;
     } | {
@@ -48,18 +77,12 @@ export class GitDocumentDB {
         commit_sha: string;
         rows: DocumentInBatch[];
     }>;
-    // Warning: (ae-forgotten-export) The symbol "DatabaseCloseOption" needs to be exported by the entry point main.d.ts
     close: (options?: DatabaseCloseOption) => Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "DeleteResult" needs to be exported by the entry point main.d.ts
-    //
-    // (undocumented)
     delete: (_id: string) => Promise<DeleteResult>;
     // (undocumented)
     _delete_nonatomic: (_id: string) => Promise<DeleteResult>;
     // (undocumented)
     destroy: () => Promise<boolean>;
-    // (undocumented)
-    _execAtomicQueue: () => void;
     // (undocumented)
     get: (_id: string) => Promise<any>;
     // (undocumented)
@@ -71,9 +94,6 @@ export class GitDocumentDB {
         isCreatedByGitDDB: boolean;
         isValidVersion: boolean;
     }>;
-    // (undocumented)
-    _pushToAtomicQueue: (func: () => Promise<void>) => void;
-    // Warning: (ae-forgotten-export) The symbol "PutResult" needs to be exported by the entry point main.d.ts
     put: (document: {
         [key: string]: string;
     }) => Promise<PutResult>;
@@ -87,41 +107,42 @@ export class GitDocumentDB {
     workingDir: () => string;
     }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class InvalidJsonObjectError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class InvalidKeyCharacterError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class InvalidKeyLengthError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
     constructor(e?: string);
 }
 
 // @public (undocumented)
+export type PutResult = {
+    _id: string;
+    file_sha: string;
+    commit_sha: string;
+};
+
+// @beta (undocumented)
 export class RepositoryNotOpenError extends BaseError {
     constructor(e?: string);
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class UndefinedDocumentIdError extends BaseError {
     constructor(e?: string);
 }
 
-
-// Warnings were encountered during analysis:
-//
-// src/index.ts:516:117 - (ae-forgotten-export) The symbol "DocumentInBatch" needs to be exported by the entry point main.d.ts
-
-// (No @packageDocumentation comment for this package)
 
 ```

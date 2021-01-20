@@ -8,5 +8,5 @@
 
 |  Package | Description |
 |  --- | --- |
-|  [git-documentdb](./git-documentdb.md) |  |
+|  [git-documentdb](./git-documentdb.md) | Offline-first DocumentDB using Git |
 

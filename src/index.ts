@@ -1,11 +1,11 @@
 /**
- * @license GitDocumentDB
+ * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
  *
  * This source code is licensed under the Mozilla Public License Version 2.0
  * found in the LICENSE file in the root directory of this source tree.
  */
- 
+
 import nodegit from 'nodegit';
 import fs from 'fs-extra';
 import path from 'path';
@@ -53,32 +53,32 @@ const repositoryInitOptionFlags = {
   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
 };
 
-type AllDocsOptions = {
+export type AllDocsOptions = {
   include_docs?: boolean,
   descendant?: boolean,
   directory?: string,
   recursive?: boolean
 };
 
-type PutResult = {
+export type PutResult = {
   _id: string,
   file_sha: string,
   commit_sha: string
 };
 
-type DeleteResult = {
+export type DeleteResult = {
   _id: string,
   file_sha: string,
   commit_sha: string
 };
 
-type DocumentInBatch = {
+export type DocumentInBatch = {
   _id: string,
   file_sha: string,
   doc?: { [key: string]: string }
 };
 
-type DatabaseCloseOption = {
+export type DatabaseCloseOption = {
   force?: boolean,
   timeout?: number
 };
@@ -86,7 +86,9 @@ type DatabaseCloseOption = {
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 
 /**
- * @module Class
+ * Main class of GitDocumentDB
+ * 
+ * @beta
  */
 export class GitDocumentDB {
   private _initOptions: dbOption;
@@ -104,22 +106,25 @@ export class GitDocumentDB {
 
   /**
    * Constructor
-   * @param _option
-   * <pre>
-   *{ 
-   *  localDir: &lt;Local directory path for the databases of GitDocumentDB&gt;, 
-   *  dbName: &lt;Name of a git repository&gt;
-   *}
-   *</pre>
-   *  The git working directory will be localDir/dbName.<br>
+   *
+   * @remarks The git working directory will be localDir/dbName.<br>
    *  The length of the working directory path must be equal to or lesser than MAX_LENGTH_OF_WORKING_DIRECTORY_PAT(195).
    *  <br><br>
    *  GitDocumentDB can load a git repository that is not created by git-documentdb module,
    *  however correct behavior is not guaranteed.
-   * @throws *InvalidWorkingDirectoryPathLengthError*
+   * 
+   * @param options - database options
+   *```text
+   *{ 
+   *  localDir: <Local directory path for the databases of GitDocumentDB>
+   *  dbName: <Name of a git repository>
+   *}
+   *```
+   * @throws InvalidWorkingDirectoryPathLengthError
+   * @beta
    */
-  constructor(_option: dbOption) {
-    this._initOptions = _option;
+  constructor(options: dbOption) {
+    this._initOptions = options;
     // Get full-path
     this._workingDirectory = path.resolve(this._initOptions.localDir, this._initOptions.dbName);
     if (this._workingDirectory.length === 0 || this._workingDirectory.length > MAX_LENGTH_OF_WORKING_DIRECTORY_PATH) {
@@ -131,12 +136,12 @@ export class GitDocumentDB {
     return this._workingDirectory;
   }
 
-  _pushToAtomicQueue = (func: () => Promise<void>) => {
+  private _pushToAtomicQueue = (func: () => Promise<void>) => {
     this._atomicQueue.push(func);
     this._execAtomicQueue();
   };
 
-  _execAtomicQueue = () => {
+  private _execAtomicQueue = () => {
     if (this._atomicQueue.length > 0 && !this._isAtomicQueueWorking) {
       this._isAtomicQueueWorking = true;
       const func = this._atomicQueue.shift();
@@ -151,13 +156,16 @@ export class GitDocumentDB {
 
   /**
    * Create a repository or open an existing one.
-   * If localDir does not exist, it is created.
-   * @throws *CannotCreateDirectoryError* You may not have write permission.
-   * @returns 
-   * - isNew: Is a repository newly created or existing?<br>
-   * - isCreatedByGitDDB: Is a repository created by git-documentDB or other methods?<br>
-   * - isValidVersion: Is a repository version equaled to the current databaseVersion of git-documentDB?<br>
+   *
+   * @remarks If localDir does not exist, it is created.<br>
+   * <br>
+   * - isNew: Whether a repository is newly created or existing.<br>
+   * - isCreatedByGitDDB: Whether a repository is created by git-documentDB or other methods.<br>
+   * - isValidVersion: Whether a repository version equals to the current databaseVersion of git-documentDB.<br>
    * The version is described in .git/description.
+   * 
+   * @throws CannotCreateDirectoryError You may not have write permission.
+   * @throws DatabaseClosingError
    */
   open = async () => {
     if (this.isClosing) {
@@ -226,8 +234,8 @@ export class GitDocumentDB {
   }
 
   /**
-   * @throws *InvalidKeyCharacterError*
-   * @throws *InvalidKeyLengthError* 
+   * @throws InvalidKeyCharacterError
+   * @throws InvalidKeyLengthError 
    */
   validateKey = (id: string) => {
     if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]\/]/) || id.match(/\.$/)) {
@@ -240,25 +248,27 @@ export class GitDocumentDB {
 
 
   /**
-   * put() add a set of key and its value to the database.<br>
-   * <br>
-   * NOTE: put() does not check a write permission of your file system (unlike open()).
-   * @param document
-   * A document must be a JSON Object that matches the following conditions:<br>
+   * Add a JSON document into a database
+   * 
+   * @remarks
+   * put() does not check a write permission of your file system (unlike open()).
+   * 
+   * @param document - A document must be a JSON Object that matches the following conditions:<br>
    * It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.<br>
    * Do not use a period at the end of an '_id' value.<br>
    * A length of an '_id' value must be equal to or less than MAX_LENGTH_OF_KEY(64).
-   * @returns
-   * Promise that returns a commit hash (40 character SHA-1 checksum)
-   * @throws *RepositoryNotOpen*
-   * @throws *InvalidJsonObjectError*
-   * @throws *DocumentIdNotFoundError*
-   * @throws *InvalidKeyCharacterError*
-   * @throws *InvalidKeyLengthError* 
-   * @throws *CannotWriteDataError*
-   * @throws *CannotCreateDirectoryError*
+   * 
+   * @returns Promise that returns a commit hash (40 character SHA-1 checksum)
+   * 
+   * @throws RepositoryNotOpen
+   * @throws InvalidJsonObjectError
+   * @throws DocumentIdNotFoundError
+   * @throws InvalidKeyCharacterError
+   * @throws InvalidKeyLengthError 
+   * @throws CannotWriteDataError
+   * @throws CannotCreateDirectoryError
    */
-  put = (document: { [key: string]: string }): Promise<PutResult> => {
+  public put = (document: { [key: string]: string }): Promise<PutResult> => {
     if (this.isClosing) {
       throw new DatabaseClosingError();
     }
@@ -342,11 +352,11 @@ export class GitDocumentDB {
 
   /**
    * 
-   * @param _id 
-   * @throw *RepositoryNotOpenError*
-   * @throw *DocumentIdNotFoundError* 
-   * @throw *DocumentNotFoundError*
-   * @throw *InvalidJsonObjectError*
+   * @param _id - id of a target document
+   * @throws *RepositoryNotOpenError*
+   * @throws *DocumentIdNotFoundError* 
+   * @throws *DocumentNotFoundError*
+   * @throws *InvalidJsonObjectError*
    */
   get = async (_id: string) => {
     if (this.isClosing) {
@@ -384,10 +394,11 @@ export class GitDocumentDB {
   };
 
   /**
+   * Delete a document
    * 
-   * @param _id 
-   * @throws **RepositoryNotOpenError**
-   * @throws **DocumentIdNotFoundError**
+   * @param _id - id of a target document
+   * @throws RepositoryNotOpenError
+   * @throws DocumentIdNotFoundError
    */
   delete = (_id: string): Promise<DeleteResult> => {
     if (this.isClosing) {
@@ -515,11 +526,17 @@ export class GitDocumentDB {
 
   /**
    * Get all the documents in a repository.
-   * @param options
-   * - **include_docs: boolean** Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.
-   * - **descendant: boolean** Sort results in rows by descendant. Default is false (ascendant).
-   * - **directory: string** Only get the documents under the specified sub directory. 
-   * - **recursive: boolean** Get documents recursively from all sub directories. Default is false.
+   * 
+   * @remarks 
+   * include_docs: boolean Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.<br>
+   * descendant: boolean Sort results in rows by descendant. Default is false (ascendant).<br>
+   * directory: string Only get the documents under the specified sub directory. <br>
+   * recursive: boolean Get documents recursively from all sub directories. Default is false.
+   * 
+   * @param options - How to get documents
+   * @returns Promise
+   * 
+   * @beta
    */
   allDocs = async (options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: DocumentInBatch[] }> => {
     if (this.isClosing) {
