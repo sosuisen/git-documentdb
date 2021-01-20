@@ -974,7 +974,8 @@ describe('Close database', () => {
 
     const workers = [];
     for (let i = 0; i < 100; i++) {
-      gitDDB.put({ _id: i.toString(), name: i.toString() });
+      // put() will throw Error after the database is closed by timeout.      
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { });
     }
 
     await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(DatabaseCloseTimeoutError);
@@ -1003,7 +1004,7 @@ describe('Close database', () => {
     const workers = [];
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
-      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => {});
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { });
     }
 
     await gitDDB.close({ force: true });
