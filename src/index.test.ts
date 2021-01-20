@@ -748,7 +748,7 @@ describe('Fetch a batch of documents', () => {
 
 
 
-describe('Atomic', () => {
+describe('Serial', () => {
   const localDir = './test/database09';
   const _id_a = 'apple';
   const name_a = 'Apple woman';
@@ -772,7 +772,7 @@ describe('Atomic', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('put(): atomic', async () => {
+  test('put(): serial', async () => {
     const dbName = './test_repos09_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -824,7 +824,7 @@ describe('Atomic', () => {
   });
 
 
-  test('put(): atomic put() a lot', async () => {
+  test('put(): serial put() a lot', async () => {
     const dbName = './test_repos09_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -849,7 +849,7 @@ describe('Atomic', () => {
   });
 
 
-  test('put(): Concurrent calls of _put_nonatomic() cause an error.', async () => {
+  test('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
     const dbName = './test_repos09_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -857,18 +857,18 @@ describe('Atomic', () => {
     });
     await gitDDB.open();
 
-    await expect(Promise.all([gitDDB._put_nonatomic({ _id: _id_a, name: name_a }),
-    gitDDB._put_nonatomic({ _id: _id_b, name: name_b }),
-    gitDDB._put_nonatomic({ _id: _id_c01, name: name_c01 }),
-    gitDDB._put_nonatomic({ _id: _id_c02, name: name_c02 }),
-    gitDDB._put_nonatomic({ _id: _id_d, name: name_d }),
-    gitDDB._put_nonatomic({ _id: _id_p, name: name_p })])).rejects.toThrowError();
+    await expect(Promise.all([gitDDB._put_concurrent({ _id: _id_a, name: name_a }),
+    gitDDB._put_concurrent({ _id: _id_b, name: name_b }),
+    gitDDB._put_concurrent({ _id: _id_c01, name: name_c01 }),
+    gitDDB._put_concurrent({ _id: _id_c02, name: name_c02 }),
+    gitDDB._put_concurrent({ _id: _id_d, name: name_d }),
+    gitDDB._put_concurrent({ _id: _id_p, name: name_p })])).rejects.toThrowError();
 
     await gitDDB.destroy();
   });
 
 
-  test('delete(): atomic', async () => {
+  test('delete(): serial', async () => {
     const dbName = './test_repos09_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -906,7 +906,7 @@ describe('Atomic', () => {
   });
 
 
-  test('delete()): Concurrent calls of _delete_nonatomic() cause an error.', async () => {
+  test('delete()): Concurrent calls of _delete_concurrent() cause an error.', async () => {
     const dbName = './test_repos09_5';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -921,11 +921,11 @@ describe('Atomic', () => {
     gitDDB.put({ _id: _id_d, name: name_d }),
     gitDDB.put({ _id: _id_p, name: name_p })]);
 
-    await expect(Promise.all([gitDDB._delete_nonatomic(_id_a),
-    gitDDB._delete_nonatomic(_id_b),
-    gitDDB._delete_nonatomic(_id_c01),
-    gitDDB._delete_nonatomic(_id_c02),
-    gitDDB._delete_nonatomic(_id_d)])).rejects.toThrowError();
+    await expect(Promise.all([gitDDB._delete_concurrent(_id_a),
+    gitDDB._delete_concurrent(_id_b),
+    gitDDB._delete_concurrent(_id_c01),
+    gitDDB._delete_concurrent(_id_c02),
+    gitDDB._delete_concurrent(_id_d)])).rejects.toThrowError();
 
     await gitDDB.destroy();
   });
@@ -954,7 +954,7 @@ describe('Close database', () => {
 
     const workers = [];
     for (let i = 0; i < 100; i++) {
-      gitDDB.put({ _id: i.toString(), name: i.toString() });
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => console.error(err));
     }
 
     await gitDDB.close();
@@ -1025,5 +1025,4 @@ describe('Close database', () => {
       });
     await gitDDB.destroy();
   });
-
 });

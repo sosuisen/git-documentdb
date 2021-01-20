@@ -201,10 +201,8 @@ export class GitDocumentDB {
   private _workingDirectory: string;
 
   // @ts-ignore
-  private _atomicQueue: (() => Promise<void>)[];
-  private _isAtomicQueueWorking: boolean = false;
-  // @ts-ignore  
-  private _atomicQueueTimer: NodeJS.Timeout;
+  private _serialQueue: (() => Promise<void>)[];
+  private _isSerialQueueWorking: boolean = false;
 
   /**
    * DB is going to close
@@ -249,19 +247,19 @@ export class GitDocumentDB {
     return this._workingDirectory;
   }
 
-  private _pushToAtomicQueue(func: () => Promise<void>) {
-    this._atomicQueue.push(func);
-    this._execAtomicQueue();
+  private _pushToSerialQueue(func: () => Promise<void>) {
+    this._serialQueue.push(func);
+    this._execSerialQueue();
   };
 
-  private _execAtomicQueue() {
-    if (this._atomicQueue.length > 0 && !this._isAtomicQueueWorking) {
-      this._isAtomicQueueWorking = true;
-      const func = this._atomicQueue.shift();
+  private _execSerialQueue() {
+    if (this._serialQueue.length > 0 && !this._isSerialQueueWorking) {
+      this._isSerialQueueWorking = true;
+      const func = this._serialQueue.shift();
       if (func !== undefined) {
         func().finally(() => {
-          this._isAtomicQueueWorking = false;
-          this._execAtomicQueue();
+          this._isSerialQueueWorking = false;
+          this._execSerialQueue();
         })
       }
     }
@@ -335,7 +333,7 @@ export class GitDocumentDB {
     }
 
 
-    this._atomicQueue = [];
+    this._serialQueue = [];
 
     return this._dbInfo;
   }
@@ -391,9 +389,14 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
-    // put() is atomic.
+    // put() must be serial.
     return new Promise((resolve, reject) => {
-      this._pushToAtomicQueue(() => this._put_nonatomic(document).then(result => resolve(result)).catch(err => reject(err)));
+      this._pushToSerialQueue(() => this._put_concurrent(document)
+        .then(result => { 
+          resolve(result)
+        })
+        .catch(err => reject(err))        
+      );
     });
   };
 
@@ -401,7 +404,7 @@ export class GitDocumentDB {
    * This method is used only for internal use.
    * It is published for test purpose.
    */
-  async _put_nonatomic(document: JsonDoc): Promise<PutResult> {
+  async _put_concurrent(document: JsonDoc): Promise<PutResult> {
     if (this._currentRepository === undefined) {
       throw new RepositoryNotOpenError();
     }
@@ -529,9 +532,9 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
-    // put() is atomic.
+    // delete() must be serial.
     return new Promise((resolve, reject) => {
-      this._pushToAtomicQueue(() => this._delete_nonatomic(_id).then(result => resolve(result)).catch(err => reject(err)));
+      this._pushToSerialQueue(() => this._delete_concurrent(_id).then(result => resolve(result)).catch(err => reject(err)));
     });
   };
 
@@ -539,7 +542,7 @@ export class GitDocumentDB {
    * This method is used only for internal use.
    * It is published for test purpose.
    */
-  async _delete_nonatomic(_id: string): Promise<DeleteResult> {
+  async _delete_concurrent(_id: string): Promise<DeleteResult> {
     if (this._currentRepository === undefined) {
       throw new RepositoryNotOpenError();
     }
@@ -613,7 +616,7 @@ export class GitDocumentDB {
           this.isClosing = true;
           const timeoutMsec = options.timeout || 10000;
           const startMsec = Date.now();
-          while (this._atomicQueue.length > 0 && this._isAtomicQueueWorking) {
+          while (this._serialQueue.length > 0 || this._isSerialQueueWorking) {
             if (Date.now() - startMsec > timeoutMsec) {
               throw new DatabaseCloseTimeoutError();
             }
@@ -625,8 +628,8 @@ export class GitDocumentDB {
       }
       finally {
         this.isClosing = false;
-        this._atomicQueue = [];
-        this._isAtomicQueueWorking = false;
+        this._serialQueue = [];
+        this._isSerialQueueWorking = false;
 
 
         if (this._currentRepository.free !== undefined) {
