@@ -9,4 +9,4 @@ Offline-first DocumentDB using Git
 :rocket: A database can be synchronized with remote Git repository.
 
 # API
-https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.md
+https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.gitdocumentdb.md
