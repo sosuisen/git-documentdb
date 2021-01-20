@@ -4,21 +4,36 @@
 
 ## GitDocumentDB.(constructor)
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Constructor
 
 <b>Signature:</b>
 
 ```typescript
-constructor(_option: dbOption);
+constructor(options: dbOption);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_option | dbOption | <pre> { localDir: &amp;lt;Local directory path for the databases of GitDocumentDB&amp;gt;, dbName: &amp;lt;Name of a git repository&amp;gt; } </pre> The git working directory will be localDir/dbName.<br> The length of the working directory path must be equal to or lesser than MAX\_LENGTH\_OF\_WORKING\_DIRECTORY\_PAT(195). <br><br> GitDocumentDB can load a git repository that is not created by git-documentdb module, however correct behavior is not guaranteed. |
+|  options | dbOption | database options
+```text
+{
+ localDir: <Local directory path for the databases of GitDocumentDB>
+ dbName: <Name of a git repository>
+}
+
+```
+ |
 
 ## Exceptions
 
-\*InvalidWorkingDirectoryPathLengthError\*
+InvalidWorkingDirectoryPathLengthError
+
+## Remarks
+
+The git working directory will be localDir/dbName.<br> The length of the working directory path must be equal to or lesser than MAX\_LENGTH\_OF\_WORKING\_DIRECTORY\_PAT(195). <br><br> GitDocumentDB can load a git repository that is not created by git-documentdb module, however correct behavior is not guaranteed.
 

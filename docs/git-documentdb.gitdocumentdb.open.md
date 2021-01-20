@@ -4,7 +4,10 @@
 
 ## GitDocumentDB.open property
 
-Create a repository or open an existing one. If localDir does not exist, it is created.
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Create a repository or open an existing one.
 
 <b>Signature:</b>
 
@@ -15,3 +18,8 @@ open: () => Promise<{
         isValidVersion: boolean;
     }>;
 ```
+
+## Remarks
+
+If localDir does not exist, it is created.<br> <br> - isNew: Whether a repository is newly created or existing.<br> - isCreatedByGitDDB: Whether a repository is created by git-documentDB or other methods.<br> - isValidVersion: Whether a repository version equals to the current databaseVersion of git-documentDB.<br> The version is described in .git/description.
+

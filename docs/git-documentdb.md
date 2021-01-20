@@ -4,21 +4,37 @@
 
 ## git-documentdb package
 
+Offline-first DocumentDB using Git
+
+## Remarks
+
+GitDocumentDB stores a document into Git repository. It is managed by PouchDB-like offline-first API. A database can be synchronized with remote Git repository.
+
 ## Classes
 
 |  Class | Description |
 |  --- | --- |
-|  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
-|  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
-|  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
-|  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
-|  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
-|  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
-|  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) |  Class |
-|  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) |  |
-|  [InvalidKeyCharacterError](./git-documentdb.invalidkeycharactererror.md) |  |
-|  [InvalidKeyLengthError](./git-documentdb.invalidkeylengtherror.md) |  |
-|  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) |  |
-|  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
-|  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) |  |
+|  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) | <b><i>(BETA)</i></b> |
+|  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) | <b><i>(BETA)</i></b> |
+|  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) | <b><i>(BETA)</i></b> |
+|  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) | <b><i>(BETA)</i></b> |
+|  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) | <b><i>(BETA)</i></b> |
+|  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) | <b><i>(BETA)</i></b> |
+|  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | <b><i>(BETA)</i></b> Main class of GitDocumentDB |
+|  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) | <b><i>(BETA)</i></b> |
+|  [InvalidKeyCharacterError](./git-documentdb.invalidkeycharactererror.md) | <b><i>(BETA)</i></b> |
+|  [InvalidKeyLengthError](./git-documentdb.invalidkeylengtherror.md) | <b><i>(BETA)</i></b> |
+|  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) | <b><i>(BETA)</i></b> |
+|  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) | <b><i>(BETA)</i></b> |
+|  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) | <b><i>(BETA)</i></b> |
+
+## Type Aliases
+
+|  Type Alias | Description |
+|  --- | --- |
+|  [AllDocsOptions](./git-documentdb.alldocsoptions.md) |  |
+|  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) |  |
+|  [DeleteResult](./git-documentdb.deleteresult.md) |  |
+|  [DocumentInBatch](./git-documentdb.documentinbatch.md) |  |
+|  [PutResult](./git-documentdb.putresult.md) |  |
 

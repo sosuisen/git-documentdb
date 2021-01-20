@@ -4,7 +4,10 @@
 
 ## GitDocumentDB class
 
- Class
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Main class of GitDocumentDB
 
 <b>Signature:</b>
 
@@ -16,25 +19,23 @@ export declare class GitDocumentDB
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(\_option)](./git-documentdb.gitdocumentdb._constructor_.md) |  | Constructor |
+|  [(constructor)(options)](./git-documentdb.gitdocumentdb._constructor_.md) |  | <b><i>(BETA)</i></b> Constructor |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [\_delete\_nonatomic](./git-documentdb.gitdocumentdb._delete_nonatomic.md) |  | (\_id: string) =&gt; Promise&lt;DeleteResult&gt; |  |
-|  [\_execAtomicQueue](./git-documentdb.gitdocumentdb._execatomicqueue.md) |  | () =&gt; void |  |
-|  [\_pushToAtomicQueue](./git-documentdb.gitdocumentdb._pushtoatomicqueue.md) |  | (func: () =&gt; Promise&lt;void&gt;) =&gt; void |  |
-|  [\_put\_nonatomic](./git-documentdb.gitdocumentdb._put_nonatomic.md) |  | (document: { \[key: string\]: string; }) =&gt; Promise&lt;PutResult&gt; |  |
-|  [allDocs](./git-documentdb.gitdocumentdb.alldocs.md) |  | (options?: AllDocsOptions \| undefined) =&gt; Promise&lt;{ total\_rows: 0; } \| { total\_rows: number; commit\_sha: string; rows: DocumentInBatch\[\]; }&gt; | Get all the documents in a repository. |
-|  [close](./git-documentdb.gitdocumentdb.close.md) |  | (options?: DatabaseCloseOption) =&gt; Promise&lt;void&gt; | Close database<br> CRUD operation is not available while closing.<br> Queued operations are executed before database is closed.<br> |
-|  [delete](./git-documentdb.gitdocumentdb.delete.md) |  | (\_id: string) =&gt; Promise&lt;DeleteResult&gt; |  |
-|  [destroy](./git-documentdb.gitdocumentdb.destroy.md) |  | () =&gt; Promise&lt;boolean&gt; |  |
-|  [get](./git-documentdb.gitdocumentdb.get.md) |  | (\_id: string) =&gt; Promise&lt;any&gt; |  |
-|  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean |  |
-|  [isOpened](./git-documentdb.gitdocumentdb.isopened.md) |  | () =&gt; boolean |  |
-|  [open](./git-documentdb.gitdocumentdb.open.md) |  | () =&gt; Promise&lt;{ isNew: boolean; isCreatedByGitDDB: boolean; isValidVersion: boolean; }&gt; | Create a repository or open an existing one. If localDir does not exist, it is created. |
-|  [put](./git-documentdb.gitdocumentdb.put.md) |  | (document: { \[key: string\]: string; }) =&gt; Promise&lt;PutResult&gt; | put() add a set of key and its value to the database.<br> <br> NOTE: put() does not check a write permission of your file system (unlike open()). |
-|  [validateKey](./git-documentdb.gitdocumentdb.validatekey.md) |  | (id: string) =&gt; void |  |
-|  [workingDir](./git-documentdb.gitdocumentdb.workingdir.md) |  | () =&gt; string |  |
+|  [\_delete\_nonatomic](./git-documentdb.gitdocumentdb._delete_nonatomic.md) |  | (\_id: string) =&gt; Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> |
+|  [\_put\_nonatomic](./git-documentdb.gitdocumentdb._put_nonatomic.md) |  | (document: { \[key: string\]: string; }) =&gt; Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> |
+|  [allDocs](./git-documentdb.gitdocumentdb.alldocs.md) |  | (options?: [AllDocsOptions](./git-documentdb.alldocsoptions.md) \| undefined) =&gt; Promise&lt;{ total\_rows: 0; } \| { total\_rows: number; commit\_sha: string; rows: [DocumentInBatch](./git-documentdb.documentinbatch.md)<!-- -->\[\]; }&gt; | <b><i>(BETA)</i></b> Get all the documents in a repository. |
+|  [close](./git-documentdb.gitdocumentdb.close.md) |  | (options?: [DatabaseCloseOption](./git-documentdb.databasecloseoption.md)<!-- -->) =&gt; Promise&lt;void&gt; | <b><i>(BETA)</i></b> Close database<br> CRUD operation is not available while closing.<br> Queued operations are executed before database is closed.<br> |
+|  [delete](./git-documentdb.gitdocumentdb.delete.md) |  | (\_id: string) =&gt; Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> Delete a document |
+|  [destroy](./git-documentdb.gitdocumentdb.destroy.md) |  | () =&gt; Promise&lt;boolean&gt; | <b><i>(BETA)</i></b> |
+|  [get](./git-documentdb.gitdocumentdb.get.md) |  | (\_id: string) =&gt; Promise&lt;any&gt; | <b><i>(BETA)</i></b> |
+|  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | <b><i>(BETA)</i></b> |
+|  [isOpened](./git-documentdb.gitdocumentdb.isopened.md) |  | () =&gt; boolean | <b><i>(BETA)</i></b> |
+|  [open](./git-documentdb.gitdocumentdb.open.md) |  | () =&gt; Promise&lt;{ isNew: boolean; isCreatedByGitDDB: boolean; isValidVersion: boolean; }&gt; | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
+|  [put](./git-documentdb.gitdocumentdb.put.md) |  | (document: { \[key: string\]: string; }) =&gt; Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> Add a JSON document into a database |
+|  [validateKey](./git-documentdb.gitdocumentdb.validatekey.md) |  | (id: string) =&gt; void | <b><i>(BETA)</i></b> |
+|  [workingDir](./git-documentdb.gitdocumentdb.workingdir.md) |  | () =&gt; string | <b><i>(BETA)</i></b> |
 
