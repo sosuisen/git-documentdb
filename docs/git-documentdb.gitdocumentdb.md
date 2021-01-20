@@ -31,8 +31,8 @@ export declare class GitDocumentDB
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_delete\_nonatomic(\_id)](./git-documentdb.gitdocumentdb._delete_nonatomic.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
-|  [\_put\_nonatomic(document)](./git-documentdb.gitdocumentdb._put_nonatomic.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
+|  [\_delete\_concurrent(\_id)](./git-documentdb.gitdocumentdb._delete_concurrent.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
+|  [\_put\_concurrent(document)](./git-documentdb.gitdocumentdb._put_concurrent.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
 |  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents in a repository. |
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close database |
 |  [delete(\_id)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> Delete a document |

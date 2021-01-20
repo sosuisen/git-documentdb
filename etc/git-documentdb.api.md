@@ -82,14 +82,14 @@ export class GitDocumentDB {
     }>;
     close(options?: DatabaseCloseOption): Promise<void>;
     delete(_id: string): Promise<DeleteResult>;
-    _delete_nonatomic(_id: string): Promise<DeleteResult>;
+    _delete_concurrent(_id: string): Promise<DeleteResult>;
     destroy(): Promise<boolean>;
     get(_id: string): Promise<JsonDoc>;
     isClosing: boolean;
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
     put(document: JsonDoc): Promise<PutResult>;
-    _put_nonatomic(document: JsonDoc): Promise<PutResult>;
+    _put_concurrent(document: JsonDoc): Promise<PutResult>;
     validateId(id: string): void;
     workingDir(): string;
     }
