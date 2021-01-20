@@ -1,7 +1,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError } from './error';
+import { CannotCreateDirectoryError, CannotWriteDataError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidKeyCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, DatabaseCloseTimeoutError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -826,7 +826,7 @@ describe('Atomic', () => {
     await gitDDB.open();
 
     const workers = [];
-    for(let i=0; i<100; i++){
+    for (let i = 0; i < 100; i++) {
       workers.push(gitDDB.put({ _id: i.toString(), name: i.toString() }));
     }
     await expect(Promise.all(workers)).resolves.toHaveLength(100);
@@ -920,6 +920,101 @@ describe('Atomic', () => {
     gitDDB._delete_nonatomic(_id_c02),
     gitDDB._delete_nonatomic(_id_d)])).rejects.toThrowError();
 
+    await gitDDB.destroy();
+  });
+});
+
+
+
+describe('Close database', () => {
+  const localDir = './test/database10';
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('close(): wait queued operations', async () => {
+    const dbName = './test_repos10_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+    const workers = [];
+    for (let i = 0; i < 100; i++) {
+      gitDDB.put({ _id: i.toString(), name: i.toString() });
+    }
+
+    await gitDDB.close();
+
+    await gitDDB.open();
+
+    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject(
+      {
+        total_rows: 100,
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+      });
+
+    await gitDDB.destroy();
+  });
+
+
+  test('close(): queued operations are timeout', async () => {
+    const dbName = './test_repos10_2';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+    const workers = [];
+    for (let i = 0; i < 100; i++) {
+      gitDDB.put({ _id: i.toString(), name: i.toString() });
+    }
+
+    await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(DatabaseCloseTimeoutError);
+
+    await gitDDB.open();
+
+    // total_rows is less than 100    
+    await expect(gitDDB.allDocs({ recursive: true })).resolves.not.toMatchObject(
+      {
+        total_rows: 100
+      });
+
+    await gitDDB.destroy();
+  });
+
+
+  test('close(): close database by force', async () => {
+    const dbName = './test_repos10_3';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+
+    const workers = [];
+    for (let i = 0; i < 100; i++) {
+      // put() will throw Error after the database is closed by force.
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => {});
+    }
+
+    await gitDDB.close({ force: true });
+
+    await gitDDB.open();
+
+    // total_rows is less than 100
+    await expect(gitDDB.allDocs({ recursive: true })).resolves.not.toMatchObject(
+      {
+        total_rows: 100
+      });
     await gitDDB.destroy();
   });
 

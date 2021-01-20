@@ -68,3 +68,14 @@ export class DocumentNotFoundError extends BaseError {
   }
 }
 
+export class DatabaseClosingError extends BaseError {
+  constructor(e = 'Database is closing') {
+    super(e);
+  }
+}
+
+export class DatabaseCloseTimeoutError extends BaseError {
+  constructor(e = 'Queued operations are timeout') {
+    super(e);
+  }
+}
