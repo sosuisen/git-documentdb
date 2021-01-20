@@ -817,6 +817,44 @@ describe('Atomic', () => {
   });
 
 
+    test('delete(): atomic', async () => {
+    const dbName = './test_repos09_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+    await Promise.all([gitDDB.put({ _id: _id_a, name: name_a }),
+    gitDDB.put({ _id: _id_b, name: name_b }),
+    gitDDB.put({ _id: _id_c01, name: name_c01 }),
+    gitDDB.put({ _id: _id_c02, name: name_c02 }),
+    gitDDB.put({ _id: _id_d, name: name_d }),
+    gitDDB.put({ _id: _id_p, name: name_p })]);
+
+    await Promise.all([gitDDB.delete(_id_a),
+    gitDDB.delete(_id_b),
+    gitDDB.delete(_id_c01),
+    gitDDB.delete(_id_c02),
+    gitDDB.delete(_id_d)]);
+    
+
+    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject(
+      {
+        total_rows: 1,
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        rows: [
+          {
+            _id: expect.stringContaining(_id_p),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+          },
+        ]
+      });
+
+    await gitDDB.destroy();
+  });
+
+
   test('put(): Concurrent calls of _put_nonatomic() cause an error.', async () => {
     const dbName = './test_repos09_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({

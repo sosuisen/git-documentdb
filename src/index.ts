@@ -58,6 +58,12 @@ type PutResult = {
   commit_sha: string
 };
 
+type DeleteResult = {
+  _id: string,
+  file_sha: string,
+  commit_sha: string
+};
+
 type DocumentInBatch = {
   _id: string,
   file_sha: string,
@@ -353,7 +359,18 @@ get = async (_id: string) => {
  * @throws **RepositoryNotOpenError**
  * @throws **DocumentIdNotFoundError**
  */
-delete = async (_id: string) => {
+ delete = (_id: string): Promise<DeleteResult> => {
+  if (this._currentRepository === undefined) {
+    return Promise.reject(new RepositoryNotOpenError());
+  }
+
+  // put() is atomic.
+  return new Promise((resolve, reject) => {
+    this._pushToAtomicQueue(() => this._delete_nonatomic(_id).then(result => resolve(result)).catch(err => reject(err)));
+  });
+};
+
+_delete_nonatomic = async (_id: string): Promise<DeleteResult> => {
   if (this._currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
