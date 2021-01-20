@@ -3,6 +3,7 @@
 Offline-first DocumentDB using Git
 
 Use GitDocumentDB to ...
+
 :green_book: Store JSON documents into Git repository. 
 
 :art: Manage Git repository by PouchDB-like offline-first API. 
