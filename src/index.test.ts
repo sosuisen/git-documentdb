@@ -817,7 +817,7 @@ describe('Atomic', () => {
   });
 
 
-  test('put(): Concurrent calls of put_nonatomic() cause an error.', async () => {
+  test('put(): Concurrent calls of _put_nonatomic() cause an error.', async () => {
     const dbName = './test_repos09_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -825,12 +825,12 @@ describe('Atomic', () => {
     });
     await gitDDB.open();
 
-    await expect(Promise.all([gitDDB.put_nonatomic({ _id: _id_a, name: name_a }),
-    gitDDB.put_nonatomic({ _id: _id_b, name: name_b }),
-    gitDDB.put_nonatomic({ _id: _id_c01, name: name_c01 }),
-    gitDDB.put_nonatomic({ _id: _id_c02, name: name_c02 }),
-    gitDDB.put_nonatomic({ _id: _id_d, name: name_d }),
-    gitDDB.put_nonatomic({ _id: _id_p, name: name_p })])).rejects.toThrowError();
+    await expect(Promise.all([gitDDB._put_nonatomic({ _id: _id_a, name: name_a }),
+    gitDDB._put_nonatomic({ _id: _id_b, name: name_b }),
+    gitDDB._put_nonatomic({ _id: _id_c01, name: name_c01 }),
+    gitDDB._put_nonatomic({ _id: _id_c02, name: name_c02 }),
+    gitDDB._put_nonatomic({ _id: _id_d, name: name_d }),
+    gitDDB._put_nonatomic({ _id: _id_p, name: name_p })])).rejects.toThrowError();
 
     await gitDDB.destroy();
   });

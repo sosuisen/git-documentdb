@@ -237,12 +237,12 @@ put = (document: { [key: string]: string }): Promise<PutResult> => {
 
   // put() is atomic.
   return new Promise((resolve, reject) => {
-    this._pushToAtomicQueue(() => this.put_nonatomic(document).then(result => resolve(result)).catch(err => reject(err)));
+    this._pushToAtomicQueue(() => this._put_nonatomic(document).then(result => resolve(result)).catch(err => reject(err)));
   });
 };
 
 
-put_nonatomic = async (document: { [key: string]: string }): Promise<PutResult> => {
+_put_nonatomic = async (document: { [key: string]: string }): Promise<PutResult> => {
   if (this._currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
