@@ -2,13 +2,19 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [isOpened](./git-documentdb.gitdocumentdb.isopened.md)
 
-## GitDocumentDB.isOpened property
+## GitDocumentDB.isOpened() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+Test if database is opened
+
 <b>Signature:</b>
 
 ```typescript
-isOpened: () => boolean;
+isOpened(): boolean;
 ```
+<b>Returns:</b>
+
+boolean
+

@@ -2,7 +2,7 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [delete](./git-documentdb.gitdocumentdb.delete.md)
 
-## GitDocumentDB.delete property
+## GitDocumentDB.delete() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -12,5 +12,28 @@ Delete a document
 <b>Signature:</b>
 
 ```typescript
-delete: (_id: string) => Promise<DeleteResult>;
+delete(_id: string): Promise<DeleteResult>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  \_id | string | id of a target document |
+
+<b>Returns:</b>
+
+Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
+
+## Exceptions
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+
+[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+
+[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
+
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
+

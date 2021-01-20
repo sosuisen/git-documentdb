@@ -58,8 +58,8 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
 /**
  * @beta
  */
-export class InvalidKeyCharacterError extends BaseError {
-  constructor(e = 'Invalid Key character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>') {
+export class InvalidIdCharacterError extends BaseError {
+  constructor(e = 'Invalid ID character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>') {
     super(e);
   }
 }
@@ -67,8 +67,8 @@ export class InvalidKeyCharacterError extends BaseError {
 /**
  * @beta
  */
-export class InvalidKeyLengthError extends BaseError {
-  constructor(e = `Invalid Key length: A length of id value must be equal to or less than ${MAX_LENGTH_OF_KEY}.`) {
+export class InvalidIdLengthError extends BaseError {
+  constructor(e = `Invalid ID length: A length of id value must be equal to or less than ${MAX_LENGTH_OF_KEY}.`) {
     super(e);
   }
 }

@@ -4,6 +4,11 @@
 
 ## DeleteResult type
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Result of delete()
+
 <b>Signature:</b>
 
 ```typescript
@@ -13,3 +18,12 @@ export declare type DeleteResult = {
     commit_sha: string;
 };
 ```
+
+## Remarks
+
+- \_id: id of a document
+
+- file\_sha: SHA-1 hash of Git object (40 characters)
+
+- commit\_sha: SHA-1 hash of Git commit (40 characters)
+

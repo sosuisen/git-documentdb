@@ -4,6 +4,11 @@
 
 ## AllDocsOptions type
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+How to get documents
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,3 +19,14 @@ export declare type AllDocsOptions = {
     recursive?: boolean;
 };
 ```
+
+## Remarks
+
+- include\_docs: Include the document itself in each row in the doc property. Otherwise you only get the \_id and file\_sha properties. Default is false.
+
+- descendant: Sort results in rows by descendant. Default is false (ascendant).
+
+- directory: Only get the documents under the specified sub directory.
+
+- recursive: Get documents recursively from all sub directories. Default is false.
+

@@ -25,17 +25,22 @@ export declare class GitDocumentDB
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [\_delete\_nonatomic](./git-documentdb.gitdocumentdb._delete_nonatomic.md) |  | (\_id: string) =&gt; Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> |
-|  [\_put\_nonatomic](./git-documentdb.gitdocumentdb._put_nonatomic.md) |  | (document: { \[key: string\]: string; }) =&gt; Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> |
-|  [allDocs](./git-documentdb.gitdocumentdb.alldocs.md) |  | (options?: [AllDocsOptions](./git-documentdb.alldocsoptions.md) \| undefined) =&gt; Promise&lt;{ total\_rows: 0; } \| { total\_rows: number; commit\_sha: string; rows: [DocumentInBatch](./git-documentdb.documentinbatch.md)<!-- -->\[\]; }&gt; | <b><i>(BETA)</i></b> Get all the documents in a repository. |
-|  [close](./git-documentdb.gitdocumentdb.close.md) |  | (options?: [DatabaseCloseOption](./git-documentdb.databasecloseoption.md)<!-- -->) =&gt; Promise&lt;void&gt; | <b><i>(BETA)</i></b> Close database<br> CRUD operation is not available while closing.<br> Queued operations are executed before database is closed.<br> |
-|  [delete](./git-documentdb.gitdocumentdb.delete.md) |  | (\_id: string) =&gt; Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> Delete a document |
-|  [destroy](./git-documentdb.gitdocumentdb.destroy.md) |  | () =&gt; Promise&lt;boolean&gt; | <b><i>(BETA)</i></b> |
-|  [get](./git-documentdb.gitdocumentdb.get.md) |  | (\_id: string) =&gt; Promise&lt;any&gt; | <b><i>(BETA)</i></b> |
-|  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | <b><i>(BETA)</i></b> |
-|  [isOpened](./git-documentdb.gitdocumentdb.isopened.md) |  | () =&gt; boolean | <b><i>(BETA)</i></b> |
-|  [open](./git-documentdb.gitdocumentdb.open.md) |  | () =&gt; Promise&lt;{ isNew: boolean; isCreatedByGitDDB: boolean; isValidVersion: boolean; }&gt; | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
-|  [put](./git-documentdb.gitdocumentdb.put.md) |  | (document: { \[key: string\]: string; }) =&gt; Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt; | <b><i>(BETA)</i></b> Add a JSON document into a database |
-|  [validateKey](./git-documentdb.gitdocumentdb.validatekey.md) |  | (id: string) =&gt; void | <b><i>(BETA)</i></b> |
-|  [workingDir](./git-documentdb.gitdocumentdb.workingdir.md) |  | () =&gt; string | <b><i>(BETA)</i></b> |
+|  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | <b><i>(BETA)</i></b> DB is going to close |
+
+## Methods
+
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [\_delete\_nonatomic(\_id)](./git-documentdb.gitdocumentdb._delete_nonatomic.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
+|  [\_put\_nonatomic(document)](./git-documentdb.gitdocumentdb._put_nonatomic.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
+|  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents in a repository. |
+|  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close database |
+|  [delete(\_id)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> Delete a document |
+|  [destroy()](./git-documentdb.gitdocumentdb.destroy.md) |  | <b><i>(BETA)</i></b> Destroy database |
+|  [get(\_id)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document from a database |
+|  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if database is opened |
+|  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
+|  [put(document)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document into a database |
+|  [validateId(id)](./git-documentdb.gitdocumentdb.validateid.md) |  | <b><i>(BETA)</i></b> Validate \_id of a document |
+|  [workingDir()](./git-documentdb.gitdocumentdb.workingdir.md) |  | <b><i>(BETA)</i></b> Get a path of the current Git working directory |
 

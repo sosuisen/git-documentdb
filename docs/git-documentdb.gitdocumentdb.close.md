@@ -2,15 +2,38 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [close](./git-documentdb.gitdocumentdb.close.md)
 
-## GitDocumentDB.close property
+## GitDocumentDB.close() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Close database<br> CRUD operation is not available while closing.<br> Queued operations are executed before database is closed.<br>
+Close database
 
 <b>Signature:</b>
 
 ```typescript
-close: (options?: DatabaseCloseOption) => Promise<void>;
+close(options?: DatabaseCloseOption): Promise<void>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | The options specify how to close database. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+## Exceptions
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+
+[DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md)
+
+## Remarks
+
+- CRUD operations are not available while closing.
+
+- Queued operations are executed before database is closed.
+

@@ -2,13 +2,26 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [\_delete\_nonatomic](./git-documentdb.gitdocumentdb._delete_nonatomic.md)
 
-## GitDocumentDB.\_delete\_nonatomic property
+## GitDocumentDB.\_delete\_nonatomic() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+This method is used only for internal use. It is published for test purpose.
+
 <b>Signature:</b>
 
 ```typescript
-_delete_nonatomic: (_id: string) => Promise<DeleteResult>;
+_delete_nonatomic(_id: string): Promise<DeleteResult>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  \_id | string |  |
+
+<b>Returns:</b>
+
+Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
+

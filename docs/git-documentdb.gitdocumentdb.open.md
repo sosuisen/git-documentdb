@@ -2,7 +2,7 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [open](./git-documentdb.gitdocumentdb.open.md)
 
-## GitDocumentDB.open property
+## GitDocumentDB.open() method
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -12,14 +12,21 @@ Create a repository or open an existing one.
 <b>Signature:</b>
 
 ```typescript
-open: () => Promise<{
-        isNew: boolean;
-        isCreatedByGitDDB: boolean;
-        isValidVersion: boolean;
-    }>;
+open(): Promise<DatabaseInfo>;
 ```
+<b>Returns:</b>
+
+Promise&lt;[DatabaseInfo](./git-documentdb.databaseinfo.md)<!-- -->&gt;
+
+Database information
+
+## Exceptions
+
+[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) You may not have write permission.
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
 
 ## Remarks
 
-If localDir does not exist, it is created.<br> <br> - isNew: Whether a repository is newly created or existing.<br> - isCreatedByGitDDB: Whether a repository is created by git-documentDB or other methods.<br> - isValidVersion: Whether a repository version equals to the current databaseVersion of git-documentDB.<br> The version is described in .git/description.
+If localDir does not exist, it is created.
 

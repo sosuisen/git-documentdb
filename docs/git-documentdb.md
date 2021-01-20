@@ -21,9 +21,9 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) | <b><i>(BETA)</i></b> |
 |  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) | <b><i>(BETA)</i></b> |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | <b><i>(BETA)</i></b> Main class of GitDocumentDB |
+|  [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) | <b><i>(BETA)</i></b> |
+|  [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) | <b><i>(BETA)</i></b> |
 |  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) | <b><i>(BETA)</i></b> |
-|  [InvalidKeyCharacterError](./git-documentdb.invalidkeycharactererror.md) | <b><i>(BETA)</i></b> |
-|  [InvalidKeyLengthError](./git-documentdb.invalidkeylengtherror.md) | <b><i>(BETA)</i></b> |
 |  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) | <b><i>(BETA)</i></b> |
 |  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) | <b><i>(BETA)</i></b> |
 |  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) | <b><i>(BETA)</i></b> |
@@ -32,9 +32,12 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [AllDocsOptions](./git-documentdb.alldocsoptions.md) |  |
-|  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) |  |
-|  [DeleteResult](./git-documentdb.deleteresult.md) |  |
-|  [DocumentInBatch](./git-documentdb.documentinbatch.md) |  |
-|  [PutResult](./git-documentdb.putresult.md) |  |
+|  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | <b><i>(BETA)</i></b> How to get documents |
+|  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | <b><i>(BETA)</i></b> How to close database |
+|  [DatabaseInfo](./git-documentdb.databaseinfo.md) | <b><i>(BETA)</i></b> Database information |
+|  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
+|  [DeleteResult](./git-documentdb.deleteresult.md) | <b><i>(BETA)</i></b> Result of delete() |
+|  [JsonDoc](./git-documentdb.jsondoc.md) | <b><i>(BETA)</i></b> Type for a JSON document |
+|  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | <b><i>(BETA)</i></b> Type for a JSON document with metadata |
+|  [PutResult](./git-documentdb.putresult.md) | <b><i>(BETA)</i></b> Result of put() |
 
