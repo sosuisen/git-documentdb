@@ -1,0 +1,12 @@
+# Dependency directories
+node_modules/
+examples/node_modules/
+
+# test
+test_repos*
+coverage/
+test/
+
+# api-extractor
+temp/
+etc/
