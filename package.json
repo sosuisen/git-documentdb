@@ -28,9 +28,9 @@
   "author": "Hidekazu Kubota",
   "license": "MPL-2.0",
   "bugs": {
-    "url": "https://github.com/sosuisen/gitsync-db/issues"
+    "url": "https://github.com/sosuisen/git-documentdb/issues"
   },
-  "homepage": "https://github.com/sosuisen/gitsync-db#readme",
+  "homepage": "https://github.com/sosuisen/git-documentdb#readme",
   "devDependencies": {
     "@microsoft/api-documenter": "^7.12.4",
     "@microsoft/api-extractor": "^7.13.0",
