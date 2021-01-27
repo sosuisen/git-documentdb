@@ -23,7 +23,9 @@ A document must be a JSON Object that matches the following conditions:
 
 - It must have an '\_id' key, which value only allows \*\*a to z, A to Z, 0 to 9, and these 8 punctuation marks \_ - . / ( ) \[ \]\*\*.
 
-- Do not use a period at the end of an '\_id' value.
+- '\_id' cannot start with an underscore \_. (For compatibility with PouchDB and CouchDB)
+
+- '\_id' cannot end with a period . (For compatibility with the file system of Windows)
 
 - A length of an '\_id' value must be equal to or less than MAX\_LENGTH\_OF\_KEY(64).
 
