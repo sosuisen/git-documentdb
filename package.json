@@ -6,7 +6,8 @@
   "typing": "dist/main.d.ts",
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc",
-    "test": "npm run lint && jest",
+    "test": "npm run lint && jest --coverage && npm run coverage",
+    "coverage": "npx coveralls < coverage/lcov.info",
     "doc": "npm run build && npm run api-extractor",
     "prepare": "npm run build && npm run test && npm run api-extractor && npm run crlf",
     "prepublishOnly": "",
@@ -39,6 +40,7 @@
     "@types/nodegit": "^0.26.12",
     "@typescript-eslint/eslint-plugin": "^4.12.0",
     "@typescript-eslint/parser": "^4.12.0",
+    "coveralls": "^3.1.0",
     "crlf": "^1.1.1",
     "eslint": "^7.17.0",
     "eslint-config-standardize": "^0.7.1",
@@ -50,6 +52,6 @@
   },
   "dependencies": {
     "nodegit": "^0.27.0",
-    "fs-extra": "^9.1.0"    
+    "fs-extra": "^9.1.0"
   }
 }
