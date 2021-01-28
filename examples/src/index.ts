@@ -5,27 +5,27 @@ const gitDDB = new GitDocumentDB({
     dbName: 'db01', // Git working directory
   });
 const foo = async () => {
-  // Create repository in ~gddb_data/db01/.git
+  // Create repository (gddb_data/db01/.git)
   await gitDDB.open();
-  // Create document named '4' in ~gddb_data/db01/
-  await gitDDB.put({ _id: '4', name: 'Yuzuki', age: '15' });
+  // Create document named 'profile' in gddb_data/db01/
+  await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '15' });
   // Update
-  await gitDDB.put({ _id: '4', name: 'Yuzuki', age: '16' });
+  await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '16' });
   // Read
-  const doc = await gitDDB.get('4');
-  console.log(doc);  // doc = { _id: '4', name: 'Yuzuki', age: '16' }
+  const doc = await gitDDB.get('profile');
+  console.log(doc);  // doc = { _id: 'profile', name: 'Yuzuki', age: '16' }
   // Delete
-  await gitDDB.delete('4');
+  await gitDDB.delete('profile');
 
   // Create documents in sub-directories
-  // ~gddb_data/db01/Gunma/1 
-  // ~gddb_data/db01/Gunma/2
-  // ~gddb_data/db01/Gunma/3
-  // ~gddb_data/db01/Sapporo/4
+  //   gddb_data/db01/Gunma/1 
+  //   gddb_data/db01/Gunma/2
+  //   gddb_data/db01/Gunma/3
+  //   gddb_data/db01/Sapporo/4
   await gitDDB.put({ _id: 'Gunma/1', name: 'Kimari', age: '16' });
   await gitDDB.put({ _id: 'Gunma/2', name: 'Shirase', age: '17' });
   await gitDDB.put({ _id: 'Gunma/3', name: 'Hinata', age: '17' });
-  await gitDDB.put({ _id: 'Sapporo/4', name: 'Yuzuki', age: '16' });
+  await gitDDB.put({ _id: 'Sapporo/1', name: 'Yuzuki', age: '16' });
   // Bulk read
   const docs = await gitDDB.allDocs({ directory: 'Gunma', include_docs: true });
   console.dir(docs, { depth: 3 });

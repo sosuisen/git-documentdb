@@ -14,7 +14,16 @@ Use GitDocumentDB to ...
 
 :rocket: Synchronize JSON documents with a remote Git repository.
 
+# API
+
+https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.gitdocumentdb.md
+
 # Usage
+## Installation:
+```
+npm i git-documentdb
+```
+## Getting started:
 ```typescript
 import { GitDocumentDB } from 'git-documentdb';
 
@@ -22,28 +31,35 @@ const gitDDB = new GitDocumentDB({
     localDir: 'gddb_data',
     dbName: 'db01', // Git working directory
   });
-const foo = async () => {
-  // Create repository in ~gddb_data/db01/.git
-  await gitDDB.open();
-  // Create document named '4' in ~gddb_data/db01/
-  await gitDDB.put({ _id: '4', name: 'Yuzuki', age: '15' });
-  // Update
-  await gitDDB.put({ _id: '4', name: 'Yuzuki', age: '16' });
-  // Read
-  const doc = await gitDDB.get('4');
-  console.log(doc);  // doc = { _id: '4', name: 'Yuzuki', age: '16' }
-  // Delete
-  await gitDDB.delete('4');
+```
 
+## Basic CRUD:
+```typescript
+  // Create repository (gddb_data/db01/.git)
+  await gitDDB.open();
+  // Create document named 'profile' in gddb_data/db01/
+  await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '15' });
+  // Update
+  await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '16' });
+  // Read
+  const doc = await gitDDB.get('profile');
+  console.log(doc);  // doc = { _id: 'profile', name: 'Yuzuki', age: '16' }
+  // Delete
+  await gitDDB.delete('profile');
+```
+
+## Advanced:
+```typescript
   // Create documents in sub-directories
-  // ~gddb_data/db01/Gunma/1 
-  // ~gddb_data/db01/Gunma/2
-  // ~gddb_data/db01/Gunma/3
-  // ~gddb_data/db01/Sapporo/4
+  //   gddb_data/db01/Gunma/1 
+  //   gddb_data/db01/Gunma/2
+  //   gddb_data/db01/Gunma/3
+  //   gddb_data/db01/Sapporo/4
   await gitDDB.put({ _id: 'Gunma/1', name: 'Kimari', age: '16' });
   await gitDDB.put({ _id: 'Gunma/2', name: 'Shirase', age: '17' });
   await gitDDB.put({ _id: 'Gunma/3', name: 'Hinata', age: '17' });
   await gitDDB.put({ _id: 'Sapporo/4', name: 'Yuzuki', age: '16' });
+  
   // Bulk read
   const docs = await gitDDB.allDocs({ directory: 'Gunma', include_docs: true });
   console.dir(docs, { depth: 3 });
@@ -69,24 +85,13 @@ const foo = async () => {
       }
     ]
   }
-  */
-  // Close
-  await gitDDB.close();
-
-  // destroy() removes repository
-  // await gitDDB.destroy(); 
-}
-foo();
 ```
+## Examples:
 See examples directory.
 ```
 $ cd examples
 $ npm start
 ```
-
-# API
-
-https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.gitdocumentdb.md
 
 # App using GitDocumentDB
 
