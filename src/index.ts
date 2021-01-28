@@ -278,14 +278,14 @@ export class GitDocumentDB {
    */
   async open(): Promise<DatabaseInfo> {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      return Promise.reject(new DatabaseClosingError());
     }
 
     if (this.isOpened()) {
       return this._dbInfo;
     }
 
-    await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
+    await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
 
     this._dbInfo = {
       isNew: false,
@@ -308,7 +308,7 @@ export class GitDocumentDB {
       };
       this._dbInfo.isNew = true;
       // @ts-ignore
-      return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { throw new Error(err) });
+      return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { return Promise.reject(new Error(err)) });
     });
 
     // Check git description
@@ -318,6 +318,8 @@ export class GitDocumentDB {
         this._dbInfo.isValidVersion = false;
         return '';
       });
+    if(description === '') return this._dbInfo;
+
     if ((new RegExp('^' + databaseName)).test(description)) {
       this._dbInfo.isCreatedByGitDDB = true;
       if ((new RegExp('^' + defaultDescription)).test(description)) {
@@ -384,7 +386,7 @@ export class GitDocumentDB {
    */
   put(document: JsonDoc): Promise<PutResult> {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      return Promise.reject(new DatabaseClosingError());
     }
 
     if (this._currentRepository === undefined) {
@@ -408,20 +410,20 @@ export class GitDocumentDB {
    */
   async _put_concurrent(document: JsonDoc): Promise<PutResult> {
     if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
+      return Promise.reject(new RepositoryNotOpenError());
     }
 
     if (document === undefined) {
-      throw new InvalidJsonObjectError();
+      return Promise.reject(new InvalidJsonObjectError());
     }
 
     if (document['_id'] === undefined) {
-      throw new UndefinedDocumentIdError();
+      return Promise.reject(new UndefinedDocumentIdError());
     }
 
     try {
       this.validateId(document._id);
-    } catch (err) { throw err; }
+    } catch (err) { return Promise.reject(err); }
 
     const _id = document._id;
     let data = '';
@@ -430,14 +432,14 @@ export class GitDocumentDB {
       data = JSON.stringify(document);
     } catch (err) {
       // not json
-      throw new InvalidJsonObjectError();
+      return Promise.reject(new InvalidJsonObjectError());
     }
 
     let file_sha, commit_sha: string;
     try {
       const filePath = path.resolve(this._workingDirectory, _id);
       const dir = path.dirname(filePath);
-      await fs.ensureDir(dir).catch((err: Error) => { throw new CannotCreateDirectoryError(err.message); });
+      await fs.ensureDir(dir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
       await fs.writeFile(filePath, data);
 
       const index = await this._currentRepository.refreshIndex(); // read latest index
@@ -465,7 +467,7 @@ export class GitDocumentDB {
       }
       commit_sha = commit.tostrS();
     } catch (err) {
-      throw new CannotWriteDataError(err.message);
+      return Promise.reject(new CannotWriteDataError(err.message));
     }
     // console.log(commitId.tostrS());
     return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
@@ -484,32 +486,32 @@ export class GitDocumentDB {
    */
   async get(_id: string): Promise<JsonDoc> {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      return Promise.reject(new DatabaseClosingError());
     }
 
     if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
+      return Promise.reject(new RepositoryNotOpenError());
     }
 
     if (_id === undefined) {
-      throw new UndefinedDocumentIdError();
+      return Promise.reject(new UndefinedDocumentIdError());
     }
 
     // Calling nameToId() for HEAD throws error when this is first commit.
     const head = await nodegit.Reference.nameToId(this._currentRepository, "HEAD").catch(e => false); // get HEAD
     let document;
     if (!head) {
-      throw new DocumentNotFoundError();
+      return Promise.reject(new DocumentNotFoundError());
     }
     else {
       const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      const entry = await commit.getEntry(_id).catch(err => { throw new DocumentNotFoundError(err.message) });
+      const entry = await commit.getEntry(_id).catch(err => { return Promise.reject(new DocumentNotFoundError(err.message)) });
       const blob = await entry.getBlob();
       try {
         document = JSON.parse(blob.toString()) as unknown as JsonDoc;
         document['_id'] = _id;
       } catch (e) {
-        throw new InvalidJsonObjectError();
+        return Promise.reject(new InvalidJsonObjectError());
       }
     }
     return document;
@@ -527,7 +529,7 @@ export class GitDocumentDB {
    */
   delete(_id: string): Promise<DeleteResult> {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      return Promise.reject(new DatabaseClosingError());
     }
 
     if (this._currentRepository === undefined) {
@@ -546,11 +548,11 @@ export class GitDocumentDB {
    */
   async _delete_concurrent(_id: string): Promise<DeleteResult> {
     if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
+      return Promise.reject(new RepositoryNotOpenError());
     }
 
     if (_id === undefined) {
-      throw new UndefinedDocumentIdError();
+      return Promise.reject(new UndefinedDocumentIdError());
     }
 
     let file_sha, commit_sha: string;
@@ -561,13 +563,13 @@ export class GitDocumentDB {
 
       const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
       if (entry === undefined) {
-        throw new DocumentNotFoundError();
+        return Promise.reject(new DocumentNotFoundError());
       }
       file_sha = entry.id.tostrS();
 
       await index.removeByPath(_id); // stage
       await index.write(); // flush changes to index
-    } catch (err) { throw new CannotDeleteDataError(err.message) }
+    } catch (err) { return Promise.reject(new CannotDeleteDataError(err.message)) }
 
 
     try {
@@ -581,7 +583,7 @@ export class GitDocumentDB {
       let commit;
       if (!head) {
         // First commit
-        throw new DocumentNotFoundError();
+        return Promise.reject(new DocumentNotFoundError());
       }
       else {
         const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -589,7 +591,7 @@ export class GitDocumentDB {
       }
       commit_sha = commit.tostrS();
     } catch (err) {
-      throw new CannotDeleteDataError(err.message);
+      return Promise.reject(new CannotDeleteDataError(err.message));
     }
 
     return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
@@ -609,7 +611,7 @@ export class GitDocumentDB {
    */
   async close(options: DatabaseCloseOption = { force: false, timeout: 10000 }) {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      return Promise.reject(new DatabaseClosingError());
     }
 
     if (this._currentRepository instanceof nodegit.Repository) {
@@ -620,13 +622,11 @@ export class GitDocumentDB {
           const startMsec = Date.now();
           while (this._serialQueue.length > 0 || this._isSerialQueueWorking) {
             if (Date.now() - startMsec > timeoutMsec) {
-              throw new DatabaseCloseTimeoutError();
+              return Promise.reject(new DatabaseCloseTimeoutError());
             }
             await sleep(100);
           }
         }
-      } catch (err) {
-        throw err;
       }
       finally {
         this.isClosing = false;
@@ -641,6 +641,7 @@ export class GitDocumentDB {
         this._currentRepository = undefined;
       }
     }
+    return true;
   };
 
   /**
@@ -655,7 +656,7 @@ export class GitDocumentDB {
    */
   async destroy() {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      return Promise.reject(new DatabaseClosingError());
     }
 
     if (this._currentRepository !== undefined) {
@@ -676,16 +677,15 @@ export class GitDocumentDB {
    * @returns Promise
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
-   * @throws {@link DocumentNotFoundError}
    * @throws {@link InvalidJsonObjectError}
    */
   async allDocs(options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: JsonDocWithMetadata[] }> {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      return Promise.reject(new DatabaseClosingError());
     }
 
     if (this._currentRepository === undefined) {
-      throw new RepositoryNotOpenError();
+      return Promise.reject(new RepositoryNotOpenError());
     }
 
     // Calling nameToId() for HEAD throws error when this is first commit.
@@ -704,13 +704,13 @@ export class GitDocumentDB {
       const tree = await commit.getTree();
 
       if (options?.directory) {
-        const specifiedTreeEntry = await tree.getEntry(options?.directory);
+        const specifiedTreeEntry = await tree.getEntry(options?.directory).catch(e => null);
         if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
           const specifiedTree = await specifiedTreeEntry.getTree();
           directories.push(specifiedTree);
         }
         else {
-          throw new DocumentNotFoundError();
+          return { total_rows: 0 };
         }
       }
       else {
@@ -752,7 +752,7 @@ export class GitDocumentDB {
                 doc._id = path;
                 documentInBatch.doc = doc;
               } catch (err) {
-                throw new InvalidJsonObjectError(err.message);
+                return Promise.reject(new InvalidJsonObjectError(err.message));
               }
             }
             rows.push(documentInBatch);
