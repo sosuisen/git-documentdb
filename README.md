@@ -14,8 +14,42 @@ Use GitDocumentDB to ...
 
 :rocket: Synchronize JSON documents with a remote Git repository.
 
+# Usage
+See examples directory.
+```
+$ cd examples
+$ npm start
+```
+```typescript
+import { GitDocumentDB } from 'git-documentdb';
+
+const gitDDB = new GitDocumentDB({
+    localDir: 'gddb_data',
+    dbName: 'db01',
+  });
+const setAndGetProf = async () => {
+  // Create or open repository
+  await gitDDB.open();
+  // Create document
+  await gitDDB.put({ _id: '4', name: 'Yuzuki', age: '15' });
+  // Update
+  await gitDDB.put({ _id: '4', name: 'Yuzuki', age: '16' });
+  // Read
+  const prof = await gitDDB.get('4');
+  console.log(prof);  // { _id: '4', name: 'Yuzuki', age: '16' }
+  // Delete
+  await gitDDB.delete('4');
+  await gitDDB.close();
+  // destroy() removes repository
+  // await gitDDB.destroy(); 
+}
+setAndGetProf();
+```
+
 # API
+
 https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.gitdocumentdb.md
 
-# Example
+# App using GitDocumentDB
+
 https://github.com/sosuisen/inventory-manager

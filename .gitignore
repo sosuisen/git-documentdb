@@ -105,6 +105,7 @@ dist
 
 # test
 test_repos*
+gddb_data
 
 # api-extractor
 temp/
