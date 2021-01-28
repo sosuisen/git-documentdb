@@ -84,7 +84,7 @@ const gitDDB = new GitDocumentDB({
         doc: { name: 'Hinata', age: '17', _id: 'Gunma/3' }
       }
     ]
-  }
+  } */
 ```
 ## Examples:
 See examples directory.
