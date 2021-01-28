@@ -39,8 +39,6 @@ Promise
 
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
-
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 
 ## Remarks

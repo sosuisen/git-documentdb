@@ -80,7 +80,7 @@ export class GitDocumentDB {
         commit_sha: string;
         rows: JsonDocWithMetadata[];
     }>;
-    close(options?: DatabaseCloseOption): Promise<void>;
+    close(options?: DatabaseCloseOption): Promise<boolean>;
     delete(_id: string): Promise<DeleteResult>;
     _delete_concurrent(_id: string): Promise<DeleteResult>;
     destroy(): Promise<boolean>;
