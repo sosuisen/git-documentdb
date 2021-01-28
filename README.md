@@ -15,11 +15,6 @@ Use GitDocumentDB to ...
 :rocket: Synchronize JSON documents with a remote Git repository.
 
 # Usage
-See examples directory.
-```
-$ cd examples
-$ npm start
-```
 ```typescript
 import { GitDocumentDB } from 'git-documentdb';
 
@@ -44,6 +39,11 @@ const setAndGetProf = async () => {
   // await gitDDB.destroy(); 
 }
 setAndGetProf();
+```
+See examples directory.
+```
+$ cd examples
+$ npm start
 ```
 
 # API
