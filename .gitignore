@@ -109,3 +109,4 @@ test_repos*
 # api-extractor
 temp/
 
+.coverall.yml
