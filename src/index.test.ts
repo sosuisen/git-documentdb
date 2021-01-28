@@ -8,7 +8,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError,UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, DatabaseCloseTimeoutError } from './error';
+import { CannotCreateDirectoryError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, DatabaseCloseTimeoutError, DatabaseClosingError } from './error';
 import { GitDocumentDB } from './index';
 import nodegit from 'nodegit';
 
@@ -41,13 +41,13 @@ describe('Create repository', () => {
 
   beforeAll(() => {
     if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(readonlyDir));
+      fs.removeSync(path.resolve(localDir));
     }
   });
 
   afterAll(() => {
     if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(readonlyDir));
+      fs.removeSync(path.resolve(localDir));
     }
   });
 
@@ -78,9 +78,11 @@ describe('Create repository', () => {
     });
 
     // Create db
-    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true });
+    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true }).catch(e => console.error(e));
+    // Check path of working directory
+    expect(gitDDB.workingDir()).toBe(path.resolve('./test/database01_1/test_repos01_2'));
     // Destroy db
-    await expect(gitDDB.destroy()).resolves.toBeTruthy();
+    await expect(gitDDB.destroy()).resolves.toBeTruthy().catch(e => console.error(e));
     // fs.access() throw error when a file cannot be accessed.    
     await expect(fs.access(path.resolve(localDir, dbName))).rejects.toMatchObject({ name: 'Error', code: 'ENOENT' });
   });
@@ -102,12 +104,6 @@ describe('Create repository', () => {
 
 describe('Open, close and destroy repository', () => {
   const localDir = './test/database02_1';
-  let dbName = './test_repos02_1';
-
-  let gitDDB: GitDocumentDB = new GitDocumentDB({
-    dbName: dbName,
-    localDir: localDir
-  });
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -118,11 +114,17 @@ describe('Open, close and destroy repository', () => {
   });
 
   test('open(), close() and destroy(): Open an existing repository.', async () => {
+    const dbName = './test_repos02_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
     // Create db
     await gitDDB.open();
 
     // Close created db
-    expect(gitDDB.close()).toBeTruthy();
+    await expect(gitDDB.close()).resolves.toBeTruthy();
 
     // Open existing db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: true, isValidVersion: true });
@@ -135,8 +137,8 @@ describe('Open, close and destroy repository', () => {
 
 
   test('open(): Open a repository created by another app.', async () => {
-    dbName = 'test_repos02_2';
-    gitDDB = new GitDocumentDB({
+    const dbName = 'test_repos02_2';
+    const gitDDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
     });
@@ -149,7 +151,7 @@ describe('Open, close and destroy repository', () => {
     await fs.ensureDir(localDir);
     // @ts-ignore
     await nodegit.Repository.initExt(path.resolve(localDir, dbName), options).catch(err => { throw new Error(err) });
-    gitDDB.close();
+    await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: false, isValidVersion: false });
     await gitDDB.destroy();
@@ -157,8 +159,8 @@ describe('Open, close and destroy repository', () => {
 
 
   test('open(): Open a repository created by another version.', async () => {
-    dbName = 'test_repos02_3';
-    gitDDB = new GitDocumentDB({
+    const dbName = 'test_repos02_3';
+    const gitDDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
     });
@@ -171,11 +173,38 @@ describe('Open, close and destroy repository', () => {
     await fs.ensureDir(localDir);
     // @ts-ignore
     await nodegit.Repository.initExt(path.resolve(localDir, dbName), options).catch(err => { throw new Error(err) });
-    gitDDB.close();
+    await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: true, isValidVersion: false });
     await gitDDB.destroy();
   });
+
+  test('open(): Open a repository with no description file.', async () => {
+    const dbName = 'test_repos02_4';
+    const gitDDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    const workingDirectory = gitDDB.workingDir();
+    await gitDDB.close();
+    fs.removeSync(path.resolve(workingDirectory, '.git', 'description'));
+    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: false, isValidVersion: false });
+  });
+
+  test('Open db twice.', async () => {
+    const dbName = './test_repos02_5';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
+    // Create db
+    const info = await gitDDB.open();
+    await expect(gitDDB.open()).resolves.toMatchObject(info);
+    await gitDDB.destroy();
+  });
+
 });
 
 
@@ -197,6 +226,7 @@ describe('Create document', () => {
       localDir: localDir
     });
     await expect(gitDDB.put({ _id: 'prof01', name: 'shirase' })).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB._put_concurrent({ _id: 'prof01', name: 'shirase' })).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -235,7 +265,7 @@ describe('Create document', () => {
     await gitDDB.open();
     await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
     await expect(gitDDB.put({ _id: '_test', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
-    await expect(gitDDB.put({ _id: 'test.', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);    
+    await expect(gitDDB.put({ _id: 'test.', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
     await gitDDB.destroy();
   });
 
@@ -290,11 +320,23 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
+  test('put(): Put a invalid JSON Object (not pure)', async () => {
+    const dbName = './test_repos03_8';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    // JSON.stringify() throws error if an object is recursive.
+    const obj1 = { obj: {} };
+    const obj2 = { obj: obj1 };
+    obj1.obj = obj2;
+    await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(InvalidJsonObjectError);
+    await gitDDB.destroy();
+  });
+
   test.todo('Check whether _id property is excluded from the repository document')
-
-  test.todo('Put a new text');
-
-  test.todo('Put a new binary');
 
   test.todo('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
 
@@ -325,6 +367,8 @@ describe('Read document', () => {
     // Get
     await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
     await gitDDB.destroy();
+    // Check error
+    await expect(gitDDB.get(_id)).rejects.toThrowError(RepositoryNotOpenError);
   });
 
 
@@ -343,9 +387,22 @@ describe('Read document', () => {
     await gitDDB.destroy();
   });
 
-  test.todo('Check RepositoryNotOpenError.');
-  test.todo('Check whether a document does not exist when the database is empty.');
-  test.todo('Check whether a document does not exists when it has not been put yet.');
+  test('get(): Read a document that does not exist.', async () => {
+    const dbName = './test_repos05_3';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    await expect(gitDDB.get('prof01')).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.put({ _id: _id, name: 'shirase' });
+    // @ts-ignore
+    await expect(gitDDB.get(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
+    await expect(gitDDB.get('prof02')).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.destroy();
+  });
+
   test.todo('Check InvalidJsonObjectError.');
 });
 
@@ -407,6 +464,7 @@ describe('Delete document', () => {
   test('delete()', async () => {
     await gitDDB.open();
     const _id = 'prof01';
+    await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Delete
     await expect(gitDDB.delete(_id)).resolves.toMatchObject(
@@ -416,9 +474,14 @@ describe('Delete document', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
     );
+    await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);    
     await expect(gitDDB.get(_id)).rejects.toThrowError(DocumentNotFoundError);
+    // @ts-ignore
+    await expect(gitDDB._delete_concurrent(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
 
     await gitDDB.destroy();
+
+    await expect(gitDDB.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);    
   });
 
 });
@@ -456,12 +519,12 @@ describe('Fetch a batch of documents', () => {
       dbName: dbName,
       localDir: localDir
     });
+
+    await expect(gitDDB.allDocs({ recursive: true })).rejects.toThrowError(RepositoryNotOpenError);
+
     await gitDDB.open();
 
-    await expect(gitDDB.allDocs()).resolves.toMatchObject(
-      {
-        total_rows: 0
-      });
+    await expect(gitDDB.allDocs()).resolves.toStrictEqual({ total_rows : 0});    
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -704,6 +767,9 @@ describe('Fetch a batch of documents', () => {
           },
         ]
       });
+
+    await expect(gitDDB.allDocs({ recursive: true, directory: 'not_exist' })).resolves.toStrictEqual({ total_rows: 0 });
+
 
     await gitDDB.destroy();
   });
@@ -1009,8 +1075,6 @@ describe('Close database', () => {
     });
     await gitDDB.open();
 
-
-    const workers = [];
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { });
@@ -1025,6 +1089,33 @@ describe('Close database', () => {
       {
         total_rows: 100
       });
+
     await gitDDB.destroy();
   });
+
+  test('Check isClosing flag', async () => {
+    const dbName = './test_repos10_4';
+    const gitDDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    
+    for (let i = 0; i < 100; i++) {
+      // put() will throw Error after the database is closed by force.
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { });
+    }
+    // Call close() without await
+    gitDDB.close();
+    await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
+    const _id = 'prof01';
+    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(DatabaseClosingError);
+    await expect(gitDDB.get(_id)).rejects.toThrowError(DatabaseClosingError);
+    await expect(gitDDB.delete(_id)).rejects.toThrowError(DatabaseClosingError);    
+    await expect(gitDDB.close()).rejects.toThrowError(DatabaseClosingError);        
+    await expect(gitDDB.destroy()).rejects.toThrowError(DatabaseClosingError);            
+    await expect(gitDDB.allDocs()).rejects.toThrowError(DatabaseClosingError);            
+  });
+
+  
 });
