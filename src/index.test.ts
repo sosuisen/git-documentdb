@@ -922,7 +922,9 @@ describe('Serial', () => {
   });
 
 
-  test('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
+  // Skip this test because segmentation fault often occurs in libgit2.
+  // Check this only when you would like to check behavior of _put_concurrent()
+  test.skip('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
     const dbName = './test_repos09_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
