@@ -1,6 +1,7 @@
 <img alt="GitDocumentDB" src="https://github.com/sosuisen/git-documentdb/blob/main/assets/git-documentdb_icon-128x128.png" width=60 height=60 align="left"> 
 
 # GitDocumentDB
+ [![npm version](https://badge.fury.io/js/git-documentdb.svg)](https://badge.fury.io/js/git-documentdb)
  [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](LICENSE)
  [![Coverage Status](https://coveralls.io/repos/github/sosuisen/git-documentdb/badge.svg?branch=main)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
@@ -19,11 +20,24 @@ Use GitDocumentDB to ...
 https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.gitdocumentdb.md
 
 # Usage
-## Installation:
+## Getting started:
+### **Prerequisite**
+Node.js 10 or later
+### **Installation**
 ```
 npm i git-documentdb
 ```
-## Getting started:
+**NOTE:**<br>
+GitDocumentDB uses native addon (libgit2).<br>
+If you receive errors about install you probably miss libssl-dev and libkrb5-dev.<br>
+In Ubuntu:
+```
+sudo apt update
+sudo apt install libssl-dev libkrb5-dev
+```
+If you are still encountering problems, documents about [nodegit](https://github.com/nodegit/nodegit) may also help you.
+
+## Import:
 ```typescript
 import { GitDocumentDB } from 'git-documentdb';
 
