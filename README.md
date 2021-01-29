@@ -35,7 +35,7 @@ In Ubuntu:
 sudo apt update
 sudo apt install libssl-dev libkrb5-dev
 ```
-If you are still encountering problems, documents about [nodegit](https://github.com/nodegit/nodegit) may also help you.
+If you are still encountering node-pre-gyp problems, documents about [nodegit](https://github.com/nodegit/nodegit) may also help you.
 
 ## Import:
 ```typescript
