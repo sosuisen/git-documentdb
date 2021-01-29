@@ -178,9 +178,9 @@ export type JsonDocWithMetadata = {
  * How to close database
  * 
  * @remarks 
- * - force: Skip queued operations and closes database immediately.
+ * - force: Clear queued operations immediately.
  * 
- * - timeout: Set timeout(msec). Default is 10000.
+ * - timeout: Clear queued operation after timeout(msec). Default is 10000.
  *
  *  @beta
  */
@@ -615,17 +615,24 @@ export class GitDocumentDB {
     }
 
     if (this._currentRepository instanceof nodegit.Repository) {
+      let isTimeout = false;
       try {
-        if (!options.force) {
-          this.isClosing = true;
-          const timeoutMsec = options.timeout || 10000;
-          const startMsec = Date.now();
-          while (this._serialQueue.length > 0 || this._isSerialQueueWorking) {
-            if (Date.now() - startMsec > timeoutMsec) {
-              return Promise.reject(new DatabaseCloseTimeoutError());
-            }
-            await sleep(100);
+        this.isClosing = true;
+        if (options.force) {
+          // Clear queue
+          this._serialQueue.length = 0;
+        }
+        const timeoutMsec = options.timeout || 10000;
+        const startMsec = Date.now();
+        while (this._serialQueue.length > 0 || this._isSerialQueueWorking) {
+          if (Date.now() - startMsec > timeoutMsec) {
+            this._serialQueue.length = 0;    
+            isTimeout = true;    
           }
+          await sleep(100);
+        }
+        if (isTimeout) {
+          return Promise.reject(new DatabaseCloseTimeoutError());
         }
       }
       finally {
