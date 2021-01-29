@@ -34,7 +34,6 @@ const repositoryInitOptionFlags = {
   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
 };
 
-
 describe('Create repository', () => {
   const readonlyDir = './test/readonly/';
   const localDir = './test/database01_1';
@@ -58,7 +57,10 @@ describe('Create repository', () => {
       console.warn(`You must create ${readonlyDir} directory by hand, click [disable inheritance] button, and remove write permission of Authenticated Users.`);
     }
     else {
-      await fs.mkdir(readonlyDir, { mode: 0o400 });
+      if (!fs.existsSync('test')){
+        await fs.mkdir('test');
+      }
+      await fs.ensureDir(readonlyDir, { mode: 0o400 }).catch((err: Error) => { console.error(err) });
     }
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -66,6 +68,9 @@ describe('Create repository', () => {
     });
     // You don't have permission
     await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
+    if (process.platform !== 'win32') {
+      fs.chmodSync(readonlyDir, 0o644);
+    }
   });
 
 
@@ -1117,5 +1122,4 @@ describe('Close database', () => {
     await expect(gitDDB.allDocs()).rejects.toThrowError(DatabaseClosingError);            
   });
 
-  
 });
