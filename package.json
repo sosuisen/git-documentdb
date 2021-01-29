@@ -8,7 +8,7 @@
     "build": "rm -rf dist/* && npm run lint && tsc",
     "test": "npm run lint && jest --coverage && npm run coverage",
     "coverage": "npx coveralls < coverage/lcov.info",
-    "doc": "npm run build && npm run api-extractor",
+    "doc": "npm run build && npm run api-extractor && npm run crlf",
     "prepare": "npm run build && npm run test && npm run api-extractor && npm run crlf",
     "prepublishOnly": "",
     "api-extractor": "npx api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs",
