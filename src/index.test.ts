@@ -10,7 +10,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { CannotCreateDirectoryError, UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, DatabaseCloseTimeoutError, DatabaseClosingError } from './error';
 import { GitDocumentDB } from './index';
-import nodegit from 'nodegit';
+import nodegit, { Push } from 'nodegit';
 
 
 interface RepositoryInitOptions {
@@ -338,6 +338,27 @@ describe('Create document', () => {
     const obj2 = { obj: obj1 };
     obj1.obj = obj2;
     await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(InvalidJsonObjectError);
+    await gitDDB.destroy();
+  });
+
+  test('put(): Check order of results', async () => {
+    const dbName = './test_repos03_8';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+    const results: number[] = [];
+    const validResults: number[] = [];
+    for (let i = 0; i < 100; i++) {
+      validResults.push(i);
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).then(res => results.push(Number.parseInt(res._id, 10)));
+    }
+    // close() can wait results of all Promises if timeout is set to large number.
+    await gitDDB.close({ timeout: 100 * 1000 });
+
+    expect(JSON.stringify(results)).toEqual(JSON.stringify(validResults));
     await gitDDB.destroy();
   });
 
@@ -1027,7 +1048,6 @@ describe('Close database', () => {
     });
     await gitDDB.open();
 
-    const workers = [];
     for (let i = 0; i < 100; i++) {
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => console.error(err));
     }
@@ -1054,7 +1074,6 @@ describe('Close database', () => {
     });
     await gitDDB.open();
 
-    const workers = [];
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by timeout.      
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { });
