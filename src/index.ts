@@ -124,7 +124,7 @@ export type PutResult = {
  * @remarks
  * - _id: id of a document
  *
- * - file_sha: SHA-1 hash of Git object (40 characters)
+ * - file_sha: SHA-1 hash of Git blob (40 characters)
  * 
  * - commit_sha: SHA-1 hash of Git commit (40 characters)
  * 
@@ -374,7 +374,7 @@ export class GitDocumentDB {
    * put() does not check a write permission of your file system (unlike open()).
    * 
    * @param document -  See {@link JsonDoc} for restriction
-   * @returns Promise that returns a commit hash 
+   * @returns Promise that returns a set of _id, blob hash and commit hash
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
