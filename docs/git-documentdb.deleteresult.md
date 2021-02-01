@@ -23,7 +23,7 @@ export declare type DeleteResult = {
 
 - \_id: id of a document
 
-- file\_sha: SHA-1 hash of Git object (40 characters)
+- file\_sha: SHA-1 hash of Git blob (40 characters)
 
 - commit\_sha: SHA-1 hash of Git commit (40 characters)
 
