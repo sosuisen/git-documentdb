@@ -141,7 +141,7 @@ describe('Create document', () => {
   });
 
   test('put(): Check order of results', async () => {
-    const dbName = './test_repos_8';
+    const dbName = './test_repos_9';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -205,7 +205,7 @@ describe('Update document', () => {
 });
 
 
-describe('Serial', () => {
+describe('Concurrent', () => {
   const localDir = './test/database_put03';
   const _id_a = 'apple';
   const name_a = 'Apple woman';
@@ -229,7 +229,7 @@ describe('Serial', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('put(): serial', async () => {
+  test('put(): all at once', async () => {
     const dbName = './test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -243,7 +243,6 @@ describe('Serial', () => {
     gitDDB.put({ _id: _id_c02, name: name_c02 }),
     gitDDB.put({ _id: _id_d, name: name_d }),
     gitDDB.put({ _id: _id_p, name: name_p })]);
-
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject(
       {
@@ -281,7 +280,7 @@ describe('Serial', () => {
   });
 
 
-  test('put(): serial put() a lot', async () => {
+  test('put(): A lot of put()', async () => {
     const dbName = './test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -306,10 +305,32 @@ describe('Serial', () => {
   });
 
 
+  test('put(): put() with await keyword is resolved after all preceding put() Promises', async () => {
+    const dbName = './test_repos_3';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+    const workers = [];
+    for (let i = 0; i < 99; i++) {
+      // put() Promises are queued
+      // They have not await keyword
+      gitDDB.put({ _id: i.toString(), name: i.toString() });
+    }
+    // The last put() with await keyword is resolved after all preceding (queued) Promises
+    await gitDDB.put({ _id: '99', name: '99' });
+    await expect(gitDDB.allDocs()).resolves.toMatchObject({ total_rows: 100 });
+
+    await gitDDB.destroy();
+  });
+
+
   // Skip this test because segmentation fault often occurs in libgit2.
   // Check this only when you would like to check behavior of _put_concurrent()
   test.skip('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
-    const dbName = './test_repos_3';
+    const dbName = './test_repos_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -327,40 +348,4 @@ describe('Serial', () => {
   });
 
 
-  test('delete(): serial', async () => {
-    const dbName = './test_repos_4';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir
-    });
-    await gitDDB.open();
-
-    await Promise.all([gitDDB.put({ _id: _id_a, name: name_a }),
-    gitDDB.put({ _id: _id_b, name: name_b }),
-    gitDDB.put({ _id: _id_c01, name: name_c01 }),
-    gitDDB.put({ _id: _id_c02, name: name_c02 }),
-    gitDDB.put({ _id: _id_d, name: name_d }),
-    gitDDB.put({ _id: _id_p, name: name_p })]);
-
-    await Promise.all([gitDDB.delete(_id_a),
-    gitDDB.delete(_id_b),
-    gitDDB.delete(_id_c01),
-    gitDDB.delete(_id_c02),
-    gitDDB.delete(_id_d)]);
-
-
-    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject(
-      {
-        total_rows: 1,
-        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
-        rows: [
-          {
-            _id: expect.stringContaining(_id_p),
-            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
-          },
-        ]
-      });
-
-    await gitDDB.destroy();
-  });
 });

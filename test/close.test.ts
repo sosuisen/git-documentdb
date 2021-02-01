@@ -13,7 +13,7 @@ import { GitDocumentDB } from '../src/index';
 
 
 describe('Close database', () => {
-  const localDir = './test/database10';
+  const localDir = './test/database_close01';
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -24,7 +24,7 @@ describe('Close database', () => {
   });
 
   test('close(): wait queued operations', async () => {
-    const dbName = './test_repos10_1';
+    const dbName = './test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -50,7 +50,7 @@ describe('Close database', () => {
 
 
   test('close(): queued operations are timeout', async () => {
-    const dbName = './test_repos10_2';
+    const dbName = './test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -77,7 +77,7 @@ describe('Close database', () => {
 
 
   test('close(): close database by force', async () => {
-    const dbName = './test_repos10_3';
+    const dbName = './test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -103,7 +103,7 @@ describe('Close database', () => {
   });
 
   test('Check isClosing flag', async () => {
-    const dbName = './test_repos10_4';
+    const dbName = './test_repos_4';
     const gitDDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir

@@ -25,7 +25,7 @@ describe('Delete document', () => {
   });
 
   afterAll(() => {
-//    fs.removeSync(path.resolve(localDir));
+    fs.removeSync(path.resolve(localDir));
   });
 
   test('delete()', async () => {
@@ -65,11 +65,12 @@ describe('Delete document', () => {
     await gitDDB.destroy();
 
     await expect(gitDDB.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);    
+    await expect(gitDDB._delete_concurrent(_id)).rejects.toThrowError(RepositoryNotOpenError);
   });
 
 });
 
-describe('Serial', () => {
+describe('Concurrent', () => {
   const localDir = './test/database_delete02';
   const _id_a = 'apple';
   const name_a = 'Apple woman';
@@ -93,8 +94,46 @@ describe('Serial', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('delete()): Concurrent calls of _delete_concurrent() cause an error.', async () => {
+
+  test('delete(): All at once', async () => {
     const dbName = './test_repos_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+
+    await Promise.all([gitDDB.put({ _id: _id_a, name: name_a }),
+    gitDDB.put({ _id: _id_b, name: name_b }),
+    gitDDB.put({ _id: _id_c01, name: name_c01 }),
+    gitDDB.put({ _id: _id_c02, name: name_c02 }),
+    gitDDB.put({ _id: _id_d, name: name_d }),
+    gitDDB.put({ _id: _id_p, name: name_p })]);
+
+    await Promise.all([gitDDB.delete(_id_a),
+    gitDDB.delete(_id_b),
+    gitDDB.delete(_id_c01),
+    gitDDB.delete(_id_c02),
+    gitDDB.delete(_id_d)]);
+
+
+    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject(
+      {
+        total_rows: 1,
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        rows: [
+          {
+            _id: expect.stringContaining(_id_p),
+            file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+          },
+        ]
+      });
+
+    await gitDDB.destroy();
+  });
+
+  test('delete(): Concurrent calls of _delete_concurrent() cause an error.', async () => {
+    const dbName = './test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
