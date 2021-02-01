@@ -25,7 +25,7 @@ put(document: JsonDoc): Promise<PutResult>;
 
 Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
 
-Promise that returns a commit hash
+Promise that returns a set of \_id, blob hash and commit hash
 
 ## Exceptions
 
