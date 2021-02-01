@@ -484,14 +484,21 @@ describe('Delete document', () => {
   });
 
   afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
+//    fs.removeSync(path.resolve(localDir));
   });
 
   test('delete()', async () => {
     await gitDDB.open();
-    const _id = 'prof01';
+    const _id = 'test/prof01';
+    const _id2 = 'test/prof02';
     await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+
     await gitDDB.put({ _id: _id, name: 'shirase' });
+    await gitDDB.put({ _id: _id2, name: 'kimari' });
+
+    // Check if file exists.
+    await expect(fs.access(path.resolve(gitDDB.workingDir(), _id), fs.constants.F_OK)).resolves.toBeUndefined();
+
     // Delete
     await expect(gitDDB.delete(_id)).resolves.toMatchObject(
       {
@@ -504,6 +511,15 @@ describe('Delete document', () => {
     await expect(gitDDB.get(_id)).rejects.toThrowError(DocumentNotFoundError);
     // @ts-ignore
     await expect(gitDDB._delete_concurrent(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
+
+    // Check if file is deleted.
+    await expect(fs.access(path.resolve(gitDDB.workingDir(), _id), fs.constants.F_OK)).rejects.toThrowError();
+    // Directory is not empty
+    await expect(fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id)), fs.constants.F_OK)).resolves.toBeUndefined();
+    
+    await gitDDB.delete(_id2);
+    // Directory is empty
+    await expect(fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id)), fs.constants.F_OK)).rejects.toThrowError();
 
     await gitDDB.destroy();
 
@@ -1132,7 +1148,7 @@ describe('Close database', () => {
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { });
     }
     // Call close() without await
-    gitDDB.close();
+    gitDDB.close().then(res => gitDDB.destroy());
     await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(DatabaseClosingError);
@@ -1141,6 +1157,7 @@ describe('Close database', () => {
     await expect(gitDDB.close()).rejects.toThrowError(DatabaseClosingError);        
     await expect(gitDDB.destroy()).rejects.toThrowError(DatabaseClosingError);            
     await expect(gitDDB.allDocs()).rejects.toThrowError(DatabaseClosingError);            
+    
   });
 
 });
