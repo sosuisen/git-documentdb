@@ -4,6 +4,8 @@
 
 ```ts
 
+import nodegit from 'nodegit';
+
 // @beta
 export type AllDocsOptions = {
     include_docs?: boolean;
@@ -81,6 +83,7 @@ export class GitDocumentDB {
         rows: JsonDocWithMetadata[];
     }>;
     close(options?: DatabaseCloseOption): Promise<boolean>;
+    currentRepository(): nodegit.Repository | undefined;
     delete(_id: string): Promise<DeleteResult>;
     _delete_concurrent(_id: string): Promise<DeleteResult>;
     destroy(): Promise<boolean>;
