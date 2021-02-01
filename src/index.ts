@@ -330,7 +330,7 @@ export class GitDocumentDB {
       };
       this._dbInfo.isNew = true;
       // @ts-ignore
-      return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { return Promise.reject(new Error(err)) });
+      return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { return Promise.reject(err) });
     });
 
     // Check git description
