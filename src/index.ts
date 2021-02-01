@@ -7,7 +7,7 @@
  */
 
 import nodegit from 'nodegit';
-import fs from 'fs-extra';
+import fs, { remove, rmdir } from 'fs-extra';
 import path from 'path';
 import {
   CannotCreateDirectoryError, CannotWriteDataError,
@@ -590,9 +590,15 @@ export class GitDocumentDB {
         commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
       }
       commit_sha = commit.tostrS();
+
+      const filePath = path.resolve(this._workingDirectory, _id);
+      await remove(filePath);
+      await rmdir(path.dirname(filePath)).catch(e => { /* not empty */ });
+
     } catch (err) {
       return Promise.reject(new CannotDeleteDataError(err.message));
     }
+
 
     return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
   };
