@@ -137,6 +137,20 @@ export type DeleteResult = {
 };
 
 /**
+ * Result of allDocs()
+ * 
+ * @remarks
+ * - total_rows: number of documents
+ * 
+ * - commit_sha: SHA-1 hash of the last Git commit (40 characters)
+ * 
+ * - rows: Array of documents (only if include_docs option is specified)
+ * 
+ * @beta
+ */
+export type AllDocsResult = { total_rows: 0 } | { total_rows: number, commit_sha: string, rows: JsonDocWithMetadata[]};
+
+/**
  * Type for a JSON document
  * 
  * @remarks A document must be a JSON Object that matches the following conditions:
@@ -699,7 +713,7 @@ export class GitDocumentDB {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  async allDocs(options?: AllDocsOptions): Promise<{ total_rows: 0 } | { total_rows: number, commit_sha: string, rows: JsonDocWithMetadata[] }> {
+  async allDocs(options?: AllDocsOptions): Promise<AllDocsResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }

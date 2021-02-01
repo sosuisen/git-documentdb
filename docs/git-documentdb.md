@@ -33,6 +33,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  Type Alias | Description |
 |  --- | --- |
 |  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | <b><i>(BETA)</i></b> How to get documents |
+|  [AllDocsResult](./git-documentdb.alldocsresult.md) | <b><i>(BETA)</i></b> Result of allDocs() |
 |  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | <b><i>(BETA)</i></b> How to close database |
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | <b><i>(BETA)</i></b> Database information |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |

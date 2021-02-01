@@ -14,6 +14,15 @@ export type AllDocsOptions = {
     recursive?: boolean;
 };
 
+// @beta
+export type AllDocsResult = {
+    total_rows: 0;
+} | {
+    total_rows: number;
+    commit_sha: string;
+    rows: JsonDocWithMetadata[];
+};
+
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
 //
 // @beta (undocumented)
@@ -75,13 +84,7 @@ export class DocumentNotFoundError extends BaseError {
 // @beta
 export class GitDocumentDB {
     constructor(options: DatabaseOption);
-    allDocs(options?: AllDocsOptions): Promise<{
-        total_rows: 0;
-    } | {
-        total_rows: number;
-        commit_sha: string;
-        rows: JsonDocWithMetadata[];
-    }>;
+    allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<boolean>;
     delete(_id: string): Promise<DeleteResult>;
     _delete_concurrent(_id: string): Promise<DeleteResult>;
