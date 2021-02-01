@@ -13,11 +13,9 @@ Result of allDocs()
 
 ```typescript
 export declare type AllDocsResult = {
-    total_rows: 0;
-} | {
     total_rows: number;
-    commit_sha: string;
-    rows: JsonDocWithMetadata[];
+    commit_sha?: string;
+    rows?: JsonDocWithMetadata[];
 };
 ```
 <b>References:</b> [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)
@@ -26,7 +24,7 @@ export declare type AllDocsResult = {
 
 - total\_rows: number of documents
 
-- commit\_sha: SHA-1 hash of the last Git commit (40 characters)
+- commit\_sha: SHA-1 hash of the last Git commit (40 characters). 'commit\_sha' is undefined if total\_rows equals 0.
 
-- rows: Array of documents (only if include\_docs option is specified)
+- rows: Array of documents. 'rows' is undefined if total\_rows equals 0.
 
