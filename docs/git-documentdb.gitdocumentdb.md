@@ -35,10 +35,10 @@ export declare class GitDocumentDB
 |  [\_put\_concurrent(document)](./git-documentdb.gitdocumentdb._put_concurrent.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
 |  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents in a repository. |
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close database |
-|  [currentRepository()](./git-documentdb.gitdocumentdb.currentrepository.md) |  | <b><i>(BETA)</i></b> Get current repository |
 |  [delete(\_id)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> Delete a document |
 |  [destroy()](./git-documentdb.gitdocumentdb.destroy.md) |  | <b><i>(BETA)</i></b> Destroy database |
 |  [get(\_id)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document from a database |
+|  [getRepository()](./git-documentdb.gitdocumentdb.getrepository.md) |  | <b><i>(BETA)</i></b> Get current repository |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
 |  [put(document)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document into a database |
