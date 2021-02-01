@@ -16,11 +16,9 @@ export type AllDocsOptions = {
 
 // @beta
 export type AllDocsResult = {
-    total_rows: 0;
-} | {
     total_rows: number;
-    commit_sha: string;
-    rows: JsonDocWithMetadata[];
+    commit_sha?: string;
+    rows?: JsonDocWithMetadata[];
 };
 
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
