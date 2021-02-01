@@ -142,13 +142,13 @@ export type DeleteResult = {
  * @remarks
  * - total_rows: number of documents
  * 
- * - commit_sha: SHA-1 hash of the last Git commit (40 characters)
+ * - commit_sha: SHA-1 hash of the last Git commit (40 characters). 'commit_sha' is undefined if total_rows equals 0.
  * 
- * - rows: Array of documents (only if include_docs option is specified)
+ * - rows: Array of documents. 'rows' is undefined if total_rows equals 0.
  * 
  * @beta
  */
-export type AllDocsResult = { total_rows: 0 } | { total_rows: number, commit_sha: string, rows: JsonDocWithMetadata[]};
+export type AllDocsResult = { total_rows: number, commit_sha?: string, rows?: JsonDocWithMetadata[]};
 
 /**
  * Type for a JSON document
