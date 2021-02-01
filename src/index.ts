@@ -248,6 +248,14 @@ export class GitDocumentDB {
   workingDir() {
     return this._workingDirectory;
   }
+  
+  /**
+   * Get current repository
+   * @remarks Be aware that direct operation of the current repository can corrupt the database.
+   */
+  currentRepository() {
+    return this._currentRepository;
+  }
 
   private _pushToSerialQueue(func: () => Promise<void>) {
     this._serialQueue.push(func);
@@ -648,7 +656,6 @@ export class GitDocumentDB {
 
 
         if (this._currentRepository.free !== undefined) {
-          console.log('Repository.free() is executed in close()');
           this._currentRepository.free();
         }
         this._currentRepository = undefined;
