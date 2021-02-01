@@ -346,7 +346,7 @@ describe('Fetch a batch of documents', () => {
     const _id = 'invalidJSON';
     let file_sha, commit_sha: string;
     const data = 'invalid data'; // JSON.parse() will throw error
-    const _currentRepository = gitDDB.currentRepository();
+    const _currentRepository = gitDDB.getRepository();
     if (_currentRepository) {
       try {
         const filePath = path.resolve(gitDDB.workingDir(), _id);
