@@ -12,13 +12,7 @@ Get all the documents in a repository.
 <b>Signature:</b>
 
 ```typescript
-allDocs(options?: AllDocsOptions): Promise<{
-        total_rows: 0;
-    } | {
-        total_rows: number;
-        commit_sha: string;
-        rows: JsonDocWithMetadata[];
-    }>;
+allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
 ```
 
 ## Parameters
@@ -29,7 +23,7 @@ allDocs(options?: AllDocsOptions): Promise<{
 
 <b>Returns:</b>
 
-Promise&lt;{ total\_rows: 0; } \| { total\_rows: number; commit\_sha: string; rows: [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)<!-- -->\[\]; }&gt;
+Promise&lt;[AllDocsResult](./git-documentdb.alldocsresult.md)<!-- -->&gt;
 
 Promise
 
