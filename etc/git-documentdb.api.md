@@ -83,11 +83,11 @@ export class GitDocumentDB {
         rows: JsonDocWithMetadata[];
     }>;
     close(options?: DatabaseCloseOption): Promise<boolean>;
-    currentRepository(): nodegit.Repository | undefined;
     delete(_id: string): Promise<DeleteResult>;
     _delete_concurrent(_id: string): Promise<DeleteResult>;
     destroy(): Promise<boolean>;
     get(_id: string): Promise<JsonDoc>;
+    getRepository(): nodegit.Repository | undefined;
     isClosing: boolean;
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
