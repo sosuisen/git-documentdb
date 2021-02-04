@@ -121,7 +121,7 @@ https://github.com/sosuisen/inventory-manager
 - v0.3 Transaction
 - v0.4 Automated sync with GitHub or any other remote git repository
 - v0.5 Grep
-- v0.6 Undo/Redo snapshot
+- v0.6 Move between snapshots (Undo/Redo)
 - v0.7 Binary attachments
 - v0.8 Indexed search
 - v1.0 Official release
