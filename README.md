@@ -15,6 +15,9 @@ Use GitDocumentDB to ...
 
 :rocket: Synchronize JSON documents with a remote Git repository.
 
+:dromedary_camel: Travel history of database snapshots.
+
+
 # API
 
 https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.gitdocumentdb.md
@@ -110,3 +113,15 @@ $ npm start
 # App using GitDocumentDB
 
 https://github.com/sosuisen/inventory-manager
+
+# Roadmap
+
+- v0.1 Basic CRUD :feet:(Here now)
+- v0.2 Collections
+- v0.3 Transaction
+- v0.4 Automated sync with GitHub or any other remote git repository
+- v0.5 Grep
+- v0.6 Undo/Redo snapshot
+- v0.7 Binary attachments
+- v0.8 Indexed search
+- v1.0 Official release
