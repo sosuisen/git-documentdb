@@ -55,7 +55,10 @@ describe('Create repository', () => {
     const dbName = './test_repos_1';
     // Windows does not support permission option of fs.mkdir().
     if (process.platform === 'win32') {
-      console.warn(`You must create ${readonlyDir} directory by hand, click [disable inheritance] button, and remove write permission of Authenticated Users.`);
+      console.warn(`  You must create an empty ${readonlyDir} directory by hand, 
+right-click the file or folder, click Properties, click the Security tab, 
+click on the Advanced button, and then click [disable inheritance] button.
+  After that, remove write permission of Authenticated Users.`);
     }
     else {
       if (!fs.existsSync('test')){
