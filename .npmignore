@@ -1,9 +1,28 @@
+# Settings
+.vscode/
+.coveralls.yml
+.eslint.json
+.gitattributes
+.gitignore
+.npmignore
+api-extractor.json
+jest.config.js
+tsconfig.eslint.json
+tsconfig.json
+
+# static files
+assets/
+docs/
+examples/
+external_modules/
+
+# src
+src/
+
 # Dependency directories
 node_modules/
-examples/node_modules/
 
 # test
-test_repos*
 coverage/
 test/
 
