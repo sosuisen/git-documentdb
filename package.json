@@ -1,16 +1,16 @@
 {
   "name": "git-documentdb",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Offline-first DocumentDB using Git",
   "main": "dist/main.js",
-  "typing": "dist/main.d.ts",
+  "types": "dist/main.d.ts",
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc",
     "test": "npm run lint && rm -rf test/database* && jest --coverage --verbose && npm run coverage",
     "coverage": "npx coveralls < coverage/lcov.info",
     "doc": "npm run build && npm run api-extractor && npm run crlf",
-    "prepare": "npm run build && npm run test && npm run api-extractor && npm run crlf",
-    "prepublishOnly": "",
+    "prepare": "",
+    "prepublishOnly": "npm run build && npm run test && npm run api-extractor && npm run crlf",
     "api-extractor": "npx api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs",
     "lint": "eslint --fix --ext .ts",
     "crlf": "npx crlf --set=LF docs/* etc/* "
