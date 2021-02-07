@@ -1,0 +1,3 @@
+[submodule "external_modules/nodegit"]
+	path = external_modules/nodegit
+	url = https://github.com/sosuisen/nodegit
