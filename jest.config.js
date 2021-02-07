@@ -2,5 +2,6 @@ module.exports = {
   preset: 'ts-jest',
   testTimeout: 30000,
   testEnvironment: 'node',
-  collectCoverage: true
+  collectCoverage: true,
+  coveragePathIgnorePatterns: ["/node_modules", "external_modules"]
 };
