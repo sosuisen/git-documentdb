@@ -15,8 +15,10 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "paths": {
-      "*": ["node_modules/*"]
+      "@sosuisen/nodegit": ["types/sosuisen__nodegit"],
+      "*": ["node_modules/*"],
     },
+    "typeRoots": ["types", "node_modules/@types"],
   },
   "include": [
     "src/**/*",
