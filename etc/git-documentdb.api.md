@@ -4,7 +4,7 @@
 
 ```ts
 
-import nodegit from 'nodegit';
+import nodegit from '@sosuisen/nodegit';
 
 // @beta
 export type AllDocsOptions = {
