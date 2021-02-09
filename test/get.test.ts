@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import nodegit from 'nodegit';
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
 import { UndefinedDocumentIdError, DocumentNotFoundError, RepositoryNotOpenError, InvalidJsonObjectError } from '../src/error';
