@@ -1,6 +1,6 @@
 {
   "name": "git-documentdb",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Offline-first DocumentDB using Git",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -50,7 +50,7 @@
     "typescript": "^4.1.3"
   },
   "dependencies": {
-    "@sosuisen/nodegit": "^0.27.1",
+    "@sosuisen/nodegit": "^0.27.2",
     "fs-extra": "^9.1.0"
   }
 }
