@@ -32,16 +32,15 @@ npm i git-documentdb
 ```
 **NOTE:**<br>
 GitDocumentDB uses native addon (libgit2).<br>
-**In Ubuntu:**<br>
-If you receive errors about install you probably miss libssl-dev and libkrb5-dev.<br>
+If you receive errors about install you probably miss build tools and libraries.<br>
+**In Ubuntu 18:**<br>
 ```
 sudo apt update
-sudo apt install libssl-dev libkrb5-dev
+sudo apt install build-essential libssl-dev libkrb5-dev libc++-dev 
 ```
-**In Windows:**<br>
-If you receive errors you probably miss build tools.<br>
+**In Windows 10:**<br>
 Typical environment is shown below.
-- Windows 10, Node.js 12, Python 2.7.x and Visual Studio 2017 Community (with Desktop development with C++).
+- Node.js 12, Python 2.7.x and Visual Studio 2017 Community (with Desktop development with C++).
 - npm config set msvs_version 2017
 
 If you are still encountering install problems, documents about [NodeGit](https://github.com/nodegit/nodegit#getting-started) and [Building NodeGit from source](https://www.nodegit.org/guides/install/from-source/) may also help you.
