@@ -532,6 +532,10 @@ export class GitDocumentDB {
       const blob = await entry.getBlob();
       try {
         document = JSON.parse(blob.toString()) as unknown as JsonDoc;
+        // _id in a document may differ from _id in a filename by mistake.
+        // _id in a file is SSOT.
+        // Overwrite _id in a document by _id in a filename just to be sure.
+        document['_id'] = _id;
       } catch (e) {
         return Promise.reject(new InvalidJsonObjectError());
       }
@@ -784,6 +788,7 @@ export class GitDocumentDB {
               const blob = await entry.getBlob();
               try {
                 const doc = JSON.parse(blob.toString());
+                doc._id = _id;
                 documentInBatch.doc = doc;
               } catch (err) {
                 return Promise.reject(new InvalidJsonObjectError(err.message));
