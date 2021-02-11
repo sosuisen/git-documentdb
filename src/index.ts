@@ -203,6 +203,7 @@ export type DatabaseCloseOption = {
   timeout?: number
 };
 
+const fileExt = '.json';
 
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 
@@ -459,18 +460,19 @@ export class GitDocumentDB {
 
     let file_sha, commit_sha: string;
     try {
-      const filePath = path.resolve(this._workingDirectory, _id);
+      const filename = _id + fileExt;
+      const filePath = path.resolve(this._workingDirectory, filename);
       const dir = path.dirname(filePath);
       await fs.ensureDir(dir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
       await fs.writeFile(filePath, data);
 
       const index = await this._currentRepository.refreshIndex(); // read latest index
 
-      await index.addByPath(_id); // stage
+      await index.addByPath(filename); // stage
       await index.write(); // flush changes to index
       const changes = await index.writeTree(); // get reference to a set of changes
 
-      const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
+      const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
       file_sha = entry.id.tostrS();
 
       const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
@@ -527,7 +529,8 @@ export class GitDocumentDB {
     }
     else {
       const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      const entry = await commit.getEntry(_id).catch(err => { return Promise.reject(new DocumentNotFoundError(err.message)) });
+      const filename = _id + fileExt;
+      const entry = await commit.getEntry(filename).catch(err => { return Promise.reject(new DocumentNotFoundError(err.message)) });
       const blob = await entry.getBlob();
       try {
         document = JSON.parse(blob.toString()) as unknown as JsonDoc;
@@ -578,18 +581,18 @@ export class GitDocumentDB {
     }
 
     let file_sha, commit_sha: string;
+    const filename = _id + fileExt;
 
     let index;
     try {
       index = await this._currentRepository.refreshIndex();
-
-      const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
+      const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
       if (entry === undefined) {
         return Promise.reject(new DocumentNotFoundError());
       }
       file_sha = entry.id.tostrS();
 
-      await index.removeByPath(_id); // stage
+      await index.removeByPath(filename); // stage
       await index.write(); // flush changes to index
     } catch (err) { return Promise.reject(new CannotDeleteDataError(err.message)) }
 
@@ -613,7 +616,7 @@ export class GitDocumentDB {
       }
       commit_sha = commit.tostrS();
 
-      const filePath = path.resolve(this._workingDirectory, _id);
+      const filePath = path.resolve(this._workingDirectory, filename);
       await remove(filePath);
       await rmdir(path.dirname(filePath)).catch(e => { /* not empty */ });
 
@@ -774,8 +777,9 @@ export class GitDocumentDB {
           }
           else {
             const path = entry.path();
+            const _id = path.replace(new RegExp(fileExt + '$'), '');
             let documentInBatch: JsonDocWithMetadata = {
-              _id: path,
+              _id: _id,
               file_sha: entry.id().tostrS()
             };
 
@@ -783,7 +787,7 @@ export class GitDocumentDB {
               const blob = await entry.getBlob();
               try {
                 const doc = JSON.parse(blob.toString());
-                doc._id = path;
+                doc._id = _id;
                 documentInBatch.doc = doc;
               } catch (err) {
                 return Promise.reject(new InvalidJsonObjectError(err.message));

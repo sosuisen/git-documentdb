@@ -38,7 +38,8 @@ describe('Delete document', () => {
     await gitDDB.put({ _id: _id2, name: 'kimari' });
 
     // Check if file exists.
-    await expect(fs.access(path.resolve(gitDDB.workingDir(), _id), fs.constants.F_OK)).resolves.toBeUndefined();
+    const fileExt = '.json';
+    await expect(fs.access(path.resolve(gitDDB.workingDir(), _id + fileExt), fs.constants.F_OK)).resolves.toBeUndefined();
 
     // Delete
     await expect(gitDDB.delete(_id)).resolves.toMatchObject(

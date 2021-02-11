@@ -86,18 +86,20 @@ describe('Read document', () => {
     const _currentRepository = gitDDB.getRepository();
     if (_currentRepository) {
       try {
-        const filePath = path.resolve(gitDDB.workingDir(), _id);
+        const fileExt = '.json';
+        const filename = _id + fileExt;
+        const filePath = path.resolve(gitDDB.workingDir(), filename);
         const dir = path.dirname(filePath);
         await fs.ensureDir(dir).catch((err: Error) => console.error(err));
         await fs.writeFile(filePath, data);
 
         const index = await _currentRepository.refreshIndex(); // read latest index
 
-        await index.addByPath(_id); // stage
+        await index.addByPath(filename); // stage
         await index.write(); // flush changes to index
         const changes = await index.writeTree(); // get reference to a set of changes
 
-        const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
+        const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
         file_sha = entry.id.tostrS();
 
         const gitAuthor = {
