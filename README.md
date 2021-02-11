@@ -123,8 +123,8 @@ https://github.com/sosuisen/inventory-manager
 
 - v0.1 Basic CRUD :feet:(Here now)
 - v0.2 Collections
-- v0.3 Transaction
-- v0.4 Automated sync with GitHub or any other remote git repository
+- v0.3 Automated sync with GitHub or any other remote git repository
+- v0.4 Transaction
 - v0.5 Grep
 - v0.6 Move between snapshots (Undo/Redo)
 - v0.7 Binary attachments
