@@ -278,27 +278,27 @@ describe('Concurrent', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_a),
+            id: expect.stringContaining(_id_a),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
           {
-            _id: expect.stringContaining(_id_b),
+            id: expect.stringContaining(_id_b),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
           {
-            _id: expect.stringContaining(_id_c01),
+            id: expect.stringContaining(_id_c01),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
           {
-            _id: expect.stringContaining(_id_c02),
+            id: expect.stringContaining(_id_c02),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
           {
-            _id: expect.stringContaining(_id_d),
+            id: expect.stringContaining(_id_d),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
           {
-            _id: expect.stringContaining(_id_p),
+            id: expect.stringContaining(_id_p),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
         ]

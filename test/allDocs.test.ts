@@ -60,11 +60,11 @@ describe('Fetch a batch of documents', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_a),
+            id: expect.stringContaining(_id_a),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
           {
-            _id: expect.stringContaining(_id_b),
+            id: expect.stringContaining(_id_b),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
         ]
@@ -86,17 +86,17 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
 
-    await expect(gitDDB.allDocs({ descendant: true })).resolves.toMatchObject(
+    await expect(gitDDB.allDocs({ descending: true })).resolves.toMatchObject(
       {
         total_rows: 2,
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_b),
+            id: expect.stringContaining(_id_b),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
           {
-            _id: expect.stringContaining(_id_a),
+            id: expect.stringContaining(_id_a),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
         ]
@@ -123,7 +123,7 @@ describe('Fetch a batch of documents', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_a),
+            id: expect.stringContaining(_id_a),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_a),
@@ -131,7 +131,7 @@ describe('Fetch a batch of documents', () => {
             }
           },
           {
-            _id: expect.stringContaining(_id_b),
+            id: expect.stringContaining(_id_b),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_b),
@@ -165,7 +165,7 @@ describe('Fetch a batch of documents', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_a),
+            id: expect.stringContaining(_id_a),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_a),
@@ -173,7 +173,7 @@ describe('Fetch a batch of documents', () => {
             }
           },
           {
-            _id: expect.stringContaining(_id_b),
+            id: expect.stringContaining(_id_b),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_b),
@@ -181,7 +181,7 @@ describe('Fetch a batch of documents', () => {
             }
           },
           {
-            _id: expect.stringContaining(_id_c01),
+            id: expect.stringContaining(_id_c01),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_c01),
@@ -189,7 +189,7 @@ describe('Fetch a batch of documents', () => {
             }
           },
           {
-            _id: expect.stringContaining(_id_c02),
+            id: expect.stringContaining(_id_c02),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_c02),
@@ -197,7 +197,7 @@ describe('Fetch a batch of documents', () => {
             }
           },
           {
-            _id: expect.stringContaining(_id_d),
+            id: expect.stringContaining(_id_d),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_d),
@@ -232,7 +232,7 @@ describe('Fetch a batch of documents', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_a),
+            id: expect.stringContaining(_id_a),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_a),
@@ -240,7 +240,7 @@ describe('Fetch a batch of documents', () => {
             }
           },
           {
-            _id: expect.stringContaining(_id_b),
+            id: expect.stringContaining(_id_b),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_b),
@@ -275,7 +275,7 @@ describe('Fetch a batch of documents', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_c01),
+            id: expect.stringContaining(_id_c01),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_c01),
@@ -283,7 +283,7 @@ describe('Fetch a batch of documents', () => {
             }
           },
           {
-            _id: expect.stringContaining(_id_c02),
+            id: expect.stringContaining(_id_c02),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_c02),
@@ -323,7 +323,7 @@ describe('Fetch a batch of documents', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_p),
+            id: expect.stringContaining(_id_p),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
             doc: {
               _id: expect.stringContaining(_id_p),

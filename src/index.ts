@@ -85,7 +85,7 @@ export type DatabaseInfo = {
  * @remarks
  * - include_docs: Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.
  *
- * - descendant: Sort results in rows by descendant. Default is false (ascendant).
+ * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
  * - directory: Only get the documents under the specified sub directory.
  *
@@ -95,7 +95,7 @@ export type DatabaseInfo = {
  */
 export type AllDocsOptions = {
   include_docs?: boolean,
-  descendant?: boolean,
+  descending?: boolean,
   directory?: string,
   recursive?: boolean
 };
@@ -184,7 +184,7 @@ export type JsonDoc = {
  * @beta
  */
 export type JsonDocWithMetadata = {
-  _id: string,
+  id: string,
   file_sha: string,
   doc?: JsonDoc
 };
@@ -811,7 +811,7 @@ export class GitDocumentDB {
         // Ascendant (alphabetical order)
         let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => a.name().localeCompare(b.name());
         // Descendant (alphabetical order)
-        if (options?.descendant) {
+        if (options?.descending) {
           sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) => -a.name().localeCompare(b.name());
         }
         entries.sort(sortFunc);
@@ -829,7 +829,7 @@ export class GitDocumentDB {
             const path = entry.path();
             const _id = path.replace(new RegExp(fileExt + '$'), '');
             let documentInBatch: JsonDocWithMetadata = {
-              _id: _id,
+              id: _id,
               file_sha: entry.id().tostrS()
             };
 

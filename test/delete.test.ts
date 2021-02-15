@@ -184,7 +184,7 @@ describe('Concurrent', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         rows: [
           {
-            _id: expect.stringContaining(_id_p),
+            id: expect.stringContaining(_id_p),
             file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
           },
         ]
