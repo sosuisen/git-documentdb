@@ -97,7 +97,8 @@ describe('Create document', () => {
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject(
       {
-        _id: expect.stringContaining(_id),
+        ok: true,
+        id: expect.stringContaining(_id),
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
@@ -116,7 +117,8 @@ describe('Create document', () => {
     const _id = 'dir01/prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject(
       {
-        _id: expect.stringContaining(_id),
+        ok: true,
+        id: expect.stringContaining(_id),
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
@@ -158,7 +160,7 @@ describe('Create document', () => {
     const validResults: number[] = [];
     for (let i = 0; i < 100; i++) {
       validResults.push(i);
-      gitDDB.put({ _id: i.toString(), name: i.toString() }).then(res => results.push(Number.parseInt(res._id, 10)));
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).then(res => results.push(Number.parseInt(res.id, 10)));
     }
     // close() can wait results of all Promises if timeout is set to large number.
     await gitDDB.close({ timeout: 100 * 1000 });
@@ -216,11 +218,13 @@ describe('Update document', () => {
     // Update
     await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject(
       {
-        _id: expect.stringContaining(_id),
+        ok: true,
+        id: expect.stringContaining(_id),
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
     );
+
     // Get
     await expect(gitDDB.get('prof01')).resolves.toEqual({ _id: 'prof01', name: 'mari' });
 

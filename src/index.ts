@@ -104,7 +104,7 @@ export type AllDocsOptions = {
  * Result of put()
  * 
  * @remarks
- * - _id: id of a document
+  * - id: id of a document
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  * 
@@ -113,7 +113,8 @@ export type AllDocsOptions = {
  * @beta
  */
 export type PutResult = {
-  _id: string,
+  ok: true,
+  id: string,
   file_sha: string,
   commit_sha: string
 };
@@ -497,7 +498,7 @@ export class GitDocumentDB {
       return Promise.reject(new CannotWriteDataError(err.message));
     }
     // console.log(commitId.tostrS());
-    return { _id: document._id, file_sha: file_sha, commit_sha: commit_sha };
+    return { ok: true, id: document._id, file_sha: file_sha, commit_sha: commit_sha };
 
   }
 
