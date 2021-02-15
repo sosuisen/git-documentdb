@@ -132,7 +132,8 @@ export type PutResult = {
  * @beta
  */
 export type DeleteResult = {
-  _id: string,
+  ok: true,
+  id: string,
   file_sha: string,
   commit_sha: string
 };
@@ -551,6 +552,16 @@ export class GitDocumentDB {
 
   /**
    * Delete a document
+   * @remarks 
+   *   Alias of remove()
+   */
+  delete(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
+    // @ts-ignore
+    return this.remove.apply(this, [key, commitMessage]);
+  }
+
+  /**
+   * Delete a document
    * 
    * @param _id - id of a target document
    * @param commitMessage - Default is `delete: ${_id}`
@@ -559,8 +570,9 @@ export class GitDocumentDB {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link CannotDeleteDataError}
    * @throws {@link DocumentNotFoundError}
+   * 
    */
-  delete(_id: string, commitMessage?: string): Promise<DeleteResult> {
+  remove(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -569,12 +581,27 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
+    if (key === undefined) {
+      return Promise.reject(new UndefinedDocumentIdError());
+    }
+
+    let _id: string;
+    if (typeof key === 'string') {
+      _id = key;
+    } else if (key._id) {
+      _id = key._id;
+    }
+    else {
+      return Promise.reject(new UndefinedDocumentIdError());
+    }
+
     if (commitMessage === undefined) {
       commitMessage = `delete: ${_id}`;
     }
+
     // delete() must be serial.
     return new Promise((resolve, reject) => {
-      this._pushToSerialQueue(() => this._delete_concurrent(_id, commitMessage!).then(result => resolve(result)).catch(err => reject(err)));
+      this._pushToSerialQueue(() => this._remove_concurrent(_id, commitMessage!).then(result => resolve(result)).catch(err => reject(err)));
     });
   };
 
@@ -582,7 +609,7 @@ export class GitDocumentDB {
    * This method is used only for internal use.
    * It is published for test purpose.
    */
-  async _delete_concurrent(_id: string, commitMessage: string): Promise<DeleteResult> {
+  async _remove_concurrent(_id: string, commitMessage: string): Promise<DeleteResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
@@ -636,7 +663,7 @@ export class GitDocumentDB {
     }
 
 
-    return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
+    return { ok: true, id: _id, file_sha: file_sha, commit_sha: commit_sha };
   };
 
   /**

@@ -45,7 +45,8 @@ describe('Delete document', () => {
     // Delete
     await expect(gitDDB.delete(_id)).resolves.toMatchObject(
       {
-        _id: expect.stringContaining(_id),
+        ok: true,
+        id: expect.stringContaining(_id),
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
@@ -61,7 +62,7 @@ describe('Delete document', () => {
     await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);    
     await expect(gitDDB.get(_id)).rejects.toThrowError(DocumentNotFoundError);
     // @ts-ignore
-    await expect(gitDDB._delete_concurrent(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
+    await expect(gitDDB._remove_concurrent(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
 
     // Check if file is deleted.
     await expect(fs.access(path.resolve(gitDDB.workingDir(), _id), fs.constants.F_OK)).rejects.toThrowError();
@@ -75,7 +76,7 @@ describe('Delete document', () => {
     await gitDDB.destroy();
 
     await expect(gitDDB.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);    
-    await expect(gitDDB._delete_concurrent(_id, 'message')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB._remove_concurrent(_id, 'message')).rejects.toThrowError(RepositoryNotOpenError);
   });
 
   test('delete(): Set commit message.', async () => {
@@ -102,6 +103,32 @@ describe('Delete document', () => {
 
     await gitDDB.destroy();
   });
+
+  test('delete(): Use JsonObject as key.', async () => {
+    const dbName = './test_repos_03';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
+    await gitDDB.open();
+    const _id = 'test/prof01';
+    const doc = { _id: _id, name: 'shirase' };
+    await gitDDB.put(doc);
+
+    // Delete
+    await expect(gitDDB.delete(doc)).resolves.toMatchObject(
+      {
+        ok: true,
+        id: expect.stringContaining(_id),
+        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
+      }
+    );
+
+    await gitDDB.destroy();
+  });
+
 
 });
 
@@ -151,7 +178,6 @@ describe('Concurrent', () => {
     gitDDB.delete(_id_c02),
     gitDDB.delete(_id_d)]);
 
-
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject(
       {
         total_rows: 1,
@@ -167,7 +193,7 @@ describe('Concurrent', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): Concurrent calls of _delete_concurrent() cause an error.', async () => {
+  test('delete(): Concurrent calls of _remove_concurrent() cause an error.', async () => {
     const dbName = './test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -182,11 +208,11 @@ describe('Concurrent', () => {
     gitDDB.put({ _id: _id_d, name: name_d }),
     gitDDB.put({ _id: _id_p, name: name_p })]);
 
-    await expect(Promise.all([gitDDB._delete_concurrent(_id_a, 'message'),
-    gitDDB._delete_concurrent(_id_b, 'message'),
-    gitDDB._delete_concurrent(_id_c01, 'message'),
-    gitDDB._delete_concurrent(_id_c02, 'message'),
-    gitDDB._delete_concurrent(_id_d, 'message')])).rejects.toThrowError();
+    await expect(Promise.all([gitDDB._remove_concurrent(_id_a, 'message'),
+    gitDDB._remove_concurrent(_id_b, 'message'),
+    gitDDB._remove_concurrent(_id_c01, 'message'),
+    gitDDB._remove_concurrent(_id_c02, 'message'),
+    gitDDB._remove_concurrent(_id_d, 'message')])).rejects.toThrowError();
 
     await gitDDB.destroy();
   });
