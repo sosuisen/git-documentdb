@@ -148,7 +148,7 @@ export type DeleteResult = {
  * 
  * @beta
  */
-export type AllDocsResult = { total_rows: number, commit_sha?: string, rows?: JsonDocWithMetadata[]};
+export type AllDocsResult = { total_rows: number, commit_sha?: string, rows?: JsonDocWithMetadata[] };
 
 /**
  * Type for a JSON document
@@ -263,7 +263,7 @@ export class GitDocumentDB {
   workingDir() {
     return this._workingDirectory;
   }
-  
+
   /**
    * Get current repository
    * @remarks Be aware that direct operation of the current repository can corrupt the database.
@@ -341,7 +341,7 @@ export class GitDocumentDB {
         this._dbInfo.isValidVersion = false;
         return '';
       });
-    if(description === '') return this._dbInfo;
+    if (description === '') return this._dbInfo;
 
     if ((new RegExp('^' + databaseName)).test(description)) {
       this._dbInfo.isCreatedByGitDDB = true;
@@ -424,10 +424,10 @@ export class GitDocumentDB {
     // put() must be serial.
     return new Promise((resolve, reject) => {
       this._pushToSerialQueue(() => this._put_concurrent(document, commitMessage!)
-        .then(result => { 
+        .then(result => {
           resolve(result)
         })
-        .catch(err => reject(err))        
+        .catch(err => reject(err))
       );
     });
   };
@@ -667,8 +667,8 @@ export class GitDocumentDB {
         const startMsec = Date.now();
         while (this._serialQueue.length > 0 || this._isSerialQueueWorking) {
           if (Date.now() - startMsec > timeoutMsec) {
-            this._serialQueue.length = 0;    
-            isTimeout = true;    
+            this._serialQueue.length = 0;
+            isTimeout = true;
           }
           await sleep(100);
         }
@@ -699,22 +699,33 @@ export class GitDocumentDB {
    * @remarks 
    * - The database is closed automatically before destroying.
    * 
+   * - options.force is true if undefined.
+   * 
    * - The Git repository is removed from the filesystem.
    * 
+   * @param options - The options specify how to close database. 
    * @throws {@link DatabaseClosingError}
    */
-  async destroy() {
+  async destroy(options: DatabaseCloseOption = {}): Promise<{ ok: true; }> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
 
     if (this._currentRepository !== undefined) {
-      await this.close().catch(err => console.error(err));
+      // NOTICE: options.force is true by default.
+      options.force = options.force ?? true;
+      await this.close(options).catch(err => { throw err });
+    
+      // If the path does not exist, remove() silently does nothing.
+      // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
+      await fs.remove(path.resolve(this._initOptions.localDir)).catch(err => {
+        throw err;
+      });
     }
 
-    // If the path does not exists, silently does nothing
-    await fs.remove(path.resolve(this._initOptions.localDir)).catch(err => console.error(err));
-    return true;
+    return {
+      'ok': true,
+    };
   };
 
   /**
