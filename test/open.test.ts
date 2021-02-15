@@ -77,7 +77,7 @@ click on the Advanced button, and then click [disable inheritance] button.
   });
 
 
-  test('open(): Create and destroy a new repository.', async () => {
+  test('open(): Create a new repository.', async () => {
     const dbName = './test_repos_2';
 
     const gitDDB = new GitDocumentDB({
@@ -90,7 +90,7 @@ click on the Advanced button, and then click [disable inheritance] button.
     // Check path of working directory
     expect(gitDDB.workingDir()).toBe(path.resolve('./test/database_open01_1/test_repos_2'));
     // Destroy db
-    await expect(gitDDB.destroy()).resolves.toBeTruthy().catch(e => console.error(e));
+    await gitDDB.destroy().catch(e => console.error(e));
     // fs.access() throw error when a file cannot be accessed.    
     await expect(fs.access(path.resolve(localDir, dbName))).rejects.toMatchObject({ name: 'Error', code: 'ENOENT' });
   });
@@ -139,7 +139,7 @@ describe('Open, close and destroy repository', () => {
     expect(gitDDB.isOpened()).toBeTruthy();
 
     // Destroy() closes db automatically
-    await expect(gitDDB.destroy()).resolves.toBeTruthy();
+    await expect(gitDDB.destroy()).resolves.toMatchObject({ 'ok': true });
     expect(gitDDB.isOpened()).toBeFalsy();
   });
 
