@@ -448,10 +448,8 @@ export class GitDocumentDB {
       this.validateId(document._id);
     } catch (err) { return Promise.reject(err); }
 
-    const _id = document._id;
     let data = '';
     try {
-      delete document._id;
       data = JSON.stringify(document);
     } catch (err) {
       // not json
@@ -460,7 +458,7 @@ export class GitDocumentDB {
 
     let file_sha, commit_sha: string;
     try {
-      const filename = _id + fileExt;
+      const filename = document._id + fileExt;
       const filePath = path.resolve(this._workingDirectory, filename);
       const dir = path.dirname(filePath);
       await fs.ensureDir(dir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
@@ -494,7 +492,7 @@ export class GitDocumentDB {
       return Promise.reject(new CannotWriteDataError(err.message));
     }
     // console.log(commitId.tostrS());
-    return { _id: _id, file_sha: file_sha, commit_sha: commit_sha };
+    return { _id: document._id, file_sha: file_sha, commit_sha: commit_sha };
 
   }
 
@@ -534,6 +532,9 @@ export class GitDocumentDB {
       const blob = await entry.getBlob();
       try {
         document = JSON.parse(blob.toString()) as unknown as JsonDoc;
+        // _id in a document may differ from _id in a filename by mistake.
+        // _id in a file is SSOT.
+        // Overwrite _id in a document by _id in a filename just to be sure.
         document['_id'] = _id;
       } catch (e) {
         return Promise.reject(new InvalidJsonObjectError());

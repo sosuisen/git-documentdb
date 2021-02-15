@@ -161,8 +161,6 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test.todo('Check whether _id property is excluded from the repository document')
-
   test.todo('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
 
 });
