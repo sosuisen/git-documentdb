@@ -104,7 +104,22 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): Use JsonObject as key.', async () => {
+  test('delete(): key is undefined', async () => {
+    const dbName = './test_repos_03';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
+    await gitDDB.open();
+
+    // @ts-ignore
+    await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
+
+    await gitDDB.destroy();
+  });
+
+    test('delete(): Use JsonObject as key.', async () => {
     const dbName = './test_repos_03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
