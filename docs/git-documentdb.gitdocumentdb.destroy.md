@@ -39,3 +39,5 @@ Promise&lt;{ ok: true; }&gt;
 
 - The Git repository is removed from the filesystem.
 
+- localDir (which is specified in constructor) is not removed.
+

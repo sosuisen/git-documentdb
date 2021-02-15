@@ -735,6 +735,8 @@ export class GitDocumentDB {
    * 
    * - The Git repository is removed from the filesystem.
    * 
+   * - localDir (which is specified in constructor) is not removed.
+   * 
    * @param options - The options specify how to close database. 
    * @throws {@link DatabaseClosingError}
    */
@@ -750,7 +752,7 @@ export class GitDocumentDB {
     
       // If the path does not exist, remove() silently does nothing.
       // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
-      await fs.remove(path.resolve(this._initOptions.localDir)).catch(err => {
+      await fs.remove(this._workingDirectory).catch(err => {
         throw err;
       });
     }

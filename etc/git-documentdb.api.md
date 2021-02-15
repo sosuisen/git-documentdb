@@ -63,8 +63,8 @@ export type DatabaseInfo = {
 
 // @beta
 export type DatabaseOption = {
+    localDir?: string;
     dbName: string;
-    localDir: string;
 };
 
 // @beta
