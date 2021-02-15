@@ -671,10 +671,12 @@ export class GitDocumentDB {
         this._serialQueue = [];
         this._isSerialQueueWorking = false;
 
+        /**
+         * The types are wrong. Repository does not have free() method.
+         * See https://github.com/nodegit/nodegit/issues/1817#issuecomment-776844425
+         */
+        // this._currentRepository.free();
 
-        if (this._currentRepository.free !== undefined) {
-          this._currentRepository.free();
-        }
         this._currentRepository = undefined;
       }
     }
