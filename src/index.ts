@@ -442,6 +442,7 @@ export class GitDocumentDB {
   /**
    * This method is used only for internal use.
    * It is published for test purpose.
+   * @internal
    */
   async _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult> {
     if (this._currentRepository === undefined) {
@@ -613,6 +614,7 @@ export class GitDocumentDB {
   /**
    * This method is used only for internal use.
    * It is published for test purpose.
+   * @internal
    */
   async _remove_concurrent(_id: string, commitMessage: string): Promise<DeleteResult> {
     if (this._currentRepository === undefined) {

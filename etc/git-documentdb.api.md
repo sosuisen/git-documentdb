@@ -95,8 +95,10 @@ export class GitDocumentDB {
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
     put(document: JsonDoc, commitMessage?: string): Promise<PutResult>;
+    // @internal
     _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult>;
     remove(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+    // @internal
     _remove_concurrent(_id: string, commitMessage: string): Promise<DeleteResult>;
     validateId(id: string): void;
     workingDir(): string;

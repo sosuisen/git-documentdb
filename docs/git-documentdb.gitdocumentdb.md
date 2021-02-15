@@ -31,8 +31,6 @@ export declare class GitDocumentDB
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_put\_concurrent(document, commitMessage)](./git-documentdb.gitdocumentdb._put_concurrent.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
-|  [\_remove\_concurrent(\_id, commitMessage)](./git-documentdb.gitdocumentdb._remove_concurrent.md) |  | <b><i>(BETA)</i></b> This method is used only for internal use. It is published for test purpose. |
 |  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents in a repository. |
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close database |
 |  [delete(key, commitMessage)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> Delete a document |
