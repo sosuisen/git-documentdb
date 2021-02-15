@@ -132,7 +132,7 @@ describe('Open, close and destroy repository', () => {
     await gitDDB.open();
 
     // Close created db
-    await expect(gitDDB.close()).resolves.toBeTruthy();
+    await expect(gitDDB.close()).resolves.toBeUndefined();
 
     // Open existing db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: true, isValidVersion: true });

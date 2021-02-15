@@ -650,7 +650,7 @@ export class GitDocumentDB {
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
    */
-  async close(options: DatabaseCloseOption = { force: false, timeout: 10000 }) {
+  async close(options: DatabaseCloseOption = { force: false, timeout: 10000 }): Promise<void> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -690,7 +690,6 @@ export class GitDocumentDB {
         this._currentRepository = undefined;
       }
     }
-    return true;
   };
 
   /**
