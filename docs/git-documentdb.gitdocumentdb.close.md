@@ -12,7 +12,7 @@ Close database
 <b>Signature:</b>
 
 ```typescript
-close(options?: DatabaseCloseOption): Promise<boolean>;
+close(options?: DatabaseCloseOption): Promise<void>;
 ```
 
 ## Parameters
@@ -23,7 +23,7 @@ close(options?: DatabaseCloseOption): Promise<boolean>;
 
 <b>Returns:</b>
 
-Promise&lt;boolean&gt;
+Promise&lt;void&gt;
 
 ## Exceptions
 

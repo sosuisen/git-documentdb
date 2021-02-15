@@ -12,7 +12,7 @@ This method is used only for internal use. It is published for test purpose.
 <b>Signature:</b>
 
 ```typescript
-_put_concurrent(document: JsonDoc): Promise<PutResult>;
+_put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult>;
 ```
 
 ## Parameters
@@ -20,6 +20,7 @@ _put_concurrent(document: JsonDoc): Promise<PutResult>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  document | [JsonDoc](./git-documentdb.jsondoc.md) |  |
+|  commitMessage | string |  |
 
 <b>Returns:</b>
 

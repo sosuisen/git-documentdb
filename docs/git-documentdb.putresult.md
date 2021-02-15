@@ -13,7 +13,8 @@ Result of put()
 
 ```typescript
 export declare type PutResult = {
-    _id: string;
+    ok: true;
+    id: string;
     file_sha: string;
     commit_sha: string;
 };
@@ -21,7 +22,7 @@ export declare type PutResult = {
 
 ## Remarks
 
-- \_id: id of a document
+- id: id of a document
 
 - file\_sha: SHA-1 hash of Git object (40 characters)
 

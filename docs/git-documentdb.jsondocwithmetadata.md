@@ -13,7 +13,7 @@ Type for a JSON document with metadata
 
 ```typescript
 export declare type JsonDocWithMetadata = {
-    _id: string;
+    id: string;
     file_sha: string;
     doc?: JsonDoc;
 };

@@ -9,7 +9,7 @@ import nodegit from '@sosuisen/nodegit';
 // @beta
 export type AllDocsOptions = {
     include_docs?: boolean;
-    descendant?: boolean;
+    descending?: boolean;
     directory?: string;
     recursive?: boolean;
 };
@@ -69,7 +69,8 @@ export type DatabaseOption = {
 
 // @beta
 export type DeleteResult = {
-    _id: string;
+    ok: true;
+    id: string;
     file_sha: string;
     commit_sha: string;
 };
@@ -83,17 +84,20 @@ export class DocumentNotFoundError extends BaseError {
 export class GitDocumentDB {
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
-    close(options?: DatabaseCloseOption): Promise<boolean>;
-    delete(_id: string): Promise<DeleteResult>;
-    _delete_concurrent(_id: string): Promise<DeleteResult>;
-    destroy(): Promise<boolean>;
+    close(options?: DatabaseCloseOption): Promise<void>;
+    delete(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+    destroy(options?: DatabaseCloseOption): Promise<{
+        ok: true;
+    }>;
     get(_id: string): Promise<JsonDoc>;
     getRepository(): nodegit.Repository | undefined;
     isClosing: boolean;
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
-    put(document: JsonDoc): Promise<PutResult>;
-    _put_concurrent(document: JsonDoc): Promise<PutResult>;
+    put(document: JsonDoc, commitMessage?: string): Promise<PutResult>;
+    _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult>;
+    remove(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+    _remove_concurrent(_id: string, commitMessage: string): Promise<DeleteResult>;
     validateId(id: string): void;
     workingDir(): string;
     }
@@ -125,14 +129,15 @@ export type JsonDoc = {
 
 // @beta
 export type JsonDocWithMetadata = {
-    _id: string;
+    id: string;
     file_sha: string;
     doc?: JsonDoc;
 };
 
 // @beta
 export type PutResult = {
-    _id: string;
+    ok: true;
+    id: string;
     file_sha: string;
     commit_sha: string;
 };

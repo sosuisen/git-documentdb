@@ -14,7 +14,7 @@ How to get documents
 ```typescript
 export declare type AllDocsOptions = {
     include_docs?: boolean;
-    descendant?: boolean;
+    descending?: boolean;
     directory?: string;
     recursive?: boolean;
 };
@@ -24,7 +24,7 @@ export declare type AllDocsOptions = {
 
 - include\_docs: Include the document itself in each row in the doc property. Otherwise you only get the \_id and file\_sha properties. Default is false.
 
-- descendant: Sort results in rows by descendant. Default is false (ascendant).
+- descending: Sort results in rows by descendant. Default is false (ascendant).
 
 - directory: Only get the documents under the specified sub directory.
 

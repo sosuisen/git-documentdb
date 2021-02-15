@@ -12,11 +12,20 @@ Destroy database
 <b>Signature:</b>
 
 ```typescript
-destroy(): Promise<boolean>;
+destroy(options?: DatabaseCloseOption): Promise<{
+        ok: true;
+    }>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | The options specify how to close database. |
+
 <b>Returns:</b>
 
-Promise&lt;boolean&gt;
+Promise&lt;{ ok: true; }&gt;
 
 ## Exceptions
 
@@ -25,6 +34,8 @@ Promise&lt;boolean&gt;
 ## Remarks
 
 - The database is closed automatically before destroying.
+
+- options.force is true if undefined.
 
 - The Git repository is removed from the filesystem.
 

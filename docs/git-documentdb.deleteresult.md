@@ -13,7 +13,8 @@ Result of delete()
 
 ```typescript
 export declare type DeleteResult = {
-    _id: string;
+    ok: true;
+    id: string;
     file_sha: string;
     commit_sha: string;
 };

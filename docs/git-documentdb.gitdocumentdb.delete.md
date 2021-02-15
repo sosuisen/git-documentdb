@@ -12,28 +12,21 @@ Delete a document
 <b>Signature:</b>
 
 ```typescript
-delete(_id: string): Promise<DeleteResult>;
+delete(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string | id of a target document |
+|  key | string \| [JsonDoc](./git-documentdb.jsondoc.md) |  |
+|  commitMessage | string |  |
 
 <b>Returns:</b>
 
 Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
 
-## Exceptions
+## Remarks
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
-
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
-
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
-
-[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
-
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
+Alias of remove()
 

@@ -12,7 +12,7 @@ Add a document into a database
 <b>Signature:</b>
 
 ```typescript
-put(document: JsonDoc): Promise<PutResult>;
+put(document: JsonDoc, commitMessage?: string): Promise<PutResult>;
 ```
 
 ## Parameters
@@ -20,6 +20,7 @@ put(document: JsonDoc): Promise<PutResult>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  document | [JsonDoc](./git-documentdb.jsondoc.md) | See [JsonDoc](./git-documentdb.jsondoc.md) for restriction |
+|  commitMessage | string | Default is <code>put: ${document._id}</code> |
 
 <b>Returns:</b>
 
