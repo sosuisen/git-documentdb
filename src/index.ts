@@ -268,7 +268,7 @@ export class GitDocumentDB {
    * Get current repository
    * @remarks Be aware that direct operation of the current repository can corrupt the database.
    */
-  getRepository() {
+  getRepository(): nodegit.Repository | undefined {
     return this._currentRepository;
   }
 
@@ -397,6 +397,7 @@ export class GitDocumentDB {
    * put() does not check a write permission of your file system (unlike open()).
    * 
    * @param document -  See {@link JsonDoc} for restriction
+   * @param commitMessage - Default is `put: ${document._id}`
    * @returns Promise that returns a set of _id, blob hash and commit hash
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -407,7 +408,7 @@ export class GitDocumentDB {
    * @throws {@link CannotWriteDataError}
    * @throws {@link CannotCreateDirectoryError}
    */
-  put(document: JsonDoc): Promise<PutResult> {
+  put(document: JsonDoc, commitMessage?: string): Promise<PutResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -416,9 +417,13 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
+    if (commitMessage === undefined) {
+      commitMessage = `put: ${document?._id}`;
+    }
+
     // put() must be serial.
     return new Promise((resolve, reject) => {
-      this._pushToSerialQueue(() => this._put_concurrent(document)
+      this._pushToSerialQueue(() => this._put_concurrent(document, commitMessage!)
         .then(result => { 
           resolve(result)
         })
@@ -431,7 +436,7 @@ export class GitDocumentDB {
    * This method is used only for internal use.
    * It is published for test purpose.
    */
-  async _put_concurrent(document: JsonDoc): Promise<PutResult> {
+  async _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
@@ -481,11 +486,11 @@ export class GitDocumentDB {
       let commit;
       if (!head) {
         // First commit
-        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
+        commit = await this._currentRepository.createCommit('HEAD', author, committer, commitMessage, changes, []);
       }
       else {
         const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+        commit = await this._currentRepository.createCommit('HEAD', author, committer, commitMessage, changes, [parent]);
       }
       commit_sha = commit.tostrS();
     } catch (err) {
@@ -547,13 +552,14 @@ export class GitDocumentDB {
    * Delete a document
    * 
    * @param _id - id of a target document
+   * @param commitMessage - Default is `delete: ${_id}`
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link CannotDeleteDataError}
    * @throws {@link DocumentNotFoundError}
    */
-  delete(_id: string): Promise<DeleteResult> {
+  delete(_id: string, commitMessage?: string): Promise<DeleteResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -562,9 +568,12 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
+    if (commitMessage === undefined) {
+      commitMessage = `delete: ${_id}`;
+    }
     // delete() must be serial.
     return new Promise((resolve, reject) => {
-      this._pushToSerialQueue(() => this._delete_concurrent(_id).then(result => resolve(result)).catch(err => reject(err)));
+      this._pushToSerialQueue(() => this._delete_concurrent(_id, commitMessage!).then(result => resolve(result)).catch(err => reject(err)));
     });
   };
 
@@ -572,7 +581,7 @@ export class GitDocumentDB {
    * This method is used only for internal use.
    * It is published for test purpose.
    */
-  async _delete_concurrent(_id: string): Promise<DeleteResult> {
+  async _delete_concurrent(_id: string, commitMessage: string): Promise<DeleteResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
@@ -613,7 +622,7 @@ export class GitDocumentDB {
       }
       else {
         const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        commit = await this._currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+        commit = await this._currentRepository.createCommit('HEAD', author, committer, commitMessage, changes, [parent]);
       }
       commit_sha = commit.tostrS();
 

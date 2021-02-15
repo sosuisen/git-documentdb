@@ -6,6 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
 import { UndefinedDocumentIdError, DocumentNotFoundError, RepositoryNotOpenError } from '../src/error';
@@ -13,12 +14,6 @@ import { GitDocumentDB } from '../src/index';
 
 describe('Delete document', () => {
   const localDir = './test/database_delete01';
-  const dbName = './test_repos';
-
-  const gitDDB: GitDocumentDB = new GitDocumentDB({
-    dbName: dbName,
-    localDir: localDir
-  });
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -29,6 +24,12 @@ describe('Delete document', () => {
   });
 
   test('delete()', async () => {
+    const dbName = './test_repos_01';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
     await gitDDB.open();
     const _id = 'test/prof01';
     const _id2 = 'test/prof02';
@@ -49,6 +50,14 @@ describe('Delete document', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
     );
+    // Check commit message
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, "HEAD").catch(e => false); // get HEAD    
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`delete: ${_id}`);
+    }
+
     await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);    
     await expect(gitDDB.get(_id)).rejects.toThrowError(DocumentNotFoundError);
     // @ts-ignore
@@ -66,7 +75,32 @@ describe('Delete document', () => {
     await gitDDB.destroy();
 
     await expect(gitDDB.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);    
-    await expect(gitDDB._delete_concurrent(_id)).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB._delete_concurrent(_id, 'message')).rejects.toThrowError(RepositoryNotOpenError);
+  });
+
+  test('delete(): Set commit message.', async () => {
+    const dbName = './test_repos_02';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+
+    await gitDDB.open();
+    const _id = 'test/prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
+
+    // Delete
+    await gitDDB.delete(_id, 'my commit message');
+
+    // Check commit message
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, "HEAD").catch(e => false); // get HEAD    
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`my commit message`);
+    }
+
+    await gitDDB.destroy();
   });
 
 });
@@ -148,11 +182,11 @@ describe('Concurrent', () => {
     gitDDB.put({ _id: _id_d, name: name_d }),
     gitDDB.put({ _id: _id_p, name: name_p })]);
 
-    await expect(Promise.all([gitDDB._delete_concurrent(_id_a),
-    gitDDB._delete_concurrent(_id_b),
-    gitDDB._delete_concurrent(_id_c01),
-    gitDDB._delete_concurrent(_id_c02),
-    gitDDB._delete_concurrent(_id_d)])).rejects.toThrowError();
+    await expect(Promise.all([gitDDB._delete_concurrent(_id_a, 'message'),
+    gitDDB._delete_concurrent(_id_b, 'message'),
+    gitDDB._delete_concurrent(_id_c01, 'message'),
+    gitDDB._delete_concurrent(_id_c02, 'message'),
+    gitDDB._delete_concurrent(_id_d, 'message')])).rejects.toThrowError();
 
     await gitDDB.destroy();
   });

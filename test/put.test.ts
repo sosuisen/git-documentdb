@@ -6,11 +6,11 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
 import { UndefinedDocumentIdError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, RepositoryNotOpenError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
-
 
 describe('Create document', () => {
   const localDir = './test/database_put01';
@@ -30,7 +30,7 @@ describe('Create document', () => {
       localDir: localDir
     });
     await expect(gitDDB.put({ _id: 'prof01', name: 'shirase' })).rejects.toThrowError(RepositoryNotOpenError);
-    await expect(gitDDB._put_concurrent({ _id: 'prof01', name: 'shirase' })).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB._put_concurrent({ _id: 'prof01', name: 'shirase' }, 'message')).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -121,6 +121,12 @@ describe('Create document', () => {
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
     );
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, "HEAD").catch(e => false); // get HEAD    
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`put: ${_id}`);
+    }
     await gitDDB.destroy();
   });
 
@@ -160,6 +166,26 @@ describe('Create document', () => {
     expect(JSON.stringify(results)).toEqual(JSON.stringify(validResults));
     await gitDDB.destroy();
   });
+
+  test('put(): Set commit message.', async () => {
+    const dbName = './test_repos_10';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    const _id = 'dir01/prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' }, 'my commit message');
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, "HEAD").catch(e => false); // get HEAD    
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`my commit message`);
+    }
+    await gitDDB.destroy();
+  });
+
+
 
   test.todo('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
 
@@ -335,12 +361,12 @@ describe('Concurrent', () => {
     });
     await gitDDB.open();
 
-    await expect(Promise.all([gitDDB._put_concurrent({ _id: _id_a, name: name_a }),
-    gitDDB._put_concurrent({ _id: _id_b, name: name_b }),
-    gitDDB._put_concurrent({ _id: _id_c01, name: name_c01 }),
-    gitDDB._put_concurrent({ _id: _id_c02, name: name_c02 }),
-    gitDDB._put_concurrent({ _id: _id_d, name: name_d }),
-    gitDDB._put_concurrent({ _id: _id_p, name: name_p })])).rejects.toThrowError();
+    await expect(Promise.all([gitDDB._put_concurrent({ _id: _id_a, name: name_a }, 'message'),
+    gitDDB._put_concurrent({ _id: _id_b, name: name_b }, 'message'),
+    gitDDB._put_concurrent({ _id: _id_c01, name: name_c01 }, 'message'),
+    gitDDB._put_concurrent({ _id: _id_c02, name: name_c02 }, 'message'),
+    gitDDB._put_concurrent({ _id: _id_d, name: name_d }, 'message'),
+    gitDDB._put_concurrent({ _id: _id_p, name: name_p }, 'message')])).rejects.toThrowError();
 
     await gitDDB.destroy();
   });
