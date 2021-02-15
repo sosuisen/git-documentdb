@@ -7,7 +7,7 @@ const gitDDB = new GitDocumentDB({
 const foo = async () => {
   // Create repository (gddb_data/db01/.git)
   await gitDDB.open();
-  // Create document named 'profile.json' in gddb_data/db01/
+  // Create document named 'profile.json' under gddb_data/db01/
   await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '15' });
   // Update
   await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '16' });
@@ -17,7 +17,7 @@ const foo = async () => {
   // Delete
   await gitDDB.delete('profile');
 
-  // Create documents in sub-directories
+  // Create documents under sub-directories
   //   gddb_data/db01/Gunma/1.json
   //   gddb_data/db01/Gunma/2.json
   //   gddb_data/db01/Gunma/3.json
@@ -35,17 +35,17 @@ const foo = async () => {
     commit_sha: '39b82ee2458a39023fd9cd098ea6a5486593aceb',
     rows: [
       {
-        _id: 'Gunma/1',
+        id: 'Gunma/1',
         file_sha: 'fae60a86958402b424102f16361a501c561be654',
         doc: { name: 'Kimari', age: '16', _id: 'Gunma/1' }
       },
       {
-        _id: 'Gunma/2',
+        id: 'Gunma/2',
         file_sha: '1255eff6d316a73077468dbda2b026e96fdf00e6',
         doc: { name: 'Shirase', age: '17', _id: 'Gunma/2' }
       },
       {
-        _id: 'Gunma/3',
+        id: 'Gunma/3',
         file_sha: '1f1c89b5253c4feab67a31f8bce1443e3d72512f',
         doc: { name: 'Hinata', age: '17', _id: 'Gunma/3' }
       }

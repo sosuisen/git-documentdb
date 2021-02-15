@@ -61,7 +61,7 @@ const gitDDB = new GitDocumentDB({
 ```typescript
   // Create repository (gddb_data/db01/.git)
   await gitDDB.open();
-  // Create document named 'profile.json' in gddb_data/db01/
+  // Create document named 'profile.json' under gddb_data/db01/
   await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '15' });
   // Update
   await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '16' });
@@ -74,7 +74,7 @@ const gitDDB = new GitDocumentDB({
 
 ## Advanced:
 ```typescript
-  // Create documents in sub-directories
+  // Create documents under sub-directories
   //   gddb_data/db01/Gunma/1.json
   //   gddb_data/db01/Gunma/2.json
   //   gddb_data/db01/Gunma/3.json
