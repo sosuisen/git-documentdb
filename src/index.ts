@@ -11,7 +11,7 @@ import fs, { remove, rmdir } from 'fs-extra';
 import path from 'path';
 import {
   CannotCreateDirectoryError, CannotWriteDataError,
-  UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError, DatabaseClosingError, DatabaseCloseTimeoutError
+  UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError, DatabaseClosingError, DatabaseCloseTimeoutError, UndefinedDatabaseNameError
 } from './error';
 import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
 
@@ -217,7 +217,8 @@ const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec)
  * @beta
  */
 export class GitDocumentDB {
-  private _initOptions: DatabaseOption;
+  private _localDir: string;
+  private _dbName: string;
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
 
@@ -249,14 +250,17 @@ export class GitDocumentDB {
    * 
    * @param options - Database location
    * @throws {@link InvalidWorkingDirectoryPathLengthError}
+   * @throws {@link UndefinedDatabaseNameError}
    */
   constructor(options: DatabaseOption) {
-    this._initOptions = options;
-    if (options.localDir === undefined) {
-      this._initOptions.localDir = defaultLocalDir;
+    if (options.dbName === undefined) {
+      throw new UndefinedDatabaseNameError();
     }
+    this._dbName = options.dbName;
+    this._localDir = options.localDir ?? defaultLocalDir;
+
     // Get full-path
-    this._workingDirectory = path.resolve(this._initOptions.localDir!, this._initOptions.dbName);
+    this._workingDirectory = path.resolve(this._localDir, this._dbName);
     if (this._workingDirectory.length === 0 || this._workingDirectory.length > MAX_LENGTH_OF_WORKING_DIRECTORY_PATH) {
       throw new InvalidWorkingDirectoryPathLengthError();
     }
@@ -315,7 +319,7 @@ export class GitDocumentDB {
       return this._dbInfo;
     }
 
-    await fs.ensureDir(this._initOptions.localDir!).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
+    await fs.ensureDir(this._localDir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
 
     this._dbInfo = {
       isNew: false,

@@ -10,7 +10,7 @@
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, InvalidWorkingDirectoryPathLengthError } from '../src/error';
+import { CannotCreateDirectoryError, InvalidWorkingDirectoryPathLengthError, UndefinedDatabaseNameError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 interface RepositoryInitOptions {
@@ -109,6 +109,16 @@ click on the Advanced button, and then click [disable inheritance] button.
     // Destroy db
     await gitDDB.destroy().catch(e => console.error(e));
     fs.removeSync('./gitddb');
+  });
+
+  test('open(): dbName is undefined.', async () => {
+    const dbName = './test_repos_4';
+    // Code must be wrapped by () => {} to test exception
+    // https://jestjs.io/docs/en/expect#tothrowerror
+    expect(() => {
+      // @ts-ignore      
+      new GitDocumentDB({})
+    }).toThrowError(UndefinedDatabaseNameError);
   });
 
 
