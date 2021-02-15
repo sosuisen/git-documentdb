@@ -69,7 +69,7 @@ const gitDDB = new GitDocumentDB({
   const doc = await gitDDB.get('profile');
   console.log(doc);  // doc = { _id: 'profile', name: 'Yuzuki', age: '16' }
   // Delete
-  await gitDDB.delete('profile');
+  await gitDDB.remove('profile');
 ```
 
 ## Advanced:
