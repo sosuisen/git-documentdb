@@ -49,16 +49,18 @@ const repositoryInitOptionFlags = {
  * Database location
  * 
  * @remarks
- * - localDir: \<Local directory path for the databases of GitDocumentDB\> 
+ * - localDir: Local directory path for the databases of GitDocumentDB. Default is './gitddb'.
  * 
- * - dbName: \<Name of a git repository\>
+ * - dbName: Name of a git repository
  *
  * @beta
  */
 export type DatabaseOption = {
+  localDir?: string,
   dbName: string,
-  localDir: string,
 };
+
+const defaultLocalDir = './gitddb';
 
 /**
  * Database information
@@ -250,8 +252,11 @@ export class GitDocumentDB {
    */
   constructor(options: DatabaseOption) {
     this._initOptions = options;
+    if (options.localDir === undefined) {
+      this._initOptions.localDir = defaultLocalDir;
+    }
     // Get full-path
-    this._workingDirectory = path.resolve(this._initOptions.localDir, this._initOptions.dbName);
+    this._workingDirectory = path.resolve(this._initOptions.localDir!, this._initOptions.dbName);
     if (this._workingDirectory.length === 0 || this._workingDirectory.length > MAX_LENGTH_OF_WORKING_DIRECTORY_PATH) {
       throw new InvalidWorkingDirectoryPathLengthError();
     }
@@ -310,7 +315,7 @@ export class GitDocumentDB {
       return this._dbInfo;
     }
 
-    await fs.ensureDir(this._initOptions.localDir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
+    await fs.ensureDir(this._initOptions.localDir!).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
 
     this._dbInfo = {
       isNew: false,

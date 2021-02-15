@@ -96,6 +96,22 @@ click on the Advanced button, and then click [disable inheritance] button.
   });
 
 
+  test('open(): Create a new repository by default localDir.', async () => {
+    const dbName = './test_repos_3';
+
+    const gitDDB = new GitDocumentDB({
+      dbName: dbName,
+    });
+
+    // Create db
+    await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true }).catch(e => console.error(e));
+    expect(gitDDB.workingDir()).toBe(path.resolve('./gitddb/test_repos_3'));
+    // Destroy db
+    await gitDDB.destroy().catch(e => console.error(e));
+    fs.removeSync('./gitddb');
+  });
+
+
   test('open(): Try to create a long name repository.', async () => {
     const dbName = './0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
     // Code must be wrapped by () => {} to test exception
