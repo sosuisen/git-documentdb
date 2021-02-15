@@ -15,6 +15,8 @@ Use GitDocumentDB to ...
 
 :rocket: Synchronize JSON documents with a remote Git repository.
 
+:arrows_counterclockwise: CI/CD through GitHub.
+
 :dromedary_camel: Travel history of database snapshots.
 
 
