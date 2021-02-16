@@ -541,7 +541,9 @@ export class GitDocumentDB {
    * Add a document into a root collection
    * 
    * @remarks
-   * put() does not check a write permission of your file system (unlike open()).
+   * - put() does not check a write permission of your file system (unlike open()).
+   * 
+   * - Saved file path is `${workingDirectory()}/${document._id}.json`. put() throws InvalidIdLengthError if the path length exceeds the maximum length of a filepath on the device.
    * 
    * @param document -  See {@link JsonDoc} for restriction
    * @param commitMessage - Default is `put: ${document._id}`
