@@ -116,6 +116,7 @@ export type AllDocsOptions = {
  */
 export type PutResult = {
   ok: true,
+  dirpath: string,
   id: string,
   file_sha: string,
   commit_sha: string
@@ -489,17 +490,10 @@ export class GitDocumentDB {
   }
 
   /**
-   * 
-   * 
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   */
-  }
-
-  /**
-   * Add a document into a database
+   * Add a document into a root collection
    * 
    * @remarks
+   * put() does not check a write permission of your file system (unlike open()).
    * 
    * @param document -  See {@link JsonDoc} for restriction
    * @param commitMessage - Default is `put: ${document._id}`
@@ -514,6 +508,28 @@ export class GitDocumentDB {
    * @throws {@link CannotCreateDirectoryError}
    */
   put(document: JsonDoc, commitMessage?: string): Promise<PutResult> {
+    return this.rawPutJSON.apply(this, ['/', document, commitMessage]);
+  }
+
+  /**
+   * Add a document into a database
+   * 
+   * @remarks
+   * rawPutJSON() does not check a write permission of your file system (unlike open()).
+   * 
+   * @param document -  See {@link JsonDoc} for restriction
+   * @param commitMessage - Default is `put: ${document._id}`
+   * @returns Promise that returns a set of _id, blob hash and commit hash
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   */
+  rawPutJSON(dirpath:string, document: JsonDoc, commitMessage?: string): Promise<PutResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -528,7 +544,7 @@ export class GitDocumentDB {
 
     // put() must be serial.
     return new Promise((resolve, reject) => {
-      this._pushToSerialQueue(() => this._put_concurrent(document, commitMessage!)
+      this._pushToSerialQueue(() => this._put_concurrent(dirpath, document, commitMessage!)
         .then(result => {
           resolve(result)
         })
@@ -542,7 +558,7 @@ export class GitDocumentDB {
    * It is published for test purpose.
    * @internal
    */
-  async _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult> {
+  async _put_concurrent(dirpath: string, document: JsonDoc, commitMessage: string): Promise<PutResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
@@ -554,6 +570,8 @@ export class GitDocumentDB {
     if (document['_id'] === undefined) {
       return Promise.reject(new UndefinedDocumentIdError());
     }
+    dirpath = this.normalizeDirpath(dirpath);
+    const key = dirpath + document._id;
     try {
       this.validateKey(key);
     } catch (err) { return Promise.reject(err); }
@@ -568,7 +586,7 @@ export class GitDocumentDB {
 
     let file_sha, commit_sha: string;
     try {
-      const filename = document._id + fileExt;
+      const filename = key.slice(1) + fileExt; // key starts with a slash. Remove heading slash to put the file under the working directory
       const filePath = path.resolve(this._workingDirectory, filename);
       const dir = path.dirname(filePath);
       await fs.ensureDir(dir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
@@ -602,7 +620,7 @@ export class GitDocumentDB {
       return Promise.reject(new CannotWriteDataError(err.message));
     }
     // console.log(commitId.tostrS());
-    return { ok: true, id: document._id, file_sha: file_sha, commit_sha: commit_sha };
+    return { ok: true, dirpath, id: document._id, file_sha: file_sha, commit_sha: commit_sha };
 
   }
 
