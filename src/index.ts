@@ -163,14 +163,8 @@ export type AllDocsResult = { total_rows: number, commit_sha?: string, rows?: Js
  * 
  * @remarks A document must be a JSON Object that matches the following conditions:
  * 
- * - It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
+ * - It must have an '_id' key, which is validated by {@link validateId}
  *
- * - '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
- * 
- * - '_id' cannot end with a period . (For compatibility with the file system of Windows)
- *
- *  - A length of an '_id' value must be equal to or less than MAX_LENGTH_OF_KEY(64).
- * 
  * @beta
  */
 export type JsonDoc = {
@@ -368,18 +362,36 @@ export class GitDocumentDB {
   }
 
   /**
+   * Validate id
+   * 
+   * @remarks 
+   * - '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
+   *
+   * - '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
+   * 
+   * - '_id' cannot end with a period . (For compatibility with the file system of Windows)
+   *
+   * @throws {@link InvalidIdCharacterError}
+   */
+  validateId(id: string) {
+    if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]]/) || id.match(/\.$/) || id.match(/^\_/)) {
+      throw new InvalidIdCharacterError();
+    }
+  }
+
+  /**
    * Validate key
    * 
    * @remarks 
    * key means `${dirpath}${_id}`
    * 
    * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
+   * @throws {@link InvalidDirpathCharacterError}
+   * @throws {@link InvalidDirpathLengthError}
+   * @throws {@link InvalidKeyLengthError}
    */
   validateKey(key: string) {
-    if (path.basename(key).match(/[^a-zA-Z0-9_\-\.\(\)\[\]]/) || path.basename(key).match(/\.$/) || path.basename(key).match(/^\_/)) {
-      throw new InvalidIdCharacterError();
-    }
+    this.validateId(path.basename(key));
     this.validateDirpath(path.dirname(key));
 
     // Example of a minimum key is '/a'
@@ -388,8 +400,6 @@ export class GitDocumentDB {
       throw new InvalidKeyLengthError(key, minimumKeyLength, this.maxKeyLength());
     }
   }
-
-
 
 
   /**
