@@ -269,7 +269,7 @@ export class GitDocumentDB {
   /**
    * Get a path of the current Git working directory
    * 
-   * @returns Absolute path of the directory
+   * @returns Absolute path of the directory (trailing slash is omitted)
    */
   workingDir() {
     return this._workingDirectory;
@@ -667,6 +667,7 @@ export class GitDocumentDB {
 
       const filePath = path.resolve(this._workingDirectory, filename);
       await remove(filePath);
+      // remove parent directory if empty
       await rmdir(path.dirname(filePath)).catch(e => { /* not empty */ });
 
     } catch (err) {

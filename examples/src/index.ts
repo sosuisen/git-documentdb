@@ -1,3 +1,4 @@
+import { worker } from 'cluster';
 import { GitDocumentDB } from 'git-documentdb';
 
 const gitDDB = new GitDocumentDB({
@@ -7,6 +8,9 @@ const gitDDB = new GitDocumentDB({
 const foo = async () => {
   // Create repository (gddb_data/db01/.git)
   await gitDDB.open();
+  const workingDir = gitDDB.workingDir();
+  console.log(workingDir); // workingDir = '/(your_path)/git-documentdb/examples/gddb_data/db01'
+  
   // Create document named 'profile.json' under gddb_data/db01/
   await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '15' });
   // Update
