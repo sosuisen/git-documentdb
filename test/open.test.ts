@@ -123,9 +123,28 @@ click on the Advanced button, and then click [disable inheritance] button.
 
 
   test('open(): Try to create a long name repository.', async () => {
-    const dbName = './0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
+    const maxWorkingDirLen = GitDocumentDB.maxWorkingDirectoryLength();
+    let dbName = 'tmp';
+    const workingDirectory = path.resolve(localDir, dbName);
+    for (let i=0; i< maxWorkingDirLen - workingDirectory.length; i++) {
+      dbName += '0';
+    }
+
     // Code must be wrapped by () => {} to test exception
     // https://jestjs.io/docs/en/expect#tothrowerror
+    let gitddb: GitDocumentDB;
+    expect(() => {
+      gitddb = new GitDocumentDB({
+        dbName: dbName,
+        localDir: localDir
+      });
+    }).not.toThrowError();
+    // @ts-ignore
+    if (gitddb !== undefined) {
+      await gitddb.destroy();
+    }
+
+    dbName += '0';
     expect(() => {
       new GitDocumentDB({
         dbName: dbName,
