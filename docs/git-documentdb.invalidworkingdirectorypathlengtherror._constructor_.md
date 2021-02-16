@@ -4,20 +4,19 @@
 
 ## InvalidWorkingDirectoryPathLengthError.(constructor)
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Constructs a new instance of the `InvalidWorkingDirectoryPathLengthError` class
 
 <b>Signature:</b>
 
 ```typescript
-constructor(e?: string);
+constructor(path: string, minLength: number, maxLength: number);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  e | string |  |
+|  path | string |  |
+|  minLength | number |  |
+|  maxLength | number |  |
 

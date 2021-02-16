@@ -25,6 +25,8 @@ constructor(options: DatabaseOption);
 
 [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md)
 
+[UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md)
+
 ## Remarks
 
 - The git working directory will be localDir/dbName.

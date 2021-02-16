@@ -14,19 +14,22 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 
 |  Class | Description |
 |  --- | --- |
-|  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) | <b><i>(BETA)</i></b> |
-|  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) | <b><i>(BETA)</i></b> |
+|  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
+|  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
 |  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) | <b><i>(BETA)</i></b> |
-|  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) | <b><i>(BETA)</i></b> |
-|  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) | <b><i>(BETA)</i></b> |
-|  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) | <b><i>(BETA)</i></b> |
+|  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
+|  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
+|  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | <b><i>(BETA)</i></b> Main class of GitDocumentDB |
-|  [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) | <b><i>(BETA)</i></b> |
-|  [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) | <b><i>(BETA)</i></b> |
-|  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) | <b><i>(BETA)</i></b> |
-|  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) | <b><i>(BETA)</i></b> |
-|  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) | <b><i>(BETA)</i></b> |
-|  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) | <b><i>(BETA)</i></b> |
+|  [InvalidDirpathCharacterError](./git-documentdb.invaliddirpathcharactererror.md) |  |
+|  [InvalidDirpathLengthError](./git-documentdb.invaliddirpathlengtherror.md) |  |
+|  [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) |  |
+|  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) |  |
+|  [InvalidKeyLengthError](./git-documentdb.invalidkeylengtherror.md) |  |
+|  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) |  |
+|  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
+|  [UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md) |  |
+|  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) |  |
 
 ## Type Aliases
 

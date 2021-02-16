@@ -33,14 +33,23 @@ export declare class GitDocumentDB
 |  --- | --- | --- |
 |  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents in a repository. |
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close database |
+|  [collection(collectionName)](./git-documentdb.gitdocumentdb.collection.md) |  | <b><i>(BETA)</i></b> Create a collection or open an existing one. |
 |  [delete(key, commitMessage)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> Delete a document |
 |  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | <b><i>(BETA)</i></b> Destroy database |
 |  [get(\_id)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document from a database |
 |  [getRepository()](./git-documentdb.gitdocumentdb.getrepository.md) |  | <b><i>(BETA)</i></b> Get current repository |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if database is opened |
+|  [maxCollectionNameLength()](./git-documentdb.gitdocumentdb.maxcollectionnamelength.md) |  | <b><i>(BETA)</i></b> Return max length of collectionName |
+|  [maxDirpathLength()](./git-documentdb.gitdocumentdb.maxdirpathlength.md) |  | <b><i>(BETA)</i></b> Return max length of dirpath |
+|  [maxKeyLength()](./git-documentdb.gitdocumentdb.maxkeylength.md) |  | <b><i>(BETA)</i></b> Return max length of key |
+|  [maxWorkingDirectoryLength()](./git-documentdb.gitdocumentdb.maxworkingdirectorylength.md) | <code>static</code> | <b><i>(BETA)</i></b> Return max length of working directory path |
+|  [mkdir(dirpath, commitMessage)](./git-documentdb.gitdocumentdb.mkdir.md) |  | <b><i>(BETA)</i></b> Create a collection or open an existing one. |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
-|  [put(document, commitMessage)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document into a database |
+|  [put(document, commitMessage)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document into a root collection |
+|  [rawPutJSON(dirpath, document, commitMessage)](./git-documentdb.gitdocumentdb.rawputjson.md) |  | <b><i>(BETA)</i></b> Add a document into a database |
 |  [remove(key, commitMessage)](./git-documentdb.gitdocumentdb.remove.md) |  | <b><i>(BETA)</i></b> Delete a document |
-|  [validateId(id)](./git-documentdb.gitdocumentdb.validateid.md) |  | <b><i>(BETA)</i></b> Validate \_id of a document |
+|  [validateDirpath(dirpath)](./git-documentdb.gitdocumentdb.validatedirpath.md) |  | <b><i>(BETA)</i></b> Validate dirpath |
+|  [validateId(id)](./git-documentdb.gitdocumentdb.validateid.md) |  | <b><i>(BETA)</i></b> Validate id |
+|  [validateKey(key)](./git-documentdb.gitdocumentdb.validatekey.md) |  | <b><i>(BETA)</i></b> Validate key |
 |  [workingDir()](./git-documentdb.gitdocumentdb.workingdir.md) |  | <b><i>(BETA)</i></b> Get a path of the current Git working directory |
 

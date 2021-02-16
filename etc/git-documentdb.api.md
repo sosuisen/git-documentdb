@@ -23,12 +23,12 @@ export type AllDocsResult = {
 
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
 //
-// @beta (undocumented)
+// @public (undocumented)
 export class CannotCreateDirectoryError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta (undocumented)
+// @public (undocumented)
 export class CannotDeleteDataError extends BaseError {
     constructor(e?: string);
 }
@@ -44,12 +44,12 @@ export type DatabaseCloseOption = {
     timeout?: number;
 };
 
-// @beta (undocumented)
+// @public (undocumented)
 export class DatabaseCloseTimeoutError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta (undocumented)
+// @public (undocumented)
 export class DatabaseClosingError extends BaseError {
     constructor(e?: string);
 }
@@ -75,7 +75,7 @@ export type DeleteResult = {
     commit_sha: string;
 };
 
-// @beta (undocumented)
+// @public (undocumented)
 export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
 }
@@ -85,6 +85,8 @@ export class GitDocumentDB {
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
+    // Warning: (ae-forgotten-export) The symbol "Collection" needs to be exported by the entry point main.d.ts
+    collection(collectionName: string): Promise<Collection>;
     delete(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
@@ -93,35 +95,53 @@ export class GitDocumentDB {
     getRepository(): nodegit.Repository | undefined;
     isClosing: boolean;
     isOpened(): boolean;
+    maxCollectionNameLength(): number;
+    maxDirpathLength(): number;
+    maxKeyLength(): number;
+    static maxWorkingDirectoryLength(): number;
+    mkdir(dirpath: string, commitMessage?: string): Promise<PutResult>;
     open(): Promise<DatabaseInfo>;
     put(document: JsonDoc, commitMessage?: string): Promise<PutResult>;
     // @internal
-    _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult>;
+    _put_concurrent(dirpath: string, document: JsonDoc, commitMessage: string): Promise<PutResult>;
+    rawPutJSON(dirpath: string, document: JsonDoc, commitMessage?: string): Promise<PutResult>;
     remove(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
     // @internal
     _remove_concurrent(_id: string, commitMessage: string): Promise<DeleteResult>;
+    validateDirpath(dirpath: string): void;
     validateId(id: string): void;
+    validateKey(key: string): void;
     workingDir(): string;
     }
 
-// @beta (undocumented)
+// @public (undocumented)
+export class InvalidDirpathCharacterError extends BaseError {
+    constructor(e?: string);
+}
+
+// @public (undocumented)
+export class InvalidDirpathLengthError extends BaseError {
+    constructor(dirpath: string, minLength: number, maxLength: number);
+}
+
+// @public (undocumented)
 export class InvalidIdCharacterError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta (undocumented)
-export class InvalidIdLengthError extends BaseError {
-    constructor(e?: string);
-}
-
-// @beta (undocumented)
+// @public (undocumented)
 export class InvalidJsonObjectError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta (undocumented)
+// @public (undocumented)
+export class InvalidKeyLengthError extends BaseError {
+    constructor(key: string, minLength: number, maxLength: number);
+}
+
+// @public (undocumented)
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
-    constructor(e?: string);
+    constructor(path: string, minLength: number, maxLength: number);
 }
 
 // @beta
@@ -139,17 +159,23 @@ export type JsonDocWithMetadata = {
 // @beta
 export type PutResult = {
     ok: true;
+    dirpath: string;
     id: string;
     file_sha: string;
     commit_sha: string;
 };
 
-// @beta (undocumented)
+// @public (undocumented)
 export class RepositoryNotOpenError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta (undocumented)
+// @public (undocumented)
+export class UndefinedDatabaseNameError extends BaseError {
+    constructor(e?: string);
+}
+
+// @public (undocumented)
 export class UndefinedDocumentIdError extends BaseError {
     constructor(e?: string);
 }

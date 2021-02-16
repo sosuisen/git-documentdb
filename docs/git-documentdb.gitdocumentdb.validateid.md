@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Validate \_id of a document
+Validate id
 
 <b>Signature:</b>
 
@@ -29,9 +29,11 @@ void
 
 [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
-
 ## Remarks
 
-See [JsonDoc](./git-documentdb.jsondoc.md) for restriction
+- '\_id' only allows \*\*a to z, A to Z, 0 to 9, and these 8 punctuation marks \_ - . ( ) \[ \]\*\*.
+
+- '\_id' cannot start with an underscore \_. (For compatibility with PouchDB and CouchDB)
+
+- '\_id' cannot end with a period . (For compatibility with the file system of Windows)
 

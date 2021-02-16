@@ -18,5 +18,5 @@ workingDir(): string;
 
 string
 
-Absolute path of the directory
+Absolute path of the directory (trailing slash is omitted)
 

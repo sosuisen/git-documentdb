@@ -28,5 +28,5 @@ Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
 
 ## Remarks
 
-Alias of remove()
+This is an alias of remove()
 
