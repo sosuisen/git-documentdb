@@ -712,7 +712,7 @@ export class GitDocumentDB {
   /**
    * Delete a document
    * @remarks 
-   *   Alias of remove()
+   *   This is an alias of remove()
    */
   delete(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
     // @ts-ignore
