@@ -11,6 +11,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { UndefinedDocumentIdError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidKeyLengthError, RepositoryNotOpenError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
+import { Validator } from '../src/validator';
 
 describe('Create document', () => {
   const localDir = './test/database_put01';
@@ -81,7 +82,8 @@ describe('Create document', () => {
       localDir: localDir
     });
     await gitDDB.open();
-    let maxKeyLen = gitDDB.maxKeyLength();
+    const validator = new Validator(gitDDB.workingDir());
+    let maxKeyLen = validator.maxKeyLength();
     let id = '';
     // remove length of dirpath('/')
     maxKeyLen--;

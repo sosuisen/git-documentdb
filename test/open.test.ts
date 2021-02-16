@@ -12,6 +12,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { CannotCreateDirectoryError, InvalidWorkingDirectoryPathLengthError, UndefinedDatabaseNameError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
+import { Validator } from '../src/validator';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -122,8 +123,8 @@ click on the Advanced button, and then click [disable inheritance] button.
   });
 
 
-  test('open(): Try to create a long name repository.', async () => {
-    const maxWorkingDirLen = GitDocumentDB.maxWorkingDirectoryLength();
+  test('open(): Try to create a long name repository.', async () => {    
+    const maxWorkingDirLen = Validator.maxWorkingDirectoryLength();
     let dbName = 'tmp';
     const workingDirectory = path.resolve(localDir, dbName);
     for (let i=0; i< maxWorkingDirLen - workingDirectory.length; i++) {
