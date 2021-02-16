@@ -11,9 +11,9 @@ import fs, { remove, rmdir } from 'fs-extra';
 import path from 'path';
 import {
   CannotCreateDirectoryError, CannotWriteDataError,
-  UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidIdLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError, DatabaseClosingError, DatabaseCloseTimeoutError, UndefinedDatabaseNameError
+  UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError, DatabaseClosingError, DatabaseCloseTimeoutError, UndefinedDatabaseNameError, InvalidDirpathCharacterError, InvalidDirpathLengthError
 } from './error';
-import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
+import { MAX_WINDOWS_PATH_LENGTH } from './const';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
@@ -159,7 +159,7 @@ export type AllDocsResult = { total_rows: number, commit_sha?: string, rows?: Js
  * 
  * @remarks A document must be a JSON Object that matches the following conditions:
  * 
- * - It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.
+ * - It must have an '_id' key, which value only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
  *
  * - '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
  * 
@@ -253,7 +253,7 @@ export class GitDocumentDB {
    * @throws {@link UndefinedDatabaseNameError}
    */
   constructor(options: DatabaseOption) {
-    if (options.dbName === undefined) {
+    if (options.dbName === undefined || options.dbName === '') {
       throw new UndefinedDatabaseNameError();
     }
     this._dbName = options.dbName;
@@ -261,8 +261,9 @@ export class GitDocumentDB {
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
-    if (this._workingDirectory.length === 0 || this._workingDirectory.length > MAX_LENGTH_OF_WORKING_DIRECTORY_PATH) {
-      throw new InvalidWorkingDirectoryPathLengthError();
+
+    if (this._workingDirectory.length === 0 || this._workingDirectory.length > GitDocumentDB.maxWorkingDirectoryLength()) {
+      throw new InvalidWorkingDirectoryPathLengthError(this._workingDirectory, 0, GitDocumentDB.maxWorkingDirectoryLength());
     }
   }
 
@@ -283,6 +284,110 @@ export class GitDocumentDB {
     return this._currentRepository;
   }
 
+  /**
+   * Return max length of working directory path
+   */
+  static maxWorkingDirectoryLength() {
+    // Trailing slash of workingDirectory is omitted.
+    // Minimum path is `${_workingDirectory}/a.json`
+    const minimumMemberLength = 7; // '/a.json'
+    return MAX_WINDOWS_PATH_LENGTH - minimumMemberLength;
+  }
+  
+  /**
+   * Return max length of collectionName
+   * 
+   * @remarks
+   * This is an alias of maxDirpath().
+   */
+  maxCollectionNameLength() {
+    return this.maxDirpathLength.apply(this);
+  }
+  
+  /**
+   * Return max length of dirpath
+   */
+  maxDirpathLength() {
+    // Suppose that dirpath has leading and trailing slashes.
+    // Trailing slash of workingDirectory is omitted.
+    // Full path is `${_workingDirectory}${dirpath}${_id}.json`
+    const minIdLength = 6; // 'a.json'
+    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - minIdLength;
+  }
+
+  /**
+   * Return max length of key
+   * 
+   * @remarks
+   * key means `${dirpath}${_id}`
+   */
+  maxKeyLength() {
+    // Suppose that dirpath has leading and trailing slashes.
+    // Trailing slash of workingDirectory is omitted.
+    // Full path is `${_workingDirectory}${dirpath}${_id}.json`
+    const extLength = 5; // '.json'
+    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - extLength;
+  }
+
+  private normalizeDirpath(dirpath: string) {
+    if (!dirpath.startsWith('/')) {
+      dirpath = '/' + dirpath;
+    }
+    if (!dirpath.endsWith('/')) {
+      dirpath += '/';
+    }
+    return dirpath;
+  }
+
+   /**
+   * Validate dirpath
+   * 
+   * @remarks
+   * - dirpath only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.
+   *
+   * - dirpath cannot end with a period . (For compatibility with the file system of Windows)
+   *
+   *  - A length of an dirpath value must be equal to or less than MAX_LENGTH_OF_KEY(64).
+   * 
+   * @throws {@link InvalidDirpathCharacterError}
+   * @throws {@link InvalidDirpathLengthError}
+   */
+  validateDirpath(dirpath: string) {
+    const normalized = this.normalizeDirpath(dirpath);
+    if (normalized.match(/[^a-zA-Z0-9_\-\.\(\)\[\]\/]/) || normalized.match(/\.$/)) {
+      throw new InvalidDirpathCharacterError();
+    }
+    const minimumDirPathLength = 1; // minimum is '/'
+    if(normalized.length < minimumDirPathLength || normalized.length > this.maxDirpathLength()) {
+      throw new InvalidDirpathLengthError(normalized, minimumDirPathLength, this.maxDirpathLength());
+    }
+  }
+
+  /**
+   * Validate key
+   * 
+   * @remarks 
+   * key means `${dirpath}${_id}`
+   * 
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   */
+  validateKey(key: string) {
+    if (path.basename(key).match(/[^a-zA-Z0-9_\-\.\(\)\[\]]/) || path.basename(key).match(/\.$/) || path.basename(key).match(/^\_/)) {
+      throw new InvalidIdCharacterError();
+    }
+    this.validateDirpath(path.dirname(key));
+
+    // Example of a minimum key is '/a'
+    const minimumKeyLength = 2;
+    if (key.length < minimumKeyLength || key.length > this.maxKeyLength()) {
+      throw new InvalidKeyLengthError(key, minimumKeyLength, this.maxKeyLength());
+    }
+  }
+
+  /**
+   * Serial queue
+   */
   private _pushToSerialQueue(func: () => Promise<void>) {
     this._serialQueue.push(func);
     this._execSerialQueue();
@@ -384,28 +489,17 @@ export class GitDocumentDB {
   }
 
   /**
-   * Validate _id of a document
    * 
-   * @remarks See {@link JsonDoc} for restriction
    * 
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
    */
-  validateId(id: string) {
-    if (id.match(/[^a-zA-Z0-9_\-\.\(\)\[\]\/]/) || id.match(/\.$/) || id.match(/^\_/)) {
-      throw new InvalidIdCharacterError();
-    }
-    if (id.length === 0 || id.length > MAX_LENGTH_OF_KEY) {
-      throw new InvalidIdLengthError();
-    }
   }
-
 
   /**
    * Add a document into a database
    * 
    * @remarks
-   * put() does not check a write permission of your file system (unlike open()).
    * 
    * @param document -  See {@link JsonDoc} for restriction
    * @param commitMessage - Default is `put: ${document._id}`
@@ -460,9 +554,8 @@ export class GitDocumentDB {
     if (document['_id'] === undefined) {
       return Promise.reject(new UndefinedDocumentIdError());
     }
-
     try {
-      this.validateId(document._id);
+      this.validateKey(key);
     } catch (err) { return Promise.reject(err); }
 
     let data = '';

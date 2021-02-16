@@ -6,8 +6,6 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { MAX_LENGTH_OF_KEY, MAX_LENGTH_OF_WORKING_DIRECTORY_PATH } from './const';
-
 class BaseError extends Error {
   constructor(e?: string) {
     super(e);
@@ -43,9 +41,21 @@ export class CannotDeleteDataError extends BaseError {
   }
 }
 
-export class InvalidWorkingDirectoryPathLengthError extends BaseError {
-  constructor(e = `Invalid path length: A length of working directory path must be equal to or less than ${MAX_LENGTH_OF_WORKING_DIRECTORY_PATH}.`) {
+export class InvalidDirpathCharacterError extends BaseError {
+  constructor(e = 'Invalid dirpath character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>') {
     super(e);
+  }
+}
+
+export class InvalidDirpathLengthError extends BaseError {
+  constructor(dirpath: string, minLength: number, maxLength: number) {
+    super(`Invalid dirpath length: A length of '${dirpath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
+  }
+}
+
+export class InvalidWorkingDirectoryPathLengthError extends BaseError {
+  constructor(path: string, minLength: number, maxLength: number) {
+    super(`Invalid working directory path length: A length of '${path}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
   }
 }
 
@@ -55,9 +65,9 @@ export class InvalidIdCharacterError extends BaseError {
   }
 }
 
-export class InvalidIdLengthError extends BaseError {
-  constructor(e = `Invalid ID length: A length of id value must be equal to or less than ${MAX_LENGTH_OF_KEY}.`) {
-    super(e);
+export class InvalidKeyLengthError extends BaseError {
+  constructor(key: string, minLength: number, maxLength: number) {
+    super(`Invalid Key length: A length of '${key}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
   }
 }
 
