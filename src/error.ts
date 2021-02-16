@@ -106,6 +106,13 @@ export class DatabaseCloseTimeoutError extends BaseError {
     super(e);
   }
 }
+
+export class InvalidPropertyNameInDocumentError extends BaseError {
+  constructor(e = 'A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)') {
+    super(e);
+  }
+}
+
 export class InvalidDbNameCharacterError extends BaseError {
   constructor(e = 'dbName disallows slash / characters. dbName cannot end with a period .') {
     super(e);

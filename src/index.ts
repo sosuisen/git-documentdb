@@ -504,6 +504,12 @@ export class GitDocumentDB {
       this._validator.validateKey(key);
     } catch (err) { return Promise.reject(err); }
 
+    try {
+      this._validator.validateDocument(document);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+
     let data = '';
     try {
       data = JSON.stringify(document);
