@@ -77,7 +77,6 @@ click on the Advanced button, and then click [disable inheritance] button.
     }
   });
 
-
   test('open(): Create a new repository.', async () => {
     const dbName = './test_repos_2';
 
@@ -103,13 +102,13 @@ click on the Advanced button, and then click [disable inheritance] button.
     const gitDDB = new GitDocumentDB({
       dbName: dbName,
     });
-
+    const defaultLocalDir = './gitddb/';
     // Create db
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: true }).catch(e => console.error(e));
-    expect(gitDDB.workingDir()).toBe(path.resolve('./gitddb/test_repos_3'));
+    expect(gitDDB.workingDir()).toBe(path.resolve(defaultLocalDir, dbName));
     // Destroy db
     await gitDDB.destroy().catch(e => console.error(e));
-    fs.removeSync('./gitddb');
+    fs.removeSync(path.resolve(defaultLocalDir));
   });
 
   test('open(): dbName is undefined.', async () => {
@@ -153,6 +152,7 @@ click on the Advanced button, and then click [disable inheritance] button.
       });
     }).toThrowError(InvalidWorkingDirectoryPathLengthError);
   });
+
 });
 
 
@@ -247,7 +247,7 @@ describe('Open, close and destroy repository', () => {
   });
 
   test('Open db twice.', async () => {
-    const dbName = './test_repos_5';
+    const dbName = 'test_repos_5';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -255,7 +255,9 @@ describe('Open, close and destroy repository', () => {
 
     // Create db
     const info = await gitDDB.open();
-    await expect(gitDDB.open()).resolves.toMatchObject(info);
+    await expect(gitDDB.open()).resolves.toMatchObject({
+      isNew: false,
+    });
     await gitDDB.destroy();
   });
 

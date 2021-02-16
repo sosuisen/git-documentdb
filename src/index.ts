@@ -357,6 +357,7 @@ export class GitDocumentDB {
     }
 
     if (this.isOpened()) {
+      this._dbInfo.isNew = false;
       return this._dbInfo;
     }
 
