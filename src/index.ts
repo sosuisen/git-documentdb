@@ -419,19 +419,21 @@ export class GitDocumentDB {
    * 
    * @param dirpath - A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. 
    * collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection.
-   * 
+   * @param commitMessage - Default is `mkdir: ${dirpath}`
    * @remarks 
    *  This is an alias of mkdir()
    */
-  async mkdir(dirpath: string): Promise<PutResult> {
+  async mkdir(dirpath: string, commitMessage?: string): Promise<PutResult> {
     dirpath = this.normalizeDirpath(dirpath);
     this.validateDirpath(dirpath);
+
+    commitMessage ??= `mkdir: ${dirpath}`;
 
     const doc = {
       _id: COLLECTION_CONFIG_FILE,
       dirpath
     };
-    return await this.rawPutJSON(dirpath, doc, `mkdir: ${dirpath}`);
+    return await this.rawPutJSON(dirpath, doc, commitMessage);
   }
 
   /**
@@ -588,9 +590,7 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
-    if (commitMessage === undefined) {
-      commitMessage = `put: ${document?._id}`;
-    }
+    commitMessage ??= `put: ${document?._id}`;
 
     // put() must be serial.
     return new Promise((resolve, reject) => {
