@@ -766,9 +766,7 @@ export class GitDocumentDB {
       return Promise.reject(new UndefinedDocumentIdError());
     }
 
-    if (commitMessage === undefined) {
-      commitMessage = `delete: ${_id}`;
-    }
+    commitMessage ??= `delete: ${_id}`;
 
     // delete() must be serial.
     return new Promise((resolve, reject) => {
