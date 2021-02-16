@@ -106,3 +106,15 @@ export class DatabaseCloseTimeoutError extends BaseError {
     super(e);
   }
 }
+export class InvalidDbNameCharacterError extends BaseError {
+  constructor(e = 'dbName disallows slash / characters. dbName cannot end with a period .') {
+    super(e);
+  }
+}
+
+export class InvalidLocalDirCharacterError extends BaseError {
+  constructor(e = 'localDir cannot end with a period .') {
+    super(e);
+  }
+}
+   

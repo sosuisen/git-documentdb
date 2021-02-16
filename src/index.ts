@@ -250,8 +250,12 @@ export class GitDocumentDB {
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
-
+    
     this._validator = new Validator(this._workingDirectory);
+        
+    this._validator.validateDbName(this._dbName);
+    this._validator.validateLocalDir(this._localDir);
+
     if (this._workingDirectory.length === 0 || this._workingDirectory.length > Validator.maxWorkingDirectoryLength()) {
       throw new InvalidWorkingDirectoryPathLengthError(this._workingDirectory, 0, Validator.maxWorkingDirectoryLength());
     }
