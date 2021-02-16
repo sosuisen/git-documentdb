@@ -158,14 +158,14 @@ export class Validator {
   validateDocument(doc: JsonDoc) {
     const reservedKeys: { [key: string]: true } = {
       _id: true,
-      _rev: true,
-      _attachments: true,
     };
     /**
      * NOTE: Keys which starts with underscore
      * https://docs.couchdb.org/en/latest/api/document/common.html
      *
      * const reservedKeysInResponse = {
+     *  _rev: true,
+     *  _attachments: true,
      *  _deleted: true,      
      *  _conflicts: true,
      *  _deleted_conflicts: true,
