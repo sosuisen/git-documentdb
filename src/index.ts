@@ -16,6 +16,7 @@ import {
 import { MAX_WINDOWS_PATH_LENGTH } from './const';
 import { Collection } from './collection';
 import { Validator } from './validator';
+import { JsonDoc } from './types';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
@@ -158,19 +159,6 @@ export type DeleteResult = {
  * @beta
  */
 export type AllDocsResult = { total_rows: number, commit_sha?: string, rows?: JsonDocWithMetadata[] };
-
-/**
- * Type for a JSON document
- * 
- * @remarks A document must be a JSON Object that matches the following conditions:
- * 
- * - It must have an '_id' key, which is validated by {@link validateId}
- *
- * @beta
- */
-export type JsonDoc = {
-  [key: string]: any
-};
 
 /**
  * Type for a JSON document with metadata
