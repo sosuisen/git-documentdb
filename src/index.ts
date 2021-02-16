@@ -14,11 +14,14 @@ import {
   UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError, DatabaseClosingError, DatabaseCloseTimeoutError, UndefinedDatabaseNameError, InvalidDirpathCharacterError, InvalidDirpathLengthError
 } from './error';
 import { MAX_WINDOWS_PATH_LENGTH } from './const';
+import { Collection } from './collection';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
   email: 'system@gdd.localhost',
 };
+
+const COLLECTION_CONFIG_FILE = '.collection';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -384,6 +387,41 @@ export class GitDocumentDB {
     if (key.length < minimumKeyLength || key.length > this.maxKeyLength()) {
       throw new InvalidKeyLengthError(key, minimumKeyLength, this.maxKeyLength());
     }
+  }
+
+
+
+
+  /**
+   * Create a collection or open an existing one.
+   * 
+   * @param collectionName - A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. 
+   * collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection.
+   * 
+   */
+  async collection(collectionName: string) {
+    const mkdirResult = await this.mkdir(collectionName);
+    return new Collection(mkdirResult.dirpath);
+  }
+
+  /**
+   * Create a collection or open an existing one.
+   * 
+   * @param dirpath - A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. 
+   * collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection.
+   * 
+   * @remarks 
+   *  This is an alias of mkdir()
+   */
+  async mkdir(dirpath: string): Promise<PutResult> {
+    dirpath = this.normalizeDirpath(dirpath);
+    this.validateDirpath(dirpath);
+
+    const doc = {
+      _id: COLLECTION_CONFIG_FILE,
+      dirpath
+    };
+    return await this.rawPutJSON(dirpath, doc, `mkdir: ${dirpath}`);
   }
 
   /**
