@@ -72,6 +72,7 @@ export class Validator {
    * Validate dbName
    * 
    * @remarks
+   * - dbName allows UTF-8 characters excluding 
    * - dbName disallows slash / characters.
    *
    * - dbName cannot end with a period . (For compatibility with the file system of Windows)
@@ -160,6 +161,19 @@ export class Validator {
       _rev: true,
       _attachments: true,
     };
+    /**
+     * NOTE: Keys which starts with underscore
+     * https://docs.couchdb.org/en/latest/api/document/common.html
+     *
+     * const reservedKeysInResponse = {
+     *  _deleted: true,      
+     *  _conflicts: true,
+     *  _deleted_conflicts: true,
+     *  _local_seq: true,
+     *  _revs_info: true,
+     *  _revisions: true,
+     * };
+     */
     Object.keys(doc).forEach(key => {
       if (!reservedKeys[key] && key.startsWith('_')) {
         throw new InvalidPropertyNameInDocumentError();
