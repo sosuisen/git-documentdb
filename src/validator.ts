@@ -1,7 +1,8 @@
 import path from "path";
 import { Collection } from "./collection";
 import { MAX_WINDOWS_PATH_LENGTH } from "./const";
-import { InvalidDirpathCharacterError, InvalidDirpathLengthError, InvalidIdCharacterError, InvalidKeyLengthError } from "./main";
+import { InvalidDbNameCharacterError, InvalidDirpathCharacterError, InvalidDirpathLengthError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidLocalDirCharacterError, InvalidPropertyNameInDocumentError } from "./error";
+import { JsonDoc } from "./types";
 
 export class Validator {
   private _workingDirectory: string;
@@ -55,6 +56,35 @@ export class Validator {
   }
 
   /**
+   * Validate localDir
+   * 
+   * @remarks
+   * - localDir cannot end with a period . (For compatibility with the file system of Windows)
+   *
+   * @throws {@link InvalidDbNameCharacterError}
+   */
+  validateLocalDir(localDir: string) {
+    if (localDir.match(/\.$/)) {
+      throw new InvalidLocalDirCharacterError();
+    }
+  }
+  /**
+   * Validate dbName
+   * 
+   * @remarks
+   * - dbName disallows slash / characters.
+   *
+   * - dbName cannot end with a period . (For compatibility with the file system of Windows)
+   *
+   * @throws {@link InvalidDbNameCharacterError}
+   */
+  validateDbName(dbName: string) {
+    if (dbName.match(/\//) || dbName.match(/\.$/)) {
+      throw new InvalidDbNameCharacterError();
+    }
+  }
+
+  /**
    * Validate dirpath
    * 
    * @remarks
@@ -62,8 +92,6 @@ export class Validator {
    *
    * - dirpath cannot end with a period . (For compatibility with the file system of Windows)
    *
-   *  - A length of an dirpath value must be equal to or less than MAX_LENGTH_OF_KEY(64).
-   * 
    * @throws {@link InvalidDirpathCharacterError}
    * @throws {@link InvalidDirpathLengthError}
    */
@@ -84,7 +112,7 @@ export class Validator {
    * @remarks 
    * - '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
    *
-   * - '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
+   * - '_id' cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
    * 
    * - '_id' cannot end with a period . (For compatibility with the file system of Windows)
    *
@@ -116,6 +144,27 @@ export class Validator {
     if (key.length < minimumKeyLength || key.length > this.maxKeyLength()) {
       throw new InvalidKeyLengthError(key, minimumKeyLength, this.maxKeyLength());
     }
+  }
+
+  /**
+   * Validate document
+   * 
+   * @remarks
+   * - A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
+   * 
+   * @throws {@link InvalidPropertyNameInDocumentError}
+   */
+  validateDocument(doc: JsonDoc) {
+    const reservedKeys: { [key: string]: true } = {
+      _id: true,
+      _rev: true,
+      _attachments: true,
+    };
+    Object.keys(doc).forEach(key => {
+      if (!reservedKeys[key] && key.startsWith('_')) {
+        throw new InvalidPropertyNameInDocumentError();
+      } 
+    })
   }
 
 

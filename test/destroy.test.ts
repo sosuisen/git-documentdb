@@ -24,7 +24,7 @@ describe('Destroy database', () => {
   });
 
   test('destroy()', async () => {
-    const dbName = './test_repos_1';
+    const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -34,7 +34,7 @@ describe('Destroy database', () => {
   });
 
   test('destroy(): close() throws Error', async () => {
-    const dbName = './test_repos_2';
+    const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir

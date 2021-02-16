@@ -24,7 +24,7 @@ describe('Read document', () => {
   });
 
   test('get(): Read an existing document', async () => {
-    const dbName = './test_repos_1';
+    const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -42,7 +42,7 @@ describe('Read document', () => {
 
 
   test('get(): Read an existing document in subdirectory', async () => {
-    const dbName = './test_repos_2';
+    const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -57,7 +57,7 @@ describe('Read document', () => {
   });
 
   test('get(): Read a document that does not exist.', async () => {
-    const dbName = './test_repos_3';
+    const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -73,7 +73,7 @@ describe('Read document', () => {
   });
 
   test('get(): Get invalid JSON', async () => {
-    const dbName = './test_repos_4';
+    const dbName = 'test_repos_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir

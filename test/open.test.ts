@@ -52,7 +52,7 @@ describe('Create repository', () => {
   });
 
   test('open(): Try to create a new repository on a readonly filesystem.', async () => {
-    const dbName = './test_repos_1';
+    const dbName = 'test_repos_1';
     // Windows does not support permission option of fs.mkdir().
     if (process.platform === 'win32') {
       console.warn(`  You must create an empty ${readonlyDir} directory by hand, 
@@ -78,7 +78,7 @@ click on the Advanced button, and then click [disable inheritance] button.
   });
 
   test('open(): Create a new repository.', async () => {
-    const dbName = './test_repos_2';
+    const dbName = 'test_repos_2';
 
     const gitDDB = new GitDocumentDB({
       dbName: dbName,
@@ -97,7 +97,7 @@ click on the Advanced button, and then click [disable inheritance] button.
 
 
   test('open(): Create a new repository by default localDir.', async () => {
-    const dbName = './test_repos_3';
+    const dbName = 'test_repos_3';
 
     const gitDDB = new GitDocumentDB({
       dbName: dbName,
@@ -112,7 +112,7 @@ click on the Advanced button, and then click [disable inheritance] button.
   });
 
   test('open(): dbName is undefined.', async () => {
-    const dbName = './test_repos_4';
+    const dbName = 'test_repos_4';
     // Code must be wrapped by () => {} to test exception
     // https://jestjs.io/docs/en/expect#tothrowerror
     expect(() => {
@@ -168,7 +168,7 @@ describe('Open, close and destroy repository', () => {
   });
 
   test('open(), close() and destroy(): Open an existing repository.', async () => {
-    const dbName = './test_repos_1';
+    const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir

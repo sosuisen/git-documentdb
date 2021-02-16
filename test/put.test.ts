@@ -25,7 +25,7 @@ describe('Create document', () => {
   });
 
   test('put(): Repository is not opened.', async () => {
-    const dbName = './test_repos_1';
+    const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -37,7 +37,7 @@ describe('Create document', () => {
 
 
   test('put(): Put an undefined value', async () => {
-    const dbName = './test_repos_2';
+    const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -50,7 +50,7 @@ describe('Create document', () => {
 
 
   test('put(): An _id is not found.', async () => {
-    const dbName = './test_repos_3';
+    const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -62,7 +62,7 @@ describe('Create document', () => {
 
 
   test('put(): key includes invalid character.', async () => {
-    const dbName = './test_repos_4';
+    const dbName = 'test_repos_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -76,7 +76,7 @@ describe('Create document', () => {
 
 
   test('put(): key length is invalid.', async () => {
-    const dbName = './test_repos_5';
+    const dbName = 'test_repos_5';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -108,7 +108,7 @@ describe('Create document', () => {
 
 
   test('put(): Put a JSON Object.', async () => {
-    const dbName = './test_repos_6';
+    const dbName = 'test_repos_6';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -128,7 +128,7 @@ describe('Create document', () => {
 
 
   test('put(): Put a JSON Object into subdirectory.', async () => {
-    const dbName = './test_repos_7';
+    const dbName = 'test_repos_7';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -153,7 +153,7 @@ describe('Create document', () => {
   });
 
   test('put(): Put a invalid JSON Object (not pure)', async () => {
-    const dbName = './test_repos_8';
+    const dbName = 'test_repos_8';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -169,7 +169,7 @@ describe('Create document', () => {
   });
 
   test('put(): Check order of results', async () => {
-    const dbName = './test_repos_9';
+    const dbName = 'test_repos_9';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -190,7 +190,7 @@ describe('Create document', () => {
   });
 
   test('put(): Set commit message.', async () => {
-    const dbName = './test_repos_10';
+    const dbName = 'test_repos_10';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -207,6 +207,25 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
+  test('put(): key includes punctuations.', async () => {
+    const dbName = 'test_repos_11';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbName,
+      localDir: localDir
+    });
+    await gitDDB.open();
+    const _id = '-.()[]_';
+    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject(
+      {
+        ok: true,
+        id: expect.stringContaining(_id),
+        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
+        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
+      }
+    );
+    await gitDDB.destroy();
+  });
+
 
 
   test.todo('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
@@ -216,7 +235,7 @@ describe('Create document', () => {
 
 describe('Update document', () => {
   const localDir = './test/database_put02';
-  const dbName = './test_repos';
+  const dbName = 'test_repos';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName: dbName,
@@ -278,7 +297,7 @@ describe('Concurrent', () => {
   });
 
   test('put(): all at once', async () => {
-    const dbName = './test_repos_1';
+    const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -329,7 +348,7 @@ describe('Concurrent', () => {
 
 
   test('put(): A lot of put()', async () => {
-    const dbName = './test_repos_2';
+    const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -354,7 +373,7 @@ describe('Concurrent', () => {
 
 
   test('put(): put() with await keyword is resolved after all preceding put() Promises', async () => {
-    const dbName = './test_repos_3';
+    const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -378,7 +397,7 @@ describe('Concurrent', () => {
   // Skip this test because segmentation fault often occurs in libgit2.
   // Check this only when you would like to check behavior of _put_concurrent()
   test.skip('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
-    const dbName = './test_repos_4';
+    const dbName = 'test_repos_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir

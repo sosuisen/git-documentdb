@@ -38,7 +38,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs()', async () => {
-    const dbName = './test_repos_1';
+    const dbName = 'test_repos_1';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -75,7 +75,7 @@ describe('Fetch a batch of documents', () => {
 
 
   test('allDocs(): options.descendant', async () => {
-    const dbName = './test_repos_2';
+    const dbName = 'test_repos_2';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -106,7 +106,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): options.include_docs', async () => {
-    const dbName = './test_repos_3';
+    const dbName = 'test_repos_3';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -145,7 +145,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): breadth-first search (recursive)', async () => {
-    const dbName = './test_repos_4';
+    const dbName = 'test_repos_4';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -212,7 +212,7 @@ describe('Fetch a batch of documents', () => {
 
 
   test('allDocs(): breadth-first search (not recursive)', async () => {
-    const dbName = './test_repos_5';
+    const dbName = 'test_repos_5';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -255,7 +255,7 @@ describe('Fetch a batch of documents', () => {
 
 
   test('allDocs(): get from directory', async () => {
-    const dbName = './test_repos_6';
+    const dbName = 'test_repos_6';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -301,7 +301,7 @@ describe('Fetch a batch of documents', () => {
 
 
   test('allDocs(): get from deep directory', async () => {
-    const dbName = './test_repos_7';
+    const dbName = 'test_repos_7';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
@@ -337,7 +337,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): Get invalid JSON', async () => {
-    const dbName = './test_repos_8';
+    const dbName = 'test_repos_8';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir

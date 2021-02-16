@@ -9,11 +9,12 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { GitDocumentDB } from '../src';
+import { InvalidIdCharacterError } from '../src/main';
 import { Validator } from '../src/validator';
 
 describe('Close database', () => {
   const localDir = './test/database_validate01';
-  const dbName = './test_repos_1';
+  const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
       localDir: localDir
@@ -38,16 +39,22 @@ describe('Close database', () => {
     // Good
     expect(validator.validateId('-.()[]_')).toBeUndefined();
     // Bad
-    const punc = ['!', '"', '#', '$', '%', '&', '\'', '=', '~', '|', '@', '`', '{', '}', '*', '+', ';', ',', ':', '<', '>', '?', '\\'];
-    punc.forEach(p => expect(validator.validateId(p)).toThrowError());
+    const punctuations = ['!', '"', '#', '$', '%', '&', '\'', '=', '~', '|', '@', '`', '{', '}', '*', '+', ';', ',', ':', '<', '>', '?', '\\'];
+    punctuations.forEach(p => expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError));
     // Cannot start with an underscore
-    expect(validator.validateId('_abc')).toThrowError();
+    expect(() => validator.validateId('_abc')).toThrowError(InvalidIdCharacterError);
     // Cannot end with a period
-    expect(validator.validateId('abc.')).toThrowError();
+    expect(() => validator.validateId('abc.')).toThrowError(InvalidIdCharacterError);
 
   });
 
   test.todo('validateDirpath()');
 
   test.todo('validateKey()');
+
+  test.todo('validateDocument');
+    
+  test.todo('validateDbName');
+
+  test.todo('validLocalDir')
 });
