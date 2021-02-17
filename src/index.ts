@@ -347,13 +347,13 @@ export class GitDocumentDB {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
-
     if (this.isOpened()) {
       this._dbInfo.isNew = false;
       return this._dbInfo;
     }
 
     await fs.ensureDir(this._localDir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
+    this._serialQueue = [];
 
     this._dbInfo = {
       isNew: false,
@@ -403,9 +403,6 @@ export class GitDocumentDB {
       this._dbInfo.isCreatedByGitDDB = false;
       this._dbInfo.isValidVersion = false;
     }
-
-
-    this._serialQueue = [];
 
     return this._dbInfo;
   }
