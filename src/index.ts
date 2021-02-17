@@ -737,7 +737,6 @@ export class GitDocumentDB {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
-
     if (this._currentRepository instanceof nodegit.Repository) {
       let isTimeout = false;
       try {
@@ -767,6 +766,8 @@ export class GitDocumentDB {
         /**
          * The types are wrong. Repository does not have free() method.
          * See https://github.com/nodegit/nodegit/issues/1817#issuecomment-776844425
+         * https://github.com/nodegit/nodegit/pull/1570       
+         *
          */
         // this._currentRepository.free();
 
