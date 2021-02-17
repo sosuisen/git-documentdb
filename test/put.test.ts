@@ -145,7 +145,7 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-//  test.todo('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
+  it('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
 
 });
 
