@@ -72,6 +72,7 @@ describe('Create document', () => {
       {
         ok: true,
         id: expect.stringContaining(_id),
+        path: '/',
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
@@ -92,6 +93,7 @@ describe('Create document', () => {
       {
         ok: true,
         id: expect.stringContaining(_id),
+        path: '/',        
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
@@ -176,6 +178,7 @@ describe('Update document', () => {
       {
         ok: true,
         id: expect.stringContaining(_id),
+        path: '/',
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }

@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
- import nodegit from '@sosuisen/nodegit';
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
 import { GitDocumentDB } from '../src';
@@ -135,8 +135,8 @@ describe('Using validation in other functions', () => {
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
         ok: true,
-        path: '/',
         id: expect.stringContaining(id),
+        path: '/',        
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       });
@@ -161,6 +161,7 @@ describe('Using validation in other functions', () => {
       {
         ok: true,
         id: expect.stringContaining(_id),
+        path: '/',
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
       }
