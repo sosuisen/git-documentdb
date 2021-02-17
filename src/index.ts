@@ -352,9 +352,9 @@ export class GitDocumentDB {
       return this._dbInfo;
     }
 
-    await fs.ensureDir(this._localDir).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
     this._serialQueue = [];
 
+    await fs.ensureDir(this._workingDirectory).catch((err: Error) => { return Promise.reject(new CannotCreateDirectoryError(err.message)) });
     this._dbInfo = {
       isNew: false,
       isCreatedByGitDDB: true,
@@ -371,7 +371,6 @@ export class GitDocumentDB {
       const isBare = 0;
       const options: RepositoryInitOptions = {
         description: defaultDescription,
-        flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
         initialHead: 'main',
       };
       this._dbInfo.isNew = true;
