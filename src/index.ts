@@ -47,7 +47,7 @@ interface RepositoryInitOptions {
   version?: number;
   workdirPath?: string;
 }
-
+/*
 const repositoryInitOptionFlags = {
   GIT_REPOSITORY_INIT_BARE: 1,
   GIT_REPOSITORY_INIT_NO_REINIT: 2,
@@ -57,6 +57,7 @@ const repositoryInitOptionFlags = {
   GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE: 32,
   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
 };
+*/
 
 /**
  * Database location
