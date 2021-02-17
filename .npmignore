@@ -1,7 +1,7 @@
 # Settings
 .vscode/
 .coveralls.yml
-.eslint.json
+.eslintrc.json
 .gitattributes
 .gitignore
 .npmignore
