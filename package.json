@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc",
     "doc": "npm run build && npm run api-extractor && npm run crlf",
-    "mocha": "rm -rf test/database* && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha \"test/**/*.test.ts\"",
+    "mocha": "rm -rf test/database* && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha \"test/**/*.test.ts\" && rm -rf test/database*",
     "test": "npx nyc npm run mocha -- --no-parallel",
     "upload-coverage": "npx coveralls < coverage/lcov.info",
     "prepare": "",
