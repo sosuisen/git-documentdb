@@ -1,23 +1,22 @@
-import { worker } from 'cluster';
 import { GitDocumentDB } from 'git-documentdb';
 
 const gitDDB = new GitDocumentDB({
-    localDir: 'gddb_data',
-    dbName: 'db01', // Git working directory
-  });
+  localDir: 'gddb_data',
+  dbName: 'db01', // Git working directory
+});
 const foo = async () => {
   // Create repository (gddb_data/db01/.git)
   await gitDDB.open();
   const workingDir = gitDDB.workingDir();
   console.log(workingDir); // workingDir = '/(your_path)/git-documentdb/examples/gddb_data/db01'
-  
+
   // Create document named 'profile.json' under gddb_data/db01/
   await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '15' });
   // Update
   await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '16' });
   // Read
   const doc = await gitDDB.get('profile');
-  console.log(doc);  // doc = { _id: 'profile', name: 'Yuzuki', age: '16' }
+  console.log(doc); // doc = { _id: 'profile', name: 'Yuzuki', age: '16' }
   // Delete
   await gitDDB.delete('profile');
 
@@ -60,6 +59,6 @@ const foo = async () => {
   await gitDDB.close();
 
   // destroy() removes repository
-  // await gitDDB.destroy(); 
-}
+  // await gitDDB.destroy();
+};
 foo();
