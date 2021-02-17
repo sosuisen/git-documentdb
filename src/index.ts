@@ -11,9 +11,7 @@ import fs, { remove, rmdir } from 'fs-extra';
 import path from 'path';
 import {
   CannotCreateDirectoryError, CannotWriteDataError,
-  UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError, DatabaseClosingError, DatabaseCloseTimeoutError, UndefinedDatabaseNameError, InvalidDirpathCharacterError, InvalidDirpathLengthError
-} from './error';
-import { MAX_WINDOWS_PATH_LENGTH } from './const';
+  UndefinedDocumentIdError, DocumentNotFoundError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError, RepositoryNotOpenError, CannotDeleteDataError, DatabaseClosingError, DatabaseCloseTimeoutError, UndefinedDatabaseNameError } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
 import { JsonDoc } from './types';
@@ -121,7 +119,7 @@ export type AllDocsOptions = {
  */
 export type PutResult = {
   ok: true,
-  dirpath: string,
+  path: string,
   id: string,
   file_sha: string,
   commit_sha: string
@@ -288,29 +286,29 @@ export class GitDocumentDB {
    */
   async collection(collectionName: string) {
     const mkdirResult = await this.mkdir(collectionName);
-    return new Collection(mkdirResult.dirpath);
+    return new Collection(mkdirResult.path);
   }
 
   /**
    * Create a collection or open an existing one.
    * 
-   * @param dirpath - A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. 
+   * @param collectionPath - A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. 
    * collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection.
-   * @param commitMessage - Default is `mkdir: ${dirpath}`
+   * @param commitMessage - Default is `mkdir: ${collectionPath}`
    * @remarks 
    *  This is an alias of mkdir()
    */
-  async mkdir(dirpath: string, commitMessage?: string): Promise<PutResult> {
-    dirpath = Collection.normalizeDirpath(dirpath);
-    this._validator.validateDirpath(dirpath);
+  async mkdir(collectionPath: string, commitMessage?: string): Promise<PutResult> {
+    collectionPath = Collection.normalizeCollectionPath(collectionPath);
+    this._validator.validateCollectionPath(collectionPath);
 
-    commitMessage ??= `mkdir: ${dirpath}`;
+    commitMessage ??= `mkdir: ${collectionPath}`;
 
     const doc = {
       _id: COLLECTION_CONFIG_FILE,
-      dirpath
+      path: collectionPath
     };
-    return await this.rawPutJSON(dirpath, doc, commitMessage);
+    return await this.rawPutJSON(collectionPath, doc, commitMessage);
   }
 
   /**
@@ -456,7 +454,7 @@ export class GitDocumentDB {
    * @throws {@link CannotWriteDataError}
    * @throws {@link CannotCreateDirectoryError}
    */
-  rawPutJSON(dirpath:string, document: JsonDoc, commitMessage?: string): Promise<PutResult> {
+  rawPutJSON(collectionPath:string, document: JsonDoc, commitMessage?: string): Promise<PutResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -473,7 +471,7 @@ export class GitDocumentDB {
 
     // put() must be serial.
     return new Promise((resolve, reject) => {
-      this._pushToSerialQueue(() => this._put_concurrent(dirpath, document, commitMessage!)
+      this._pushToSerialQueue(() => this._put_concurrent(collectionPath, document, commitMessage!)
         .then(result => {
           resolve(result)
         })
@@ -487,7 +485,7 @@ export class GitDocumentDB {
    * It is published for test purpose.
    * @internal
    */
-  async _put_concurrent(dirpath: string, document: JsonDoc, commitMessage: string): Promise<PutResult> {
+  async _put_concurrent(collectionPath: string, document: JsonDoc, commitMessage: string): Promise<PutResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
@@ -495,8 +493,8 @@ export class GitDocumentDB {
     if (document['_id'] === undefined) {
       return Promise.reject(new UndefinedDocumentIdError());
     }
-    dirpath = Collection.normalizeDirpath(dirpath);
-    const key = dirpath + document._id;
+    collectionPath = Collection.normalizeCollectionPath(collectionPath);
+    const key = collectionPath + document._id;
     try {
       this._validator.validateKey(key);
     } catch (err) { return Promise.reject(err); }
@@ -551,7 +549,7 @@ export class GitDocumentDB {
       return Promise.reject(new CannotWriteDataError(err.message));
     }
     // console.log(commitId.tostrS());
-    return { ok: true, dirpath, id: document._id, file_sha: file_sha, commit_sha: commit_sha };
+    return { ok: true, path: collectionPath, id: document._id, file_sha: file_sha, commit_sha: commit_sha };
 
   }
 

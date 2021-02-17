@@ -41,15 +41,15 @@ export class CannotDeleteDataError extends BaseError {
   }
 }
 
-export class InvalidDirpathCharacterError extends BaseError {
-  constructor(e = 'Invalid dirpath character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>') {
+export class InvalidCollectionPathCharacterError extends BaseError {
+  constructor(e = 'Invalid collectionPath character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>') {
     super(e);
   }
 }
 
-export class InvalidDirpathLengthError extends BaseError {
-  constructor(dirpath: string, minLength: number, maxLength: number) {
-    super(`Invalid dirpath length: A length of '${dirpath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
+export class InvalidCollectionPathLengthError extends BaseError {
+  constructor(collectionPath: string, minLength: number, maxLength: number) {
+    super(`Invalid collectionPath length: A length of '${collectionPath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
   }
 }
 

@@ -1,7 +1,7 @@
 import path from "path";
 import { Collection } from "./collection";
 import { MAX_WINDOWS_PATH_LENGTH } from "./const";
-import { InvalidDbNameCharacterError, InvalidDirpathCharacterError, InvalidDirpathLengthError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidLocalDirCharacterError, InvalidPropertyNameInDocumentError } from "./error";
+import { InvalidDbNameCharacterError, InvalidCollectionPathCharacterError, InvalidCollectionPathLengthError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidLocalDirCharacterError, InvalidPropertyNameInDocumentError } from "./error";
 import { JsonDoc } from "./types";
 
 export class Validator {
@@ -24,19 +24,19 @@ export class Validator {
    * Return max length of collectionName
    * 
    * @remarks
-   * This is an alias of maxDirpath().
+   * This is an alias of maxCollectionPath().
    */
   maxCollectionNameLength() {
-    return this.maxDirpathLength.apply(this);
+    return this.maxCollectionPathLength.apply(this);
   }
   
   /**
-   * Return max length of dirpath
+   * Return max length of collectionPath
    */
-  maxDirpathLength() {
-    // Suppose that dirpath has leading and trailing slashes.
+  maxCollectionPathLength() {
+    // Suppose that collectionPath has leading and trailing slashes.
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}${dirpath}${_id}.json`
+    // Full path is `${_workingDirectory}${collectionPath}${_id}.json`
     const minIdLength = 6; // 'a.json'
     return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - minIdLength;
   }
@@ -45,12 +45,12 @@ export class Validator {
    * Return max length of key
    * 
    * @remarks
-   * key means `${dirpath}${_id}`
+   * key means `${collectionPath}${_id}`
    */
   maxKeyLength() {
-    // Suppose that dirpath has leading and trailing slashes.
+    // Suppose that collectionPath has leading and trailing slashes.
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}${dirpath}${_id}.json`
+    // Full path is `${_workingDirectory}${collectionPath}${_id}.json`
     const extLength = 5; // '.json'
     return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - extLength;
   }
@@ -86,24 +86,24 @@ export class Validator {
   }
 
   /**
-   * Validate dirpath
+   * Validate collectionPath
    * 
    * @remarks
-   * - dirpath only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.
+   * - collectionPath only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . / ( ) [ ]**.
    *
-   * - dirpath cannot end with a period . (For compatibility with the file system of Windows)
+   * - collectionPath cannot end with a period . (For compatibility with the file system of Windows)
    *
-   * @throws {@link InvalidDirpathCharacterError}
-   * @throws {@link InvalidDirpathLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    */
-   validateDirpath(dirpath: string) {
-    const normalized = Collection.normalizeDirpath(dirpath);
+   validateCollectionPath(collectionPath: string) {
+    const normalized = Collection.normalizeCollectionPath(collectionPath);
     if (normalized.match(/[^a-zA-Z0-9_\-\.\(\)\[\]\/]/) || normalized.match(/\.$/)) {
-      throw new InvalidDirpathCharacterError();
+      throw new InvalidCollectionPathCharacterError();
     }
-    const minimumDirPathLength = 1; // minimum is '/'
-    if(normalized.length < minimumDirPathLength || normalized.length > this.maxDirpathLength()) {
-      throw new InvalidDirpathLengthError(normalized, minimumDirPathLength, this.maxDirpathLength());
+    const minimumCollectionPathLength = 1; // minimum is '/'
+    if(normalized.length < minimumCollectionPathLength || normalized.length > this.maxCollectionPathLength()) {
+      throw new InvalidCollectionPathLengthError(normalized, minimumCollectionPathLength, this.maxCollectionPathLength());
     }
   }
 
@@ -129,16 +129,16 @@ export class Validator {
    * Validate key
    * 
    * @remarks 
-   * key means `${dirpath}${_id}`
+   * key means `${collectionPath}${_id}`
    * 
    * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidDirpathCharacterError}
-   * @throws {@link InvalidDirpathLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidKeyLengthError}
    */
    validateKey(key: string) {
     this.validateId(path.basename(key));
-    this.validateDirpath(path.dirname(key));
+    this.validateCollectionPath(path.dirname(key));
 
     // Example of a minimum key is '/a'
     const minimumKeyLength = 2;

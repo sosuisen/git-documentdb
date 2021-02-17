@@ -1,13 +1,13 @@
 export class Collection {
-  static normalizeDirpath(dirpath: string) {
-    if (!dirpath.startsWith('/')) {
-      dirpath = '/' + dirpath;
+  static normalizeCollectionPath(collectionPath: string) {
+    if (!collectionPath.startsWith('/')) {
+      collectionPath = '/' + collectionPath;
     }
-    if (!dirpath.endsWith('/')) {
-      dirpath += '/';
+    if (!collectionPath.endsWith('/')) {
+      collectionPath += '/';
     }
-    return dirpath;
+    return collectionPath;
   }
 
-  constructor(public dirpath: string){}
+  constructor(public collectionPath: string){}
 }

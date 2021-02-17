@@ -127,7 +127,7 @@ describe('Using validation in other functions', () => {
     const validator = new Validator(gitDDB.workingDir());
     let maxKeyLen = validator.maxKeyLength();
     let id = '';
-    // remove length of dirpath('/')
+    // remove length of path('/')
     maxKeyLen--;
     for (let i=0; i< maxKeyLen; i++) {
       id += '0';
@@ -135,7 +135,7 @@ describe('Using validation in other functions', () => {
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
         ok: true,
-        dirpath: '/',
+        path: '/',
         id: expect.stringContaining(id),
         file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
         commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
