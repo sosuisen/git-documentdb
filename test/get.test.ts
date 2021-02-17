@@ -6,9 +6,13 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import fs from 'fs-extra';
 import path from 'path';
-import { UndefinedDocumentIdError, DocumentNotFoundError, RepositoryNotOpenError } from '../src/error';
+import fs from 'fs-extra';
+import {
+  DocumentNotFoundError,
+  RepositoryNotOpenError,
+  UndefinedDocumentIdError,
+} from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 describe('Read document', () => {
@@ -26,7 +30,7 @@ describe('Read document', () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
 
     await gitDDB.open();
@@ -39,12 +43,11 @@ describe('Read document', () => {
     await expect(gitDDB.get(_id)).rejects.toThrowError(RepositoryNotOpenError);
   });
 
-
   test('get(): Read an existing document in subdirectory', async () => {
     const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
 
     await gitDDB.open();
@@ -55,12 +58,11 @@ describe('Read document', () => {
     await gitDDB.destroy();
   });
 
-
   test('get(): Read a document that does not exist.', async () => {
     const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
     await gitDDB.open();
     const _id = 'prof01';
@@ -71,6 +73,4 @@ describe('Read document', () => {
     await expect(gitDDB.get('prof02')).rejects.toThrowError(DocumentNotFoundError);
     await gitDDB.destroy();
   });
-
 });
-

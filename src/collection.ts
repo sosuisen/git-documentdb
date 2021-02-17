@@ -1,5 +1,5 @@
 export class Collection {
-  static normalizeCollectionPath(collectionPath: string) {
+  static normalizeCollectionPath (collectionPath: string) {
     if (!collectionPath.startsWith('/')) {
       collectionPath = '/' + collectionPath;
     }
@@ -9,5 +9,5 @@ export class Collection {
     return collectionPath;
   }
 
-  constructor(public collectionPath: string){}
+  constructor (public collectionPath: string) {}
 }

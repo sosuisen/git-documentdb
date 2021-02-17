@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/custom-error-definition */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -7,7 +8,7 @@
  */
 
 class BaseError extends Error {
-  constructor(e?: string) {
+  constructor (e?: string) {
     super(e);
     this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);
@@ -15,13 +16,13 @@ class BaseError extends Error {
 }
 
 export class UndefinedDatabaseNameError extends BaseError {
-  constructor(e = `Database name is undefined: Option must have dbName`) {
+  constructor (e = `Database name is undefined: Option must have dbName`) {
     super(e);
   }
 }
 
 export class CannotCreateDirectoryError extends BaseError {
-  constructor(e = 'Cannot create directory') {
+  constructor (e = 'Cannot create directory') {
     super(e);
   }
 }
@@ -30,98 +31,111 @@ export class CannotCreateDirectoryError extends BaseError {
  * @beta
  */
 export class CannotWriteDataError extends BaseError {
-  constructor(e = 'Cannot write data') {
+  constructor (e = 'Cannot write data') {
     super(e);
   }
 }
 
 export class CannotDeleteDataError extends BaseError {
-  constructor(e = 'Cannot write data') {
+  constructor (e = 'Cannot write data') {
     super(e);
   }
 }
 
 export class InvalidCollectionPathCharacterError extends BaseError {
-  constructor(e = 'Invalid collectionPath character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>') {
+  constructor (
+    e = 'Invalid collectionPath character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>'
+  ) {
     super(e);
   }
 }
 
 export class InvalidCollectionPathLengthError extends BaseError {
-  constructor(collectionPath: string, minLength: number, maxLength: number) {
-    super(`Invalid collectionPath length: A length of '${collectionPath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
+  constructor (collectionPath: string, minLength: number, maxLength: number) {
+    super(
+      `Invalid collectionPath length: A length of '${collectionPath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
+    );
   }
 }
 
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
-  constructor(path: string, minLength: number, maxLength: number) {
-    super(`Invalid working directory path length: A length of '${path}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
+  constructor (path: string, minLength: number, maxLength: number) {
+    super(
+      `Invalid working directory path length: A length of '${path}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
+    );
   }
 }
 
 export class InvalidIdCharacterError extends BaseError {
-  constructor(e = 'Invalid ID character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>') {
+  constructor (
+    e = 'Invalid ID character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>'
+  ) {
     super(e);
   }
 }
 
 export class InvalidKeyLengthError extends BaseError {
-  constructor(key: string, minLength: number, maxLength: number) {
-    super(`Invalid Key length: A length of '${key}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`);
+  constructor (key: string, minLength: number, maxLength: number) {
+    super(
+      `Invalid Key length: A length of '${key}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
+    );
   }
 }
 
 export class InvalidJsonObjectError extends BaseError {
-  constructor(e = `Invalid JSON object`) {
+  constructor (e = `Invalid JSON object`) {
     super(e);
   }
 }
 
 export class UndefinedDocumentIdError extends BaseError {
-  constructor(e = `Document id is undefined: A document must have an '_id' key`) {
+  constructor (e = `Document id is undefined: A document must have an '_id' key`) {
     super(e);
   }
 }
 
 export class RepositoryNotOpenError extends BaseError {
-  constructor(e = 'Repository not opened') {
+  constructor (e = 'Repository not opened') {
     super(e);
   }
 }
 
 export class DocumentNotFoundError extends BaseError {
-  constructor(e = 'Document not found') {
+  constructor (e = 'Document not found') {
     super(e);
   }
 }
 
 export class DatabaseClosingError extends BaseError {
-  constructor(e = 'Database is closing') {
+  constructor (e = 'Database is closing') {
     super(e);
   }
 }
 
 export class DatabaseCloseTimeoutError extends BaseError {
-  constructor(e = 'Queued operations are timeout') {
+  constructor (e = 'Queued operations are timeout') {
     super(e);
   }
 }
 
 export class InvalidPropertyNameInDocumentError extends BaseError {
-  constructor(e = 'A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)') {
+  constructor (
+    e = 'A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)'
+  ) {
     super(e);
   }
 }
 
 export class InvalidDbNameCharacterError extends BaseError {
-  constructor(e = 'dbName disallows slash / characters. dbName cannot end with a period .') {
+  constructor (
+    e = 'dbName disallows slash / characters. dbName cannot end with a period .'
+  ) {
     super(e);
   }
 }
 
 export class InvalidLocalDirCharacterError extends BaseError {
-  constructor(e = 'localDir cannot end with a period .') {
+  constructor (e = 'localDir cannot end with a period .') {
     super(e);
   }
 }
-   

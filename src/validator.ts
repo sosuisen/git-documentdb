@@ -1,19 +1,28 @@
-import path from "path";
-import { Collection } from "./collection";
-import { MAX_WINDOWS_PATH_LENGTH } from "./const";
-import { InvalidDbNameCharacterError, InvalidCollectionPathCharacterError, InvalidCollectionPathLengthError, InvalidIdCharacterError, InvalidKeyLengthError, InvalidLocalDirCharacterError, InvalidPropertyNameInDocumentError, UndefinedDocumentIdError } from "./error";
-import { JsonDoc } from "./types";
+import path from 'path';
+import { Collection } from './collection';
+import { MAX_WINDOWS_PATH_LENGTH } from './const';
+import {
+  InvalidCollectionPathCharacterError,
+  InvalidCollectionPathLengthError,
+  InvalidDbNameCharacterError,
+  InvalidIdCharacterError,
+  InvalidKeyLengthError,
+  InvalidLocalDirCharacterError,
+  InvalidPropertyNameInDocumentError,
+  UndefinedDocumentIdError,
+} from './error';
+import { JsonDoc } from './types';
 
 export class Validator {
   private _workingDirectory: string;
-  constructor(_workingDir: string) {
+  constructor (_workingDir: string) {
     this._workingDirectory = _workingDir;
   }
 
   /**
    * Return max length of working directory path
    */
-  static maxWorkingDirectoryLength() {
+  static maxWorkingDirectoryLength () {
     // Trailing slash of workingDirectory is omitted.
     // Minimum path is `${_workingDirectory}/a.json`
     const minimumMemberLength = 7; // '/a.json'
@@ -22,18 +31,18 @@ export class Validator {
 
   /**
    * Return max length of collectionName
-   * 
+   *
    * @remarks
    * This is an alias of maxCollectionPath().
    */
-  maxCollectionNameLength() {
+  maxCollectionNameLength () {
     return this.maxCollectionPathLength.apply(this);
   }
 
   /**
    * Return max length of collectionPath
    */
-  maxCollectionPathLength() {
+  maxCollectionPathLength () {
     // Suppose that collectionPath has leading and trailing slashes.
     // Trailing slash of workingDirectory is omitted.
     // Full path is `${_workingDirectory}${collectionPath}${_id}.json`
@@ -43,11 +52,11 @@ export class Validator {
 
   /**
    * Return max length of key
-   * 
+   *
    * @remarks
    * key means `${collectionPath}${_id}`
    */
-  maxKeyLength() {
+  maxKeyLength () {
     // Suppose that collectionPath has leading and trailing slashes.
     // Trailing slash of workingDirectory is omitted.
     // Full path is `${_workingDirectory}${collectionPath}${_id}.json`
@@ -55,13 +64,17 @@ export class Validator {
     return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - extLength;
   }
 
-
   /**
    * Return false if given name equals Windows reserved filename
    */
-  testWindowsReservedFileName(name: string) {
-    if (name.match(/^(CON|PRN|AUX|NUL|COM1|COM2|COM3|COM4|COM5|COM6|COM7|COM8|COM9|LPT1|LPT2|LPT3|LPT4|LPT5|LPT6|LPT7|LPT8|LPT9)$/)
-      || name === '.' || name === '..') {
+  testWindowsReservedFileName (name: string) {
+    if (
+      name.match(
+        /^(CON|PRN|AUX|NUL|COM1|COM2|COM3|COM4|COM5|COM6|COM7|COM8|COM9|LPT1|LPT2|LPT3|LPT4|LPT5|LPT6|LPT7|LPT8|LPT9)$/
+      ) ||
+      name === '.' ||
+      name === '..'
+    ) {
       return false;
     }
     return true;
@@ -70,19 +83,22 @@ export class Validator {
   /**
    * Return false if given name includes Windows invalid filename character
    */
-  testWindowsInvalidFileNameCharacter(name: string, options?: { allowSlash?: boolean, allowDriveLetter?: boolean }) {
+  testWindowsInvalidFileNameCharacter (
+    name: string,
+    options?: { allowSlash?: boolean; allowDriveLetter?: boolean }
+  ) {
     options ??= { allowSlash: false, allowDriveLetter: false };
     options.allowSlash ??= false;
     options.allowDriveLetter ??= false;
 
-    let regStr = `<>:"\\\|\?\*\0`;
+    let regStr = `<>:"\\|?*\0`;
     if (!options.allowSlash) {
-      regStr += `\/`;
+      regStr += `/`;
     }
     const regExp = new RegExp(`[${regStr}]`);
 
     if (options.allowDriveLetter) {
-      name = name.replace(/^[a-zA-Z]:/, '');
+      name = name.replace(/^[A-Za-z]:/, '');
     }
 
     if (name.match(regExp)) {
@@ -96,28 +112,33 @@ export class Validator {
     return true;
   }
 
-
   /**
    * Validate localDir
-   * 
+   *
    * @remarks
    * - localDir allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0
-   * 
+   *
    * -- A colon is generally disallowed, however a drive letter followed by a colon is allowed.
    *
    * - localDir cannot end with a period .
    *
    * @throws {@link InvalidLocalDirCharacterError}
    */
-  validateLocalDir(localDir: string) {
-    if (!this.testWindowsReservedFileName(localDir) || !this.testWindowsInvalidFileNameCharacter(localDir, { allowSlash: true, allowDriveLetter: true })) {
+  validateLocalDir (localDir: string) {
+    if (
+      !this.testWindowsReservedFileName(localDir) ||
+      !this.testWindowsInvalidFileNameCharacter(localDir, {
+        allowSlash: true,
+        allowDriveLetter: true,
+      })
+    ) {
       throw new InvalidLocalDirCharacterError();
     }
   }
 
   /**
    * Validate dbName
-   * 
+   *
    * @remarks
    * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \ | ? * \0
    *
@@ -125,15 +146,18 @@ export class Validator {
    *
    * @throws {@link InvalidDbNameCharacterError}
    */
-  validateDbName(dbName: string) {
-    if (!this.testWindowsReservedFileName(dbName) || !this.testWindowsInvalidFileNameCharacter(dbName)) {
+  validateDbName (dbName: string) {
+    if (
+      !this.testWindowsReservedFileName(dbName) ||
+      !this.testWindowsInvalidFileNameCharacter(dbName)
+    ) {
       throw new InvalidDbNameCharacterError();
     }
   }
 
   /**
    * Validate collectionPath
-   * 
+   *
    * @remarks
    * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0
    *
@@ -142,53 +166,64 @@ export class Validator {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  validateCollectionPath(collectionPath: string) {
+  validateCollectionPath (collectionPath: string) {
     // Add heading slash and trailing slash
     const normalized = Collection.normalizeCollectionPath(collectionPath);
     if (normalized !== '/') {
       const arr = normalized.split('/');
       arr.forEach(part => {
-        if (!this.testWindowsReservedFileName(part) || !this.testWindowsInvalidFileNameCharacter(part) || part === '') {
+        if (
+          !this.testWindowsReservedFileName(part) ||
+          !this.testWindowsInvalidFileNameCharacter(part) ||
+          part === ''
+        ) {
           throw new InvalidCollectionPathCharacterError();
         }
       });
     }
     const minimumCollectionPathLength = 1; // minimum is '/'
-    if (normalized.length < minimumCollectionPathLength || normalized.length > this.maxCollectionPathLength()) {
-      throw new InvalidCollectionPathLengthError(normalized, minimumCollectionPathLength, this.maxCollectionPathLength());
+    if (
+      normalized.length < minimumCollectionPathLength ||
+      normalized.length > this.maxCollectionPathLength()
+    ) {
+      throw new InvalidCollectionPathLengthError(
+        normalized,
+        minimumCollectionPathLength,
+        this.maxCollectionPathLength()
+      );
     }
   }
 
   /**
    * Validate id
-   * 
-   * @remarks 
-   * - id allows UTF-8 string excluding following characters: < > : " \ | ? * \0* 
+   *
+   * @remarks
+   * - id allows UTF-8 string excluding following characters: < > : " \ | ? * \0*
    *
    * - id cannot start with an underscore _.
-   * 
+   *
    * - id cannot end with a period .
    *
    * @throws {@link InvalidIdCharacterError}
    */
-  validateId(id: string) {
-    if (!this.testWindowsInvalidFileNameCharacter(id) || id.match(/^\_/)) {
+  validateId (id: string) {
+    if (!this.testWindowsInvalidFileNameCharacter(id) || id.startsWith('_')) {
       throw new InvalidIdCharacterError();
     }
   }
 
   /**
    * Validate key
-   * 
-   * @remarks 
+   *
+   * @remarks
    * key means `${collectionPath}${_id}`
-   * 
+   *
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidKeyLengthError}
    */
-  validateKey(key: string) {
+  validateKey (key: string) {
     this.validateId(path.basename(key));
     this.validateCollectionPath(path.dirname(key));
 
@@ -201,15 +236,15 @@ export class Validator {
 
   /**
    * Validate document
-   * 
+   *
    * @remarks
    * - A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
-   * 
+   *
    * @throws {@link InvalidPropertyNameInDocumentError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidIdCharacterError}* 
+   * @throws {@link InvalidIdCharacterError}*
    */
-  validateDocument(doc: JsonDoc) {
+  validateDocument (doc: JsonDoc) {
     if (doc._id === undefined) {
       throw new UndefinedDocumentIdError();
     }
@@ -225,7 +260,7 @@ export class Validator {
      * const reservedKeysInResponse = {
      *  _rev: true,
      *  _attachments: true,
-     *  _deleted: true,      
+     *  _deleted: true,
      *  _conflicts: true,
      *  _deleted_conflicts: true,
      *  _local_seq: true,
@@ -237,8 +272,6 @@ export class Validator {
       if (!reservedKeys[key] && key.startsWith('_')) {
         throw new InvalidPropertyNameInDocumentError();
       }
-    })
+    });
   }
-
-
 }

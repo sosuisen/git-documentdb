@@ -15,15 +15,22 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "paths": {
-      "@sosuisen/nodegit": ["types/sosuisen__nodegit"],
-      "*": ["node_modules/*"],
+      "@sosuisen/nodegit": [
+        "types/sosuisen__nodegit"
+      ],
+      "*": [
+        "node_modules/*"
+      ],
     },
-    "typeRoots": ["types", "node_modules/@types"],
+    "typeRoots": [
+      "types",
+      "node_modules/@types"
+    ],
   },
   "include": [
     "src/**/*",
   ],
   "exclude": [
-     "test/**/*test.ts"
+    "test/**/*test.ts"
   ]
 }

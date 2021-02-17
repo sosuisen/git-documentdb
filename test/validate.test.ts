@@ -6,22 +6,27 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import path from 'path';
 import { GitDocumentDB } from '../src';
-import { InvalidIdCharacterError, InvalidJsonObjectError, InvalidKeyLengthError, InvalidWorkingDirectoryPathLengthError } from '../src/main';
+import {
+  InvalidIdCharacterError,
+  InvalidJsonObjectError,
+  InvalidKeyLengthError,
+  InvalidWorkingDirectoryPathLengthError,
+} from '../src/main';
 import { Validator } from '../src/validator';
 
 describe('Validations', () => {
   const localDir = './test/database_validate01';
   const dbName = 'test_repos_1';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir
-    });  
+  const gitDDB: GitDocumentDB = new GitDocumentDB({
+    dbName: dbName,
+    localDir: localDir,
+  });
   const validator = new Validator(gitDDB.workingDir());
-  
+
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
   });
@@ -30,7 +35,7 @@ describe('Validations', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('validateId()', async () => {
+  test('validateId()', () => {
     /**
      * '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
      * '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
@@ -40,26 +45,50 @@ describe('Validations', () => {
     // Good
     expect(validator.validateId('-.()[]_')).toBeUndefined();
     // Bad
-    const punctuations = ['!', '"', '#', '$', '%', '&', '\'', '=', '~', '|', '@', '`', '{', '}', '*', '+', ';', ',', ':', '<', '>', '?', '\\'];
-    punctuations.forEach(p => expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError));
+    const punctuations = [
+      '!',
+      '"',
+      '#',
+      '$',
+      '%',
+      '&',
+      "'",
+      '=',
+      '~',
+      '|',
+      '@',
+      '`',
+      '{',
+      '}',
+      '*',
+      '+',
+      ';',
+      ',',
+      ':',
+      '<',
+      '>',
+      '?',
+      '\\',
+    ];
+    punctuations.forEach(p =>
+      expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError)
+    );
     // Cannot start with an underscore
     expect(() => validator.validateId('_abc')).toThrowError(InvalidIdCharacterError);
     // Cannot end with a period
     expect(() => validator.validateId('abc.')).toThrowError(InvalidIdCharacterError);
   });
 
+  it('validateDirpath()');
 
-it('validateDirpath()');
+  it('validateKey()');
 
-it('validateKey()');
+  it('validateDocument');
 
-it('validateDocument');
-    
-it('validateDbName');
+  it('validateDbName');
 
-  it('validLocalDir');  
+  it('validLocalDir');
 });
-
 
 describe('Using validation in other functions', () => {
   const localDir = './test/database_validate02';
@@ -70,13 +99,13 @@ describe('Using validation in other functions', () => {
 
   afterAll(() => {
     fs.removeSync(path.resolve(localDir));
-  });  
+  });
 
-  test('open(): Try to create a long name repository.', async () => {    
+  test('open(): Try to create a long name repository.', async () => {
     const maxWorkingDirLen = Validator.maxWorkingDirectoryLength();
     let dbName = 'tmp';
     const workingDirectory = path.resolve(localDir, dbName);
-    for (let i=0; i< maxWorkingDirLen - workingDirectory.length; i++) {
+    for (let i = 0; i < maxWorkingDirLen - workingDirectory.length; i++) {
       dbName += '0';
     }
 
@@ -86,7 +115,7 @@ describe('Using validation in other functions', () => {
     expect(() => {
       gitddb = new GitDocumentDB({
         dbName: dbName,
-        localDir: localDir
+        localDir: localDir,
       });
     }).not.toThrowError();
     // @ts-ignore
@@ -96,24 +125,30 @@ describe('Using validation in other functions', () => {
 
     dbName += '0';
     expect(() => {
+      // eslint-disable-next-line no-new
       new GitDocumentDB({
         dbName: dbName,
-        localDir: localDir
+        localDir: localDir,
       });
     }).toThrowError(InvalidWorkingDirectoryPathLengthError);
   });
 
-  
   test('put(): key includes invalid character.', async () => {
     const dbName = 'test_repos_put01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
-    await expect(gitDDB.put({ _id: '_test', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
-    await expect(gitDDB.put({ _id: 'test.', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
+    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(
+      InvalidIdCharacterError
+    );
+    await expect(gitDDB.put({ _id: '_test', name: 'shirase' })).rejects.toThrowError(
+      InvalidIdCharacterError
+    );
+    await expect(gitDDB.put({ _id: 'test.', name: 'shirase' })).rejects.toThrowError(
+      InvalidIdCharacterError
+    );
     await gitDDB.destroy();
   });
 
@@ -121,7 +156,7 @@ describe('Using validation in other functions', () => {
     const dbName = 'test_repos_put02';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
     await gitDDB.open();
     const validator = new Validator(gitDDB.workingDir());
@@ -129,68 +164,69 @@ describe('Using validation in other functions', () => {
     let id = '';
     // remove length of path('/')
     maxKeyLen--;
-    for (let i=0; i< maxKeyLen; i++) {
+    for (let i = 0; i < maxKeyLen; i++) {
       id += '0';
     }
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
-        ok: true,
-        id: expect.stringContaining(id),
-        path: '/',        
-        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
-        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
-      });
+      ok: true,
+      id: expect.stringContaining(id),
+      path: '/',
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
     id += '0';
 
-    await expect(gitDDB.put({ _id: id, name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
-    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
+    await expect(gitDDB.put({ _id: id, name: 'shirase' })).rejects.toThrowError(
+      InvalidKeyLengthError
+    );
+    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toThrowError(
+      InvalidKeyLengthError
+    );
 
     await gitDDB.destroy();
   });
-
 
   test('put(): key includes punctuations.', async () => {
     const dbName = 'test_repos_put03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
     await gitDDB.open();
     const _id = '-.()[]_';
-    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject(
-      {
-        ok: true,
-        id: expect.stringContaining(_id),
-        path: '/',
-        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
-        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
-      }
-    );
+    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringContaining(_id),
+      path: '/',
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
     await gitDDB.destroy();
   });
-
 
   test('put(): Put a invalid JSON Object (not pure)', async () => {
     const dbName = 'test_repos_put04';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
     await gitDDB.open();
     // JSON.stringify() throws error if an object is recursive.
     const obj1 = { obj: {} };
     const obj2 = { obj: obj1 };
     obj1.obj = obj2;
-    await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(InvalidJsonObjectError);
+    await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(
+      InvalidJsonObjectError
+    );
     await gitDDB.destroy();
   });
-
 
   test('get(): Get invalid JSON', async () => {
     const dbName = 'test_repos_get01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
     await gitDDB.open();
 
@@ -225,15 +261,31 @@ describe('Using validation in other functions', () => {
         const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
 
         // Calling nameToId() for HEAD throws error when this is first commit.
-        const head = await nodegit.Reference.nameToId(_currentRepository, "HEAD").catch(e => false); // get HEAD
+        const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
+          e => false
+        ); // get HEAD
         let commit;
         if (!head) {
           // First commit
-          commit = await _currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
+          commit = await _currentRepository.createCommit(
+            'HEAD',
+            author,
+            committer,
+            'message',
+            changes,
+            []
+          );
         }
         else {
           const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-          commit = await _currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+          commit = await _currentRepository.createCommit(
+            'HEAD',
+            author,
+            committer,
+            'message',
+            changes,
+            [parent]
+          );
         }
       } catch (e) {
         console.error(e);
@@ -241,15 +293,14 @@ describe('Using validation in other functions', () => {
 
       await expect(gitDDB.get(_id)).rejects.toThrowError(InvalidJsonObjectError);
     }
-    await gitDDB.destroy();    
-  });  
-
+    await gitDDB.destroy();
+  });
 
   test('allDocs(): Get invalid JSON', async () => {
     const dbName = 'test_repos_allDocs01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName: dbName,
-      localDir: localDir
+      localDir: localDir,
     });
     await gitDDB.open();
 
@@ -282,25 +333,42 @@ describe('Using validation in other functions', () => {
         const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
 
         // Calling nameToId() for HEAD throws error when this is first commit.
-        const head = await nodegit.Reference.nameToId(_currentRepository, "HEAD").catch(e => false); // get HEAD
+        const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
+          e => false
+        ); // get HEAD
         let commit;
         if (!head) {
           // First commit
-          commit = await _currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
+          commit = await _currentRepository.createCommit(
+            'HEAD',
+            author,
+            committer,
+            'message',
+            changes,
+            []
+          );
         }
         else {
           const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-          commit = await _currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
+          commit = await _currentRepository.createCommit(
+            'HEAD',
+            author,
+            committer,
+            'message',
+            changes,
+            [parent]
+          );
         }
       } catch (e) {
         console.error(e);
       }
 
-      await expect(gitDDB.allDocs({include_docs: true})).rejects.toThrowError(InvalidJsonObjectError);
+      await expect(gitDDB.allDocs({ include_docs: true })).rejects.toThrowError(
+        InvalidJsonObjectError
+      );
     }
     await gitDDB.destroy();
   });
 
-
-   it('Check JSON property name');
+  it('Check JSON property name');
 });

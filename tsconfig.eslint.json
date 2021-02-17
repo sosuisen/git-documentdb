@@ -1,23 +1,24 @@
 {
   "compilerOptions": {
-     "allowJs": true,
-     "module": "commonjs",
-     "target": "ES2019",
-     "strict": true,
-     "noImplicitAny": true,
-     "skipLibCheck": true,
-     "esModuleInterop": true,
-     "baseUrl": ".",
-     "moduleResolution": "node",
-     "resolveJsonModule": true,
-     "paths": {
-       "*": ["node_modules/*"]
-     },
-   },  
-   "include": [
-     "src/**/*",
-     "test/**/*.ts",
-     "webpack.*"
-   ],
- }
- 
+    "allowJs": true,
+    "module": "commonjs",
+    "target": "ES2019",
+    "strict": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "paths": {
+      "*": [
+        "node_modules/*"
+      ],
+    },
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*.ts",
+    "webpack.*"
+  ],
+}
