@@ -366,7 +366,8 @@ export class GitDocumentDB {
      * open() also throws an error if the path is invalid or not writable, 
      * however this case has been already checked in fs.ensureDir.
      */
-    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(async (err) => {
+    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(err => undefined );
+    if (this._currentRepository === undefined) {
       // console.debug(`Create new repository: ${pathToRepo}`);
       const isBare = 0;
       const options: RepositoryInitOptions = {
@@ -375,9 +376,9 @@ export class GitDocumentDB {
       };
       this._dbInfo.isNew = true;
       // @ts-ignore
-      return await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { return Promise.reject(err) });
-    });
-
+      this._currentRepository = await nodegit.Repository.initExt(this._workingDirectory, options).catch(err => { return Promise.reject(err) });
+    };
+    
     // Check git description
     const description = await fs.readFile(path.resolve(this._workingDirectory, '.git', 'description'), 'utf8')
       .catch(err => {
