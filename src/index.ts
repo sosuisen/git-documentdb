@@ -468,6 +468,10 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
+    if (document === undefined) {
+      return Promise.reject(new InvalidJsonObjectError());
+    }
+
     commitMessage ??= `put: ${document?._id}`;
 
     // put() must be serial.
@@ -489,10 +493,6 @@ export class GitDocumentDB {
   async _put_concurrent(dirpath: string, document: JsonDoc, commitMessage: string): Promise<PutResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
-    }
-
-    if (document === undefined) {
-      return Promise.reject(new InvalidJsonObjectError());
     }
 
     if (document['_id'] === undefined) {
