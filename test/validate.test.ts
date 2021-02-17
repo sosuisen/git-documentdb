@@ -49,15 +49,15 @@ describe('Validations', () => {
   });
 
 
-  test.todo('validateDirpath()');
+//  test.todo('validateDirpath()');
 
-  test.todo('validateKey()');
+//  test.todo('validateKey()');
 
-  test.todo('validateDocument');
+//  test.todo('validateDocument');
     
-  test.todo('validateDbName');
+//  test.todo('validateDbName');
 
-  test.todo('validLocalDir');  
+//  test.todo('validLocalDir');  
 });
 
 
@@ -301,7 +301,7 @@ describe('Using validation in other functions', () => {
   });
 
 
-  test.todo('Check JSON property name');
+//  test.todo('Check JSON property name');
 
 
 });

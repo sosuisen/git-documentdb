@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "types": [
+      "mocha-ui-jest",
+      "node"
+    ]
+  }
+}

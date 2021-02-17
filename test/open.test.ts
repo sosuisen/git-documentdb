@@ -91,7 +91,7 @@ click on the Advanced button, and then click [disable inheritance] button.
     // Destroy db
     await gitDDB.destroy().catch(e => console.error(e));
     // fs.access() throw error when a file cannot be accessed.    
-    await expect(fs.access(path.resolve(localDir, dbName))).rejects.toMatchObject({ name: 'Error', code: 'ENOENT' });
+    await expect(fs.access(path.resolve(localDir, dbName))).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
 
