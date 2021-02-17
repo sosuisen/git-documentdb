@@ -79,6 +79,7 @@ describe('Delete document', () => {
     await expect(gitDDB._remove_concurrent(_id, 'message')).rejects.toThrowError(RepositoryNotOpenError);
   });
 
+
   test('delete(): Set commit message.', async () => {
     const dbName = 'test_repos_02';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -103,6 +104,7 @@ describe('Delete document', () => {
 
     await gitDDB.destroy();
   });
+
 
   test('delete(): key is undefined', async () => {
     const dbName = 'test_repos_03';
@@ -146,6 +148,7 @@ describe('Delete document', () => {
 
 
 });
+
 
 describe('Concurrent', () => {
   const localDir = './test/database_delete02';

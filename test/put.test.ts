@@ -9,9 +9,8 @@
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { UndefinedDocumentIdError, InvalidJsonObjectError, InvalidIdCharacterError, InvalidKeyLengthError, RepositoryNotOpenError } from '../src/error';
+import { UndefinedDocumentIdError, InvalidJsonObjectError, RepositoryNotOpenError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
-import { Validator } from '../src/validator';
 
 describe('Create document', () => {
   const localDir = './test/database_put01';
@@ -61,52 +60,6 @@ describe('Create document', () => {
   });
 
 
-  test('put(): key includes invalid character.', async () => {
-    const dbName = 'test_repos_4';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir
-    });
-    await gitDDB.open();
-    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
-    await expect(gitDDB.put({ _id: '_test', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
-    await expect(gitDDB.put({ _id: 'test.', name: 'shirase' })).rejects.toThrowError(InvalidIdCharacterError);
-    await gitDDB.destroy();
-  });
-
-
-  test('put(): key length is invalid.', async () => {
-    const dbName = 'test_repos_5';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir
-    });
-    await gitDDB.open();
-    const validator = new Validator(gitDDB.workingDir());
-    let maxKeyLen = validator.maxKeyLength();
-    let id = '';
-    // remove length of dirpath('/')
-    maxKeyLen--;
-    for (let i=0; i< maxKeyLen; i++) {
-      id += '0';
-    }
-
-    await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
-        ok: true,
-        dirpath: '/',
-        id: expect.stringContaining(id),
-        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
-        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
-      });
-    id += '0';
-
-    await expect(gitDDB.put({ _id: id, name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
-    await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toThrowError(InvalidKeyLengthError);
-
-    await gitDDB.destroy();
-  });
-
-
   test('put(): Put a JSON Object.', async () => {
     const dbName = 'test_repos_6';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -152,21 +105,6 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): Put a invalid JSON Object (not pure)', async () => {
-    const dbName = 'test_repos_8';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir
-    });
-    await gitDDB.open();
-    const _id = 'prof01';
-    // JSON.stringify() throws error if an object is recursive.
-    const obj1 = { obj: {} };
-    const obj2 = { obj: obj1 };
-    obj1.obj = obj2;
-    await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(InvalidJsonObjectError);
-    await gitDDB.destroy();
-  });
 
   test('put(): Check order of results', async () => {
     const dbName = 'test_repos_9';
@@ -206,27 +144,6 @@ describe('Create document', () => {
     }
     await gitDDB.destroy();
   });
-
-  test('put(): key includes punctuations.', async () => {
-    const dbName = 'test_repos_11';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir
-    });
-    await gitDDB.open();
-    const _id = '-.()[]_';
-    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject(
-      {
-        ok: true,
-        id: expect.stringContaining(_id),
-        file_sha: expect.stringMatching(/^[a-z0-9]{40}$/),
-        commit_sha: expect.stringMatching(/^[a-z0-9]{40}$/)
-      }
-    );
-    await gitDDB.destroy();
-  });
-
-
 
   test.todo('Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.');
 
@@ -413,6 +330,5 @@ describe('Concurrent', () => {
 
     await gitDDB.destroy();
   });
-
 
 });

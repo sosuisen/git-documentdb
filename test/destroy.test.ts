@@ -8,7 +8,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import {DatabaseCloseTimeoutError, DatabaseClosingError } from '../src/error';
+import {DatabaseCloseTimeoutError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 

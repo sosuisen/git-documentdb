@@ -10,9 +10,8 @@
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { CannotCreateDirectoryError, InvalidWorkingDirectoryPathLengthError, UndefinedDatabaseNameError } from '../src/error';
+import { CannotCreateDirectoryError, UndefinedDatabaseNameError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
-import { Validator } from '../src/validator';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -111,6 +110,7 @@ click on the Advanced button, and then click [disable inheritance] button.
     fs.removeSync(path.resolve(defaultLocalDir));
   });
 
+
   test('open(): dbName is undefined.', async () => {
     const dbName = 'test_repos_4';
     // Code must be wrapped by () => {} to test exception
@@ -121,37 +121,6 @@ click on the Advanced button, and then click [disable inheritance] button.
     }).toThrowError(UndefinedDatabaseNameError);
   });
 
-
-  test('open(): Try to create a long name repository.', async () => {    
-    const maxWorkingDirLen = Validator.maxWorkingDirectoryLength();
-    let dbName = 'tmp';
-    const workingDirectory = path.resolve(localDir, dbName);
-    for (let i=0; i< maxWorkingDirLen - workingDirectory.length; i++) {
-      dbName += '0';
-    }
-
-    // Code must be wrapped by () => {} to test exception
-    // https://jestjs.io/docs/en/expect#tothrowerror
-    let gitddb: GitDocumentDB;
-    expect(() => {
-      gitddb = new GitDocumentDB({
-        dbName: dbName,
-        localDir: localDir
-      });
-    }).not.toThrowError();
-    // @ts-ignore
-    if (gitddb !== undefined) {
-      await gitddb.destroy();
-    }
-
-    dbName += '0';
-    expect(() => {
-      new GitDocumentDB({
-        dbName: dbName,
-        localDir: localDir
-      });
-    }).toThrowError(InvalidWorkingDirectoryPathLengthError);
-  });
 
 });
 
@@ -233,6 +202,7 @@ describe('Open, close and destroy repository', () => {
     await gitDDB.destroy();
   });
 
+
   test('open(): Open a repository with no description file.', async () => {
     const dbName = 'test_repos_4';
     const gitDDB = new GitDocumentDB({
@@ -246,6 +216,7 @@ describe('Open, close and destroy repository', () => {
     await expect(gitDDB.open()).resolves.toMatchObject({ isNew: false, isCreatedByGitDDB: false, isValidVersion: false });
   });
 
+  
   test('Open db twice.', async () => {
     const dbName = 'test_repos_5';
     const gitDDB: GitDocumentDB = new GitDocumentDB({

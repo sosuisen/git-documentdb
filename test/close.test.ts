@@ -8,7 +8,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import {DatabaseCloseTimeoutError, DatabaseClosingError } from '../src/error';
+import {DatabaseCloseTimeoutError, DatabaseClosingError, InvalidJsonObjectError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 
@@ -59,7 +59,7 @@ describe('Close database', () => {
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by timeout.      
-      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { });
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => { console.log(err) });
     }
 
     await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(DatabaseCloseTimeoutError);
@@ -102,6 +102,7 @@ describe('Close database', () => {
     await gitDDB.destroy();
   });
 
+  
   test('Check isClosing flag', async () => {
     const dbName = 'test_repos_4';
     const gitDDB = new GitDocumentDB({

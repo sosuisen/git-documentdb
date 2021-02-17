@@ -6,10 +6,9 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import path from 'path';
-import { InvalidJsonObjectError, RepositoryNotOpenError } from '../src/error';
+import { RepositoryNotOpenError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 describe('Fetch a batch of documents', () => {
@@ -105,6 +104,7 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.destroy();
   });
 
+
   test('allDocs(): options.include_docs', async () => {
     const dbName = 'test_repos_3';
 
@@ -143,6 +143,7 @@ describe('Fetch a batch of documents', () => {
 
     await gitDDB.destroy();
   });
+
 
   test('allDocs(): breadth-first search (recursive)', async () => {
     const dbName = 'test_repos_4';
@@ -336,59 +337,4 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.destroy();
   });
 
-  test('allDocs(): Get invalid JSON', async () => {
-    const dbName = 'test_repos_8';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir
-    });
-    await gitDDB.open();
-
-    const _id = 'invalidJSON';
-    let file_sha, commit_sha: string;
-    const data = 'invalid data'; // JSON.parse() will throw error
-    const _currentRepository = gitDDB.getRepository();
-    if (_currentRepository) {
-      try {
-        const filePath = path.resolve(gitDDB.workingDir(), _id);
-        const dir = path.dirname(filePath);
-        await fs.ensureDir(dir).catch((err: Error) => console.error(err));
-        await fs.writeFile(filePath, data);
-
-        const index = await _currentRepository.refreshIndex(); // read latest index
-
-        await index.addByPath(_id); // stage
-        await index.write(); // flush changes to index
-        const changes = await index.writeTree(); // get reference to a set of changes
-
-        const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
-        file_sha = entry.id.tostrS();
-
-        const gitAuthor = {
-          name: 'GitDocumentDB',
-          email: 'system@gdd.localhost',
-        };
-
-        const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-        const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-        // Calling nameToId() for HEAD throws error when this is first commit.
-        const head = await nodegit.Reference.nameToId(_currentRepository, "HEAD").catch(e => false); // get HEAD
-        let commit;
-        if (!head) {
-          // First commit
-          commit = await _currentRepository.createCommit('HEAD', author, committer, 'message', changes, []);
-        }
-        else {
-          const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-          commit = await _currentRepository.createCommit('HEAD', author, committer, 'message', changes, [parent]);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
-      await expect(gitDDB.allDocs({include_docs: true})).rejects.toThrowError(InvalidJsonObjectError);
-    }
-    await gitDDB.destroy();
-  });
 });
