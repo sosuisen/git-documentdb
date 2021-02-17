@@ -198,7 +198,7 @@ export class Validator {
    * Validate id
    *
    * @remarks
-   * - id allows UTF-8 string excluding following characters: < > : " \ | ? * \0*
+   * - id allows UTF-8 string excluding following characters: < > : " \ | ? * \0a
    *
    * - id cannot start with an underscore _.
    *

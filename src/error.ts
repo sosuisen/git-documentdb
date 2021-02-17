@@ -44,7 +44,7 @@ export class CannotDeleteDataError extends BaseError {
 
 export class InvalidCollectionPathCharacterError extends BaseError {
   constructor (
-    e = 'Invalid collectionPath character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>'
+    e = "Invalid collectionPath character: collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : \" | ? * \0. Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)"
   ) {
     super(e);
   }
@@ -68,7 +68,7 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
 
 export class InvalidIdCharacterError extends BaseError {
   constructor (
-    e = 'Invalid ID character: id value only allows **a to z, A to Z, 0 to 9, and these 7 punctuation marks _ - . ( ) [ ]**. Do not use a period at the end.<br>'
+    e = 'Invalid ID character: id value allows UTF-8 string excluding following characters: < > : "  | ? * \0. id cannot start with an underscore _. id cannot end with a period .'
   ) {
     super(e);
   }
@@ -119,16 +119,14 @@ export class DatabaseCloseTimeoutError extends BaseError {
 }
 
 export class InvalidPropertyNameInDocumentError extends BaseError {
-  constructor (
-    e = 'A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)'
-  ) {
+  constructor (e = 'A property name cannot start with an underscore _ except _id.') {
     super(e);
   }
 }
 
 export class InvalidDbNameCharacterError extends BaseError {
   constructor (
-    e = 'dbName disallows slash / characters. dbName cannot end with a period .'
+    e = 'dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \\ | ? * \0. dbName cannot end with a period .'
   ) {
     super(e);
   }
