@@ -215,14 +215,23 @@ export class Validator {
    * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidKeyLengthError}
    */
-  validateId (key: string) {
-    this._validateFileName(path.basename(key));
-    this.validateCollectionPath(path.dirname(key));
+  validateId (_id: string) {
+    const baseName = path.basename(_id);
+    // basename returns '' if _id is '/'.
+    if (baseName === '') {
+      throw new InvalidIdCharacterError(_id);
+    }
+    this._validateFileName(path.basename(_id));
+    const dirName = path.dirname(_id);
+    // dirname returns '.' if _id does not include slashes.
+    if (dirName !== '.') {
+      this.validateCollectionPath(path.dirname(_id));
+    }
 
     // Example of a minimum _id is 'a'
     const minimumIdLength = 1;
-    if (key.length < minimumIdLength || key.length > this.maxIdLength()) {
-      throw new InvalidIdLengthError(key, minimumIdLength, this.maxIdLength());
+    if (_id.length < minimumIdLength || _id.length > this.maxIdLength()) {
+      throw new InvalidIdLengthError(_id, minimumIdLength, this.maxIdLength());
     }
   }
 
