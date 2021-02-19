@@ -636,28 +636,45 @@ export class GitDocumentDB {
   }
 
   /**
-   * Delete a document
    * @remarks
    *   This is an alias of remove()
    */
-  delete (key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
+  delete (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
     // @ts-ignore
     return this.remove(key, commitMessage);
   }
 
   /**
-   * Delete a document
+   * Remove a document from the root collection
+   *
+   * @remarks
+   * - This is equivalent to call collection('/').remove().
    *
    * @param _id - id of a target document
-   * @param commitMessage - Default is `delete: ${_id}`
+   * @param commitMessage - Default is `remove: ${_id}`.
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link CannotDeleteDataError}
    * @throws {@link DocumentNotFoundError}
-   *
+   * @throws {@link CannotDeleteDataError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link InvalidKeyLengthError}
    */
-  remove (key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
+  remove (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
+    let _id: string;
+    if (typeof idOrDoc === 'string') {
+      _id = idOrDoc;
+    }
+    else if (idOrDoc._id) {
+      _id = idOrDoc._id;
+    }
+    else {
+      return Promise.reject(new UndefinedDocumentIdError());
+    }
+
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -666,22 +683,7 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
-    if (key === undefined) {
-      return Promise.reject(new UndefinedDocumentIdError());
-    }
-
-    let _id: string;
-    if (typeof key === 'string') {
-      _id = key;
-    }
-    else if (key._id) {
-      _id = key._id;
-    }
-    else {
-      return Promise.reject(new UndefinedDocumentIdError());
-    }
-
-    commitMessage ??= `delete: ${_id}`;
+    commitMessage ??= `remove: ${_id}`;
 
     // delete() must be serial.
     return new Promise((resolve, reject) => {
@@ -718,8 +720,16 @@ export class GitDocumentDB {
       return Promise.reject(new UndefinedDocumentIdError());
     }
 
+    try {
+      this._validator.validateId(_id);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+
     let file_sha, commit_sha: string;
-    const filename = _id + fileExt;
+    const filename = _id + fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
+    const filePath = path.resolve(this._workingDirectory, filename);
+    const dir = path.dirname(filePath);
 
     let index;
     try {
@@ -764,17 +774,21 @@ export class GitDocumentDB {
 
       commit_sha = commit.tostrS();
 
-      const filePath = path.resolve(this._workingDirectory, filename);
       await remove(filePath);
       // remove parent directory if empty
-      await rmdir(path.dirname(filePath)).catch(e => {
+      await rmdir(dir).catch(e => {
         /* not empty */
       });
     } catch (err) {
       return Promise.reject(new CannotDeleteDataError(err.message));
     }
 
-    return { ok: true, id: _id, file_sha: file_sha, commit_sha: commit_sha };
+    return {
+      ok: true,
+      id: _id,
+      file_sha: file_sha,
+      commit_sha: commit_sha,
+    };
   }
 
   /**
