@@ -667,7 +667,7 @@ export class GitDocumentDB {
     if (typeof idOrDoc === 'string') {
       _id = idOrDoc;
     }
-    else if (idOrDoc._id) {
+    else if (idOrDoc?._id) {
       _id = idOrDoc._id;
     }
     else {
