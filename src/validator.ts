@@ -96,7 +96,7 @@ export class Validator {
     }
 
     // Do not end with period.
-    if (name.match(/\.$/)) {
+    if (name.endsWith('.')) {
       return false;
     }
     return true;
