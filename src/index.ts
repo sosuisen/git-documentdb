@@ -133,7 +133,6 @@ export type AllDocsOptions = {
 export type PutResult = {
   ok: true;
   id: string;
-  path: string;
   file_sha: string;
   commit_sha: string;
 };
