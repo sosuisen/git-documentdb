@@ -304,7 +304,7 @@ export class GitDocumentDB {
    * Create a collection or open an existing one.
    *
    * @param collectionPath - path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'.
-   *  collectionPath cannot start with slash. Tailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
+   *  collectionPath cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
    */
   collection (collectionPath: string) {
