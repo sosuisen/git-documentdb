@@ -190,36 +190,33 @@ export class Validator {
   }
 
   /**
-   * Validate id
+   * Validate file name
    *
    * @remarks
-   * - id allows UTF-8 string excluding following characters: < > : " \ | ? * \0a
+   * - file name allows UTF-8 string excluding following characters: < > : " / \ | ? * \0a
    *
-   * - id cannot start with an underscore _.
+   * - file name cannot start with an underscore _.
    *
-   * - id cannot end with a period .
+   * - file name cannot end with a period .
    *
    * @throws {@link InvalidIdCharacterError}
    */
-  validateId (id: string) {
+  private _validateFileName (id: string) {
     if (!this.testWindowsInvalidFileNameCharacter(id) || id.startsWith('_')) {
       throw new InvalidIdCharacterError();
     }
   }
 
   /**
-   * Validate key
-   *
-   * @remarks
-   * key means `${collectionPath}${_id}`
+   * Validate _id
    *
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidKeyLengthError}
    */
-  validateKey (key: string) {
-    this.validateId(path.basename(key));
+  validateId (key: string) {
+    this._validateFileName(path.basename(key));
     this.validateCollectionPath(path.dirname(key));
 
     // Example of a minimum _id is 'a'

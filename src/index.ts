@@ -502,7 +502,7 @@ export class GitDocumentDB {
 
     const _id = document._id;
     try {
-      this._validator.validateKey(_id);
+      this._validator.validateId(_id);
     } catch (err) {
       return Promise.reject(err);
     }
