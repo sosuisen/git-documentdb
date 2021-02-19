@@ -19,7 +19,6 @@
   "include": [
     "src/**/*",
     "test/**/*.ts",
-    "examples/src/**/*.ts",    
     "webpack.*"
   ],
 }
