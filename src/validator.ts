@@ -122,7 +122,7 @@ export class Validator {
         allowDriveLetter: true,
       })
     ) {
-      throw new InvalidLocalDirCharacterError();
+      throw new InvalidLocalDirCharacterError(localDir);
     }
   }
 
@@ -141,7 +141,7 @@ export class Validator {
       !this.testWindowsReservedFileName(dbName) ||
       !this.testWindowsInvalidFileNameCharacter(dbName)
     ) {
-      throw new InvalidDbNameCharacterError();
+      throw new InvalidDbNameCharacterError(dbName);
     }
   }
 
@@ -160,7 +160,7 @@ export class Validator {
    */
   validateCollectionPath (collectionPath: string) {
     if (collectionPath.startsWith('/')) {
-      throw new InvalidCollectionPathCharacterError();
+      throw new InvalidCollectionPathCharacterError('/');
     }
     // Add trailing slash
     const normalized = Collection.normalizeCollectionPath(collectionPath);
@@ -172,7 +172,7 @@ export class Validator {
           !this.testWindowsInvalidFileNameCharacter(part) ||
           part === ''
         ) {
-          throw new InvalidCollectionPathCharacterError();
+          throw new InvalidCollectionPathCharacterError(part);
         }
       });
     }
@@ -203,7 +203,7 @@ export class Validator {
    */
   private _validateFileName (id: string) {
     if (!this.testWindowsInvalidFileNameCharacter(id) || id.startsWith('_')) {
-      throw new InvalidIdCharacterError();
+      throw new InvalidIdCharacterError(id);
     }
   }
 
@@ -262,7 +262,7 @@ export class Validator {
      */
     Object.keys(doc).forEach(key => {
       if (!reservedKeys[key] && key.startsWith('_')) {
-        throw new InvalidPropertyNameInDocumentError();
+        throw new InvalidPropertyNameInDocumentError(key);
       }
     });
   }
