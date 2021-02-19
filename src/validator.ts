@@ -130,7 +130,7 @@ export class Validator {
    * Validate dbName
    *
    * @remarks
-   * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \ | ? * \0
+   * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " / \ | ? * \0
    *
    * - dbName cannot end with a period .
    *
@@ -149,7 +149,7 @@ export class Validator {
    * Validate collectionPath
    *
    * @remarks
-   * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0
+   * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \ | ? * \0
    *
    * - Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
