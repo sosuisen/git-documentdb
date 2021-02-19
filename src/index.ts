@@ -103,7 +103,7 @@ export type DatabaseInfo = {
  *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
- * - collection_path: Only get the documents under the specified sub directory.
+ * - sub_directory: Only get the documents under the specified sub directory.
  *
  * - recursive: Get documents recursively from all sub directories. Default is false.
  *
@@ -112,7 +112,7 @@ export type DatabaseInfo = {
 export type AllDocsOptions = {
   include_docs?: boolean;
   descending?: boolean;
-  collection_path?: string;
+  sub_directory?: string;
   recursive?: boolean;
 };
 
@@ -924,9 +924,9 @@ export class GitDocumentDB {
     const directories: nodegit.Tree[] = [];
     const tree = await commit.getTree();
 
-    if (options?.collection_path) {
+    if (options?.sub_directory) {
       const specifiedTreeEntry = await tree
-        .getEntry(options?.collection_path)
+        .getEntry(options?.sub_directory)
         .catch(e => null);
       if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
         const specifiedTree = await specifiedTreeEntry.getTree();

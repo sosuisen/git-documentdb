@@ -264,7 +264,7 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
     await expect(
-      gitDDB.allDocs({ collection_path: 'citrus', include_docs: true })
+      gitDDB.allDocs({ sub_directory: 'citrus', include_docs: true })
     ).resolves.toMatchObject({
       total_rows: 2,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -289,7 +289,7 @@ describe('Fetch a batch of documents', () => {
     });
 
     await expect(
-      gitDDB.allDocs({ recursive: true, collection_path: 'not_exist' })
+      gitDDB.allDocs({ recursive: true, sub_directory: 'not_exist' })
     ).resolves.toStrictEqual({ total_rows: 0 });
 
     await gitDDB.destroy();
@@ -313,7 +313,7 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
     await expect(
-      gitDDB.allDocs({ collection_path: 'pear/Japan', include_docs: true })
+      gitDDB.allDocs({ sub_directory: 'pear/Japan', include_docs: true })
     ).resolves.toMatchObject({
       total_rows: 1,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),

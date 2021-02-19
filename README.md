@@ -88,7 +88,7 @@ const gitDDB = new GitDocumentDB({
   await gitDDB.put({ _id: 'Sapporo/4', name: 'Yuzuki', age: '16' });
   
   // Bulk read
-  const docs = await gitDDB.allDocs({ collection_path: 'Gunma', include_docs: true });
+  const docs = await gitDDB.allDocs({ sub_directory: 'Gunma', include_docs: true });
   console.dir(docs, { depth: 3 });
   /* docs = 
   {
