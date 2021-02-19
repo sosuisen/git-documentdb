@@ -14,7 +14,6 @@ Result of put()
 ```typescript
 export declare type PutResult = {
     ok: true;
-    dirpath: string;
     id: string;
     file_sha: string;
     commit_sha: string;
@@ -22,6 +21,8 @@ export declare type PutResult = {
 ```
 
 ## Remarks
+
+- ok: ok shows always true. Exception is thrown when error occurs.
 
 - id: id of a document
 

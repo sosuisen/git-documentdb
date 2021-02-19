@@ -15,5 +15,5 @@ export declare class InvalidIdCharacterError extends BaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(e)](./git-documentdb.invalididcharactererror._constructor_.md) |  | Constructs a new instance of the <code>InvalidIdCharacterError</code> class |
+|  [(constructor)(id)](./git-documentdb.invalididcharactererror._constructor_.md) |  | Constructs a new instance of the <code>InvalidIdCharacterError</code> class |
 

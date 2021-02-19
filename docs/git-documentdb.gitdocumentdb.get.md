@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Get a document from a database
+Get a document from the root collection
 
 <b>Signature:</b>
 
@@ -23,7 +23,7 @@ get(_id: string): Promise<JsonDoc>;
 
 <b>Returns:</b>
 
-Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
+Promise&lt;JsonDoc&gt;
 
 ## Exceptions
 

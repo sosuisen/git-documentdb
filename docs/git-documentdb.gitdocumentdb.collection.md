@@ -12,16 +12,16 @@ Create a collection or open an existing one.
 <b>Signature:</b>
 
 ```typescript
-collection(collectionName: string): Promise<Collection>;
+collection(collectionPath: string): Collection;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collectionName | string | A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection. |
+|  collectionPath | string | path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. collectionPath cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection. |
 
 <b>Returns:</b>
 
-Promise&lt;Collection&gt;
+Collection
 

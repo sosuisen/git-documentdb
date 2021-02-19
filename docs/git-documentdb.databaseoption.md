@@ -13,14 +13,14 @@ Database location
 
 ```typescript
 export declare type DatabaseOption = {
-    localDir?: string;
-    dbName: string;
+    local_dir?: string;
+    db_name: string;
 };
 ```
 
 ## Remarks
 
-- localDir: Local directory path for the databases of GitDocumentDB. Default is './gitddb'.
+- local\_dir: Local directory path for the databases of GitDocumentDB. Default is './gitddb'.
 
-- dbName: Name of a git repository
+- db\_name: Name of a git repository
 

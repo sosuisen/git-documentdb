@@ -15,7 +15,7 @@ How to get documents
 export declare type AllDocsOptions = {
     include_docs?: boolean;
     descending?: boolean;
-    directory?: string;
+    sub_directory?: string;
     recursive?: boolean;
 };
 ```
@@ -26,7 +26,7 @@ export declare type AllDocsOptions = {
 
 - descending: Sort results in rows by descendant. Default is false (ascendant).
 
-- directory: Only get the documents under the specified sub directory.
+- sub\_directory: Only get the documents under the specified sub directory.
 
 - recursive: Get documents recursively from all sub directories. Default is false.
 

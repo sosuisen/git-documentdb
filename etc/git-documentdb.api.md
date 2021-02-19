@@ -10,7 +10,7 @@ import nodegit from '@sosuisen/nodegit';
 export type AllDocsOptions = {
     include_docs?: boolean;
     descending?: boolean;
-    directory?: string;
+    sub_directory?: string;
     recursive?: boolean;
 };
 
@@ -56,15 +56,15 @@ export class DatabaseClosingError extends BaseError {
 
 // @beta
 export type DatabaseInfo = {
-    isNew: boolean;
-    isCreatedByGitDDB: boolean;
-    isValidVersion: boolean;
+    is_new: boolean;
+    is_created_by_gitddb: boolean;
+    is_valid_version: boolean;
 };
 
 // @beta
 export type DatabaseOption = {
-    localDir?: string;
-    dbName: string;
+    local_dir?: string;
+    db_name: string;
 };
 
 // @beta
@@ -86,8 +86,9 @@ export class GitDocumentDB {
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
     // Warning: (ae-forgotten-export) The symbol "Collection" needs to be exported by the entry point main.d.ts
-    collection(collectionName: string): Promise<Collection>;
-    delete(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+    collection(collectionPath: string): Collection;
+    // (undocumented)
+    delete(idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
@@ -95,38 +96,40 @@ export class GitDocumentDB {
     getRepository(): nodegit.Repository | undefined;
     isClosing: boolean;
     isOpened(): boolean;
-    maxCollectionNameLength(): number;
-    maxDirpathLength(): number;
-    maxKeyLength(): number;
-    static maxWorkingDirectoryLength(): number;
-    mkdir(dirpath: string, commitMessage?: string): Promise<PutResult>;
     open(): Promise<DatabaseInfo>;
+    // Warning: (ae-forgotten-export) The symbol "JsonDoc" needs to be exported by the entry point main.d.ts
     put(document: JsonDoc, commitMessage?: string): Promise<PutResult>;
-    // @internal
-    _put_concurrent(dirpath: string, document: JsonDoc, commitMessage: string): Promise<PutResult>;
-    rawPutJSON(dirpath: string, document: JsonDoc, commitMessage?: string): Promise<PutResult>;
-    remove(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
-    // @internal
+    // @internal (undocumented)
+    _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult>;
+    remove(idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+    // @internal (undocumented)
     _remove_concurrent(_id: string, commitMessage: string): Promise<DeleteResult>;
-    validateDirpath(dirpath: string): void;
-    validateId(id: string): void;
-    validateKey(key: string): void;
     workingDir(): string;
     }
 
 // @public (undocumented)
-export class InvalidDirpathCharacterError extends BaseError {
-    constructor(e?: string);
+export class InvalidCollectionPathCharacterError extends BaseError {
+    constructor(name: string);
 }
 
 // @public (undocumented)
-export class InvalidDirpathLengthError extends BaseError {
-    constructor(dirpath: string, minLength: number, maxLength: number);
+export class InvalidCollectionPathLengthError extends BaseError {
+    constructor(collectionPath: string, minLength: number, maxLength: number);
+}
+
+// @public (undocumented)
+export class InvalidDbNameCharacterError extends BaseError {
+    constructor(name: string);
 }
 
 // @public (undocumented)
 export class InvalidIdCharacterError extends BaseError {
-    constructor(e?: string);
+    constructor(id: string);
+}
+
+// @public (undocumented)
+export class InvalidIdLengthError extends BaseError {
+    constructor(id: string, minLength: number, maxLength: number);
 }
 
 // @public (undocumented)
@@ -135,19 +138,19 @@ export class InvalidJsonObjectError extends BaseError {
 }
 
 // @public (undocumented)
-export class InvalidKeyLengthError extends BaseError {
-    constructor(key: string, minLength: number, maxLength: number);
+export class InvalidLocalDirCharacterError extends BaseError {
+    constructor(name: string);
+}
+
+// @public (undocumented)
+export class InvalidPropertyNameInDocumentError extends BaseError {
+    constructor(name: string);
 }
 
 // @public (undocumented)
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
     constructor(path: string, minLength: number, maxLength: number);
 }
-
-// @beta
-export type JsonDoc = {
-    [key: string]: any;
-};
 
 // @beta
 export type JsonDocWithMetadata = {
@@ -159,7 +162,6 @@ export type JsonDocWithMetadata = {
 // @beta
 export type PutResult = {
     ok: true;
-    dirpath: string;
     id: string;
     file_sha: string;
     commit_sha: string;

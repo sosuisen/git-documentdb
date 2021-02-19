@@ -13,17 +13,17 @@ Database information
 
 ```typescript
 export declare type DatabaseInfo = {
-    isNew: boolean;
-    isCreatedByGitDDB: boolean;
-    isValidVersion: boolean;
+    is_new: boolean;
+    is_created_by_gitddb: boolean;
+    is_valid_version: boolean;
 };
 ```
 
 ## Remarks
 
-- isNew: Whether a repository is newly created or existing.
+- is\_new: Whether a repository is newly created or existing.
 
-- isCreatedByGitDDB: Whether a repository is created by git-documentDB or other methods.
+- is\_created\_by\_gitddb: Whether a repository is created by git-documentDB or other methods.
 
-- isValidVersion: Whether a repository version equals to the current databaseVersion of git-documentDB. The version is described in .git/description.
+- is\_valid\_version: Whether a repository version equals to the current databaseVersion of git-documentDB. The version is described in .git/description.
 

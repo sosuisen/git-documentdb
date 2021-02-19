@@ -21,11 +21,14 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
 |  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | <b><i>(BETA)</i></b> Main class of GitDocumentDB |
-|  [InvalidDirpathCharacterError](./git-documentdb.invaliddirpathcharactererror.md) |  |
-|  [InvalidDirpathLengthError](./git-documentdb.invaliddirpathlengtherror.md) |  |
+|  [InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md) |  |
+|  [InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md) |  |
+|  [InvalidDbNameCharacterError](./git-documentdb.invaliddbnamecharactererror.md) |  |
 |  [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) |  |
+|  [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) |  |
 |  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) |  |
-|  [InvalidKeyLengthError](./git-documentdb.invalidkeylengtherror.md) |  |
+|  [InvalidLocalDirCharacterError](./git-documentdb.invalidlocaldircharactererror.md) |  |
+|  [InvalidPropertyNameInDocumentError](./git-documentdb.invalidpropertynameindocumenterror.md) |  |
 |  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) |  |
 |  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
 |  [UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md) |  |
@@ -41,7 +44,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | <b><i>(BETA)</i></b> Database information |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
 |  [DeleteResult](./git-documentdb.deleteresult.md) | <b><i>(BETA)</i></b> Result of delete() |
-|  [JsonDoc](./git-documentdb.jsondoc.md) | <b><i>(BETA)</i></b> Type for a JSON document |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | <b><i>(BETA)</i></b> Type for a JSON document with metadata |
 |  [PutResult](./git-documentdb.putresult.md) | <b><i>(BETA)</i></b> Result of put() |
 

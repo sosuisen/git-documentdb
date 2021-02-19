@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Get all the documents in a repository.
+Get all the documents from the database
 
 <b>Signature:</b>
 
@@ -24,8 +24,6 @@ allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
 <b>Returns:</b>
 
 Promise&lt;[AllDocsResult](./git-documentdb.alldocsresult.md)<!-- -->&gt;
-
-Promise
 
 ## Exceptions
 

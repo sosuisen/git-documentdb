@@ -9,12 +9,12 @@ Constructs a new instance of the `InvalidIdCharacterError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(e?: string);
+constructor(id: string);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  e | string |  |
+|  id | string |  |
 

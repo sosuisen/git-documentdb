@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Add a document into a root collection
+Add a document into the root collection
 
 <b>Signature:</b>
 
@@ -19,14 +19,12 @@ put(document: JsonDoc, commitMessage?: string): Promise<PutResult>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  document | [JsonDoc](./git-documentdb.jsondoc.md) | See [JsonDoc](./git-documentdb.jsondoc.md) for restriction |
-|  commitMessage | string | Default is <code>put: ${document._id}</code> |
+|  document | JsonDoc | See  for restriction |
+|  commitMessage | string | Default is <code>put: ${document._id}</code>. |
 
 <b>Returns:</b>
 
 Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
-
-Promise that returns a set of \_id, blob hash and commit hash
 
 ## Exceptions
 
@@ -34,20 +32,26 @@ Promise that returns a set of \_id, blob hash and commit hash
 
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
-[InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
-
 [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
-
+[InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 
 [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md)
 
 [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md)
 
+[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+
+[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
+
+[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
+
+
 ## Remarks
+
+- This is equivalent to call collection('/').put().
 
 - put() does not check a write permission of your file system (unlike open()).
 
-- Saved file path is `${workingDirectory()}/${document._id}.json`<!-- -->. put() throws InvalidIdLengthError if the path length exceeds the maximum length of a filepath on the device.
+- Saved file path is `${workingDirectory()}${document._id}.json`<!-- -->. InvalidKeyLengthError is thrown if the path length exceeds the maximum length of a filepath on the device.
 

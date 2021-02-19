@@ -7,20 +7,20 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Delete a document
+Remove a document from the root collection
 
 <b>Signature:</b>
 
 ```typescript
-remove(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+remove(idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  key | string \| [JsonDoc](./git-documentdb.jsondoc.md) |  |
-|  commitMessage | string | Default is <code>delete: ${_id}</code> |
+|  idOrDoc | string \| JsonDoc |  |
+|  commitMessage | string | Default is <code>remove: ${_id}</code>. |
 
 <b>Returns:</b>
 
@@ -34,7 +34,18 @@ Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
 
 [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
 
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
+
 [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
+[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+
+[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
+
+[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
+
+
+## Remarks
+
+- This is equivalent to call collection('/').remove().
 

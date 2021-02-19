@@ -18,7 +18,6 @@ export declare type JsonDocWithMetadata = {
     doc?: JsonDoc;
 };
 ```
-<b>References:</b> [JsonDoc](./git-documentdb.jsondoc.md)
 
 ## Remarks
 

@@ -7,19 +7,17 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Delete a document
-
 <b>Signature:</b>
 
 ```typescript
-delete(key: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+delete(idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  key | string \| [JsonDoc](./git-documentdb.jsondoc.md) |  |
+|  idOrDoc | string \| JsonDoc |  |
 |  commitMessage | string |  |
 
 <b>Returns:</b>

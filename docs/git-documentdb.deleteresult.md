@@ -22,6 +22,8 @@ export declare type DeleteResult = {
 
 ## Remarks
 
+- ok: ok shows always true. Exception is thrown when error occurs.
+
 - \_id: id of a document
 
 - file\_sha: SHA-1 hash of Git blob (40 characters)
