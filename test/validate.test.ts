@@ -12,8 +12,8 @@ import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import {
   InvalidIdCharacterError,
+  InvalidIdLengthError,
   InvalidJsonObjectError,
-  InvalidKeyLengthError,
   InvalidWorkingDirectoryPathLengthError,
 } from '../src/main';
 import { Validator } from '../src/validator';
@@ -22,8 +22,8 @@ describe('Validations', () => {
   const localDir = './test/database_validate01';
   const dbName = 'test_repos_1';
   const gitDDB: GitDocumentDB = new GitDocumentDB({
-    dbName: dbName,
-    localDir: localDir,
+    db_name: dbName,
+    local_dir: localDir,
   });
   const validator = new Validator(gitDDB.workingDir());
 
@@ -42,12 +42,20 @@ describe('Validations', () => {
      * '_id' cannot end with a period . (For compatibility with the file system of Windows)
      */
     // Punctuations
-    // Good
-    expect(validator.validateId('-.()[]_')).toBeUndefined();
-    // Bad
-    const punctuations = [
+    const disallowedPunctuations = ['<', '>', ':', '"', '/', '\\', '|', '?', '*', '\0'];
+    disallowedPunctuations.forEach(p =>
+      expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError)
+    );
+
+    const allowedPunctuations = [
+      '-',
+      '.abc',
+      '(',
+      ')',
+      '[',
+      ']',
+      'abc_',
       '!',
-      '"',
       '#',
       '$',
       '%',
@@ -55,33 +63,22 @@ describe('Validations', () => {
       "'",
       '=',
       '~',
-      '|',
       '@',
       '`',
       '{',
       '}',
-      '*',
       '+',
       ';',
       ',',
-      ':',
-      '<',
-      '>',
-      '?',
-      '\\',
     ];
-    punctuations.forEach(p =>
-      expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError)
-    );
+    allowedPunctuations.forEach(p => expect(validator.validateId(p)).toBeUndefined());
     // Cannot start with an underscore
     expect(() => validator.validateId('_abc')).toThrowError(InvalidIdCharacterError);
     // Cannot end with a period
     expect(() => validator.validateId('abc.')).toThrowError(InvalidIdCharacterError);
   });
 
-  it('validateDirpath()');
-
-  it('validateKey()');
+  it('validateId()');
 
   it('validateDocument');
 
@@ -114,8 +111,8 @@ describe('Using validation in other functions', () => {
     let gitddb: GitDocumentDB;
     expect(() => {
       gitddb = new GitDocumentDB({
-        dbName: dbName,
-        localDir: localDir,
+        db_name: dbName,
+        local_dir: localDir,
       });
     }).not.toThrowError();
     // @ts-ignore
@@ -127,8 +124,8 @@ describe('Using validation in other functions', () => {
     expect(() => {
       // eslint-disable-next-line no-new
       new GitDocumentDB({
-        dbName: dbName,
-        localDir: localDir,
+        db_name: dbName,
+        local_dir: localDir,
       });
     }).toThrowError(InvalidWorkingDirectoryPathLengthError);
   });
@@ -136,8 +133,8 @@ describe('Using validation in other functions', () => {
   test('put(): key includes invalid character.', async () => {
     const dbName = 'test_repos_put01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(
@@ -155,33 +152,33 @@ describe('Using validation in other functions', () => {
   test('put(): key length is invalid.', async () => {
     const dbName = 'test_repos_put02';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     const validator = new Validator(gitDDB.workingDir());
-    let maxKeyLen = validator.maxKeyLength();
+    const maxIdLen = validator.maxIdLength();
     let id = '';
-    // remove length of path('/')
-    maxKeyLen--;
-    for (let i = 0; i < maxKeyLen; i++) {
+    for (let i = 0; i < maxIdLen; i++) {
       id += '0';
     }
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringContaining(id),
-      path: '/',
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
     id += '0';
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).rejects.toThrowError(
-      InvalidKeyLengthError
+      InvalidIdLengthError
     );
     await expect(gitDDB.put({ _id: '', name: 'shirase' })).rejects.toThrowError(
-      InvalidKeyLengthError
+      InvalidIdCharacterError
+    );
+    await expect(gitDDB.put({ _id: '/', name: 'shirase' })).rejects.toThrowError(
+      InvalidIdCharacterError
     );
 
     await gitDDB.destroy();
@@ -190,15 +187,14 @@ describe('Using validation in other functions', () => {
   test('put(): key includes punctuations.', async () => {
     const dbName = 'test_repos_put03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     const _id = '-.()[]_';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringContaining(_id),
-      path: '/',
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -208,8 +204,8 @@ describe('Using validation in other functions', () => {
   test('put(): Put a invalid JSON Object (not pure)', async () => {
     const dbName = 'test_repos_put04';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     // JSON.stringify() throws error if an object is recursive.
@@ -225,8 +221,8 @@ describe('Using validation in other functions', () => {
   test('get(): Get invalid JSON', async () => {
     const dbName = 'test_repos_get01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -299,8 +295,8 @@ describe('Using validation in other functions', () => {
   test('allDocs(): Get invalid JSON', async () => {
     const dbName = 'test_repos_allDocs01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
