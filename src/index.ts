@@ -63,9 +63,9 @@ const repositoryInitOptionFlags = {
  * Database location
  *
  * @remarks
- * - localDir: Local directory path for the databases of GitDocumentDB. Default is './gitddb'.
+ * - local_dir: Local directory path for the databases of GitDocumentDB. Default is './gitddb'.
  *
- * - dbName: Name of a git repository
+ * - db_name: Name of a git repository
  *
  * @beta
  */
@@ -103,7 +103,7 @@ export type DatabaseInfo = {
  *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
- * - directory: Only get the documents under the specified sub directory.
+ * - collection_path: Only get the documents under the specified sub directory.
  *
  * - recursive: Get documents recursively from all sub directories. Default is false.
  *
