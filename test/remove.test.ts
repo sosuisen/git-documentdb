@@ -30,8 +30,8 @@ describe('Delete document', () => {
   test('delete()', async () => {
     const dbName = 'test_repos_01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
 
     await gitDDB.open();
@@ -60,7 +60,7 @@ describe('Delete document', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`delete: ${_id}`);
+      expect(commit.message()).toEqual(`remove: ${_id}`);
     }
 
     await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
@@ -96,8 +96,8 @@ describe('Delete document', () => {
   test('delete(): Set commit message.', async () => {
     const dbName = 'test_repos_02';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
 
     await gitDDB.open();
@@ -118,11 +118,11 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): key is undefined', async () => {
+  test('delete(): _id is undefined', async () => {
     const dbName = 'test_repos_03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
 
     await gitDDB.open();
@@ -136,8 +136,8 @@ describe('Delete document', () => {
   test('delete(): Use JsonObject as key.', async () => {
     const dbName = 'test_repos_03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
 
     await gitDDB.open();
@@ -184,8 +184,8 @@ describe('Concurrent', () => {
   test('delete(): All at once', async () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -223,8 +223,8 @@ describe('Concurrent', () => {
   test('delete(): Concurrent calls of _remove_concurrent() cause an error.', async () => {
     const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 

@@ -25,8 +25,8 @@ describe('Close database', () => {
   test('close(): wait queued operations', async () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -51,8 +51,8 @@ describe('Close database', () => {
   test('close(): queued operations are timeout', async () => {
     const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -80,8 +80,8 @@ describe('Close database', () => {
   test('close(): close database by force', async () => {
     const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -105,8 +105,8 @@ describe('Close database', () => {
   test('Check isClosing flag', async () => {
     const dbName = 'test_repos_4';
     const gitDDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 

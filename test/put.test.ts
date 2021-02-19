@@ -30,14 +30,14 @@ describe('Create document', () => {
   test('put(): Repository is not opened.', async () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await expect(gitDDB.put({ _id: 'prof01', name: 'shirase' })).rejects.toThrowError(
       RepositoryNotOpenError
     );
     await expect(
-      gitDDB._put_concurrent('/', { _id: 'prof01', name: 'shirase' }, 'message')
+      gitDDB._put_concurrent({ _id: 'prof01', name: 'shirase' }, 'message')
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
@@ -45,8 +45,8 @@ describe('Create document', () => {
   test('put(): Put an undefined value', async () => {
     const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     // @ts-ignore
@@ -57,8 +57,8 @@ describe('Create document', () => {
   test('put(): An _id is not found.', async () => {
     const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     await expect(gitDDB.put({ name: 'shirase' })).rejects.toThrowError(
@@ -70,15 +70,14 @@ describe('Create document', () => {
   test('put(): Put a JSON Object.', async () => {
     const dbName = 'test_repos_6';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringContaining(_id),
-      path: '/',
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -88,15 +87,14 @@ describe('Create document', () => {
   test('put(): Put a JSON Object into subdirectory.', async () => {
     const dbName = 'test_repos_7';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringContaining(_id),
-      path: '/',
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -112,8 +110,8 @@ describe('Create document', () => {
   test('put(): Check order of results', async () => {
     const dbName = 'test_repos_9';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -136,8 +134,8 @@ describe('Create document', () => {
   test('put(): Set commit message.', async () => {
     const dbName = 'test_repos_10';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
@@ -161,8 +159,8 @@ describe('Update document', () => {
   const dbName = 'test_repos';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
-    dbName: dbName,
-    localDir: localDir,
+    db_name: dbName,
+    local_dir: localDir,
   });
 
   beforeAll(() => {
@@ -181,7 +179,6 @@ describe('Update document', () => {
     await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringContaining(_id),
-      path: '/',
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -220,8 +217,8 @@ describe('Concurrent', () => {
   test('put(): all at once', async () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -271,8 +268,8 @@ describe('Concurrent', () => {
   test('put(): A lot of put()', async () => {
     const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -293,8 +290,8 @@ describe('Concurrent', () => {
   test('put(): put() with await keyword is resolved after all preceding put() Promises', async () => {
     const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
@@ -316,19 +313,19 @@ describe('Concurrent', () => {
   test.skip('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
     const dbName = 'test_repos_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
     await expect(
       Promise.all([
-        gitDDB._put_concurrent('/', { _id: _id_a, name: name_a }, 'message'),
-        gitDDB._put_concurrent('/', { _id: _id_b, name: name_b }, 'message'),
-        gitDDB._put_concurrent('/', { _id: _id_c01, name: name_c01 }, 'message'),
-        gitDDB._put_concurrent('/', { _id: _id_c02, name: name_c02 }, 'message'),
-        gitDDB._put_concurrent('/', { _id: _id_d, name: name_d }, 'message'),
-        gitDDB._put_concurrent('/', { _id: _id_p, name: name_p }, 'message'),
+        gitDDB._put_concurrent({ _id: _id_a, name: name_a }, 'message'),
+        gitDDB._put_concurrent({ _id: _id_b, name: name_b }, 'message'),
+        gitDDB._put_concurrent({ _id: _id_c01, name: name_c01 }, 'message'),
+        gitDDB._put_concurrent({ _id: _id_c02, name: name_c02 }, 'message'),
+        gitDDB._put_concurrent({ _id: _id_d, name: name_d }, 'message'),
+        gitDDB._put_concurrent({ _id: _id_p, name: name_p }, 'message'),
       ])
     ).rejects.toThrowError();
 

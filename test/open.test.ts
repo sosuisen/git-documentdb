@@ -73,8 +73,8 @@ click on the Advanced button, and then click [disable inheritance] button.
       });
     }
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: readonlyDir + 'database',
+      db_name: dbName,
+      local_dir: readonlyDir + 'database',
     });
     // You don't have permission
     await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
@@ -87,13 +87,13 @@ click on the Advanced button, and then click [disable inheritance] button.
     const dbName = 'test_repos_2';
 
     const gitDDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
 
     // Create db
     await expect(gitDDB.open())
-      .resolves.toMatchObject({ isNew: true })
+      .resolves.toMatchObject({ is_new: true })
       .catch(e => console.error(e));
     // Check path of working directory
     expect(gitDDB.workingDir()).toBe(path.resolve('./test/database_open01_1/test_repos_2'));
@@ -109,12 +109,12 @@ click on the Advanced button, and then click [disable inheritance] button.
     const dbName = 'test_repos_3';
 
     const gitDDB = new GitDocumentDB({
-      dbName: dbName,
+      db_name: dbName,
     });
     const defaultLocalDir = './gitddb/';
     // Create db
     await expect(gitDDB.open())
-      .resolves.toMatchObject({ isNew: true })
+      .resolves.toMatchObject({ is_new: true })
       .catch(e => console.error(e));
     expect(gitDDB.workingDir()).toBe(path.resolve(defaultLocalDir, dbName));
     // Destroy db
@@ -147,8 +147,8 @@ describe('Open, close and destroy repository', () => {
   test('open(), close() and destroy(): Open an existing repository.', async () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
 
     // Create db
@@ -159,9 +159,9 @@ describe('Open, close and destroy repository', () => {
 
     // Open existing db
     await expect(gitDDB.open()).resolves.toMatchObject({
-      isNew: false,
-      isCreatedByGitDDB: true,
-      isValidVersion: true,
+      is_new: false,
+      is_created_by_gitddb: true,
+      is_valid_version: true,
     });
     expect(gitDDB.isOpened()).toBeTruthy();
 
@@ -173,8 +173,8 @@ describe('Open, close and destroy repository', () => {
   test('open(): Open a repository created by another app.', async () => {
     const dbName = 'test_repos_2';
     const gitDDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     const options: RepositoryInitOptions = {
       description: 'another app',
@@ -190,9 +190,9 @@ describe('Open, close and destroy repository', () => {
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
-      isNew: false,
-      isCreatedByGitDDB: false,
-      isValidVersion: false,
+      is_new: false,
+      is_created_by_gitddb: false,
+      is_valid_version: false,
     });
     await gitDDB.destroy();
   });
@@ -200,8 +200,8 @@ describe('Open, close and destroy repository', () => {
   test('open(): Open a repository created by another version.', async () => {
     const dbName = 'test_repos_3';
     const gitDDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     const options: RepositoryInitOptions = {
       description: 'GitDocumentDB: 0.1',
@@ -217,9 +217,9 @@ describe('Open, close and destroy repository', () => {
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
-      isNew: false,
-      isCreatedByGitDDB: true,
-      isValidVersion: false,
+      is_new: false,
+      is_created_by_gitddb: true,
+      is_valid_version: false,
     });
     await gitDDB.destroy();
   });
@@ -227,31 +227,31 @@ describe('Open, close and destroy repository', () => {
   test('open(): Open a repository with no description file.', async () => {
     const dbName = 'test_repos_4';
     const gitDDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     const workingDirectory = gitDDB.workingDir();
     await gitDDB.close();
     fs.removeSync(path.resolve(workingDirectory, '.git', 'description'));
     await expect(gitDDB.open()).resolves.toMatchObject({
-      isNew: false,
-      isCreatedByGitDDB: false,
-      isValidVersion: false,
+      is_new: false,
+      is_created_by_gitddb: false,
+      is_valid_version: false,
     });
   });
 
   test('Open db twice.', async () => {
     const dbName = 'test_repos_5';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
 
     // Create db
     const info = await gitDDB.open();
     await expect(gitDDB.open()).resolves.toMatchObject({
-      isNew: false,
+      is_new: false,
     });
     await gitDDB.destroy();
   });

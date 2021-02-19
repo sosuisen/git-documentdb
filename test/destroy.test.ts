@@ -25,8 +25,8 @@ describe('Destroy database', () => {
   test('destroy()', async () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
     await expect(gitDDB.destroy())
@@ -37,8 +37,8 @@ describe('Destroy database', () => {
   test('destroy(): close() throws Error', async () => {
     const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName: dbName,
-      localDir: localDir,
+      db_name: dbName,
+      local_dir: localDir,
     });
     await gitDDB.open();
 
