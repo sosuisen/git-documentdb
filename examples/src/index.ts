@@ -1,8 +1,8 @@
 import { GitDocumentDB } from 'git-documentdb';
 
 const gitDDB = new GitDocumentDB({
-  localDir: 'gddb_data',
-  dbName: 'db01', // Git working directory
+  local_dir: 'gddb_data',
+  db_name: 'db01', // Git working directory
 });
 const foo = async () => {
   // Create repository (gddb_data/db01/.git)
@@ -30,7 +30,7 @@ const foo = async () => {
   await gitDDB.put({ _id: 'Gunma/3', name: 'Hinata', age: '17' });
   await gitDDB.put({ _id: 'Sapporo/1', name: 'Yuzuki', age: '16' });
   // Bulk read
-  const docs = await gitDDB.allDocs({ directory: 'Gunma', include_docs: true });
+  const docs = await gitDDB.allDocs({ sub_directory: 'Gunma', include_docs: true });
   console.dir(docs, { depth: 3 });
   /* docs = 
   {
