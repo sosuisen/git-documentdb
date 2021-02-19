@@ -303,12 +303,12 @@ export class GitDocumentDB {
   /**
    * Create a collection or open an existing one.
    *
-   * @param collectionName - A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'.
-   * collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection.
+   * @param collectionPath - path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'.
+   *  collectionPath cannot start with slash. Tailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
    */
-  collection (collectionName: string) {
-    return new Collection(collectionName);
+  collection (collectionPath: string) {
+    return new Collection(collectionPath);
   }
 
   /**
