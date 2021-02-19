@@ -888,12 +888,12 @@ export class GitDocumentDB {
   }
 
   /**
-   * Get all the documents in a repository.
+   * Get all the documents from the database
    *
    * @remarks
    *
    * @param options - The options specify how to get documents.
-   * @returns Promise
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
