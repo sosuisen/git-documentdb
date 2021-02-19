@@ -43,11 +43,11 @@ export class Validator {
    * Return max length of collectionPath
    */
   maxCollectionPathLength () {
-    // Suppose that collectionPath has leading and trailing slashes.
+    // Suppose that collectionPath is normalized (slashes on both ends are removed).
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}${collectionPath}${_id}.json`
+    // Full path is `${_workingDirectory}/${collectionPath}/${_id}.json`
     const minIdLength = 6; // 'a.json'
-    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - minIdLength;
+    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 2 - minIdLength;
   }
 
   /**
