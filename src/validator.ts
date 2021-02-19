@@ -161,13 +161,18 @@ export class Validator {
    * @remarks
    * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0
    *
+   * - Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
+   *
    * - Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)
    *
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
   validateCollectionPath (collectionPath: string) {
-    // Add heading slash and trailing slash
+    if (collectionPath.startsWith('/')) {
+      throw new InvalidCollectionPathCharacterError();
+    }
+    // Add trailing slash
     const normalized = Collection.normalizeCollectionPath(collectionPath);
     if (normalized !== '/') {
       const arr = normalized.split('/');

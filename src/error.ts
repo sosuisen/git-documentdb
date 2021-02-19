@@ -44,7 +44,7 @@ export class CannotDeleteDataError extends BaseError {
 
 export class InvalidCollectionPathCharacterError extends BaseError {
   constructor (
-    e = "Invalid collectionPath character: collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : \" | ? * \0. Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)"
+    e = "Invalid collectionPath character: collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : \" | ? * \0. Cannot start with slash. Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)"
   ) {
     super(e);
   }
