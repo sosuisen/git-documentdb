@@ -585,7 +585,7 @@ export class GitDocumentDB {
   }
 
   /**
-   * Get a document from a database
+   * Get a document from the root collection
    *
    * @param _id - id of a target document
    * @throws {@link DatabaseClosingError}
