@@ -43,9 +43,8 @@ export class CannotDeleteDataError extends BaseError {
 }
 
 export class InvalidCollectionPathCharacterError extends BaseError {
-  constructor (
-    e = "Invalid collectionPath character: collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : \" | ? * \0. Cannot start with slash. Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)"
-  ) {
+  constructor (name: string) {
+    const e = `Invalid collectionPath character '${name}': collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : \" | ? * \0. Cannot start with slash. Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)`;
     super(e);
   }
 }
@@ -67,9 +66,8 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
 }
 
 export class InvalidIdCharacterError extends BaseError {
-  constructor (
-    e = 'Invalid ID character: id value allows UTF-8 string excluding following characters: < > : "  | ? * \0. id cannot start with an underscore _. id cannot end with a period .'
-  ) {
+  constructor (id: string) {
+    const e = `Invalid ID character '${id}': id value allows UTF-8 string excluding following characters: < > : "  | ? * \0. id cannot start with an underscore _. id cannot end with a period .`;
     super(e);
   }
 }
@@ -119,21 +117,23 @@ export class DatabaseCloseTimeoutError extends BaseError {
 }
 
 export class InvalidPropertyNameInDocumentError extends BaseError {
-  constructor (e = 'A property name cannot start with an underscore _ except _id.') {
+  constructor (name: string) {
+    const e = `Invalid property name '${name}': A property name cannot start with an underscore _ except _id.`;
     super(e);
   }
 }
 
 export class InvalidDbNameCharacterError extends BaseError {
-  constructor (
-    e = 'dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \\ | ? * \0. dbName cannot end with a period .'
-  ) {
+  constructor (name: string) {
+    const e = `Invalid dbName '${name}': dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " / \\ | ? * \0.  dbName cannot end with a period . `;
     super(e);
   }
 }
 
 export class InvalidLocalDirCharacterError extends BaseError {
-  constructor (e = 'localDir cannot end with a period .') {
+  constructor (name: string) {
+    const e = `Invalid localDir character ${name}: localDir allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0. A colon is generally disallowed, however a drive letter followed by a colon is allowed. localDir cannot end with a period .`;
+
     super(e);
   }
 }
