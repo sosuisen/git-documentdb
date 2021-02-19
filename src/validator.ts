@@ -193,7 +193,7 @@ export class Validator {
    * Validate file name
    *
    * @remarks
-   * - file name allows UTF-8 string excluding following characters: < > : " / \ | ? * \0a
+   * - file name allows UTF-8 string excluding following characters: < > : " / \ | ? * \0
    *
    * - file name cannot start with an underscore _.
    *
