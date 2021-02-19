@@ -497,8 +497,20 @@ export class GitDocumentDB {
   }
 
   /**
+   * @remarks
    * This method is used only for internal use.
-   * It is published for test purpose.
+   * But it is published for test purpose.
+   *
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link InvalidKeyLengthError}
+   *
    * @internal
    */
   async _put_concurrent (
@@ -708,8 +720,19 @@ export class GitDocumentDB {
   }
 
   /**
+   * @remarks
    * This method is used only for internal use.
-   * It is published for test purpose.
+   * But it is published for test purpose.
+   *
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link CannotDeleteDataError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link InvalidKeyLengthError}
+   *
    * @internal
    */
   async _remove_concurrent (_id: string, commitMessage: string): Promise<DeleteResult> {
