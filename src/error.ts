@@ -73,9 +73,9 @@ export class InvalidIdCharacterError extends BaseError {
 }
 
 export class InvalidIdLengthError extends BaseError {
-  constructor (key: string, minLength: number, maxLength: number) {
+  constructor (id: string, minLength: number, maxLength: number) {
     super(
-      `Invalid Key length: A length of '${key}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
+      `Invalid id length: A length of '${id}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
     );
   }
 }
