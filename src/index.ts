@@ -112,7 +112,7 @@ export type DatabaseInfo = {
 export type AllDocsOptions = {
   include_docs?: boolean;
   descending?: boolean;
-  directory?: string;
+  collection_path?: string;
   recursive?: boolean;
 };
 
@@ -925,8 +925,10 @@ export class GitDocumentDB {
     const directories: nodegit.Tree[] = [];
     const tree = await commit.getTree();
 
-    if (options?.directory) {
-      const specifiedTreeEntry = await tree.getEntry(options?.directory).catch(e => null);
+    if (options?.collection_path) {
+      const specifiedTreeEntry = await tree
+        .getEntry(options?.collection_path)
+        .catch(e => null);
       if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
         const specifiedTree = await specifiedTreeEntry.getTree();
         directories.push(specifiedTree);
