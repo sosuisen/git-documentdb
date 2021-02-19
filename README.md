@@ -52,8 +52,8 @@ If you are still encountering install problems, documents about [NodeGit](https:
 import { GitDocumentDB } from 'git-documentdb';
 
 const gitDDB = new GitDocumentDB({
-    localDir: 'gddb_data',
-    dbName: 'db01', // Git working directory
+    local_dir: 'gddb_data',
+    db_name: 'db01', // Git working directory
   });
 ```
 
@@ -88,7 +88,7 @@ const gitDDB = new GitDocumentDB({
   await gitDDB.put({ _id: 'Sapporo/4', name: 'Yuzuki', age: '16' });
   
   // Bulk read
-  const docs = await gitDDB.allDocs({ directory: 'Gunma', include_docs: true });
+  const docs = await gitDDB.allDocs({ collection_path: 'Gunma', include_docs: true });
   console.dir(docs, { depth: 3 });
   /* docs = 
   {
