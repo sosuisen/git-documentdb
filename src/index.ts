@@ -307,31 +307,8 @@ export class GitDocumentDB {
    * collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection.
    *
    */
-  async collection (collectionName: string) {
-    const mkdirResult = await this.mkdir(collectionName);
-    return new Collection(mkdirResult.path);
-  }
-
-  /**
-   * Create a collection or open an existing one.
-   *
-   * @param collectionPath - A name of collection which is represented by the path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'.
-   * collectionName can begin and end with slash, and both can be omitted. e.g. '/pages/', '/pages', 'pages/' and 'pages' show the same collection.
-   * @param commitMessage - Default is `mkdir: ${collectionPath}`
-   * @remarks
-   *  This is an alias of mkdir()
-   */
-  async mkdir (collectionPath: string, commitMessage?: string): Promise<PutResult> {
-    collectionPath = Collection.normalizeCollectionPath(collectionPath);
-    this._validator.validateCollectionPath(collectionPath);
-
-    commitMessage ??= `mkdir: ${collectionPath}`;
-
-    const doc = {
-      _id: COLLECTION_CONFIG_FILE,
-      path: collectionPath,
-    };
-    return await this.rawPutJSON(collectionPath, doc, commitMessage);
+  collection (collectionName: string) {
+    return new Collection(collectionName);
   }
 
   /**
