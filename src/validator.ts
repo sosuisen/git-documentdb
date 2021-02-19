@@ -6,7 +6,7 @@ import {
   InvalidCollectionPathLengthError,
   InvalidDbNameCharacterError,
   InvalidIdCharacterError,
-  InvalidKeyLengthError,
+  InvalidIdLengthError,
   InvalidLocalDirCharacterError,
   InvalidPropertyNameInDocumentError,
   UndefinedDocumentIdError,
@@ -35,23 +35,23 @@ export class Validator {
   maxCollectionPathLength () {
     // Suppose that collectionPath is normalized (slashes on both ends are removed).
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}/${collectionPath}/${_id}.json`
+    // Full path is `${_workingDirectory}/${collectionPath}/${fileName}.json`
     const minIdLength = 6; // 'a.json'
     return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 2 - minIdLength;
   }
 
   /**
-   * Return max length of key
+   * Return max length of _id
    *
    * @remarks
-   * key means `${collectionPath}${_id}`
+   * _id means `${collectionPath}/${fileName}`
    */
-  maxKeyLength () {
-    // Suppose that collectionPath has leading and trailing slashes.
+  maxIdLength () {
+    // Suppose that collectionPath is normalized (slashes on both ends are removed).
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}${collectionPath}${_id}.json`
+    // Full path is `${_workingDirectory}/${collectionPath}/${fileName}.json`
     const extLength = 5; // '.json'
-    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - extLength;
+    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 1 - extLength;
   }
 
   /**
@@ -222,10 +222,10 @@ export class Validator {
     this.validateId(path.basename(key));
     this.validateCollectionPath(path.dirname(key));
 
-    // Example of a minimum key is '/a'
-    const minimumKeyLength = 2;
-    if (key.length < minimumKeyLength || key.length > this.maxKeyLength()) {
-      throw new InvalidKeyLengthError(key, minimumKeyLength, this.maxKeyLength());
+    // Example of a minimum _id is 'a'
+    const minimumIdLength = 1;
+    if (key.length < minimumIdLength || key.length > this.maxIdLength()) {
+      throw new InvalidIdLengthError(key, minimumIdLength, this.maxIdLength());
     }
   }
 
