@@ -30,16 +30,6 @@ export class Validator {
   }
 
   /**
-   * Return max length of collectionName
-   *
-   * @remarks
-   * This is an alias of maxCollectionPath().
-   */
-  maxCollectionNameLength () {
-    return this.maxCollectionPathLength.apply(this);
-  }
-
-  /**
    * Return max length of collectionPath
    */
   maxCollectionPathLength () {
