@@ -70,8 +70,8 @@ const repositoryInitOptionFlags = {
  * @beta
  */
 export type DatabaseOption = {
-  localDir?: string;
-  dbName: string;
+  local_dir?: string;
+  db_name: string;
 };
 
 const defaultLocalDir = './gitddb';
@@ -80,19 +80,19 @@ const defaultLocalDir = './gitddb';
  * Database information
  *
  * @remarks
- * - isNew: Whether a repository is newly created or existing.
+ * - is_new: Whether a repository is newly created or existing.
  *
- * - isCreatedByGitDDB: Whether a repository is created by git-documentDB or other methods.
+ * - is_created_by_gitddb: Whether a repository is created by git-documentDB or other methods.
  *
- * - isValidVersion: Whether a repository version equals to the current databaseVersion of git-documentDB.
+ * - is_valid_version: Whether a repository version equals to the current databaseVersion of git-documentDB.
  *   The version is described in .git/description.
  *
  * @beta
  */
 export type DatabaseInfo = {
-  isNew: boolean;
-  isCreatedByGitDDB: boolean;
-  isValidVersion: boolean;
+  is_new: boolean;
+  is_created_by_gitddb: boolean;
+  is_valid_version: boolean;
 };
 
 /**
@@ -236,9 +236,9 @@ export class GitDocumentDB {
   isClosing = false;
 
   private _dbInfo = {
-    isNew: false,
-    isCreatedByGitDDB: true,
-    isValidVersion: true,
+    is_new: false,
+    is_created_by_gitddb: true,
+    is_valid_version: true,
   };
 
   /**
@@ -257,11 +257,11 @@ export class GitDocumentDB {
    * @throws {@link UndefinedDatabaseNameError}
    */
   constructor (options: DatabaseOption) {
-    if (options.dbName === undefined || options.dbName === '') {
+    if (options.db_name === undefined || options.db_name === '') {
       throw new UndefinedDatabaseNameError();
     }
-    this._dbName = options.dbName;
-    this._localDir = options.localDir ?? defaultLocalDir;
+    this._dbName = options.db_name;
+    this._localDir = options.local_dir ?? defaultLocalDir;
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
@@ -347,7 +347,7 @@ export class GitDocumentDB {
       return Promise.reject(new DatabaseClosingError());
     }
     if (this.isOpened()) {
-      this._dbInfo.isNew = false;
+      this._dbInfo.is_new = false;
       return this._dbInfo;
     }
 
@@ -357,9 +357,9 @@ export class GitDocumentDB {
       return Promise.reject(new CannotCreateDirectoryError(err.message));
     });
     this._dbInfo = {
-      isNew: false,
-      isCreatedByGitDDB: true,
-      isValidVersion: true,
+      is_new: false,
+      is_created_by_gitddb: true,
+      is_valid_version: true,
     };
 
     /**
@@ -377,7 +377,7 @@ export class GitDocumentDB {
         description: defaultDescription,
         initialHead: 'main',
       };
-      this._dbInfo.isNew = true;
+      this._dbInfo.is_new = true;
       this._currentRepository = await nodegit.Repository.initExt(
         this._workingDirectory,
         // @ts-ignore
@@ -391,26 +391,26 @@ export class GitDocumentDB {
     const description = await fs
       .readFile(path.resolve(this._workingDirectory, '.git', 'description'), 'utf8')
       .catch(() => {
-        this._dbInfo.isCreatedByGitDDB = false;
-        this._dbInfo.isValidVersion = false;
+        this._dbInfo.is_created_by_gitddb = false;
+        this._dbInfo.is_valid_version = false;
         return '';
       });
     if (description === '') return this._dbInfo;
 
     if (new RegExp('^' + databaseName).test(description)) {
-      this._dbInfo.isCreatedByGitDDB = true;
+      this._dbInfo.is_created_by_gitddb = true;
       if (new RegExp('^' + defaultDescription).test(description)) {
-        this._dbInfo.isValidVersion = true;
+        this._dbInfo.is_valid_version = true;
       }
       else {
         // console.warn('Database version is invalid.');
-        this._dbInfo.isValidVersion = false;
+        this._dbInfo.is_valid_version = false;
       }
     }
     else {
       // console.warn('Database is not created by git-documentdb.');
-      this._dbInfo.isCreatedByGitDDB = false;
-      this._dbInfo.isValidVersion = false;
+      this._dbInfo.is_created_by_gitddb = false;
+      this._dbInfo.is_valid_version = false;
     }
 
     return this._dbInfo;
