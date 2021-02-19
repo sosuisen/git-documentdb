@@ -338,6 +338,7 @@ export class GitDocumentDB {
    * @remarks If localDir does not exist, it is created.
    *
    * @returns Database information
+   *
    * @throws {@link CannotCreateDirectoryError} You may not have write permission.
    * @throws {@link DatabaseClosingError}
    */
