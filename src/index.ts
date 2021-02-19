@@ -640,8 +640,7 @@ export class GitDocumentDB {
    *   This is an alias of remove()
    */
   delete (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
-    // @ts-ignore
-    return this.remove(key, commitMessage);
+    return this.remove(idOrDoc, commitMessage);
   }
 
   /**
