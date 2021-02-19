@@ -120,6 +120,8 @@ export type AllDocsOptions = {
  * Result of put()
  *
  * @remarks
+ * - ok: ok shows always true. Exception is thrown when error occurs.
+ *
  * - id: id of a document
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
@@ -140,6 +142,8 @@ export type PutResult = {
  * Result of delete()
  *
  * @remarks
+ * - ok: ok shows always true. Exception is thrown when error occurs.
+ *
  * - _id: id of a document
  *
  * - file_sha: SHA-1 hash of Git blob (40 characters)
