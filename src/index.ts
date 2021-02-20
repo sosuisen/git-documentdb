@@ -794,7 +794,7 @@ export class GitDocumentDB {
    * Close database
    *
    * @remarks
-   * - CRUD operations are not available while closing.
+   * - New CRUD operations are not available while closing.
    *
    * - Queued operations are executed before database is closed.
    *
@@ -857,10 +857,11 @@ export class GitDocumentDB {
    *
    * - The Git repository is removed from the filesystem.
    *
-   * - localDir (which is specified in constructor) is not removed.
+   * - local_dir (which is specified in constructor) is not removed.
    *
    * @param options - The options specify how to close database.
    * @throws {@link DatabaseClosingError}
+   * @throws {@link DatabaseCloseTimeoutError}
    */
   async destroy (options: DatabaseCloseOption = {}): Promise<{ ok: true }> {
     if (this.isClosing) {
