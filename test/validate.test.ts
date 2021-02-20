@@ -165,7 +165,7 @@ describe('Using validation in other functions', () => {
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringContaining(id),
+      id: expect.stringMatching(id),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -194,7 +194,7 @@ describe('Using validation in other functions', () => {
     const _id = '-.()[]_';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringContaining(_id),
+      id: expect.stringMatching(/^-.\(\)\[]_$/),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });

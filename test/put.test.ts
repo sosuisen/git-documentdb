@@ -82,10 +82,25 @@ describe('Create document', () => {
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringContaining(_id),
+      id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`put: ${_id}`);
+    }
+
+    // Check filename
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + '.json');
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    // Read JSON and check doc._id
+    expect(fs.readJSONSync(filePath)._id).toBe(_id);
+
     await gitDDB.destroy();
   });
 
@@ -99,16 +114,25 @@ describe('Create document', () => {
     const _id = 'dir01/prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringContaining(_id),
+      id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+
     const repository = gitDDB.getRepository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       expect(commit.message()).toEqual(`put: ${_id}`);
     }
+
+    // Check filename
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + '.json');
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    // Read JSON and check doc._id
+    expect(fs.readJSONSync(filePath)._id).toBe('prof01'); // not 'dir01/prof01'
+
     await gitDDB.destroy();
   });
 
@@ -186,7 +210,7 @@ describe('Update document', () => {
     // Update
     await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringContaining(_id),
+      id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -244,27 +268,27 @@ describe('Concurrent', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
-          id: expect.stringContaining(_id_a),
+          id: expect.stringMatching('^' + _id_a + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringContaining(_id_b),
+          id: expect.stringMatching('^' + _id_b + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringContaining(_id_c01),
+          id: expect.stringMatching('^' + _id_c01 + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringContaining(_id_c02),
+          id: expect.stringMatching('^' + _id_c02 + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringContaining(_id_d),
+          id: expect.stringMatching('^' + _id_d + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringContaining(_id_p),
+          id: expect.stringMatching('^' + _id_p + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
       ],
