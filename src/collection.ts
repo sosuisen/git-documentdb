@@ -18,15 +18,25 @@ export class Collection {
    * normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
    */
   static normalizeCollectionPath (collectionPath: string | undefined) {
-    if (collectionPath === undefined || collectionPath === '') {
+    if (collectionPath === undefined || collectionPath === '' || collectionPath === '/') {
       return '';
     }
 
+    // Remove consecutive slash
+    collectionPath = collectionPath.replace(/\/+?([^/])/g, '/$1');
+
     // Remove heading slash
-    if (collectionPath.startsWith('/')) {
-      collectionPath = collectionPath.slice(0, 1);
+    while (collectionPath.startsWith('/')) {
+      collectionPath = collectionPath.slice(1);
     }
-    // Add trailing slash
+
+    // Add a trailing slash
+    while (collectionPath.endsWith('/')) {
+      collectionPath = collectionPath.slice(0, -1);
+    }
+    if (collectionPath === '') {
+      return '';
+    }
     if (!collectionPath.endsWith('/')) {
       collectionPath += '/';
     }
