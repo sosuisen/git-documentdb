@@ -33,11 +33,11 @@ export class Validator {
    * Return max length of collectionPath
    */
   maxCollectionPathLength () {
-    // Suppose that collectionPath is normalized (slashes on both ends are removed).
+    // Suppose that collectionPath is normalized.
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}/${collectionPath}/${fileName}.json`
+    // Full path is `${_workingDirectory}/${collectionPath}${fileName}.json`
     const minIdLength = 6; // 'a.json'
-    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 2 - minIdLength;
+    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 1 - minIdLength;
   }
 
   /**
@@ -47,9 +47,9 @@ export class Validator {
    * _id means `${collectionPath}/${fileName}`
    */
   maxIdLength () {
-    // Suppose that collectionPath is normalized (slashes on both ends are removed).
+    // Suppose that collectionPath is normalized.
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}/${collectionPath}/${fileName}.json`
+    // Full path is `${_workingDirectory}/${collectionPath}${fileName}.json`
     const extLength = 5; // '.json'
     return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 1 - extLength;
   }
@@ -153,30 +153,35 @@ export class Validator {
    *
    * - Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
-   * - Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)
+   * - Each part of collectionPath that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
    *
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
   validateCollectionPath (collectionPath: string) {
+    if (collectionPath === '') {
+      return;
+    }
+
     if (collectionPath.startsWith('/')) {
       throw new InvalidCollectionPathCharacterError('/');
     }
-    // Add trailing slash
+
     const normalized = Collection.normalizeCollectionPath(collectionPath);
-    if (normalized !== '/') {
-      const arr = normalized.split('/');
-      arr.forEach(part => {
-        if (
-          !this.testWindowsReservedFileName(part) ||
-          !this.testWindowsInvalidFileNameCharacter(part) ||
-          part === ''
-        ) {
-          throw new InvalidCollectionPathCharacterError(part);
-        }
-      });
-    }
-    const minimumCollectionPathLength = 1; // minimum is '/'
+
+    const trailingSlashRemoved = normalized.slice(0, -1);
+    const arr = trailingSlashRemoved.split('/');
+    arr.forEach(part => {
+      if (
+        !this.testWindowsReservedFileName(part) ||
+        !this.testWindowsInvalidFileNameCharacter(part) ||
+        part === ''
+      ) {
+        throw new InvalidCollectionPathCharacterError(part);
+      }
+    });
+
+    const minimumCollectionPathLength = 0; // minimum is ''
     if (
       normalized.length < minimumCollectionPathLength ||
       normalized.length > this.maxCollectionPathLength()

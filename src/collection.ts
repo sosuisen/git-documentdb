@@ -1,14 +1,22 @@
 export class Collection {
-  static normalizeCollectionPath (collectionPath: string) {
-    // Remove slashes on both ends
-    if (collectionPath !== '/') {
-      if (collectionPath.startsWith('/')) {
-        collectionPath = collectionPath.slice(1);
-      }
-      if (collectionPath.endsWith('/')) {
-        collectionPath = collectionPath.slice(0, -1);
-      }
+
+  /**
+   * normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
+   */
+  static normalizeCollectionPath (collectionPath: string | undefined) {
+    if (collectionPath === undefined || collectionPath === '') {
+      return '';
     }
+
+    // Remove heading slash
+    if (collectionPath.startsWith('/')) {
+      collectionPath = collectionPath.slice(0, 1);
+    }
+    // Add trailing slash
+    if (!collectionPath.endsWith('/')) {
+      collectionPath += '/';
+    }
+
     return collectionPath;
   }
 
