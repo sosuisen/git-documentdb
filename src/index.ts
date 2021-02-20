@@ -460,42 +460,6 @@ export class GitDocumentDB {
       return Promise.reject(new InvalidJsonObjectError());
     }
 
-    commitMessage ??= `put: ${document?._id}`;
-
-    // put() must be serial.
-    return new Promise((resolve, reject) => {
-      this._pushToSerialQueue(() =>
-        this._put_concurrent(document, commitMessage!)
-          .then(result => {
-            resolve(result);
-          })
-          .catch(err => reject(err))
-      );
-    });
-  }
-
-  /**
-   * @remarks
-   * This method is used only for internal use.
-   * But it is published for test purpose.
-   *
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
-   * @throws {@link InvalidKeyLengthError}
-   *
-   * @internal
-   */
-  async _put_concurrent (document: JsonDoc, commitMessage: string): Promise<PutResult> {
-    if (this._currentRepository === undefined) {
-      return Promise.reject(new RepositoryNotOpenError());
-    }
-
     if (document._id === undefined) {
       return Promise.reject(new UndefinedDocumentIdError());
     }
@@ -519,6 +483,40 @@ export class GitDocumentDB {
     } catch (err) {
       // not json
       return Promise.reject(new InvalidJsonObjectError());
+    }
+
+    commitMessage ??= `put: ${document?._id}`;
+
+    // put() must be serial.
+    return new Promise((resolve, reject) => {
+      this._pushToSerialQueue(() =>
+        this._put_concurrent(_id, data, commitMessage!)
+          .then(result => {
+            resolve(result);
+          })
+          .catch(err => reject(err))
+      );
+    });
+  }
+
+  /**
+   * @remarks
+   * This method is used only for internal use.
+   * But it is published for test purpose.
+   *
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link CannotWriteDataError}
+   *
+   * @internal
+   */
+  async _put_concurrent (
+    _id: string,
+    data: string,
+    commitMessage: string
+  ): Promise<PutResult> {
+    if (this._currentRepository === undefined) {
+      return Promise.reject(new RepositoryNotOpenError());
     }
 
     let file_sha, commit_sha: string;
@@ -578,7 +576,7 @@ export class GitDocumentDB {
     // console.log(commitId.tostrS());
     return {
       ok: true,
-      id: document._id,
+      id: _id,
       file_sha: file_sha,
       commit_sha: commit_sha,
     };

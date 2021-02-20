@@ -37,7 +37,7 @@ describe('Create document', () => {
       RepositoryNotOpenError
     );
     await expect(
-      gitDDB._put_concurrent({ _id: 'prof01', name: 'shirase' }, 'message')
+      gitDDB._put_concurrent('prof01', '{ "_id": "prof01", "name": "shirase" }', 'message')
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
@@ -320,12 +320,36 @@ describe('Concurrent', () => {
 
     await expect(
       Promise.all([
-        gitDDB._put_concurrent({ _id: _id_a, name: name_a }, 'message'),
-        gitDDB._put_concurrent({ _id: _id_b, name: name_b }, 'message'),
-        gitDDB._put_concurrent({ _id: _id_c01, name: name_c01 }, 'message'),
-        gitDDB._put_concurrent({ _id: _id_c02, name: name_c02 }, 'message'),
-        gitDDB._put_concurrent({ _id: _id_d, name: name_d }, 'message'),
-        gitDDB._put_concurrent({ _id: _id_p, name: name_p }, 'message'),
+        gitDDB._put_concurrent(
+          _id_a,
+          `{ "_id": "${_id_a}", "name": "${name_a}" }`,
+          'message'
+        ),
+        gitDDB._put_concurrent(
+          _id_b,
+          `{ "_id": "${_id_b}", "name": "${name_b}" }`,
+          'message'
+        ),
+        gitDDB._put_concurrent(
+          _id_c01,
+          `{ "_id": "${_id_c01}", "name": "${name_c01}" }`,
+          'message'
+        ),
+        gitDDB._put_concurrent(
+          _id_c02,
+          `{ "_id": "${_id_c02}", "name": "${name_c02}" }`,
+          'message'
+        ),
+        gitDDB._put_concurrent(
+          _id_d,
+          `{ "_id": "${_id_d}", "name": "${name_d}" }`,
+          'message'
+        ),
+        gitDDB._put_concurrent(
+          _id_p,
+          `{ "_id": "${_id_p}", "name": "${name_p}" }`,
+          'message'
+        ),
       ])
     ).rejects.toThrowError();
 
