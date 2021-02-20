@@ -11,8 +11,8 @@ import {
 } from './types';
 
 export class Collection {
-  public collectionPath = '';
-  public gitDDB: AbstractDocumentDB;
+  private _collectionPath = '';
+  private _gitDDB: AbstractDocumentDB;
 
   /**
    * normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
@@ -35,13 +35,17 @@ export class Collection {
   }
 
   constructor (_gitDDB: AbstractDocumentDB, _collectionPath: string) {
-    this.gitDDB = _gitDDB;
-    this.collectionPath = Collection.normalizeCollectionPath(_collectionPath);
+    this._gitDDB = _gitDDB;
+    this._collectionPath = Collection.normalizeCollectionPath(_collectionPath);
+  }
+
+  collectionPath () {
+    return this._collectionPath;
   }
 
   getFullPath (path: string | undefined) {
     path = Collection.normalizeCollectionPath(path);
-    return this.collectionPath + path;
+    return this._collectionPath + path;
   }
 
   put (document: JsonDoc, options?: PutOptions): Promise<PutResult> {
@@ -51,7 +55,7 @@ export class Collection {
     };
     options.collection_path = this.getFullPath(options.collection_path);
 
-    return this.gitDDB.put(document, options);
+    return this._gitDDB.put(document, options);
   }
 
   get (_id: string, options: GetOptions): Promise<JsonDoc> {
@@ -60,7 +64,7 @@ export class Collection {
     };
     options.collection_path = this.getFullPath(options.collection_path);
 
-    return this.gitDDB.get(_id, options);
+    return this._gitDDB.get(_id, options);
   }
 
   delete (idOrDoc: string | JsonDoc, options: RemoveOptions): Promise<RemoveResult> {
@@ -74,7 +78,7 @@ export class Collection {
     };
     options.collection_path = this.getFullPath(options.collection_path);
 
-    return this.gitDDB.remove(idOrDoc, options);
+    return this._gitDDB.remove(idOrDoc, options);
   }
 
   allDocs (options: AllDocsOptions): Promise<AllDocsResult> {
@@ -87,6 +91,6 @@ export class Collection {
     };
     options.collection_path = this.getFullPath(options.collection_path);
 
-    return this.gitDDB.allDocs(options);
+    return this._gitDDB.allDocs(options);
   }
 }
