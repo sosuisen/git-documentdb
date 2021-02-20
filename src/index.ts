@@ -680,6 +680,12 @@ export class GitDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
+    try {
+      this._validator.validateId(_id);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+
     commitMessage ??= `remove: ${_id}`;
 
     // delete() must be serial.
@@ -698,29 +704,14 @@ export class GitDocumentDB {
    * But it is published for test purpose.
    *
    * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link DocumentNotFoundError}
    * @throws {@link CannotDeleteDataError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
-   * @throws {@link InvalidKeyLengthError}
    *
    * @internal
    */
   async _remove_concurrent (_id: string, commitMessage: string): Promise<DeleteResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
-    }
-
-    if (_id === undefined) {
-      return Promise.reject(new UndefinedDocumentIdError());
-    }
-
-    try {
-      this._validator.validateId(_id);
-    } catch (err) {
-      return Promise.reject(err);
     }
 
     let file_sha, commit_sha: string;
@@ -783,8 +774,8 @@ export class GitDocumentDB {
     return {
       ok: true,
       id: _id,
-      file_sha: file_sha,
-      commit_sha: commit_sha,
+      file_sha,
+      commit_sha,
     };
   }
 

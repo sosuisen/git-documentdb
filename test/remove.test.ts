@@ -67,7 +67,7 @@ describe('Delete document', () => {
     await expect(gitDDB.get(_id)).rejects.toThrowError(DocumentNotFoundError);
     // @ts-ignore
     await expect(gitDDB._remove_concurrent(undefined)).rejects.toThrowError(
-      UndefinedDocumentIdError
+      DocumentNotFoundError
     );
 
     // Check if file is deleted.
