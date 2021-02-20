@@ -138,7 +138,7 @@ export type PutResult = {
 };
 
 /**
- * Result of delete()
+ * Result of remove()
  *
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
@@ -151,7 +151,7 @@ export type PutResult = {
  *
  * @beta
  */
-export type DeleteResult = {
+export type RemoveResult = {
   ok: true;
   id: string;
   file_sha: string;
@@ -637,7 +637,7 @@ export class GitDocumentDB {
    * @remarks
    *   This is an alias of remove()
    */
-  delete (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
+  delete (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<RemoveResult> {
     return this.remove(idOrDoc, commitMessage);
   }
 
@@ -660,7 +660,7 @@ export class GitDocumentDB {
    * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidKeyLengthError}
    */
-  remove (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult> {
+  remove (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<RemoveResult> {
     let _id: string;
     if (typeof idOrDoc === 'string') {
       _id = idOrDoc;
@@ -709,7 +709,7 @@ export class GitDocumentDB {
    *
    * @internal
    */
-  async _remove_concurrent (_id: string, commitMessage: string): Promise<DeleteResult> {
+  async _remove_concurrent (_id: string, commitMessage: string): Promise<RemoveResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
