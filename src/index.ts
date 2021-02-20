@@ -386,12 +386,18 @@ export class GitDocumentDB extends AbstractDocumentDB {
       return Promise.reject(new InvalidJsonObjectError());
     }
 
+    // Clone doc before rewriting _id
+    const clone = JSON.parse(data);
+    // _id of JSON document in Git repository includes just a filename.
+    clone._id = path.basename(document._id);
+    data = JSON.stringify(clone);
+
     options ??= {
       commit_message: undefined,
       collection_path: undefined,
     };
-    options.commit_message ??= `put: ${document?._id}`;
     options.collection_path ??= '';
+    options.commit_message ??= `put: ${options.collection_path}${_id}`;
 
     this._validator.validateCollectionPath(options.collection_path);
 
@@ -546,14 +552,11 @@ export class GitDocumentDB extends AbstractDocumentDB {
       document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
       // _id in a document may differ from _id in a filename by mistake.
       // _id in a file is SSOT.
-      // Overwrite _id in a document by _id in a filename just to be sure.
+      // Overwrite _id in a document by _id in arguments
       document._id = _id;
     } catch (e) {
       return Promise.reject(new InvalidJsonObjectError());
     }
-
-    const reg = new RegExp('^' + options.collection_path);
-    document._id = document._id.replace(reg, '');
 
     return document;
   }
@@ -617,8 +620,8 @@ export class GitDocumentDB extends AbstractDocumentDB {
       commit_message: undefined,
       collection_path: undefined,
     };
-    options.commit_message ??= `remove: ${_id}`;
     options.collection_path ??= '';
+    options.commit_message ??= `remove: ${options.collection_path}${_id}`;
 
     this._validator.validateCollectionPath(options.collection_path);
 
@@ -708,9 +711,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
     } catch (err) {
       return Promise.reject(new CannotDeleteDataError(err.message));
     }
-
-    const reg = new RegExp('^' + collectionPath);
-    _id = _id.replace(reg, '');
 
     return {
       ok: true,
