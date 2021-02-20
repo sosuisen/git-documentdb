@@ -37,7 +37,12 @@ describe('Create document', () => {
       RepositoryNotOpenError
     );
     await expect(
-      gitDDB._put_concurrent('prof01', '{ "_id": "prof01", "name": "shirase" }', 'message')
+      gitDDB._put_concurrent(
+        'prof01',
+        '',
+        '{ "_id": "prof01", "name": "shirase" }',
+        'message'
+      )
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
@@ -139,7 +144,10 @@ describe('Create document', () => {
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
-    await gitDDB.put({ _id: _id, name: 'shirase' }, 'my commit message');
+    await gitDDB.put(
+      { _id: _id, name: 'shirase' },
+      { commit_message: 'my commit message' }
+    );
     const repository = gitDDB.getRepository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
@@ -322,31 +330,37 @@ describe('Concurrent', () => {
       Promise.all([
         gitDDB._put_concurrent(
           _id_a,
+          '',
           `{ "_id": "${_id_a}", "name": "${name_a}" }`,
           'message'
         ),
         gitDDB._put_concurrent(
           _id_b,
+          '',
           `{ "_id": "${_id_b}", "name": "${name_b}" }`,
           'message'
         ),
         gitDDB._put_concurrent(
           _id_c01,
+          '',
           `{ "_id": "${_id_c01}", "name": "${name_c01}" }`,
           'message'
         ),
         gitDDB._put_concurrent(
           _id_c02,
+          '',
           `{ "_id": "${_id_c02}", "name": "${name_c02}" }`,
           'message'
         ),
         gitDDB._put_concurrent(
           _id_d,
+          '',
           `{ "_id": "${_id_d}", "name": "${name_d}" }`,
           'message'
         ),
         gitDDB._put_concurrent(
           _id_p,
+          '',
           `{ "_id": "${_id_p}", "name": "${name_p}" }`,
           'message'
         ),

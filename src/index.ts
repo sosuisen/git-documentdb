@@ -24,7 +24,19 @@ import {
 } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
-import { JsonDoc } from './types';
+import {
+  AbstractDocumentDB,
+  AllDocsOptions,
+  AllDocsResult,
+  DatabaseCloseOption,
+  GetOptions,
+  JsonDoc,
+  JsonDocWithMetadata,
+  PutOptions,
+  PutResult,
+  RemoveOptions,
+  RemoveResult,
+} from './types';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
@@ -95,120 +107,6 @@ export type DatabaseInfo = {
   is_valid_version: boolean;
 };
 
-/**
- * How to get documents
- *
- * @remarks
- * - include_docs: Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.
- *
- * - descending: Sort results in rows by descendant. Default is false (ascendant).
- *
- * - sub_directory: Only get the documents under the specified sub directory.
- *
- * - recursive: Get documents recursively from all sub directories. Default is false.
- *
- * @beta
- */
-export type AllDocsOptions = {
-  include_docs?: boolean;
-  descending?: boolean;
-  sub_directory?: string;
-  recursive?: boolean;
-};
-
-/**
- * Result of put()
- *
- * @remarks
- * - ok: ok shows always true. Exception is thrown when error occurs.
- *
- * - id: id of a document
- *
- * - file_sha: SHA-1 hash of Git object (40 characters)
- *
- * - commit_sha: SHA-1 hash of Git commit (40 characters)
- *
- * @beta
- */
-export type PutResult = {
-  ok: true;
-  id: string;
-  file_sha: string;
-  commit_sha: string;
-};
-
-/**
- * Result of remove()
- *
- * @remarks
- * - ok: ok shows always true. Exception is thrown when error occurs.
- *
- * - _id: id of a document
- *
- * - file_sha: SHA-1 hash of Git blob (40 characters)
- *
- * - commit_sha: SHA-1 hash of Git commit (40 characters)
- *
- * @beta
- */
-export type RemoveResult = {
-  ok: true;
-  id: string;
-  file_sha: string;
-  commit_sha: string;
-};
-
-/**
- * Result of allDocs()
- *
- * @remarks
- * - total_rows: number of documents
- *
- * - commit_sha: SHA-1 hash of the last Git commit (40 characters). 'commit_sha' is undefined if total_rows equals 0.
- *
- * - rows: Array of documents. 'rows' is undefined if total_rows equals 0.
- *
- * @beta
- */
-export type AllDocsResult = {
-  total_rows: number;
-  commit_sha?: string;
-  rows?: JsonDocWithMetadata[];
-};
-
-/**
- * Type for a JSON document with metadata
- *
- * @remarks
- * - _id: id of a document
- *
- * - file_sha: SHA-1 hash of Git object (40 characters)
- *
- * - doc: JsonDoc
- *
- * @beta
- */
-export type JsonDocWithMetadata = {
-  id: string;
-  file_sha: string;
-  doc?: JsonDoc;
-};
-
-/**
- * How to close database
- *
- * @remarks
- * - force: Clear queued operations immediately.
- *
- * - timeout: Clear queued operation after timeout(msec). Default is 10000.
- *
- *  @beta
- */
-export type DatabaseCloseOption = {
-  force?: boolean;
-  timeout?: number;
-};
-
 const fileExt = '.json';
 
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
@@ -218,7 +116,7 @@ const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec)
  *
  * @beta
  */
-export class GitDocumentDB {
+export class GitDocumentDB extends AbstractDocumentDB {
   private _localDir: string;
   private _dbName: string;
   private _currentRepository: nodegit.Repository | undefined;
@@ -257,6 +155,7 @@ export class GitDocumentDB {
    * @throws {@link UndefinedDatabaseNameError}
    */
   constructor (options: DatabaseOption) {
+    super();
     if (options.db_name === undefined || options.db_name === '') {
       throw new UndefinedDatabaseNameError();
     }
@@ -308,7 +207,7 @@ export class GitDocumentDB {
    *
    */
   collection (collectionPath: string) {
-    return new Collection(collectionPath);
+    return new Collection(this, collectionPath);
   }
 
   /**
@@ -446,8 +345,10 @@ export class GitDocumentDB {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidKeyLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    */
-  put (document: JsonDoc, commitMessage?: string): Promise<PutResult> {
+  put (document: JsonDoc, options?: PutOptions): Promise<PutResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -485,12 +386,19 @@ export class GitDocumentDB {
       return Promise.reject(new InvalidJsonObjectError());
     }
 
-    commitMessage ??= `put: ${document?._id}`;
+    options ??= {
+      commit_message: undefined,
+      collection_path: undefined,
+    };
+    options.commit_message ??= `put: ${document?._id}`;
+    options.collection_path ??= '';
+
+    this._validator.validateCollectionPath(options.collection_path);
 
     // put() must be serial.
     return new Promise((resolve, reject) => {
       this._pushToSerialQueue(() =>
-        this._put_concurrent(_id, data, commitMessage!)
+        this._put_concurrent(_id, options!.collection_path!, data, options!.commit_message!)
           .then(result => {
             resolve(result);
           })
@@ -512,6 +420,7 @@ export class GitDocumentDB {
    */
   async _put_concurrent (
     _id: string,
+    collectionPath: string,
     data: string,
     commitMessage: string
   ): Promise<PutResult> {
@@ -520,7 +429,7 @@ export class GitDocumentDB {
     }
 
     let file_sha, commit_sha: string;
-    const filename = _id + fileExt;
+    const filename = collectionPath + _id + fileExt;
     const filePath = path.resolve(this._workingDirectory, filename);
     const dir = path.dirname(filePath);
 
@@ -574,6 +483,10 @@ export class GitDocumentDB {
       return Promise.reject(new CannotWriteDataError(err.message));
     }
     // console.log(commitId.tostrS());
+
+    const reg = new RegExp('^' + collectionPath);
+    _id = _id.replace(reg, '');
+
     return {
       ok: true,
       id: _id,
@@ -591,8 +504,10 @@ export class GitDocumentDB {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link DocumentNotFoundError}
    * @throws {@link InvalidJsonObjectError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    */
-  async get (_id: string): Promise<JsonDoc> {
+  async get (_id: string, options?: GetOptions): Promise<JsonDoc> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -605,6 +520,13 @@ export class GitDocumentDB {
       return Promise.reject(new UndefinedDocumentIdError());
     }
 
+    options ??= {
+      collection_path: undefined,
+    };
+    options.collection_path ??= '';
+    this._validator.validateCollectionPath(options.collection_path);
+    const collection_path = options.collection_path;
+
     // Calling nameToId() for HEAD throws error when this is first commit.
     const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
       e => false
@@ -615,7 +537,7 @@ export class GitDocumentDB {
     }
 
     const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    const filename = _id + fileExt;
+    const filename = collection_path + _id + fileExt;
     const entry = await commit.getEntry(filename).catch(err => {
       return Promise.reject(new DocumentNotFoundError(err.message));
     });
@@ -630,6 +552,9 @@ export class GitDocumentDB {
       return Promise.reject(new InvalidJsonObjectError());
     }
 
+    const reg = new RegExp('^' + options.collection_path);
+    document._id = document._id.replace(reg, '');
+
     return document;
   }
 
@@ -637,8 +562,8 @@ export class GitDocumentDB {
    * @remarks
    *   This is an alias of remove()
    */
-  delete (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<RemoveResult> {
-    return this.remove(idOrDoc, commitMessage);
+  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+    return this.remove(idOrDoc, options);
   }
 
   /**
@@ -659,8 +584,10 @@ export class GitDocumentDB {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidKeyLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    */
-  remove (idOrDoc: string | JsonDoc, commitMessage?: string): Promise<RemoveResult> {
+  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     let _id: string;
     if (typeof idOrDoc === 'string') {
       _id = idOrDoc;
@@ -686,12 +613,19 @@ export class GitDocumentDB {
       return Promise.reject(err);
     }
 
-    commitMessage ??= `remove: ${_id}`;
+    options ??= {
+      commit_message: undefined,
+      collection_path: undefined,
+    };
+    options.commit_message ??= `remove: ${_id}`;
+    options.collection_path ??= '';
+
+    this._validator.validateCollectionPath(options.collection_path);
 
     // delete() must be serial.
     return new Promise((resolve, reject) => {
       this._pushToSerialQueue(() =>
-        this._remove_concurrent(_id, commitMessage!)
+        this._remove_concurrent(_id, options!.collection_path!, options!.commit_message!)
           .then(result => resolve(result))
           .catch(err => reject(err))
       );
@@ -709,13 +643,17 @@ export class GitDocumentDB {
    *
    * @internal
    */
-  async _remove_concurrent (_id: string, commitMessage: string): Promise<RemoveResult> {
+  async _remove_concurrent (
+    _id: string,
+    collectionPath: string,
+    commitMessage: string
+  ): Promise<RemoveResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
     let file_sha, commit_sha: string;
-    const filename = _id + fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
+    const filename = collectionPath + _id + fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
     const filePath = path.resolve(this._workingDirectory, filename);
     const dir = path.dirname(filePath);
 
@@ -770,6 +708,9 @@ export class GitDocumentDB {
     } catch (err) {
       return Promise.reject(new CannotDeleteDataError(err.message));
     }
+
+    const reg = new RegExp('^' + collectionPath);
+    _id = _id.replace(reg, '');
 
     return {
       ok: true,
@@ -886,6 +827,8 @@ export class GitDocumentDB {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    */
   // eslint-disable-next-line complexity
   async allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
@@ -895,6 +838,12 @@ export class GitDocumentDB {
 
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
+    }
+
+    let collection_path = '';
+    if (options?.collection_path) {
+      collection_path = options.collection_path;
+      this._validator.validateCollectionPath(collection_path);
     }
 
     // Calling nameToId() for HEAD throws error when this is first commit.
@@ -914,10 +863,13 @@ export class GitDocumentDB {
     const directories: nodegit.Tree[] = [];
     const tree = await commit.getTree();
 
+    let sub_directory = collection_path;
     if (options?.sub_directory) {
-      const specifiedTreeEntry = await tree
-        .getEntry(options?.sub_directory)
-        .catch(e => null);
+      sub_directory += options.sub_directory;
+    }
+
+    if (sub_directory !== '') {
+      const specifiedTreeEntry = await tree.getEntry(sub_directory).catch(e => null);
       if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
         const specifiedTree = await specifiedTreeEntry.getTree();
         directories.push(specifiedTree);
@@ -955,7 +907,10 @@ export class GitDocumentDB {
           }
         }
         else {
-          const _id = entry.path().replace(new RegExp(fileExt + '$'), '');
+          let _id = entry.path().replace(new RegExp(fileExt + '$'), '');
+          const reg = new RegExp('^' + collection_path);
+          _id = _id.replace(reg, '');
+
           const documentInBatch: JsonDocWithMetadata = {
             id: _id,
             file_sha: entry.id().tostrS(),

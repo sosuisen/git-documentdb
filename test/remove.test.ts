@@ -88,7 +88,7 @@ describe('Delete document', () => {
     await gitDDB.destroy();
 
     await expect(gitDDB.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);
-    await expect(gitDDB._remove_concurrent(_id, 'message')).rejects.toThrowError(
+    await expect(gitDDB._remove_concurrent(_id, '', 'message')).rejects.toThrowError(
       RepositoryNotOpenError
     );
   });
@@ -105,7 +105,7 @@ describe('Delete document', () => {
     await gitDDB.put({ _id: _id, name: 'shirase' });
 
     // Delete
-    await gitDDB.delete(_id, 'my commit message');
+    await gitDDB.delete(_id, { commit_message: 'my commit message' });
 
     // Check commit message
     const repository = gitDDB.getRepository();
@@ -239,11 +239,11 @@ describe('Concurrent', () => {
 
     await expect(
       Promise.all([
-        gitDDB._remove_concurrent(_id_a, 'message'),
-        gitDDB._remove_concurrent(_id_b, 'message'),
-        gitDDB._remove_concurrent(_id_c01, 'message'),
-        gitDDB._remove_concurrent(_id_c02, 'message'),
-        gitDDB._remove_concurrent(_id_d, 'message'),
+        gitDDB._remove_concurrent(_id_a, '', 'message'),
+        gitDDB._remove_concurrent(_id_b, '', 'message'),
+        gitDDB._remove_concurrent(_id_c01, '', 'message'),
+        gitDDB._remove_concurrent(_id_c02, '', 'message'),
+        gitDDB._remove_concurrent(_id_d, '', 'message'),
       ])
     ).rejects.toThrowError();
 
