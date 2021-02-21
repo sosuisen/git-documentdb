@@ -43,8 +43,6 @@ const gitAuthor = {
   email: 'system@gdd.localhost',
 };
 
-const COLLECTION_CONFIG_FILE = '.collection';
-
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
 const defaultDescription = `${databaseName}: ${databaseVersion}`;
