@@ -397,14 +397,15 @@ export class GitDocumentDB extends AbstractDocumentDB {
       collection_path: undefined,
     };
     options.collection_path ??= '';
-    options.commit_message ??= `put: ${options.collection_path}${_id}`;
+    const collection_path = Validator.normalizeCollectionPath(options.collection_path);
+    options.commit_message ??= `put: ${collection_path}${_id}`;
 
-    this._validator.validateCollectionPath(options.collection_path);
+    this._validator.validateCollectionPath(collection_path);
 
     // put() must be serial.
     return new Promise((resolve, reject) => {
       this._pushToSerialQueue(() =>
-        this._put_concurrent(_id, options!.collection_path!, data, options!.commit_message!)
+        this._put_concurrent(_id, collection_path!, data, options!.commit_message!)
           .then(result => {
             resolve(result);
           })
@@ -530,8 +531,8 @@ export class GitDocumentDB extends AbstractDocumentDB {
       collection_path: undefined,
     };
     options.collection_path ??= '';
-    this._validator.validateCollectionPath(options.collection_path);
-    const collection_path = options.collection_path;
+    const collection_path = Validator.normalizeCollectionPath(options.collection_path);
+    this._validator.validateCollectionPath(collection_path);
 
     // Calling nameToId() for HEAD throws error when this is first commit.
     const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
@@ -621,14 +622,15 @@ export class GitDocumentDB extends AbstractDocumentDB {
       collection_path: undefined,
     };
     options.collection_path ??= '';
-    options.commit_message ??= `remove: ${options.collection_path}${_id}`;
+    const collection_path = Validator.normalizeCollectionPath(options.collection_path);
+    options.commit_message ??= `remove: ${collection_path}${_id}`;
 
-    this._validator.validateCollectionPath(options.collection_path);
+    this._validator.validateCollectionPath(collection_path);
 
     // delete() must be serial.
     return new Promise((resolve, reject) => {
       this._pushToSerialQueue(() =>
-        this._remove_concurrent(_id, options!.collection_path!, options!.commit_message!)
+        this._remove_concurrent(_id, collection_path!, options!.commit_message!)
           .then(result => resolve(result))
           .catch(err => reject(err))
       );
@@ -842,7 +844,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
 
     let collection_path = '';
     if (options?.collection_path) {
-      collection_path = options.collection_path;
+      collection_path = Validator.normalizeCollectionPath(options.collection_path);
       this._validator.validateCollectionPath(collection_path);
     }
 
