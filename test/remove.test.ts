@@ -11,6 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
   DocumentNotFoundError,
+  InvalidIdCharacterError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../src/error';
@@ -118,7 +119,7 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): _id is undefined', async () => {
+  test('delete(): _id is invalid', async () => {
     const dbName = 'test_repos_03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -127,6 +128,9 @@ describe('Delete document', () => {
 
     await gitDDB.open();
 
+    await expect(gitDDB.delete('_underscore')).rejects.toThrowError(
+      InvalidIdCharacterError
+    );
     // @ts-ignore
     await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
 

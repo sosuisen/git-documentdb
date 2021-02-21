@@ -11,6 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
   InvalidJsonObjectError,
+  InvalidPropertyNameInDocumentError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../src/error';
@@ -69,6 +70,22 @@ describe('Create document', () => {
     await expect(gitDDB.put({ name: 'shirase' })).rejects.toThrowError(
       UndefinedDocumentIdError
     );
+    await gitDDB.destroy();
+  });
+
+  test('put(): Invalid document', async () => {
+    const dbName = 'test_repos_3';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(
+      gitDDB.put({
+        _id: 'prof01',
+        _underscore: 'Property name cannot start with underscore',
+      })
+    ).rejects.toThrowError(InvalidPropertyNameInDocumentError);
     await gitDDB.destroy();
   });
 
