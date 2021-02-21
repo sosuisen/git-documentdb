@@ -161,6 +161,7 @@ export type DatabaseCloseOption = {
  * Abstract class for CRUD class
  */
 export abstract class AbstractDocumentDB {
+  abstract workingDir (): string;
   abstract put (document: JsonDoc, options?: PutOptions): Promise<PutResult>;
   abstract get (_id: string, options?: GetOptions): Promise<JsonDoc>;
   abstract delete (

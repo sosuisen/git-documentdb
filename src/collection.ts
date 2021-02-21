@@ -16,10 +16,14 @@ export class Collection {
   private _gitDDB: AbstractDocumentDB;
 
   /*
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    */
   constructor (_gitDDB: AbstractDocumentDB, _collectionPath: string) {
     this._gitDDB = _gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(_collectionPath);
+    const validator = new Validator(this._gitDDB.workingDir());
+    validator.validateCollectionPath(this._collectionPath);
   }
 
   collectionPath () {
