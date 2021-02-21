@@ -331,4 +331,44 @@ describe('Fetch a batch of documents', () => {
 
     await gitDDB.destroy();
   });
+
+  test('allDocs(): get from deep directory by using collection_path', async () => {
+    const dbName = 'test_repos_8';
+
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await gitDDB.put({ _id: _id_p, name: name_p });
+
+    await gitDDB.put({ _id: _id_b, name: name_b });
+    await gitDDB.put({ _id: _id_a, name: name_a });
+    await gitDDB.put({ _id: _id_d, name: name_d });
+    await gitDDB.put({ _id: _id_c01, name: name_c01 });
+    await gitDDB.put({ _id: _id_c02, name: name_c02 });
+
+    await expect(
+      gitDDB.allDocs({
+        sub_directory: 'Japan',
+        include_docs: true,
+        collection_path: 'pear',
+      })
+    ).resolves.toMatchObject({
+      total_rows: 1,
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      rows: [
+        {
+          id: expect.stringMatching('^Japan/21st$'),
+          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+          doc: {
+            _id: expect.stringMatching('^Japan/21st$'),
+            name: name_p,
+          },
+        },
+      ],
+    });
+
+    await gitDDB.destroy();
+  });
 });

@@ -51,7 +51,7 @@ describe('Delete document', () => {
     // Delete
     await expect(gitDDB.delete(_id)).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching(_id),
+      id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -148,7 +148,7 @@ describe('Delete document', () => {
     // Delete
     await expect(gitDDB.delete(doc)).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching(_id),
+      id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -211,7 +211,7 @@ describe('Concurrent', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
-          id: expect.stringMatching(_id_p),
+          id: expect.stringMatching('^' + _id_p + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
       ],

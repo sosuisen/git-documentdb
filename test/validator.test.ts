@@ -78,7 +78,7 @@ describe('Validations', () => {
     expect(() => validator.validateId('abc.')).toThrowError(InvalidIdCharacterError);
   });
 
-  it('validateId()');
+  it('validateCollectionPath()');
 
   it('validateDocument');
 
