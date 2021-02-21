@@ -9,44 +9,17 @@ import {
   RemoveOptions,
   RemoveResult,
 } from './types';
+import { Validator } from './validator';
 
 export class Collection {
   private _collectionPath = '';
   private _gitDDB: AbstractDocumentDB;
 
-  /**
-   * normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
+  /*
    */
-  static normalizeCollectionPath (collectionPath: string | undefined) {
-    if (collectionPath === undefined || collectionPath === '' || collectionPath === '/') {
-      return '';
-    }
-
-    // Remove consecutive slash
-    collectionPath = collectionPath.replace(/\/+?([^/])/g, '/$1');
-
-    // Remove heading slash
-    while (collectionPath.startsWith('/')) {
-      collectionPath = collectionPath.slice(1);
-    }
-
-    // Add a trailing slash
-    while (collectionPath.endsWith('/')) {
-      collectionPath = collectionPath.slice(0, -1);
-    }
-    if (collectionPath === '') {
-      return '';
-    }
-    if (!collectionPath.endsWith('/')) {
-      collectionPath += '/';
-    }
-
-    return collectionPath;
-  }
-
   constructor (_gitDDB: AbstractDocumentDB, _collectionPath: string) {
     this._gitDDB = _gitDDB;
-    this._collectionPath = Collection.normalizeCollectionPath(_collectionPath);
+    this._collectionPath = Validator.normalizeCollectionPath(_collectionPath);
   }
 
   collectionPath () {
@@ -54,7 +27,7 @@ export class Collection {
   }
 
   getFullPath (path: string | undefined) {
-    path = Collection.normalizeCollectionPath(path);
+    path = Validator.normalizeCollectionPath(path);
     return this._collectionPath + path;
   }
 

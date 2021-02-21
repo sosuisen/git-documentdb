@@ -1,5 +1,4 @@
 import path from 'path';
-import { Collection } from './collection';
 import { MAX_WINDOWS_PATH_LENGTH } from './const';
 import {
   InvalidCollectionPathCharacterError,
@@ -17,6 +16,36 @@ export class Validator {
   private _workingDirectory: string;
   constructor (_workingDir: string) {
     this._workingDirectory = _workingDir;
+  }
+
+  /**
+   * normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
+   */
+  static normalizeCollectionPath (collectionPath: string | undefined) {
+    if (collectionPath === undefined || collectionPath === '' || collectionPath === '/') {
+      return '';
+    }
+
+    // Remove consecutive slash
+    collectionPath = collectionPath.replace(/\/+?([^/])/g, '/$1');
+
+    // Remove heading slash
+    while (collectionPath.startsWith('/')) {
+      collectionPath = collectionPath.slice(1);
+    }
+
+    // Add a trailing slash
+    while (collectionPath.endsWith('/')) {
+      collectionPath = collectionPath.slice(0, -1);
+    }
+    if (collectionPath === '') {
+      return '';
+    }
+    if (!collectionPath.endsWith('/')) {
+      collectionPath += '/';
+    }
+
+    return collectionPath;
   }
 
   /**
@@ -167,7 +196,7 @@ export class Validator {
       throw new InvalidCollectionPathCharacterError('/');
     }
 
-    const normalized = Collection.normalizeCollectionPath(collectionPath);
+    const normalized = Validator.normalizeCollectionPath(collectionPath);
 
     const trailingSlashRemoved = normalized.slice(0, -1);
     const arr = trailingSlashRemoved.split('/');
