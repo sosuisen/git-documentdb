@@ -180,7 +180,7 @@ export class Validator {
    * @remarks
    * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \ | ? * \0
    *
-   * - Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
+   * - Cannot start with slash. Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
    * - Each part of collectionPath that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
    *
@@ -190,6 +190,10 @@ export class Validator {
   validateCollectionPath (collectionPath: string) {
     if (collectionPath === '') {
       return;
+    }
+
+    if (collectionPath.startsWith('_')) {
+      throw new InvalidCollectionPathCharacterError('_');
     }
 
     if (collectionPath.startsWith('/')) {
@@ -244,6 +248,18 @@ export class Validator {
   /**
    * Validate _id
    *
+   * @remarks
+   * - _id allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \ | ? * \0
+   * - file name cannot start with an underscore _.
+   *
+   * - file name cannot end with a period .
+   * 
+   * - 
+   *
+   * - Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
+   *
+   * - Each part of collectionPath that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
+
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
