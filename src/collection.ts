@@ -45,7 +45,7 @@ export class Collection {
     return this._gitDDB.put(document, options);
   }
 
-  get (_id: string, options: GetOptions): Promise<JsonDoc> {
+  get (_id: string, options?: GetOptions): Promise<JsonDoc> {
     options ??= {
       collection_path: undefined,
     };
@@ -54,11 +54,11 @@ export class Collection {
     return this._gitDDB.get(_id, options);
   }
 
-  delete (idOrDoc: string | JsonDoc, options: RemoveOptions): Promise<RemoveResult> {
+  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     return this.remove(idOrDoc, options);
   }
 
-  remove (idOrDoc: string | JsonDoc, options: RemoveOptions): Promise<RemoveResult> {
+  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     options ??= {
       commit_message: undefined,
       collection_path: undefined,
@@ -68,7 +68,7 @@ export class Collection {
     return this._gitDDB.remove(idOrDoc, options);
   }
 
-  allDocs (options: AllDocsOptions): Promise<AllDocsResult> {
+  allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
     options ??= {
       include_docs: undefined,
       descending: undefined,
