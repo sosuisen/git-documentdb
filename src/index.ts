@@ -397,7 +397,11 @@ export class GitDocumentDB extends AbstractDocumentDB {
     const collection_path = Validator.normalizeCollectionPath(options.collection_path);
     options.commit_message ??= `put: ${collection_path}${_id}`;
 
-    this._validator.validateCollectionPath(collection_path);
+    try {
+      this._validator.validateCollectionPath(collection_path);
+    } catch (err) {
+      return Promise.reject(err);
+    }
 
     // put() must be serial.
     return new Promise((resolve, reject) => {
@@ -526,12 +530,22 @@ export class GitDocumentDB extends AbstractDocumentDB {
       return Promise.reject(new UndefinedDocumentIdError());
     }
 
+    try {
+      this._validator.validateId(_id);
+    } catch (err) {
+      return Promise.reject(err);
+    }
+
     options ??= {
       collection_path: undefined,
     };
     options.collection_path ??= '';
     const collection_path = Validator.normalizeCollectionPath(options.collection_path);
-    this._validator.validateCollectionPath(collection_path);
+    try {
+      this._validator.validateCollectionPath(collection_path);
+    } catch (err) {
+      return Promise.reject(err);
+    }
 
     // Calling nameToId() for HEAD throws error when this is first commit.
     const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
@@ -622,7 +636,11 @@ export class GitDocumentDB extends AbstractDocumentDB {
     const collection_path = Validator.normalizeCollectionPath(options.collection_path);
     options.commit_message ??= `remove: ${collection_path}${_id}`;
 
-    this._validator.validateCollectionPath(collection_path);
+    try {
+      this._validator.validateCollectionPath(collection_path);
+    } catch (err) {
+      return Promise.reject(err);
+    }
 
     // delete() must be serial.
     return new Promise((resolve, reject) => {
@@ -842,7 +860,11 @@ export class GitDocumentDB extends AbstractDocumentDB {
     let collection_path = '';
     if (options?.collection_path) {
       collection_path = Validator.normalizeCollectionPath(options.collection_path);
-      this._validator.validateCollectionPath(collection_path);
+      try {
+        this._validator.validateCollectionPath(collection_path);
+      } catch (err) {
+        return Promise.reject(err);
+      }
     }
 
     // Calling nameToId() for HEAD throws error when this is first commit.
