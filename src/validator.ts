@@ -114,9 +114,10 @@ export class Validator {
     options.allow_slash ??= false;
     options.allow_drive_letter ??= false;
 
-    let regStr = `<>:"\\\\|?*\0`;
+    let regStr = `<>:"|?*\0`;
     if (!options.allow_slash) {
       regStr += `/`;
+      regStr += `\\\\`;
     }
     const regExp = new RegExp(`[${regStr}]`);
 
