@@ -54,13 +54,13 @@ export class Collection {
     validator.validateCollectionPath(this._collectionPath);
   }
 
-  collectionPath () {
-    return this._collectionPath;
-  }
-
-  getFullPath (path: string | undefined) {
+  private _getFullPath (path: string | undefined) {
     path = Validator.normalizeCollectionPath(path);
     return this._collectionPath + path;
+  }
+
+  collectionPath () {
+    return this._collectionPath;
   }
 
   /**
@@ -90,7 +90,7 @@ export class Collection {
       commit_message: undefined,
       collection_path: undefined,
     };
-    options.collection_path = this.getFullPath(options.collection_path);
+    options.collection_path = this._getFullPath(options.collection_path);
 
     return this._gitDDB.put(document, options);
   }
@@ -113,7 +113,7 @@ export class Collection {
     options ??= {
       collection_path: undefined,
     };
-    options.collection_path = this.getFullPath(options.collection_path);
+    options.collection_path = this._getFullPath(options.collection_path);
 
     return this._gitDDB.get(docId, options);
   }
@@ -149,7 +149,7 @@ export class Collection {
       commit_message: undefined,
       collection_path: undefined,
     };
-    options.collection_path = this.getFullPath(options.collection_path);
+    options.collection_path = this._getFullPath(options.collection_path);
 
     return this._gitDDB.remove(idOrDoc, options);
   }
@@ -175,7 +175,7 @@ export class Collection {
       recursive: undefined,
       collection_path: undefined,
     };
-    options.collection_path = this.getFullPath(options.collection_path);
+    options.collection_path = this._getFullPath(options.collection_path);
 
     return this._gitDDB.allDocs(options);
   }
