@@ -143,9 +143,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @remarks
    * - The git working directory will be localDir/dbName.
    *
-   * - The length of the working directory path must be equal to or lesser than MAX_LENGTH_OF_WORKING_DIRECTORY_PAT(195).
-   *
-   * @param options - Database location
    * @throws {@link InvalidWorkingDirectoryPathLengthError}
    * @throws {@link UndefinedDatabaseNameError}
    */
@@ -187,7 +184,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Get current repository
+   * Get a current repository
    * @remarks Be aware that direct operation of the current repository can corrupt the database.
    */
   getRepository (): nodegit.Repository | undefined {
@@ -195,10 +192,13 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Create a collection or open an existing one.
+   * Get a collection
    *
-   * @param collectionPath - path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'.
-   *  collectionPath cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
+   * @remarks
+   *  Notice that this function does not make a sub-directory under the working directory.
+   *
+   * @param collectionPath - path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
+   *  It cannot start with underscore _. It cannot start with slash /. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
    */
   collection (collectionPath: string) {
@@ -315,21 +315,19 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Test if database is opened
+   * Test if a database is opened
    */
   isOpened () {
     return this._currentRepository !== undefined;
   }
 
   /**
-   * Add a document into the root collection
+   * Add a document
    *
    * @remarks
-   * - This is equivalent to call collection('/').put().
-   *
    * - put() does not check a write permission of your file system (unlike open()).
    *
-   * - Saved file path is `${workingDirectory()}${document._id}.json`. InvalidIdLengthError is thrown if the path length exceeds the maximum length of a filepath on the device.
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
    * @param document -  See {@link JsonDoc} for restriction
    * @param commitMessage - Default is `put: ${document._id}`.
@@ -504,9 +502,9 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Get a document from the root collection
+   * Get a document
    *
-   * @param _id - id of a target document
+   * @param docId - id of a target document
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
@@ -517,7 +515,8 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  async get (_id: string, options?: GetOptions): Promise<JsonDoc> {
+  async get (docId: string, options?: GetOptions): Promise<JsonDoc> {
+    const _id = docId;
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -576,20 +575,16 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * @remarks
-   *   This is an alias of remove()
+   * This is an alias of {@link GitDocumentDB.remove}
    */
   delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     return this.remove(idOrDoc, options);
   }
 
   /**
-   * Remove a document from the root collection
+   * Remove a document
    *
-   * @remarks
-   * - This is equivalent to call collection('/').remove().
-   *
-   * @param _id - id of a target document
+   * @param idOrDoc - id of a target document or a document itself
    * @param commitMessage - Default is `remove: ${_id}`.
    *
    * @throws {@link DatabaseClosingError}
@@ -738,7 +733,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Close database
+   * Close a database
    *
    * @remarks
    * - New CRUD operations are not available while closing.
@@ -795,14 +790,14 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Destroy database
+   * Destroy a database
    *
    * @remarks
-   * - The database is closed automatically before destroying.
+   * - {@link GitDocumentDB.close} is called automatically before destroying.
    *
    * - options.force is true if undefined.
    *
-   * - The Git repository is removed from the filesystem.
+   * - The Git repository and the working directory are removed from the filesystem.
    *
    * - local_dir (which is specified in constructor) is not removed.
    *
@@ -835,7 +830,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Get all the documents from the database
+   * Get all the documents
    *
    * @remarks
    *
