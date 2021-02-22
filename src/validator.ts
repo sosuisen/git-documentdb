@@ -105,19 +105,19 @@ export class Validator {
    */
   testWindowsInvalidFileNameCharacter (
     name: string,
-    options?: { allowSlash?: boolean; allowDriveLetter?: boolean }
+    options?: { allow_slash?: boolean; allow_drive_letter?: boolean }
   ) {
-    options ??= { allowSlash: false, allowDriveLetter: false };
-    options.allowSlash ??= false;
-    options.allowDriveLetter ??= false;
+    options ??= { allow_slash: undefined, allow_drive_letter: undefined };
+    options.allow_slash ??= false;
+    options.allow_drive_letter ??= false;
 
-    let regStr = `<>:"\\|?*\0`;
-    if (!options.allowSlash) {
+    let regStr = `<>:"\\\\|?*\0`;
+    if (!options.allow_slash) {
       regStr += `/`;
     }
     const regExp = new RegExp(`[${regStr}]`);
 
-    if (options.allowDriveLetter) {
+    if (options.allow_drive_letter) {
       name = name.replace(/^[A-Za-z]:/, '');
     }
 
@@ -148,8 +148,8 @@ export class Validator {
     if (
       !this.testWindowsReservedFileName(localDir) ||
       !this.testWindowsInvalidFileNameCharacter(localDir, {
-        allowSlash: true,
-        allowDriveLetter: true,
+        allow_slash: true,
+        allow_drive_letter: true,
       })
     ) {
       throw new InvalidLocalDirCharacterError(localDir);
@@ -295,7 +295,8 @@ export class Validator {
    *
    * @throws {@link InvalidPropertyNameInDocumentError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidIdCharacterError}*
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
    */
   validateDocument (doc: JsonDoc) {
     if (doc._id === undefined) {
