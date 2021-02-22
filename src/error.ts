@@ -173,7 +173,7 @@ export class InvalidPropertyNameInDocumentError extends BaseError {
  */
 export class InvalidDbNameCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid dbName '${name}': dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " / \\ | ? * \0.  dbName cannot end with a period . `;
+    const e = `Invalid dbName '${name}': dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " ¥ / \\ | ? * \0.  dbName cannot end with a period . `;
     super(e);
   }
 }
@@ -183,7 +183,7 @@ export class InvalidDbNameCharacterError extends BaseError {
  */
 export class InvalidLocalDirCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid localDir character ${name}: localDir allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0. A colon is generally disallowed, however a drive letter followed by a colon is allowed. localDir cannot end with a period .`;
+    const e = `Invalid localDir character '${name}': localDir allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0. A colon is generally disallowed, however a drive letter followed by a colon is allowed. localDir cannot end with a period .`;
 
     super(e);
   }
