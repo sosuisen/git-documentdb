@@ -12,6 +12,9 @@ import {
 } from './error';
 import { JsonDoc } from './types';
 
+/**
+ * @internal
+ */
 export class Validator {
   private _workingDirectory: string;
   constructor (_workingDir: string) {
@@ -136,7 +139,7 @@ export class Validator {
    * Validate localDir
    *
    * @remarks
-   * - localDir allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0
+   * - localDir allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
    *
    * -- A colon is generally disallowed, however a drive letter followed by a colon is allowed.
    *
@@ -160,7 +163,7 @@ export class Validator {
    * Validate dbName
    *
    * @remarks
-   * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " / \ | ? * \0
+   * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " / \\ | ? * \\0
    *
    * - dbName cannot end with a period .
    *
@@ -179,7 +182,7 @@ export class Validator {
    * Validate collectionPath
    *
    * @remarks
-   * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \ | ? * \0
+   * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " \\ | ? * \\0
    *
    * - Cannot start with slash. Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
@@ -232,7 +235,7 @@ export class Validator {
    * Validate file name
    *
    * @remarks
-   * - file name allows UTF-8 string excluding following characters: < > : " / \ | ? * \0
+   * - file name allows UTF-8 string excluding following characters: \< \> : " / \\ | ? * \\0
    *
    * - file name cannot start with an underscore _.
    *
@@ -250,21 +253,18 @@ export class Validator {
    * Validate _id
    *
    * @remarks
-   * - _id allows UTF-8 string excluding OS reserved filenames and following characters: < > : " \ | ? * \0
-   * - file name cannot start with an underscore _.
+   * - _id allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " \\ | ? * \\0
    *
-   * - file name cannot end with a period .
-   * 
-   * - 
+   * - _id cannot start with an underscore _.
    *
-   * - Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
+   * - Cannot start with slash.
    *
-   * - Each part of collectionPath that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
-
+   * - Each part of path that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
+   *
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
-   * @throws {@link InvalidKeyLengthError}
+   * @throws {@link InvalidIdLengthError}
    */
   validateId (_id: string) {
     const baseName = path.basename(_id);
@@ -291,7 +291,7 @@ export class Validator {
    * Validate document
    *
    * @remarks
-   * - A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
+   * - Key cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
    *
    * @throws {@link InvalidPropertyNameInDocumentError}
    * @throws {@link UndefinedDocumentIdError}
