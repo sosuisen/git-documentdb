@@ -10,5 +10,8 @@
  * @packageDocumentation
  */
 
-export * from './index';
+export * from './collection';
 export * from './error';
+export * from './index';
+export * from './types';
+export * from './validator';
