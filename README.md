@@ -25,7 +25,7 @@ Use GitDocumentDB to ...
 https://github.com/sosuisen/git-documentdb/blob/main/docs/git-documentdb.gitdocumentdb.md
 
 # Usage
-## Getting started:
+## Getting started
 ### **Prerequisite**
 Node.js 10 or later
 ### **Installation**
@@ -47,73 +47,103 @@ Typical environment is shown below.
 
 If you are still encountering install problems, documents about [NodeGit](https://github.com/nodegit/nodegit#getting-started) and [Building NodeGit from source](https://www.nodegit.org/guides/install/from-source/) may also help you.
 
-## Import:
+## Import
 ```typescript
 import { GitDocumentDB } from 'git-documentdb';
 
 const gitDDB = new GitDocumentDB({
-    local_dir: 'gddb_data',
-    db_name: 'db01', // Git working directory
-  });
+  local_dir: 'gddb_data', // Parent directory of Git working directories (relative or absolute path)
+  db_name: 'db01', // Git working directory
+});
 ```
 
-## Basic CRUD:
+## Basic CRUD
 ```typescript
-  // Create repository (gddb_data/db01/.git)
-  await gitDDB.open();
-  const workingDir = gitDDB.workingDir();
-  console.log(workingDir); // workingDir = '/(your_path)/git-documentdb/examples/gddb_data/db01'
-
-  // Create document named 'profile.json' under gddb_data/db01/
-  await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '15' });
-  // Update
-  await gitDDB.put({ _id: 'profile', name: 'Yuzuki', age: '16' });
-  // Read
-  const doc = await gitDDB.get('profile');
-  console.log(doc);  // doc = { _id: 'profile', name: 'Yuzuki', age: '16' }
-  // Delete
-  await gitDDB.remove('profile');
+  // Open a database
+  await gitDDB.open(); // Git creates a repository (/your/path/to/the/app/gddb_data/db01/.git)
+  // Create a document
+  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '15' }); // Git adds 'profile01.json' under the working directory and commit it.
+  // Update it
+  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '16' }); // Git adds a updated file and commit it.
+  // Read it
+  const doc = await gitDDB.get('profile01');
+  console.log(doc); // doc = { _id: 'profile01', name: 'Yuzuki', age: '16' }
+  // Delete it
+  await gitDDB.remove('profile01'); // Git removes a file and commit it.
 ```
 
-## Advanced:
+## Collections
 ```typescript
-  // Create documents under sub-directories
-  //   gddb_data/db01/Gunma/1.json
-  //   gddb_data/db01/Gunma/2.json
-  //   gddb_data/db01/Gunma/3.json
-  //   gddb_data/db01/Sapporo/4.json
-  await gitDDB.put({ _id: 'Gunma/1', name: 'Kimari', age: '16' });
-  await gitDDB.put({ _id: 'Gunma/2', name: 'Shirase', age: '17' });
-  await gitDDB.put({ _id: 'Gunma/3', name: 'Hinata', age: '17' });
-  await gitDDB.put({ _id: 'Sapporo/4', name: 'Yuzuki', age: '16' });
-  
-  // Bulk read
-  const docs = await gitDDB.allDocs({ sub_directory: 'Gunma', include_docs: true });
-  console.dir(docs, { depth: 3 });
-  /* docs = 
+  /**
+    Collect documents under sub-directories
+
+    gddb_data
+    └── db01
+        ├── Gunma
+        │   ├── 1.json
+        │   ├── 2.json
+        │   └── 3.json
+        └── Sapporo
+            └── 1.json
+
+  */
+  const Gunma = gitDDB.collection('Gunma');
+  const Sapporo = gitDDB.collection('Sapporo');
+  await Gunma.put({ _id: '1', name: 'Kimari', age: '16' });
+  await Gunma.put({ _id: '2', name: 'Shirase', age: '17' });
+  await Gunma.put({ _id: '3', name: 'Hinata', age: '17' });
+  await Sapporo.put({ _id: '1', name: 'Yuzuki', age: '16' });
+
+  // Read one
+  const docFromSapporoCollection = await Sapporo.get('1');
+  console.log(docFromSapporoCollection); // docFromSapporoCollection = { _id: '1', name: 'Yuzuki', age: '16' }
+
+  // Read all the documents in Gunma collection
+  const docsFromCollection = await Gunma.allDocs({ include_docs: true });
+  console.dir(docsFromCollection, { depth: 3 });
+  /* docsFromGunmaCollection = 
   {
     total_rows: 3,
     commit_sha: '39b82ee2458a39023fd9cd098ea6a5486593aceb',
     rows: [
       {
-        id: 'Gunma/1',
+        id: '1',
         file_sha: 'fae60a86958402b424102f16361a501c561be654',
-        doc: { name: 'Kimari', age: '16', _id: 'Gunma/1' }
+        doc: { _id: '1', name: 'Kimari', age: '16' }
       },
       {
-        id: 'Gunma/2',
+        id: '2',
         file_sha: '1255eff6d316a73077468dbda2b026e96fdf00e6',
-        doc: { name: 'Shirase', age: '17', _id: 'Gunma/2' }
+        doc: { _id: '2', name: 'Shirase', age: '17' }
       },
       {
-        id: 'Gunma/3',
+        id: '3',
         file_sha: '1f1c89b5253c4feab67a31f8bce1443e3d72512f',
-        doc: { name: 'Hinata', age: '17', _id: 'Gunma/3' }
+        doc: { _id: '3', name: 'Hinata', age: '17' }
       }
     ]
-  } */
+  }
+  */
+
+  // Read one by using filepath representation
+  const docFromSapporoCollectionByUsingPath = await gitDDB.get('Sapporo/1');
+  console.log(docFromSapporoCollectionByUsingPath); // docFromSapporoCollectionByUsingPath = { _id: 'Sapporo/1', name: 'Yuzuki', age: '16' }
+
+  /*
+   * Actually, collection is a sugar syntax of filepath representation.
+   * Both filepath representation (like PouchDB) and collection put the same file on the same location in a Git repository.
+   * e.g) Both gitDDB.put({ _id: 'Sapporo/1', name: 'Yuzuki' }) and gitDDB.collection('Sapporo').put({ _id: '1', name: 'Yuzuki' }) put 'gddb_data/db01/Sapporo/1.json' in which JSON document has { _id: '1', name: 'Yuzuki' }.
+   * 
+   * Notice that APIs return different _id values in spite of the same source file.
+   * gitDDB.get({ _id: 'Sapporo/1' }) returns { _id: 'Sapporo/1', name: 'Yuzuki' }.
+   * gitDDB.collection('Sapporo').get({ _id: '1' }) returns { _id: '1', name: 'Yuzuki' }.
+   */
+
+  // Close database
+  await gitDDB.close();
 ```
-## Examples:
+
+# Examples:
 See examples directory.
 ```
 $ cd examples
