@@ -92,9 +92,9 @@ const defaultLocalDir = './gitddb';
  * @remarks
  * - is_new: Whether a repository is newly created or existing.
  *
- * - is_created_by_gitddb: Whether a repository is created by git-documentDB or other methods.
+ * - is_created_by_gitddb: Whether a repository is created by GitDocumentDB or other means.
  *
- * - is_valid_version: Whether a repository version equals to the current databaseVersion of git-documentDB.
+ * - is_valid_version: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
  *   The version is described in .git/description.
  *
  * @beta
@@ -145,9 +145,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
    *
    * - The length of the working directory path must be equal to or lesser than MAX_LENGTH_OF_WORKING_DIRECTORY_PAT(195).
    *
-   * - GitDocumentDB can load a git repository that is not created by git-documentdb module,
-   *  however correct behavior is not guaranteed.
-   *
    * @param options - Database location
    * @throws {@link InvalidWorkingDirectoryPathLengthError}
    * @throws {@link UndefinedDatabaseNameError}
@@ -181,9 +178,9 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * Get a path of the current Git working directory
+   * Get a full path of the current Git working directory
    *
-   * @returns Absolute path of the directory (trailing slash is omitted)
+   * @returns Full path of the directory (trailing slash is omitted)
    */
   workingDir () {
     return this._workingDirectory;
@@ -232,7 +229,11 @@ export class GitDocumentDB extends AbstractDocumentDB {
   /**
    * Create a repository or open an existing one.
    *
-   * @remarks If localDir does not exist, it is created.
+   * @remarks
+   *  - If localDir does not exist, it is created.
+   *
+   *  - GitDocumentDB can load a git repository that is not created by git-documentdb module,
+   *  however correct behavior is not guaranteed.
    *
    * @returns Database information
    *
@@ -328,7 +329,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
    *
    * - put() does not check a write permission of your file system (unlike open()).
    *
-   * - Saved file path is `${workingDirectory()}${document._id}.json`. InvalidKeyLengthError is thrown if the path length exceeds the maximum length of a filepath on the device.
+   * - Saved file path is `${workingDirectory()}${document._id}.json`. InvalidIdLengthError is thrown if the path length exceeds the maximum length of a filepath on the device.
    *
    * @param document -  See {@link JsonDoc} for restriction
    * @param commitMessage - Default is `put: ${document._id}`.
@@ -340,9 +341,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link CannotWriteDataError}
    * @throws {@link CannotCreateDirectoryError}
    * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
-   * @throws {@link InvalidKeyLengthError}
+   * @throws {@link InvalidIdLengthError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
@@ -509,6 +508,8 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link DocumentNotFoundError}
    * @throws {@link InvalidJsonObjectError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
@@ -583,9 +584,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link DocumentNotFoundError}
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
-   * @throws {@link InvalidKeyLengthError}
+   * @throws {@link InvalidIdLengthError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
