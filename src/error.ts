@@ -15,12 +15,18 @@ class BaseError extends Error {
   }
 }
 
+/**
+ * @public
+ */
 export class UndefinedDatabaseNameError extends BaseError {
   constructor (e = `Database name is undefined: Option must have dbName`) {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class CannotCreateDirectoryError extends BaseError {
   constructor (e = 'Cannot create directory') {
     super(e);
@@ -28,7 +34,7 @@ export class CannotCreateDirectoryError extends BaseError {
 }
 
 /**
- * @beta
+ * @public
  */
 export class CannotWriteDataError extends BaseError {
   constructor (e = 'Cannot write data') {
@@ -36,12 +42,18 @@ export class CannotWriteDataError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class CannotDeleteDataError extends BaseError {
   constructor (e = 'Cannot write data') {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidCollectionPathCharacterError extends BaseError {
   constructor (name: string) {
     const e = `Invalid collectionPath character '${name}': collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0. Cannot start with slash. Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)`;
@@ -49,6 +61,9 @@ export class InvalidCollectionPathCharacterError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidCollectionPathLengthError extends BaseError {
   constructor (collectionPath: string, minLength: number, maxLength: number) {
     super(
@@ -57,6 +72,9 @@ export class InvalidCollectionPathLengthError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
   constructor (path: string, minLength: number, maxLength: number) {
     super(
@@ -65,6 +83,9 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidIdCharacterError extends BaseError {
   constructor (id: string) {
     const e = `Invalid ID character '${id}': id value allows UTF-8 string excluding following characters: < > : "  | ? * \0. id cannot start with an underscore _. id cannot end with a period .`;
@@ -72,6 +93,9 @@ export class InvalidIdCharacterError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidIdLengthError extends BaseError {
   constructor (id: string, minLength: number, maxLength: number) {
     super(
@@ -80,42 +104,63 @@ export class InvalidIdLengthError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidJsonObjectError extends BaseError {
   constructor (e = `Invalid JSON object`) {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class UndefinedDocumentIdError extends BaseError {
   constructor (e = `Document id is undefined: A document must have an '_id' key`) {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class RepositoryNotOpenError extends BaseError {
   constructor (e = 'Repository not opened') {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class DocumentNotFoundError extends BaseError {
   constructor (e = 'Document not found') {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class DatabaseClosingError extends BaseError {
   constructor (e = 'Database is closing') {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class DatabaseCloseTimeoutError extends BaseError {
   constructor (e = 'Queued operations are timeout') {
     super(e);
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidPropertyNameInDocumentError extends BaseError {
   constructor (name: string) {
     const e = `Invalid property name '${name}': A property name cannot start with an underscore _ except _id.`;
@@ -123,6 +168,9 @@ export class InvalidPropertyNameInDocumentError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidDbNameCharacterError extends BaseError {
   constructor (name: string) {
     const e = `Invalid dbName '${name}': dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " / \\ | ? * \0.  dbName cannot end with a period . `;
@@ -130,6 +178,9 @@ export class InvalidDbNameCharacterError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class InvalidLocalDirCharacterError extends BaseError {
   constructor (name: string) {
     const e = `Invalid localDir character ${name}: localDir allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0. A colon is generally disallowed, however a drive letter followed by a colon is allowed. localDir cannot end with a period .`;
