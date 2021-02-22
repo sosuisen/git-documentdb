@@ -153,11 +153,12 @@ describe('Validations', () => {
       InvalidLocalDirCharacterError
     );
     expect(() => validator.validateLocalDir('dir01/dir02')).not.toThrowError();
-    expect(() => validator.validateLocalDir('dir01\\dir02')).toThrowError(
-      InvalidLocalDirCharacterError
-    );
+    // eslint-disable-next-line prettierx/options, no-useless-escape
+    expect(() => validator.validateLocalDir('dir01\dir02')).not.toThrowError();
     expect(() => validator.validateLocalDir('C:/dir01')).not.toThrowError();
     expect(() => validator.validateLocalDir('C:/dir01/dir02')).not.toThrowError();
+    // eslint-disable-next-line prettierx/options, no-useless-escape
+    expect(() => validator.validateLocalDir('C:\dir01\dir02')).not.toThrowError();
   });
 });
 
@@ -170,6 +171,13 @@ describe('Using validation in other functions', () => {
 
   afterAll(() => {
     fs.removeSync(path.resolve(localDir));
+  });
+
+  test('GitDocumentDB constructor', () => {
+    expect(() => {
+      // eslint-disable-next-line prettierx/options, no-useless-escape, no-new
+      new GitDocumentDB({ db_name: 'db', local_dir: 'C:\dir01\dir02' });
+    }).not.toThrowError();
   });
 
   test('open(): Try to create a long name repository.', async () => {
