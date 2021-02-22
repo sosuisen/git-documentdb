@@ -29,9 +29,13 @@ describe('Destroy database', () => {
       local_dir: localDir,
     });
     await gitDDB.open();
+    const workingDir = gitDDB.workingDir();
     await expect(gitDDB.destroy())
       .resolves.toMatchObject({ ok: true })
       .catch(e => console.error(e));
+
+    // Directory is empty
+    await expect(fs.access(workingDir, fs.constants.F_OK)).rejects.toThrowError();
   });
 
   test('destroy(): close() throws Error', async () => {

@@ -10,6 +10,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import {
   DocumentNotFoundError,
+  InvalidCollectionPathCharacterError,
+  InvalidIdCharacterError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../src/error';
@@ -26,8 +28,35 @@ describe('Read document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('get(): Read an existing document', async () => {
+  test('get(): Invalid _id', async () => {
     const dbName = 'test_repos_1';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = 'prof01';
+    await expect(gitDDB.get('_prof01')).rejects.toThrowError(InvalidIdCharacterError);
+    await gitDDB.destroy();
+  });
+
+  test('get(): Invalid collectionPath', async () => {
+    const dbName = 'test_repos_2';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    await expect(gitDDB.get('prof01', { collection_path: '_users' })).rejects.toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    await gitDDB.destroy();
+  });
+
+  test('get(): Read an existing document', async () => {
+    const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -44,7 +73,7 @@ describe('Read document', () => {
   });
 
   test('get(): Read an existing document in subdirectory', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = 'test_repos_4';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -58,8 +87,26 @@ describe('Read document', () => {
     await gitDDB.destroy();
   });
 
+  test('get(): Read an existing document in subdirectory by using collectionPath', async () => {
+    const dbName = 'test_repos_5';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = 'dir01/prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
+    // Get
+    await expect(gitDDB.get('prof01', { collection_path: 'dir01' })).resolves.toEqual({
+      _id: 'prof01',
+      name: 'shirase',
+    });
+    await gitDDB.destroy();
+  });
+
   test('get(): Read a document that does not exist.', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = 'test_repos_6';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

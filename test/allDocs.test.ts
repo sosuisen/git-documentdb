@@ -8,7 +8,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { RepositoryNotOpenError } from '../src/error';
+import { InvalidCollectionPathCharacterError, RepositoryNotOpenError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 describe('Fetch a batch of documents', () => {
@@ -347,6 +347,14 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.put({ _id: _id_d, name: name_d });
     await gitDDB.put({ _id: _id_c01, name: name_c01 });
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
+
+    await expect(
+      gitDDB.allDocs({
+        sub_directory: 'Japan',
+        include_docs: true,
+        collection_path: '_pear',
+      })
+    ).rejects.toThrowError(InvalidCollectionPathCharacterError);
 
     await expect(
       gitDDB.allDocs({

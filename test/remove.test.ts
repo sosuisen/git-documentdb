@@ -11,14 +11,53 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
   DocumentNotFoundError,
+  InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
-describe('Delete document', () => {
+describe('Validate', () => {
   const localDir = './test/database_delete01';
+
+  test('delete(): _id is invalid', async () => {
+    const dbName = 'test_repos_01';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+
+    await expect(gitDDB.delete('_underscore')).rejects.toThrowError(
+      InvalidIdCharacterError
+    );
+    // @ts-ignore
+    await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
+
+    await gitDDB.destroy();
+  });
+
+  test('delete(): collectionPath is invalid', async () => {
+    const dbName = 'test_repos_02';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+
+    await expect(
+      gitDDB.delete('prof01', { collection_path: '_underscore' })
+    ).rejects.toThrowError(InvalidCollectionPathCharacterError);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('Delete document', () => {
+  const localDir = './test/database_delete02';
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -28,7 +67,7 @@ describe('Delete document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('delete()', async () => {
+  test('delete() from sub-directory', async () => {
     const dbName = 'test_repos_01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -94,8 +133,43 @@ describe('Delete document', () => {
     );
   });
 
-  test('delete(): Set commit message.', async () => {
+  test('delete(): Delete by using collectionPath', async () => {
     const dbName = 'test_repos_02';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = 'test/prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
+    // Delete
+    await expect(
+      gitDDB.delete('prof01', { collection_path: 'test' })
+    ).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^prof01$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+    // Check commit message
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`remove: ${_id}`);
+    }
+
+    await gitDDB.destroy();
+
+    // Check if file is deleted.
+    await expect(
+      fs.access(path.resolve(gitDDB.workingDir(), _id), fs.constants.F_OK)
+    ).rejects.toThrowError();
+  });
+
+  test('delete(): Set commit message.', async () => {
+    const dbName = 'test_repos_03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -119,26 +193,8 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): _id is invalid', async () => {
-    const dbName = 'test_repos_03';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    await gitDDB.open();
-
-    await expect(gitDDB.delete('_underscore')).rejects.toThrowError(
-      InvalidIdCharacterError
-    );
-    // @ts-ignore
-    await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
-
-    await gitDDB.destroy();
-  });
-
   test('delete(): Use JsonObject as key.', async () => {
-    const dbName = 'test_repos_03';
+    const dbName = 'test_repos_04';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -162,7 +218,7 @@ describe('Delete document', () => {
 });
 
 describe('Concurrent', () => {
-  const localDir = './test/database_delete02';
+  const localDir = './test/database_delete03';
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';

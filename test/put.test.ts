@@ -10,6 +10,8 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
+  InvalidCollectionPathCharacterError,
+  InvalidIdCharacterError,
   InvalidJsonObjectError,
   InvalidPropertyNameInDocumentError,
   RepositoryNotOpenError,
@@ -17,7 +19,7 @@ import {
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
-describe('Create document', () => {
+describe('Validate', () => {
   const localDir = './test/database_put01';
 
   beforeAll(() => {
@@ -73,8 +75,34 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
+  test('put(): Invalid _id', async () => {
+    const dbName = 'test_repos_4';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(gitDDB.put({ _id: '_underscore', name: 'shirase' })).rejects.toThrowError(
+      InvalidIdCharacterError
+    );
+    await gitDDB.destroy();
+  });
+
+  test('put(): Invalid collectionPath', async () => {
+    const dbName = 'test_repos_5';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(
+      gitDDB.put({ _id: 'prof01', name: 'shirase' }, { collection_path: '_users' })
+    ).rejects.toThrowError(InvalidCollectionPathCharacterError);
+    await gitDDB.destroy();
+  });
+
   test('put(): Invalid document', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = 'test_repos_6';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -87,6 +115,18 @@ describe('Create document', () => {
       })
     ).rejects.toThrowError(InvalidPropertyNameInDocumentError);
     await gitDDB.destroy();
+  });
+});
+
+describe('Create document', () => {
+  const localDir = './test/database_put02';
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
   });
 
   test('put(): Put a JSON Object.', async () => {
@@ -153,6 +193,39 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
+  test('put(): Put a JSON Object into subdirectory with collectionPath.', async () => {
+    const dbName = 'test_repos_8';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(
+      gitDDB.put({ _id: 'prof01', name: 'shirase' }, { collection_path: 'dir01' })
+    ).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^prof01$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`put: dir01/prof01`);
+    }
+
+    // Check filename
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), 'dir01', 'prof01.json');
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    // Read JSON and check doc._id
+    expect(fs.readJSONSync(filePath)._id).toBe('prof01'); // not 'dir01/prof01'
+
+    await gitDDB.destroy();
+  });
+
   test('put(): Check order of results', async () => {
     const dbName = 'test_repos_9';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -204,7 +277,7 @@ describe('Create document', () => {
 });
 
 describe('Update document', () => {
-  const localDir = './test/database_put02';
+  const localDir = './test/database_put03';
   const dbName = 'test_repos';
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -240,7 +313,7 @@ describe('Update document', () => {
 });
 
 describe('Concurrent', () => {
-  const localDir = './test/database_put03';
+  const localDir = './test/database_put04';
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';

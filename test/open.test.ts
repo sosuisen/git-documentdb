@@ -9,7 +9,11 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { CannotCreateDirectoryError, UndefinedDatabaseNameError } from '../src/error';
+import {
+  CannotCreateDirectoryError,
+  InvalidWorkingDirectoryPathLengthError,
+  UndefinedDatabaseNameError,
+} from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 interface RepositoryInitOptions {
@@ -130,6 +134,18 @@ click on the Advanced button, and then click [disable inheritance] button.
       /* eslint-disable-next-line no-new */ // @ts-ignore
       new GitDocumentDB({});
     }).toThrowError(UndefinedDatabaseNameError);
+  });
+
+  test('Working directory path is too long.', () => {
+    expect(() => {
+      /* eslint-disable-next-line no-new */ // @ts-ignore
+      new GitDocumentDB({
+        db_name:
+          '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+        local_dir:
+          '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+      });
+    }).toThrowError(InvalidWorkingDirectoryPathLengthError);
   });
 });
 
