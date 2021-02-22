@@ -22,10 +22,13 @@ export class Validator {
    * normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
    */
   static normalizeCollectionPath (collectionPath: string | undefined) {
-    if (collectionPath === undefined || collectionPath === '' || collectionPath === '/') {
+    if (collectionPath === undefined || collectionPath === '') {
       return '';
     }
-
+    collectionPath = collectionPath.replace(/\\/g, '/');
+    if (collectionPath === '/') {
+      return '';
+    }
     // Remove consecutive slash
     collectionPath = collectionPath.replace(/\/+?([^/])/g, '/$1');
 
@@ -34,16 +37,14 @@ export class Validator {
       collectionPath = collectionPath.slice(1);
     }
 
-    // Add a trailing slash
+    // Remove all trailing slashes and add only one
     while (collectionPath.endsWith('/')) {
       collectionPath = collectionPath.slice(0, -1);
     }
     if (collectionPath === '') {
       return '';
     }
-    if (!collectionPath.endsWith('/')) {
-      collectionPath += '/';
-    }
+    collectionPath += '/';
 
     return collectionPath;
   }
@@ -268,6 +269,7 @@ export class Validator {
   validateId (_id: string) {
     const baseName = path.basename(_id);
     // basename returns '' if _id is '/'.
+    // basename also returns '' if _id is '\' only on Windows
     if (baseName === '') {
       throw new InvalidIdCharacterError(_id);
     }
