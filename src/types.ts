@@ -1,19 +1,27 @@
 /**
- * Type for a JSON document
+ * Type for a JSON document that is stored in a database
  *
  * @remarks A document must be a JSON Object that matches the following conditions:
  *
- * - It must have an '_id' key
+ * - It must have an '_id' key that shows id of a document
  *
- * -- '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
+ * - _id allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " \\ | ? * \\0
  *
- * -- '_id' cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
+ * - _id cannot start with an underscore _ and slash /.
  *
- * -- '_id' cannot end with a period . (For compatibility with the file system of Windows)
+ * - Each part of path that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
  *
- * - A property name cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
+ * - Key cannot start with an underscore _.
  *
- * @beta
+ * @example
+ * ```
+ * {
+ *   _id: 'profile01',
+ *   location: 'Sapporo',
+ *   age: '16'
+ * }
+ * ```
+ * @public
  */
 export type JsonDoc = {
   [key: string]: any;
@@ -21,6 +29,11 @@ export type JsonDoc = {
 
 /**
  * Options for put()
+ *
+ * @remarks
+ * - commit_message: internal commit message. default is 'put: path/to/the/file'
+ * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
+ * @public
  */
 export type PutOptions = {
   commit_message?: string;
@@ -29,6 +42,10 @@ export type PutOptions = {
 
 /**
  * Options for get()
+ *
+ * @remarks
+ * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
+ * @public
  */
 export type GetOptions = {
   collection_path?: string;
@@ -36,6 +53,11 @@ export type GetOptions = {
 
 /**
  * Options for remove()
+ *
+ * @remarks
+ * - commit_message: internal commit message. default is 'remove: path/to/the/file'
+ * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
+ * @public
  */
 export type RemoveOptions = {
   commit_message?: string;
@@ -54,7 +76,9 @@ export type RemoveOptions = {
  *
  * - recursive: Get documents recursively from all sub directories. Default is false.
  *
- * @beta
+ * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
+ *
+ * @public
  */
 export type AllDocsOptions = {
   include_docs?: boolean;
@@ -70,13 +94,13 @@ export type AllDocsOptions = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - id: id of a document
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
  * - commit_sha: SHA-1 hash of Git commit (40 characters)
  *
- * @beta
+ * @public
  */
 export type PutResult = {
   ok: true;
@@ -91,13 +115,13 @@ export type PutResult = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - _id: id of a document
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
  *
  * - file_sha: SHA-1 hash of Git blob (40 characters)
  *
  * - commit_sha: SHA-1 hash of Git commit (40 characters)
  *
- * @beta
+ * @public
  */
 export type RemoveResult = {
   ok: true;
@@ -116,7 +140,7 @@ export type RemoveResult = {
  *
  * - rows: Array of documents. 'rows' is undefined if total_rows equals 0.
  *
- * @beta
+ * @public
  */
 export type AllDocsResult = {
   total_rows: number;
@@ -128,13 +152,13 @@ export type AllDocsResult = {
  * Type for a JSON document with metadata
  *
  * @remarks
- * - _id: id of a document
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
- * - doc: JsonDoc
+ * - doc: JsonDoc which has a '_id' value. The value of 'id' and 'doc._id' are the same.
  *
- * @beta
+ * @public
  */
 export type JsonDocWithMetadata = {
   id: string;
@@ -150,7 +174,7 @@ export type JsonDocWithMetadata = {
  *
  * - timeout: Clear queued operation after timeout(msec). Default is 10000.
  *
- *  @beta
+ * @public
  */
 export type DatabaseCloseOption = {
   force?: boolean;
@@ -159,11 +183,13 @@ export type DatabaseCloseOption = {
 
 /**
  * Abstract class for CRUD class
+ *
+ * @internal
  */
 export abstract class AbstractDocumentDB {
   abstract workingDir (): string;
   abstract put (document: JsonDoc, options?: PutOptions): Promise<PutResult>;
-  abstract get (_id: string, options?: GetOptions): Promise<JsonDoc>;
+  abstract get (docId: string, options?: GetOptions): Promise<JsonDoc>;
   abstract delete (
     idOrDoc: string | JsonDoc,
     options?: RemoveOptions
