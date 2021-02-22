@@ -29,18 +29,6 @@ describe('Collection', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('getFullPath()', () => {
-    const dbName = 'test_repos_1';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    gitDDB.open();
-    const users = gitDDB.collection('users');
-    expect(users.getFullPath('pages')).toEqual('users/pages/');
-    gitDDB.destroy();
-  });
-
   test('InvalidCollectionPathCharacterError', () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
