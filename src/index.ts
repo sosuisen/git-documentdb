@@ -40,7 +40,7 @@ import {
 
 const gitAuthor = {
   name: 'GitDocumentDB',
-  email: 'system@gdd.localhost',
+  email: 'gitddb@example.com',
 };
 
 const databaseName = 'GitDocumentDB';
