@@ -29,21 +29,6 @@ describe('Collection', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('normalizeCollectionPath()', () => {
-    expect(Validator.normalizeCollectionPath(undefined)).toEqual('');
-    expect(Validator.normalizeCollectionPath('')).toEqual('');
-    expect(Validator.normalizeCollectionPath('/')).toEqual('');
-    expect(Validator.normalizeCollectionPath('//')).toEqual('');
-    expect(Validator.normalizeCollectionPath('/users/')).toEqual('users/');
-    expect(Validator.normalizeCollectionPath('users/')).toEqual('users/');
-    expect(Validator.normalizeCollectionPath('users')).toEqual('users/');
-    expect(Validator.normalizeCollectionPath('users/pages')).toEqual('users/pages/');
-    expect(Validator.normalizeCollectionPath('users/pages')).toEqual('users/pages/');
-    expect(Validator.normalizeCollectionPath('users//pages')).toEqual('users/pages/');
-    expect(Validator.normalizeCollectionPath('/users///pages')).toEqual('users/pages/');
-    expect(Validator.normalizeCollectionPath('///users///pages')).toEqual('users/pages/');
-  });
-
   test('getFullPath()', () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({

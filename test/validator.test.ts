@@ -11,10 +11,16 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import {
+  InvalidCollectionPathCharacterError,
+  InvalidCollectionPathLengthError,
+  InvalidDbNameCharacterError,
   InvalidIdCharacterError,
   InvalidIdLengthError,
   InvalidJsonObjectError,
+  InvalidLocalDirCharacterError,
+  InvalidPropertyNameInDocumentError,
   InvalidWorkingDirectoryPathLengthError,
+  UndefinedDocumentIdError,
 } from '../src/main';
 import { Validator } from '../src/validator';
 
@@ -33,6 +39,22 @@ describe('Validations', () => {
 
   afterAll(() => {
     fs.removeSync(path.resolve(localDir));
+  });
+
+  test('normalizeCollectionPath', () => {
+    expect(Validator.normalizeCollectionPath(undefined)).toBe('');
+    expect(Validator.normalizeCollectionPath('')).toBe('');
+    expect(Validator.normalizeCollectionPath('/')).toBe('');
+    expect(Validator.normalizeCollectionPath('\\')).toBe('');
+    expect(Validator.normalizeCollectionPath('//')).toEqual('');
+    expect(Validator.normalizeCollectionPath('users')).toBe('users/');
+    expect(Validator.normalizeCollectionPath('users/')).toBe('users/');
+    expect(Validator.normalizeCollectionPath('/users/')).toBe('users/');
+    expect(Validator.normalizeCollectionPath('/users')).toBe('users/');
+    expect(Validator.normalizeCollectionPath('users/pages')).toEqual('users/pages/');
+    expect(Validator.normalizeCollectionPath('users//pages')).toEqual('users/pages/');
+    expect(Validator.normalizeCollectionPath('/users///pages')).toEqual('users/pages/');
+    expect(Validator.normalizeCollectionPath('///users///pages')).toEqual('users/pages/');
   });
 
   test('validateId()', () => {
@@ -76,15 +98,67 @@ describe('Validations', () => {
     expect(() => validator.validateId('_abc')).toThrowError(InvalidIdCharacterError);
     // Cannot end with a period
     expect(() => validator.validateId('abc.')).toThrowError(InvalidIdCharacterError);
+
+    const maxLen = validator.maxIdLength();
+    let _id = '';
+    for (let i = 0; i < maxLen; i++) {
+      _id += '0';
+    }
+    expect(() => validator.validateId(_id)).not.toThrowError();
+    _id += '0';
+    expect(() => validator.validateId(_id)).toThrowError(InvalidIdLengthError);
   });
 
-  it('validateCollectionPath()');
+  test('validateCollectionPath', () => {
+    expect(() => validator.validateCollectionPath('')).not.toThrowError();
+    expect(() => validator.validateCollectionPath('_')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateCollectionPath('/')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateCollectionPath('COM3')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    const maxColLen = validator.maxCollectionPathLength();
+    let longPath = '';
+    for (let i = 0; i < maxColLen - 1; i++) {
+      longPath += '0';
+    }
+    longPath += '/';
+    expect(() => validator.validateCollectionPath(longPath)).not.toThrowError();
+    longPath = '0' + longPath;
+    expect(() => validator.validateCollectionPath(longPath)).toThrowError(
+      InvalidCollectionPathLengthError
+    );
+  });
 
-  it('validateDocument');
+  test('validateDocument', () => {
+    expect(() => validator.validateDocument({ _id: undefined })).toThrowError(
+      UndefinedDocumentIdError
+    );
+    expect(() =>
+      validator.validateDocument({ _id: 'prof01', _underscore: 'underscore' })
+    ).toThrowError(InvalidPropertyNameInDocumentError);
+  });
 
-  it('validateDbName');
+  test('validateDbName', () => {
+    expect(() => validator.validateDbName('COM3')).toThrowError(
+      InvalidDbNameCharacterError
+    );
+  });
 
-  it('validLocalDir');
+  it('validLocalDir', () => {
+    expect(() => validator.validateLocalDir('COM3')).toThrowError(
+      InvalidLocalDirCharacterError
+    );
+    expect(() => validator.validateLocalDir('dir01/dir02')).not.toThrowError();
+    expect(() => validator.validateLocalDir('dir01\\dir02')).toThrowError(
+      InvalidLocalDirCharacterError
+    );
+    expect(() => validator.validateLocalDir('C:/dir01')).not.toThrowError();
+    expect(() => validator.validateLocalDir('C:/dir01/dir02')).not.toThrowError();
+  });
 });
 
 describe('Using validation in other functions', () => {
