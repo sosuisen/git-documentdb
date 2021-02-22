@@ -22,13 +22,15 @@ export class Validator {
   }
 
   /**
-   * normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
+   * Normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
+   * Backslash \\  and yen ¥ is replaced with slash /.
    */
   static normalizeCollectionPath (collectionPath: string | undefined) {
     if (collectionPath === undefined || collectionPath === '') {
       return '';
     }
     collectionPath = collectionPath.replace(/\\/g, '/');
+    collectionPath = collectionPath.replace(/¥/g, '/');
     if (collectionPath === '/') {
       return '';
     }
@@ -118,6 +120,7 @@ export class Validator {
     if (!options.allow_slash) {
       regStr += `/`;
       regStr += `\\\\`;
+      regStr += `¥`;
     }
     const regExp = new RegExp(`[${regStr}]`);
 
@@ -164,7 +167,7 @@ export class Validator {
    * Validate dbName
    *
    * @remarks
-   * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " / \\ | ? * \\0
+   * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \\0
    *
    * - dbName cannot end with a period .
    *
@@ -183,7 +186,7 @@ export class Validator {
    * Validate collectionPath
    *
    * @remarks
-   * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " \\ | ? * \\0
+   * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " ¥ \\ | ? * \\0
    *
    * - Cannot start with slash. Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
    *
@@ -236,7 +239,7 @@ export class Validator {
    * Validate file name
    *
    * @remarks
-   * - file name allows UTF-8 string excluding following characters: \< \> : " / \\ | ? * \\0
+   * - file name allows UTF-8 string excluding following characters: \< \> : " ¥ / \\ | ? * \\0
    *
    * - file name cannot start with an underscore _.
    *
@@ -254,7 +257,7 @@ export class Validator {
    * Validate _id
    *
    * @remarks
-   * - _id allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " \\ | ? * \\0
+   * - _id allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " ¥ \\ | ? * \\0
    *
    * - _id cannot start with an underscore _.
    *

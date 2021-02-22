@@ -64,7 +64,19 @@ describe('Validations', () => {
      * '_id' cannot end with a period . (For compatibility with the file system of Windows)
      */
     // Punctuations
-    const disallowedPunctuations = ['<', '>', ':', '"', '/', '\\', '|', '?', '*', '\0'];
+    const disallowedPunctuations = [
+      '<',
+      '>',
+      ':',
+      '"',
+      '¥',
+      '/',
+      '\\',
+      '|',
+      '?',
+      '*',
+      '\0',
+    ];
     disallowedPunctuations.forEach(p =>
       expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError)
     );
@@ -148,17 +160,53 @@ describe('Validations', () => {
     );
   });
 
-  it('validLocalDir', () => {
+  test('validLocalDir', () => {
     expect(() => validator.validateLocalDir('COM3')).toThrowError(
       InvalidLocalDirCharacterError
     );
     expect(() => validator.validateLocalDir('dir01/dir02')).not.toThrowError();
-    // eslint-disable-next-line prettierx/options, no-useless-escape
-    expect(() => validator.validateLocalDir('dir01\dir02')).not.toThrowError();
+    expect(() => validator.validateLocalDir('dir01\\dir02')).not.toThrowError();
     expect(() => validator.validateLocalDir('C:/dir01')).not.toThrowError();
     expect(() => validator.validateLocalDir('C:/dir01/dir02')).not.toThrowError();
-    // eslint-disable-next-line prettierx/options, no-useless-escape
-    expect(() => validator.validateLocalDir('C:\dir01\dir02')).not.toThrowError();
+    expect(() => validator.validateLocalDir('C:\\dir01\\dir02')).not.toThrowError();
+  });
+
+  test('testWindowsInvalidFileNameCharacter', () => {
+    expect(validator.testWindowsInvalidFileNameCharacter('dir01/dir02')).toBeFalsy();
+    expect(validator.testWindowsInvalidFileNameCharacter('dir01\\dir02')).toBeFalsy();
+    expect(validator.testWindowsInvalidFileNameCharacter('dir01:dir02')).toBeFalsy();
+    expect(validator.testWindowsInvalidFileNameCharacter('C:¥dir01¥dir02')).toBeFalsy();
+
+    expect(
+      validator.testWindowsInvalidFileNameCharacter('dir01/dir02', { allow_slash: true })
+    ).toBeTruthy();
+    expect(
+      validator.testWindowsInvalidFileNameCharacter('dir01\\dir02', { allow_slash: true })
+    ).toBeTruthy();
+    expect(
+      validator.testWindowsInvalidFileNameCharacter('C:/dir01', {
+        allow_drive_letter: true,
+        allow_slash: true,
+      })
+    ).toBeTruthy();
+    expect(
+      validator.testWindowsInvalidFileNameCharacter('C:/dir01/dir02', {
+        allow_drive_letter: true,
+        allow_slash: true,
+      })
+    ).toBeTruthy();
+    expect(
+      validator.testWindowsInvalidFileNameCharacter('C:\\dir01\\dir02', {
+        allow_drive_letter: true,
+        allow_slash: true,
+      })
+    ).toBeTruthy();
+    expect(
+      validator.testWindowsInvalidFileNameCharacter('C:¥dir01¥dir02', {
+        allow_drive_letter: true,
+        allow_slash: true,
+      })
+    ).toBeTruthy();
   });
 });
 
@@ -175,8 +223,8 @@ describe('Using validation in other functions', () => {
 
   test('GitDocumentDB constructor', () => {
     expect(() => {
-      // eslint-disable-next-line prettierx/options, no-useless-escape, no-new
-      new GitDocumentDB({ db_name: 'db', local_dir: 'C:\dir01\dir02' });
+      // eslint-disable-next-line no-new
+      new GitDocumentDB({ db_name: 'db', local_dir: 'C:\\dir01\\dir02' });
     }).not.toThrowError();
   });
 
