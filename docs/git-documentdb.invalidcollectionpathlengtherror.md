@@ -4,6 +4,7 @@
 
 ## InvalidCollectionPathLengthError class
 
+
 <b>Signature:</b>
 
 ```typescript

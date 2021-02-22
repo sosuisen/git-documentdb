@@ -19,7 +19,7 @@ constructor(options: DatabaseOption);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [DatabaseOption](./git-documentdb.databaseoption.md) | Database location |
+|  options | [DatabaseOption](./git-documentdb.databaseoption.md) |  |
 
 ## Exceptions
 
@@ -30,8 +30,4 @@ constructor(options: DatabaseOption);
 ## Remarks
 
 - The git working directory will be localDir/dbName.
-
-- The length of the working directory path must be equal to or lesser than MAX\_LENGTH\_OF\_WORKING\_DIRECTORY\_PAT(195).
-
-- GitDocumentDB can load a git repository that is not created by git-documentdb module, however correct behavior is not guaranteed.
 

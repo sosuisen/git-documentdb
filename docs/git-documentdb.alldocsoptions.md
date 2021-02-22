@@ -4,10 +4,7 @@
 
 ## AllDocsOptions type
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-How to get documents
+Options for allDocs()
 
 <b>Signature:</b>
 
@@ -17,6 +14,7 @@ export declare type AllDocsOptions = {
     descending?: boolean;
     sub_directory?: string;
     recursive?: boolean;
+    collection_path?: string;
 };
 ```
 
@@ -29,4 +27,6 @@ export declare type AllDocsOptions = {
 - sub\_directory: Only get the documents under the specified sub directory.
 
 - recursive: Get documents recursively from all sub directories. Default is false.
+
+- collection\_path: If set, specified directories are omitted from the a filepath in a document id. See [Collection](./git-documentdb.collection.md)<!-- -->.
 

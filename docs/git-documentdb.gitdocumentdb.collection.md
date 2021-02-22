@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Create a collection or open an existing one.
+Get a collection
 
 <b>Signature:</b>
 
@@ -19,9 +19,13 @@ collection(collectionPath: string): Collection;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collectionPath | string | path from localDir. Subdirectories are also permitted. e.g. 'pages', 'pages/works'. collectionPath cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection. |
+|  collectionPath | string | path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'. It cannot start with underscore \_. It cannot start with slash /. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection. |
 
 <b>Returns:</b>
 
-Collection
+[Collection](./git-documentdb.collection.md)
+
+## Remarks
+
+Notice that this function does not make a sub-directory under the working directory.
 

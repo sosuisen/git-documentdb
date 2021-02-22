@@ -28,5 +28,7 @@ Database information
 
 ## Remarks
 
-If localDir does not exist, it is created.
+- If localDir does not exist, it is created.
+
+- GitDocumentDB can load a git repository that is not created by git-documentdb module, however correct behavior is not guaranteed.
 

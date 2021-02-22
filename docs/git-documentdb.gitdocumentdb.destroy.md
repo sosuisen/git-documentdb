@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Destroy database
+Destroy a database
 
 <b>Signature:</b>
 
@@ -31,13 +31,15 @@ Promise&lt;{ ok: true; }&gt;
 
 [DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
 
+[DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md)
+
 ## Remarks
 
-- The database is closed automatically before destroying.
+- [GitDocumentDB.close()](./git-documentdb.gitdocumentdb.close.md) is called automatically before destroying.
 
 - options.force is true if undefined.
 
-- The Git repository is removed from the filesystem.
+- The Git repository and the working directory are removed from the filesystem.
 
-- localDir (which is specified in constructor) is not removed.
+- local\_dir (which is specified in constructor) is not removed.
 

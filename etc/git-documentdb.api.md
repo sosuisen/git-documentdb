@@ -6,15 +6,34 @@
 
 import nodegit from '@sosuisen/nodegit';
 
-// @beta
+// Warning: (ae-internal-missing-underscore) The name "AbstractDocumentDB" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export abstract class AbstractDocumentDB {
+    // (undocumented)
+    abstract allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
+    // (undocumented)
+    abstract delete(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    // (undocumented)
+    abstract get(docId: string, options?: GetOptions): Promise<JsonDoc>;
+    // (undocumented)
+    abstract put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    abstract remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    // (undocumented)
+    abstract workingDir(): string;
+}
+
+// @public
 export type AllDocsOptions = {
     include_docs?: boolean;
     descending?: boolean;
     sub_directory?: string;
     recursive?: boolean;
+    collection_path?: string;
 };
 
-// @beta
+// @public
 export type AllDocsResult = {
     total_rows: number;
     commit_sha?: string;
@@ -33,12 +52,25 @@ export class CannotDeleteDataError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta (undocumented)
+// @public (undocumented)
 export class CannotWriteDataError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta
+// @public
+export class Collection {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "AbstractDocumentDB" which is marked as @internal
+    constructor(_gitDDB: AbstractDocumentDB, _collectionPath: string);
+    allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
+    // (undocumented)
+    collectionPath(): string;
+    delete(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    get(docId: string, options?: GetOptions): Promise<JsonDoc>;
+    put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+}
+
+// @public
 export type DatabaseCloseOption = {
     force?: boolean;
     timeout?: number;
@@ -67,43 +99,39 @@ export type DatabaseOption = {
     db_name: string;
 };
 
-// @beta
-export type DeleteResult = {
-    ok: true;
-    id: string;
-    file_sha: string;
-    commit_sha: string;
-};
-
 // @public (undocumented)
 export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
 }
 
+// @public
+export type GetOptions = {
+    collection_path?: string;
+};
+
+// Warning: (ae-incompatible-release-tags) The symbol "GitDocumentDB" is marked as @beta, but its signature references "AbstractDocumentDB" which is marked as @internal
+//
 // @beta
-export class GitDocumentDB {
+export class GitDocumentDB extends AbstractDocumentDB {
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "Collection" needs to be exported by the entry point main.d.ts
     collection(collectionPath: string): Collection;
-    // (undocumented)
-    delete(idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+    delete(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
-    get(_id: string): Promise<JsonDoc>;
+    get(docId: string, options?: GetOptions): Promise<JsonDoc>;
     getRepository(): nodegit.Repository | undefined;
     isClosing: boolean;
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
-    // Warning: (ae-forgotten-export) The symbol "JsonDoc" needs to be exported by the entry point main.d.ts
-    put(document: JsonDoc, commitMessage?: string): Promise<PutResult>;
+    put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
     // @internal (undocumented)
-    _put_concurrent(document: JsonDoc, commitMessage: string): Promise<PutResult>;
-    remove(idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+    _put_concurrent(_id: string, collectionPath: string, data: string, commitMessage: string): Promise<PutResult>;
+    remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     // @internal (undocumented)
-    _remove_concurrent(_id: string, commitMessage: string): Promise<DeleteResult>;
+    _remove_concurrent(_id: string, collectionPath: string, commitMessage: string): Promise<RemoveResult>;
     workingDir(): string;
     }
 
@@ -152,15 +180,40 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
     constructor(path: string, minLength: number, maxLength: number);
 }
 
-// @beta
+// @public
+export type JsonDoc = {
+    [key: string]: any;
+};
+
+// @public
 export type JsonDocWithMetadata = {
     id: string;
     file_sha: string;
     doc?: JsonDoc;
 };
 
-// @beta
+// @public
+export type PutOptions = {
+    commit_message?: string;
+    collection_path?: string;
+};
+
+// @public
 export type PutResult = {
+    ok: true;
+    id: string;
+    file_sha: string;
+    commit_sha: string;
+};
+
+// @public
+export type RemoveOptions = {
+    commit_message?: string;
+    collection_path?: string;
+};
+
+// @public
+export type RemoveResult = {
     ok: true;
     id: string;
     file_sha: string;
@@ -181,6 +234,27 @@ export class UndefinedDatabaseNameError extends BaseError {
 export class UndefinedDocumentIdError extends BaseError {
     constructor(e?: string);
 }
+
+// Warning: (ae-internal-missing-underscore) The name "Validator" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export class Validator {
+    constructor(_workingDir: string);
+    maxCollectionPathLength(): number;
+    maxIdLength(): number;
+    static maxWorkingDirectoryLength(): number;
+    static normalizeCollectionPath(collectionPath: string | undefined): string;
+    testWindowsInvalidFileNameCharacter(name: string, options?: {
+        allow_slash?: boolean;
+        allow_drive_letter?: boolean;
+    }): boolean;
+    testWindowsReservedFileName(name: string): boolean;
+    validateCollectionPath(collectionPath: string): void;
+    validateDbName(dbName: string): void;
+    validateDocument(doc: JsonDoc): void;
+    validateId(_id: string): void;
+    validateLocalDir(localDir: string): void;
+    }
 
 
 ```

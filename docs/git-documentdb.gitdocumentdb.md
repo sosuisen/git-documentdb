@@ -12,8 +12,9 @@ Main class of GitDocumentDB
 <b>Signature:</b>
 
 ```typescript
-export declare class GitDocumentDB 
+export declare class GitDocumentDB extends AbstractDocumentDB 
 ```
+<b>Extends:</b> AbstractDocumentDB
 
 ## Constructors
 
@@ -31,16 +32,16 @@ export declare class GitDocumentDB
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents from the database |
-|  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close database |
-|  [collection(collectionPath)](./git-documentdb.gitdocumentdb.collection.md) |  | <b><i>(BETA)</i></b> Create a collection or open an existing one. |
-|  [delete(idOrDoc, commitMessage)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> |
-|  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | <b><i>(BETA)</i></b> Destroy database |
-|  [get(\_id)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document from the root collection |
-|  [getRepository()](./git-documentdb.gitdocumentdb.getrepository.md) |  | <b><i>(BETA)</i></b> Get current repository |
-|  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if database is opened |
+|  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents |
+|  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close a database |
+|  [collection(collectionPath)](./git-documentdb.gitdocumentdb.collection.md) |  | <b><i>(BETA)</i></b> Get a collection |
+|  [delete(idOrDoc, options)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> This is an alias of [GitDocumentDB.remove()](./git-documentdb.gitdocumentdb.remove.md) |
+|  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | <b><i>(BETA)</i></b> Destroy a database |
+|  [get(docId, options)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document |
+|  [getRepository()](./git-documentdb.gitdocumentdb.getrepository.md) |  | <b><i>(BETA)</i></b> Get a current repository |
+|  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if a database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
-|  [put(document, commitMessage)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document into the root collection |
-|  [remove(idOrDoc, commitMessage)](./git-documentdb.gitdocumentdb.remove.md) |  | <b><i>(BETA)</i></b> Remove a document from the root collection |
-|  [workingDir()](./git-documentdb.gitdocumentdb.workingdir.md) |  | <b><i>(BETA)</i></b> Get a path of the current Git working directory |
+|  [put(document, options)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document |
+|  [remove(idOrDoc, options)](./git-documentdb.gitdocumentdb.remove.md) |  | <b><i>(BETA)</i></b> Remove a document |
+|  [workingDir()](./git-documentdb.gitdocumentdb.workingdir.md) |  | <b><i>(BETA)</i></b> Get a full path of the current Git working directory |
 

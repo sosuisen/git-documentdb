@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Close database
+Close a database
 
 <b>Signature:</b>
 
@@ -33,7 +33,7 @@ Promise&lt;void&gt;
 
 ## Remarks
 
-- CRUD operations are not available while closing.
+- New CRUD operations are not available while closing.
 
 - Queued operations are executed before database is closed.
 

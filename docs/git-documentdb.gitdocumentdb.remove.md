@@ -7,24 +7,24 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Remove a document from the root collection
+Remove a document
 
 <b>Signature:</b>
 
 ```typescript
-remove(idOrDoc: string | JsonDoc, commitMessage?: string): Promise<DeleteResult>;
+remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  idOrDoc | string \| JsonDoc |  |
-|  commitMessage | string | Default is <code>remove: ${_id}</code>. |
+|  idOrDoc | string \| [JsonDoc](./git-documentdb.jsondoc.md) | id of a target document or a document itself |
+|  options | [RemoveOptions](./git-documentdb.removeoptions.md) |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
+Promise&lt;[RemoveResult](./git-documentdb.removeresult.md)<!-- -->&gt;
 
 ## Exceptions
 
@@ -40,12 +40,9 @@ Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
 
 [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
 
+[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+
 [InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
 
 [InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
-
-
-## Remarks
-
-- This is equivalent to call collection('/').remove().
 

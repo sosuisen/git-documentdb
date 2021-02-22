@@ -4,9 +4,6 @@
 
 ## PutResult type
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Result of put()
 
 <b>Signature:</b>
@@ -24,7 +21,7 @@ export declare type PutResult = {
 
 - ok: ok shows always true. Exception is thrown when error occurs.
 
-- id: id of a document
+- id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
 
 - file\_sha: SHA-1 hash of Git object (40 characters)
 

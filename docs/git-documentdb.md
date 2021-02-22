@@ -16,7 +16,8 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  --- | --- |
 |  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
 |  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
-|  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) | <b><i>(BETA)</i></b> |
+|  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
+|  [Collection](./git-documentdb.collection.md) | Documents are gathered together in collections. |
 |  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
 |  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
 |  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
@@ -38,12 +39,16 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | <b><i>(BETA)</i></b> How to get documents |
-|  [AllDocsResult](./git-documentdb.alldocsresult.md) | <b><i>(BETA)</i></b> Result of allDocs() |
-|  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | <b><i>(BETA)</i></b> How to close database |
+|  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | Options for allDocs() |
+|  [AllDocsResult](./git-documentdb.alldocsresult.md) | Result of allDocs() |
+|  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | How to close database |
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | <b><i>(BETA)</i></b> Database information |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
-|  [DeleteResult](./git-documentdb.deleteresult.md) | <b><i>(BETA)</i></b> Result of delete() |
-|  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | <b><i>(BETA)</i></b> Type for a JSON document with metadata |
-|  [PutResult](./git-documentdb.putresult.md) | <b><i>(BETA)</i></b> Result of put() |
+|  [GetOptions](./git-documentdb.getoptions.md) | Options for get() |
+|  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
+|  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
+|  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
+|  [PutResult](./git-documentdb.putresult.md) | Result of put() |
+|  [RemoveOptions](./git-documentdb.removeoptions.md) | Options for remove() |
+|  [RemoveResult](./git-documentdb.removeresult.md) | Result of remove() |
 

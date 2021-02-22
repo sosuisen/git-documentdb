@@ -4,6 +4,7 @@
 
 ## InvalidPropertyNameInDocumentError class
 
+
 <b>Signature:</b>
 
 ```typescript

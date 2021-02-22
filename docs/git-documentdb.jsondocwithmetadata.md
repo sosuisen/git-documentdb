@@ -4,9 +4,6 @@
 
 ## JsonDocWithMetadata type
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Type for a JSON document with metadata
 
 <b>Signature:</b>
@@ -18,12 +15,13 @@ export declare type JsonDocWithMetadata = {
     doc?: JsonDoc;
 };
 ```
+<b>References:</b> [JsonDoc](./git-documentdb.jsondoc.md)
 
 ## Remarks
 
-- \_id: id of a document
+- id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
 
 - file\_sha: SHA-1 hash of Git object (40 characters)
 
-- doc: JsonDoc
+- doc: JsonDoc which has a '\_id' value. The value of 'id' and 'doc.\_id' are the same.
 

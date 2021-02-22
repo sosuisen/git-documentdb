@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Get a path of the current Git working directory
+Get a full path of the current Git working directory
 
 <b>Signature:</b>
 
@@ -18,5 +18,5 @@ workingDir(): string;
 
 string
 
-Absolute path of the directory (trailing slash is omitted)
+Full path of the directory (trailing slash is omitted)
 

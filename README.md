@@ -19,6 +19,7 @@ Use GitDocumentDB to ...
 
 :dromedary_camel: Travel history of database snapshots.
 
+You do not need knowledge of Git to start, however you make the most of GitDocumentDB if you understand Git.
 
 # API
 
@@ -147,6 +148,7 @@ const gitDDB = new GitDocumentDB({
 See examples directory.
 ```
 $ cd examples
+$ npm i
 $ npm start
 ```
 

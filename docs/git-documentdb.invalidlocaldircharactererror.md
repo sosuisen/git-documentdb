@@ -4,6 +4,7 @@
 
 ## InvalidLocalDirCharacterError class
 
+
 <b>Signature:</b>
 
 ```typescript

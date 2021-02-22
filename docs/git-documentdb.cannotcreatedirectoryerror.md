@@ -4,6 +4,7 @@
 
 ## CannotCreateDirectoryError class
 
+
 <b>Signature:</b>
 
 ```typescript
