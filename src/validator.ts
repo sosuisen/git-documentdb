@@ -310,6 +310,7 @@ export class Validator {
 
     const reservedKeys: { [key: string]: true } = {
       _id: true,
+      _deleted: true,
     };
     /**
      * NOTE: Keys which starts with underscore
@@ -318,7 +319,6 @@ export class Validator {
      * const reservedKeysInResponse = {
      *  _rev: true,
      *  _attachments: true,
-     *  _deleted: true,
      *  _conflicts: true,
      *  _deleted_conflicts: true,
      *  _local_seq: true,
