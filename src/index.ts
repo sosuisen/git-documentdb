@@ -672,7 +672,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
     let file_sha, commit_sha: string;
     const filename = collectionPath + _id + fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
     const filePath = path.resolve(this._workingDirectory, filename);
-    const dir = path.dirname(filePath);
 
     let index;
     try {
@@ -718,10 +717,20 @@ export class GitDocumentDB extends AbstractDocumentDB {
       commit_sha = commit.tostrS();
 
       await remove(filePath);
-      // remove parent directory if empty
-      await rmdir(dir).catch(e => {
-        /* not empty */
-      });
+
+      // remove parent directory recursively if empty
+      const dirname = path.dirname(filename);
+      const dirs = dirname.split(/[/\\¥]/);
+      for (let i = 0; i < dirs.length; i++) {
+        const dirpath =
+          i === 0
+            ? path.resolve(this._workingDirectory, ...dirs)
+            : path.resolve(this._workingDirectory, ...dirs.slice(0, -i));
+        // eslint-disable-next-line no-await-in-loop
+        await rmdir(dirpath).catch(e => {
+          /* not empty */
+        });
+      }
     } catch (err) {
       return Promise.reject(new CannotDeleteDataError(err.message));
     }
