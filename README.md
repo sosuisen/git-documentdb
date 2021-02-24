@@ -152,9 +152,14 @@ $ npm i
 $ npm start
 ```
 
+# Continuous Deployment (CD) using GitDocumentDB
+
+https://github.com/sosuisen/sosuisen-my-inventory-gatsby
+
 # App using GitDocumentDB
 
 https://github.com/sosuisen/inventory-manager
+
 
 # Roadmap
 
