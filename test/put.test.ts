@@ -271,6 +271,48 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
+  test('put(): Check order and indent of JSON properties.', async () => {
+    const dbName = 'test_repos_11';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      'b': 'b',
+      'c': 'c',
+      '_id': 'id',
+      '_deleted': true,
+      'array': ['item2', 'item1'],
+      'z': { ZZ: 'ZZ', ZA: 'ZA' },
+      'a': 'a',
+      '1': 1,
+      'A': 'A',
+    });
+
+    const filePath = path.resolve(gitDDB.workingDir(), 'id.json');
+    const jsonStr = fs.readFileSync(filePath, 'utf8');
+    expect(jsonStr).toBe(`{
+  "1": 1,
+  "A": "A",
+  "a": "a",
+  "array": [
+    "item2",
+    "item1"
+  ],
+  "b": "b",
+  "c": "c",
+  "z": {
+    "ZA": "ZA",
+    "ZZ": "ZZ"
+  },
+  "_deleted": true,
+  "_id": "id"
+}`);
+
+    await gitDDB.destroy();
+  });
+
   it(
     'Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.'
   );

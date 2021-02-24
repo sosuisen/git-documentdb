@@ -37,6 +37,7 @@ import {
   RemoveOptions,
   RemoveResult,
 } from './types';
+import { toSortedJSONString } from './utils';
 
 const gitAuthor = {
   name: 'GitDocumentDB',
@@ -381,11 +382,12 @@ export class GitDocumentDB extends AbstractDocumentDB {
       return Promise.reject(new InvalidJsonObjectError());
     }
 
-    // Clone doc before rewriting _id
+    // Must clone doc before rewriting _id
     const clone = JSON.parse(data);
     // _id of JSON document in Git repository includes just a filename.
     clone._id = path.basename(document._id);
-    data = JSON.stringify(clone);
+
+    data = toSortedJSONString(clone);
 
     options ??= {
       commit_message: undefined,
