@@ -21,7 +21,7 @@ import { GitDocumentDB } from '../src/index';
 describe('Validate', () => {
   const localDir = './test/database_delete01';
 
-  test('delete(): _id is invalid', async () => {
+  test('remove(): _id is invalid', async () => {
     const dbName = 'test_repos_01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -30,16 +30,16 @@ describe('Validate', () => {
 
     await gitDDB.open();
 
-    await expect(gitDDB.delete('_underscore')).rejects.toThrowError(
+    await expect(gitDDB.remove('_underscore')).rejects.toThrowError(
       InvalidIdCharacterError
     );
     // @ts-ignore
-    await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
+    await expect(gitDDB.remove()).rejects.toThrowError(UndefinedDocumentIdError);
 
     await gitDDB.destroy();
   });
 
-  test('delete(): collectionPath is invalid', async () => {
+  test('remove(): collectionPath is invalid', async () => {
     const dbName = 'test_repos_02';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -49,7 +49,7 @@ describe('Validate', () => {
     await gitDDB.open();
 
     await expect(
-      gitDDB.delete('prof01', { collection_path: '_underscore' })
+      gitDDB.remove('prof01', { collection_path: '_underscore' })
     ).rejects.toThrowError(InvalidCollectionPathCharacterError);
 
     await gitDDB.destroy();
@@ -67,7 +67,7 @@ describe('Delete document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('delete() from sub-directory', async () => {
+  test('remove(): Use delete().', async () => {
     const dbName = 'test_repos_01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -75,18 +75,9 @@ describe('Delete document', () => {
     });
 
     await gitDDB.open();
-    const _id = 'test/prof01';
-    const _id2 = 'test/prof02';
-    await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
-
-    await gitDDB.put({ _id: _id, name: 'shirase' });
-    await gitDDB.put({ _id: _id2, name: 'kimari' });
-
-    // Check if file exists.
-    const fileExt = '.json';
-    await expect(
-      fs.access(path.resolve(gitDDB.workingDir(), _id + fileExt), fs.constants.F_OK)
-    ).resolves.toBeUndefined();
+    const _id = 'prof01';
+    const doc = { _id: _id, name: 'shirase' };
+    await gitDDB.put(doc);
 
     // Delete
     await expect(gitDDB.delete(_id)).resolves.toMatchObject({
@@ -95,6 +86,7 @@ describe('Delete document', () => {
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+
     // Check commit message
     const repository = gitDDB.getRepository();
     if (repository !== undefined) {
@@ -103,8 +95,64 @@ describe('Delete document', () => {
       expect(commit.message()).toEqual(`remove: ${_id}`);
     }
 
-    await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
-    await expect(gitDDB.get(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.destroy();
+  });
+
+  test('remove() from sub-directory', async () => {
+    const dbName = 'test_repos_02';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id1 = 'dir/1';
+    const _id2 = 'dir/2';
+    const _id3 = 'dir/childDir/3';
+
+    await expect(gitDDB.remove(_id1)).rejects.toThrowError(DocumentNotFoundError);
+
+    // Put documents into deep directories.
+    await gitDDB.put({ _id: _id1, name: 'Kimari' });
+    await gitDDB.put({ _id: _id2, name: 'Shirase' });
+    await gitDDB.put({ _id: _id3, name: 'Hinata' });
+    /**
+      └── dir
+          ├── 1.json
+          ├── 2.json
+          └── childDir
+              └── 3.json
+    */
+    // Check if file exists.
+    const fileExt = '.json';
+    await expect(
+      fs.access(path.resolve(gitDDB.workingDir(), _id1 + fileExt), fs.constants.F_OK)
+    ).resolves.toBeUndefined();
+
+    // Delete document#1
+    await expect(gitDDB.remove(_id1)).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^' + _id1 + '$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+    // Check commit message
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`remove: ${_id1}`);
+    }
+
+    /**
+      └── dir
+          ├── 2.json
+          └── childDir
+              └── 3.json
+    */
+    // Check if get and remove fail.
+    await expect(gitDDB.get(_id1)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(gitDDB.remove(_id1)).rejects.toThrowError(DocumentNotFoundError);
     // @ts-ignore
     await expect(gitDDB._remove_concurrent(undefined)).rejects.toThrowError(
       DocumentNotFoundError
@@ -112,29 +160,47 @@ describe('Delete document', () => {
 
     // Check if file is deleted.
     await expect(
-      fs.access(path.resolve(gitDDB.workingDir(), _id), fs.constants.F_OK)
+      fs.access(path.resolve(gitDDB.workingDir(), _id1), fs.constants.F_OK)
     ).rejects.toThrowError();
+
     // Directory is not empty
     await expect(
-      fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id)), fs.constants.F_OK)
+      fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id1)), fs.constants.F_OK)
     ).resolves.toBeUndefined();
 
-    await gitDDB.delete(_id2);
-    // Directory is empty
+    // Delete document#2
+    await gitDDB.remove(_id2);
+
+    /**
+      └── dir
+          └── childDir
+              └── 3.json
+    */
+    // Directory is not empty
     await expect(
-      fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id)), fs.constants.F_OK)
+      fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id2)), fs.constants.F_OK)
+    ).resolves.toBeUndefined();
+
+    // Delete document#3
+    // Empty parent directories will be removed recursively.
+    await gitDDB.remove(_id3);
+    /**
+      └── (empty)
+    */
+    // Check if childDir/ exists.
+    await expect(
+      fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id3)), fs.constants.F_OK)
+    ).rejects.toThrowError();
+    // Check if dir/ exists.
+    await expect(
+      fs.access(path.dirname(path.resolve(gitDDB.workingDir(), _id2)), fs.constants.F_OK)
     ).rejects.toThrowError();
 
     await gitDDB.destroy();
-
-    await expect(gitDDB.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);
-    await expect(gitDDB._remove_concurrent(_id, '', 'message')).rejects.toThrowError(
-      RepositoryNotOpenError
-    );
   });
 
-  test('delete(): Delete by using collectionPath', async () => {
-    const dbName = 'test_repos_02';
+  test('remove(): Delete by using collectionPath', async () => {
+    const dbName = 'test_repos_03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -145,7 +211,7 @@ describe('Delete document', () => {
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Delete
     await expect(
-      gitDDB.delete('prof01', { collection_path: 'test' })
+      gitDDB.remove('prof01', { collection_path: 'test' })
     ).resolves.toMatchObject({
       ok: true,
       id: expect.stringMatching('^prof01$'),
@@ -168,8 +234,8 @@ describe('Delete document', () => {
     ).rejects.toThrowError();
   });
 
-  test('delete(): Set commit message.', async () => {
-    const dbName = 'test_repos_03';
+  test('remove(): Set commit message.', async () => {
+    const dbName = 'test_repos_04';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -180,7 +246,7 @@ describe('Delete document', () => {
     await gitDDB.put({ _id: _id, name: 'shirase' });
 
     // Delete
-    await gitDDB.delete(_id, { commit_message: 'my commit message' });
+    await gitDDB.remove(_id, { commit_message: 'my commit message' });
 
     // Check commit message
     const repository = gitDDB.getRepository();
@@ -193,8 +259,8 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): Use JsonObject as key.', async () => {
-    const dbName = 'test_repos_04';
+  test('remove(): Use JsonObject as key.', async () => {
+    const dbName = 'test_repos_05';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -206,7 +272,7 @@ describe('Delete document', () => {
     await gitDDB.put(doc);
 
     // Delete
-    await expect(gitDDB.delete(doc)).resolves.toMatchObject({
+    await expect(gitDDB.remove(doc)).resolves.toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -241,7 +307,7 @@ describe('Concurrent', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('delete(): All at once', async () => {
+  test('remove(): All at once', async () => {
     const dbName = 'test_repos_1';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -259,11 +325,11 @@ describe('Concurrent', () => {
     ]);
 
     await Promise.all([
-      gitDDB.delete(_id_a),
-      gitDDB.delete(_id_b),
-      gitDDB.delete(_id_c01),
-      gitDDB.delete(_id_c02),
-      gitDDB.delete(_id_d),
+      gitDDB.remove(_id_a),
+      gitDDB.remove(_id_b),
+      gitDDB.remove(_id_c01),
+      gitDDB.remove(_id_c02),
+      gitDDB.remove(_id_d),
     ]);
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
@@ -280,7 +346,7 @@ describe('Concurrent', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): Concurrent calls of _remove_concurrent() cause an error.', async () => {
+  test('remove(): Concurrent calls of _remove_concurrent() cause an error.', async () => {
     const dbName = 'test_repos_2';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
