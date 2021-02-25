@@ -14,9 +14,10 @@ export declare type AllDocsOptions = {
     descending?: boolean;
     sub_directory?: string;
     recursive?: boolean;
-    collection_path?: string;
+    collection_path?: CollectionPath;
 };
 ```
+<b>References:</b> [CollectionPath](./git-documentdb.collectionpath.md)
 
 ## Remarks
 

@@ -28,6 +28,21 @@ export type JsonDoc = {
 };
 
 /**
+ * CollectionPath
+ *
+ * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+ *
+ * - A directory name cannot end with a period or a white space.
+ *
+ * - A directory name does not allow '.' and '..'.
+ *
+ * - collectionPath cannot start with a slash.
+ *
+ * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection.
+ */
+export type CollectionPath = string;
+
+/**
  * Options for put()
  *
  * @remarks
@@ -37,7 +52,7 @@ export type JsonDoc = {
  */
 export type PutOptions = {
   commit_message?: string;
-  collection_path?: string;
+  collection_path?: CollectionPath;
 };
 
 /**
@@ -48,7 +63,7 @@ export type PutOptions = {
  * @public
  */
 export type GetOptions = {
-  collection_path?: string;
+  collection_path?: CollectionPath;
 };
 
 /**
@@ -61,7 +76,7 @@ export type GetOptions = {
  */
 export type RemoveOptions = {
   commit_message?: string;
-  collection_path?: string;
+  collection_path?: CollectionPath;
 };
 
 /**
@@ -85,7 +100,7 @@ export type AllDocsOptions = {
   descending?: boolean;
   sub_directory?: string;
   recursive?: boolean;
-  collection_path?: string;
+  collection_path?: CollectionPath;
 };
 
 /**

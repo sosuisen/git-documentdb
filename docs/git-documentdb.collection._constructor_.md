@@ -9,7 +9,7 @@ Constructs a new instance of the `Collection` class
 <b>Signature:</b>
 
 ```typescript
-constructor(_gitDDB: AbstractDocumentDB, _collectionPath: string);
+constructor(_gitDDB: AbstractDocumentDB, _collectionPath: CollectionPath);
 ```
 
 ## Parameters
@@ -17,5 +17,11 @@ constructor(_gitDDB: AbstractDocumentDB, _collectionPath: string);
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  \_gitDDB | AbstractDocumentDB |  |
-|  \_collectionPath | string |  |
+|  \_collectionPath | [CollectionPath](./git-documentdb.collectionpath.md) |  |
+
+## Exceptions
+
+[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
+
+[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
 

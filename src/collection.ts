@@ -2,6 +2,7 @@ import {
   AbstractDocumentDB,
   AllDocsOptions,
   AllDocsResult,
+  CollectionPath,
   GetOptions,
   JsonDoc,
   PutOptions,
@@ -40,14 +41,14 @@ import { Validator } from './validator';
  * @public
  */
 export class Collection {
-  private _collectionPath = '';
+  private _collectionPath: CollectionPath = '';
   private _gitDDB: AbstractDocumentDB;
 
-  /*
+  /**
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  constructor (_gitDDB: AbstractDocumentDB, _collectionPath: string) {
+  constructor (_gitDDB: AbstractDocumentDB, _collectionPath: CollectionPath) {
     this._gitDDB = _gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(_collectionPath);
     const validator = new Validator(this._gitDDB.workingDir());

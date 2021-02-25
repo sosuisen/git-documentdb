@@ -10,9 +10,10 @@ Options for get()
 
 ```typescript
 export declare type GetOptions = {
-    collection_path?: string;
+    collection_path?: CollectionPath;
 };
 ```
+<b>References:</b> [CollectionPath](./git-documentdb.collectionpath.md)
 
 ## Remarks
 

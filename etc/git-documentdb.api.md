@@ -30,7 +30,7 @@ export type AllDocsOptions = {
     descending?: boolean;
     sub_directory?: string;
     recursive?: boolean;
-    collection_path?: string;
+    collection_path?: CollectionPath;
 };
 
 // @public
@@ -60,7 +60,7 @@ export class CannotWriteDataError extends BaseError {
 // @public
 export class Collection {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "AbstractDocumentDB" which is marked as @internal
-    constructor(_gitDDB: AbstractDocumentDB, _collectionPath: string);
+    constructor(_gitDDB: AbstractDocumentDB, _collectionPath: CollectionPath);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     // (undocumented)
     collectionPath(): string;
@@ -69,6 +69,9 @@ export class Collection {
     put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
     remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
 }
+
+// @public
+export type CollectionPath = string;
 
 // @public
 export type DatabaseCloseOption = {
@@ -106,7 +109,7 @@ export class DocumentNotFoundError extends BaseError {
 
 // @public
 export type GetOptions = {
-    collection_path?: string;
+    collection_path?: CollectionPath;
 };
 
 // Warning: (ae-incompatible-release-tags) The symbol "GitDocumentDB" is marked as @beta, but its signature references "AbstractDocumentDB" which is marked as @internal
@@ -116,7 +119,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
-    collection(collectionPath: string): Collection;
+    collection(collectionPath: CollectionPath): Collection;
     delete(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
@@ -195,7 +198,7 @@ export type JsonDocWithMetadata = {
 // @public
 export type PutOptions = {
     commit_message?: string;
-    collection_path?: string;
+    collection_path?: CollectionPath;
 };
 
 // @public
@@ -209,7 +212,7 @@ export type PutResult = {
 // @public
 export type RemoveOptions = {
     commit_message?: string;
-    collection_path?: string;
+    collection_path?: CollectionPath;
 };
 
 // @public
@@ -245,7 +248,7 @@ export class Validator {
     maxCollectionPathLength(): number;
     maxIdLength(): number;
     static maxWorkingDirectoryLength(): number;
-    static normalizeCollectionPath(collectionPath: string | undefined): string;
+    static normalizeCollectionPath(collectionPath: CollectionPath | undefined): CollectionPath;
     testWindowsInvalidFileNameCharacter(name: string, options?: {
         allow_slash?: boolean;
         allow_drive_letter?: boolean;

@@ -10,7 +10,7 @@ import {
   InvalidPropertyNameInDocumentError,
   UndefinedDocumentIdError,
 } from './error';
-import { JsonDoc } from './types';
+import { CollectionPath, JsonDoc } from './types';
 
 /**
  * @internal
@@ -30,7 +30,9 @@ export class Validator {
    * '/' is not allowed.
    * Backslash \\ or yen ¥ is replaced with slash /.
    */
-  static normalizeCollectionPath (collectionPath: string | undefined) {
+  static normalizeCollectionPath (
+    collectionPath: CollectionPath | undefined
+  ): CollectionPath {
     if (collectionPath === undefined || collectionPath === '') {
       return '';
     }

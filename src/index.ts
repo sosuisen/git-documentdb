@@ -28,6 +28,7 @@ import {
   AbstractDocumentDB,
   AllDocsOptions,
   AllDocsResult,
+  CollectionPath,
   DatabaseCloseOption,
   GetOptions,
   JsonDoc,
@@ -207,13 +208,11 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * Get a collection
    *
    * @remarks
-   *  Notice that this function does not make a sub-directory under the working directory.
+   * - Notice that this function does not make a sub-directory under the working directory.
    *
    * @param collectionPath - path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
-   *  It cannot start with underscore _. It cannot start with slash /. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
-   *
    */
-  collection (collectionPath: string) {
+  collection (collectionPath: CollectionPath) {
     return new Collection(this, collectionPath);
   }
 

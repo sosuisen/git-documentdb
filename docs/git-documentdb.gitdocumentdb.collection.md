@@ -12,14 +12,14 @@ Get a collection
 <b>Signature:</b>
 
 ```typescript
-collection(collectionPath: string): Collection;
+collection(collectionPath: CollectionPath): Collection;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collectionPath | string | path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'. It cannot start with underscore \_. It cannot start with slash /. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection. |
+|  collectionPath | [CollectionPath](./git-documentdb.collectionpath.md) | path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'. |
 
 <b>Returns:</b>
 

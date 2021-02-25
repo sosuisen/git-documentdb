@@ -11,9 +11,10 @@ Options for put()
 ```typescript
 export declare type PutOptions = {
     commit_message?: string;
-    collection_path?: string;
+    collection_path?: CollectionPath;
 };
 ```
+<b>References:</b> [CollectionPath](./git-documentdb.collectionpath.md)
 
 ## Remarks
 
