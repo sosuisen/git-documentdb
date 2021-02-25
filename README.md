@@ -53,7 +53,6 @@ If you are still encountering install problems, documents about [NodeGit](https:
 import { GitDocumentDB } from 'git-documentdb';
 
 const gitDDB = new GitDocumentDB({
-  local_dir: 'gddb_data', // Parent directory of Git working directories (relative or absolute path)
   db_name: 'db01', // Git working directory
 });
 ```
@@ -61,7 +60,7 @@ const gitDDB = new GitDocumentDB({
 ## Basic CRUD
 ```typescript
   // Open a database
-  await gitDDB.open(); // Git creates a repository (/your/path/to/the/app/gddb_data/db01/.git)
+  await gitDDB.open(); // Git creates a repository (/your/path/to/the/app/gitddb/db01/.git)
   // Create a document
   await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '15' }); // Git adds 'profile01.json' under the working directory and commit it.
   // Update it
@@ -78,7 +77,7 @@ const gitDDB = new GitDocumentDB({
   /**
     Collect documents under sub-directories
 
-    gddb_data
+    gitddb
     └── db01
         ├── Gunma
         │   ├── 1.json
@@ -133,7 +132,7 @@ const gitDDB = new GitDocumentDB({
   /*
    * Actually, collection is a sugar syntax of filepath representation.
    * Both filepath representation (like PouchDB) and collection put the same file on the same location in a Git repository.
-   * e.g) Both gitDDB.put({ _id: 'Sapporo/1', name: 'Yuzuki' }) and gitDDB.collection('Sapporo').put({ _id: '1', name: 'Yuzuki' }) put 'gddb_data/db01/Sapporo/1.json' in which JSON document has { _id: '1', name: 'Yuzuki' }.
+   * e.g) Both gitDDB.put({ _id: 'Sapporo/1', name: 'Yuzuki' }) and gitDDB.collection('Sapporo').put({ _id: '1', name: 'Yuzuki' }) put 'gitddb/db01/Sapporo/1.json' in which JSON document has { _id: '1', name: 'Yuzuki' }.
    * 
    * Notice that APIs return different _id values in spite of the same source file.
    * gitDDB.get({ _id: 'Sapporo/1' }) returns { _id: 'Sapporo/1', name: 'Yuzuki' }.
