@@ -181,9 +181,9 @@ export class Validator {
    *
    * - A colon is generally disallowed, but a drive letter followed by a colon is allowed.
    *
-   * - A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.
+   * - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
    *
-   * - A trailing slash can be omitted.
+   * - A trailing slash could be omitted.
    *
    * @throws {@link InvalidLocalDirCharacterError}
    */
@@ -224,9 +224,9 @@ export class Validator {
    * @remarks
    * - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \0
    *
-   * - dbName cannot end with a period or a space.
+   * - dbName cannot end with a period or a white space.
    *
-   * - The current directory . and the parent directory .. are not allowed.
+   * - dbName does not allow '.' and '..'.
    *
    * @throws {@link InvalidDbNameCharacterError}
    */
@@ -243,11 +243,15 @@ export class Validator {
    * Validate collectionPath
    *
    * @remarks
-   * - collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " ¥ \\ | ? * \\0
+   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
    *
-   * - Cannot start with slash. Cannot start with slash. Trailing slash could be omitted. e.g. 'pages' and 'pages/' show the same collection.
+   * - A directory name cannot end with a period or a white space.
    *
-   * - Each part of collectionPath that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
+   * - A directory name does not allow '.' and '..'.
+   *
+   * - collectionPath cannot start with a slash / or an underscore _.
+   *
+   * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection.
    *
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
@@ -272,8 +276,7 @@ export class Validator {
     arr.forEach(part => {
       if (
         !this.testWindowsReservedFileName(part) ||
-        !this.testWindowsInvalidFileNameCharacter(part) ||
-        part === ''
+        !this.testWindowsInvalidFileNameCharacter(part)
       ) {
         throw new InvalidCollectionPathCharacterError(part);
       }

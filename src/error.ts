@@ -56,7 +56,11 @@ export class CannotDeleteDataError extends BaseError {
  */
 export class InvalidCollectionPathCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid collectionPath character '${name}': collectionPath allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0. Cannot start with slash. Each part of collectionPath that is separated by slash cannot end with a period . (e.g. '/users./' is disallowed.)`;
+    const e = `Invalid collectionPath character '${name}': 
+A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0
+A directory name cannot end with a period or a white space.
+A directory name does not allow '.' and '..'.
+collectionPath cannot start with a slash or an underscore.`;
     super(e);
   }
 }
@@ -175,8 +179,8 @@ export class InvalidDbNameCharacterError extends BaseError {
   constructor (name: string) {
     const e = `Invalid dbName '${name}': 
 dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \\ | ? * \0.
-dbName cannot end with a period or a space.
-The current directory . and the parent directory .. are not allowed.`;
+dbName cannot end with a period or a white space.
+dbName does not allow '.' and '..'.`;
     super(e);
   }
 }
@@ -189,7 +193,7 @@ export class InvalidLocalDirCharacterError extends BaseError {
     const e = `Invalid localDir character '${name}': 
 A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0.
 A colon is generally not allowed, but a drive letter followed by a colon is allowed.
-A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.`;
+A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.`;
     super(e);
   }
 }

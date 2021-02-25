@@ -82,13 +82,13 @@ const repositoryInitOptionFlags = {
  *   - Default is './gitddb'.
  *   - A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0.
  *   - A colon : is generally not allowed, but a drive letter followed by a colon is allowed. e.g.) C: D:
- *   - A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.
- *   - A trailing slash / can be omitted.
+ *   - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
+ *   - A trailing slash / could be omitted.
  *
  * * db_name: Name of a git repository
  *   - dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \ | ? * \0.
- *   - dbName cannot end with a period or a space.
- *   - The current directory . and the parent directory .. are not allowed.
+ *   - dbName cannot end with a period or a white space.
+ *   - dbName does not allow '.' and '..'.
  * ```
  * @beta
  */

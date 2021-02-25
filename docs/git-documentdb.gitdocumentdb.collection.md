@@ -27,5 +27,5 @@ collection(collectionPath: CollectionPath): Collection;
 
 ## Remarks
 
-Notice that this function does not make a sub-directory under the working directory.
+- Notice that this function does not make a sub-directory under the working directory.
 

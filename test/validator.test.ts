@@ -127,6 +127,10 @@ describe('Validations', () => {
 
   test('validateCollectionPath', () => {
     expect(() => validator.validateCollectionPath('')).not.toThrowError();
+    expect(() => validator.validateCollectionPath('foo/bar')).not.toThrowError();
+    expect(() => validator.validateCollectionPath('foo\\bar')).not.toThrowError();
+    expect(() => validator.validateCollectionPath('foo¥bar')).not.toThrowError();
+
     expect(() => validator.validateCollectionPath('_')).toThrowError(
       InvalidCollectionPathCharacterError
     );
@@ -134,6 +138,18 @@ describe('Validations', () => {
       InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('COM3')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateCollectionPath('foo./bar')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateCollectionPath('/foo /bar')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateCollectionPath('/./bar')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateCollectionPath('/../bar')).toThrowError(
       InvalidCollectionPathCharacterError
     );
     const maxColLen = validator.maxCollectionPathLength();
