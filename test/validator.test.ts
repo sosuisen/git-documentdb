@@ -163,7 +163,24 @@ describe('Validations', () => {
   });
 
   test('validateDbName', () => {
+    expect(() => validator.validateDbName('foo/bar')).toThrowError(
+      InvalidDbNameCharacterError
+    );
+    expect(() => validator.validateDbName('foo\\bar')).toThrowError(
+      InvalidDbNameCharacterError
+    );
+    expect(() => validator.validateDbName('foo¥bar')).toThrowError(
+      InvalidDbNameCharacterError
+    );
     expect(() => validator.validateDbName('COM3')).toThrowError(
+      InvalidDbNameCharacterError
+    );
+    expect(() => validator.validateDbName('.')).toThrowError(InvalidDbNameCharacterError);
+    expect(() => validator.validateDbName('..')).toThrowError(InvalidDbNameCharacterError);
+    expect(() => validator.validateDbName('users.')).toThrowError(
+      InvalidDbNameCharacterError
+    );
+    expect(() => validator.validateDbName('users ')).toThrowError(
       InvalidDbNameCharacterError
     );
   });

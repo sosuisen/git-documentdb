@@ -31,6 +31,9 @@ OS specific options. <b>It is recommended to use ASCII characters and case-insen
   - A trailing slash / can be omitted.
 
 * db_name: Name of a git repository
+  - dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \ | ? * \0.
+  - dbName cannot end with a period or a space.
+  - The current directory . and the parent directory .. are not allowed.
 
 ```
 

@@ -163,7 +163,7 @@ export class DatabaseCloseTimeoutError extends BaseError {
  */
 export class InvalidPropertyNameInDocumentError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid property name '${name}': A property name cannot start with an underscore _ except _id.`;
+    const e = `Invalid property name '${name}': A property name cannot start with an underscore _ except _id and _deleted.`;
     super(e);
   }
 }
@@ -173,7 +173,10 @@ export class InvalidPropertyNameInDocumentError extends BaseError {
  */
 export class InvalidDbNameCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid dbName '${name}': dbName allows UTF-8 string excluding OS reserved filenames and following characters: < > : " ¥ / \\ | ? * \0.  dbName cannot end with a period . `;
+    const e = `Invalid dbName '${name}': 
+dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \\ | ? * \0.
+dbName cannot end with a period or a space.
+The current directory . and the parent directory .. are not allowed.`;
     super(e);
   }
 }
@@ -183,7 +186,10 @@ export class InvalidDbNameCharacterError extends BaseError {
  */
 export class InvalidLocalDirCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid localDir character '${name}': A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0. A colon is generally not allowed, but a drive letter followed by a colon is allowed. A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.`;
+    const e = `Invalid localDir character '${name}': 
+A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0.
+A colon is generally not allowed, but a drive letter followed by a colon is allowed.
+A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.`;
     super(e);
   }
 }

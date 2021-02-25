@@ -220,9 +220,11 @@ export class Validator {
    * Validate dbName
    *
    * @remarks
-   * - dbName allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \\0
+   * - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \0
    *
-   * - dbName cannot end with a period .
+   * - dbName cannot end with a period or a space.
+   *
+   * - The current directory . and the parent directory .. are not allowed.
    *
    * @throws {@link InvalidDbNameCharacterError}
    */
