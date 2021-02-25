@@ -240,6 +240,8 @@ export class UndefinedDocumentIdError extends BaseError {
 // @internal (undocumented)
 export class Validator {
     constructor(_workingDir: string);
+    // (undocumented)
+    static byteLengthOf: (str: string) => number;
     maxCollectionPathLength(): number;
     maxIdLength(): number;
     static maxWorkingDirectoryLength(): number;
@@ -247,8 +249,11 @@ export class Validator {
     testWindowsInvalidFileNameCharacter(name: string, options?: {
         allow_slash?: boolean;
         allow_drive_letter?: boolean;
+        allow_directory_dot?: boolean;
     }): boolean;
-    testWindowsReservedFileName(name: string): boolean;
+    testWindowsReservedFileName(name: string, options?: {
+        allow_directory_dot?: boolean;
+    }): boolean;
     validateCollectionPath(collectionPath: string): void;
     validateDbName(dbName: string): void;
     validateDocument(doc: JsonDoc): void;

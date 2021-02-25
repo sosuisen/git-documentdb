@@ -6,4 +6,4 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-export const MAX_WINDOWS_PATH_LENGTH = 259;
+export const MAX_FILE_PATH_LENGTH = 255;

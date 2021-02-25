@@ -74,10 +74,18 @@ const repositoryInitOptionFlags = {
  * Database location
  *
  * @remarks
- * - local_dir: Local directory path for the databases of GitDocumentDB. Default is './gitddb'.
+ * OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
  *
- * - db_name: Name of a git repository
+ * ```
+ * * local_dir: Local directory path that stores repositories of GitDocumentDB.
+ *   - Default is './gitddb'.
+ *   - A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0.
+ *   - A colon : is generally not allowed, but a drive letter followed by a colon is allowed. e.g.) C: D:
+ *   - A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.
+ *   - A trailing slash / can be omitted.
  *
+ * * db_name: Name of a git repository
+ * ```
  * @beta
  */
 export type DatabaseOption = {
@@ -165,7 +173,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
 
     if (
       this._workingDirectory.length === 0 ||
-      this._workingDirectory.length > Validator.maxWorkingDirectoryLength()
+      Validator.byteLengthOf(this._workingDirectory) > Validator.maxWorkingDirectoryLength()
     ) {
       throw new InvalidWorkingDirectoryPathLengthError(
         this._workingDirectory,

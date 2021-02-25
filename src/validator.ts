@@ -1,5 +1,5 @@
 import path from 'path';
-import { MAX_WINDOWS_PATH_LENGTH } from './const';
+import { MAX_FILE_PATH_LENGTH } from './const';
 import {
   InvalidCollectionPathCharacterError,
   InvalidCollectionPathLengthError,
@@ -21,9 +21,14 @@ export class Validator {
     this._workingDirectory = _workingDir;
   }
 
+  static byteLengthOf = (str: string) => {
+    return Buffer.byteLength(str);
+  };
+
   /**
-   * Normalized collectionPath has trailing slash, no heading slash, otherwise the path is ''.
-   * Backslash \\  and yen ¥ is replaced with slash /.
+   * Normalized collectionPath is '' or path strings that has a trailing slash and no heading slash.
+   * '/' is not allowed.
+   * Backslash \\ or yen ¥ is replaced with slash /.
    */
   static normalizeCollectionPath (collectionPath: string | undefined) {
     if (collectionPath === undefined || collectionPath === '') {
@@ -31,25 +36,22 @@ export class Validator {
     }
     collectionPath = collectionPath.replace(/\\/g, '/');
     collectionPath = collectionPath.replace(/¥/g, '/');
+
+    // Integrate consecutive slash
+    collectionPath = collectionPath.replace(/\/+/g, '/');
     if (collectionPath === '/') {
       return '';
     }
-    // Remove consecutive slash
-    collectionPath = collectionPath.replace(/\/+?([^/])/g, '/$1');
 
     // Remove heading slash
-    while (collectionPath.startsWith('/')) {
+    if (collectionPath.startsWith('/')) {
       collectionPath = collectionPath.slice(1);
     }
 
-    // Remove all trailing slashes and add only one
-    while (collectionPath.endsWith('/')) {
-      collectionPath = collectionPath.slice(0, -1);
+    // Set only one trailing slash
+    if (!collectionPath.endsWith('/')) {
+      collectionPath += '/';
     }
-    if (collectionPath === '') {
-      return '';
-    }
-    collectionPath += '/';
 
     return collectionPath;
   }
@@ -59,9 +61,9 @@ export class Validator {
    */
   static maxWorkingDirectoryLength () {
     // Trailing slash of workingDirectory is omitted.
-    // Minimum path is `${_workingDirectory}/a.json`
+    // Full path is `${_workingDirectory}/a.json`
     const minimumMemberLength = 7; // '/a.json'
-    return MAX_WINDOWS_PATH_LENGTH - minimumMemberLength;
+    return MAX_FILE_PATH_LENGTH - minimumMemberLength;
   }
 
   /**
@@ -72,7 +74,7 @@ export class Validator {
     // Trailing slash of workingDirectory is omitted.
     // Full path is `${_workingDirectory}/${collectionPath}${fileName}.json`
     const minIdLength = 6; // 'a.json'
-    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 1 - minIdLength;
+    return MAX_FILE_PATH_LENGTH - this._workingDirectory.length - 1 - minIdLength;
   }
 
   /**
@@ -86,22 +88,34 @@ export class Validator {
     // Trailing slash of workingDirectory is omitted.
     // Full path is `${_workingDirectory}/${collectionPath}${fileName}.json`
     const extLength = 5; // '.json'
-    return MAX_WINDOWS_PATH_LENGTH - this._workingDirectory.length - 1 - extLength;
+    return MAX_FILE_PATH_LENGTH - this._workingDirectory.length - 1 - extLength;
   }
 
   /**
    * Return false if given name equals Windows reserved filename
    */
-  testWindowsReservedFileName (name: string) {
+  testWindowsReservedFileName (
+    name: string,
+    options?: {
+      allow_directory_dot?: boolean;
+    }
+  ) {
+    options ??= {
+      allow_directory_dot: undefined,
+    };
+    options.allow_directory_dot ??= false;
+
     if (
       name.match(
         /^(CON|PRN|AUX|NUL|COM1|COM2|COM3|COM4|COM5|COM6|COM7|COM8|COM9|LPT1|LPT2|LPT3|LPT4|LPT5|LPT6|LPT7|LPT8|LPT9)$/
-      ) ||
-      name === '.' ||
-      name === '..'
+      )
     ) {
       return false;
     }
+    if (!options.allow_directory_dot && (name === '.' || name === '..')) {
+      return false;
+    }
+
     return true;
   }
 
@@ -110,11 +124,20 @@ export class Validator {
    */
   testWindowsInvalidFileNameCharacter (
     name: string,
-    options?: { allow_slash?: boolean; allow_drive_letter?: boolean }
+    options?: {
+      allow_slash?: boolean;
+      allow_drive_letter?: boolean;
+      allow_directory_dot?: boolean;
+    }
   ) {
-    options ??= { allow_slash: undefined, allow_drive_letter: undefined };
+    options ??= {
+      allow_slash: undefined,
+      allow_drive_letter: undefined,
+      allow_directory_dot: undefined,
+    };
     options.allow_slash ??= false;
     options.allow_drive_letter ??= false;
+    options.allow_directory_dot ??= false;
 
     let regStr = `<>:"|?*\0`;
     if (!options.allow_slash) {
@@ -132,8 +155,17 @@ export class Validator {
       return false;
     }
 
-    // Do not end with period.
-    if (name.endsWith('.')) {
+    // Do not end with space or period.
+    if (options.allow_directory_dot) {
+      if (name !== '.' && name !== '..' && name.endsWith('.')) {
+        return false;
+      }
+    }
+    else if (name.endsWith('.')) {
+      return false;
+    }
+
+    if (name.endsWith(' ')) {
       return false;
     }
     return true;
@@ -143,24 +175,45 @@ export class Validator {
    * Validate localDir
    *
    * @remarks
-   * - localDir allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
+   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
    *
-   * -- A colon is generally disallowed, however a drive letter followed by a colon is allowed.
+   * - A colon is generally disallowed, but a drive letter followed by a colon is allowed.
    *
-   * - localDir cannot end with a period .
+   * - A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.
+   *
+   * - A trailing slash can be omitted.
    *
    * @throws {@link InvalidLocalDirCharacterError}
    */
   validateLocalDir (localDir: string) {
-    if (
-      !this.testWindowsReservedFileName(localDir) ||
-      !this.testWindowsInvalidFileNameCharacter(localDir, {
-        allow_slash: true,
-        allow_drive_letter: true,
-      })
-    ) {
-      throw new InvalidLocalDirCharacterError(localDir);
+    localDir = localDir.replace(/\\/g, '/');
+    localDir = localDir.replace(/¥/g, '/');
+
+    // Integrate consecutive slash
+    localDir = localDir.replace(/\/+/g, '/');
+
+    // Remove heading and trailing slash
+    if (localDir.startsWith('/')) {
+      localDir = localDir.slice(1);
     }
+    if (localDir.endsWith('/')) {
+      localDir = localDir.slice(0, -1);
+    }
+    // localDir is formatted like 'a/b/c'
+    const arr = localDir.split('/');
+    arr.forEach(part => {
+      // allowDirectoryDot
+      // '/./a/b/c','a/b/c/.', 'a/b/c/./' are all valid.
+      if (
+        !this.testWindowsReservedFileName(part, { allow_directory_dot: true }) ||
+        !this.testWindowsInvalidFileNameCharacter(part, {
+          allow_drive_letter: true,
+          allow_directory_dot: true,
+        })
+      ) {
+        throw new InvalidLocalDirCharacterError(part);
+      }
+    });
   }
 
   /**
@@ -224,8 +277,8 @@ export class Validator {
 
     const minimumCollectionPathLength = 0; // minimum is ''
     if (
-      normalized.length < minimumCollectionPathLength ||
-      normalized.length > this.maxCollectionPathLength()
+      Validator.byteLengthOf(normalized) < minimumCollectionPathLength ||
+      Validator.byteLengthOf(normalized) > this.maxCollectionPathLength()
     ) {
       throw new InvalidCollectionPathLengthError(
         normalized,
@@ -286,7 +339,10 @@ export class Validator {
 
     // Example of a minimum _id is 'a'
     const minimumIdLength = 1;
-    if (_id.length < minimumIdLength || _id.length > this.maxIdLength()) {
+    if (
+      Validator.byteLengthOf(_id) < minimumIdLength ||
+      Validator.byteLengthOf(_id) > this.maxIdLength()
+    ) {
       throw new InvalidIdLengthError(_id, minimumIdLength, this.maxIdLength());
     }
   }

@@ -67,7 +67,7 @@ export class InvalidCollectionPathCharacterError extends BaseError {
 export class InvalidCollectionPathLengthError extends BaseError {
   constructor (collectionPath: string, minLength: number, maxLength: number) {
     super(
-      `Invalid collectionPath length: A length of '${collectionPath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
+      `Invalid collectionPath length: A byte length of '${collectionPath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
     );
   }
 }
@@ -78,7 +78,7 @@ export class InvalidCollectionPathLengthError extends BaseError {
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
   constructor (path: string, minLength: number, maxLength: number) {
     super(
-      `Invalid working directory path length: A length of '${path}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
+      `Invalid working directory path length: A byte length of '${path}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
     );
   }
 }
@@ -99,7 +99,7 @@ export class InvalidIdCharacterError extends BaseError {
 export class InvalidIdLengthError extends BaseError {
   constructor (id: string, minLength: number, maxLength: number) {
     super(
-      `Invalid id length: A length of '${id}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
+      `Invalid id length: A byte length of '${id}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
     );
   }
 }
@@ -183,8 +183,7 @@ export class InvalidDbNameCharacterError extends BaseError {
  */
 export class InvalidLocalDirCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid localDir character '${name}': localDir allows UTF-8 string excluding OS reserved filenames and following characters: < > : " | ? * \0. A colon is generally disallowed, however a drive letter followed by a colon is allowed. localDir cannot end with a period .`;
-
+    const e = `Invalid localDir character '${name}': A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0. A colon is generally not allowed, but a drive letter followed by a colon is allowed. A directory name cannot end with a period or a space, but the current directory . and the parent directory .. are allowed.`;
     super(e);
   }
 }

@@ -21,8 +21,8 @@ import {
   InvalidPropertyNameInDocumentError,
   InvalidWorkingDirectoryPathLengthError,
   UndefinedDocumentIdError,
+  Validator,
 } from '../src/main';
-import { Validator } from '../src/validator';
 
 describe('Validations', () => {
   const localDir = './test/database_validate01';
@@ -45,8 +45,12 @@ describe('Validations', () => {
     expect(Validator.normalizeCollectionPath(undefined)).toBe('');
     expect(Validator.normalizeCollectionPath('')).toBe('');
     expect(Validator.normalizeCollectionPath('/')).toBe('');
+    expect(Validator.normalizeCollectionPath('¥')).toBe('');
     expect(Validator.normalizeCollectionPath('\\')).toBe('');
     expect(Validator.normalizeCollectionPath('//')).toEqual('');
+    expect(Validator.normalizeCollectionPath('¥¥')).toEqual('');
+    expect(Validator.normalizeCollectionPath('users\\')).toEqual('users/');
+    expect(Validator.normalizeCollectionPath('users¥')).toEqual('users/');
     expect(Validator.normalizeCollectionPath('users')).toBe('users/');
     expect(Validator.normalizeCollectionPath('users/')).toBe('users/');
     expect(Validator.normalizeCollectionPath('/users/')).toBe('users/');
@@ -168,11 +172,30 @@ describe('Validations', () => {
     expect(() => validator.validateLocalDir('COM3')).toThrowError(
       InvalidLocalDirCharacterError
     );
+    expect(() => validator.validateLocalDir('/COM3/foo/bar')).toThrowError(
+      InvalidLocalDirCharacterError
+    );
+    expect(() => validator.validateLocalDir(' ')).toThrowError(
+      InvalidLocalDirCharacterError
+    );
+    expect(() => validator.validateLocalDir('foo.')).toThrowError(
+      InvalidLocalDirCharacterError
+    );
+    expect(() => validator.validateLocalDir('foo./bar')).toThrowError(
+      InvalidLocalDirCharacterError
+    );
+
     expect(() => validator.validateLocalDir('dir01/dir02')).not.toThrowError();
     expect(() => validator.validateLocalDir('dir01\\dir02')).not.toThrowError();
     expect(() => validator.validateLocalDir('C:/dir01')).not.toThrowError();
     expect(() => validator.validateLocalDir('C:/dir01/dir02')).not.toThrowError();
     expect(() => validator.validateLocalDir('C:\\dir01\\dir02')).not.toThrowError();
+    expect(() => validator.validateLocalDir('C:¥dir01¥dir02')).not.toThrowError();
+    expect(() => validator.validateLocalDir('.')).not.toThrowError();
+    expect(() => validator.validateLocalDir('./')).not.toThrowError();
+    expect(() => validator.validateLocalDir('../')).not.toThrowError();
+    expect(() => validator.validateLocalDir('/foo/bar/..')).not.toThrowError();
+    expect(() => validator.validateLocalDir('/foo/./bar')).not.toThrowError();
   });
 
   test('testWindowsInvalidFileNameCharacter', () => {
