@@ -92,7 +92,11 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
  */
 export class InvalidIdCharacterError extends BaseError {
   constructor (id: string) {
-    const e = `Invalid ID character '${id}': id value allows UTF-8 string excluding following characters: < > : "  | ? * \0. id cannot start with an underscore _. id cannot end with a period .`;
+    const e = `Invalid ID character '${id}':
+id allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0
+id cannot start with a slash and an underscore _.
+A directory name cannot end with a period or a white space.
+A directory name does not allow '.' and '..'.`;
     super(e);
   }
 }

@@ -73,13 +73,13 @@ describe('Validations', () => {
       '>',
       ':',
       '"',
-      '¥',
-      '/',
-      '\\',
       '|',
       '?',
       '*',
       '\0',
+      '¥',
+      '/',
+      '\\',
     ];
     disallowedPunctuations.forEach(p =>
       expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError)
@@ -110,10 +110,31 @@ describe('Validations', () => {
       ',',
     ];
     allowedPunctuations.forEach(p => expect(validator.validateId(p)).toBeUndefined());
-    // Cannot start with an underscore
-    expect(() => validator.validateId('_abc')).toThrowError(InvalidIdCharacterError);
-    // Cannot end with a period
     expect(() => validator.validateId('abc.')).toThrowError(InvalidIdCharacterError);
+    expect(() => validator.validateId('abc ')).toThrowError(InvalidIdCharacterError);
+
+    expect(() => validator.validateId('_abc')).toThrowError(InvalidIdCharacterError);
+    expect(() => validator.validateId('/abc')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateId('abc./def')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateId('abc /def')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateId('./def')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateId('../def')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateId('abc/./def')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
+    expect(() => validator.validateId('abc/../def')).toThrowError(
+      InvalidCollectionPathCharacterError
+    );
 
     const maxLen = validator.maxIdLength();
     let _id = '';

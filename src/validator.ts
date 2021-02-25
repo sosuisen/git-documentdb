@@ -177,7 +177,7 @@ export class Validator {
    * Validate localDir
    *
    * @remarks
-   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
    *
    * - A colon is generally disallowed, but a drive letter followed by a colon is allowed.
    *
@@ -222,7 +222,7 @@ export class Validator {
    * Validate dbName
    *
    * @remarks
-   * - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \0
+   * - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \\0
    *
    * - dbName cannot end with a period or a white space.
    *
@@ -243,7 +243,7 @@ export class Validator {
    * Validate collectionPath
    *
    * @remarks
-   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
    *
    * - A directory name cannot end with a period or a white space.
    *
@@ -299,11 +299,9 @@ export class Validator {
    * Validate file name
    *
    * @remarks
-   * - file name allows UTF-8 string excluding following characters: \< \> : " ¥ / \\ | ? * \\0
+   * - file name allows Unicode characters excluding following characters: \< \> : " ¥ / \\ | ? * \\0
    *
    * - file name cannot start with an underscore _.
-   *
-   * - file name cannot end with a period .
    *
    * @throws {@link InvalidIdCharacterError}
    */
@@ -316,14 +314,16 @@ export class Validator {
   /**
    * Validate _id
    *
+   * _id = collectionPath + fileName
+   *
    * @remarks
-   * - _id allows UTF-8 string excluding OS reserved filenames and following characters: \< \> : " ¥ \\ | ? * \\0
+   * - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
    *
-   * - _id cannot start with an underscore _.
+   * - _id cannot start with a slash and an underscore _.
    *
-   * - Cannot start with slash.
+   * - A directory name cannot end with a period or a white space.
    *
-   * - Each part of path that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
+   * - A directory name does not allow '.' and '..'.
    *
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidCollectionPathCharacterError}
@@ -340,7 +340,8 @@ export class Validator {
     this._validateFileName(path.basename(_id));
     const dirName = path.dirname(_id);
     // dirname returns '.' if _id does not include slashes.
-    if (dirName !== '.') {
+    // dirname also returns '.' if _id is './xxx'
+    if (dirName !== '.' || _id.startsWith('./')) {
       this.validateCollectionPath(path.dirname(_id));
     }
 

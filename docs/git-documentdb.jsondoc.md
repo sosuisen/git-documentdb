@@ -18,15 +18,16 @@ export declare type JsonDoc = {
 
 A document must be a JSON Object that matches the following conditions:
 
-- It must have an '\_id' key that shows id of a document
+```
+* It must have an '_id' key that shows id of a document
+  - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+  - _id cannot start with a slash and an underscore _.
+  - A directory name cannot end with a period or a white space.
+  - A directory name does not allow '.' and '..'.
 
-- \_id allows UTF-8 string excluding OS reserved filenames and following characters: &lt; &gt; : " \\ \| ? \* \\<!-- -->0
+* Property name of a document cannot start with an underscore except _id and _deleted.
 
-- \_id cannot start with an underscore \_ and slash /.
-
-- Each part of path that is separated by slash cannot end with a period . (e.g. 'users/pages./items' is disallowed.)
-
-- Key cannot start with an underscore \_.
+```
 
 ## Example
 
