@@ -33,10 +33,6 @@ import { Validator } from './validator';
  * // Notice that APIs return different _id values in spite of the same source file.
  * gitDDB.get({ _id: 'Sapporo/1' }); // returns { _id: 'Sapporo/1', name: 'Yuzuki' }.
  * gitDDB.collection('Sapporo').get({ _id: '1' }); // returns { _id: '1', name: 'Yuzuki' }.
- *
- * // Both are completely the same.
- * gitDDB.get({ _id: '1' }, { collection_path: 'Sapporo' }); // returns { _id: '1', name: 'Yuzuki' }.
- * gitDDB.collection('Sapporo').get({ _id: '1' }); // returns { _id: '1', name: 'Yuzuki' }.
  * ```
  * @public
  */

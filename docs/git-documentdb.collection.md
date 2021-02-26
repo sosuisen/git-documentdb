@@ -34,10 +34,6 @@ gitDDB.collection('Sapporo').put({ _id: '1', name: 'Yuzuki' })
 gitDDB.get({ _id: 'Sapporo/1' }); // returns { _id: 'Sapporo/1', name: 'Yuzuki' }.
 gitDDB.collection('Sapporo').get({ _id: '1' }); // returns { _id: '1', name: 'Yuzuki' }.
 
-// Both are completely the same.
-gitDDB.get({ _id: '1' }, { collection_path: 'Sapporo' }); // returns { _id: '1', name: 'Yuzuki' }.
-gitDDB.collection('Sapporo').get({ _id: '1' }); // returns { _id: '1', name: 'Yuzuki' }.
-
 ```
 
 ## Constructors
