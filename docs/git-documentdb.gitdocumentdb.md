@@ -35,13 +35,16 @@ export declare class GitDocumentDB extends AbstractDocumentDB
 |  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents |
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close a database |
 |  [collection(collectionPath)](./git-documentdb.gitdocumentdb.collection.md) |  | <b><i>(BETA)</i></b> Get a collection |
-|  [delete(idOrDoc, options)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> This is an alias of [GitDocumentDB.remove()](./git-documentdb.gitdocumentdb.remove.md) |
+|  [delete(id, options)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> This is an alias of remove() |
+|  [delete(jsonDoc, options)](./git-documentdb.gitdocumentdb.delete_1.md) |  | <b><i>(BETA)</i></b> This is an alias of remove() |
 |  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | <b><i>(BETA)</i></b> Destroy a database |
 |  [get(docId, options)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document |
 |  [getRepository()](./git-documentdb.gitdocumentdb.getrepository.md) |  | <b><i>(BETA)</i></b> Get a current repository |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if a database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
-|  [put(document, options)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document |
-|  [remove(idOrDoc, options)](./git-documentdb.gitdocumentdb.remove.md) |  | <b><i>(BETA)</i></b> Remove a document |
+|  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document |
+|  [put(\_id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | <b><i>(BETA)</i></b> Add a document (overload) |
+|  [remove(id, options)](./git-documentdb.gitdocumentdb.remove.md) |  | <b><i>(BETA)</i></b> Remove a document |
+|  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | <b><i>(BETA)</i></b> Remove a document |
 |  [workingDir()](./git-documentdb.gitdocumentdb.workingdir.md) |  | <b><i>(BETA)</i></b> Get a full path of the current Git working directory |
 

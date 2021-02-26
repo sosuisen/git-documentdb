@@ -120,7 +120,8 @@ export class GitDocumentDB extends AbstractDocumentDB {
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
     collection(collectionPath: CollectionPath): Collection;
-    delete(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
+    delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
@@ -129,10 +130,14 @@ export class GitDocumentDB extends AbstractDocumentDB {
     isClosing: boolean;
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
-    put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    put(_id: string, document: {
+        [key: string]: any;
+    }, options?: PutOptions): Promise<PutResult>;
     // @internal (undocumented)
     _put_concurrent(_id: string, collectionPath: string, data: string, commitMessage: string): Promise<PutResult>;
-    remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
+    remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     // @internal (undocumented)
     _remove_concurrent(_id: string, collectionPath: string, commitMessage: string): Promise<RemoveResult>;
     workingDir(): string;

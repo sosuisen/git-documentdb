@@ -340,8 +340,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
-   * @param document -  See {@link JsonDoc} for restriction
-   * @param commitMessage - Default is `put: ${document._id}`.
+   * @param jsonDoc - See {@link JsonDoc} for restriction
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -354,7 +353,41 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  put (document: JsonDoc, options?: PutOptions): Promise<PutResult> {
+  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  /**
+   * Add a document (overload)
+   *
+   * @remarks
+   * - put() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * @param _id - _id property of a document is set or overwritten by this _id argument.
+   * @param document - This is a {@link JsonDoc}, but _id property is not needed.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   */
+  put (
+    _id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  // eslint-disable-next-line complexity
+  put (
+    idOrDoc: string | JsonDoc,
+    docOrOptions: { [key: string]: any } | PutOptions,
+    options?: PutOptions
+  ): Promise<PutResult> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -363,15 +396,32 @@ export class GitDocumentDB extends AbstractDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
-    if (document === undefined) {
-      return Promise.reject(new InvalidJsonObjectError());
+    let _id = '';
+    let document: JsonDoc = {};
+    if (typeof idOrDoc === 'string') {
+      _id = idOrDoc;
+      document = docOrOptions;
+      if (typeof docOrOptions === 'object') {
+        // always overwrite _id
+        document._id = _id;
+      }
+      else {
+        return Promise.reject(new InvalidJsonObjectError());
+      }
+    }
+    else if (typeof idOrDoc === 'object') {
+      _id = idOrDoc._id;
+      document = idOrDoc;
+      options = docOrOptions;
+    }
+    else {
+      return Promise.reject(new UndefinedDocumentIdError());
     }
 
     if (document._id === undefined) {
       return Promise.reject(new UndefinedDocumentIdError());
     }
 
-    const _id = document._id;
     try {
       this._validator.validateId(_id);
     } catch (err) {
@@ -587,17 +637,27 @@ export class GitDocumentDB extends AbstractDocumentDB {
   }
 
   /**
-   * This is an alias of {@link GitDocumentDB.remove}
+   * This is an alias of remove()
    */
+  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  /**
+   * This is an alias of remove()
+   */
+  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
   delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
-    return this.remove(idOrDoc, options);
+    if (typeof idOrDoc === 'string') {
+      return this.remove(idOrDoc, options);
+    }
+    else if (typeof idOrDoc === 'object') {
+      return this.remove(idOrDoc, options);
+    }
+    return Promise.reject(new UndefinedDocumentIdError());
   }
 
   /**
    * Remove a document
    *
-   * @param idOrDoc - id of a target document or a document itself
-   * @param commitMessage - Default is `remove: ${_id}`.
+   * @param id - id of a target document
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -609,6 +669,23 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
+  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  /**
+   * Remove a document
+   *
+   * @param jsonDoc - Target document
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link CannotDeleteDataError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   */
+  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
   remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     let _id: string;
     if (typeof idOrDoc === 'string') {

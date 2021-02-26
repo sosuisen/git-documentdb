@@ -36,14 +36,14 @@ describe('Validate', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await expect(gitDDB.put({ _id: 'prof01', name: 'shirase' })).rejects.toThrowError(
+    await expect(gitDDB.put({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
       RepositoryNotOpenError
     );
     await expect(
       gitDDB._put_concurrent(
         'prof01',
         '',
-        '{ "_id": "prof01", "name": "shirase" }',
+        '{ "_id": "prof01", "name": "Shirase" }',
         'message'
       )
     ).rejects.toThrowError(RepositoryNotOpenError);
@@ -58,7 +58,7 @@ describe('Validate', () => {
     });
     await gitDDB.open();
     // @ts-ignore
-    await expect(gitDDB.put(undefined)).rejects.toThrowError(InvalidJsonObjectError);
+    await expect(gitDDB.put(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
     await gitDDB.destroy();
   });
 
@@ -69,7 +69,7 @@ describe('Validate', () => {
       local_dir: localDir,
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ name: 'shirase' })).rejects.toThrowError(
+    await expect(gitDDB.put({ name: 'Shirase' })).rejects.toThrowError(
       UndefinedDocumentIdError
     );
     await gitDDB.destroy();
@@ -82,7 +82,7 @@ describe('Validate', () => {
       local_dir: localDir,
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: '_underscore', name: 'shirase' })).rejects.toThrowError(
+    await expect(gitDDB.put({ _id: '_underscore', name: 'Shirase' })).rejects.toThrowError(
       InvalidIdCharacterError
     );
     await gitDDB.destroy();
@@ -96,7 +96,7 @@ describe('Validate', () => {
     });
     await gitDDB.open();
     await expect(
-      gitDDB.put({ _id: 'prof01', name: 'shirase' }, { collection_path: '_users' })
+      gitDDB.put({ _id: 'prof01', name: 'Shirase' }, { collection_path: '_users' })
     ).rejects.toThrowError(InvalidCollectionPathCharacterError);
     await gitDDB.destroy();
   });
@@ -114,6 +114,36 @@ describe('Validate', () => {
         _underscore: 'Property name cannot start with underscore',
       })
     ).rejects.toThrowError(InvalidPropertyNameInDocumentError);
+    await gitDDB.destroy();
+  });
+
+  test('put() overload', async () => {
+    const dbName = 'test_repos_7';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(
+      // @ts-ignore
+      gitDDB.put(undefined, {
+        name: 'Kimari',
+      })
+    ).rejects.toThrowError(UndefinedDocumentIdError);
+    await gitDDB.destroy();
+  });
+
+  test('put() overload: _id is overwritten', async () => {
+    const dbName = 'test_repos_8';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    // @ts-ignore
+    await expect(gitDDB.put('prof01', 'document')).rejects.toThrowError(
+      InvalidJsonObjectError
+    );
     await gitDDB.destroy();
   });
 });
@@ -137,7 +167,7 @@ describe('Create document', () => {
     });
     await gitDDB.open();
     const _id = 'prof01';
-    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
+    await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -169,7 +199,7 @@ describe('Create document', () => {
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
-    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
+    await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -201,7 +231,7 @@ describe('Create document', () => {
     });
     await gitDDB.open();
     await expect(
-      gitDDB.put({ _id: 'prof01', name: 'shirase' }, { collection_path: 'dir01' })
+      gitDDB.put({ _id: 'prof01', name: 'Shirase' }, { collection_path: 'dir01' })
     ).resolves.toMatchObject({
       ok: true,
       id: expect.stringMatching('^prof01$'),
@@ -259,7 +289,7 @@ describe('Create document', () => {
     await gitDDB.open();
     const _id = 'dir01/prof01';
     await gitDDB.put(
-      { _id: _id, name: 'shirase' },
+      { _id: _id, name: 'Shirase' },
       { commit_message: 'my commit message' }
     );
     const repository = gitDDB.getRepository();
@@ -313,6 +343,90 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
+  test('put() overload: Put a JSON Object.', async () => {
+    const dbName = 'test_repos_12';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    await expect(gitDDB.put(_id, { name: 'Shirase' })).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^' + _id + '$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`put: ${_id}`);
+    }
+
+    // Check filename
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + '.json');
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    // Read JSON and check doc._id
+    expect(fs.readJSONSync(filePath)._id).toBe(_id);
+
+    await gitDDB.destroy();
+  });
+
+  test('put() overload: overwrite document._id.', async () => {
+    const dbName = 'test_repos_13';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    await expect(
+      gitDDB.put(_id, { _id: 'id-in-doc', name: 'Shirase' })
+    ).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^' + _id + '$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`put: ${_id}`);
+    }
+
+    // Check filename
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + '.json');
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    // Read JSON and check doc._id
+    expect(fs.readJSONSync(filePath)._id).toBe(_id);
+
+    await gitDDB.destroy();
+  });
+
+  test('put() overload: Set commit message.', async () => {
+    const dbName = 'test_repos_14';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    const _id = 'dir01/prof01';
+    await gitDDB.put(_id, { name: 'Shirase' }, { commit_message: 'my commit message' });
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`my commit message`);
+    }
+    await gitDDB.destroy();
+  });
+
   it(
     'Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.'
   );
@@ -338,7 +452,7 @@ describe('Update document', () => {
   test('put(): Update a existing document', async () => {
     await gitDDB.open();
     const _id = 'prof01';
-    await gitDDB.put({ _id: _id, name: 'shirase' });
+    await gitDDB.put({ _id: _id, name: 'Shirase' });
     // Update
     await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject({
       ok: true,

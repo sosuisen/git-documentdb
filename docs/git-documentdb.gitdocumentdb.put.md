@@ -12,14 +12,14 @@ Add a document
 <b>Signature:</b>
 
 ```typescript
-put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
+put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  document | [JsonDoc](./git-documentdb.jsondoc.md) | See [JsonDoc](./git-documentdb.jsondoc.md) for restriction |
+|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | See [JsonDoc](./git-documentdb.jsondoc.md) for restriction |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
 <b>Returns:</b>
