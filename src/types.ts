@@ -55,17 +55,6 @@ export type PutOptions = {
 };
 
 /**
- * Options for get()
- *
- * @remarks
- * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
- * @public
- */
-export type GetOptions = {
-  collection_path?: CollectionPath;
-};
-
-/**
  * Options for remove()
  *
  * @remarks
@@ -207,7 +196,7 @@ export abstract class AbstractDocumentDB {
     options?: PutOptions
   ): Promise<PutResult>;
 
-  abstract get (docId: string, options?: GetOptions): Promise<JsonDoc>;
+  abstract get (docId: string): Promise<JsonDoc>;
 
   abstract delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
   abstract delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;

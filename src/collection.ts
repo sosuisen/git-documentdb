@@ -4,7 +4,6 @@ import {
   AllDocsOptions,
   AllDocsResult,
   CollectionPath,
-  GetOptions,
   JsonDoc,
   PutOptions,
   PutResult,
@@ -96,7 +95,7 @@ export class Collection {
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
    * @param _id - _id property of a document is set or overwritten by this _id argument.
-   * @param document - This is a {@link JsonDoc}, but _id property is set or overwritten by _id argument.
+   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -124,15 +123,10 @@ export class Collection {
       const orgId = idOrDoc;
       const _id = this._collectionPath + orgId;
       const document = docOrOptions as { [key: string]: any };
-      return this._gitDDB
-        .put(_id, document, options)
-        .then(res => {
-          res.id = orgId;
-          return res;
-        })
-        .finally(() => {
-          document._id = orgId;
-        });
+      return this._gitDDB.put(_id, document, options).then(res => {
+        res.id = orgId;
+        return res;
+      });
     }
     else if (typeof idOrDoc === 'object') {
       if (idOrDoc._id) {
@@ -140,15 +134,10 @@ export class Collection {
         const _id = this._collectionPath + orgId;
         const document = idOrDoc as JsonDoc;
         options = docOrOptions;
-        return this._gitDDB
-          .put(_id, document, options)
-          .then(res => {
-            res.id = orgId;
-            return res;
-          })
-          .finally(() => {
-            document._id = orgId;
-          });
+        return this._gitDDB.put(_id, document, options).then(res => {
+          res.id = orgId;
+          return res;
+        });
       }
     }
 
@@ -166,16 +155,14 @@ export class Collection {
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
    */
-  get (docId: string, options?: GetOptions): Promise<JsonDoc> {
-    options ??= {
-      collection_path: undefined,
-    };
-    options.collection_path = this._getFullPath(options.collection_path);
+  get (docId: string): Promise<JsonDoc> {
+    const _id = this._collectionPath + docId;
 
-    return this._gitDDB.get(docId, options);
+    return this._gitDDB.get(_id).then(doc => {
+      doc._id = docId;
+      return doc;
+    });
   }
 
   /**

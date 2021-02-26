@@ -30,7 +30,6 @@ import {
   AllDocsResult,
   CollectionPath,
   DatabaseCloseOption,
-  GetOptions,
   JsonDoc,
   JsonDocWithMetadata,
   PutOptions,
@@ -361,7 +360,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
    * @param _id - _id property of a document
-   * @param document - This is a {@link JsonDoc}, but _id property is set or overwritten by _id argument.
+   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -398,8 +397,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
       _id = idOrDoc;
       if (typeof docOrOptions === 'object') {
         document = docOrOptions;
-        // overwrite document._id
-        document._id = _id;
       }
       else {
         return Promise.reject(new InvalidJsonObjectError());
@@ -409,23 +406,17 @@ export class GitDocumentDB extends AbstractDocumentDB {
       _id = idOrDoc._id;
       document = idOrDoc;
       options = docOrOptions;
+
+      if (_id === undefined) {
+        return Promise.reject(new UndefinedDocumentIdError());
+      }
     }
     else {
       return Promise.reject(new UndefinedDocumentIdError());
     }
 
-    if (document._id === undefined) {
-      return Promise.reject(new UndefinedDocumentIdError());
-    }
-
     try {
       this._validator.validateId(_id);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-
-    try {
-      this._validator.validateDocument(document);
     } catch (err) {
       return Promise.reject(err);
     }
@@ -441,7 +432,13 @@ export class GitDocumentDB extends AbstractDocumentDB {
     // Must clone doc before rewriting _id
     const clone = JSON.parse(data);
     // _id of JSON document in Git repository includes just a filename.
-    clone._id = path.basename(document._id);
+    clone._id = path.basename(_id);
+
+    try {
+      this._validator.validateDocument(clone);
+    } catch (err) {
+      return Promise.reject(err);
+    }
 
     data = toSortedJSONString(clone);
 
@@ -558,10 +555,8 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
    */
-  async get (docId: string, options?: GetOptions): Promise<JsonDoc> {
+  async get (docId: string): Promise<JsonDoc> {
     const _id = docId;
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
@@ -581,17 +576,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
       return Promise.reject(err);
     }
 
-    options ??= {
-      collection_path: undefined,
-    };
-    options.collection_path ??= '';
-    const collection_path = Validator.normalizeCollectionPath(options.collection_path);
-    try {
-      this._validator.validateCollectionPath(collection_path);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-
     // Calling nameToId() for HEAD throws error when this is first commit.
     const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
       e => false
@@ -602,7 +586,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
     }
 
     const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    const filename = collection_path + _id + fileExt;
+    const filename = _id + fileExt;
     const entry = await commit.getEntry(filename).catch(err => {
       return Promise.reject(new DocumentNotFoundError(err.message));
     });
