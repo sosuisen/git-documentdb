@@ -45,7 +45,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | How to close database |
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | <b><i>(BETA)</i></b> Database information |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
-|  [GetOptions](./git-documentdb.getoptions.md) | Options for get() |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |

@@ -42,7 +42,3 @@ Promise&lt;[RemoveResult](./git-documentdb.removeresult.md)<!-- -->&gt;
 
 [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
 
-[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
-
-[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
-

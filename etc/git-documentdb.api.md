@@ -13,13 +13,21 @@ export abstract class AbstractDocumentDB {
     // (undocumented)
     abstract allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     // (undocumented)
-    abstract delete(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    abstract delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     // (undocumented)
-    abstract get(docId: string, options?: GetOptions): Promise<JsonDoc>;
+    abstract delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     // (undocumented)
-    abstract put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    abstract get(docId: string): Promise<JsonDoc>;
     // (undocumented)
-    abstract remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    abstract put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    abstract put(_id: string, document: {
+        [key: string]: any;
+    }, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    abstract remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
+    // (undocumented)
+    abstract remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     // (undocumented)
     abstract workingDir(): string;
 }
@@ -28,9 +36,8 @@ export abstract class AbstractDocumentDB {
 export type AllDocsOptions = {
     include_docs?: boolean;
     descending?: boolean;
-    sub_directory?: string;
     recursive?: boolean;
-    collection_path?: CollectionPath;
+    collection_path?: string;
 };
 
 // @public
@@ -64,10 +71,15 @@ export class Collection {
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     // (undocumented)
     collectionPath(): string;
-    delete(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-    get(docId: string, options?: GetOptions): Promise<JsonDoc>;
-    put(document: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
+    delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    get(docId: string): Promise<JsonDoc>;
+    put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    put(_id: string, document: {
+        [key: string]: any;
+    }, options?: PutOptions): Promise<PutResult>;
+    remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
+    remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
 }
 
 // @public
@@ -107,11 +119,6 @@ export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
 }
 
-// @public
-export type GetOptions = {
-    collection_path?: CollectionPath;
-};
-
 // Warning: (ae-incompatible-release-tags) The symbol "GitDocumentDB" is marked as @beta, but its signature references "AbstractDocumentDB" which is marked as @internal
 //
 // @beta
@@ -125,7 +132,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
-    get(docId: string, options?: GetOptions): Promise<JsonDoc>;
+    get(docId: string): Promise<JsonDoc>;
     getRepository(): nodegit.Repository | undefined;
     isClosing: boolean;
     isOpened(): boolean;
@@ -135,11 +142,11 @@ export class GitDocumentDB extends AbstractDocumentDB {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
     // @internal (undocumented)
-    _put_concurrent(_id: string, collectionPath: string, data: string, commitMessage: string): Promise<PutResult>;
+    _put_concurrent(_id: string, data: string, commitMessage: string): Promise<PutResult>;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     // @internal (undocumented)
-    _remove_concurrent(_id: string, collectionPath: string, commitMessage: string): Promise<RemoveResult>;
+    _remove_concurrent(_id: string, commitMessage: string): Promise<RemoveResult>;
     workingDir(): string;
     }
 
@@ -203,7 +210,6 @@ export type JsonDocWithMetadata = {
 // @public
 export type PutOptions = {
     commit_message?: string;
-    collection_path?: CollectionPath;
 };
 
 // @public
@@ -217,7 +223,6 @@ export type PutResult = {
 // @public
 export type RemoveOptions = {
     commit_message?: string;
-    collection_path?: CollectionPath;
 };
 
 // @public

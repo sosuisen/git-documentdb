@@ -12,12 +12,10 @@ Options for allDocs()
 export declare type AllDocsOptions = {
     include_docs?: boolean;
     descending?: boolean;
-    sub_directory?: string;
     recursive?: boolean;
-    collection_path?: CollectionPath;
+    collection_path?: string;
 };
 ```
-<b>References:</b> [CollectionPath](./git-documentdb.collectionpath.md)
 
 ## Remarks
 
@@ -25,9 +23,7 @@ export declare type AllDocsOptions = {
 
 - descending: Sort results in rows by descendant. Default is false (ascendant).
 
-- sub\_directory: Only get the documents under the specified sub directory.
-
 - recursive: Get documents recursively from all sub directories. Default is false.
 
-- collection\_path: If set, specified directories are omitted from the a filepath in a document id. See [Collection](./git-documentdb.collection.md)<!-- -->.
+- collection\_path: Get the documents only under a specified sub directory. If set, the directory names are omitted from the a filepath in a document id. See [Collection](./git-documentdb.collection.md)<!-- -->.
 

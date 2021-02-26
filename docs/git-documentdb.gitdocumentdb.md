@@ -38,7 +38,7 @@ export declare class GitDocumentDB extends AbstractDocumentDB
 |  [delete(id, options)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> This is an alias of remove() |
 |  [delete(jsonDoc, options)](./git-documentdb.gitdocumentdb.delete_1.md) |  | <b><i>(BETA)</i></b> This is an alias of remove() |
 |  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | <b><i>(BETA)</i></b> Destroy a database |
-|  [get(docId, options)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document |
+|  [get(docId)](./git-documentdb.gitdocumentdb.get.md) |  | <b><i>(BETA)</i></b> Get a document |
 |  [getRepository()](./git-documentdb.gitdocumentdb.getrepository.md) |  | <b><i>(BETA)</i></b> Get a current repository |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if a database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Create a repository or open an existing one. |

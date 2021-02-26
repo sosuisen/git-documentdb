@@ -30,10 +30,6 @@ Promise&lt;[AllDocsResult](./git-documentdb.alldocsresult.md)<!-- -->&gt;
 
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 
-[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
-
-[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
-
 ## Remarks
 
 

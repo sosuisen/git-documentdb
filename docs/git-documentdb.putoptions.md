@@ -11,12 +11,10 @@ Options for put()
 ```typescript
 export declare type PutOptions = {
     commit_message?: string;
-    collection_path?: CollectionPath;
 };
 ```
-<b>References:</b> [CollectionPath](./git-documentdb.collectionpath.md)
 
 ## Remarks
 
-- commit\_message: internal commit message. default is 'put: path/to/the/file' - collection\_path: If set, specified directories are omitted from the a filepath in a document id. See [Collection](./git-documentdb.collection.md)<!-- -->.
+- commit\_message: internal commit message. default is 'put: path/to/the/file'
 

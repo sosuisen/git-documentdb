@@ -52,8 +52,11 @@ gitDDB.collection('Sapporo').get({ _id: '1' }); // returns { _id: '1', name: 'Yu
 |  --- | --- | --- |
 |  [allDocs(options)](./git-documentdb.collection.alldocs.md) |  | Get all the documents |
 |  [collectionPath()](./git-documentdb.collection.collectionpath.md) |  |  |
-|  [delete(idOrDoc, options)](./git-documentdb.collection.delete.md) |  | This is an alias of [Collection.remove()](./git-documentdb.collection.remove.md) |
-|  [get(docId, options)](./git-documentdb.collection.get.md) |  | Get a document |
-|  [put(document, options)](./git-documentdb.collection.put.md) |  | Add a document |
-|  [remove(idOrDoc, options)](./git-documentdb.collection.remove.md) |  | Remove a document |
+|  [delete(id, options)](./git-documentdb.collection.delete.md) |  | This is an alias of remove() |
+|  [delete(jsonDoc, options)](./git-documentdb.collection.delete_1.md) |  | This is an alias of remove() |
+|  [get(docId)](./git-documentdb.collection.get.md) |  | Get a document |
+|  [put(jsonDoc, options)](./git-documentdb.collection.put.md) |  | Add a document |
+|  [put(\_id, document, options)](./git-documentdb.collection.put_1.md) |  | Add a document |
+|  [remove(id, options)](./git-documentdb.collection.remove.md) |  | Remove a document |
+|  [remove(jsonDoc, options)](./git-documentdb.collection.remove_1.md) |  | Remove a document |
 

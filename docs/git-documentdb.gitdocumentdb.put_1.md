@@ -21,8 +21,8 @@ put(_id: string, document: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string | \_id property of a document is set or overwritten by this \_id argument. |
-|  document | { \[key: string\]: any; } | This is a [JsonDoc](./git-documentdb.jsondoc.md)<!-- -->, but \_id property is not needed. |
+|  \_id | string | \_id property of a document |
+|  document | { \[key: string\]: any; } | This is a [JsonDoc](./git-documentdb.jsondoc.md)<!-- -->, but \_id property is ignored. |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
 <b>Returns:</b>
@@ -46,10 +46,6 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
 [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
 
 [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
-
-[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
-
-[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
 
 ## Remarks
 

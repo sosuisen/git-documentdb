@@ -9,14 +9,14 @@ Remove a document
 <b>Signature:</b>
 
 ```typescript
-remove(idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  idOrDoc | string \| [JsonDoc](./git-documentdb.jsondoc.md) |  |
+|  id | string | id of a target document |
 |  options | [RemoveOptions](./git-documentdb.removeoptions.md) |  |
 
 <b>Returns:</b>
@@ -42,8 +42,4 @@ Promise&lt;[RemoveResult](./git-documentdb.removeresult.md)<!-- -->&gt;
 [InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
 
 [InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
-
-## Remarks
-
-- This is equivalent to call collection('/').remove().
 

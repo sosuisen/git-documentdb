@@ -9,7 +9,7 @@ Get a document
 <b>Signature:</b>
 
 ```typescript
-get(docId: string, options?: GetOptions): Promise<JsonDoc>;
+get(docId: string): Promise<JsonDoc>;
 ```
 
 ## Parameters
@@ -17,7 +17,6 @@ get(docId: string, options?: GetOptions): Promise<JsonDoc>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  docId | string | id of a target document |
-|  options | [GetOptions](./git-documentdb.getoptions.md) |  |
 
 <b>Returns:</b>
 
@@ -38,8 +37,4 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
 [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
 
 [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
-
-[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
-
-[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
 
