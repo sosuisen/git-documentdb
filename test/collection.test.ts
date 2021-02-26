@@ -65,20 +65,21 @@ describe('Collection: put()', () => {
     const doc = { _id: 'prof01', name: 'Kimari' };
     await expect(users.put(doc)).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + doc._id + '$'),
+      id: expect.stringMatching('^prof01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    expect(doc._id).toBe('prof01');
 
     // Check filename
     // fs.access() throw error when a file cannot be accessed.
     const filePath = path.resolve(
       gitDDB.workingDir(),
-      users.collectionPath() + doc._id + '.json'
+      users.collectionPath() + 'prof01.json'
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     // Read JSON and check doc._id
-    expect(fs.readJSONSync(filePath)._id).toBe(doc._id);
+    expect(fs.readJSONSync(filePath)._id).toBe('prof01');
 
     gitDDB.destroy();
   });
@@ -94,15 +95,16 @@ describe('Collection: put()', () => {
     const doc = { _id: 'prof01/page01', name: 'Kimari' };
     await expect(users.put(doc)).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + doc._id + '$'),
+      id: expect.stringMatching('^prof01/page01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    expect(doc._id).toBe('prof01/page01');
     // Check filename
     // fs.access() throw error when a file cannot be accessed.
     const filePath = path.resolve(
       gitDDB.workingDir(),
-      users.collectionPath() + doc._id + '.json'
+      users.collectionPath() + 'prof01/page01.json'
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     // Read JSON and check doc._id
@@ -129,7 +131,7 @@ describe('Collection: put()', () => {
     const doc = { _id: 'prof01', name: 'Kimari' };
     await expect(users.put(doc, { commit_message: 'message' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + doc._id + '$'),
+      id: expect.stringMatching('^prof01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -144,7 +146,7 @@ describe('Collection: put()', () => {
     gitDDB.destroy();
   });
 
-  test('put(): Put with a collection_path', async () => {
+  test('put() overload: Put a JSON document with commit_message', async () => {
     const dbName = 'test_repos_5';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -152,19 +154,22 @@ describe('Collection: put()', () => {
     });
     await gitDDB.open();
     const users = gitDDB.collection('users');
-    const doc = { _id: 'prof01', name: 'Kimari' };
-    await expect(users.put(doc, { collection_path: 'Gunma' })).resolves.toMatchObject({
+    const doc = { _id: 'id-in-document', name: 'Kimari' };
+    await expect(
+      users.put('prof01', doc, { commit_message: 'message' })
+    ).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + doc._id + '$'),
+      id: expect.stringMatching('^prof01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    expect(doc._id).toBe('prof01');
 
     const repository = gitDDB.getRepository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`put: users/Gunma/prof01`);
+      expect(commit.message()).toEqual(`message`);
     }
 
     gitDDB.destroy();
@@ -236,7 +241,7 @@ describe('Collection: get()', () => {
   });
 });
 
-describe('Collection: delete()', () => {
+describe('Collection: remove()', () => {
   const localDir = './test/database_collection04';
 
   beforeAll(() => {
@@ -247,7 +252,7 @@ describe('Collection: delete()', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('delete()', async () => {
+  test('remove(): Use delete(id).', async () => {
     const dbName = 'test_repos_01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -266,10 +271,11 @@ describe('Collection: delete()', () => {
     // Delete
     await expect(users.delete(_id)).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + _id + '$'),
+      id: expect.stringMatching('^test/prof01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+
     // Check commit message
     const repository = gitDDB.getRepository();
     if (repository !== undefined) {
@@ -295,8 +301,52 @@ describe('Collection: delete()', () => {
     await expect(users.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);
   });
 
-  test('delete(): Set commit message.', async () => {
+  test('remove(): Use delete(doc).', async () => {
     const dbName = 'test_repos_02';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = 'test/prof01';
+    const users = gitDDB.collection('users');
+    const doc = { _id: _id, name: 'shirase' };
+    await users.put(doc);
+    const sameDoc = { _id: _id, name: 'shirase' };
+    await expect(users.delete(sameDoc)).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^test/prof01$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+    expect(sameDoc._id).toBe(_id);
+    await gitDDB.destroy();
+  });
+
+  test('remove(): Use _id as a key.', async () => {
+    const dbName = 'test_repos_03';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = 'test/prof01';
+    const users = gitDDB.collection('users');
+    const doc = { _id: _id, name: 'shirase' };
+    await users.put(doc);
+    await expect(users.remove(_id)).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^test/prof01$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+    await gitDDB.destroy();
+  });
+
+  test('remove(): Set commit message.', async () => {
+    const dbName = 'test_repos_04';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -308,7 +358,7 @@ describe('Collection: delete()', () => {
     await users.put({ _id: _id, name: 'shirase' });
 
     // Delete
-    await users.delete(_id, { commit_message: 'my commit message' });
+    await users.remove(_id, { commit_message: 'my commit message' });
 
     // Check commit message
     const repository = gitDDB.getRepository();
@@ -321,8 +371,8 @@ describe('Collection: delete()', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): _id is undefined', async () => {
-    const dbName = 'test_repos_03';
+  test('remove(): _id is undefined', async () => {
+    const dbName = 'test_repos_05';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -331,13 +381,13 @@ describe('Collection: delete()', () => {
     await gitDDB.open();
     const users = gitDDB.collection('users');
     // @ts-ignore
-    await expect(users.delete()).rejects.toThrowError(UndefinedDocumentIdError);
+    await expect(users.remove()).rejects.toThrowError(UndefinedDocumentIdError);
 
     await gitDDB.destroy();
   });
 
-  test('delete(): Use JsonObject as key.', async () => {
-    const dbName = 'test_repos_03';
+  test('remove(): Use JsonObject as key.', async () => {
+    const dbName = 'test_repos_06';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -350,12 +400,13 @@ describe('Collection: delete()', () => {
     await users.put(doc);
 
     // Delete
-    await expect(users.delete(doc)).resolves.toMatchObject({
+    await expect(users.remove(doc)).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + _id + '$'),
+      id: expect.stringMatching('^test/prof01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    expect(doc._id).toBe('test/prof01');
 
     await gitDDB.destroy();
   });

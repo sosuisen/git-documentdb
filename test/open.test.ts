@@ -15,6 +15,7 @@ import {
   UndefinedDatabaseNameError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
+import { Validator } from '../src/validator';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -270,5 +271,44 @@ describe('Open, close and destroy repository', () => {
       is_new: false,
     });
     await gitDDB.destroy();
+  });
+
+  test('GitDocumentDB constructor', () => {
+    expect(() => {
+      // eslint-disable-next-line no-new
+      new GitDocumentDB({ db_name: 'db', local_dir: 'C:\\dir01\\dir02' });
+    }).not.toThrowError();
+  });
+
+  test('open(): Try to create a long name repository.', async () => {
+    const maxWorkingDirLen = Validator.maxWorkingDirectoryLength();
+    let dbName = 'tmp';
+    const workingDirectory = path.resolve(localDir, dbName);
+    for (let i = 0; i < maxWorkingDirLen - workingDirectory.length; i++) {
+      dbName += '0';
+    }
+
+    // Code must be wrapped by () => {} to test exception
+    // https://jestjs.io/docs/en/expect#tothrowerror
+    let gitddb: GitDocumentDB;
+    expect(() => {
+      gitddb = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+    }).not.toThrowError();
+    // @ts-ignore
+    if (gitddb !== undefined) {
+      await gitddb.destroy();
+    }
+
+    dbName += '0';
+    expect(() => {
+      // eslint-disable-next-line no-new
+      new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+    }).toThrowError(InvalidWorkingDirectoryPathLengthError);
   });
 });

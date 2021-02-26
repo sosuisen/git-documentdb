@@ -33,24 +33,11 @@ describe('Validate', () => {
     await expect(gitDDB.remove('_underscore')).rejects.toThrowError(
       InvalidIdCharacterError
     );
+
     // @ts-ignore
     await expect(gitDDB.remove()).rejects.toThrowError(UndefinedDocumentIdError);
 
-    await gitDDB.destroy();
-  });
-
-  test('remove(): collectionPath is invalid', async () => {
-    const dbName = 'test_repos_02';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    await gitDDB.open();
-
-    await expect(
-      gitDDB.remove('prof01', { collection_path: '_underscore' })
-    ).rejects.toThrowError(InvalidCollectionPathCharacterError);
+    await expect(gitDDB.remove({})).rejects.toThrowError(UndefinedDocumentIdError);
 
     await gitDDB.destroy();
   });
@@ -199,41 +186,6 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('remove(): Delete by using collectionPath', async () => {
-    const dbName = 'test_repos_03';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    await gitDDB.open();
-    const _id = 'test/prof01';
-    await gitDDB.put({ _id: _id, name: 'shirase' });
-    // Delete
-    await expect(
-      gitDDB.remove('prof01', { collection_path: 'test' })
-    ).resolves.toMatchObject({
-      ok: true,
-      id: expect.stringMatching('^prof01$'),
-      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
-    });
-    // Check commit message
-    const repository = gitDDB.getRepository();
-    if (repository !== undefined) {
-      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: ${_id}`);
-    }
-
-    await gitDDB.destroy();
-
-    // Check if file is deleted.
-    await expect(
-      fs.access(path.resolve(gitDDB.workingDir(), _id), fs.constants.F_OK)
-    ).rejects.toThrowError();
-  });
-
   test('remove(): Set commit message.', async () => {
     const dbName = 'test_repos_04';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -365,11 +317,11 @@ describe('Concurrent', () => {
 
     await expect(
       Promise.all([
-        gitDDB._remove_concurrent(_id_a, '', 'message'),
-        gitDDB._remove_concurrent(_id_b, '', 'message'),
-        gitDDB._remove_concurrent(_id_c01, '', 'message'),
-        gitDDB._remove_concurrent(_id_c02, '', 'message'),
-        gitDDB._remove_concurrent(_id_d, '', 'message'),
+        gitDDB._remove_concurrent(_id_a, 'message'),
+        gitDDB._remove_concurrent(_id_b, 'message'),
+        gitDDB._remove_concurrent(_id_c01, 'message'),
+        gitDDB._remove_concurrent(_id_c02, 'message'),
+        gitDDB._remove_concurrent(_id_d, 'message'),
       ])
     ).rejects.toThrowError();
 
