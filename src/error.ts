@@ -95,6 +95,7 @@ export class InvalidIdCharacterError extends BaseError {
     const e = `Invalid ID character '${id}':
 id allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0
 id cannot start with a slash and an underscore _.
+id cannot end with a slash.
 A directory name cannot end with a period or a white space.
 A directory name does not allow '.' and '..'.`;
     super(e);

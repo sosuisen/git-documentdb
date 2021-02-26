@@ -341,7 +341,7 @@ describe('Using validation in other functions', () => {
     }).toThrowError(InvalidWorkingDirectoryPathLengthError);
   });
 
-  test('put(): key includes invalid character.', async () => {
+  test('put(): _id includes invalid character.', async () => {
     const dbName = 'test_repos_put01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -360,7 +360,7 @@ describe('Using validation in other functions', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): key length is invalid.', async () => {
+  test('put(): _id length is invalid.', async () => {
     const dbName = 'test_repos_put02';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -395,7 +395,7 @@ describe('Using validation in other functions', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): key includes punctuations.', async () => {
+  test('put(): _id includes punctuations.', async () => {
     const dbName = 'test_repos_put03';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -425,6 +425,19 @@ describe('Using validation in other functions', () => {
     obj1.obj = obj2;
     await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(
       InvalidJsonObjectError
+    );
+    await gitDDB.destroy();
+  });
+
+  test('put(): _id ends with slash', async () => {
+    const dbName = 'test_repos_put05';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(gitDDB.put({ _id: 'users/pages/' })).rejects.toThrowError(
+      InvalidIdCharacterError
     );
     await gitDDB.destroy();
   });

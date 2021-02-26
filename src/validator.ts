@@ -337,6 +337,12 @@ export class Validator {
     if (baseName === '') {
       throw new InvalidIdCharacterError(_id);
     }
+    // basename returns a last directory name if _id ends with a slash.
+    // e.g.) basename('/users/pages/') returns 'pages'.
+    if (_id.endsWith('/')) {
+      throw new InvalidIdCharacterError(_id);
+    }
+
     this._validateFileName(path.basename(_id));
     const dirName = path.dirname(_id);
     // dirname returns '.' if _id does not include slashes.
