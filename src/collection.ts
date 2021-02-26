@@ -55,11 +55,6 @@ export class Collection {
     validator.validateCollectionPath(this._collectionPath);
   }
 
-  private _getFullPath (path: string | undefined) {
-    path = Validator.normalizeCollectionPath(path);
-    return this._collectionPath + path;
-  }
-
   collectionPath () {
     return this._collectionPath;
   }
