@@ -650,8 +650,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
    */
   remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
   /**
@@ -666,8 +664,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
    */
   remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
   remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
@@ -698,22 +694,13 @@ export class GitDocumentDB extends AbstractDocumentDB {
 
     options ??= {
       commit_message: undefined,
-      collection_path: undefined,
     };
-    options.collection_path ??= '';
-    const collection_path = Validator.normalizeCollectionPath(options.collection_path);
-    options.commit_message ??= `remove: ${collection_path}${_id}`;
-
-    try {
-      this._validator.validateCollectionPath(collection_path);
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    options.commit_message ??= `remove: ${_id}`;
 
     // delete() must be serial.
     return new Promise((resolve, reject) => {
       this._pushToSerialQueue(() =>
-        this._remove_concurrent(_id, collection_path!, options!.commit_message!)
+        this._remove_concurrent(_id, options!.commit_message!)
           .then(result => resolve(result))
           .catch(err => reject(err))
       );
@@ -731,17 +718,13 @@ export class GitDocumentDB extends AbstractDocumentDB {
    *
    * @internal
    */
-  async _remove_concurrent (
-    _id: string,
-    collectionPath: string,
-    commitMessage: string
-  ): Promise<RemoveResult> {
+  async _remove_concurrent (_id: string, commitMessage: string): Promise<RemoveResult> {
     if (this._currentRepository === undefined) {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
     let file_sha, commit_sha: string;
-    const filename = collectionPath + _id + fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
+    const filename = _id + fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
     const filePath = path.resolve(this._workingDirectory, filename);
 
     let index;

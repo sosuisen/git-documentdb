@@ -70,12 +70,10 @@ export type GetOptions = {
  *
  * @remarks
  * - commit_message: internal commit message. default is 'remove: path/to/the/file'
- * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
  * @public
  */
 export type RemoveOptions = {
   commit_message?: string;
-  collection_path?: CollectionPath;
 };
 
 /**
@@ -210,15 +208,12 @@ export abstract class AbstractDocumentDB {
   ): Promise<PutResult>;
 
   abstract get (docId: string, options?: GetOptions): Promise<JsonDoc>;
-  abstract delete (
-    idOrDoc: string | JsonDoc,
-    options?: RemoveOptions
-  ): Promise<RemoveResult>;
 
-  abstract remove (
-    idOrDoc: string | JsonDoc,
-    options?: RemoveOptions
-  ): Promise<RemoveResult>;
+  abstract delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  abstract delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+
+  abstract remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  abstract remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
 
   abstract allDocs (options?: AllDocsOptions): Promise<AllDocsResult>;
 }

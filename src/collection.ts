@@ -179,20 +179,27 @@ export class Collection {
   }
 
   /**
-   * This is an alias of {@link Collection.remove}
+   * This is an alias of remove()
    */
+  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  /**
+   * This is an alias of remove()
+   */
+  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
   delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
-    return this.remove(idOrDoc, options);
+    if (typeof idOrDoc === 'string') {
+      return this.remove(idOrDoc, options);
+    }
+    else if (typeof idOrDoc === 'object') {
+      return this.remove(idOrDoc, options);
+    }
+    return Promise.reject(new UndefinedDocumentIdError());
   }
 
   /**
    * Remove a document
    *
-   * @remarks
-   * - This is equivalent to call collection('/').remove().
-   *
-   * @param _id - id of a target document
-   * @param commitMessage - Default is `remove: ${_id}`.
+   * @param id - id of a target document
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -204,14 +211,48 @@ export class Collection {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
+  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  /**
+   * Remove a document
+   *
+   * @param jsonDoc - Target document
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link CannotDeleteDataError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   */
+  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
   remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
-    options ??= {
-      commit_message: undefined,
-      collection_path: undefined,
-    };
-    options.collection_path = this._getFullPath(options.collection_path);
-
-    return this._gitDDB.remove(idOrDoc, options);
+    if (typeof idOrDoc === 'string') {
+      const orgId = idOrDoc;
+      const _id = this._collectionPath + orgId;
+      return this._gitDDB.remove(_id, options).then(res => {
+        res.id = orgId;
+        return res;
+      });
+    }
+    else if (typeof idOrDoc === 'object') {
+      if (idOrDoc._id) {
+        const orgId = idOrDoc._id;
+        const _id = this._collectionPath + orgId;
+        return this._gitDDB
+          .remove(_id, options)
+          .then(res => {
+            res.id = orgId;
+            return res;
+          })
+          .finally(() => {
+            idOrDoc._id = orgId;
+          });
+      }
+    }
+    return Promise.reject(new UndefinedDocumentIdError());
   }
 
   /**
