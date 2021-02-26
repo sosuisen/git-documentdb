@@ -45,7 +45,7 @@ const foo = async () => {
   console.log(docFromSapporo); // docFromSapporo = { _id: 'Sapporo/1', name: 'Yuzuki', age: '16' }
 
   // Read all the documents under Gunma sub-directory
-  const docsFromGunma = await gitDDB.allDocs({ sub_directory: 'Gunma', include_docs: true });
+  const docsFromGunma = await gitDDB.allDocs({ collection_path: 'Gunma', include_docs: true });
   console.dir(docsFromGunma, { depth: 3 });
   /* docsFromGunma = 
   {
@@ -55,17 +55,17 @@ const foo = async () => {
       {
         id: 'Gunma/1',
         file_sha: 'fae60a86958402b424102f16361a501c561be654',
-        doc: { name: 'Kimari', age: '16', _id: 'Gunma/1' }
+        doc: { name: 'Kimari', age: '16', _id: '1' }
       },
       {
         id: 'Gunma/2',
         file_sha: '1255eff6d316a73077468dbda2b026e96fdf00e6',
-        doc: { name: 'Shirase', age: '17', _id: 'Gunma/2' }
+        doc: { name: 'Shirase', age: '17', _id: '2' }
       },
       {
         id: 'Gunma/3',
         file_sha: '1f1c89b5253c4feab67a31f8bce1443e3d72512f',
-        doc: { name: 'Hinata', age: '17', _id: 'Gunma/3' }
+        doc: { name: 'Hinata', age: '17', _id: '3' }
       }
     ]
   }
