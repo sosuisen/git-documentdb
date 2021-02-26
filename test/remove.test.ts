@@ -54,7 +54,7 @@ describe('Delete document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('remove(): Use delete().', async () => {
+  test('delete(): Use delete(_id).', async () => {
     const dbName = 'test_repos_01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -85,8 +85,44 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('remove() from sub-directory', async () => {
+  test('delete(): Use delete(doc).', async () => {
     const dbName = 'test_repos_02';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = 'prof01';
+    const doc = { _id: _id, name: 'shirase' };
+    await gitDDB.put(doc);
+
+    // Delete
+    await expect(gitDDB.delete(doc)).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^' + _id + '$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+
+    await gitDDB.destroy();
+  });
+
+  test('delete(): Undefined _id', async () => {
+    const dbName = 'test_repos_03';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    // @ts-ignore
+    await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
+    await gitDDB.destroy();
+  });
+
+  test('remove(): Remove from sub-directory.', async () => {
+    const dbName = 'test_repos_04';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -187,7 +223,7 @@ describe('Delete document', () => {
   });
 
   test('remove(): Set commit message.', async () => {
-    const dbName = 'test_repos_04';
+    const dbName = 'test_repos_05';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -212,7 +248,7 @@ describe('Delete document', () => {
   });
 
   test('remove(): Use JsonObject as key.', async () => {
-    const dbName = 'test_repos_05';
+    const dbName = 'test_repos_06';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

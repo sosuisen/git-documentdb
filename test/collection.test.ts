@@ -16,7 +16,6 @@ import {
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../src/error';
-import { Validator } from '../src/validator';
 
 describe('Collection', () => {
   const localDir = './test/database_collection01';
@@ -175,6 +174,20 @@ describe('Collection: put()', () => {
 
     gitDDB.destroy();
   });
+
+  test('put(): undefined', async () => {
+    const dbName = 'test_repos_6';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    const users = gitDDB.collection('users');
+    // @ts-ignore
+    await expect(users.put()).rejects.toThrowError(UndefinedDocumentIdError);
+
+    gitDDB.destroy();
+  });
 });
 
 describe('Collection: get()', () => {
@@ -234,7 +247,7 @@ describe('Collection: remove()', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('remove(): Use delete(id).', async () => {
+  test('delete(): Use delete(id).', async () => {
     const dbName = 'test_repos_01';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -283,7 +296,7 @@ describe('Collection: remove()', () => {
     await expect(users.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);
   });
 
-  test('remove(): Use delete(doc).', async () => {
+  test('delete(): Use delete(doc).', async () => {
     const dbName = 'test_repos_02';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -392,6 +405,21 @@ describe('Collection: remove()', () => {
 
     await gitDDB.destroy();
   });
+
+  test('delete(): _id is undefined', async () => {
+    const dbName = 'test_repos_05';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const users = gitDDB.collection('users');
+    // @ts-ignore
+    await expect(users.delete()).rejects.toThrowError(UndefinedDocumentIdError);
+
+    await gitDDB.destroy();
+  });
 });
 
 describe('Collection: allDocs()', () => {
@@ -474,57 +502,16 @@ describe('Collection: allDocs()', () => {
     await users.put({ _id: _id_c02, name: name_c02 });
 
     await expect(
-      users.allDocs({ sub_directory: 'pear/Japan', include_docs: true })
+      users.allDocs({ collection_path: 'pear/Japan', include_docs: true })
     ).resolves.toMatchObject({
       total_rows: 1,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
-          id: expect.stringMatching('^' + _id_p + '$'),
+          id: expect.stringMatching('^' + _id_p.replace('pear/Japan/', '') + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
-            _id: expect.stringMatching('^' + _id_p + '$'),
-            name: name_p,
-          },
-        },
-      ],
-    });
-
-    await gitDDB.destroy();
-  });
-
-  test('allDocs(): get from deep directory by using collection_path', async () => {
-    const dbName = 'test_repos_3';
-
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
-    const users = gitDDB.collection('users');
-    await users.put({ _id: _id_p, name: name_p });
-
-    await users.put({ _id: _id_b, name: name_b });
-    await users.put({ _id: _id_a, name: name_a });
-    await users.put({ _id: _id_d, name: name_d });
-    await users.put({ _id: _id_c01, name: name_c01 });
-    await users.put({ _id: _id_c02, name: name_c02 });
-
-    await expect(
-      users.allDocs({
-        sub_directory: 'Japan',
-        include_docs: true,
-        collection_path: 'pear',
-      })
-    ).resolves.toMatchObject({
-      total_rows: 1,
-      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          id: expect.stringMatching('^Japan/21st$'),
-          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^Japan/21st$'),
+            _id: expect.stringMatching('^' + _id_p.replace('pear/Japan/', '') + '$'),
             name: name_p,
           },
         },
