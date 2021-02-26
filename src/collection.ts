@@ -1,3 +1,4 @@
+import { UndefinedDocumentIdError } from './error';
 import {
   AbstractDocumentDB,
   AllDocsOptions,
@@ -72,8 +73,7 @@ export class Collection {
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
-   * @param document -  See {@link JsonDoc} for restriction
-   * @param commitMessage - Default is `put: ${document._id}`.
+   * @param jsonDoc -  See {@link JsonDoc} for restriction
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -86,14 +86,73 @@ export class Collection {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  put (document: JsonDoc, options?: PutOptions): Promise<PutResult> {
-    options ??= {
-      commit_message: undefined,
-      collection_path: undefined,
-    };
-    options.collection_path = this._getFullPath(options.collection_path);
+  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  /**
+   * Add a document
+   *
+   * @remarks
+   * - put() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * @param _id - _id property of a document is set or overwritten by this _id argument.
+   * @param document - This is a {@link JsonDoc}, but _id property is set or overwritten by _id argument.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   */
+  put (
+    _id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
 
-    return this._gitDDB.put(document, options);
+  put (
+    idOrDoc: string | JsonDoc,
+    docOrOptions: { [key: string]: any } | PutOptions,
+    options?: PutOptions
+  ): Promise<PutResult> {
+    if (typeof idOrDoc === 'string') {
+      const orgId = idOrDoc;
+      const _id = this._collectionPath + orgId;
+      const document = docOrOptions as { [key: string]: any };
+      return this._gitDDB
+        .put(_id, document, options)
+        .then(res => {
+          res.id = orgId;
+          return res;
+        })
+        .finally(() => {
+          document._id = orgId;
+        });
+    }
+    else if (typeof idOrDoc === 'object') {
+      if (idOrDoc._id) {
+        const orgId = idOrDoc._id;
+        const _id = this._collectionPath + orgId;
+        const document = idOrDoc as JsonDoc;
+        options = docOrOptions;
+        return this._gitDDB
+          .put(_id, document, options)
+          .then(res => {
+            res.id = orgId;
+            return res;
+          })
+          .finally(() => {
+            document._id = orgId;
+          });
+      }
+    }
+
+    return Promise.reject(new UndefinedDocumentIdError());
   }
 
   /**

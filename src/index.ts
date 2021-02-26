@@ -350,8 +350,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link CannotCreateDirectoryError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
@@ -362,8 +360,8 @@ export class GitDocumentDB extends AbstractDocumentDB {
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
-   * @param _id - _id property of a document is set or overwritten by this _id argument.
-   * @param document - This is a {@link JsonDoc}, but _id property is not needed.
+   * @param _id - _id property of a document
+   * @param document - This is a {@link JsonDoc}, but _id property is set or overwritten by _id argument.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -373,8 +371,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
    * @throws {@link CannotCreateDirectoryError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
    */
   put (
     _id: string,
@@ -400,9 +396,9 @@ export class GitDocumentDB extends AbstractDocumentDB {
     let document: JsonDoc = {};
     if (typeof idOrDoc === 'string') {
       _id = idOrDoc;
-      document = docOrOptions;
       if (typeof docOrOptions === 'object') {
-        // always overwrite _id
+        document = docOrOptions;
+        // overwrite document._id
         document._id = _id;
       }
       else {
@@ -451,22 +447,14 @@ export class GitDocumentDB extends AbstractDocumentDB {
 
     options ??= {
       commit_message: undefined,
-      collection_path: undefined,
     };
-    options.collection_path ??= '';
-    const collection_path = Validator.normalizeCollectionPath(options.collection_path);
-    options.commit_message ??= `put: ${collection_path}${_id}`;
 
-    try {
-      this._validator.validateCollectionPath(collection_path);
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    options.commit_message ??= `put: ${_id}`;
 
     // put() must be serial.
     return new Promise((resolve, reject) => {
       this._pushToSerialQueue(() =>
-        this._put_concurrent(_id, collection_path!, data, options!.commit_message!)
+        this._put_concurrent(_id, data, options!.commit_message!)
           .then(result => {
             resolve(result);
           })
@@ -488,7 +476,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
    */
   async _put_concurrent (
     _id: string,
-    collectionPath: string,
     data: string,
     commitMessage: string
   ): Promise<PutResult> {
@@ -497,7 +484,7 @@ export class GitDocumentDB extends AbstractDocumentDB {
     }
 
     let file_sha, commit_sha: string;
-    const filename = collectionPath + _id + fileExt;
+    const filename = _id + fileExt;
     const filePath = path.resolve(this._workingDirectory, filename);
     const dir = path.dirname(filePath);
 
@@ -551,9 +538,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
       return Promise.reject(new CannotWriteDataError(err.message));
     }
     // console.log(commitId.tostrS());
-
-    const reg = new RegExp('^' + collectionPath);
-    _id = _id.replace(reg, '');
 
     return {
       ok: true,

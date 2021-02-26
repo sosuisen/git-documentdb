@@ -48,12 +48,10 @@ export type CollectionPath = string;
  *
  * @remarks
  * - commit_message: internal commit message. default is 'put: path/to/the/file'
- * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
  * @public
  */
 export type PutOptions = {
   commit_message?: string;
-  collection_path?: CollectionPath;
 };
 
 /**
@@ -204,7 +202,13 @@ export type DatabaseCloseOption = {
  */
 export abstract class AbstractDocumentDB {
   abstract workingDir (): string;
-  abstract put (document: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  abstract put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  abstract put (
+    _id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
+
   abstract get (docId: string, options?: GetOptions): Promise<JsonDoc>;
   abstract delete (
     idOrDoc: string | JsonDoc,
