@@ -43,20 +43,6 @@ describe('Read document', () => {
     await gitDDB.destroy();
   });
 
-  test('get(): Invalid collectionPath', async () => {
-    const dbName = 'test_repos_2';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    await gitDDB.open();
-    await expect(gitDDB.get('prof01', { collection_path: '_users' })).rejects.toThrowError(
-      InvalidCollectionPathCharacterError
-    );
-    await gitDDB.destroy();
-  });
-
   test('get(): Read an existing document', async () => {
     const dbName = 'test_repos_3';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -86,24 +72,6 @@ describe('Read document', () => {
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
     await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
-    await gitDDB.destroy();
-  });
-
-  test('get(): Read an existing document in subdirectory by using collectionPath', async () => {
-    const dbName = 'test_repos_5';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    await gitDDB.open();
-    const _id = 'dir01/prof01';
-    await gitDDB.put({ _id: _id, name: 'shirase' });
-    // Get
-    await expect(gitDDB.get('prof01', { collection_path: 'dir01' })).resolves.toEqual({
-      _id: 'prof01',
-      name: 'shirase',
-    });
     await gitDDB.destroy();
   });
 

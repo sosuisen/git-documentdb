@@ -442,7 +442,7 @@ describe('Create document', () => {
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
-    expect(doc._id).toBe('prof01');
+    expect(doc._id).toBe('id-in-doc');
 
     const repository = gitDDB.getRepository();
     if (repository !== undefined) {

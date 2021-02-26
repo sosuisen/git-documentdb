@@ -163,7 +163,8 @@ describe('Collection: put()', () => {
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
-    expect(doc._id).toBe('prof01');
+    // doc._id is ignored.
+    expect(doc._id).toBe('id-in-document');
 
     const repository = gitDDB.getRepository();
     if (repository !== undefined) {
@@ -218,25 +219,6 @@ describe('Collection: get()', () => {
     await users.put({ _id: _id, name: 'shirase' });
     // Get
     await expect(users.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
-    await gitDDB.destroy();
-  });
-
-  test('get(): Read an existing document by using collection_path', async () => {
-    const dbName = 'test_repos_2';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    await gitDDB.open();
-    const users = gitDDB.collection('users');
-    const _id = 'dir01/prof01';
-    await users.put({ _id: _id, name: 'shirase' });
-    // Get
-    await expect(users.get('prof01', { collection_path: 'dir01' })).resolves.toEqual({
-      _id: 'prof01',
-      name: 'shirase',
-    });
     await gitDDB.destroy();
   });
 });
