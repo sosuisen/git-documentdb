@@ -901,16 +901,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
       return Promise.reject(new RepositoryNotOpenError());
     }
 
-    let collection_path = '';
-    if (options?.collection_path) {
-      collection_path = Validator.normalizeCollectionPath(options.collection_path);
-      try {
-        this._validator.validateCollectionPath(collection_path);
-      } catch (err) {
-        return Promise.reject(err);
-      }
-    }
-
     // Calling nameToId() for HEAD throws error when this is first commit.
     const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
       e => false
@@ -928,13 +918,20 @@ export class GitDocumentDB extends AbstractDocumentDB {
     const directories: nodegit.Tree[] = [];
     const tree = await commit.getTree();
 
-    let sub_directory = collection_path;
-    if (options?.sub_directory) {
-      sub_directory += options.sub_directory;
+    let collection_path = '';
+    if (options?.collection_path) {
+      collection_path = Validator.normalizeCollectionPath(options.collection_path);
+      try {
+        this._validator.validateCollectionPath(collection_path);
+      } catch (err) {
+        return Promise.reject(err);
+      }
     }
 
-    if (sub_directory !== '') {
-      const specifiedTreeEntry = await tree.getEntry(sub_directory).catch(e => null);
+    if (collection_path !== '') {
+      const specifiedTreeEntry = await tree
+        .getEntry(options!.collection_path!)
+        .catch(e => null);
       if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
         const specifiedTree = await specifiedTreeEntry.getTree();
         directories.push(specifiedTree);
@@ -975,7 +972,6 @@ export class GitDocumentDB extends AbstractDocumentDB {
           let _id = entry.path().replace(new RegExp(fileExt + '$'), '');
           const reg = new RegExp('^' + collection_path);
           _id = _id.replace(reg, '');
-
           const documentInBatch: JsonDocWithMetadata = {
             id: _id,
             file_sha: entry.id().tostrS(),

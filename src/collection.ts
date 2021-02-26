@@ -247,18 +247,16 @@ export class Collection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
    */
   allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
     options ??= {
       include_docs: undefined,
       descending: undefined,
-      sub_directory: undefined,
       recursive: undefined,
       collection_path: undefined,
     };
-    options.collection_path = this._getFullPath(options.collection_path);
+    options.collection_path ??= '';
+    options.collection_path = this._collectionPath + options.collection_path;
 
     return this._gitDDB.allDocs(options);
   }

@@ -73,20 +73,17 @@ export type RemoveOptions = {
  *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
- * - sub_directory: Only get the documents under the specified sub directory.
- *
  * - recursive: Get documents recursively from all sub directories. Default is false.
  *
- * - collection_path: If set, specified directories are omitted from the a filepath in a document id. See {@link Collection}.
+ * - collection_path: Get the documents only under a specified sub directory. If set, the directory names are omitted from the a filepath in a document id. See {@link Collection}.
  *
  * @public
  */
 export type AllDocsOptions = {
   include_docs?: boolean;
   descending?: boolean;
-  sub_directory?: string;
   recursive?: boolean;
-  collection_path?: CollectionPath;
+  collection_path?: string;
 };
 
 /**
