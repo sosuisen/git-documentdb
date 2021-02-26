@@ -1,6 +1,6 @@
 import { UndefinedDocumentIdError } from './error';
 import {
-  AbstractDocumentDB,
+  CrudInterface,
   AllDocsOptions,
   AllDocsResult,
   CollectionPath,
@@ -38,13 +38,13 @@ import { Validator } from './validator';
  */
 export class Collection {
   private _collectionPath: CollectionPath = '';
-  private _gitDDB: AbstractDocumentDB;
+  private _gitDDB: CrudInterface;
 
   /**
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  constructor (_gitDDB: AbstractDocumentDB, _collectionPath: CollectionPath) {
+  constructor (_gitDDB: CrudInterface, _collectionPath: CollectionPath) {
     this._gitDDB = _gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(_collectionPath);
     const validator = new Validator(this._gitDDB.workingDir());

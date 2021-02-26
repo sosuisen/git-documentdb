@@ -1,3 +1,6 @@
+import nodegit from '@sosuisen/nodegit';
+import { Validator } from './validator';
+
 /**
  * Type for a JSON document that is stored in a database
  *
@@ -184,22 +187,33 @@ export type DatabaseCloseOption = {
  *
  * @internal
  */
-export abstract class AbstractDocumentDB {
-  abstract workingDir (): string;
-  abstract put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-  abstract put (
+export interface CrudInterface {
+  workingDir(): string;
+  put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  put(
     _id: string,
     document: { [key: string]: any },
     options?: PutOptions
   ): Promise<PutResult>;
 
-  abstract get (docId: string): Promise<JsonDoc>;
+  get(docId: string): Promise<JsonDoc>;
+  delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
 
-  abstract delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
-  abstract delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
 
-  abstract remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
-  abstract remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
+}
 
-  abstract allDocs (options?: AllDocsOptions): Promise<AllDocsResult>;
+export abstract class AbstractDocumentDB {
+  abstract isClosing: boolean;
+  abstract getRepository (): nodegit.Repository | undefined;
+  abstract _validator: Validator;
+  abstract _pushToSerialQueue (func: () => Promise<void>): void;
+  abstract _put_concurrent (
+    _id: string,
+    data: string,
+    commitMessage: string
+  ): Promise<PutResult>;
 }
