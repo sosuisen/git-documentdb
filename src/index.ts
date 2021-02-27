@@ -41,10 +41,6 @@ import {
 import { toSortedJSONString } from './utils';
 import { put } from './crud/put';
 
-const gitAuthor = {
-  name: 'GitDocumentDB',
-  email: 'gitddb@example.com',
-};
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -119,8 +115,6 @@ export type DatabaseInfo = {
   is_valid_version: boolean;
 };
 
-const fileExt = '.json';
-
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 
 /**
@@ -129,6 +123,18 @@ const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec)
  * @beta
  */
 export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
+  /**
+   * File extension of a repository document
+   */
+  public fileExt = '.json';
+  /**
+   * Author name and email
+   */
+  public gitAuthor = {
+    name: 'GitDocumentDB',
+    email: 'gitddb@example.com',
+  };
+
   private _localDir: string;
   private _dbName: string;
   private _currentRepository: nodegit.Repository | undefined;
@@ -512,7 +518,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
     }
 
     const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    const filename = _id + fileExt;
+    const filename = _id + this.fileExt;
     const entry = await commit.getEntry(filename).catch(err => {
       return Promise.reject(new DocumentNotFoundError(err.message));
     });
@@ -634,7 +640,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
     }
 
     let file_sha, commit_sha: string;
-    const filename = _id + fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
+    const filename = _id + this.fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
     const filePath = path.resolve(this._workingDirectory, filename);
 
     let index;
@@ -655,8 +661,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
     try {
       const changes = await index.writeTree(); // get reference to a set of changes
 
-      const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-      const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+      const author = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
+      const committer = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
 
       // Calling nameToId() for HEAD throws error when this is first commit.
       const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
@@ -895,7 +901,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
           }
         }
         else {
-          let _id = entry.path().replace(new RegExp(fileExt + '$'), '');
+          let _id = entry.path().replace(new RegExp(this.fileExt + '$'), '');
           const reg = new RegExp('^' + collection_path);
           _id = _id.replace(reg, '');
           const documentInBatch: JsonDocWithMetadata = {
