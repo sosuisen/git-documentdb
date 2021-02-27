@@ -37,6 +37,8 @@ import {
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
 import { _put_concurrent_impl, putImpl } from './crud/put';
+import { getImpl } from './crud/get';
+import { _remove_concurrent_impl, removeImpl } from './crud/remove';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -340,310 +342,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
-   * Add a document
-   *
-   * @remarks
-   * - put() does not check a write permission of your file system (unlike open()).
-   *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
-   *
-   * @param jsonDoc - See {@link JsonDoc} for restriction
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   */
-  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-  /**
-   * Add a document (overload)
-   *
-   * @remarks
-   * - put() does not check a write permission of your file system (unlike open()).
-   *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
-   *
-   * @param _id - _id property of a document
-   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   */
-  put (
-    _id: string,
-    document: { [key: string]: any },
-    options?: PutOptions
-  ): Promise<PutResult>;
-
-  put (
-    idOrDoc: string | JsonDoc,
-    docOrOptions: { [key: string]: any } | PutOptions,
-    options?: PutOptions
-  ) {
-    return putImpl.call(this, idOrDoc, docOrOptions, options);
-  }
-
-  /**
-   * @remarks
-   * This method is used only for internal use.
-   * But it is published for test purpose.
-   *
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link CannotWriteDataError}
-   *
-   * @internal
-   */
-  _put_concurrent = _put_concurrent_impl;
-
-  /**
-   * Get a document
-   *
-   * @param docId - id of a target document
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
-   * @throws {@link InvalidJsonObjectError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   */
-  async get (docId: string): Promise<JsonDoc> {
-    const _id = docId;
-    if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
-    }
-
-    if (this._currentRepository === undefined) {
-      return Promise.reject(new RepositoryNotOpenError());
-    }
-
-    if (_id === undefined) {
-      return Promise.reject(new UndefinedDocumentIdError());
-    }
-
-    try {
-      this._validator.validateId(_id);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-
-    // Calling nameToId() for HEAD throws error when this is first commit.
-    const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
-      e => false
-    ); // get HEAD
-    let document;
-    if (!head) {
-      return Promise.reject(new DocumentNotFoundError());
-    }
-
-    const commit = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    const filename = _id + this.fileExt;
-    const entry = await commit.getEntry(filename).catch(err => {
-      return Promise.reject(new DocumentNotFoundError(err.message));
-    });
-    const blob = await entry.getBlob();
-    try {
-      document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
-      // _id in a document may differ from _id in a filename by mistake.
-      // _id in a file is SSOT.
-      // Overwrite _id in a document by _id in arguments
-      document._id = _id;
-    } catch (e) {
-      return Promise.reject(new InvalidJsonObjectError());
-    }
-
-    return document;
-  }
-
-  /**
-   * This is an alias of remove()
-   */
-  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
-  /**
-   * This is an alias of remove()
-   */
-  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
-    if (typeof idOrDoc === 'string') {
-      return this.remove(idOrDoc, options);
-    }
-    else if (typeof idOrDoc === 'object') {
-      return this.remove(idOrDoc, options);
-    }
-    return Promise.reject(new UndefinedDocumentIdError());
-  }
-
-  /**
-   * Remove a document
-   *
-   * @param id - id of a target document
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
-   * @throws {@link CannotDeleteDataError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   */
-  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
-  /**
-   * Remove a document
-   *
-   * @param jsonDoc - Target document
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
-   * @throws {@link CannotDeleteDataError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   */
-  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
-    let _id: string;
-    if (typeof idOrDoc === 'string') {
-      _id = idOrDoc;
-    }
-    else if (idOrDoc?._id) {
-      _id = idOrDoc._id;
-    }
-    else {
-      return Promise.reject(new UndefinedDocumentIdError());
-    }
-
-    if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
-    }
-
-    if (this._currentRepository === undefined) {
-      return Promise.reject(new RepositoryNotOpenError());
-    }
-
-    try {
-      this._validator.validateId(_id);
-    } catch (err) {
-      return Promise.reject(err);
-    }
-
-    options ??= {
-      commit_message: undefined,
-    };
-    options.commit_message ??= `remove: ${_id}`;
-
-    // delete() must be serial.
-    return new Promise((resolve, reject) => {
-      this._pushToSerialQueue(() =>
-        this._remove_concurrent(_id, options!.commit_message!)
-          .then(result => resolve(result))
-          .catch(err => reject(err))
-      );
-    });
-  }
-
-  /**
-   * @remarks
-   * This method is used only for internal use.
-   * But it is published for test purpose.
-   *
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link DocumentNotFoundError}
-   * @throws {@link CannotDeleteDataError}
-   *
-   * @internal
-   */
-  async _remove_concurrent (_id: string, commitMessage: string): Promise<RemoveResult> {
-    if (this._currentRepository === undefined) {
-      return Promise.reject(new RepositoryNotOpenError());
-    }
-
-    let file_sha, commit_sha: string;
-    const filename = _id + this.fileExt; // key starts with a slash. Remove heading slash to remove the file under the working directory
-    const filePath = path.resolve(this._workingDirectory, filename);
-
-    let index;
-    try {
-      index = await this._currentRepository.refreshIndex();
-      const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
-      if (entry === undefined) {
-        return Promise.reject(new DocumentNotFoundError());
-      }
-      file_sha = entry.id.tostrS();
-
-      await index.removeByPath(filename); // stage
-      await index.write(); // flush changes to index
-    } catch (err) {
-      return Promise.reject(new CannotDeleteDataError(err.message));
-    }
-
-    try {
-      const changes = await index.writeTree(); // get reference to a set of changes
-
-      const author = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
-      const committer = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
-
-      // Calling nameToId() for HEAD throws error when this is first commit.
-      const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
-        e => false
-      ); // get HEAD
-
-      if (!head) {
-        // First commit
-        return Promise.reject(new DocumentNotFoundError());
-      }
-
-      const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      const commit = await this._currentRepository.createCommit(
-        'HEAD',
-        author,
-        committer,
-        commitMessage,
-        changes,
-        [parent]
-      );
-
-      commit_sha = commit.tostrS();
-
-      await remove(filePath);
-
-      // remove parent directory recursively if empty
-      const dirname = path.dirname(filename);
-      const dirs = dirname.split(/[/\\¥]/);
-      for (let i = 0; i < dirs.length; i++) {
-        const dirpath =
-          i === 0
-            ? path.resolve(this._workingDirectory, ...dirs)
-            : path.resolve(this._workingDirectory, ...dirs.slice(0, -i));
-        // eslint-disable-next-line no-await-in-loop
-        await rmdir(dirpath).catch(e => {
-          /* not empty */
-        });
-      }
-    } catch (err) {
-      return Promise.reject(new CannotDeleteDataError(err.message));
-    }
-
-    return {
-      ok: true,
-      id: _id,
-      file_sha,
-      commit_sha,
-    };
-  }
-
-  /**
    * Close a database
    *
    * @remarks
@@ -739,6 +437,144 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       ok: true,
     };
   }
+
+  /**
+   * Add a document
+   *
+   * @remarks
+   * - put() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * @param jsonDoc - See {@link JsonDoc} for restriction
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   */
+  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  /**
+   * Add a document (overload)
+   *
+   * @remarks
+   * - put() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * @param _id - _id property of a document
+   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   */
+  put (
+    _id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  put (
+    idOrDoc: string | JsonDoc,
+    docOrOptions: { [key: string]: any } | PutOptions,
+    options?: PutOptions
+  ) {
+    return putImpl.call(this, idOrDoc, docOrOptions, options);
+  }
+
+  /**
+   * @remarks
+   * This method is used only for internal use.
+   * But it is published for test purpose.
+   *
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link CannotWriteDataError}
+   *
+   * @internal
+   */
+  _put_concurrent = _put_concurrent_impl;
+
+  /**
+   * Get a document
+   *
+   * @param docId - id of a target document
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   */
+  get = getImpl;
+
+  /**
+   * This is an alias of remove()
+   */
+  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  /**
+   * This is an alias of remove()
+   */
+  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+    return removeImpl.call(this, idOrDoc, options);
+  }
+
+  /**
+   * Remove a document
+   *
+   * @param id - id of a target document
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link CannotDeleteDataError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   */
+  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  /**
+   * Remove a document
+   *
+   * @param jsonDoc - Target document
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link CannotDeleteDataError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   */
+  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+    return removeImpl.call(this, idOrDoc, options);
+  }
+
+  /**
+   * @remarks
+   * This method is used only for internal use.
+   * But it is published for test purpose.
+   *
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link CannotDeleteDataError}
+   *
+   * @internal
+   */
+  _remove_concurrent = _remove_concurrent_impl;
 
   /**
    * Get all the documents

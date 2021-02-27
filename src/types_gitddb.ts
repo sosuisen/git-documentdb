@@ -55,4 +55,6 @@ export abstract class AbstractDocumentDB {
     data: string,
     commitMessage: string
   ): Promise<PutResult>;
+
+  abstract _remove_concurrent (_id: string, commitMessage: string): Promise<RemoveResult>;
 }
