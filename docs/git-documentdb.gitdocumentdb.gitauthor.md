@@ -12,8 +12,8 @@ Author name and email
 <b>Signature:</b>
 
 ```typescript
-gitAuthor: {
-        name: string;
-        email: string;
+readonly gitAuthor: {
+        readonly name: "GitDocumentDB";
+        readonly email: "gitddb@example.com";
     };
 ```

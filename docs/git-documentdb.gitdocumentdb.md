@@ -28,8 +28,8 @@ export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInt
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [fileExt](./git-documentdb.gitdocumentdb.fileext.md) |  | string | <b><i>(BETA)</i></b> File extension of a repository document |
-|  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { name: string; email: string; } | <b><i>(BETA)</i></b> Author name and email |
+|  [fileExt](./git-documentdb.gitdocumentdb.fileext.md) |  | (not declared) | <b><i>(BETA)</i></b> File extension of a repository document |
+|  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { readonly name: "GitDocumentDB"; readonly email: "gitddb@example.com"; } | <b><i>(BETA)</i></b> Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | <b><i>(BETA)</i></b> DB is going to close |
 
 ## Methods

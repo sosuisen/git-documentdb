@@ -12,5 +12,5 @@ File extension of a repository document
 <b>Signature:</b>
 
 ```typescript
-fileExt: string;
+readonly fileExt = ".json";
 ```

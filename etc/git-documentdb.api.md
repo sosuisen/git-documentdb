@@ -106,12 +106,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
-    fileExt: string;
+    readonly fileExt = ".json";
     get(docId: string): Promise<JsonDoc>;
     getRepository(): nodegit.Repository | undefined;
-    gitAuthor: {
-        name: string;
-        email: string;
+    readonly gitAuthor: {
+        readonly name: "GitDocumentDB";
+        readonly email: "gitddb@example.com";
     };
     isClosing: boolean;
     isOpened(): boolean;
@@ -128,8 +128,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     _put_concurrent: typeof _put_concurrent_impl;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    // Warning: (ae-forgotten-export) The symbol "_remove_concurrent_impl" needs to be exported by the entry point main.d.ts
+    //
     // @internal (undocumented)
-    _remove_concurrent(_id: string, commitMessage: string): Promise<RemoveResult>;
+    _remove_concurrent: typeof _remove_concurrent_impl;
     // @internal (undocumented)
     _validator: Validator;
     workingDir(): string;
