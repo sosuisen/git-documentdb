@@ -12,7 +12,6 @@ import fs, { remove, rmdir } from 'fs-extra';
 import {
   CannotCreateDirectoryError,
   CannotDeleteDataError,
-  CannotWriteDataError,
   DatabaseCloseTimeoutError,
   DatabaseClosingError,
   DocumentNotFoundError,
@@ -25,11 +24,9 @@ import {
 import { Collection } from './collection';
 import { Validator } from './validator';
 import {
-  AbstractDocumentDB,
   AllDocsOptions,
   AllDocsResult,
   CollectionPath,
-  CrudInterface,
   DatabaseCloseOption,
   JsonDoc,
   JsonDocWithMetadata,
@@ -38,9 +35,8 @@ import {
   RemoveOptions,
   RemoveResult,
 } from './types';
-import { toSortedJSONString } from './utils';
-import { put } from './crud/put';
-
+import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
+import { _put_concurrent_impl, putImpl } from './crud/put';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -122,7 +118,7 @@ const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec)
  *
  * @beta
  */
-export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
+export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * File extension of a repository document
    */
@@ -389,8 +385,13 @@ export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
     options?: PutOptions
   ): Promise<PutResult>;
 
-  // eslint-disable-next-line complexity
-  public put = put;
+  put (
+    idOrDoc: string | JsonDoc,
+    docOrOptions: { [key: string]: any } | PutOptions,
+    options?: PutOptions
+  ) {
+    return putImpl.call(this, idOrDoc, docOrOptions, options);
+  }
 
   /**
    * @remarks
@@ -403,78 +404,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CrudInterface {
    *
    * @internal
    */
-  async _put_concurrent (
-    _id: string,
-    data: string,
-    commitMessage: string
-  ): Promise<PutResult> {
-    if (this._currentRepository === undefined) {
-      return Promise.reject(new RepositoryNotOpenError());
-    }
-
-    let file_sha, commit_sha: string;
-    const filename = _id + fileExt;
-    const filePath = path.resolve(this._workingDirectory, filename);
-    const dir = path.dirname(filePath);
-
-    try {
-      await fs.ensureDir(dir).catch((err: Error) => {
-        return Promise.reject(new CannotCreateDirectoryError(err.message));
-      });
-      await fs.writeFile(filePath, data);
-
-      const index = await this._currentRepository.refreshIndex(); // read latest index
-
-      await index.addByPath(filename); // stage
-      await index.write(); // flush changes to index
-      const changes = await index.writeTree(); // get reference to a set of changes
-
-      const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
-      file_sha = entry.id.tostrS();
-
-      const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-      const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-      // Calling nameToId() for HEAD throws error when this is first commit.
-      const head = await nodegit.Reference.nameToId(this._currentRepository, 'HEAD').catch(
-        e => false
-      ); // get HEAD
-      let commit;
-      if (!head) {
-        // First commit
-        commit = await this._currentRepository.createCommit(
-          'HEAD',
-          author,
-          committer,
-          commitMessage,
-          changes,
-          []
-        );
-      }
-      else {
-        const parent = await this._currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        commit = await this._currentRepository.createCommit(
-          'HEAD',
-          author,
-          committer,
-          commitMessage,
-          changes,
-          [parent]
-        );
-      }
-      commit_sha = commit.tostrS();
-    } catch (err) {
-      return Promise.reject(new CannotWriteDataError(err.message));
-    }
-    // console.log(commitId.tostrS());
-
-    return {
-      ok: true,
-      id: _id,
-      file_sha: file_sha,
-      commit_sha: commit_sha,
-    };
-  }
+  _put_concurrent = _put_concurrent_impl;
 
   /**
    * Get a document

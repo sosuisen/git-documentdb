@@ -9,8 +9,9 @@ Documents are gathered together in collections.
 <b>Signature:</b>
 
 ```typescript
-export declare class Collection 
+export declare class Collection implements CRUDInterface 
 ```
+<b>Implements:</b> CRUDInterface
 
 ## Remarks
 

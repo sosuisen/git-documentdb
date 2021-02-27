@@ -1,6 +1,11 @@
 import path from 'path';
-import { AbstractDocumentDB, JsonDoc, PutOptions, PutResult } from '../types';
+import fs from 'fs-extra';
+import nodegit from '@sosuisen/nodegit';
+import { JsonDoc, PutOptions, PutResult } from '../types';
+import { AbstractDocumentDB } from '../types_gitddb';
 import {
+  CannotCreateDirectoryError,
+  CannotWriteDataError,
   DatabaseClosingError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
@@ -8,7 +13,12 @@ import {
 } from '../error';
 import { toSortedJSONString } from '../utils';
 
-export function putFunc (
+/**
+ * Implementation of put()
+ *
+ * @internal
+ */
+export function putImpl (
   this: AbstractDocumentDB,
   idOrDoc: string | JsonDoc,
   docOrOptions: { [key: string]: any } | PutOptions,
@@ -89,4 +99,84 @@ export function putFunc (
         .catch(err => reject(err))
     );
   });
+}
+
+/**
+ * Implementation of _put_concurrent()
+ *
+ * @internal
+ */
+export async function _put_concurrent_impl (
+  this: AbstractDocumentDB,
+  _id: string,
+  data: string,
+  commitMessage: string
+): Promise<PutResult> {
+  const _currentRepository = this.getRepository();
+  if (_currentRepository === undefined) {
+    return Promise.reject(new RepositoryNotOpenError());
+  }
+
+  let file_sha, commit_sha: string;
+  const filename = _id + this.fileExt;
+  const filePath = path.resolve(this.workingDir(), filename);
+  const dir = path.dirname(filePath);
+
+  try {
+    await fs.ensureDir(dir).catch((err: Error) => {
+      return Promise.reject(new CannotCreateDirectoryError(err.message));
+    });
+    await fs.writeFile(filePath, data);
+
+    const index = await _currentRepository.refreshIndex(); // read latest index
+
+    await index.addByPath(filename); // stage
+    await index.write(); // flush changes to index
+    const changes = await index.writeTree(); // get reference to a set of changes
+
+    const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
+    file_sha = entry.id.tostrS();
+
+    const author = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
+    const committer = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
+
+    // Calling nameToId() for HEAD throws error when this is first commit.
+    const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
+      e => false
+    ); // get HEAD
+    let commit;
+    if (!head) {
+      // First commit
+      commit = await _currentRepository.createCommit(
+        'HEAD',
+        author,
+        committer,
+        commitMessage,
+        changes,
+        []
+      );
+    }
+    else {
+      const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      commit = await _currentRepository.createCommit(
+        'HEAD',
+        author,
+        committer,
+        commitMessage,
+        changes,
+        [parent]
+      );
+    }
+    commit_sha = commit.tostrS();
+  } catch (err) {
+    return Promise.reject(new CannotWriteDataError(err.message));
+  }
+  // console.log(commitId.tostrS());
+
+  return {
+    ok: true,
+    id: _id,
+    file_sha: file_sha,
+    commit_sha: commit_sha,
+  };
 }

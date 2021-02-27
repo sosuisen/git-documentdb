@@ -6,32 +6,6 @@
 
 import nodegit from '@sosuisen/nodegit';
 
-// Warning: (ae-internal-missing-underscore) The name "AbstractDocumentDB" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export abstract class AbstractDocumentDB {
-    // (undocumented)
-    abstract allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
-    // (undocumented)
-    abstract delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-    // (undocumented)
-    abstract delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-    // (undocumented)
-    abstract get(docId: string): Promise<JsonDoc>;
-    // (undocumented)
-    abstract put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    // (undocumented)
-    abstract put(_id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
-    // (undocumented)
-    abstract remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-    // (undocumented)
-    abstract remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-    // (undocumented)
-    abstract workingDir(): string;
-}
-
 // @public
 export type AllDocsOptions = {
     include_docs?: boolean;
@@ -64,10 +38,12 @@ export class CannotWriteDataError extends BaseError {
     constructor(e?: string);
 }
 
+// Warning: (ae-forgotten-export) The symbol "CRUDInterface" needs to be exported by the entry point main.d.ts
+//
 // @public
-export class Collection {
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "AbstractDocumentDB" which is marked as @internal
-    constructor(_gitDDB: AbstractDocumentDB, _collectionPath: CollectionPath);
+export class Collection implements CRUDInterface {
+    // Warning: (ae-forgotten-export) The symbol "AbstractDocumentDB" needs to be exported by the entry point main.d.ts
+    constructor(_gitDDB: CRUDInterface & AbstractDocumentDB, _collectionPath: CollectionPath);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     // (undocumented)
     collectionPath(): string;
@@ -119,10 +95,8 @@ export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "GitDocumentDB" is marked as @beta, but its signature references "AbstractDocumentDB" which is marked as @internal
-//
 // @beta
-export class GitDocumentDB extends AbstractDocumentDB {
+export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
@@ -132,21 +106,32 @@ export class GitDocumentDB extends AbstractDocumentDB {
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
+    fileExt: string;
     get(docId: string): Promise<JsonDoc>;
     getRepository(): nodegit.Repository | undefined;
+    gitAuthor: {
+        name: string;
+        email: string;
+    };
     isClosing: boolean;
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
+    // @internal
+    _pushToSerialQueue(func: () => Promise<void>): void;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(_id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
+    // Warning: (ae-forgotten-export) The symbol "_put_concurrent_impl" needs to be exported by the entry point main.d.ts
+    //
     // @internal (undocumented)
-    _put_concurrent(_id: string, data: string, commitMessage: string): Promise<PutResult>;
+    _put_concurrent: typeof _put_concurrent_impl;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     // @internal (undocumented)
     _remove_concurrent(_id: string, commitMessage: string): Promise<RemoveResult>;
+    // @internal (undocumented)
+    _validator: Validator;
     workingDir(): string;
     }
 

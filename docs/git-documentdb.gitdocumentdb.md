@@ -12,9 +12,11 @@ Main class of GitDocumentDB
 <b>Signature:</b>
 
 ```typescript
-export declare class GitDocumentDB extends AbstractDocumentDB 
+export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface 
 ```
 <b>Extends:</b> AbstractDocumentDB
+
+<b>Implements:</b> CRUDInterface
 
 ## Constructors
 
@@ -26,6 +28,8 @@ export declare class GitDocumentDB extends AbstractDocumentDB
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [fileExt](./git-documentdb.gitdocumentdb.fileext.md) |  | string | <b><i>(BETA)</i></b> File extension of a repository document |
+|  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { name: string; email: string; } | <b><i>(BETA)</i></b> Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | <b><i>(BETA)</i></b> DB is going to close |
 
 ## Methods
