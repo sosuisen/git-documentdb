@@ -122,14 +122,14 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * File extension of a repository document
    */
-  public fileExt = '.json';
+  public readonly fileExt = '.json';
   /**
    * Author name and email
    */
-  public gitAuthor = {
+  public readonly gitAuthor = {
     name: 'GitDocumentDB',
     email: 'gitddb@example.com',
-  };
+  } as const;
 
   private _localDir: string;
   private _dbName: string;
