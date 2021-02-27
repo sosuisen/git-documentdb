@@ -518,7 +518,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
    */
-  get = getImpl;
+  get (docId: string): Promise<JsonDoc> {
+    // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
+    return getImpl.call(this, docId);
+  }
 
   /**
    * This is an alias of remove()
@@ -590,6 +593,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  // eslint-disable-next-line complexity
-  allDocs = allDocsImpl;
+  allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
+    // Do not use 'allDocs = allDocsImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
+    return allDocsImpl.call(this, options);
+  }
 }
