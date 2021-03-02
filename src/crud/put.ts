@@ -128,11 +128,30 @@ export async function _put_concurrent_impl (
     });
     await fs.writeFile(filePath, data);
 
-    const index = await _currentRepository.refreshIndex(); // read latest index
+    // 1. Repository#refreshIndex() grabs copy of latest index
+    const index = await _currentRepository.refreshIndex();
 
-    await index.addByPath(filename); // stage
-    await index.write(); // flush changes to index
-    const changes = await index.writeTree(); // get reference to a set of changes
+    // 2. Index#addByPath() adds or updates an index entry from a file on disk.
+    // https://libgit2.org/libgit2/#HEAD/group/index/git_index_add_bypath
+    await index.addByPath(filename);
+    // Index#write() writes an existing index object from memory
+    // back to disk using an atomic file lock.
+    await index.write();
+
+    /**
+     * Index#writeTree() writes the index as a tree.
+     * https://libgit2.org/libgit2/#HEAD/group/index/git_index_write_tree
+     * This method will scan the index and write a representation of its current state
+     * back to disk; it recursively creates tree objects for each of the subtrees stored
+     * in the index, but only returns the OID of the root tree.
+     *
+     * This is the OID that can be used e.g. to create a commit. (Repository#creatCommit())
+     * The index must not contain any file in conflict.
+     *
+     * See https://git-scm.com/book/en/v2/Git-Internals-Git-Objects#_tree_objects
+     * to understand Tree objects.
+     */
+    const treeOid = await index.writeTree();
 
     const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
     file_sha = entry.id.tostrS();
@@ -152,7 +171,7 @@ export async function _put_concurrent_impl (
         author,
         committer,
         commitMessage,
-        changes,
+        treeOid,
         []
       );
     }
@@ -163,7 +182,7 @@ export async function _put_concurrent_impl (
         author,
         committer,
         commitMessage,
-        changes,
+        treeOid,
         [parent]
       );
     }
