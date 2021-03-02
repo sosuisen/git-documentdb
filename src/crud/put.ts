@@ -126,20 +126,22 @@ export async function _put_concurrent_impl (
     await fs.ensureDir(dir).catch((err: Error) => {
       return Promise.reject(new CannotCreateDirectoryError(err.message));
     });
+    // 1. Write a file to disk
     await fs.writeFile(filePath, data);
 
-    // 1. Repository#refreshIndex() grabs copy of latest index
+    // 2. Repository#refreshIndex() grabs copy of latest index
     const index = await _currentRepository.refreshIndex();
 
-    // 2. Index#addByPath() adds or updates an index entry from a file on disk.
+    // 3. Index#addByPath() adds or updates an index entry from a file on disk.
     // https://libgit2.org/libgit2/#HEAD/group/index/git_index_add_bypath
     await index.addByPath(filename);
-    // Index#write() writes an existing index object from memory
+
+    // 4. Index#write() writes an existing index object from memory
     // back to disk using an atomic file lock.
     await index.write();
 
     /**
-     * Index#writeTree() writes the index as a tree.
+     * 5. Index#writeTree() writes the index as a tree.
      * https://libgit2.org/libgit2/#HEAD/group/index/git_index_write_tree
      * This method will scan the index and write a representation of its current state
      * back to disk; it recursively creates tree objects for each of the subtrees stored
@@ -153,39 +155,28 @@ export async function _put_concurrent_impl (
      */
     const treeOid = await index.writeTree();
 
+    // Get SHA of blob if needed.
     const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
     file_sha = entry.id.tostrS();
 
     const author = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
     const committer = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
 
-    // Calling nameToId() for HEAD throws error when this is first commit.
-    const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
-      e => false
-    ); // get HEAD
-    let commit;
-    if (!head) {
-      // First commit
-      commit = await _currentRepository.createCommit(
-        'HEAD',
-        author,
-        committer,
-        commitMessage,
-        treeOid,
-        []
-      );
+    const head = await _currentRepository.getHeadCommit();
+    const parentCommits: nodegit.Commit[] = [];
+    if (head !== null) {
+      parentCommits.push(head);
     }
-    else {
-      const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      commit = await _currentRepository.createCommit(
-        'HEAD',
-        author,
-        committer,
-        commitMessage,
-        treeOid,
-        [parent]
-      );
-    }
+    // 6. Commit
+    const commit = await _currentRepository.createCommit(
+      'HEAD',
+      author,
+      committer,
+      commitMessage,
+      treeOid,
+      parentCommits
+    );
+
     commit_sha = commit.tostrS();
   } catch (err) {
     return Promise.reject(new CannotWriteDataError(err.message));
