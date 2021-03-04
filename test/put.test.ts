@@ -9,6 +9,7 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import { monotonicFactory } from 'ulid';
 import {
   InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,
@@ -20,6 +21,11 @@ import {
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 import { Validator } from '../src/validator';
+
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
 
 describe('Validate', () => {
   const localDir = './test/database_put01';
@@ -33,7 +39,7 @@ describe('Validate', () => {
   });
 
   test('put(): Repository is not opened.', async () => {
-    const dbName = 'test_repos_1';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -48,7 +54,8 @@ describe('Validate', () => {
   });
 
   test('put(): Put an undefined value', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = `test_repos_${monoId()}`;
+
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -60,7 +67,7 @@ describe('Validate', () => {
   });
 
   test('put(): An _id is not found.', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -73,7 +80,7 @@ describe('Validate', () => {
   });
 
   test('put(): Invalid _id', async () => {
-    const dbName = 'test_repos_4';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -86,7 +93,7 @@ describe('Validate', () => {
   });
 
   test('put(): Invalid document', async () => {
-    const dbName = 'test_repos_6';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -102,7 +109,7 @@ describe('Validate', () => {
   });
 
   test('put() overload: undefined id', async () => {
-    const dbName = 'test_repos_7';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -118,7 +125,7 @@ describe('Validate', () => {
   });
 
   test('put() overload: invalid document', async () => {
-    const dbName = 'test_repos_8';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -151,7 +158,7 @@ describe('Validate', () => {
   });
 
   test('put(): _id length is invalid.', async () => {
-    const dbName = 'test_repos_put10';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -186,7 +193,7 @@ describe('Validate', () => {
   });
 
   test('put(): _id includes punctuations.', async () => {
-    const dbName = 'test_repos_put11';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -203,7 +210,7 @@ describe('Validate', () => {
   });
 
   test('put(): Put a invalid JSON Object (not pure)', async () => {
-    const dbName = 'test_repos_put12';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -220,7 +227,7 @@ describe('Validate', () => {
   });
 
   test('put(): _id ends with slash', async () => {
-    const dbName = 'test_repos_put13';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -245,7 +252,7 @@ describe('Create document', () => {
   });
 
   test('put(): Put a JSON Object.', async () => {
-    const dbName = 'test_repos_6';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -277,7 +284,7 @@ describe('Create document', () => {
   });
 
   test('put(): Put a JSON Object into subdirectory.', async () => {
-    const dbName = 'test_repos_7';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -309,7 +316,7 @@ describe('Create document', () => {
   });
 
   test('put(): Check order of results', async () => {
-    const dbName = 'test_repos_9';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -333,7 +340,7 @@ describe('Create document', () => {
   });
 
   test('put(): Set commit message.', async () => {
-    const dbName = 'test_repos_10';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -354,7 +361,7 @@ describe('Create document', () => {
   });
 
   test('put(): Check order and indent of JSON properties.', async () => {
-    const dbName = 'test_repos_11';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -396,7 +403,7 @@ describe('Create document', () => {
   });
 
   test('put() overload: Put a JSON Object.', async () => {
-    const dbName = 'test_repos_12';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -428,7 +435,8 @@ describe('Create document', () => {
   });
 
   test('put() overload: overwrite document._id.', async () => {
-    const dbName = 'test_repos_13';
+    const dbName = `test_repos_${monoId()}`;
+
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -462,7 +470,7 @@ describe('Create document', () => {
   });
 
   test('put() overload: Set commit message.', async () => {
-    const dbName = 'test_repos_14';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -486,7 +494,7 @@ describe('Create document', () => {
 
 describe('Update document', () => {
   const localDir = './test/database_put03';
-  const dbName = 'test_repos';
+  const dbName = `test_repos_${monoId()}`;
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     db_name: dbName,
@@ -545,7 +553,7 @@ describe('Concurrent', () => {
   });
 
   test('put(): all at once', async () => {
-    const dbName = 'test_repos_1';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -596,7 +604,7 @@ describe('Concurrent', () => {
   });
 
   test('put(): A lot of put()', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -618,7 +626,7 @@ describe('Concurrent', () => {
   });
 
   test('put(): put() with await keyword is resolved after all preceding put() Promises', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -641,7 +649,7 @@ describe('Concurrent', () => {
   // Skip this test because segmentation fault often occurs in libgit2.
   // Check this only when you would like to check behavior of _put_concurrent()
   test.skip('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
-    const dbName = 'test_repos_4';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
