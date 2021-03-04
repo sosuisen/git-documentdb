@@ -117,7 +117,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     isOpened(): boolean;
     open(): Promise<DatabaseInfo>;
     // @internal
-    _pushToSerialQueue(func: () => Promise<void>): void;
+    _pushToTaskQueue(func: () => Promise<void>): void;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(_id: string, document: {
         [key: string]: any;
