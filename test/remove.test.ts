@@ -12,12 +12,25 @@ import fs from 'fs-extra';
 import {
   DocumentNotFoundError,
   InvalidIdCharacterError,
+  RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
 describe('Validate', () => {
   const localDir = './test/database_delete01';
+  test('Repository is not opened.', async () => {
+    const dbName = `test_repos_${monoId()}`;
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await expect(gitDDB.remove('prof01')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB._remove_concurrent('prof01', 'message')).rejects.toThrowError(
+      RepositoryNotOpenError
+    );
+    await gitDDB.destroy();
+  });
 
   test('remove(): _id is invalid', async () => {
     const dbName = 'test_repos_01';
