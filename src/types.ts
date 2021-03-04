@@ -5,6 +5,7 @@
  *```
  * * It must have an '_id' key that shows id of a document
  *   - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+ *   - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
  *   - _id cannot start with a slash and an underscore _.
  *   - _id cannot end with a slash.
  *   - A directory name cannot end with a period or a white space.
@@ -30,6 +31,8 @@ export type JsonDoc = {
  * CollectionPath
  *
  * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
+ *
+ * - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
  *
  * - A directory name cannot end with a period or a white space.
  *

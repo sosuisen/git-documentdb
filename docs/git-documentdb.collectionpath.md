@@ -8,6 +8,8 @@ CollectionPath
 
 - A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0
 
+- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*
+
 - A directory name cannot end with a period or a white space.
 
 - A directory name does not allow '.' and '..'.
