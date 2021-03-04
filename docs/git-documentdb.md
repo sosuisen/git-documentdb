@@ -41,7 +41,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  --- | --- |
 |  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | Options for allDocs() |
 |  [AllDocsResult](./git-documentdb.alldocsresult.md) | Result of allDocs() |
-|  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
+|  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
 |  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | How to close database |
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | <b><i>(BETA)</i></b> Database information |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
