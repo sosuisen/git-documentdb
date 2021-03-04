@@ -8,18 +8,13 @@
 
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
-import fs, { remove, rmdir } from 'fs-extra';
+import fs from 'fs-extra';
 import {
   CannotCreateDirectoryError,
-  CannotDeleteDataError,
   DatabaseCloseTimeoutError,
   DatabaseClosingError,
-  DocumentNotFoundError,
-  InvalidJsonObjectError,
   InvalidWorkingDirectoryPathLengthError,
-  RepositoryNotOpenError,
   UndefinedDatabaseNameError,
-  UndefinedDocumentIdError,
 } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -29,7 +24,6 @@ import {
   CollectionPath,
   DatabaseCloseOption,
   JsonDoc,
-  JsonDocWithMetadata,
   PutOptions,
   PutResult,
   RemoveOptions,
