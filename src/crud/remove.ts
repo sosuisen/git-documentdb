@@ -102,16 +102,7 @@ export async function _remove_concurrent_impl (
     const author = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
     const committer = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
 
-    // Calling nameToId() for HEAD throws error when this is first commit.
-    const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
-      () => false
-    ); // get HEAD
-
-    if (!head) {
-      // First commit
-      return Promise.reject(new DocumentNotFoundError());
-    }
-
+    const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD');
     const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
     const commit = await _currentRepository.createCommit(
       'HEAD',
