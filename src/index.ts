@@ -440,7 +440,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
-   * Add a document
+   * Add a document (overload 1)
    *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).
@@ -460,7 +460,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-   * Add a document (overload)
+   * Add a document (overload 2)
    *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).

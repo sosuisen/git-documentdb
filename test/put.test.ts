@@ -11,7 +11,6 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import {
-  InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,
   InvalidIdLengthError,
   InvalidJsonObjectError,
@@ -27,8 +26,8 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-describe('Validate', () => {
-  const localDir = './test/database_put01';
+describe('put(): validate: overload 1:', () => {
+  const localDir = `./test/database_put${monoId()}`;
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -38,7 +37,7 @@ describe('Validate', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('put(): Repository is not opened.', async () => {
+  test('Repository is not opened.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -53,7 +52,7 @@ describe('Validate', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): Put an undefined value', async () => {
+  test('Undefined document', async () => {
     const dbName = `test_repos_${monoId()}`;
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -66,7 +65,7 @@ describe('Validate', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): An _id is not found.', async () => {
+  test('_id is not found in a document.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -79,20 +78,7 @@ describe('Validate', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): Invalid _id', async () => {
-    const dbName = `test_repos_${monoId()}`;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
-    await expect(gitDDB.put({ _id: '_underscore', name: 'Shirase' })).rejects.toThrowError(
-      InvalidIdCharacterError
-    );
-    await gitDDB.destroy();
-  });
-
-  test('put(): Invalid document', async () => {
+  test('Invalid characters in _id', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -100,64 +86,22 @@ describe('Validate', () => {
     });
     await gitDDB.open();
     await expect(
-      gitDDB.put({
-        _id: 'prof01',
-        _underscore: 'Property name cannot start with underscore',
-      })
-    ).rejects.toThrowError(InvalidPropertyNameInDocumentError);
-    await gitDDB.destroy();
-  });
-
-  test('put() overload: undefined id', async () => {
-    const dbName = `test_repos_${monoId()}`;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
+      gitDDB.put({ _id: '<angleBrackets>', name: 'shirase' })
+    ).rejects.toThrowError(InvalidIdCharacterError);
     await expect(
-      // @ts-ignore
-      gitDDB.put(undefined, {
-        name: 'Kimari',
-      })
-    ).rejects.toThrowError(UndefinedDocumentIdError);
+      gitDDB.put({ _id: '_headingUnderscore', name: 'shirase' })
+    ).rejects.toThrowError(InvalidIdCharacterError);
+    await expect(
+      gitDDB.put({ _id: 'trailingPeriod.', name: 'shirase' })
+    ).rejects.toThrowError(InvalidIdCharacterError);
+    await expect(
+      gitDDB.put({ _id: 'trailing/Slash/', name: 'shirase' })
+    ).rejects.toThrowError(InvalidIdCharacterError);
+
     await gitDDB.destroy();
   });
 
-  test('put() overload: invalid document', async () => {
-    const dbName = `test_repos_${monoId()}`;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
-    // @ts-ignore
-    await expect(gitDDB.put('prof01', 'document')).rejects.toThrowError(
-      InvalidJsonObjectError
-    );
-    await gitDDB.destroy();
-  });
-
-  test('put(): _id includes invalid character.', async () => {
-    const dbName = 'test_repos_9';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
-    await expect(gitDDB.put({ _id: '<test>', name: 'shirase' })).rejects.toThrowError(
-      InvalidIdCharacterError
-    );
-    await expect(gitDDB.put({ _id: '_test', name: 'shirase' })).rejects.toThrowError(
-      InvalidIdCharacterError
-    );
-    await expect(gitDDB.put({ _id: 'test.', name: 'shirase' })).rejects.toThrowError(
-      InvalidIdCharacterError
-    );
-    await gitDDB.destroy();
-  });
-
-  test('put(): _id length is invalid.', async () => {
+  test('Invalid _id length', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -192,7 +136,7 @@ describe('Validate', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): _id includes punctuations.', async () => {
+  test('Valid punctuations in _id', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -209,7 +153,23 @@ describe('Validate', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): Put a invalid JSON Object (not pure)', async () => {
+  test('Invalid property name in document', async () => {
+    const dbName = `test_repos_${monoId()}`;
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(
+      gitDDB.put({
+        _id: 'prof01',
+        _underscore: 'Property name cannot start with underscore',
+      })
+    ).rejects.toThrowError(InvalidPropertyNameInDocumentError);
+    await gitDDB.destroy();
+  });
+
+  test('Recursive object cannot be parsed as JSON', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -226,22 +186,45 @@ describe('Validate', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): _id ends with slash', async () => {
+  test('Bigint cannot be parsed as JSON', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
     });
     await gitDDB.open();
-    await expect(gitDDB.put({ _id: 'users/pages/' })).rejects.toThrowError(
-      InvalidIdCharacterError
+    // JSON.stringify() throws error if an object has a bigint value
+    const obj1 = { bigint: BigInt(9007199254740991) };
+    await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(
+      InvalidJsonObjectError
     );
+    await gitDDB.destroy();
+  });
+
+  test('Function, Symbol, undefined are skipped in JSON.stringify', async () => {
+    /**
+     * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description
+     */
+    const dbName = `test_repos_${monoId()}`;
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    // JSON.stringify() throws error if an object has a bigint value
+    const obj1 = { func: () => {}, symbol: Symbol('foo'), undef: undefined };
+    await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).resolves.toMatchObject({
+      ok: true,
+      id: 'prof01',
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
     await gitDDB.destroy();
   });
 });
 
-describe('Create document', () => {
-  const localDir = './test/database_put02';
+describe('put(): validate: overload 2:', () => {
+  const localDir = `./test/database_put${monoId()}`;
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -251,7 +234,49 @@ describe('Create document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('put(): Put a JSON Object.', async () => {
+  test('Undefined id', async () => {
+    const dbName = `test_repos_${monoId()}`;
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    await expect(
+      // @ts-ignore
+      gitDDB.put(undefined, {
+        name: 'Kimari',
+      })
+    ).rejects.toThrowError(UndefinedDocumentIdError);
+    await gitDDB.destroy();
+  });
+
+  test('Invalid document', async () => {
+    const dbName = `test_repos_${monoId()}`;
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    // @ts-ignore
+    await expect(gitDDB.put('prof01', 'document')).rejects.toThrowError(
+      InvalidJsonObjectError
+    );
+    await gitDDB.destroy();
+  });
+});
+
+describe('put(): create document: overload 1:', () => {
+  const localDir = `./test/database_put${monoId()}`;
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('Put a JSON Object.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -259,6 +284,7 @@ describe('Create document', () => {
     });
     await gitDDB.open();
     const _id = 'prof01';
+    // Check put operation
     await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
@@ -270,6 +296,7 @@ describe('Create document', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      // Check commit message
       expect(commit.message()).toEqual(`put: ${_id}`);
     }
 
@@ -283,7 +310,7 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): Put a JSON Object into subdirectory.', async () => {
+  test('Put a JSON Object into subdirectory.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -291,6 +318,7 @@ describe('Create document', () => {
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
+    // Check put operation
     await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
@@ -302,6 +330,7 @@ describe('Create document', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      // Check commit message
       expect(commit.message()).toEqual(`put: ${_id}`);
     }
 
@@ -315,7 +344,7 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): Check order of results', async () => {
+  test('Check order of results.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -335,11 +364,12 @@ describe('Create document', () => {
     // close() can wait results of all Promises if timeout is set to large number.
     await gitDDB.close({ timeout: 100 * 1000 });
 
+    // put() methods are called asynchronously, but the results must be arranged in order.
     expect(JSON.stringify(results)).toEqual(JSON.stringify(validResults));
     await gitDDB.destroy();
   });
 
-  test('put(): Set commit message.', async () => {
+  test('Set a commit message.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -360,7 +390,7 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): Check order and indent of JSON properties.', async () => {
+  test('Check order and indent of JSON properties.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -402,7 +432,23 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test('put() overload: Put a JSON Object.', async () => {
+  it(
+    'Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.'
+  );
+});
+
+describe('put(): create document: overload 2:', () => {
+  const localDir = `./test/database_put${monoId()}`;
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('Put a JSON Object.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -434,7 +480,7 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test('put() overload: overwrite document._id.', async () => {
+  test('Overwrite _id in a document by _id in the first argument.', async () => {
     const dbName = `test_repos_${monoId()}`;
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -442,7 +488,7 @@ describe('Create document', () => {
       local_dir: localDir,
     });
     await gitDDB.open();
-    const _id = 'prof01';
+    const _id = 'id-in-the-first-argument';
     const doc = { _id: 'id-in-doc', name: 'Shirase' };
     await expect(gitDDB.put(_id, doc)).resolves.toMatchObject({
       ok: true,
@@ -469,7 +515,7 @@ describe('Create document', () => {
     await gitDDB.destroy();
   });
 
-  test('put() overload: Set commit message.', async () => {
+  test('Set commit message.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -486,14 +532,10 @@ describe('Create document', () => {
     }
     await gitDDB.destroy();
   });
-
-  it(
-    'Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.'
-  );
 });
 
-describe('Update document', () => {
-  const localDir = './test/database_put03';
+describe('put(): update document:', () => {
+  const localDir = `./test/database_put${monoId()}`;
   const dbName = `test_repos_${monoId()}`;
 
   const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -509,7 +551,7 @@ describe('Update document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('put(): Update a existing document', async () => {
+  test('Update a existing document', async () => {
     await gitDDB.open();
     const _id = 'prof01';
     await gitDDB.put({ _id: _id, name: 'Shirase' });
@@ -528,8 +570,8 @@ describe('Update document', () => {
   });
 });
 
-describe('Concurrent', () => {
-  const localDir = './test/database_put04';
+describe('put(): concurrent:', () => {
+  const localDir = `./test/database_put${monoId()}`;
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';
@@ -552,7 +594,7 @@ describe('Concurrent', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('put(): all at once', async () => {
+  test('Put all at once.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -603,7 +645,7 @@ describe('Concurrent', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): A lot of put()', async () => {
+  test('A lot of put()', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -625,7 +667,7 @@ describe('Concurrent', () => {
     await gitDDB.destroy();
   });
 
-  test('put(): put() with await keyword is resolved after all preceding put() Promises', async () => {
+  test('put() with await keyword is resolved after all preceding put() Promises', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -648,7 +690,7 @@ describe('Concurrent', () => {
 
   // Skip this test because segmentation fault often occurs in libgit2.
   // Check this only when you would like to check behavior of _put_concurrent()
-  test.skip('put(): Concurrent calls of _put_concurrent() cause an error.', async () => {
+  test.skip('Concurrent calls of _put_concurrent() cause an error.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
