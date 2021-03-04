@@ -140,8 +140,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   private _workingDirectory: string;
 
   // @ts-ignore
-  private _serialQueue: (() => Promise<void>)[];
-  private _isSerialQueueWorking = false;
+  private _taskQueue: (() => Promise<void>)[];
+  private _isTaskQueueWorking = false;
 
   /**
    * @internal
@@ -226,22 +226,22 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
-   * Serial queue
+   * Task queue
    * @internal
    */
-  public _pushToSerialQueue (func: () => Promise<void>) {
-    this._serialQueue.push(func);
-    this._execSerialQueue();
+  public _pushToTaskQueue (func: () => Promise<void>) {
+    this._taskQueue.push(func);
+    this._execTaskQueue();
   }
 
-  private _execSerialQueue () {
-    if (this._serialQueue.length > 0 && !this._isSerialQueueWorking) {
-      this._isSerialQueueWorking = true;
-      const func = this._serialQueue.shift();
+  private _execTaskQueue () {
+    if (this._taskQueue.length > 0 && !this._isTaskQueueWorking) {
+      this._isTaskQueueWorking = true;
+      const func = this._taskQueue.shift();
       if (func !== undefined) {
         func().finally(() => {
-          this._isSerialQueueWorking = false;
-          this._execSerialQueue();
+          this._isTaskQueueWorking = false;
+          this._execTaskQueue();
         });
       }
     }
@@ -270,7 +270,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       return this._dbInfo;
     }
 
-    this._serialQueue = [];
+    this._taskQueue = [];
 
     await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
       return Promise.reject(new CannotCreateDirectoryError(err.message));
@@ -366,13 +366,13 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         this.isClosing = true;
         if (options.force) {
           // Clear queue
-          this._serialQueue.length = 0;
+          this._taskQueue.length = 0;
         }
         const timeoutMsec = options.timeout || 10000;
         const startMsec = Date.now();
-        while (this._serialQueue.length > 0 || this._isSerialQueueWorking) {
+        while (this._taskQueue.length > 0 || this._isTaskQueueWorking) {
           if (Date.now() - startMsec > timeoutMsec) {
-            this._serialQueue.length = 0;
+            this._taskQueue.length = 0;
             isTimeout = true;
           }
           // eslint-disable-next-line no-await-in-loop
@@ -383,8 +383,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         }
       } finally {
         this.isClosing = false;
-        this._serialQueue = [];
-        this._isSerialQueueWorking = false;
+        this._taskQueue = [];
+        this._isTaskQueueWorking = false;
 
         /**
          * The types are wrong. Repository does not have free() method.

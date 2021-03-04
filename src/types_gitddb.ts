@@ -49,7 +49,7 @@ export abstract class AbstractDocumentDB {
   abstract isClosing: boolean;
   abstract getRepository (): nodegit.Repository | undefined;
   abstract _validator: Validator;
-  abstract _pushToSerialQueue (func: () => Promise<void>): void;
+  abstract _pushToTaskQueue (func: () => Promise<void>): void;
   abstract _put_concurrent (
     _id: string,
     data: string,

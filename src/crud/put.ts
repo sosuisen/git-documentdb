@@ -91,7 +91,7 @@ export function putImpl (
 
   // put() must be serial.
   return new Promise((resolve, reject) => {
-    this._pushToSerialQueue(() =>
+    this._pushToTaskQueue(() =>
       this._put_concurrent(_id, data, options!.commit_message!)
         .then(result => {
           resolve(result);
