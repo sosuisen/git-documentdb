@@ -221,6 +221,39 @@ describe('put(): validate: overload 1:', () => {
     });
     await gitDDB.destroy();
   });
+
+  test('Non-ASCII characters in _id', async () => {
+    const dbName = `test_repos_${monoId()}`;
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    const _id = '春はあけぼの';
+    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^' + _id + '$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      // Check commit message
+      expect(commit.message()).toEqual(`put: ${_id}`);
+    }
+
+    // Check filename
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + '.json');
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    // Read JSON and check doc._id
+    expect(fs.readJSONSync(filePath)._id).toBe(_id);
+
+    await gitDDB.destroy();
+  });
 });
 
 describe('put(): validate: overload 2:', () => {

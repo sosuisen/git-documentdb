@@ -11,9 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
   DocumentNotFoundError,
-  InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,
-  RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
@@ -104,6 +102,37 @@ describe('Delete document', () => {
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+
+    await gitDDB.destroy();
+  });
+
+  test('delete(): Use non-ASCII _id.', async () => {
+    const dbName = 'test_repos_01';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = '春はあけぼの';
+    const doc = { _id: _id, name: 'shirase' };
+    await gitDDB.put(doc);
+
+    // Delete
+    await expect(gitDDB.delete(_id)).resolves.toMatchObject({
+      ok: true,
+      id: expect.stringMatching('^' + _id + '$'),
+      file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
+
+    // Check commit message
+    const repository = gitDDB.getRepository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`remove: ${_id}`);
+    }
 
     await gitDDB.destroy();
   });

@@ -11,7 +11,6 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
   DocumentNotFoundError,
-  InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
@@ -162,6 +161,21 @@ describe('Read document', () => {
 
       await expect(gitDDB.get(_id)).rejects.toThrowError(InvalidJsonObjectError);
     }
+    await gitDDB.destroy();
+  });
+
+  test('get(): Use non-ASCII _id', async () => {
+    const dbName = 'test_repos_3';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.open();
+    const _id = '春はあけぼの';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
+    // Get
+    await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
     await gitDDB.destroy();
   });
 });

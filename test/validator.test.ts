@@ -7,7 +7,6 @@
  */
 
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import {
@@ -16,10 +15,8 @@ import {
   InvalidDbNameCharacterError,
   InvalidIdCharacterError,
   InvalidIdLengthError,
-  InvalidJsonObjectError,
   InvalidLocalDirCharacterError,
   InvalidPropertyNameInDocumentError,
-  InvalidWorkingDirectoryPathLengthError,
   UndefinedDocumentIdError,
   Validator,
 } from '../src/main';
@@ -144,6 +141,8 @@ describe('Validations', () => {
     expect(() => validator.validateId(_id)).not.toThrowError();
     _id += '0';
     expect(() => validator.validateId(_id)).toThrowError(InvalidIdLengthError);
+
+    expect(() => validator.validateId('春はあけぼの')).not.toThrowError();
   });
 
   test('validateCollectionPath', () => {
@@ -151,6 +150,7 @@ describe('Validations', () => {
     expect(() => validator.validateCollectionPath('foo/bar')).not.toThrowError();
     expect(() => validator.validateCollectionPath('foo\\bar')).not.toThrowError();
     expect(() => validator.validateCollectionPath('foo¥bar')).not.toThrowError();
+    expect(() => validator.validateCollectionPath('春はあけぼの')).not.toThrowError();
 
     expect(() => validator.validateCollectionPath('_')).toThrowError(
       InvalidCollectionPathCharacterError
@@ -220,6 +220,8 @@ describe('Validations', () => {
     expect(() => validator.validateDbName('users ')).toThrowError(
       InvalidDbNameCharacterError
     );
+
+    expect(() => validator.validateDbName('春はあけぼの')).not.toThrowError();
   });
 
   test('validLocalDir', () => {
@@ -250,6 +252,7 @@ describe('Validations', () => {
     expect(() => validator.validateLocalDir('../')).not.toThrowError();
     expect(() => validator.validateLocalDir('/foo/bar/..')).not.toThrowError();
     expect(() => validator.validateLocalDir('/foo/./bar')).not.toThrowError();
+    expect(() => validator.validateLocalDir('春は/あけぼの')).not.toThrowError();
   });
 
   test('testWindowsInvalidFileNameCharacter', () => {
@@ -288,5 +291,7 @@ describe('Validations', () => {
         allow_slash: true,
       })
     ).toBeTruthy();
+
+    expect(validator.testWindowsInvalidFileNameCharacter('春はあけぼの')).toBeTruthy();
   });
 });
