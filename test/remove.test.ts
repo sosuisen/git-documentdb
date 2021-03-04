@@ -8,6 +8,7 @@
 
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
+import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
 import {
   DocumentNotFoundError,
@@ -16,9 +17,14 @@ import {
   UndefinedDocumentIdError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
 
-describe('Validate', () => {
-  const localDir = './test/database_delete01';
+describe('remove(): validate:', () => {
+  const localDir = `./test/database_delete${monoId()}`;
+
   test('Repository is not opened.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -32,8 +38,9 @@ describe('Validate', () => {
     await gitDDB.destroy();
   });
 
-  test('remove(): _id is invalid', async () => {
-    const dbName = 'test_repos_01';
+  test('Invalid _id', async () => {
+    const dbName = `test_repos_${monoId()}`;
+
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -54,8 +61,8 @@ describe('Validate', () => {
   });
 });
 
-describe('Delete document', () => {
-  const localDir = './test/database_delete02';
+describe('delete(): delete document:', () => {
+  const localDir = `./test/database_delete${monoId()}`;
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -65,8 +72,8 @@ describe('Delete document', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('delete(): Use delete(_id).', async () => {
-    const dbName = 'test_repos_01';
+  test('Use delete(_id).', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -96,8 +103,8 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): Use delete(doc).', async () => {
-    const dbName = 'test_repos_02';
+  test('Use delete(doc).', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -119,8 +126,8 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): Use non-ASCII _id.', async () => {
-    const dbName = 'test_repos_01';
+  test('Use non-ASCII _id.', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -150,8 +157,8 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('delete(): Undefined _id', async () => {
-    const dbName = 'test_repos_03';
+  test('Undefined _id', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -162,9 +169,21 @@ describe('Delete document', () => {
     await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
     await gitDDB.destroy();
   });
+});
 
-  test('remove(): Remove from sub-directory.', async () => {
-    const dbName = 'test_repos_04';
+describe('remove(): remove document:', () => {
+  const localDir = `./test/database_delete${monoId()}`;
+
+  beforeAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  afterAll(() => {
+    fs.removeSync(path.resolve(localDir));
+  });
+
+  test('Remove from sub-directory.', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -264,8 +283,8 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('remove(): Set commit message.', async () => {
-    const dbName = 'test_repos_05';
+  test('Set a commit message.', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -289,8 +308,8 @@ describe('Delete document', () => {
     await gitDDB.destroy();
   });
 
-  test('remove(): Use JsonObject as key.', async () => {
-    const dbName = 'test_repos_06';
+  test('Use JsonObject as key.', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -313,8 +332,8 @@ describe('Delete document', () => {
   });
 });
 
-describe('Concurrent', () => {
-  const localDir = './test/database_delete03';
+describe('remove(): concurrent:', () => {
+  const localDir = `./test/database_delete${monoId()}`;
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';
@@ -337,8 +356,8 @@ describe('Concurrent', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('remove(): All at once', async () => {
-    const dbName = 'test_repos_1';
+  test('All at once', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -376,8 +395,8 @@ describe('Concurrent', () => {
     await gitDDB.destroy();
   });
 
-  test('remove(): Concurrent calls of _remove_concurrent() cause an error.', async () => {
-    const dbName = 'test_repos_2';
+  test('Concurrent calls of _remove_concurrent() cause an error.', async () => {
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
