@@ -194,6 +194,8 @@ export type DatabaseCloseOption = {
  * Options for sync()
  */
 export type SyncOptions = {
+  live: boolean;
+  interval?: number; // msec
   ssh?: {
     use: boolean;
     private_key_path: string;

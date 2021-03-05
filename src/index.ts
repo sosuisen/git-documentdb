@@ -604,4 +604,5 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   sync = syncImpl;
+  _pull_concurrent = _pull_cocurrent_impl;
 }
