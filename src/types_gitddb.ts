@@ -53,6 +53,8 @@ export abstract class AbstractDocumentDB {
     email: string;
   };
 
+  abstract defaultBranch: string;
+
   abstract workingDir (): string;
   abstract isClosing: boolean;
   abstract getRepository (): nodegit.Repository | undefined;

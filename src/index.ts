@@ -128,6 +128,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     email: 'gitddb@example.com',
   } as const;
 
+  public readonly defaultBranch = 'main';
+
   private _localDir: string;
   private _dbName: string;
   private _currentRepository: nodegit.Repository | undefined;
@@ -288,7 +290,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       const isBare = 0;
       const options: RepositoryInitOptions = {
         description: defaultDescription,
-        initialHead: 'main',
+        initialHead: this.defaultBranch,
       };
       this._dbInfo.is_new = true;
       this._currentRepository = await nodegit.Repository.initExt(
