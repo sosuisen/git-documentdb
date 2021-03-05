@@ -99,13 +99,16 @@ export function putImpl (
 
   // put() must be serial.
   return new Promise((resolve, reject) => {
-    this._pushToTaskQueue(() =>
-      this._put_worker(_id, data, options!.commit_message!)
-        .then(result => {
-          resolve(result);
-        })
-        .catch(err => reject(err))
-    );
+    this._pushToTaskQueue({
+      taskName: 'put',
+      id: _id,
+      func: () =>
+        this._put_worker(_id, data, options!.commit_message!)
+          .then(result => {
+            resolve(result);
+          })
+          .catch(err => reject(err)),
+    });
   });
 }
 

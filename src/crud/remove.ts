@@ -7,6 +7,7 @@
  */
 
 import path from 'path';
+import { Z_DEFAULT_COMPRESSION } from 'zlib';
 import fs from 'fs-extra';
 import nodegit from '@sosuisen/nodegit';
 import { AbstractDocumentDB } from '../types_gitddb';
@@ -61,11 +62,14 @@ export function removeImpl (
 
   // delete() must be serial.
   return new Promise((resolve, reject) => {
-    this._pushToTaskQueue(() =>
-      this._remove_worker(_id, options!.commit_message!)
-        .then((result: RemoveResult) => resolve(result))
-        .catch((err: Error) => reject(err))
-    );
+    this._pushToTaskQueue({
+      taskName: 'remove',
+      id: _id,
+      func: () =>
+        this._remove_worker(_id, options!.commit_message!)
+          .then((result: RemoveResult) => resolve(result))
+          .catch((err: Error) => reject(err)),
+    });
   });
 }
 

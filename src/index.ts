@@ -28,13 +28,14 @@ import {
   PutResult,
   RemoveOptions,
   RemoveResult,
+  Task,
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
 import { _put_worker_impl, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { _remove_worker_impl, removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
-import { _pull_worker_impl, syncImpl } from './crud/sync';
+import { _sync_worker_impl, syncImpl } from './crud/sync';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -137,8 +138,11 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   private _workingDirectory: string;
 
   // @ts-ignore
-  private _taskQueue: (() => Promise<void>)[];
+  private _taskQueue: Task[];
+
   private _isTaskQueueWorking = false;
+
+  private _currentTask: Task | undefined = undefined;
 
   /**
    * @internal
@@ -226,17 +230,28 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * Task queue
    * @internal
    */
-  public _pushToTaskQueue (func: () => Promise<void>) {
-    this._taskQueue.push(func);
+  public _pushToTaskQueue (task: Task) {
+    this._taskQueue.push(task);
+    this._execTaskQueue();
+  }
+
+  public _unshiftSyncTaskToTaskQueue (task: Task) {
+    if (
+      this._currentTask?.taskName === 'sync' ||
+      (this._taskQueue.length > 0 && this._taskQueue[0].taskName === 'sync')
+    )
+      return;
+
+    this._taskQueue.unshift(task);
     this._execTaskQueue();
   }
 
   private _execTaskQueue () {
     if (this._taskQueue.length > 0 && !this._isTaskQueueWorking) {
       this._isTaskQueueWorking = true;
-      const func = this._taskQueue.shift();
-      if (func !== undefined) {
-        func().finally(() => {
+      this._currentTask = this._taskQueue.shift();
+      if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
+        this._currentTask.func().finally(() => {
           this._isTaskQueueWorking = false;
           this._execTaskQueue();
         });
@@ -268,6 +283,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
 
     this._taskQueue = [];
+    this._currentTask = undefined;
 
     await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
       return Promise.reject(new CannotCreateDirectoryError(err.message));
@@ -604,5 +620,5 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   sync = syncImpl;
-  _pull_worker = _pull_worker_impl;
+  _pull_worker = _sync_worker_impl;
 }

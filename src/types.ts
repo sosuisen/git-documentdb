@@ -203,3 +203,14 @@ export type SyncOptions = {
     pass_phrase?: string;
   };
 };
+
+/**
+ * Task
+ */
+export type TaskLabel = 'put' | 'remove' | 'sync';
+
+export type Task = {
+  taskName: TaskLabel;
+  id?: string;
+  func: () => Promise<void>;
+};

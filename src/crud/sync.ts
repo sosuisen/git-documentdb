@@ -107,20 +107,22 @@ class Sync {
 
   private _tryPull () {
     return new Promise((resolve, reject) => {
-      this._gitDDB._pushToTaskQueue(() =>
-        _pull_worker_impl
-          .call(this._gitDDB, this)
-          .then(result => {
-            resolve(result);
-          })
-          .catch(err => reject(err))
-      );
+      this._gitDDB._unshiftSyncTaskToTaskQueue({
+        taskName: 'sync',
+        func: () =>
+          _sync_worker_impl
+            .call(this._gitDDB, this)
+            .then(result => {
+              resolve(result);
+            })
+            .catch(err => reject(err)),
+      });
     });
   }
 }
 
 // eslint-disable-next-line complexity
-export async function _pull_worker_impl (this: AbstractDocumentDB, sync: Sync) {
+export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
   const repos = this.getRepository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();

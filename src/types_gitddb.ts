@@ -15,6 +15,7 @@ import {
   PutResult,
   RemoveOptions,
   RemoveResult,
+  Task,
 } from './types';
 import { Validator } from './validator';
 
@@ -59,7 +60,8 @@ export abstract class AbstractDocumentDB {
   abstract isClosing: boolean;
   abstract getRepository (): nodegit.Repository | undefined;
   abstract _validator: Validator;
-  abstract _pushToTaskQueue (func: () => Promise<void>): void;
+  abstract _pushToTaskQueue (task: Task): void;
+  abstract _unshiftSyncTaskToTaskQueue (task: Task): void;
   abstract _put_worker (
     _id: string,
     data: string,
