@@ -30,11 +30,11 @@ import {
   RemoveResult,
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
-import { _put_concurrent_impl, putImpl } from './crud/put';
+import { _put_worker_impl, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
-import { _remove_concurrent_impl, removeImpl } from './crud/remove';
+import { _remove_worker_impl, removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
-import { syncImpl } from './crud/sync';
+import { _pull_worker_impl, syncImpl } from './crud/sync';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -509,7 +509,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * @internal
    */
-  _put_concurrent = _put_concurrent_impl;
+  _put_worker = _put_worker_impl;
 
   /**
    * Get a document
@@ -583,7 +583,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * @internal
    */
-  _remove_concurrent = _remove_concurrent_impl;
+  _remove_worker = _remove_worker_impl;
 
   /**
    * Get all the documents
@@ -604,5 +604,5 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   sync = syncImpl;
-  _pull_concurrent = _pull_cocurrent_impl;
+  _pull_worker = _pull_worker_impl;
 }

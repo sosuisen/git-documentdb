@@ -122,16 +122,16 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     put(_id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
-    // Warning: (ae-forgotten-export) The symbol "_put_concurrent_impl" needs to be exported by the entry point main.d.ts
+    // Warning: (ae-forgotten-export) The symbol "_put_worker_impl" needs to be exported by the entry point main.d.ts
     //
     // @internal (undocumented)
-    _put_concurrent: typeof _put_concurrent_impl;
+    _put_worker: typeof _put_worker_impl;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-    // Warning: (ae-forgotten-export) The symbol "_remove_concurrent_impl" needs to be exported by the entry point main.d.ts
+    // Warning: (ae-forgotten-export) The symbol "_remove_worker_impl" needs to be exported by the entry point main.d.ts
     //
     // @internal (undocumented)
-    _remove_concurrent: typeof _remove_concurrent_impl;
+    _remove_worker: typeof _remove_worker_impl;
     // @internal (undocumented)
     _validator: Validator;
     workingDir(): string;

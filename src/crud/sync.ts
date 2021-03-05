@@ -108,7 +108,7 @@ class Sync {
   private _tryPull () {
     return new Promise((resolve, reject) => {
       this._gitDDB._pushToTaskQueue(() =>
-        _pull_concurrent_impl
+        _pull_worker_impl
           .call(this._gitDDB, this)
           .then(result => {
             resolve(result);
@@ -120,7 +120,7 @@ class Sync {
 }
 
 // eslint-disable-next-line complexity
-export async function _pull_concurrent_impl (this: AbstractDocumentDB, sync: Sync) {
+export async function _pull_worker_impl (this: AbstractDocumentDB, sync: Sync) {
   const repos = this.getRepository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();

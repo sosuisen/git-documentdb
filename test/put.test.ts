@@ -47,7 +47,7 @@ describe('put(): validate: overload 1:', () => {
       RepositoryNotOpenError
     );
     await expect(
-      gitDDB._put_concurrent('prof01', '{ "_id": "prof01", "name": "Shirase" }', 'message')
+      gitDDB._put_worker('prof01', '{ "_id": "prof01", "name": "Shirase" }', 'message')
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
@@ -603,7 +603,7 @@ describe('put(): update document:', () => {
   });
 });
 
-describe('put(): concurrent:', () => {
+describe('put(): worker:', () => {
   const localDir = `./test/database_put${monoId()}`;
   const _id_a = 'apple';
   const name_a = 'Apple woman';
@@ -722,8 +722,8 @@ describe('put(): concurrent:', () => {
   });
 
   // Skip this test because segmentation fault often occurs in libgit2.
-  // Check this only when you would like to check behavior of _put_concurrent()
-  test.skip('Concurrent calls of _put_concurrent() cause an error.', async () => {
+  // Check this only when you would like to check behavior of _put_worker()
+  test.skip('Concurrent calls of _put_worker() cause an error.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -733,36 +733,20 @@ describe('put(): concurrent:', () => {
 
     await expect(
       Promise.all([
-        gitDDB._put_concurrent(
-          _id_a,
-          `{ "_id": "${_id_a}", "name": "${name_a}" }`,
-          'message'
-        ),
-        gitDDB._put_concurrent(
-          _id_b,
-          `{ "_id": "${_id_b}", "name": "${name_b}" }`,
-          'message'
-        ),
-        gitDDB._put_concurrent(
+        gitDDB._put_worker(_id_a, `{ "_id": "${_id_a}", "name": "${name_a}" }`, 'message'),
+        gitDDB._put_worker(_id_b, `{ "_id": "${_id_b}", "name": "${name_b}" }`, 'message'),
+        gitDDB._put_worker(
           _id_c01,
           `{ "_id": "${_id_c01}", "name": "${name_c01}" }`,
           'message'
         ),
-        gitDDB._put_concurrent(
+        gitDDB._put_worker(
           _id_c02,
           `{ "_id": "${_id_c02}", "name": "${name_c02}" }`,
           'message'
         ),
-        gitDDB._put_concurrent(
-          _id_d,
-          `{ "_id": "${_id_d}", "name": "${name_d}" }`,
-          'message'
-        ),
-        gitDDB._put_concurrent(
-          _id_p,
-          `{ "_id": "${_id_p}", "name": "${name_p}" }`,
-          'message'
-        ),
+        gitDDB._put_worker(_id_d, `{ "_id": "${_id_d}", "name": "${name_d}" }`, 'message'),
+        gitDDB._put_worker(_id_p, `{ "_id": "${_id_p}", "name": "${name_p}" }`, 'message'),
       ])
     ).rejects.toThrowError();
 

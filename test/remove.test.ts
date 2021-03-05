@@ -32,7 +32,7 @@ describe('remove(): validate:', () => {
       local_dir: localDir,
     });
     await expect(gitDDB.remove('prof01')).rejects.toThrowError(RepositoryNotOpenError);
-    await expect(gitDDB._remove_concurrent('prof01', 'message')).rejects.toThrowError(
+    await expect(gitDDB._remove_worker('prof01', 'message')).rejects.toThrowError(
       RepositoryNotOpenError
     );
     await gitDDB.destroy();
@@ -238,7 +238,7 @@ describe('remove(): remove document:', () => {
     await expect(gitDDB.get(_id1)).rejects.toThrowError(DocumentNotFoundError);
     await expect(gitDDB.remove(_id1)).rejects.toThrowError(DocumentNotFoundError);
     // @ts-ignore
-    await expect(gitDDB._remove_concurrent(undefined)).rejects.toThrowError(
+    await expect(gitDDB._remove_worker(undefined)).rejects.toThrowError(
       DocumentNotFoundError
     );
 
@@ -332,7 +332,7 @@ describe('remove(): remove document:', () => {
   });
 });
 
-describe('remove(): concurrent:', () => {
+describe('remove(): worker:', () => {
   const localDir = `./test/database_delete${monoId()}`;
   const _id_a = 'apple';
   const name_a = 'Apple woman';
@@ -395,7 +395,7 @@ describe('remove(): concurrent:', () => {
     await gitDDB.destroy();
   });
 
-  test('Concurrent calls of _remove_concurrent() cause an error.', async () => {
+  test('Concurrent calls of _remove_worker() cause an error.', async () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -414,11 +414,11 @@ describe('remove(): concurrent:', () => {
 
     await expect(
       Promise.all([
-        gitDDB._remove_concurrent(_id_a, 'message'),
-        gitDDB._remove_concurrent(_id_b, 'message'),
-        gitDDB._remove_concurrent(_id_c01, 'message'),
-        gitDDB._remove_concurrent(_id_c02, 'message'),
-        gitDDB._remove_concurrent(_id_d, 'message'),
+        gitDDB._remove_worker(_id_a, 'message'),
+        gitDDB._remove_worker(_id_b, 'message'),
+        gitDDB._remove_worker(_id_c01, 'message'),
+        gitDDB._remove_worker(_id_c02, 'message'),
+        gitDDB._remove_worker(_id_d, 'message'),
       ])
     ).rejects.toThrowError();
 

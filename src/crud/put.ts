@@ -100,7 +100,7 @@ export function putImpl (
   // put() must be serial.
   return new Promise((resolve, reject) => {
     this._pushToTaskQueue(() =>
-      this._put_concurrent(_id, data, options!.commit_message!)
+      this._put_worker(_id, data, options!.commit_message!)
         .then(result => {
           resolve(result);
         })
@@ -110,11 +110,11 @@ export function putImpl (
 }
 
 /**
- * Implementation of _put_concurrent()
+ * Implementation of _put_worker()
  *
  * @internal
  */
-export async function _put_concurrent_impl (
+export async function _put_worker_impl (
   this: AbstractDocumentDB,
   _id: string,
   data: string,

@@ -60,11 +60,11 @@ export abstract class AbstractDocumentDB {
   abstract getRepository (): nodegit.Repository | undefined;
   abstract _validator: Validator;
   abstract _pushToTaskQueue (func: () => Promise<void>): void;
-  abstract _put_concurrent (
+  abstract _put_worker (
     _id: string,
     data: string,
     commitMessage: string
   ): Promise<PutResult>;
 
-  abstract _remove_concurrent (_id: string, commitMessage: string): Promise<RemoveResult>;
+  abstract _remove_worker (_id: string, commitMessage: string): Promise<RemoveResult>;
 }
