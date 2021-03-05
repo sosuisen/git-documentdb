@@ -202,3 +202,13 @@ A directory name cannot end with a period or a white space, but the current dire
     super(e);
   }
 }
+
+/**
+ * @public
+ */
+export class InvalidSSHKeyPathError extends BaseError {
+  constructor (name: string) {
+    const e = `Invalid SSH key path: ${name}`;
+    super(e);
+  }
+}

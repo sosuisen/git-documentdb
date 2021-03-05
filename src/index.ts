@@ -34,6 +34,7 @@ import { _put_concurrent_impl, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { _remove_concurrent_impl, removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
+import { syncImpl } from './crud/sync';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -601,4 +602,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     // Do not use 'allDocs = allDocsImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
     return allDocsImpl.call(this, options);
   }
+
+  sync = syncImpl;
 }

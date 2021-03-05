@@ -189,3 +189,15 @@ export type DatabaseCloseOption = {
   force?: boolean;
   timeout?: number;
 };
+
+/**
+ * Options for sync()
+ */
+export type SyncOptions = {
+  ssh?: {
+    use: boolean;
+    private_key_path: string;
+    public_key_path: string;
+    pass_phrase?: string;
+  };
+};
