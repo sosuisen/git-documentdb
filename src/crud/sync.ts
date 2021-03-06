@@ -92,7 +92,7 @@ class Sync {
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
     if (this._options.live) {
-      this._pullTimer = setInterval(this._tryPull, this._options.interval);
+      this._pullTimer = setInterval(this._trySync, this._options.interval);
     }
   }
 
@@ -105,7 +105,7 @@ class Sync {
     }
   }
 
-  private _tryPull () {
+  private _trySync () {
     return new Promise((resolve, reject) => {
       this._gitDDB._unshiftSyncTaskToTaskQueue({
         taskName: 'sync',
