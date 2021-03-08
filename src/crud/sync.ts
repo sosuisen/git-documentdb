@@ -19,7 +19,7 @@ export function syncImpl (this: AbstractDocumentDB, options: SyncOptions) {
 
 const defaultPullInterval = 10000;
 
-class Sync {
+export class Sync {
   private _gitDDB: AbstractDocumentDB;
   private _options: SyncOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;

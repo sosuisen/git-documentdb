@@ -28,6 +28,7 @@ import {
   PutResult,
   RemoveOptions,
   RemoveResult,
+  SyncOptions,
   Task,
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
@@ -35,7 +36,7 @@ import { _put_worker_impl, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { _remove_worker_impl, removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
-import { _sync_worker_impl, syncImpl } from './crud/sync';
+import { _sync_worker_impl, syncImpl, Sync } from './crud/sync';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -619,6 +620,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     return allDocsImpl.call(this, options);
   }
 
-  sync = syncImpl;
+  /**
+   * Synchronization
+   */
+  sync (options: SyncOptions): Sync {
+    return syncImpl.call(this, options);
+  }
+
   _pull_worker = _sync_worker_impl;
 }
