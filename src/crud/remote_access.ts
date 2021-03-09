@@ -37,8 +37,9 @@ export class RemoteAccess implements IRemoteAccess {
   private _gitDDB: AbstractDocumentDB;
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
-  private _pullTimer: NodeJS.Timeout | undefined;
+  private _syncTimer: NodeJS.Timeout | undefined;
   private _octokit: Octokit;
+  private _remoteURL: string;
 
   callbacks: { [key: string]: any };
   author: nodegit.Signature;
@@ -46,7 +47,7 @@ export class RemoteAccess implements IRemoteAccess {
 
   constructor (_gitDDB: AbstractDocumentDB, _remoteURL: string, _options: RemoteOptions) {
     this._gitDDB = _gitDDB;
-
+    this._remoteURL = _remoteURL;
     if (_remoteURL === undefined || _remoteURL === '') {
       throw new UndefinedRemoteURLError();
     }
@@ -127,8 +128,12 @@ export class RemoteAccess implements IRemoteAccess {
     this._trySync();
 
     if (this._options.live) {
-      this._pullTimer = setInterval(this._trySync, this._options.interval);
+      this._syncTimer = setInterval(this._trySync, this._options.interval);
     }
+  }
+
+  remoteURL () {
+    return this._remoteURL;
   }
 
   private async _createRepository () {
@@ -217,11 +222,27 @@ export class RemoteAccess implements IRemoteAccess {
   }
 
   /**
-   * stopSync
+   * Stop sync
    */
   cancel () {
-    if (this._pullTimer) {
-      clearInterval(this._pullTimer);
+    if (this._syncTimer) {
+      clearInterval(this._syncTimer);
+    }
+  }
+
+  /**
+   * Alias of cancel()
+   */
+  pause () {
+    this.cancel();
+  }
+
+  /**
+   * Resume sync
+   */
+  resume () {
+    if (this._options.live) {
+      this._syncTimer = setInterval(this._trySync, this._options.interval!);
     }
   }
 
