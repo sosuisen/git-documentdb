@@ -212,3 +212,50 @@ export class InvalidSSHKeyPathError extends BaseError {
     super(e);
   }
 }
+
+/**
+ * @public
+ */
+export class InvalidURLFormatError extends BaseError {
+  constructor (url: string) {
+    super(`Invalid url format: ${url}'`);
+  }
+}
+
+/**
+ * @public
+ */
+export class UnresolvedHostError extends BaseError {
+  constructor (url: string) {
+    super(`Failed to resolve address for ${url}'`);
+  }
+}
+
+/**
+ * @public
+ */
+export class RemoteRepositoryNotFoundError extends BaseError {
+  constructor (url: string) {
+    super(
+      `Repository does not exist, or you do not have permission to access the private repository: ${url}`
+    );
+  }
+}
+
+/**
+ * @public
+ */
+export class InvalidSSHKeyFormatError extends BaseError {
+  constructor (path: string) {
+    super(`Format of SSH key pair is invalid : ${path}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class PushPermissionDeniedError extends BaseError {
+  constructor (path: string) {
+    super(`Permission denied to push to the repository by using ${path}`);
+  }
+}

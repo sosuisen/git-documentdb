@@ -623,8 +623,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * Synchronization
    */
-  sync (options: SyncOptions): Sync {
-    return syncImpl.call(this, options);
+  sync (remoteURL: string, options: SyncOptions): Sync {
+    return syncImpl.call(this, remoteURL, options);
   }
 
   _pull_worker = _sync_worker_impl;

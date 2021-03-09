@@ -9,12 +9,24 @@
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { InvalidSSHKeyPathError, RepositoryNotOpenError } from '../error';
+import {
+  InvalidSSHKeyFormatError,
+  InvalidSSHKeyPathError,
+  InvalidURLFormatError,
+  PushPermissionDeniedError,
+  RemoteRepositoryNotFoundError,
+  RepositoryNotOpenError,
+  UnresolvedHostError,
+} from '../error';
 import { SyncOptions } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 
-export function syncImpl (this: AbstractDocumentDB, options: SyncOptions) {
-  return new Sync(this, options);
+export function syncImpl (
+  this: AbstractDocumentDB,
+  remoteURL: string,
+  options: SyncOptions
+) {
+  return new Sync(this, remoteURL, options);
 }
 
 const defaultPullInterval = 10000;
@@ -24,13 +36,15 @@ export class Sync {
   private _options: SyncOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _pullTimer: NodeJS.Timeout | undefined;
+  private _remoteURL: string;
 
   callbacks: { [key: string]: any };
   author: nodegit.Signature;
   committer: nodegit.Signature;
 
-  constructor (_gitDDB: AbstractDocumentDB, _options: SyncOptions) {
+  constructor (_gitDDB: AbstractDocumentDB, _remoteURL: string, _options: SyncOptions) {
     this._gitDDB = _gitDDB;
+    this._remoteURL = _remoteURL;
     this._options = _options;
     this._options ??= {
       live: false,
@@ -91,8 +105,68 @@ export class Sync {
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
+    this._addRemoteRepository(_remoteURL).catch(err => {
+      throw err;
+    });
+
     if (this._options.live) {
       this._pullTimer = setInterval(this._trySync, this._options.interval);
+    }
+  }
+
+  /**
+   * Add remote repository (git remote add)
+   * @internal
+   */
+  private async _addRemoteRepository (_remoteURL: string, onlyFetch?: boolean) {
+    const repos = this._gitDDB.getRepository();
+    if (repos === undefined) {
+      throw new RepositoryNotOpenError();
+    }
+    // Check if exists
+    let remote = await nodegit.Remote.lookup(repos, 'origin');
+    if (remote === undefined) {
+      // Add remote repository
+      remote = await nodegit.Remote.create(repos, 'origin', _remoteURL);
+    }
+    else if (remote.url() !== _remoteURL) {
+      nodegit.Remote.setUrl(repos, 'origin', _remoteURL);
+    }
+
+    // Check fetch and push
+    const fetchCode = await remote
+      .connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks)
+      .catch(err => err);
+    switch (true) {
+      case fetchCode.startsWith('Error: unsupported URL protocol'):
+        throw new InvalidURLFormatError(_remoteURL);
+      case fetchCode.startsWith('Error: failed to resolve address'):
+        throw new UnresolvedHostError(_remoteURL);
+      case fetchCode.startsWith('Error: ERROR: Repository not found'):
+        // Remote repository does not exist, or you do not have permission to the private repository
+
+/**
+ * TODO: github.com の場合、octokit でレポジトリ作成。
+ */
+
+        throw new RemoteRepositoryNotFoundError(_remoteURL);
+      case fetchCode.startsWith('Failed to retrieve list of SSH authentication methods'):
+        throw new InvalidSSHKeyFormatError(this._options.ssh!.private_key_path);
+      default:
+        break;
+    }
+
+    if (!onlyFetch) {
+      const pushCode = await remote
+        .connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks)
+        .catch(err => err);
+      switch (true) {
+        case pushCode.startsWith('Error: ERROR: Permission to'):
+          // Remote repository is read only
+          throw new PushPermissionDeniedError(this._options.ssh!.private_key_path);
+        default:
+          break;
+      }
     }
   }
 
