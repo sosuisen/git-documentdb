@@ -5,198 +5,18 @@
  * This source code is licensed under the Mozilla Public License Version 2.0
  * found in the LICENSE file in the root directory of this source tree.
  */
-
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import {
-  InvalidSSHKeyFormatError,
-  InvalidSSHKeyPathError,
-  InvalidURLFormatError,
-  PushPermissionDeniedError,
-  RemoteRepositoryNotFoundError,
-  RepositoryNotOpenError,
-  UnresolvedHostError,
-} from '../error';
-import { SyncOptions } from '../types';
+import { RepositoryNotOpenError } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-
-export function syncImpl (
-  this: AbstractDocumentDB,
-  remoteURL: string,
-  options: SyncOptions
-) {
-  return new Sync(this, remoteURL, options);
-}
-
-const defaultPullInterval = 10000;
-
-export class Sync {
-  private _gitDDB: AbstractDocumentDB;
-  private _options: SyncOptions;
-  private _checkoutOptions: nodegit.CheckoutOptions;
-  private _pullTimer: NodeJS.Timeout | undefined;
-  private _remoteURL: string;
-
-  callbacks: { [key: string]: any };
-  author: nodegit.Signature;
-  committer: nodegit.Signature;
-
-  constructor (_gitDDB: AbstractDocumentDB, _remoteURL: string, _options: SyncOptions) {
-    this._gitDDB = _gitDDB;
-    this._remoteURL = _remoteURL;
-    this._options = _options;
-    this._options ??= {
-      live: false,
-      interval: undefined,
-      ssh: undefined,
-    };
-    this._options.interval ??= defaultPullInterval;
-
-    this._options.ssh ??= {
-      use: false,
-      private_key_path: '',
-      public_key_path: '',
-      pass_phrase: undefined,
-    };
-
-    if (this._options.ssh?.use) {
-      if (
-        this._options.ssh?.private_key_path === undefined ||
-        this._options.ssh?.private_key_path === ''
-      ) {
-        throw new InvalidSSHKeyPathError(this._options.ssh.private_key_path);
-      }
-      if (
-        this._options.ssh?.public_key_path === undefined ||
-        this._options.ssh?.public_key_path === ''
-      ) {
-        throw new InvalidSSHKeyPathError(this._options.ssh.public_key_path);
-      }
-      this._options.ssh.pass_phrase ??= '';
-    }
-
-    this.callbacks = {
-      credentials: function (url: string, userName: string) {
-        return nodegit.Cred.sshKeyNew(
-          userName,
-          this._options.ssh!.public_key_path,
-          this._options.ssh!.private_key_path,
-          this._options.ssh!.pass_phrase!
-        );
-      },
-    };
-    if (process.platform === 'darwin') {
-      // @ts-ignore
-      this._callbacks.certificateCheck = () => 0;
-    }
-
-    this.author = nodegit.Signature.now(
-      this._gitDDB.gitAuthor.name,
-      this._gitDDB.gitAuthor.email
-    );
-    this.committer = nodegit.Signature.now(
-      this._gitDDB.gitAuthor.name,
-      this._gitDDB.gitAuthor.email
-    );
-
-    this._checkoutOptions = new nodegit.CheckoutOptions();
-    // nodegit.Checkout.STRATEGY.USE_OURS: For unmerged files, checkout stage 2 from index
-    this._checkoutOptions.checkoutStrategy =
-      nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
-
-    this._addRemoteRepository(_remoteURL).catch(err => {
-      throw err;
-    });
-
-    if (this._options.live) {
-      this._pullTimer = setInterval(this._trySync, this._options.interval);
-    }
-  }
-
-  /**
-   * Add remote repository (git remote add)
-   * @internal
-   */
-  private async _addRemoteRepository (_remoteURL: string, onlyFetch?: boolean) {
-    const repos = this._gitDDB.getRepository();
-    if (repos === undefined) {
-      throw new RepositoryNotOpenError();
-    }
-    // Check if exists
-    let remote = await nodegit.Remote.lookup(repos, 'origin');
-    if (remote === undefined) {
-      // Add remote repository
-      remote = await nodegit.Remote.create(repos, 'origin', _remoteURL);
-    }
-    else if (remote.url() !== _remoteURL) {
-      nodegit.Remote.setUrl(repos, 'origin', _remoteURL);
-    }
-
-    // Check fetch and push
-    const fetchCode = await remote
-      .connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks)
-      .catch(err => err);
-    switch (true) {
-      case fetchCode.startsWith('Error: unsupported URL protocol'):
-        throw new InvalidURLFormatError(_remoteURL);
-      case fetchCode.startsWith('Error: failed to resolve address'):
-        throw new UnresolvedHostError(_remoteURL);
-      case fetchCode.startsWith('Error: ERROR: Repository not found'):
-        // Remote repository does not exist, or you do not have permission to the private repository
-
-/**
- * TODO: github.com の場合、octokit でレポジトリ作成。
- */
-
-        throw new RemoteRepositoryNotFoundError(_remoteURL);
-      case fetchCode.startsWith('Failed to retrieve list of SSH authentication methods'):
-        throw new InvalidSSHKeyFormatError(this._options.ssh!.private_key_path);
-      default:
-        break;
-    }
-
-    if (!onlyFetch) {
-      const pushCode = await remote
-        .connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks)
-        .catch(err => err);
-      switch (true) {
-        case pushCode.startsWith('Error: ERROR: Permission to'):
-          // Remote repository is read only
-          throw new PushPermissionDeniedError(this._options.ssh!.private_key_path);
-        default:
-          break;
-      }
-    }
-  }
-
-  /**
-   * stopSync
-   */
-  cancel () {
-    if (this._pullTimer) {
-      clearInterval(this._pullTimer);
-    }
-  }
-
-  private _trySync () {
-    return new Promise((resolve, reject) => {
-      this._gitDDB._unshiftSyncTaskToTaskQueue({
-        taskName: 'sync',
-        func: () =>
-          _sync_worker_impl
-            .call(this._gitDDB, this)
-            .then(result => {
-              resolve(result);
-            })
-            .catch(err => reject(err)),
-      });
-    });
-  }
-}
+import { IRemoteAccess } from '../types';
 
 // eslint-disable-next-line complexity
-export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
+export async function _sync_worker_impl (
+  this: AbstractDocumentDB,
+  remoteAccess: IRemoteAccess
+) {
   const repos = this.getRepository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
@@ -204,7 +24,7 @@ export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
 
   // Fetch
   await repos.fetch('origin', {
-    callbacks: sync.callbacks,
+    callbacks: remoteAccess.callbacks,
   });
 
   const localCommit = await repos.getHeadCommit();
@@ -248,7 +68,7 @@ export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
     // Push
     const remote: nodegit.Remote = await repos.getRemote('origin');
     await remote.push(['refs/heads/main:refs/heads/main'], {
-      callbacks: sync.callbacks,
+      callbacks: remoteAccess.callbacks,
     });
     console.log('Pushed.');
     return;
@@ -315,8 +135,8 @@ export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
       const commitMessage = 'merge';
       await commit.amend(
         'HEAD',
-        sync.author,
-        sync.committer,
+        remoteAccess.author,
+        remoteAccess.committer,
         commit.messageEncoding(),
         commitMessage,
         await commit.getTree()
@@ -324,7 +144,7 @@ export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
       // Push
       const remote: nodegit.Remote = await repos.getRemote('origin');
       await remote.push(['refs/heads/main:refs/heads/main'], {
-        callbacks: sync.callbacks,
+        callbacks: remoteAccess.callbacks,
       });
       console.log('Pushed.');
     }
@@ -402,8 +222,8 @@ export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
 
     const overwriteCommitOid: nodegit.Oid = await repos.createCommit(
       'HEAD',
-      sync.author,
-      sync.committer,
+      remoteAccess.author,
+      remoteAccess.committer,
       commitMessage,
       treeOid,
       [await repos.getHeadCommit(), remoteCommit]
@@ -420,7 +240,7 @@ export async function _sync_worker_impl (this: AbstractDocumentDB, sync: Sync) {
     // Push
     const remote: nodegit.Remote = await repos.getRemote('origin');
     await remote.push(['refs/heads/main:refs/heads/main'], {
-      callbacks: sync.callbacks,
+      callbacks: remoteAccess.callbacks,
     });
     console.log('Pushed.');
   }

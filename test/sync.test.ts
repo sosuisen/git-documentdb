@@ -10,8 +10,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src';
-import { SyncOptions } from '../src/types';
-import { InvalidSSHKeyPathError } from '../src/error';
+import { RemoteOptions } from '../src/types';
+import { UndefinedRemoteURLError } from '../src/error';
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
@@ -43,7 +43,7 @@ maybe('sync(): Sync Class:', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    const options: SyncOptions = {
+    const options: RemoteOptions = {
       live: false,
       ssh: {
         use: true,
@@ -51,6 +51,6 @@ maybe('sync(): Sync Class:', () => {
         public_key_path: '',
       },
     };
-    expect(() => gitDDB.sync(options)).toThrowError(InvalidSSHKeyPathError);
+    expect(() => gitDDB.sync('', options)).toThrowError(UndefinedRemoteURLError);
   });
 });

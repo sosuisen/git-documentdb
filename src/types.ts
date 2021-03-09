@@ -6,6 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import nodegit from '@sosuisen/nodegit';
 /**
  * Type for a JSON document that is stored in a database
  *
@@ -191,11 +192,14 @@ export type DatabaseCloseOption = {
 };
 
 /**
- * Options for sync()
+ * Options for RemoteAccess class
  */
-export type SyncOptions = {
+export type RemoteOptions = {
   live: boolean;
   interval?: number; // msec
+  github?: {
+    personal_access_token?: string;
+  };
   ssh?: {
     use: boolean;
     private_key_path: string;
@@ -214,3 +218,9 @@ export type Task = {
   id?: string;
   func: () => Promise<void>;
 };
+
+export interface IRemoteAccess {
+  callbacks: { [key: string]: any };
+  author: nodegit.Signature;
+  committer: nodegit.Signature;
+}

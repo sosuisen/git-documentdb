@@ -26,9 +26,9 @@ import {
   JsonDoc,
   PutOptions,
   PutResult,
+  RemoteOptions,
   RemoveOptions,
   RemoveResult,
-  SyncOptions,
   Task,
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
@@ -36,7 +36,8 @@ import { _put_worker_impl, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { _remove_worker_impl, removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
-import { _sync_worker_impl, syncImpl, Sync } from './crud/sync';
+import { _sync_worker_impl } from './crud/sync';
+import { RemoteAccess, syncImpl } from './crud/remote_access';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -196,6 +197,13 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         Validator.maxWorkingDirectoryLength()
       );
     }
+  }
+
+  /**
+   * Get dbName
+   */
+  dbName () {
+    return this._dbName;
   }
 
   /**
@@ -623,9 +631,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * Synchronization
    */
-  sync (remoteURL: string, options: SyncOptions): Sync {
+  sync (remoteURL: string, options: RemoteOptions): RemoteAccess {
     return syncImpl.call(this, remoteURL, options);
   }
 
-  _pull_worker = _sync_worker_impl;
+  /**
+   * @internal
+   */
+  _sync_worker = _sync_worker_impl;
 }

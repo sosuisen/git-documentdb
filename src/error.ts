@@ -234,6 +234,15 @@ export class UnresolvedHostError extends BaseError {
 /**
  * @public
  */
+export class UndefinedRemoteURLError extends BaseError {
+  constructor () {
+    super(`Remote URL is undefined.`);
+  }
+}
+
+/**
+ * @public
+ */
 export class RemoteRepositoryNotFoundError extends BaseError {
   constructor (url: string) {
     super(
@@ -257,5 +266,14 @@ export class InvalidSSHKeyFormatError extends BaseError {
 export class PushPermissionDeniedError extends BaseError {
   constructor (path: string) {
     super(`Permission denied to push to the repository by using ${path}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class UndefinedGitHubAuthenticationError extends BaseError {
+  constructor (mes: string) {
+    super(`Authentication data for GitHub is undefined: ${mes}`);
   }
 }

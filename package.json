@@ -60,6 +60,8 @@
     "ulid": "^2.3.0"
   },
   "dependencies": {
+    "@octokit/rest": "^18.3.5",
+    "@octokit/types": "^6.12.2",
     "@sosuisen/nodegit": "^0.27.3",
     "fs-extra": "^9.1.0"
   }
