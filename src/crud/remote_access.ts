@@ -55,10 +55,12 @@ export class RemoteAccess implements IRemoteAccess {
     this._options = _options;
     this._options ??= {
       live: false,
+      sync_direction: undefined,
       interval: undefined,
       github: undefined,
       ssh: undefined,
     };
+    this._options.sync_direction ??= 'both';
     this._options.interval ??= defaultPullInterval;
 
     this._options.github ??= {

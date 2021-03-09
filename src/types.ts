@@ -191,11 +191,13 @@ export type DatabaseCloseOption = {
   timeout?: number;
 };
 
+export type SyncDirection = 'pull' | 'push' | 'both';
 /**
  * Options for RemoteAccess class
  */
 export type RemoteOptions = {
   live: boolean;
+  sync_direction?: SyncDirection;
   interval?: number; // msec
   github?: {
     personal_access_token?: string;
