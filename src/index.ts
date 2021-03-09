@@ -14,6 +14,7 @@ import {
   DatabaseCloseTimeoutError,
   DatabaseClosingError,
   InvalidWorkingDirectoryPathLengthError,
+  RemoteAlreadyRegisteredError,
   UndefinedDatabaseNameError,
 } from './error';
 import { Collection } from './collection';
@@ -146,6 +147,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   private _currentTask: Task | undefined = undefined;
 
+  private _remotes: { [url: string]: RemoteAccess } = {};
   /**
    * @internal
    */
@@ -294,6 +296,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     this._taskQueue = [];
     this._currentTask = undefined;
 
+    this._remotes = {};
+
     await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
       return Promise.reject(new CannotCreateDirectoryError(err.message));
     });
@@ -382,6 +386,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
+    Object.values(this._remotes).forEach(remote => remote.cancel());
     if (this._currentRepository instanceof nodegit.Repository) {
       let isTimeout = false;
       try {
@@ -417,6 +422,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         // this._currentRepository.free();
 
         this._currentRepository = undefined;
+
+        this._remotes = {};
       }
     }
   }
@@ -629,10 +636,30 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
+   * getRemote
+   */
+  getRemoteURLs (): string[] {
+    return Object.keys(this._remotes);
+  }
+
+  /**
+   * removeRemote
+   */
+  removeRemote (remoteURL: string) {
+    this._remotes[remoteURL].cancel();
+    delete this._remotes[remoteURL];
+  }
+
+  /**
    * Synchronization
    */
   sync (remoteURL: string, options: RemoteOptions): RemoteAccess {
-    return syncImpl.call(this, remoteURL, options);
+    if (this._remotes[remoteURL] !== undefined) {
+      throw new RemoteAlreadyRegisteredError(remoteURL);
+    }
+    const remote = syncImpl.call(this, remoteURL, options);
+    this._remotes[remoteURL] = remote;
+    return remote;
   }
 
   /**

@@ -277,3 +277,15 @@ export class UndefinedGitHubAuthenticationError extends BaseError {
     super(`Authentication data for GitHub is undefined: ${mes}`);
   }
 }
+
+/**
+ * @public
+ */
+export class RemoteAlreadyRegisteredError extends BaseError {
+  constructor (url: string) {
+    super(
+      `The remote URL has already been registered. :${mes}
+Call removeRemote() before register it again.`
+    );
+  }
+}
