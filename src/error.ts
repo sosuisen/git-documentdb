@@ -284,7 +284,7 @@ export class UndefinedGitHubAuthenticationError extends BaseError {
 export class RemoteAlreadyRegisteredError extends BaseError {
   constructor (url: string) {
     super(
-      `The remote URL has already been registered. :${mes}
+      `The remote repository has already been registered. :${mes}
 Call removeRemote() before register it again.`
     );
   }
