@@ -141,10 +141,18 @@ export class RemoteAccess implements IRemoteAccess {
     }
   }
 
-  private async _createRepository () {
+  /**
+   * Create repository on remote site
+   * @remarks
+   * auth.type must be 'github'
+   */
+  async createRepositoryOnRemote (_remoteURL: string) {
     if (this._options.auth?.type === 'github') {
+      const urlArray = _remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
       await this._octokit!.repos.createForAuthenticatedUser({
-        name: this._gitDDB.dbName(),
+        name: repo,
       }).catch(err => {
         throw err;
       });
@@ -154,8 +162,16 @@ export class RemoteAccess implements IRemoteAccess {
     }
   }
 
-  private async _deleteRepository (owner: string, repo: string) {
+  /**
+   * Delete repository on remote site
+   * @remarks
+   * auth.type must be 'github'
+   */
+  async destroyRepositoryOnRemote (_remoteURL: string) {
     if (this._options.auth?.type === 'github') {
+      const urlArray = _remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
       await this._octokit!.repos.delete({ owner, repo });
     }
   }
