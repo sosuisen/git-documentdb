@@ -187,7 +187,7 @@ export class RemoteAccess implements IRemoteAccess {
       throw new RepositoryNotOpenError();
     }
     // Check if already exists
-    let remote = await nodegit.Remote.lookup(repos, 'origin');
+    let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
       // Add remote repository
       remote = await nodegit.Remote.create(repos, 'origin', _remoteURL);
