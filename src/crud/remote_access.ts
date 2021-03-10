@@ -9,6 +9,7 @@
 import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
 import {
+  AuthNeededForPushOrSyncError,
   InvalidAuthenticationTypeError,
   InvalidSSHKeyFormatError,
   InvalidSSHKeyPathError,
@@ -124,8 +125,12 @@ export class RemoteAccess implements IRemoteAccess {
         );
       };
     }
-    // @ts-ignore
-    else if (this._options.auth.type !== 'none') {
+    else if (this._options.auth.type === 'none') {
+      if (this._options.sync_direction !== 'pull') {
+        throw new AuthNeededForPushOrSyncError(this._options.sync_direction!);
+      }
+    }
+    else {
       // @ts-ignore
       throw new InvalidAuthenticationTypeError(this._options.auth.type);
     }

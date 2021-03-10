@@ -7,6 +7,8 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import { SyncDirection } from "./types";
+
 class BaseError extends Error {
   constructor (e?: string) {
     super(e);
@@ -306,5 +308,14 @@ Current value is '${type}'`);
 export class UndefinedPersonalAccessTokenError extends BaseError {
   constructor () {
     super(`Personal Access Token of your GitHub account is needed.`);
+  }
+}
+
+/**
+ * @public
+ */
+export class AuthNeededForPushOrSyncError extends BaseError {
+  constructor (direction: SyncDirection) {
+    super(`Authentication data is needed for this sync direction: ${direction}`);
   }
 }
