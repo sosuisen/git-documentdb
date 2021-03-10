@@ -66,7 +66,7 @@ export function removeImpl (
       taskName: 'remove',
       id: _id,
       func: () =>
-        this._remove_worker(_id, options!.commit_message!)
+        this._remove_worker(_id, this.fileExt, options!.commit_message!)
           .then((result: RemoveResult) => resolve(result))
           .catch((err: Error) => reject(err)),
     });
@@ -81,6 +81,7 @@ export function removeImpl (
 export async function _remove_worker_impl (
   this: AbstractDocumentDB,
   _id: string,
+  extension: string,
   commitMessage: string
 ): Promise<RemoveResult> {
   const _currentRepository = this.getRepository();
@@ -89,8 +90,12 @@ export async function _remove_worker_impl (
     return Promise.reject(new RepositoryNotOpenError());
   }
 
+  if (_id === undefined || _id === '') {
+    return Promise.reject(new DocumentNotFoundError());
+  }
+
   let file_sha, commit_sha: string;
-  const filename = _id + this.fileExt;
+  const filename = _id + extension;
   const filePath = path.resolve(this.workingDir(), filename);
 
   let index;

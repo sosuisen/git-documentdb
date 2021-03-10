@@ -53,7 +53,7 @@ const maybe =
 
 maybe('remote: use personal access token:', () => {
   const localDir = `./test/database_remote_by_pat_${monoId()}`;
-  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL!.endsWith('/')
+  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;

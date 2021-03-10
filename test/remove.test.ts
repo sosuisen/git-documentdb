@@ -32,9 +32,9 @@ describe('remove(): validate:', () => {
       local_dir: localDir,
     });
     await expect(gitDDB.remove('prof01')).rejects.toThrowError(RepositoryNotOpenError);
-    await expect(gitDDB._remove_worker('prof01', 'message')).rejects.toThrowError(
-      RepositoryNotOpenError
-    );
+    await expect(
+      gitDDB._remove_worker('prof01', gitDDB.fileExt, 'message')
+    ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -414,11 +414,11 @@ describe('remove(): worker:', () => {
 
     await expect(
       Promise.all([
-        gitDDB._remove_worker(_id_a, 'message'),
-        gitDDB._remove_worker(_id_b, 'message'),
-        gitDDB._remove_worker(_id_c01, 'message'),
-        gitDDB._remove_worker(_id_c02, 'message'),
-        gitDDB._remove_worker(_id_d, 'message'),
+        gitDDB._remove_worker(_id_a, gitDDB.fileExt, 'message'),
+        gitDDB._remove_worker(_id_b, gitDDB.fileExt, 'message'),
+        gitDDB._remove_worker(_id_c01, gitDDB.fileExt, 'message'),
+        gitDDB._remove_worker(_id_c02, gitDDB.fileExt, 'message'),
+        gitDDB._remove_worker(_id_d, gitDDB.fileExt, 'message'),
       ])
     ).rejects.toThrowError();
 

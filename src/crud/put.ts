@@ -103,7 +103,7 @@ export function putImpl (
       taskName: 'put',
       id: _id,
       func: () =>
-        this._put_worker(_id, data, options!.commit_message!)
+        this._put_worker(_id, this.fileExt, data, options!.commit_message!)
           .then(result => {
             resolve(result);
           })
@@ -119,7 +119,8 @@ export function putImpl (
  */
 export async function _put_worker_impl (
   this: AbstractDocumentDB,
-  _id: string,
+  name: string,
+  extension: string,
   data: string,
   commitMessage: string
 ): Promise<PutResult> {
@@ -129,7 +130,8 @@ export async function _put_worker_impl (
   }
 
   let file_sha, commit_sha: string;
-  const filename = _id + this.fileExt;
+
+  const filename = name + extension;
   const filePath = path.resolve(this.workingDir(), filename);
   const dir = path.dirname(filePath);
 
@@ -196,7 +198,7 @@ export async function _put_worker_impl (
 
   return {
     ok: true,
-    id: _id,
+    id: name,
     file_sha: file_sha,
     commit_sha: commit_sha,
   };
