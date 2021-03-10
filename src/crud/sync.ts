@@ -8,7 +8,7 @@
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { RepositoryNotOpenError } from '../error';
+import { RepositoryNotOpenError, SyncWorkerFetchError } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { IRemoteAccess } from '../types';
 
@@ -21,14 +21,21 @@ export async function _sync_worker_impl (
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-
+  console.debug('fetch: ' + remoteAccess.getRemoteURL());
   // Fetch
-  await repos.fetch('origin', {
-    callbacks: remoteAccess.callbacks,
-  });
+  await repos
+    .fetch('origin', {
+      callbacks: remoteAccess.callbacks,
+    })
+    .catch(err => {
+      throw new SyncWorkerFetchError(err.message);
+    });
 
+  console.debug('get local and remote commit');
   const localCommit = await repos.getHeadCommit();
   const remoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
+
+  console.debug('calc distance');
 
   // @types/nodegit is wrong
   const distance = ((await nodegit.Graph.aheadBehind(

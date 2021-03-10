@@ -319,3 +319,12 @@ export class AuthNeededForPushOrSyncError extends BaseError {
     super(`Authentication data is needed for this sync direction: ${direction}`);
   }
 }
+
+/**
+ * @public
+ */
+export class SyncWorkerFetchError extends BaseError {
+  constructor (mes: string) {
+    super(`Fetch error in sync worker: ${mes}`);
+  }
+}
