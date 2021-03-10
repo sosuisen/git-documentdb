@@ -231,10 +231,12 @@ export class RemoteAccess implements IRemoteAccess {
     }
 
     if (!onlyFetch) {
-      const pushCode = await remote
-        .connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks)
-        .catch(err => err);
+      const pushCode = String(
+        await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
+      );
       switch (true) {
+        case pushCode === 'undefined':
+          break;
         case pushCode.startsWith('Error: ERROR: Permission to'): {
           // Remote repository is read only
           throw new PushPermissionDeniedError();
