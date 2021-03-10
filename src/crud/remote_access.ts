@@ -35,7 +35,7 @@ export async function syncImpl (
   return remote;
 }
 
-const defaultPullInterval = 10000;
+export const defaultPullInterval = 10000;
 
 /**
  * RemoteAccess class
