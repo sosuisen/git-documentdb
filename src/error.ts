@@ -7,7 +7,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SyncDirection } from "./types";
+import { SyncDirection } from './types';
 
 class BaseError extends Error {
   constructor (e?: string) {
