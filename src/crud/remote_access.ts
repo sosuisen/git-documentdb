@@ -128,6 +128,7 @@ export class RemoteAccess implements IRemoteAccess {
           auth.pass_phrase!
         );
       };
+      return credentials;
     }
     else if (this._options.auth.type === 'none') {
       if (this._options.sync_direction !== 'pull') {
