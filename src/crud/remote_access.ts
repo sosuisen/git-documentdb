@@ -25,12 +25,14 @@ import { IRemoteAccess, RemoteAuthGitHub, RemoteAuthSSH, RemoteOptions } from '.
 import { AbstractDocumentDB } from '../types_gitddb';
 import { _sync_worker_impl } from './sync';
 
-export function syncImpl (
+export async function syncImpl (
   this: AbstractDocumentDB,
   remoteURL: string,
-  options: RemoteOptions
+  options?: RemoteOptions
 ) {
-  return new RemoteAccess(this, remoteURL, options);
+  const remote = new RemoteAccess(this, remoteURL, options);
+  await remote.connectToRemote();
+  return remote;
 }
 
 const defaultPullInterval = 10000;
@@ -85,15 +87,6 @@ export class RemoteAccess implements IRemoteAccess {
     // nodegit.Checkout.STRATEGY.USE_OURS: For unmerged files, checkout stage 2 from index
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
-
-    this._addRemoteRepository(_remoteURL).catch(err => {
-      throw err;
-    });
-    this._trySync();
-
-    if (this._options.live) {
-      this._syncTimer = setInterval(this._trySync, this._options.interval);
-    }
   }
 
   private _createCredential () {
@@ -223,6 +216,21 @@ export class RemoteAccess implements IRemoteAccess {
     }
   }
 
+  /**
+   * Connect to remote repository
+   *
+   * Call this just after creating instance.
+   */
+  async connectToRemote () {
+    await this._addRemoteRepository(this._remoteURL).catch(err => {
+      throw err;
+    });
+    await this._trySync();
+
+    if (this._options.live) {
+      this._syncTimer = setInterval(this._trySync, this._options.interval!);
+    }
+  }
   /**
    * Get remoteURL
    */

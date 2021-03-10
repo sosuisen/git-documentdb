@@ -656,11 +656,11 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @remarks
    * Do not register the same remote repository again. Call removeRemote() before register it again.
    */
-  sync (remoteURL: string, options: RemoteOptions): RemoteAccess {
+  async sync (remoteURL: string, options?: RemoteOptions): Promise<RemoteAccess> {
     if (this._remotes[remoteURL] !== undefined) {
       throw new RemoteAlreadyRegisteredError(remoteURL);
     }
-    const remote = syncImpl.call(this, remoteURL, options);
+    const remote = await syncImpl.call(this, remoteURL, options);
     this._remotes[remoteURL] = remote;
     return remote;
   }
