@@ -273,6 +273,19 @@ describe('Open, close and destroy repository', () => {
     await gitDDB.destroy();
   });
 
+  test('Check README.md', async () => {
+    const dbName = 'test_repos_6';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    // Create db
+    await gitDDB.open();
+    expect(fs.readFileSync(`${gitDDB.workingDir()}/README.md`, 'utf-8')).toBe(dbName);
+    await gitDDB.destroy();
+  });
+
   test('GitDocumentDB constructor', () => {
     expect(() => {
       // eslint-disable-next-line no-new

@@ -33,7 +33,7 @@ import {
   Task,
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
-import { putImpl } from './crud/put';
+import { put_worker, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
@@ -135,6 +135,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   public readonly defaultBranch = 'main';
 
+  private _firstFileName = 'README.md';
+  private _firstFileContents: string;
+  private _firstCommitMessage = 'first commit';
+
   private _localDir: string;
   private _dbName: string;
   private _currentRepository: nodegit.Repository | undefined;
@@ -180,6 +184,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
     this._dbName = options.db_name;
     this._localDir = options.local_dir ?? defaultLocalDir;
+
+    this._firstFileContents = options.db_name;
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
@@ -332,6 +338,14 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       ).catch(err => {
         return Promise.reject(err);
       });
+
+      await put_worker(
+        this,
+        this._firstFileName,
+        '',
+        this._firstFileContents,
+        this._firstCommitMessage
+      );
     }
 
     // Check git description
