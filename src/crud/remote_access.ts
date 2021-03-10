@@ -103,7 +103,10 @@ export class RemoteAccess implements IRemoteAccess {
         auth: auth.personal_access_token,
       });
       const credentials = (url: string, userName: string) => {
-        return nodegit.Cred.userpassPlaintextNew(userName, auth.personal_access_token!);
+        console.log('cred: ' + auth.personal_access_token);
+        // Type definition is wrong.
+        // @ts-ignore
+        return nodegit.Cred.sshKeyNew(userName, auth.personal_access_token!);
       };
       return credentials;
     }
