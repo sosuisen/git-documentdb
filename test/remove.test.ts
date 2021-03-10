@@ -14,9 +14,11 @@ import {
   DocumentNotFoundError,
   InvalidIdCharacterError,
   RepositoryNotOpenError,
+  UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
+import { remove_worker } from '../src/crud/remove';
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
@@ -33,7 +35,7 @@ describe('remove(): validate:', () => {
     });
     await expect(gitDDB.remove('prof01')).rejects.toThrowError(RepositoryNotOpenError);
     await expect(
-      gitDDB._remove_worker('prof01', gitDDB.fileExt, 'message')
+      remove_worker(gitDDB, 'prof01', gitDDB.fileExt, 'message')
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
@@ -238,7 +240,9 @@ describe('remove(): remove document:', () => {
     await expect(gitDDB.get(_id1)).rejects.toThrowError(DocumentNotFoundError);
     await expect(gitDDB.remove(_id1)).rejects.toThrowError(DocumentNotFoundError);
     // @ts-ignore
-    await expect(gitDDB._remove_worker(undefined)).rejects.toThrowError(
+    await expect(remove_worker(undefined)).rejects.toThrowError(UndefinedDBError);
+    // @ts-ignore
+    await expect(remove_worker(gitDDB, undefined)).rejects.toThrowError(
       DocumentNotFoundError
     );
 
@@ -414,11 +418,11 @@ describe('remove(): worker:', () => {
 
     await expect(
       Promise.all([
-        gitDDB._remove_worker(_id_a, gitDDB.fileExt, 'message'),
-        gitDDB._remove_worker(_id_b, gitDDB.fileExt, 'message'),
-        gitDDB._remove_worker(_id_c01, gitDDB.fileExt, 'message'),
-        gitDDB._remove_worker(_id_c02, gitDDB.fileExt, 'message'),
-        gitDDB._remove_worker(_id_d, gitDDB.fileExt, 'message'),
+        remove_worker(gitDDB, _id_a, gitDDB.fileExt, 'message'),
+        remove_worker(gitDDB, _id_b, gitDDB.fileExt, 'message'),
+        remove_worker(gitDDB, _id_c01, gitDDB.fileExt, 'message'),
+        remove_worker(gitDDB, _id_c02, gitDDB.fileExt, 'message'),
+        remove_worker(gitDDB, _id_d, gitDDB.fileExt, 'message'),
       ])
     ).rejects.toThrowError();
 

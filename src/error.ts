@@ -328,3 +328,12 @@ export class SyncWorkerFetchError extends BaseError {
     super(`Fetch error in sync worker: ${mes}`);
   }
 }
+
+/**
+ * @public
+ */
+export class UndefinedDBError extends BaseError {
+  constructor () {
+    super(`GitDocumentDB is undefined.`);
+  }
+}

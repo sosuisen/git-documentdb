@@ -66,7 +66,7 @@ export function removeImpl (
       taskName: 'remove',
       id: _id,
       func: () =>
-        this._remove_worker(_id, this.fileExt, options!.commit_message!)
+        remove_worker(this, _id, this.fileExt, options!.commit_message!)
           .then((result: RemoveResult) => resolve(result))
           .catch((err: Error) => reject(err)),
     });
@@ -74,17 +74,23 @@ export function removeImpl (
 }
 
 /**
- * Implementation of _remove_worker()
+ * Remove and commit a file
  *
- * @internal
+ * @throws {@link RepositoryNotOpenError}
+ * @throws {@link DocumentNotFoundError}
+ * @throws {@link CannotDeleteDataError}
  */
-export async function _remove_worker_impl (
-  this: AbstractDocumentDB,
+export async function remove_worker (
+  gitDDB: AbstractDocumentDB,
   _id: string,
   extension: string,
   commitMessage: string
 ): Promise<RemoveResult> {
-  const _currentRepository = this.getRepository();
+  if (gitDDB === undefined) {
+    return Promise.reject(new UndefinedDBError());
+  }
+
+  const _currentRepository = gitDDB.getRepository();
 
   if (_currentRepository === undefined) {
     return Promise.reject(new RepositoryNotOpenError());
@@ -96,7 +102,7 @@ export async function _remove_worker_impl (
 
   let file_sha, commit_sha: string;
   const filename = _id + extension;
-  const filePath = path.resolve(this.workingDir(), filename);
+  const filePath = path.resolve(gitDDB.workingDir(), filename);
 
   let index;
   try {
@@ -116,8 +122,8 @@ export async function _remove_worker_impl (
   try {
     const changes = await index.writeTree(); // get reference to a set of changes
 
-    const author = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
-    const committer = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
+    const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
+    const committer = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
 
     const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD');
     const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -140,8 +146,8 @@ export async function _remove_worker_impl (
     for (let i = 0; i < dirs.length; i++) {
       const dirpath =
         i === 0
-          ? path.resolve(this.workingDir(), ...dirs)
-          : path.resolve(this.workingDir(), ...dirs.slice(0, -i));
+          ? path.resolve(gitDDB.workingDir(), ...dirs)
+          : path.resolve(gitDDB.workingDir(), ...dirs.slice(0, -i));
       // eslint-disable-next-line no-await-in-loop
       await fs.rmdir(dirpath).catch(e => {
         /* not empty */

@@ -35,7 +35,7 @@ import {
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
 import { putImpl } from './crud/put';
 import { getImpl } from './crud/get';
-import { _remove_worker_impl, removeImpl } from './crud/remove';
+import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { _sync_worker_impl } from './crud/sync';
 import { RemoteAccess, syncImpl } from './crud/remote_access';
@@ -592,19 +592,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     return removeImpl.call(this, idOrDoc, options);
   }
-
-  /**
-   * @remarks
-   * This method is used only for internal use.
-   * But it is published for test purpose.
-   *
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link DocumentNotFoundError}
-   * @throws {@link CannotDeleteDataError}
-   *
-   * @internal
-   */
-  _remove_worker = _remove_worker_impl;
 
   /**
    * Get all the documents

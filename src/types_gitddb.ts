@@ -63,10 +63,4 @@ export abstract class AbstractDocumentDB {
   abstract _validator: Validator;
   abstract _pushToTaskQueue (task: Task): void;
   abstract _unshiftSyncTaskToTaskQueue (task: Task): void;
-
-  abstract _remove_worker (
-    _id: string,
-    extension: string,
-    commitMessage: string
-  ): Promise<RemoveResult>;
 }
