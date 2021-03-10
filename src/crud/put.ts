@@ -103,7 +103,7 @@ export function putImpl (
       taskName: 'put',
       id: _id,
       func: () =>
-        this._put_worker(_id, this.fileExt, data, options!.commit_message!)
+        put_worker(this, _id, this.fileExt, data, options!.commit_message!)
           .then(result => {
             resolve(result);
           })
@@ -113,18 +113,20 @@ export function putImpl (
 }
 
 /**
- * Implementation of _put_worker()
+ * Add and commit a file
  *
- * @internal
+ * @throws {@link RepositoryNotOpenError}
+ * @throws {@link CannotCreateDirectoryError}
+ * @throws {@link CannotWriteDataError}
  */
-export async function _put_worker_impl (
-  this: AbstractDocumentDB,
+export async function put_worker (
+  gitDDB: AbstractDocumentDB,
   name: string,
   extension: string,
   data: string,
   commitMessage: string
 ): Promise<PutResult> {
-  const _currentRepository = this.getRepository();
+  const _currentRepository = gitDDB.getRepository();
   if (_currentRepository === undefined) {
     return Promise.reject(new RepositoryNotOpenError());
   }
@@ -132,7 +134,7 @@ export async function _put_worker_impl (
   let file_sha, commit_sha: string;
 
   const filename = name + extension;
-  const filePath = path.resolve(this.workingDir(), filename);
+  const filePath = path.resolve(gitDDB.workingDir(), filename);
   const dir = path.dirname(filePath);
 
   try {
@@ -172,8 +174,8 @@ export async function _put_worker_impl (
     const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
     file_sha = entry.id.tostrS();
 
-    const author = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
-    const committer = nodegit.Signature.now(this.gitAuthor.name, this.gitAuthor.email);
+    const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
+    const committer = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
 
     const head = await _currentRepository.getHeadCommit();
     const parentCommits: nodegit.Commit[] = [];

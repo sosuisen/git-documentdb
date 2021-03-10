@@ -33,7 +33,7 @@ import {
   Task,
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
-import { _put_worker_impl, putImpl } from './crud/put';
+import { putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { _remove_worker_impl, removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
@@ -529,19 +529,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   ) {
     return putImpl.call(this, idOrDoc, docOrOptions, options);
   }
-
-  /**
-   * @remarks
-   * This method is used only for internal use.
-   * But it is published for test purpose.
-   *
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link CannotWriteDataError}
-   *
-   * @internal
-   */
-  _put_worker = _put_worker_impl;
 
   /**
    * Get a document

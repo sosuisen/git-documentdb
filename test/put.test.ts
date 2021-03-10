@@ -20,6 +20,7 @@ import {
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 import { Validator } from '../src/validator';
+import { put_worker } from '../src/crud/put';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -47,7 +48,8 @@ describe('put(): validate: overload 1:', () => {
       RepositoryNotOpenError
     );
     await expect(
-      gitDDB._put_worker(
+      put_worker(
+        gitDDB,
         'prof01',
         gitDDB.fileExt,
         '{ "_id": "prof01", "name": "Shirase" }',
@@ -738,37 +740,43 @@ describe('put(): worker:', () => {
 
     await expect(
       Promise.all([
-        gitDDB._put_worker(
+        put_worker(
+          gitDDB,
           _id_a,
           gitDDB.fileExt,
           `{ "_id": "${_id_a}", "name": "${name_a}" }`,
           'message'
         ),
-        gitDDB._put_worker(
+        put_worker(
+          gitDDB,
           _id_b,
           gitDDB.fileExt,
           `{ "_id": "${_id_b}", "name": "${name_b}" }`,
           'message'
         ),
-        gitDDB._put_worker(
+        put_worker(
+          gitDDB,
           _id_c01,
           gitDDB.fileExt,
           `{ "_id": "${_id_c01}", "name": "${name_c01}" }`,
           'message'
         ),
-        gitDDB._put_worker(
+        put_worker(
+          gitDDB,
           _id_c02,
           gitDDB.fileExt,
           `{ "_id": "${_id_c02}", "name": "${name_c02}" }`,
           'message'
         ),
-        gitDDB._put_worker(
+        put_worker(
+          gitDDB,
           _id_d,
           gitDDB.fileExt,
           `{ "_id": "${_id_d}", "name": "${name_d}" }`,
           'message'
         ),
-        gitDDB._put_worker(
+        put_worker(
+          gitDDB,
           _id_p,
           gitDDB.fileExt,
           `{ "_id": "${_id_p}", "name": "${name_p}" }`,
