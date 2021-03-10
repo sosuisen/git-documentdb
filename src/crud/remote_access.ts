@@ -52,15 +52,14 @@ export class RemoteAccess implements IRemoteAccess {
   author: nodegit.Signature;
   committer: nodegit.Signature;
 
-  constructor (_gitDDB: AbstractDocumentDB, _remoteURL: string, _options: RemoteOptions) {
+  constructor (_gitDDB: AbstractDocumentDB, _remoteURL: string, _options?: RemoteOptions) {
     this._gitDDB = _gitDDB;
     this._remoteURL = _remoteURL;
     if (_remoteURL === undefined || _remoteURL === '') {
       throw new UndefinedRemoteURLError();
     }
 
-    this._options = _options;
-    this._options ??= {
+    this._options = _options ?? {
       live: false,
       sync_direction: undefined,
       interval: undefined,
