@@ -207,8 +207,8 @@ A directory name cannot end with a period or a white space, but the current dire
  * @public
  */
 export class InvalidSSHKeyPathError extends BaseError {
-  constructor (name: string) {
-    const e = `Invalid SSH key path: ${name}`;
+  constructor () {
+    const e = `Invalid SSH key path`;
     super(e);
   }
 }
@@ -255,8 +255,8 @@ export class RemoteRepositoryNotFoundError extends BaseError {
  * @public
  */
 export class InvalidSSHKeyFormatError extends BaseError {
-  constructor (path: string) {
-    super(`Format of SSH key pair is invalid : ${path}`);
+  constructor () {
+    super(`Format of SSH key pair is invalid.`);
   }
 }
 
@@ -264,8 +264,8 @@ export class InvalidSSHKeyFormatError extends BaseError {
  * @public
  */
 export class PushPermissionDeniedError extends BaseError {
-  constructor (path: string) {
-    super(`Permission denied to push to the repository by using ${path}`);
+  constructor () {
+    super(`Permission denied to push to the repository.`);
   }
 }
 
@@ -284,8 +284,27 @@ export class UndefinedGitHubAuthenticationError extends BaseError {
 export class RemoteAlreadyRegisteredError extends BaseError {
   constructor (url: string) {
     super(
-      `The remote repository has already been registered. :${mes}
+      `The remote repository has already been registered. :${url}
 Call removeRemote() before register it again.`
     );
+  }
+}
+
+/**
+ * @public
+ */
+export class InvalidAuthenticationTypeError extends BaseError {
+  constructor (type: string) {
+    super(`Authentication type must be one of the following values: 'github', 'ssh'.
+Current value is '${type}'`);
+  }
+}
+
+/**
+ * @public
+ */
+export class UndefinedPersonalAccessTokenError extends BaseError {
+  constructor () {
+    super(`Personal Access Token of your GitHub account is needed.`);
   }
 }

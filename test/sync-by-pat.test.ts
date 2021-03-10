@@ -6,6 +6,9 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+/**
+ * Test sync by using GitHub Personal Access Token
+ */
 import path from 'path';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
@@ -17,10 +20,7 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const maybe =
-  process.env.GITDDB_PRIVATE_KEY_PATH && process.env.GITDDB_PUBLIC_KEY_PATH
-    ? describe
-    : describe.skip;
+const maybe = process.env.GITDDB_PERSONAL_ACCESS_TOKEN ? describe : describe.skip;
 
 maybe('sync(): Sync Class:', () => {
   const localDir = `./test/database_put${monoId()}`;
@@ -45,10 +45,9 @@ maybe('sync(): Sync Class:', () => {
     });
     const options: RemoteOptions = {
       live: false,
-      ssh: {
-        use: true,
-        private_key_path: '',
-        public_key_path: '',
+      auth: {
+        type: 'github',
+        personal_access_token: '',
       },
     };
     expect(() => gitDDB.sync('', options)).toThrowError(UndefinedRemoteURLError);

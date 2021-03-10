@@ -192,6 +192,21 @@ export type DatabaseCloseOption = {
 };
 
 export type SyncDirection = 'pull' | 'push' | 'both';
+export type RemoteAuthGitHub = {
+  type: 'github';
+  personal_access_token?: string;
+};
+export type RemoteAuthSSH = {
+  type: 'ssh';
+  private_key_path: string;
+  public_key_path: string;
+  pass_phrase?: string;
+};
+export type RemoteAuthNone = {
+  type: 'none';
+};
+
+export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
 /**
  * Options for RemoteAccess class
  */
@@ -199,15 +214,7 @@ export type RemoteOptions = {
   live: boolean;
   sync_direction?: SyncDirection;
   interval?: number; // msec
-  github?: {
-    personal_access_token?: string;
-  };
-  ssh?: {
-    use: boolean;
-    private_key_path: string;
-    public_key_path: string;
-    pass_phrase?: string;
-  };
+  auth?: RemoteAuth;
 };
 
 /**

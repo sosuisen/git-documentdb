@@ -9,6 +9,7 @@
 import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
 import {
+  InvalidAuthenticationTypeError,
   InvalidSSHKeyFormatError,
   InvalidSSHKeyPathError,
   InvalidURLFormatError,
@@ -16,10 +17,11 @@ import {
   RemoteRepositoryNotFoundError,
   RepositoryNotOpenError,
   UndefinedGitHubAuthenticationError,
+  UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
   UnresolvedHostError,
 } from '../error';
-import { IRemoteAccess, RemoteOptions } from '../types';
+import { IRemoteAccess, RemoteAuthGitHub, RemoteAuthSSH, RemoteOptions } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { _sync_worker_impl } from './sync';
 
@@ -38,7 +40,7 @@ export class RemoteAccess implements IRemoteAccess {
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
-  private _octokit: Octokit;
+  private _octokit: Octokit | undefined;
   private _remoteURL: string;
 
   callbacks: { [key: string]: any };
@@ -57,49 +59,13 @@ export class RemoteAccess implements IRemoteAccess {
       live: false,
       sync_direction: undefined,
       interval: undefined,
-      github: undefined,
-      ssh: undefined,
+      auth: undefined,
     };
     this._options.sync_direction ??= 'both';
     this._options.interval ??= defaultPullInterval;
 
-    this._options.github ??= {
-      personal_access_token: undefined,
-    };
-    this._options.github.personal_access_token ??= '';
-
-    this._options.ssh ??= {
-      use: false,
-      private_key_path: '',
-      public_key_path: '',
-      pass_phrase: undefined,
-    };
-
-    if (this._options.ssh?.use) {
-      if (
-        this._options.ssh?.private_key_path === undefined ||
-        this._options.ssh?.private_key_path === ''
-      ) {
-        throw new InvalidSSHKeyPathError(this._options.ssh.private_key_path);
-      }
-      if (
-        this._options.ssh?.public_key_path === undefined ||
-        this._options.ssh?.public_key_path === ''
-      ) {
-        throw new InvalidSSHKeyPathError(this._options.ssh.public_key_path);
-      }
-      this._options.ssh.pass_phrase ??= '';
-    }
-
     this.callbacks = {
-      credentials: function (url: string, userName: string) {
-        return nodegit.Cred.sshKeyNew(
-          userName,
-          this._options.ssh!.public_key_path,
-          this._options.ssh!.private_key_path,
-          this._options.ssh!.pass_phrase!
-        );
-      },
+      credentials: this._createCredential(),
     };
     if (process.platform === 'darwin') {
       // @ts-ignore
@@ -120,10 +86,6 @@ export class RemoteAccess implements IRemoteAccess {
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
-    this._octokit = new Octokit({
-      auth: this._options.github.personal_access_token,
-    });
-
     this._addRemoteRepository(_remoteURL).catch(err => {
       throw err;
     });
@@ -134,23 +96,65 @@ export class RemoteAccess implements IRemoteAccess {
     }
   }
 
-  remoteURL () {
-    return this._remoteURL;
+  private _createCredential () {
+    this._options.auth ??= { type: 'none' };
+
+    if (this._options.auth.type === 'github') {
+      const auth = this._options.auth as RemoteAuthGitHub;
+      if (!auth.personal_access_token) {
+        throw new UndefinedPersonalAccessTokenError();
+      }
+      this._octokit = new Octokit({
+        auth: auth.personal_access_token,
+      });
+      const credentials = (url: string, userName: string) => {
+        return nodegit.Cred.userpassPlaintextNew(userName, auth.personal_access_token!);
+      };
+      return credentials;
+    }
+    else if (this._options.auth.type === 'ssh') {
+      const auth = this._options.auth as RemoteAuthSSH;
+      if (auth.private_key_path === undefined || auth.private_key_path === '') {
+        throw new InvalidSSHKeyPathError();
+      }
+      if (auth.public_key_path === undefined || auth.public_key_path === '') {
+        throw new InvalidSSHKeyPathError();
+      }
+      auth.pass_phrase ??= '';
+
+      const credentials = (url: string, userName: string) => {
+        return nodegit.Cred.sshKeyNew(
+          userName,
+          auth.public_key_path,
+          auth.private_key_path,
+          auth.pass_phrase!
+        );
+      };
+    }
+    // @ts-ignore
+    else if (this._options.auth.type !== 'none') {
+      // @ts-ignore
+      throw new InvalidAuthenticationTypeError(this._options.auth.type);
+    }
   }
 
   private async _createRepository () {
-    await this._octokit.repos
-      .createForAuthenticatedUser({ name: this._gitDDB.dbName() })
-      .catch(err => {
+    if (this._options.auth?.type === 'github') {
+      await this._octokit!.repos.createForAuthenticatedUser({
+        name: this._gitDDB.dbName(),
+      }).catch(err => {
         throw err;
       });
-    // May throw HttpError
-    // HttpError: Repository creation failed.:
-    // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
+      // May throw HttpError
+      // HttpError: Repository creation failed.:
+      // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
+    }
   }
 
   private async _deleteRepository (owner: string, repo: string) {
-    await this._octokit.repos.delete({ owner, repo });
+    if (this._options.auth?.type === 'github') {
+      await this._octokit!.repos.delete({ owner, repo });
+    }
   }
 
   /**
@@ -186,11 +190,6 @@ export class RemoteAccess implements IRemoteAccess {
         // Remote repository does not exist, or you do not have permission to the private repository
         if (_remoteURL.match(/github\.com/)) {
           // Try to create repository by octokit
-          if (this._options.github?.personal_access_token === '') {
-            throw new UndefinedGitHubAuthenticationError(
-              'Personal access token is needed.'
-            );
-          }
           await this._createRepository().catch(err => {
             // Expected errors:
             //  - The private repository which has the same name exists.
@@ -204,7 +203,7 @@ export class RemoteAccess implements IRemoteAccess {
           throw new RemoteRepositoryNotFoundError(_remoteURL);
         }
       case fetchCode.startsWith('Failed to retrieve list of SSH authentication methods'):
-        throw new InvalidSSHKeyFormatError(this._options.ssh!.private_key_path);
+        throw new InvalidSSHKeyFormatError();
       default:
         break;
     }
@@ -214,13 +213,21 @@ export class RemoteAccess implements IRemoteAccess {
         .connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks)
         .catch(err => err);
       switch (true) {
-        case pushCode.startsWith('Error: ERROR: Permission to'):
+        case pushCode.startsWith('Error: ERROR: Permission to'): {
           // Remote repository is read only
-          throw new PushPermissionDeniedError(this._options.ssh!.private_key_path);
+          throw new PushPermissionDeniedError();
+        }
         default:
           break;
       }
     }
+  }
+
+  /**
+   * Get remoteURL
+   */
+  remoteURL () {
+    return this._remoteURL;
   }
 
   /**
