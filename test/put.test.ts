@@ -16,6 +16,7 @@ import {
   InvalidJsonObjectError,
   InvalidPropertyNameInDocumentError,
   RepositoryNotOpenError,
+  UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
@@ -259,6 +260,19 @@ describe('put(): validate: overload 1:', () => {
     // Read JSON and check doc._id
     expect(fs.readJSONSync(filePath)._id).toBe(_id);
 
+    await gitDDB.destroy();
+  });
+
+  test('Undefined DB', async () => {
+    const dbName = `test_repos_${monoId()}`;
+
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.open();
+    // @ts-ignore
+    await expect(put_worker(undefined)).rejects.toThrowError(UndefinedDBError);
     await gitDDB.destroy();
   });
 });

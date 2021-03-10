@@ -17,6 +17,7 @@ import {
   DatabaseClosingError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
+  UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
 import { toSortedJSONString } from '../utils';
@@ -126,6 +127,10 @@ export async function put_worker (
   data: string,
   commitMessage: string
 ): Promise<PutResult> {
+  if (gitDDB === undefined) {
+    return Promise.reject(new UndefinedDBError());
+  }
+
   const _currentRepository = gitDDB.getRepository();
   if (_currentRepository === undefined) {
     return Promise.reject(new RepositoryNotOpenError());
