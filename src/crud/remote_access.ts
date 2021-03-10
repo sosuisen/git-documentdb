@@ -298,6 +298,7 @@ export class RemoteAccess implements IRemoteAccess {
     if (this._syncTimer) {
       clearInterval(this._syncTimer);
     }
+    this._options.live = false;
   }
 
   /**
@@ -311,9 +312,8 @@ export class RemoteAccess implements IRemoteAccess {
    * Resume sync
    */
   resume () {
-    if (this._options.live) {
-      this._syncTimer = setInterval(this._trySync, this._options.interval!);
-    }
+    this._options.live = true;
+    this._syncTimer = setInterval(this._trySync, this._options.interval!);
   }
 
   private _trySync () {
