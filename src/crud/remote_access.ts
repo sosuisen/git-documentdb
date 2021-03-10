@@ -197,19 +197,22 @@ export class RemoteAccess implements IRemoteAccess {
     }
 
     // Check fetch and push
-    const fetchCode = await remote
-      .connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks)
-      .catch(err => err);
+    const fetchCode = String(
+      await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
+    );
     switch (true) {
+      case fetchCode === 'undefined':
+        break;
       case fetchCode.startsWith('Error: unsupported URL protocol'):
         throw new InvalidURLFormatError(_remoteURL);
       case fetchCode.startsWith('Error: failed to resolve address'):
         throw new UnresolvedHostError(_remoteURL);
+      case fetchCode.startsWith('Error: request failed with status code: 401'):
       case fetchCode.startsWith('Error: ERROR: Repository not found'):
         // Remote repository does not exist, or you do not have permission to the private repository
-        if (_remoteURL.match(/github\.com/)) {
+        if (this._options.auth?.type === 'github') {
           // Try to create repository by octokit
-          await this._createRepository().catch(err => {
+          await this.createRepositoryOnRemote(_remoteURL).catch(err => {
             // Expected errors:
             //  - The private repository which has the same name exists.
             //  - Authentication error
