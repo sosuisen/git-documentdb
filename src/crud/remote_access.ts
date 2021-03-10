@@ -231,10 +231,32 @@ export class RemoteAccess implements IRemoteAccess {
       this._syncTimer = setInterval(this._trySync, this._options.interval!);
     }
   }
+
+  /**
+   * Get interval of sync
+   */
+  getInterval () {
+    return this._options.interval!;
+  }
+
+  /**
+   * Get sync direction
+   */
+  getSyncDirection () {
+    return this._options.sync_direction!;
+  }
+
+  /**
+   * Get live status
+   */
+  getLiveStatus () {
+    return this._options.live;
+  }
+
   /**
    * Get remoteURL
    */
-  remoteURL () {
+  getRemoteURL () {
     return this._remoteURL;
   }
 

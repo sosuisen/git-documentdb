@@ -232,4 +232,8 @@ export interface IRemoteAccess {
   callbacks: { [key: string]: any };
   author: nodegit.Signature;
   committer: nodegit.Signature;
+  getInterval(): number;
+  getSyncDirection(): SyncDirection;
+  getLiveStatus(): boolean;
+  getRemoteURL(): string;
 }
