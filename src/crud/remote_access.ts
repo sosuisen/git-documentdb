@@ -17,7 +17,6 @@ import {
   PushPermissionDeniedError,
   RemoteRepositoryNotFoundError,
   RepositoryNotOpenError,
-  UndefinedGitHubAuthenticationError,
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
   UnresolvedHostError,
@@ -38,6 +37,9 @@ export async function syncImpl (
 
 const defaultPullInterval = 10000;
 
+/**
+ * RemoteAccess class
+ */
 export class RemoteAccess implements IRemoteAccess {
   private _gitDDB: AbstractDocumentDB;
   private _options: RemoteOptions;
