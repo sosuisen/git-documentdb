@@ -7,7 +7,6 @@
  */
 
 import path from 'path';
-import { Z_DEFAULT_COMPRESSION } from 'zlib';
 import fs from 'fs-extra';
 import nodegit from '@sosuisen/nodegit';
 import { AbstractDocumentDB } from '../types_gitddb';
@@ -16,6 +15,7 @@ import {
   DatabaseClosingError,
   DocumentNotFoundError,
   RepositoryNotOpenError,
+  UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
 import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
