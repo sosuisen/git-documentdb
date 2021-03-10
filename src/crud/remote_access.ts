@@ -103,7 +103,6 @@ export class RemoteAccess implements IRemoteAccess {
         auth: auth.personal_access_token,
       });
       const credentials = (url: string, userName: string) => {
-        console.log('cred: ' + auth.personal_access_token);
         // Type definition is wrong.
         // @ts-ignore
         return nodegit.Cred.sshKeyNew(userName, auth.personal_access_token!);
@@ -200,6 +199,7 @@ export class RemoteAccess implements IRemoteAccess {
     const fetchCode = String(
       await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
     );
+    console.log(fetchCode);
     switch (true) {
       case fetchCode === 'undefined':
         break;
@@ -208,10 +208,12 @@ export class RemoteAccess implements IRemoteAccess {
       case fetchCode.startsWith('Error: failed to resolve address'):
         throw new UnresolvedHostError(_remoteURL);
       case fetchCode.startsWith('Error: request failed with status code: 401'):
+      case fetchCode.startsWith('Error: Method connect has thrown an error'):
       case fetchCode.startsWith('Error: ERROR: Repository not found'):
         // Remote repository does not exist, or you do not have permission to the private repository
         if (this._options.auth?.type === 'github') {
           // Try to create repository by octokit
+          console.log('create repos: ' + _remoteURL);
           await this.createRepositoryOnRemote(_remoteURL).catch(err => {
             // Expected errors:
             //  - The private repository which has the same name exists.
