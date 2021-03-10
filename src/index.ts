@@ -316,7 +316,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       () => undefined
     );
     if (this._currentRepository === undefined) {
-      // console.debug(`Create new repository: ${pathToRepo}`);
+      /**
+       * Create a repository followed by first commit
+       */
       const isBare = 0;
       const options: RepositoryInitOptions = {
         description: defaultDescription,
