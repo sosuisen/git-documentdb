@@ -19,7 +19,6 @@ const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
 };
-
 const maybe = process.env.GITDDB_PERSONAL_ACCESS_TOKEN ? describe : describe.skip;
 
 maybe('sync(): Sync Class:', () => {
@@ -37,7 +36,7 @@ maybe('sync(): Sync Class:', () => {
     }
   });
 
-  test('Invalid private key path', () => {
+  test('Undefined token', () => {
     const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
