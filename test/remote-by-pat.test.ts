@@ -77,6 +77,7 @@ maybe('remote: use personal access token:', () => {
   };
 
   beforeAll(async () => {
+    console.log('deleting remote test repositories...');
     // Remove test repositories on remote
     const octokit = new Octokit({
       auth: token,
@@ -88,6 +89,7 @@ maybe('remote: use personal access token:', () => {
       promises.push(octokit.repos.delete({ owner, repo: id }).catch(() => {}))
     );
     await Promise.all(promises);
+    console.log('done.');
 
     // Remote local repositories
     if (process.platform !== 'win32') {
@@ -199,7 +201,7 @@ maybe('remote: use personal access token:', () => {
     gitDDB.destroy();
   });
 
-  test('Remote repository not found', async () => {
+  test('Create RemoteAccess with a new remote repository', async () => {
     const dbName = serialId();
     const remoteURL = remoteURLBase + dbName;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -215,7 +217,7 @@ maybe('remote: use personal access token:', () => {
         live: false,
         auth: { type: 'github', personal_access_token: token },
       })
-    ).rejects.toThrowError(RemoteRepositoryNotFoundError);
+    ).resolves.not.toThrowError();
 
     gitDDB.destroy();
   });
