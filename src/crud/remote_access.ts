@@ -214,6 +214,7 @@ export class RemoteAccess implements IRemoteAccess {
       case fetchCode.startsWith('Error: failed to resolve address'):
         throw new UnresolvedHostError(_remoteURL);
       case fetchCode.startsWith('Error: request failed with status code: 401'):
+      case fetchCode.startsWith('Error: request failed with status code: 404'):
       case fetchCode.startsWith('Error: Method connect has thrown an error'):
       case fetchCode.startsWith('Error: ERROR: Repository not found'):
         // Remote repository does not exist, or you do not have permission to the private repository
