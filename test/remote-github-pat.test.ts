@@ -8,7 +8,7 @@
 
 /**
  * Test synchronization (pull & push)
- * with GitHub Personal Access Token
+ * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
@@ -78,6 +78,9 @@ maybe('remote: use personal access token:', () => {
   };
 
   beforeAll(async () => {
+    // Remote local repositories
+    fs.removeSync(path.resolve(localDir));
+
     console.log('deleting remote test repositories...');
     // Remove test repositories on remote
     const octokit = new Octokit({
@@ -86,22 +89,22 @@ maybe('remote: use personal access token:', () => {
     const urlArray = remoteURLBase!.split('/');
     const owner = urlArray[urlArray.length - 2];
     const promises: Promise<any>[] = [];
-    allIds.forEach(id =>
-      promises.push(octokit.repos.delete({ owner, repo: id }).catch(() => {}))
-    );
+    allIds.forEach(id => {
+      console.log('delete: ' + owner + '/' + id);
+      promises.push(
+        octokit.repos.delete({ owner, repo: id }).catch(err => {
+          if (err.status !== 404) {
+            console.log(err);
+          }
+        })
+      );
+    });
     await Promise.all(promises);
     console.log('done.');
-
-    // Remote local repositories
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
   });
 
   afterAll(() => {
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
+    //    fs.removeSync(path.resolve(localDir));
   });
 
   test('Undefined remoteURL', async () => {
@@ -220,7 +223,7 @@ maybe('remote: use personal access token:', () => {
       })
     ).resolves.not.toThrowError();
 
-    gitDDB.destroy();
+    //    gitDDB.destroy();
   });
 
   test.skip('Test when remoteURL does not start with http');
