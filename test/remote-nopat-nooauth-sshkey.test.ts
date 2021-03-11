@@ -7,8 +7,13 @@
  */
 
 /**
- * Test sync by using SSH key pair
+ * Test synchronization (pull & push)
+ * without GitHub Personal Access Token
+ * without OAuth on GitHub
+ * with SSH key pair authentication
+ * These tests does not create a new repository on GitHub if not exists.
  */
+
 import path from 'path';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';

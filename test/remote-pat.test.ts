@@ -7,7 +7,9 @@
  */
 
 /**
- * Test sync by using GitHub Personal Access Token
+ * Test synchronization (pull & push)
+ * with GitHub Personal Access Token
+ * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
 import { Octokit } from '@octokit/rest';
