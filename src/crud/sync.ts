@@ -24,13 +24,15 @@ export async function _sync_worker_impl (
 
   console.debug('fetch: ' + remoteAccess.getRemoteURL());
   // Fetch
-  await repos
-    .fetch('origin', {
-      callbacks: remoteAccess.callbacks,
-    })
-    .catch(err => {
-      throw new SyncWorkerFetchError(err.message);
-    });
+  if (remoteAccess.upstream_branch !== '') {
+    await repos
+      .fetch('origin', {
+        callbacks: remoteAccess.callbacks,
+      })
+      .catch(err => {
+        throw new SyncWorkerFetchError(err.message);
+      });
+  }
 
   console.debug('get local and remote commit');
   const localCommit = await repos.getHeadCommit().catch(() => undefined);
