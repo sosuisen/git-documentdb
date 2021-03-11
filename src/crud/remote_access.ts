@@ -6,6 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import path from 'path';
 import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
 import {
@@ -104,10 +105,11 @@ export class RemoteAccess implements IRemoteAccess {
       this._octokit = new Octokit({
         auth: auth.personal_access_token,
       });
-      const credentials = (url: string, userName: string) => {
-        // Type definition is wrong.
-        // @ts-ignore
-        return nodegit.Cred.sshKeyNew(userName, auth.personal_access_token!);
+      const urlArray = this._remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+
+      const credentials = () => {
+        return nodegit.Cred.userpassPlaintextNew(owner, auth.personal_access_token!);
       };
       return credentials;
     }
