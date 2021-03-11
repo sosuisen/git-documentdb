@@ -19,7 +19,6 @@ import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
   AuthNeededForPushOrSyncError,
-  RemoteRepositoryNotFoundError,
   RepositoryNotOpenError,
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
