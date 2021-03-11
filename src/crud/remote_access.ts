@@ -48,6 +48,8 @@ export class RemoteAccess implements IRemoteAccess {
   private _octokit: Octokit | undefined;
   private _remoteURL: string;
 
+  upstream_branch = '';
+
   callbacks: { [key: string]: any };
   author: nodegit.Signature;
   committer: nodegit.Signature;
@@ -189,6 +191,7 @@ export class RemoteAccess implements IRemoteAccess {
     let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
       // Add remote repository
+      console.log('add remote: ' + _remoteURL);
       remote = await nodegit.Remote.create(repos, 'origin', _remoteURL);
     }
     else if (remote.url() !== _remoteURL) {
