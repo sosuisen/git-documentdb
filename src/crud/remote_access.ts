@@ -187,6 +187,7 @@ export class RemoteAccess implements IRemoteAccess {
         await repos.getBranch(this._gitDDB.defaultBranch),
         `origin/${this._gitDDB.defaultBranch}`
       );
+      this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
 
     if (this._options.live) {
