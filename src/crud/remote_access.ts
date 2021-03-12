@@ -84,6 +84,8 @@ export class RemoteAccess implements IRemoteAccess {
       this._callbacks.certificateCheck = () => 0;
     }
 
+    this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
+
     this.author = nodegit.Signature.now(
       this._gitDDB.gitAuthor.name,
       this._gitDDB.gitAuthor.email
@@ -183,6 +185,10 @@ export class RemoteAccess implements IRemoteAccess {
     });
     await this._trySync();
     if (this.upstream_branch === '') {
+      // Empty upstream_branch shows that an empty repository has been created on a remote site
+      // and after that _trySync() has pushed local commits to a remote branch.
+      // In this case, an upstream branch must be set to a local branch after the first push
+      // because refs/remotes/origin/main is not created until the first push.
       await nodegit.Branch.setUpstream(
         await repos.getBranch(this._gitDDB.defaultBranch),
         `origin/${this._gitDDB.defaultBranch}`
@@ -201,6 +207,7 @@ export class RemoteAccess implements IRemoteAccess {
    * auth.type must be 'github'
    */
   async createRepositoryOnRemote (_remoteURL: string) {
+    this.upstream_branch = '';
     if (this._options.auth?.type === 'github') {
       const urlArray = _remoteURL.split('/');
       const owner = urlArray[urlArray.length - 2];
