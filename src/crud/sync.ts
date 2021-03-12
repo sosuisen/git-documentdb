@@ -33,32 +33,21 @@ export async function _sync_worker_impl (
         throw new SyncWorkerFetchError(err.message);
       });
   }
-
-  console.debug('get local and remote commit');
-  const localCommit = await repos.getHeadCommit().catch(() => undefined);
-  console.debug('get local commit');
-  const remoteCommit = await repos
-    .getReferenceCommit('refs/remotes/origin/main')
-    .catch(() => undefined);
-  console.debug('get remote commit');
-  if (localCommit === undefined) {
-    console.error('localCommit not found');
-    return;
-  }
-  if (remoteCommit === undefined) {
-    console.debug('try to push...');
+  else {
     // Remote repository is empty.
     const remote: nodegit.Remote = await repos.getRemote('origin');
-    await remote
-      .push(['refs/heads/main:refs/heads/main'], {
+    await remote.push(
+      [`refs/heads/${this.defaultBranch}:refs/heads/${this.defaultBranch}`],
+      {
         callbacks: remoteAccess.callbacks,
-      })
-      .catch(err => console.error(err));
+      }
+    );
     console.log('Pushed.');
     return;
   }
 
-  console.debug('calc distance');
+  const localCommit = await repos.getHeadCommit();
+  const remoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
 
   // @types/nodegit is wrong
   const distance = ((await nodegit.Graph.aheadBehind(
