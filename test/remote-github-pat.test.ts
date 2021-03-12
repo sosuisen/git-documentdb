@@ -19,6 +19,8 @@ import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
   AuthNeededForPushOrSyncError,
+  HttpProtocolRequiredError,
+  InvalidRepositoryURLError,
   RepositoryNotOpenError,
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
@@ -32,7 +34,7 @@ const monoId = () => {
 
 const idPool: string[] = [];
 const allIds: string[] = [];
-const MAX_ID = 20;
+const MAX_ID = 30;
 for (let i = 0; i < MAX_ID; i++) {
   idPool.push(`test_repos_${i}`);
   allIds.push(`test_repos_${i}`);
@@ -52,7 +54,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('remote: use personal access token:', () => {
+maybe('remote: use personal access token: ', () => {
   const localDir = `./test/database_remote_by_pat_${monoId()}`;
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
@@ -104,127 +106,157 @@ maybe('remote: use personal access token:', () => {
   });
 
   afterAll(() => {
-    //    fs.removeSync(path.resolve(localDir));
+    fs.removeSync(path.resolve(localDir));
   });
 
-  test('Undefined remoteURL', async () => {
-    const dbName = serialId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    const options: RemoteOptions = {
-      live: false,
-      auth: {
-        type: 'github',
-        personal_access_token: '',
-      },
-    };
-    await expect(gitDDB.sync('', options)).rejects.toThrowError(UndefinedRemoteURLError);
-    gitDDB.destroy();
-  });
+  describe('constructor: ', () => {
+    test('Create and remove remote repository by personal access token', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + dbName;
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
 
-  test('Undefined personal access token', async () => {
-    const dbName = serialId();
-    const remoteURL = remoteURLBase + dbName;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    const options: RemoteOptions = {
-      live: false,
-      auth: {
-        type: 'github',
-        personal_access_token: '',
-      },
-    };
-    await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
-      UndefinedPersonalAccessTokenError
-    );
-    gitDDB.destroy();
-  });
+      // Check if the repository is deleted.
+      const octokit = new Octokit({
+        auth: token,
+      });
 
-  test('Repository not open', async () => {
-    const dbName = serialId();
-    const remoteURL = remoteURLBase + dbName;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      const urlArray = remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
+
+      await createRemoteRepository(gitDDB, remoteURL);
+
+      await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
+
+      await destroyRemoteRepository(gitDDB, remoteURL);
+
+      await expect(octokit.repos.listBranches({ owner, repo })).rejects.toThrowError();
     });
-    await expect(
-      gitDDB.sync(remoteURL, {
+
+    test('Undefined remoteURL', async () => {
+      const dbName = serialId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+      const options: RemoteOptions = {
         live: false,
-        auth: { type: 'github', personal_access_token: token },
-      })
-    ).rejects.toThrowError(RepositoryNotOpenError);
-    gitDDB.destroy();
-  });
-
-  test('Create and remove remote repository by token', async () => {
-    const dbName = serialId();
-    const remoteURL = remoteURLBase + dbName;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
-
-    // Check if the repository is deleted.
-    const octokit = new Octokit({
-      auth: token,
+        auth: {
+          type: 'github',
+          personal_access_token: '',
+        },
+      };
+      await expect(gitDDB.sync('', options)).rejects.toThrowError(UndefinedRemoteURLError);
+      await gitDDB.destroy();
     });
 
-    const urlArray = remoteURL.split('/');
-    const owner = urlArray[urlArray.length - 2];
-    const repo = urlArray[urlArray.length - 1];
-
-    await createRemoteRepository(gitDDB, remoteURL);
-
-    await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
-
-    await destroyRemoteRepository(gitDDB, remoteURL);
-
-    await expect(octokit.repos.listBranches({ owner, repo })).rejects.toThrowError();
-  });
-
-  test('Undefined options', async () => {
-    const dbName = serialId();
-    const remoteURL = remoteURLBase + dbName;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
-
-    await createRemoteRepository(gitDDB, remoteURL);
-
-    await expect(gitDDB.sync(remoteURL)).rejects.toThrowError(AuthNeededForPushOrSyncError);
-
-    await destroyRemoteRepository(gitDDB, remoteURL);
-
-    gitDDB.destroy();
-  });
-
-  test('Create RemoteAccess with a new remote repository', async () => {
-    const dbName = serialId();
-    const remoteURL = remoteURLBase + dbName;
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.open();
-
-    await destroyRemoteRepository(gitDDB, remoteURL);
-
-    await expect(
-      gitDDB.sync(remoteURL, {
+    test('HTTP protocol is required', async () => {
+      const dbName = serialId();
+      const remoteURL = 'ssh://github.com/';
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+      const options: RemoteOptions = {
         live: false,
-        auth: { type: 'github', personal_access_token: token },
-      })
-    ).resolves.not.toThrowError();
+        auth: {
+          type: 'github',
+          personal_access_token: 'foobar',
+        },
+      };
+      await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
+        HttpProtocolRequiredError
+      );
+      await gitDDB.destroy();
+    });
 
-    //    gitDDB.destroy();
+    test('Undefined personal access token', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + dbName;
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+      const options: RemoteOptions = {
+        live: false,
+        auth: {
+          type: 'github',
+          personal_access_token: '',
+        },
+      };
+      await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
+        UndefinedPersonalAccessTokenError
+      );
+      await gitDDB.destroy();
+    });
+
+    test('Invalid Remote Repository URL', async () => {
+      const dbName = serialId();
+      const remoteURL = 'https://github.com/';
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+      const options: RemoteOptions = {
+        live: false,
+        auth: {
+          type: 'github',
+          personal_access_token: 'foobar',
+        },
+      };
+      await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
+        InvalidRepositoryURLError
+      );
+      await gitDDB.destroy();
+    });
   });
 
-  test.skip('Test when remoteURL does not start with http');
+  test.skip('Test _addRemoteRepository');
+
+  describe('connectToRemote: ', () => {
+    test('Repository not open', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + dbName;
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await expect(
+        gitDDB.sync(remoteURL, {
+          live: false,
+          auth: { type: 'github', personal_access_token: token },
+        })
+      ).rejects.toThrowError(RepositoryNotOpenError);
+      await gitDDB.destroy();
+    });
+
+    test('Create RemoteAccess with a new remote repository', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + dbName;
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+
+      await destroyRemoteRepository(gitDDB, remoteURL);
+
+      await expect(
+        gitDDB.sync(remoteURL, {
+          live: false,
+          auth: { type: 'github', personal_access_token: token },
+        })
+      ).resolves.not.toThrowError();
+
+      //   await gitDDB.destroy();
+    });
+  });
 });

@@ -6,12 +6,13 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import path from 'path';
 import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
 import {
   AuthNeededForPushOrSyncError,
+  HttpProtocolRequiredError,
   InvalidAuthenticationTypeError,
+  InvalidRepositoryURLError,
   InvalidSSHKeyFormatError,
   InvalidSSHKeyPathError,
   InvalidURLFormatError,
@@ -31,8 +32,12 @@ export async function syncImpl (
   remoteURL: string,
   options?: RemoteOptions
 ) {
+  const repos = this.getRepository();
+  if (repos === undefined) {
+    throw new RepositoryNotOpenError();
+  }
   const remote = new RemoteAccess(this, remoteURL, options);
-  await remote.connectToRemote();
+  await remote.connectToRemote(repos);
   return remote;
 }
 
@@ -68,7 +73,7 @@ export class RemoteAccess implements IRemoteAccess {
       interval: undefined,
       auth: undefined,
     };
-    this._options.sync_direction ??= 'both';
+    this._options.sync_direction ??= 'pull'; // auth is not required for pulling
     this._options.interval ??= defaultPullInterval;
 
     this.callbacks = {
@@ -94,44 +99,67 @@ export class RemoteAccess implements IRemoteAccess {
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
   }
 
+  /**
+   * Create credential options for GitHub
+   */
+  private _createCredentialForGitHub () {
+    if (!this._remoteURL.match(/^https?:\/\//)) {
+      throw new HttpProtocolRequiredError(this._remoteURL);
+    }
+    const auth = this._options.auth as RemoteAuthGitHub;
+    if (!auth.personal_access_token) {
+      throw new UndefinedPersonalAccessTokenError();
+    }
+    this._octokit = new Octokit({
+      auth: auth.personal_access_token,
+    });
+    const urlArray = this._remoteURL.replace(/^https?:\/\//, '').split('/');
+    // github.com/account_name/repository_name
+    if (urlArray.length !== 3) {
+      throw new InvalidRepositoryURLError(this._remoteURL);
+    }
+    const owner = urlArray[urlArray.length - 2];
+    const credentials = () => {
+      return nodegit.Cred.userpassPlaintextNew(owner, auth.personal_access_token!);
+    };
+    return credentials;
+  }
+
+  /**
+   * Create credential options for SSH
+   */
+  private _createCredentialForSSH () {
+    const auth = this._options.auth as RemoteAuthSSH;
+    if (auth.private_key_path === undefined || auth.private_key_path === '') {
+      throw new InvalidSSHKeyPathError();
+    }
+    if (auth.public_key_path === undefined || auth.public_key_path === '') {
+      throw new InvalidSSHKeyPathError();
+    }
+    auth.pass_phrase ??= '';
+
+    const credentials = (url: string, userName: string) => {
+      return nodegit.Cred.sshKeyNew(
+        userName,
+        auth.public_key_path,
+        auth.private_key_path,
+        auth.pass_phrase!
+      );
+    };
+    return credentials;
+  }
+
+  /**
+   * Create credential options
+   */
   private _createCredential () {
     this._options.auth ??= { type: 'none' };
 
     if (this._options.auth.type === 'github') {
-      const auth = this._options.auth as RemoteAuthGitHub;
-      if (!auth.personal_access_token) {
-        throw new UndefinedPersonalAccessTokenError();
-      }
-      this._octokit = new Octokit({
-        auth: auth.personal_access_token,
-      });
-      const urlArray = this._remoteURL.split('/');
-      const owner = urlArray[urlArray.length - 2];
-
-      const credentials = () => {
-        return nodegit.Cred.userpassPlaintextNew(owner, auth.personal_access_token!);
-      };
-      return credentials;
+      return this._createCredentialForGitHub();
     }
     else if (this._options.auth.type === 'ssh') {
-      const auth = this._options.auth as RemoteAuthSSH;
-      if (auth.private_key_path === undefined || auth.private_key_path === '') {
-        throw new InvalidSSHKeyPathError();
-      }
-      if (auth.public_key_path === undefined || auth.public_key_path === '') {
-        throw new InvalidSSHKeyPathError();
-      }
-      auth.pass_phrase ??= '';
-
-      const credentials = (url: string, userName: string) => {
-        return nodegit.Cred.sshKeyNew(
-          userName,
-          auth.public_key_path,
-          auth.private_key_path,
-          auth.pass_phrase!
-        );
-      };
-      return credentials;
+      return this._createCredentialForSSH();
     }
     else if (this._options.auth.type === 'none') {
       if (this._options.sync_direction !== 'pull') {
@@ -141,6 +169,22 @@ export class RemoteAccess implements IRemoteAccess {
     else {
       // @ts-ignore
       throw new InvalidAuthenticationTypeError(this._options.auth.type);
+    }
+  }
+
+  /**
+   * Connect to remote repository
+   *
+   * Call this just after creating instance.
+   */
+  async connectToRemote (repos: nodegit.Repository) {
+    await this._addRemoteRepository(repos, this._remoteURL).catch(err => {
+      throw err;
+    });
+    await this._trySync();
+
+    if (this._options.live) {
+      this._syncTimer = setInterval(this._trySync, this._options.interval!);
     }
   }
 
@@ -184,11 +228,11 @@ export class RemoteAccess implements IRemoteAccess {
    * @internal
    */
   // eslint-disable-next-line complexity
-  private async _addRemoteRepository (_remoteURL: string, onlyFetch?: boolean) {
-    const repos = this._gitDDB.getRepository();
-    if (repos === undefined) {
-      throw new RepositoryNotOpenError();
-    }
+  private async _addRemoteRepository (
+    repos: nodegit.Repository,
+    _remoteURL: string,
+    onlyFetch?: boolean
+  ) {
     // Check if already exists
     let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
@@ -255,22 +299,6 @@ export class RemoteAccess implements IRemoteAccess {
         default:
           break;
       }
-    }
-  }
-
-  /**
-   * Connect to remote repository
-   *
-   * Call this just after creating instance.
-   */
-  async connectToRemote () {
-    await this._addRemoteRepository(this._remoteURL).catch(err => {
-      throw err;
-    });
-    await this._trySync();
-
-    if (this._options.live) {
-      this._syncTimer = setInterval(this._trySync, this._options.interval!);
     }
   }
 

@@ -337,3 +337,21 @@ export class UndefinedDBError extends BaseError {
     super(`GitDocumentDB is undefined.`);
   }
 }
+
+/**
+ * @public
+ */
+export class HttpProtocolRequiredError extends BaseError {
+  constructor (url: string) {
+    super(`HTTP protocol is required: ${url}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class InvalidRepositoryURLError extends BaseError {
+  constructor (url: string) {
+    super(`Repository URL is invalid: ${url}`);
+  }
+}
