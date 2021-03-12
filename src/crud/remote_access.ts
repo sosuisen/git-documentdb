@@ -182,6 +182,12 @@ export class RemoteAccess implements IRemoteAccess {
       throw err;
     });
     await this._trySync();
+    if (this.upstream_branch === '') {
+      await nodegit.Branch.setUpstream(
+        await repos.getBranch(this._gitDDB.defaultBranch),
+        `origin/${this._gitDDB.defaultBranch}`
+      );
+    }
 
     if (this._options.live) {
       this._syncTimer = setInterval(this._trySync, this._options.interval!);
