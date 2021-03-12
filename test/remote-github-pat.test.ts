@@ -18,7 +18,6 @@ import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
-  AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
   InvalidRepositoryURLError,
   RepositoryNotOpenError,
@@ -92,7 +91,7 @@ maybe('remote: use personal access token: ', () => {
     const owner = urlArray[urlArray.length - 2];
     const promises: Promise<any>[] = [];
     allIds.forEach(id => {
-      console.log('delete: ' + owner + '/' + id);
+      // console.log('delete: ' + owner + '/' + id);
       promises.push(
         octokit.repos.delete({ owner, repo: id }).catch(err => {
           if (err.status !== 404) {
@@ -105,11 +104,11 @@ maybe('remote: use personal access token: ', () => {
     console.log('done.');
   });
 
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   describe('constructor: ', () => {
+    afterAll(() => {
+      fs.removeSync(path.resolve(localDir));
+    });
+
     test('Create and remove remote repository by personal access token', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + dbName;
@@ -117,8 +116,6 @@ maybe('remote: use personal access token: ', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
-
       // Check if the repository is deleted.
       const octokit = new Octokit({
         auth: token,
@@ -222,6 +219,10 @@ maybe('remote: use personal access token: ', () => {
   test.skip('Test _addRemoteRepository');
 
   describe('connectToRemote: ', () => {
+    afterAll(() => {
+      //  fs.removeSync(path.resolve(localDir));
+    });
+
     test('Repository not open', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + dbName;
