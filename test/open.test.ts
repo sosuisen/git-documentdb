@@ -16,6 +16,7 @@ import {
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 import { Validator } from '../src/validator';
+import { put_worker } from '../src/crud/put';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -193,17 +194,13 @@ describe('Open, close and destroy repository', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    const options: RepositoryInitOptions = {
-      description: 'another app',
-      flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
-      initialHead: 'main',
-    };
-    // Create git repository with invalid description
-    await fs.ensureDir(localDir);
-    // @ts-ignore
-    await nodegit.Repository.initExt(path.resolve(localDir, dbName), options).catch(err => {
-      throw new Error(err);
+    // Create empty repository
+    await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
+      return Promise.reject(err);
     });
+    await gitDDB.open();
+    // First commit with another db version
+    await put_worker(gitDDB, '.gitddb/version', '', 'Another App: 0.1', 'first commit');
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
@@ -220,17 +217,14 @@ describe('Open, close and destroy repository', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    const options: RepositoryInitOptions = {
-      description: 'GitDocumentDB: 0.1',
-      flags: repositoryInitOptionFlags.GIT_REPOSITORY_INIT_MKDIR,
-      initialHead: 'main',
-    };
-    // Create git repository with invalid description
-    await fs.ensureDir(localDir);
-    // @ts-ignore
-    await nodegit.Repository.initExt(path.resolve(localDir, dbName), options).catch(err => {
-      throw new Error(err);
+
+    // Create empty repository
+    await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
+      return Promise.reject(err);
     });
+    await gitDDB.open();
+    // First commit with another db version
+    await put_worker(gitDDB, '.gitddb/version', '', 'GitDocumentDB: 0.1', 'first commit');
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
@@ -241,16 +235,17 @@ describe('Open, close and destroy repository', () => {
     await gitDDB.destroy();
   });
 
-  test('open(): Open a repository with no description file.', async () => {
+  test('open(): Open a repository with no version file.', async () => {
     const dbName = 'test_repos_4';
     const gitDDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
-    const workingDirectory = gitDDB.workingDir();
-    await gitDDB.close();
-    fs.removeSync(path.resolve(workingDirectory, '.git', 'description'));
+    // Create empty repository
+    await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
+      return Promise.reject(err);
+    });
+
     await expect(gitDDB.open()).resolves.toMatchObject({
       is_new: false,
       is_created_by_gitddb: false,
@@ -270,19 +265,6 @@ describe('Open, close and destroy repository', () => {
     await expect(gitDDB.open()).resolves.toMatchObject({
       is_new: false,
     });
-    await gitDDB.destroy();
-  });
-
-  test('Check README.md', async () => {
-    const dbName = 'test_repos_6';
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    // Create db
-    await gitDDB.open();
-    expect(fs.readFileSync(`${gitDDB.workingDir()}/README.md`, 'utf-8')).toBe(dbName);
     await gitDDB.destroy();
   });
 

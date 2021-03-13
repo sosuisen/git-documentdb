@@ -8,15 +8,17 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import {
-  InvalidCollectionPathCharacterError,
-  InvalidJsonObjectError,
-  RepositoryNotOpenError,
-} from '../src/error';
+import { monotonicFactory } from 'ulid';
+import { InvalidJsonObjectError, RepositoryNotOpenError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
+
 describe('Fetch a batch of documents', () => {
-  const localDir = './test/database_allDocs01';
+  const localDir = `./test/database_allDocs${monoId()}`;
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';
@@ -40,7 +42,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs()', async () => {
-    const dbName = 'test_repos_1';
+    const dbName = `test_repos_${monoId()}`;
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -53,7 +55,11 @@ describe('Fetch a batch of documents', () => {
 
     await gitDDB.open();
 
-    await expect(gitDDB.allDocs()).resolves.toStrictEqual({ total_rows: 0 });
+    await expect(gitDDB.allDocs()).resolves.toStrictEqual({
+      total_rows: 0,
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      rows: [],
+    });
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -76,8 +82,29 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.destroy();
   });
 
+  test('allDocs(): db is not created by GitDocumentDB', async () => {
+    const dbName = `test_repos_${monoId()}`;
+
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    // Create empty repository
+    await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
+      return Promise.reject(err);
+    });
+    await gitDDB.open();
+
+    await expect(gitDDB.allDocs()).resolves.toStrictEqual({
+      total_rows: 0,
+    });
+
+    await gitDDB.destroy();
+  });
+
   test('allDocs(): options.descendant', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = `test_repos_${monoId()}`;
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -107,7 +134,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): options.include_docs', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = `test_repos_${monoId()}`;
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -145,8 +172,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): breadth-first search (recursive)', async () => {
-    const dbName = 'test_repos_4';
-
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -212,7 +238,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): breadth-first search (not recursive)', async () => {
-    const dbName = 'test_repos_5';
+    const dbName = `test_repos_${monoId()}`;
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -253,8 +279,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): get from directory', async () => {
-    const dbName = 'test_repos_6';
-
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -300,8 +325,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): get from deep directory', async () => {
-    const dbName = 'test_repos_7';
-
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -338,7 +362,7 @@ describe('Fetch a batch of documents', () => {
 });
 
 describe('validator', () => {
-  const localDir = './test/database_allDocs02';
+  const localDir = `./test/database_allDocs${monoId()}`;
 
   beforeAll(() => {
     fs.removeSync(path.resolve(localDir));
@@ -349,7 +373,7 @@ describe('validator', () => {
   });
 
   test('allDocs(): Get invalid JSON', async () => {
-    const dbName = 'test_repos_allDocs01';
+    const dbName = `test_repos_${monoId()}`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

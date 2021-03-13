@@ -70,6 +70,17 @@ collectionPath cannot start with a slash or an underscore.`;
 /**
  * @public
  */
+export class InvalidCollectionPathError extends BaseError {
+  constructor (name: string) {
+    const e = `Invalid collectionPath: '${name}'
+This name is not permitted as collectionPath.`;
+    super(e);
+  }
+}
+
+/**
+ * @public
+ */
 export class InvalidCollectionPathLengthError extends BaseError {
   constructor (collectionPath: string, minLength: number, maxLength: number) {
     super(

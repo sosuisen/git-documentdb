@@ -42,7 +42,8 @@ import { RemoteAccess, syncImpl } from './crud/remote_access';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
-const defaultDescription = `${databaseName}: ${databaseVersion}`;
+const gitddbVersion = `${databaseName}: ${databaseVersion}`;
+const gitddbVersionFileName = '.gitddb/version';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -135,8 +136,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   public readonly defaultBranch = 'main';
 
-  private _firstFileName = 'README.md';
-  private _firstFileContents: string;
   private _firstCommitMessage = 'first commit';
 
   private _localDir: string;
@@ -184,8 +183,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
     this._dbName = options.db_name;
     this._localDir = options.local_dir ?? defaultLocalDir;
-
-    this._firstFileContents = options.db_name;
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
@@ -325,9 +322,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       /**
        * Create a repository followed by first commit
        */
-      const isBare = 0;
       const options: RepositoryInitOptions = {
-        description: defaultDescription,
         initialHead: this.defaultBranch,
       };
       this._dbInfo.is_new = true;
@@ -339,28 +334,30 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         return Promise.reject(err);
       });
 
+      // First commit
       await put_worker(
         this,
-        this._firstFileName,
+        gitddbVersionFileName,
         '',
-        this._firstFileContents,
+        gitddbVersion,
         this._firstCommitMessage
       );
+      return this._dbInfo;
     }
 
-    // Check git description
-    const description = await fs
-      .readFile(path.resolve(this._workingDirectory, '.git', 'description'), 'utf8')
+    // Check gitddb version
+    const version = await fs
+      .readFile(path.resolve(this._workingDirectory, '.gitddb', 'version'), 'utf8')
       .catch(() => {
         this._dbInfo.is_created_by_gitddb = false;
         this._dbInfo.is_valid_version = false;
-        return '';
+        return undefined;
       });
-    if (description === '') return this._dbInfo;
+    if (version === undefined) return this._dbInfo;
 
-    if (new RegExp('^' + databaseName).test(description)) {
+    if (new RegExp('^' + databaseName).test(version)) {
       this._dbInfo.is_created_by_gitddb = true;
-      if (new RegExp('^' + defaultDescription).test(description)) {
+      if (new RegExp('^' + gitddbVersion).test(version)) {
         this._dbInfo.is_valid_version = true;
       }
       else {

@@ -10,6 +10,7 @@ import path from 'path';
 import { MAX_FILE_PATH_LENGTH } from './const';
 import {
   InvalidCollectionPathCharacterError,
+  InvalidCollectionPathError,
   InvalidCollectionPathLengthError,
   InvalidDbNameCharacterError,
   InvalidIdCharacterError,
@@ -278,6 +279,10 @@ export class Validator {
     }
 
     const normalized = Validator.normalizeCollectionPath(collectionPath);
+
+    if (collectionPath === '.gitddb/') {
+      throw new InvalidCollectionPathError(collectionPath);
+    }
 
     const trailingSlashRemoved = normalized.slice(0, -1);
     const arr = trailingSlashRemoved.split('/');
