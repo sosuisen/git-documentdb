@@ -206,10 +206,10 @@ export class RemoteAccess implements IRemoteAccess {
    * @remarks
    * auth.type must be 'github'
    */
-  async createRepositoryOnRemote (_remoteURL: string) {
+  async createRepositoryOnRemote (remoteURL: string) {
     this.upstream_branch = '';
     if (this._options.auth?.type === 'github') {
-      const urlArray = _remoteURL.split('/');
+      const urlArray = remoteURL.split('/');
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
       await this._octokit!.repos.createForAuthenticatedUser({
@@ -237,6 +237,54 @@ export class RemoteAccess implements IRemoteAccess {
     }
   }
 
+  // eslint-disable-next-line complexity
+  async _checkFetch (remote: nodegit.Remote) {
+    const remoteURL = remote.url();
+    const error = String(
+      await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
+    );
+    console.log('fetch error: ' + error);
+    switch (true) {
+      case error === 'undefined':
+        remote.disconnect();
+        break;
+      case error.startsWith('Error: unsupported URL protocol'):
+        throw new InvalidURLFormatError(remoteURL);
+      case error.startsWith('Error: failed to resolve address'):
+        throw new UnresolvedHostError(remoteURL);
+      case error.startsWith('Error: request failed with status code: 401'):
+      case error.startsWith('Error: request failed with status code: 404'):
+      case error.startsWith('Error: Method connect has thrown an error'):
+      case error.startsWith('Error: ERROR: Repository not found'):
+        // Remote repository does not exist, or you do not have permission to the private repository
+        throw new RemoteRepositoryNotFoundError(remoteURL);
+      case error.startsWith('Failed to retrieve list of SSH authentication methods'):
+        throw new InvalidSSHKeyFormatError();
+      default:
+        break;
+    }
+    return 'ok';
+  }
+
+  private async _checkPush (remote: nodegit.Remote) {
+    const error = String(
+      await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
+    );
+    console.log('fetch error: ' + error);
+    switch (true) {
+      case error === 'undefined':
+        remote.disconnect();
+        break;
+      case error.startsWith('Error: ERROR: Permission to'): {
+        // Remote repository is read only
+        throw new PushPermissionDeniedError();
+      }
+      default:
+        break;
+    }
+    return 'ok';
+  }
+
   /**
    * Add remote repository (git remote add)
    * @internal
@@ -259,60 +307,29 @@ export class RemoteAccess implements IRemoteAccess {
     }
 
     // Check fetch and push
-    const fetchCode = String(
-      await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
-    );
-    console.log('fetchCode: ' + fetchCode);
-    switch (true) {
-      case fetchCode === 'undefined':
-        remote.disconnect();
-        break;
-      case fetchCode.startsWith('Error: unsupported URL protocol'):
-        throw new InvalidURLFormatError(_remoteURL);
-      case fetchCode.startsWith('Error: failed to resolve address'):
-        throw new UnresolvedHostError(_remoteURL);
-      case fetchCode.startsWith('Error: request failed with status code: 401'):
-      case fetchCode.startsWith('Error: request failed with status code: 404'):
-      case fetchCode.startsWith('Error: Method connect has thrown an error'):
-      case fetchCode.startsWith('Error: ERROR: Repository not found'):
-        // Remote repository does not exist, or you do not have permission to the private repository
-        if (this._options.auth?.type === 'github') {
-          // Try to create repository by octokit
-          console.log('create repos: ' + _remoteURL);
-          await this.createRepositoryOnRemote(_remoteURL).catch(err => {
-            // Expected errors:
-            //  - The private repository which has the same name exists.
-            //  - Authentication error
-            //  - Permission error
-            throw err;
-          });
-          break;
-        }
-        else {
-          throw new RemoteRepositoryNotFoundError(_remoteURL);
-        }
-      case fetchCode.startsWith('Failed to retrieve list of SSH authentication methods'):
-        throw new InvalidSSHKeyFormatError();
-      default:
-        break;
-    }
-
-    if (!onlyFetch) {
-      const pushCode = String(
-        await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
-      );
-      console.log('pushCode: ' + fetchCode);
-      switch (true) {
-        case pushCode === 'undefined':
-          remote.disconnect();
-          break;
-        case pushCode.startsWith('Error: ERROR: Permission to'): {
-          // Remote repository is read only
-          throw new PushPermissionDeniedError();
-        }
-        default:
-          break;
+    const result = await this._checkFetch(remote).catch(err => {
+      if (
+        err instanceof RemoteRepositoryNotFoundError &&
+        this._options.auth?.type === 'github'
+      ) {
+        return 'create';
       }
+
+      throw err;
+    });
+    if (result === 'create') {
+      // Try to create repository by octokit
+      console.log('create repos: ' + _remoteURL);
+      await this.createRepositoryOnRemote(_remoteURL).catch(err => {
+        // Expected errors:
+        //  - The private repository which has the same name exists.
+        //  - Authentication error
+        //  - Permission error
+        throw err;
+      });
+    }
+    if (!onlyFetch) {
+      await this._checkPush(remote);
     }
   }
 
