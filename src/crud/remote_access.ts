@@ -16,6 +16,7 @@ import {
   InvalidSSHKeyFormatError,
   InvalidSSHKeyPathError,
   InvalidURLFormatError,
+  PushAuthenticationError,
   PushPermissionDeniedError,
   RemoteRepositoryNotFoundError,
   RepositoryNotOpenError,
@@ -78,9 +79,11 @@ export class RemoteAccess implements IRemoteAccess {
       sync_direction: undefined,
       interval: undefined,
       auth: undefined,
+      behavior_for_no_merge_base: undefined,
     };
     this._options.sync_direction ??= 'pull'; // auth is not required for pulling
     this._options.interval ??= defaultPullInterval;
+    this._options.behavior_for_no_merge_base ??= 'nop';
 
     this.callbacks = {
       credentials: this._createCredential(),
@@ -186,14 +189,15 @@ export class RemoteAccess implements IRemoteAccess {
    * Call this just after creating instance.
    */
   async connectToRemote (repos: nodegit.Repository): Promise<SyncResult> {
-    await this._addRemoteRepository(repos, this._remoteURL).catch(err => {
+    const onlyFetch = this._options.sync_direction === 'pull';
+    await this._addRemoteRepository(repos, this._remoteURL, onlyFetch).catch(err => {
       throw err;
     });
     let syncResult: SyncResult;
     if (this.upstream_branch === '') {
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
-      syncResult = await this._tryPush();
+      syncResult = await this.tryPush();
       console.log('The first commit has been pushed.');
 
       // An upstream branch must be set to a local branch after the first push
@@ -205,11 +209,12 @@ export class RemoteAccess implements IRemoteAccess {
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else {
-      syncResult = await this._trySync();
+      console.log('trySync..')
+      syncResult = await this.trySync();
     }
 
     if (this._options.live) {
-      this._syncTimer = setInterval(this._trySync, this._options.interval!);
+      this._syncTimer = setInterval(this.trySync, this._options.interval!);
     }
     return syncResult;
   }
@@ -256,7 +261,7 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
     );
-    console.log('connect fetch error: ' + error);
+    if (error !== undefined) console.log('connect fetch error: ' + error);
     switch (true) {
       case error === 'undefined':
         await remote.disconnect();
@@ -283,11 +288,13 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
     );
-    console.log('connect push error: ' + error);
+    if (error !== undefined) console.log('connect push error: ' + error);
     switch (true) {
       case error === 'undefined':
         await remote.disconnect();
         break;
+      case error.startsWith('Error: request failed with status code: 401'):
+        throw new PushAuthenticationError();
       case error.startsWith('Error: ERROR: Permission to'): {
         // Remote repository is read only
         throw new PushPermissionDeniedError();
@@ -392,14 +399,21 @@ export class RemoteAccess implements IRemoteAccess {
   }
 
   /**
+   * Get remote options
+   */
+  options () {
+    return this._options;
+  }
+
+  /**
    * Resume sync
    */
   resume () {
     this._options.live = true;
-    this._syncTimer = setInterval(this._trySync, this._options.interval!);
+    this._syncTimer = setInterval(this.trySync, this._options.interval!);
   }
 
-  private _tryPush () {
+  tryPush () {
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
         this._gitDDB._unshiftSyncTaskToTaskQueue({
@@ -415,7 +429,7 @@ export class RemoteAccess implements IRemoteAccess {
     );
   }
 
-  private _trySync () {
+  trySync () {
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
         this._gitDDB._unshiftSyncTaskToTaskQueue({

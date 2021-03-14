@@ -20,6 +20,7 @@ import { RemoteOptions } from '../src/types';
 import {
   HttpProtocolRequiredError,
   InvalidRepositoryURLError,
+  NoMergeBaseFoundError,
   RepositoryNotOpenError,
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
@@ -318,17 +319,43 @@ maybe('remote: use personal access token: ', () => {
       //  fs.removeSync(path.resolve(localDir));
     });
 
-    test('A puts data, B receives it', async () => {
-      const dbName = serialId();
-      const remoteURL = remoteURLBase + dbName;
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
+    // test('A put 1, A sync, B sync -> B get 1', async () => {
+    test('No merge base found', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      console.log('## remote: ' + remoteURL);
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await dbA.open();
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
 
-      // TODO:
-      await gitDDB.destroy();
+      const options: RemoteOptions = {
+        live: false,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.sync(remoteURL, options).catch(err => console.error(err));
+      console.log('dbA sync done');
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.open();
+      console.log('dbB sync start');
+      await expect(dbB.sync(remoteURL, options)).rejects.toThrowError(
+        NoMergeBaseFoundError
+      );
+      // console.log('dbB sync done');
+      // await expect(dbB.get('1')).toMatchObject(jsonA1);
+
+      // await dbA.destroy();
+      // await dbB.destroy();
     });
   });
 

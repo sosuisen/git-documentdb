@@ -207,6 +207,14 @@ export type RemoteAuthNone = {
 };
 
 export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
+
+/**
+ * Behavior when no merge base
+ * nop: (default)
+ * theirs: remove local repository and git clone <remote repository>
+ * ours: git merge -s ours <remote branch>
+ */
+export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
 /**
  * Options for RemoteAccess class
  */
@@ -215,6 +223,7 @@ export type RemoteOptions = {
   sync_direction?: SyncDirection;
   interval?: number; // msec
   auth?: RemoteAuth;
+  behavior_for_no_merge_base?: BehaviorForNoMergeBase;
 };
 
 /**
@@ -247,4 +256,5 @@ export interface IRemoteAccess {
   getSyncDirection(): SyncDirection;
   getLiveStatus(): boolean;
   getRemoteURL(): string;
+  options(): RemoteOptions;
 }

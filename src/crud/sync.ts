@@ -8,7 +8,11 @@
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { RepositoryNotOpenError, SyncWorkerFetchError } from '../error';
+import {
+  NoMergeBaseFoundError,
+  RepositoryNotOpenError,
+  SyncWorkerFetchError,
+} from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { IRemoteAccess, SyncResult } from '../types';
 
@@ -84,6 +88,22 @@ export async function sync_worker (
     commitOid = await repos
       .mergeBranches(gitddb.defaultBranch, `origin/${gitddb.defaultBranch}`)
       .catch((res: nodegit.Index) => {
+        // May throw 'Error: no merge base found'
+        if (res instanceof Error) {
+          if (res.message.startsWith('no merge base found')) {
+            if (remoteAccess.options().behavior_for_no_merge_base === 'nop') {
+              throw new NoMergeBaseFoundError();
+            }
+            else if (remoteAccess.options().behavior_for_no_merge_base === 'theirs') {
+              // remote local repository and clone remote repository
+            }
+            else if (remoteAccess.options().behavior_for_no_merge_base === 'ours') {
+              // git merge -s ours
+              // TODO:
+            }
+          }
+          throw res;
+        }
         /* returns conflicted index */ conflictedIndex = res;
         return undefined;
       });
@@ -201,6 +221,7 @@ export async function sync_worker (
      */
     let commitMessage = '';
     const conflicts: { [key: string]: { [keys: string]: boolean } } = {};
+
     conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
       const stage = nodegit.Index.entryStage(entry);
       console.log('- sync_worker: ' + stage + ':' + entry.path);

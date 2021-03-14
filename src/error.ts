@@ -285,6 +285,15 @@ export class PushPermissionDeniedError extends BaseError {
 /**
  * @public
  */
+export class PushAuthenticationError extends BaseError {
+  constructor () {
+    super(`401 Unauthorized to push to the repository.`);
+  }
+}
+
+/**
+ * @public
+ */
 export class UndefinedGitHubAuthenticationError extends BaseError {
   constructor (mes: string) {
     super(`Authentication data for GitHub is undefined: ${mes}`);
@@ -364,5 +373,14 @@ export class HttpProtocolRequiredError extends BaseError {
 export class InvalidRepositoryURLError extends BaseError {
   constructor (url: string) {
     super(`Repository URL is invalid: ${url}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class NoMergeBaseFoundError extends BaseError {
+  constructor () {
+    super(`No merge base found`);
   }
 }
