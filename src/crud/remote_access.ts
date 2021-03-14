@@ -274,7 +274,7 @@ export class RemoteAccess implements IRemoteAccess {
       case error.startsWith('Failed to retrieve list of SSH authentication methods'):
         throw new InvalidSSHKeyFormatError();
       default:
-        break;
+        throw new Error(error);
     }
     return 'ok';
   }
@@ -293,7 +293,7 @@ export class RemoteAccess implements IRemoteAccess {
         throw new PushPermissionDeniedError();
       }
       default:
-        break;
+        throw new Error(error);
     }
     return 'ok';
   }
