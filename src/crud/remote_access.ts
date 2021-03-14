@@ -25,7 +25,7 @@ import {
 } from '../error';
 import { IRemoteAccess, RemoteAuthGitHub, RemoteAuthSSH, RemoteOptions } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { _sync_worker_impl } from './sync';
+import { push_worker, sync_worker } from './sync';
 
 export async function syncImpl (
   this: AbstractDocumentDB,
@@ -183,17 +183,22 @@ export class RemoteAccess implements IRemoteAccess {
     await this._addRemoteRepository(repos, this._remoteURL).catch(err => {
       throw err;
     });
-    await this._trySync();
     if (this.upstream_branch === '') {
-      // Empty upstream_branch shows that an empty repository has been created on a remote site
-      // and after that _trySync() has pushed local commits to a remote branch.
-      // In this case, an upstream branch must be set to a local branch after the first push
+      // Empty upstream_branch shows that an empty repository has been created on a remote site.
+      // _trySync() pushes local commits to the remote branch.
+      await this._tryPush();
+      console.log('The first commit has been pushed.');
+
+      // An upstream branch must be set to a local branch after the first push
       // because refs/remotes/origin/main is not created until the first push.
       await nodegit.Branch.setUpstream(
         await repos.getBranch(this._gitDDB.defaultBranch),
         `origin/${this._gitDDB.defaultBranch}`
       );
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
+    }
+    else {
+      await this._trySync();
     }
 
     if (this._options.live) {
@@ -295,7 +300,7 @@ export class RemoteAccess implements IRemoteAccess {
     _remoteURL: string,
     onlyFetch?: boolean
   ) {
-    // Check if already exists
+    // Check if remote repository already exists
     let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
       // Add remote repository
@@ -386,12 +391,27 @@ export class RemoteAccess implements IRemoteAccess {
     this._syncTimer = setInterval(this._trySync, this._options.interval!);
   }
 
+  private _tryPush () {
+    return new Promise((resolve, reject) => {
+      this._gitDDB._unshiftSyncTaskToTaskQueue({
+        taskName: 'sync',
+        func: () =>
+          push_worker
+            .call(this._gitDDB, this)
+            .then(result => {
+              resolve(result);
+            })
+            .catch(err => reject(err)),
+      });
+    });
+  }
+
   private _trySync () {
     return new Promise((resolve, reject) => {
       this._gitDDB._unshiftSyncTaskToTaskQueue({
         taskName: 'sync',
         func: () =>
-          _sync_worker_impl
+          sync_worker
             .call(this._gitDDB, this)
             .then(result => {
               resolve(result);

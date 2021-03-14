@@ -12,11 +12,19 @@ import { RepositoryNotOpenError, SyncWorkerFetchError } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { IRemoteAccess } from '../types';
 
+export async function push_worker (this: AbstractDocumentDB, remoteAccess: IRemoteAccess) {
+  const repos = this.getRepository();
+  if (repos === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+  const remote: nodegit.Remote = await repos.getRemote('origin');
+  await remote.push([`refs/heads/${this.defaultBranch}:refs/heads/${this.defaultBranch}`], {
+    callbacks: remoteAccess.callbacks,
+  });
+}
+
 // eslint-disable-next-line complexity
-export async function _sync_worker_impl (
-  this: AbstractDocumentDB,
-  remoteAccess: IRemoteAccess
-) {
+export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemoteAccess) {
   const repos = this.getRepository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
@@ -24,27 +32,13 @@ export async function _sync_worker_impl (
 
   console.debug('fetch: ' + remoteAccess.getRemoteURL());
   // Fetch
-  if (remoteAccess.upstream_branch !== '') {
-    await repos
-      .fetch('origin', {
-        callbacks: remoteAccess.callbacks,
-      })
-      .catch(err => {
-        throw new SyncWorkerFetchError(err.message);
-      });
-  }
-  else {
-    // Remote repository is empty.
-    const remote: nodegit.Remote = await repos.getRemote('origin');
-    await remote.push(
-      [`refs/heads/${this.defaultBranch}:refs/heads/${this.defaultBranch}`],
-      {
-        callbacks: remoteAccess.callbacks,
-      }
-    );
-    console.log('Pushed.');
-    return;
-  }
+  await repos
+    .fetch('origin', {
+      callbacks: remoteAccess.callbacks,
+    })
+    .catch(err => {
+      throw new SyncWorkerFetchError(err.message);
+    });
 
   const localCommit = await repos.getHeadCommit();
   const remoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
