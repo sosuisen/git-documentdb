@@ -209,7 +209,7 @@ export class RemoteAccess implements IRemoteAccess {
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else {
-      console.log('trySync..')
+      console.log('trySync..');
       syncResult = await this.trySync();
     }
 
