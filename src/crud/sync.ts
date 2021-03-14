@@ -100,6 +100,9 @@ export async function sync_worker (
             else if (remoteAccess.options().behavior_for_no_merge_base === 'ours') {
               // git merge -s ours
               // TODO:
+              throw new Error(
+                'ours option for behavior_for_no_merge_base is not implemented currently.'
+              );
             }
           }
           throw res;

@@ -360,4 +360,5 @@ maybe('remote: use personal access token: ', () => {
   });
 
   test.skip('Test _addRemoteRepository');
+  test.skip('Test ours option for behavior_for_no_merge_base');
 });
