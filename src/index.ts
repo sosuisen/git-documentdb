@@ -616,10 +616,17 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
-   * getRemote
+   * getRemoteURLs
    */
   getRemoteURLs (): string[] {
     return Object.keys(this._remotes);
+  }
+
+  /**
+   * getRemote
+   */
+  getRemote (remoteURL: string) {
+    return this._remotes[remoteURL];
   }
 
   /**
