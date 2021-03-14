@@ -37,7 +37,6 @@ import { put_worker, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
-import { _sync_worker_impl } from './crud/sync';
 import { RemoteAccess, syncImpl } from './crud/remote_access';
 
 const databaseName = 'GitDocumentDB';
@@ -651,9 +650,4 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     this._remotes[remoteURL] = remote;
     return remote;
   }
-
-  /**
-   * @internal
-   */
-  _sync_worker = _sync_worker_impl;
 }
