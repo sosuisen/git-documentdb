@@ -104,6 +104,9 @@ maybe('remote: use personal access token: ', () => {
     console.log('done.');
   });
 
+  /**
+   * Tests for constructor
+   */
   describe('constructor: ', () => {
     afterAll(() => {
       fs.removeSync(path.resolve(localDir));
@@ -216,11 +219,12 @@ maybe('remote: use personal access token: ', () => {
     });
   });
 
-  test.skip('Test _addRemoteRepository');
-
+  /**
+   * connectToRemote
+   */
   describe('connectToRemote: ', () => {
     afterAll(() => {
-      //  fs.removeSync(path.resolve(localDir));
+      fs.removeSync(path.resolve(localDir));
     });
 
     test('Repository not open', async () => {
@@ -248,16 +252,85 @@ maybe('remote: use personal access token: ', () => {
       });
       await gitDDB.open();
 
-      await destroyRemoteRepository(gitDDB, remoteURL);
+      const options: RemoteOptions = {
+        live: false,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      const repos = gitDDB.getRepository();
+      const remote = new RemoteAccess(gitDDB, remoteURL, options);
+      await expect(remote.connectToRemote(repos!)).resolves.toBe('push');
+      expect(remote.upstream_branch).toBe(`origin/${gitDDB.defaultBranch}`);
 
-      await expect(
-        gitDDB.sync(remoteURL, {
-          live: false,
-          auth: { type: 'github', personal_access_token: token },
-        })
-      ).resolves.not.toThrowError();
+      await gitDDB.destroy();
+    });
 
-      //   await gitDDB.destroy();
+    test('Create RemoteAccess with an existed remote repository', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + dbName;
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+
+      const options: RemoteOptions = {
+        live: false,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await gitDDB.sync(remoteURL, options);
+      // A remote repository has been created by the first sync().
+
+      gitDDB.removeRemote(remoteURL);
+
+      // Sync with an existed remote repository
+      const repos = gitDDB.getRepository();
+      const remote = new RemoteAccess(gitDDB, remoteURL, options);
+      await expect(remote.connectToRemote(repos!)).resolves.toBe('nop');
+
+      await gitDDB.destroy();
+    });
+
+    test('Get remote', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + dbName;
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+
+      const remote = await gitDDB.sync(remoteURL, {
+        live: false,
+        auth: { type: 'github', personal_access_token: token },
+      });
+      expect(gitDDB.getRemote(remoteURL)).toBe(remote);
+
+      await gitDDB.destroy();
+    });
+    test.skip('Remove remote');
+  });
+
+  /**
+   * Sync between two clients
+   */
+  describe('sync between client A and B: ', () => {
+    afterAll(() => {
+      //  fs.removeSync(path.resolve(localDir));
+    });
+
+    test('A puts data, B receives it', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + dbName;
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+
+      // TODO:
+      await gitDDB.destroy();
     });
   });
+
+  test.skip('Test _addRemoteRepository');
 });
