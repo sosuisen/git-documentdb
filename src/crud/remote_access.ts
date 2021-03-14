@@ -256,10 +256,10 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
     );
-    console.log('fetch error: ' + error);
+    console.log('connect fetch error: ' + error);
     switch (true) {
       case error === 'undefined':
-        remote.disconnect();
+        await remote.disconnect();
         break;
       case error.startsWith('Error: unsupported URL protocol'):
         throw new InvalidURLFormatError(remoteURL);
@@ -283,10 +283,10 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
     );
-    console.log('fetch error: ' + error);
+    console.log('connect push error: ' + error);
     switch (true) {
       case error === 'undefined':
-        remote.disconnect();
+        await remote.disconnect();
         break;
       case error.startsWith('Error: ERROR: Permission to'): {
         // Remote repository is read only
