@@ -218,6 +218,16 @@ export type RemoteOptions = {
 };
 
 /**
+ * Result from sync_worker()
+ */
+export type SyncResult =
+  | 'nop'
+  | 'push'
+  | 'fast-forward merge'
+  | 'merge and push'
+  | 'resolve conflicts and push';
+
+/**
  * Task
  */
 export type TaskLabel = 'put' | 'remove' | 'sync';

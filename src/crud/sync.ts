@@ -3,7 +3,7 @@
  * Copyright (c) Hidekazu Kubota
  *
  * This source code is licensed under the Mozilla Public License Version 2.0
- * found in the LICENSE file in the root directory of this source tree.
+ * found in the LICENSE file in the root directory of gitddb source tree.
  */
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
@@ -32,13 +32,16 @@ export async function push_worker (
 }
 
 // eslint-disable-next-line complexity
-export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemoteAccess) {
-  const repos = this.getRepository();
+export async function sync_worker (
+  gitddb: AbstractDocumentDB,
+  remoteAccess: IRemoteAccess
+): Promise<SyncResult> {
+  const repos = gitddb.getRepository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
 
-  console.debug('fetch: ' + remoteAccess.getRemoteURL());
+  console.debug('- sync_worker: fetch: ' + remoteAccess.getRemoteURL());
   // Fetch
   await repos
     .fetch('origin', {
@@ -57,7 +60,7 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
     localCommit.id(),
     remoteCommit.id()
   )) as unknown) as { ahead: number; behind: number };
-  console.dir(distance);
+  console.dir('- sync_worker: ' + JSON.stringify(distance));
   // ahead: 0, behind 0 => Nothing to do: If local does not commit and remote does not commit
   // ahead: 0, behind 1 => Fast-forward merge : If local does not commit and remote pushed
   // ahead: 1, behind 0 => Push : If local committed and remote does not commit
@@ -66,12 +69,12 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
   let conflictedIndex: nodegit.Index | undefined;
   let commitOid: nodegit.Oid | undefined;
   if (distance.ahead === 0 && distance.behind === 0) {
-    console.log('Nothing to do.');
-    return;
+    console.log('- sync_worker: nop');
+    return 'nop';
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
     commitOid = await repos
-      .mergeBranches(this.defaultBranch, `origin/${this.defaultBranch}`)
+      .mergeBranches(gitddb.defaultBranch, `origin/${gitddb.defaultBranch}`)
       .catch((res: nodegit.Index) => {
         /* returns conflicted index */ conflictedIndex = res;
         return undefined;
@@ -79,7 +82,7 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
   }
   else if (distance.ahead > 0 && distance.behind > 0) {
     commitOid = await repos
-      .mergeBranches(this.defaultBranch, `origin/${this.defaultBranch}`)
+      .mergeBranches(gitddb.defaultBranch, `origin/${gitddb.defaultBranch}`)
       .catch((res: nodegit.Index) => {
         /* returns conflicted index */ conflictedIndex = res;
         return undefined;
@@ -91,8 +94,8 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
     await remote.push(['refs/heads/main:refs/heads/main'], {
       callbacks: remoteAccess.callbacks,
     });
-    console.log('Pushed.');
-    return;
+    console.log('- sync_worker: Pushed.');
+    return 'push';
   }
 
   /*  
@@ -146,12 +149,12 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
     )) as unknown) as { ahead: number; behind: number };
     console.dir(distance_again);
     if (distance_again.ahead === 0 && distance_again.behind === 0) {
-      console.log('Fast-forward merge done.');
+      console.log('Fast-forward merge');
+      return 'fast-forward merge';
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
       // It is occurred when a local file is removed and the same remote file is removed.
       // Normal merge. Need push
-      console.log('Normal merge done.');
       const commit = await repos.getCommit(commitOid!);
       const commitMessage = 'merge';
       await commit.amend(
@@ -167,14 +170,14 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
       await remote.push(['refs/heads/main:refs/heads/main'], {
         callbacks: remoteAccess.callbacks,
       });
-      console.log('Pushed.');
+      console.log('- sync_worker: Merge and push');
+      return 'merge and push';
     }
-    else if (distance_again.behind > 0) {
-      /**
-       * Remote is advanced while merging
-       */
-      throw new Error('Remote is advanced while merging.');
-    }
+
+    /**
+     * Remote is advanced while merging
+     */
+    throw new Error('Remote is advanced while merging.');
   }
   else {
     /**
@@ -200,7 +203,7 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
     const conflicts: { [key: string]: { [keys: string]: boolean } } = {};
     conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
       const stage = nodegit.Index.entryStage(entry);
-      console.log(stage + ':' + entry.path);
+      console.log('- sync_worker: ' + stage + ':' + entry.path);
 
       // entries() returns all files in stage 0, 1, 2 and 3.
       if (stage !== 0) {
@@ -232,14 +235,11 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
       }
     });
     _index.conflictCleanup();
-    console.log('overwritten by ours');
+    console.log('- sync_worker: overwritten by ours');
 
     await _index.write();
 
-    const treeOid: nodegit.Oid | void = await _index
-      .writeTree()
-      .catch(err => console.log('writeTree():', err));
-    if (treeOid === undefined) return;
+    const treeOid: nodegit.Oid | void = await _index.writeTree();
 
     const overwriteCommitOid: nodegit.Oid = await repos.createCommit(
       'HEAD',
@@ -250,19 +250,20 @@ export async function sync_worker (this: AbstractDocumentDB, remoteAccess: IRemo
       [await repos.getHeadCommit(), remoteCommit]
     );
     repos.stateCleanup();
-    console.log('committed');
+    // console.log('committed');
     await repos.getCommit(overwriteCommitOid);
 
     const opt = new nodegit.CheckoutOptions();
     opt.checkoutStrategy = nodegit.Checkout.STRATEGY.FORCE;
     await nodegit.Checkout.head(repos, opt);
-    console.log('Resolving conflict done.');
+    console.log('- sync_worker: Resolving conflict done.');
 
     // Push
     const remote: nodegit.Remote = await repos.getRemote('origin');
     await remote.push(['refs/heads/main:refs/heads/main'], {
       callbacks: remoteAccess.callbacks,
     });
-    console.log('Pushed.');
+    console.log('- sync_worker: Pushed.');
+    return 'resolve conflicts and push';
   }
 }
