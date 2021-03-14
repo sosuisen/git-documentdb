@@ -23,7 +23,13 @@ import {
   UndefinedRemoteURLError,
   UnresolvedHostError,
 } from '../error';
-import { IRemoteAccess, RemoteAuthGitHub, RemoteAuthSSH, RemoteOptions } from '../types';
+import {
+  IRemoteAccess,
+  RemoteAuthGitHub,
+  RemoteAuthSSH,
+  RemoteOptions,
+  SyncResult,
+} from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './sync';
 
@@ -179,14 +185,15 @@ export class RemoteAccess implements IRemoteAccess {
    *
    * Call this just after creating instance.
    */
-  async connectToRemote (repos: nodegit.Repository) {
+  async connectToRemote (repos: nodegit.Repository): Promise<SyncResult> {
     await this._addRemoteRepository(repos, this._remoteURL).catch(err => {
       throw err;
     });
+    let syncResult: SyncResult;
     if (this.upstream_branch === '') {
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
-      await this._tryPush();
+      syncResult = await this._tryPush();
       console.log('The first commit has been pushed.');
 
       // An upstream branch must be set to a local branch after the first push
@@ -198,12 +205,13 @@ export class RemoteAccess implements IRemoteAccess {
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else {
-      await this._trySync();
+      syncResult = await this._trySync();
     }
 
     if (this._options.live) {
       this._syncTimer = setInterval(this._trySync, this._options.interval!);
     }
+    return syncResult;
   }
 
   /**
@@ -392,32 +400,34 @@ export class RemoteAccess implements IRemoteAccess {
   }
 
   private _tryPush () {
-    return new Promise((resolve, reject) => {
-      this._gitDDB._unshiftSyncTaskToTaskQueue({
-        taskName: 'sync',
-        func: () =>
-          push_worker
-            .call(this._gitDDB, this)
-            .then(result => {
-              resolve(result);
-            })
-            .catch(err => reject(err)),
-      });
-    });
+    return new Promise(
+      (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
+        this._gitDDB._unshiftSyncTaskToTaskQueue({
+          taskName: 'sync',
+          func: () =>
+            push_worker(this._gitDDB, this)
+              .then((result: SyncResult) => {
+                resolve(result);
+              })
+              .catch(err => reject(err)),
+        });
+      }
+    );
   }
 
   private _trySync () {
-    return new Promise((resolve, reject) => {
-      this._gitDDB._unshiftSyncTaskToTaskQueue({
-        taskName: 'sync',
-        func: () =>
-          sync_worker
-            .call(this._gitDDB, this)
-            .then(result => {
-              resolve(result);
-            })
-            .catch(err => reject(err)),
-      });
-    });
+    return new Promise(
+      (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
+        this._gitDDB._unshiftSyncTaskToTaskQueue({
+          taskName: 'sync',
+          func: () =>
+            sync_worker(this._gitDDB, this)
+              .then(result => {
+                resolve(result);
+              })
+              .catch(err => reject(err)),
+        });
+      }
+    );
   }
 }
