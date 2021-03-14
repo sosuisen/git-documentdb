@@ -10,17 +10,25 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { RepositoryNotOpenError, SyncWorkerFetchError } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { IRemoteAccess } from '../types';
+import { IRemoteAccess, SyncResult } from '../types';
 
-export async function push_worker (this: AbstractDocumentDB, remoteAccess: IRemoteAccess) {
-  const repos = this.getRepository();
+export async function push_worker (
+  gitddb: AbstractDocumentDB,
+  remoteAccess: IRemoteAccess
+): Promise<SyncResult> {
+  const repos = gitddb.getRepository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
   const remote: nodegit.Remote = await repos.getRemote('origin');
-  await remote.push([`refs/heads/${this.defaultBranch}:refs/heads/${this.defaultBranch}`], {
-    callbacks: remoteAccess.callbacks,
-  });
+  await remote.push(
+    [`refs/heads/${gitddb.defaultBranch}:refs/heads/${gitddb.defaultBranch}`],
+    {
+      callbacks: remoteAccess.callbacks,
+    }
+  );
+
+  return 'push';
 }
 
 // eslint-disable-next-line complexity
