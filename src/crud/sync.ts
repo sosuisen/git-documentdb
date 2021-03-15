@@ -88,6 +88,9 @@ export async function sync_worker (
     commitOid = await repos
       .mergeBranches(gitddb.defaultBranch, `origin/${gitddb.defaultBranch}`)
       .catch((res: nodegit.Index) => {
+        // Exception locks files. Try cleanup
+        repos.cleanup();
+
         // May throw 'Error: no merge base found'
         if (res instanceof Error) {
           if (res.message.startsWith('no merge base found')) {
