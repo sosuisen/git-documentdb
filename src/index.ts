@@ -213,10 +213,11 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       () => undefined
     );
 
+    /**
+     * Create or clone repository if not exists
+     */
     if (this._currentRepository === undefined) {
-      // repository does not exist
       if (remoteURL === undefined) {
-        // Create repository if not exists
         this._dbInfo = await this._createRepository();
         return this._dbInfo;
       }
@@ -283,7 +284,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     /**
      * TODO: Handle exceptions
      */
-    console.log('- Try clone..: ' + remoteURL);
     this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
       fetchOpts: {
         callbacks,
