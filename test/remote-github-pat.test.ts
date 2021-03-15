@@ -55,7 +55,6 @@ const maybe =
     : describe.skip;
 
 maybe('remote: use personal access token: ', () => {
-  const localDir = `./test/database_remote_by_pat_${monoId()}`;
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -80,9 +79,6 @@ maybe('remote: use personal access token: ', () => {
   };
 
   beforeAll(async () => {
-    // Remote local repositories
-    fs.removeSync(path.resolve(localDir));
-
     console.log('deleting remote test repositories...');
     // Remove test repositories on remote
     const octokit = new Octokit({
@@ -109,6 +105,12 @@ maybe('remote: use personal access token: ', () => {
    * Tests for constructor
    */
   describe('constructor: ', () => {
+    const localDir = `./test/database_remote_by_pat_${monoId()}`;
+    beforeAll(() => {
+      // Remove local repositories
+      fs.removeSync(path.resolve(localDir));
+    });
+
     afterAll(() => {
       fs.removeSync(path.resolve(localDir));
     });
@@ -223,7 +225,14 @@ maybe('remote: use personal access token: ', () => {
   /**
    * connectToRemote
    */
-  describe('connectToRemote: ', () => {
+  // describe('connectToRemote: ', () => {
+  describe.skip('connectToRemote: ', () => {
+    const localDir = `./test/database_remote_by_pat_${monoId()}`;
+    beforeAll(() => {
+      // Remove local repositories
+      fs.removeSync(path.resolve(localDir));
+    });
+
     afterAll(() => {
       fs.removeSync(path.resolve(localDir));
     });
@@ -314,15 +323,69 @@ maybe('remote: use personal access token: ', () => {
   /**
    * Sync between two clients
    */
-  describe('sync between client A and B: ', () => {
-    afterAll(() => {
-      //  fs.removeSync(path.resolve(localDir));
+  describe('open() with remoteURL: ', () => {
+    const localDir = `./test/database_remote_by_pat_${monoId()}`;
+    beforeAll(() => {
+      // Remove local repositories
+      fs.removeSync(path.resolve(localDir));
     });
 
-    // test('A put 1, A sync, B sync -> B get 1', async () => {
+    afterAll(() => {
+      // fs.removeSync(path.resolve(localDir));
+    });
+
+    describe('Local repos [no], remote repos [no]', () => {
+      test('Create remote repository and clone it', async () => {
+        const remoteURL = remoteURLBase + serialId();
+        console.log('## remote: ' + remoteURL);
+
+        const dbNameA = serialId();
+
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        const options: RemoteOptions = {
+          live: false,
+          auth: { type: 'github', personal_access_token: token },
+        };
+        // Check dbInfo
+        await expect(dbA.open(remoteURL, options)).resolves.toMatchObject({
+          is_new: true,
+          is_clone: false,
+          is_created_by_gitddb: true,
+          is_valid_version: true,
+        });
+
+        // Check remote
+        const octokit = new Octokit({
+          auth: token,
+        });
+        const urlArray = remoteURL.split('/');
+        const owner = urlArray[urlArray.length - 2];
+        const repo = urlArray[urlArray.length - 1];
+        await expect(
+          octokit.repos.listBranches({ owner, repo })
+        ).resolves.not.toThrowError();
+
+        // await dbA.destroy();
+      });
+    });
+  });
+
+  describe('sync between client A and B: ', () => {
+    const localDir = `./test/database_remote_by_pat_${monoId()}`;
+    beforeAll(() => {
+      // Remove local repositories
+      fs.removeSync(path.resolve(localDir));
+    });
+
+    afterAll(() => {
+      fs.removeSync(path.resolve(localDir));
+    });
+
     test('No merge base found', async () => {
       const remoteURL = remoteURLBase + serialId();
-      console.log('## remote: ' + remoteURL);
 
       const dbNameA = serialId();
 
@@ -339,7 +402,6 @@ maybe('remote: use personal access token: ', () => {
         auth: { type: 'github', personal_access_token: token },
       };
       await dbA.sync(remoteURL, options).catch(err => console.error(err));
-      console.log('dbA sync done');
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -347,15 +409,14 @@ maybe('remote: use personal access token: ', () => {
         local_dir: localDir,
       });
       await dbB.open();
-      console.log('dbB sync start');
       await expect(dbB.sync(remoteURL, options)).rejects.toThrowError(
         NoMergeBaseFoundError
       );
       // console.log('dbB sync done');
       // await expect(dbB.get('1')).toMatchObject(jsonA1);
 
-      // await dbA.destroy();
-      // await dbB.destroy();
+      await dbA.destroy();
+      await dbB.destroy();
     });
   });
 
