@@ -44,7 +44,7 @@ import { RemoteAccess, syncImpl } from './crud/remote_access';
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
 const gitddbVersion = `${databaseName}: ${databaseVersion}`;
-const gitddbVersionFileName = '.gitddb/version';
+const gitddbVersionFileName = '.gitddb/lib_version';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -222,11 +222,21 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       }
 
       // Clone repository if remoteURL exists
+      const remote = new RemoteAccess(this, remoteURL, remoteOptions);
+      const callbacks = {
+        credentials: remote.createCredential(),
+      };
+      if (process.platform === 'darwin') {
+        // @ts-ignore
+        this._callbacks.certificateCheck = () => 0;
+      }
       /**
        * TODO: Handle exceptions
        */
       this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
-        fetchOpts: {},
+        fetchOpts: {
+          callbacks,
+        },
       });
       this._dbInfo.is_clone = true;
     }
@@ -235,7 +245,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      * Check repository if exists
      */
     const version = await fs
-      .readFile(path.resolve(this._workingDirectory, '.gitddb', 'version'), 'utf8')
+      .readFile(path.resolve(this._workingDirectory, gitddbVersionFileName), 'utf8')
       .catch(() => {
         this._dbInfo.is_created_by_gitddb = false;
         this._dbInfo.is_valid_version = false;

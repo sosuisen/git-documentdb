@@ -236,7 +236,13 @@ describe('Open, close and destroy repository', () => {
     });
     await gitDDB.open();
     // First commit with another db version
-    await put_worker(gitDDB, '.gitddb/version', '', 'GitDocumentDB: 0.1', 'first commit');
+    await put_worker(
+      gitDDB,
+      '.gitddb/lib_version',
+      '',
+      'GitDocumentDB: 0.1',
+      'first commit'
+    );
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
