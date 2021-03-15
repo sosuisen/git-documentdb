@@ -667,6 +667,3 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     return remote;
   }
 }
-function fetchOpts (remoteURL: string, arg1: string, fetchOpts: any, arg3: {}) {
-  throw new Error('Function not implemented.');
-}
