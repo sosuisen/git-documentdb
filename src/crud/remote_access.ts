@@ -262,7 +262,7 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
     );
-    if (error !== undefined) console.log('connect fetch error: ' + error);
+    if (error !== 'undefined') console.log('connect fetch error: ' + error);
     switch (true) {
       case error === 'undefined':
         await remote.disconnect();
@@ -290,7 +290,7 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
     );
-    if (error !== undefined) console.log('connect push error: ' + error);
+    if (error !== 'undefined') console.log('connect push error: ' + error);
     switch (true) {
       case error === 'undefined':
         await remote.disconnect();
