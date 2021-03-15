@@ -226,7 +226,7 @@ maybe('remote: use personal access token: ', () => {
    * connectToRemote
    */
   describe('connectToRemote: ', () => {
-  // describe.skip('connectToRemote: ', () => {
+    // describe.skip('connectToRemote: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -331,11 +331,11 @@ maybe('remote: use personal access token: ', () => {
     });
 
     afterAll(() => {
-      // fs.removeSync(path.resolve(localDir));
+      fs.removeSync(path.resolve(localDir));
     });
 
     describe('Local repos [no], remote repos [no]', () => {
-      test('Create remote repository and clone it', async () => {
+      test('Create remote repository', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -367,7 +367,7 @@ maybe('remote: use personal access token: ', () => {
           octokit.repos.listBranches({ owner, repo })
         ).resolves.not.toThrowError();
 
-        // await dbA.destroy();
+        await dbA.destroy();
       });
     });
   });
@@ -380,7 +380,41 @@ maybe('remote: use personal access token: ', () => {
     });
 
     afterAll(() => {
-      fs.removeSync(path.resolve(localDir));
+      // fs.removeSync(path.resolve(localDir));
+    });
+
+    describe('A creates remote repository and puts data', () => {
+      test('B clones the remote repository', async () => {
+        const remoteURL = remoteURLBase + serialId();
+
+        const dbNameA = serialId();
+
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        const options: RemoteOptions = {
+          live: false,
+          auth: { type: 'github', personal_access_token: token },
+        };
+        // Check dbInfo
+        await dbA.open(remoteURL, options);
+        const jsonA1 = { _id: '1', name: 'fromA' };
+        await dbA.put(jsonA1);
+        const remoteA = dbA.getRemote(remoteURL);
+        await remoteA.tryPush();
+
+        const dbNameB = serialId();
+        const dbB: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameB,
+          local_dir: localDir,
+        });
+        await dbB.open(remoteURL, options);
+        await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
+
+        // await dbA.destroy();
+        // await dbB.destroy();
+      });
     });
 
     test('No merge base found', async () => {
