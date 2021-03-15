@@ -226,40 +226,19 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
 
     /**
-     * Check repository if exists
+     * Check and sync repository if exists
      */
-    const version = await fs
-      .readFile(path.resolve(this._workingDirectory, gitddbVersionFileName), 'utf8')
-      .catch(() => {
-        this._dbInfo.is_created_by_gitddb = false;
-        this._dbInfo.is_valid_version = false;
-        return undefined;
-      });
-    if (version === undefined) return this._dbInfo;
+    await this._setDbInfo();
 
-    if (new RegExp('^' + databaseName).test(version)) {
-      this._dbInfo.is_created_by_gitddb = true;
-      if (new RegExp('^' + gitddbVersion).test(version)) {
-        this._dbInfo.is_valid_version = true;
+    if (remoteURL !== undefined) {
+      if (this._dbInfo.is_created_by_gitddb && this._dbInfo.is_valid_version) {
         // Can synchronize
-        if (remoteURL !== undefined) {
-          /**
-           * TODO:
-           * sync()内でbehavior_for_no_merge_base の処理をすること
-           */
-          await this.sync(remoteURL, remoteOptions);
-        }
-      }
-      else {
-        this._dbInfo.is_valid_version = false;
         /**
-         * TODO: Need migration
+         * TODO:
+         * sync()内でbehavior_for_no_merge_base の処理をすること
          */
+        await this.sync(remoteURL, remoteOptions);
       }
-    }
-    else {
-      this._dbInfo.is_created_by_gitddb = false;
-      this._dbInfo.is_valid_version = false;
     }
 
     return this._dbInfo;
@@ -322,35 +301,39 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      * Clone failed
      */
     if (this._currentRepository === undefined) {
-      console.log('- Clone failed');
-      console.log('- Create local');
       this._dbInfo = await this._createRepository();
-
-      /*
-      await remote.createRepositoryOnRemote(remoteURL).catch(err => {
-        console.log(err);
-        throw err;
-      });
-      */
     }
     else {
       this._dbInfo.is_clone = true;
-      console.log('- Clone done.');
     }
+  }
 
-    /**
-      console.log('- Try clone again..: ' + remoteURL);
-      this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
-        checkoutBranch: 'main',
-        fetchOpts: {
-          callbacks,
-        },
-      }).catch(err => {
-        console.log(err);
-        throw err;
+  private async _setDbInfo () {
+    const version = await fs
+      .readFile(path.resolve(this._workingDirectory, gitddbVersionFileName), 'utf8')
+      .catch(() => {
+        this._dbInfo.is_created_by_gitddb = false;
+        this._dbInfo.is_valid_version = false;
+        return undefined;
       });
-      console.log('- Clone done.');
-       */
+    if (version === undefined) return this._dbInfo;
+
+    if (new RegExp('^' + databaseName).test(version)) {
+      this._dbInfo.is_created_by_gitddb = true;
+      if (new RegExp('^' + gitddbVersion).test(version)) {
+        this._dbInfo.is_valid_version = true;
+      }
+      else {
+        this._dbInfo.is_valid_version = false;
+        /**
+         * TODO: Need migration
+         */
+      }
+    }
+    else {
+      this._dbInfo.is_created_by_gitddb = false;
+      this._dbInfo.is_valid_version = false;
+    }
   }
 
   /**
