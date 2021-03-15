@@ -229,11 +229,27 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       () => undefined
     );
 
-    /**
-     * Create repository if not exists
-     */
     if (this._currentRepository === undefined) {
-      return this._createRepository();
+      // repository does not exist
+      if (remoteURL === undefined) {
+        // Create repository if not exists
+        this._dbInfo = await this._createRepository();
+        return this._dbInfo;
+      }
+
+      // Clone repository if remoteURL exists
+      /**
+       * TODO:
+       * - set fetchOpts
+       * - set dbInfo.is_clone to true
+       * - HandleException
+       */
+      this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
+        fetchOpts: {},
+      });
+      this.sync(remoteURL, remoteOptions);
+
+      return this._dbInfo;
     }
 
     /**
@@ -252,9 +268,20 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       this._dbInfo.is_created_by_gitddb = true;
       if (new RegExp('^' + gitddbVersion).test(version)) {
         this._dbInfo.is_valid_version = true;
+        // Can synchronize
+        if (remoteURL !== undefined) {
+          /**
+           * TODO:
+           * sync()内でbehavior_for_no_merge_base の処理をすること
+           */
+          this.sync(remoteURL, remoteOptions);
+        }
       }
       else {
         this._dbInfo.is_valid_version = false;
+        /**
+         * TODO: Need migration
+         */
       }
     }
     else {
@@ -639,4 +666,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     this._remotes[remoteURL] = remote;
     return remote;
   }
+}
+function fetchOpts (remoteURL: string, arg1: string, fetchOpts: any, arg3: {}) {
+  throw new Error('Function not implemented.');
 }
