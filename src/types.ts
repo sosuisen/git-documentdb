@@ -34,6 +34,27 @@ export type DatabaseOption = {
   db_name: string;
 };
 /**
+ * Database information
+ *
+ * @remarks
+ * - is_new: Whether a repository is newly created or existing.
+ *
+ * - is_clone: Whether a repository is cloned from a remote repository or not.
+ *
+ * - is_created_by_gitddb: Whether a repository is created by GitDocumentDB or other means.
+ *
+ * - is_valid_version: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
+ *   The version is described in .git/description.
+ *
+ * @beta
+ */
+export type DatabaseInfo = {
+  is_new: boolean;
+  is_clone: boolean;
+  is_created_by_gitddb: boolean;
+  is_valid_version: boolean;
+};
+/**
  * Type for a JSON document that is stored in a database
  *
  * @remarks A document must be a JSON Object that matches the following conditions:

@@ -24,6 +24,7 @@ import {
   AllDocsResult,
   CollectionPath,
   DatabaseCloseOption,
+  DatabaseInfo,
   DatabaseOption,
   JsonDoc,
   PutOptions,
@@ -68,25 +69,6 @@ const repositoryInitOptionFlags = {
 */
 
 const defaultLocalDir = './gitddb';
-
-/**
- * Database information
- *
- * @remarks
- * - is_new: Whether a repository is newly created or existing.
- *
- * - is_created_by_gitddb: Whether a repository is created by GitDocumentDB or other means.
- *
- * - is_valid_version: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
- *   The version is described in .git/description.
- *
- * @beta
- */
-export type DatabaseInfo = {
-  is_new: boolean;
-  is_created_by_gitddb: boolean;
-  is_valid_version: boolean;
-};
 
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 
@@ -135,8 +117,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    */
   isClosing = false;
 
-  private _dbInfo = {
+  private _dbInfo: DatabaseInfo = {
     is_new: false,
+    is_clone: false,
     is_created_by_gitddb: true,
     is_valid_version: true,
   };
@@ -209,6 +192,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     this._remotes = {};
     this._dbInfo = {
       is_new: false,
+      is_clone: false,
       is_created_by_gitddb: true,
       is_valid_version: true,
     };
@@ -239,17 +223,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
       // Clone repository if remoteURL exists
       /**
-       * TODO:
-       * - set fetchOpts
-       * - set dbInfo.is_clone to true
-       * - HandleException
+       * TODO: Handle exceptions
        */
       this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
         fetchOpts: {},
       });
-      this.sync(remoteURL, remoteOptions);
-
-      return this._dbInfo;
+      this._dbInfo.is_clone = true;
     }
 
     /**
