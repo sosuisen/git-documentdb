@@ -179,6 +179,120 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
+   * Create a repository or open an existing one.
+   *
+   * @remarks
+   *  - If localDir does not exist, it is created.
+   *
+   *  - GitDocumentDB can load a git repository that is not created by git-documentdb module,
+   *  however correct behavior is not guaranteed.
+   *
+   * @returns Database information
+   *
+   * @throws {@link CannotCreateDirectoryError} You may not have write permission.
+   * @throws {@link DatabaseClosingError}
+   */
+  async open (remoteURL?: string, remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
+    if (this.isClosing) {
+      return Promise.reject(new DatabaseClosingError());
+    }
+    if (this.isOpened()) {
+      this._dbInfo.is_new = false;
+      return this._dbInfo;
+    }
+
+    /**
+     * Reset
+     */
+    this._taskQueue = [];
+    this._currentTask = undefined;
+    this._remotes = {};
+    this._dbInfo = {
+      is_new: false,
+      is_created_by_gitddb: true,
+      is_valid_version: true,
+    };
+
+    /**
+     * Create directory
+     */
+    await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
+      return Promise.reject(new CannotCreateDirectoryError(err.message));
+    });
+
+    /**
+     * nodegit.Repository.open() throws an error if the specified repository does not exist.
+     * open() also throws an error if the path is invalid or not writable,
+     * however this case has been already checked in fs.ensureDir.
+     */
+    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(
+      () => undefined
+    );
+
+    /**
+     * Create repository if not exists
+     */
+    if (this._currentRepository === undefined) {
+      return this._createRepository();
+    }
+
+    /**
+     * Check repository if exists
+     */
+    const version = await fs
+      .readFile(path.resolve(this._workingDirectory, '.gitddb', 'version'), 'utf8')
+      .catch(() => {
+        this._dbInfo.is_created_by_gitddb = false;
+        this._dbInfo.is_valid_version = false;
+        return undefined;
+      });
+    if (version === undefined) return this._dbInfo;
+
+    if (new RegExp('^' + databaseName).test(version)) {
+      this._dbInfo.is_created_by_gitddb = true;
+      if (new RegExp('^' + gitddbVersion).test(version)) {
+        this._dbInfo.is_valid_version = true;
+      }
+      else {
+        this._dbInfo.is_valid_version = false;
+      }
+    }
+    else {
+      this._dbInfo.is_created_by_gitddb = false;
+      this._dbInfo.is_valid_version = false;
+    }
+
+    return this._dbInfo;
+  }
+
+  private async _createRepository () {
+    /**
+     * Create a repository followed by first commit
+     */
+    const options: RepositoryInitOptions = {
+      initialHead: this.defaultBranch,
+    };
+    this._dbInfo.is_new = true;
+    this._currentRepository = await nodegit.Repository.initExt(
+      this._workingDirectory,
+      // @ts-ignore
+      options
+    ).catch(err => {
+      return Promise.reject(err);
+    });
+
+    // First commit
+    await put_worker(
+      this,
+      gitddbVersionFileName,
+      '',
+      gitddbVersion,
+      this._firstCommitMessage
+    );
+    return this._dbInfo;
+  }
+
+  /**
    * Get dbName
    */
   dbName () {
@@ -239,107 +353,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         });
       }
     }
-  }
-
-  /**
-   * Create a repository or open an existing one.
-   *
-   * @remarks
-   *  - If localDir does not exist, it is created.
-   *
-   *  - GitDocumentDB can load a git repository that is not created by git-documentdb module,
-   *  however correct behavior is not guaranteed.
-   *
-   * @returns Database information
-   *
-   * @throws {@link CannotCreateDirectoryError} You may not have write permission.
-   * @throws {@link DatabaseClosingError}
-   */
-  async open (): Promise<DatabaseInfo> {
-    if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
-    }
-    if (this.isOpened()) {
-      this._dbInfo.is_new = false;
-      return this._dbInfo;
-    }
-
-    this._taskQueue = [];
-    this._currentTask = undefined;
-
-    this._remotes = {};
-
-    await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
-      return Promise.reject(new CannotCreateDirectoryError(err.message));
-    });
-    this._dbInfo = {
-      is_new: false,
-      is_created_by_gitddb: true,
-      is_valid_version: true,
-    };
-
-    /**
-     * nodegit.Repository.open() throws an error if the specified repository does not exist.
-     * open() also throws an error if the path is invalid or not writable,
-     * however this case has been already checked in fs.ensureDir.
-     */
-    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(
-      () => undefined
-    );
-    if (this._currentRepository === undefined) {
-      /**
-       * Create a repository followed by first commit
-       */
-      const options: RepositoryInitOptions = {
-        initialHead: this.defaultBranch,
-      };
-      this._dbInfo.is_new = true;
-      this._currentRepository = await nodegit.Repository.initExt(
-        this._workingDirectory,
-        // @ts-ignore
-        options
-      ).catch(err => {
-        return Promise.reject(err);
-      });
-
-      // First commit
-      await put_worker(
-        this,
-        gitddbVersionFileName,
-        '',
-        gitddbVersion,
-        this._firstCommitMessage
-      );
-      return this._dbInfo;
-    }
-
-    // Check gitddb version
-    const version = await fs
-      .readFile(path.resolve(this._workingDirectory, '.gitddb', 'version'), 'utf8')
-      .catch(() => {
-        this._dbInfo.is_created_by_gitddb = false;
-        this._dbInfo.is_valid_version = false;
-        return undefined;
-      });
-    if (version === undefined) return this._dbInfo;
-
-    if (new RegExp('^' + databaseName).test(version)) {
-      this._dbInfo.is_created_by_gitddb = true;
-      if (new RegExp('^' + gitddbVersion).test(version)) {
-        this._dbInfo.is_valid_version = true;
-      }
-      else {
-        // console.warn('Database version is invalid.');
-        this._dbInfo.is_valid_version = false;
-      }
-    }
-    else {
-      // console.warn('Database is not created by git-documentdb.');
-      this._dbInfo.is_created_by_gitddb = false;
-      this._dbInfo.is_valid_version = false;
-    }
-
-    return this._dbInfo;
   }
 
   /**
