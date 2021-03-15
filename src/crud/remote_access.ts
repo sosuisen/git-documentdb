@@ -189,10 +189,12 @@ export class RemoteAccess implements IRemoteAccess {
    * Call this just after creating instance.
    */
   async connectToRemote (repos: nodegit.Repository): Promise<SyncResult> {
-    const onlyFetch = this._options.sync_direction === 'pull';
-    await this._addRemoteRepository(repos, this._remoteURL, onlyFetch).catch(err => {
+    const remote = await this._addRemote(repos, this._remoteURL).catch(err => {
       throw err;
     });
+    const onlyFetch = this._options.sync_direction === 'pull';
+    await this._ensureRemoteRepository(this._remoteURL, remote, onlyFetch);
+
     let syncResult: SyncResult;
     if (this.upstream_branch === '') {
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
@@ -310,22 +312,25 @@ export class RemoteAccess implements IRemoteAccess {
    * @internal
    */
   // eslint-disable-next-line complexity
-  private async _addRemoteRepository (
-    repos: nodegit.Repository,
-    _remoteURL: string,
-    onlyFetch?: boolean
-  ) {
+  private async _addRemote (repos: nodegit.Repository, remoteURL: string) {
     // Check if remote repository already exists
     let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
       // Add remote repository
-      console.log('add remote: ' + _remoteURL);
-      remote = await nodegit.Remote.create(repos, 'origin', _remoteURL);
+      console.log('add remote: ' + remoteURL);
+      remote = await nodegit.Remote.create(repos, 'origin', remoteURL);
     }
-    else if (remote.url() !== _remoteURL) {
-      nodegit.Remote.setUrl(repos, 'origin', _remoteURL);
+    else if (remote.url() !== remoteURL) {
+      nodegit.Remote.setUrl(repos, 'origin', remoteURL);
     }
+    return remote;
+  }
 
+  private async _ensureRemoteRepository (
+    remoteURL: string,
+    remote: nodegit.Remote,
+    onlyFetch?: boolean
+  ) {
     // Check fetch and push
     const result = await this._checkFetch(remote).catch(err => {
       if (
@@ -339,8 +344,8 @@ export class RemoteAccess implements IRemoteAccess {
     });
     if (result === 'create') {
       // Try to create repository by octokit
-      console.log('create repos: ' + _remoteURL);
-      await this.createRepositoryOnRemote(_remoteURL).catch(err => {
+      console.log('create repos: ' + remoteURL);
+      await this.createRepositoryOnRemote(remoteURL).catch(err => {
         // Expected errors:
         //  - The private repository which has the same name exists.
         //  - Authentication error
