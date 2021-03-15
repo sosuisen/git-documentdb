@@ -241,6 +241,10 @@ export class RemoteAccess implements IRemoteAccess {
       // HttpError: Repository creation failed.:
       // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
     }
+    else {
+      // TODO:
+      throw new Error('Cannot create remote repository because auth type is not github');
+    }
   }
 
   /**
