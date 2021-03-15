@@ -222,23 +222,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       }
 
       // Clone repository if remoteURL exists
-      const remote = new RemoteAccess(this, remoteURL, remoteOptions);
-      const callbacks = {
-        credentials: remote.createCredential(),
-      };
-      if (process.platform === 'darwin') {
-        // @ts-ignore
-        this._callbacks.certificateCheck = () => 0;
-      }
-      /**
-       * TODO: Handle exceptions
-       */
-      this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
-        fetchOpts: {
-          callbacks,
-        },
-      });
-      this._dbInfo.is_clone = true;
+      await this._cloneRepository(remoteURL, remoteOptions);
     }
 
     /**
@@ -263,7 +247,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
            * TODO:
            * sync()内でbehavior_for_no_merge_base の処理をすること
            */
-          this.sync(remoteURL, remoteOptions);
+          await this.sync(remoteURL, remoteOptions);
         }
       }
       else {
@@ -306,6 +290,67 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       this._firstCommitMessage
     );
     return this._dbInfo;
+  }
+
+  private async _cloneRepository (remoteURL: string, remoteOptions?: RemoteOptions) {
+    const remote = new RemoteAccess(this, remoteURL, remoteOptions);
+    const callbacks = {
+      credentials: remote.createCredential(),
+    };
+    if (process.platform === 'darwin') {
+      // @ts-ignore
+      this._callbacks.certificateCheck = () => 0;
+    }
+    /**
+     * TODO: Handle exceptions
+     */
+    console.log('- Try clone..: ' + remoteURL);
+    this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
+      fetchOpts: {
+        callbacks,
+      },
+    }).catch(err => {
+      console.log(err);
+      return undefined;
+    });
+
+    /**
+     * TODO: validate db
+     */
+
+    /**
+     * Clone failed
+     */
+    if (this._currentRepository === undefined) {
+      console.log('- Clone failed');
+      console.log('- Create local');
+      this._dbInfo = await this._createRepository();
+
+      /*
+      await remote.createRepositoryOnRemote(remoteURL).catch(err => {
+        console.log(err);
+        throw err;
+      });
+      */
+    }
+    else {
+      this._dbInfo.is_clone = true;
+      console.log('- Clone done.');
+    }
+
+    /**
+      console.log('- Try clone again..: ' + remoteURL);
+      this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
+        checkoutBranch: 'main',
+        fetchOpts: {
+          callbacks,
+        },
+      }).catch(err => {
+        console.log(err);
+        throw err;
+      });
+      console.log('- Clone done.');
+       */
   }
 
   /**
