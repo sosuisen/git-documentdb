@@ -198,7 +198,6 @@ export class RemoteAccess implements IRemoteAccess {
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
       syncResult = await this.tryPush();
-      console.log('The first commit has been pushed.');
 
       // An upstream branch must be set to a local branch after the first push
       // because refs/remotes/origin/main is not created until the first push.
@@ -209,7 +208,6 @@ export class RemoteAccess implements IRemoteAccess {
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else {
-      console.log('trySync..');
       syncResult = await this.trySync();
     }
 
@@ -319,7 +317,6 @@ export class RemoteAccess implements IRemoteAccess {
     let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
       // Add remote repository
-      console.log('add remote: ' + remoteURL);
       remote = await nodegit.Remote.create(repos, 'origin', remoteURL);
     }
     else if (remote.url() !== remoteURL) {
@@ -343,7 +340,6 @@ export class RemoteAccess implements IRemoteAccess {
     });
     if (result === 'create') {
       // Try to create repository by octokit
-      console.log('create repos: ' + remoteURL);
       await this.createRepositoryOnRemote(remoteURL).catch(err => {
         // Expected errors:
         //  - The private repository which has the same name exists.
