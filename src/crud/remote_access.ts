@@ -189,9 +189,7 @@ export class RemoteAccess implements IRemoteAccess {
    * Call this just after creating instance.
    */
   async connectToRemote (repos: nodegit.Repository): Promise<SyncResult> {
-    const remote = await this._addRemote(repos, this._remoteURL).catch(err => {
-      throw err;
-    });
+    const remote = await this._addRemote(repos, this._remoteURL);
     const onlyFetch = this._options.sync_direction === 'pull';
     await this._ensureRemoteRepository(remote, onlyFetch);
 
@@ -234,8 +232,6 @@ export class RemoteAccess implements IRemoteAccess {
       const repo = urlArray[urlArray.length - 1];
       await this._octokit!.repos.createForAuthenticatedUser({
         name: repo,
-      }).catch(err => {
-        throw err;
       });
       // May throw HttpError
       // HttpError: Repository creation failed.:
