@@ -86,7 +86,7 @@ export class RemoteAccess implements IRemoteAccess {
     this._options.behavior_for_no_merge_base ??= 'nop';
 
     this.callbacks = {
-      credentials: this._createCredential(),
+      credentials: this.createCredential(),
     };
     if (process.platform === 'darwin') {
       // @ts-ignore
@@ -163,7 +163,7 @@ export class RemoteAccess implements IRemoteAccess {
   /**
    * Create credential options
    */
-  private _createCredential () {
+  createCredential () {
     this._options.auth ??= { type: 'none' };
 
     if (this._options.auth.type === 'github') {
