@@ -193,7 +193,7 @@ export class RemoteAccess implements IRemoteAccess {
       throw err;
     });
     const onlyFetch = this._options.sync_direction === 'pull';
-    await this._ensureRemoteRepository(this._remoteURL, remote, onlyFetch);
+    await this._ensureRemoteRepository(remote, onlyFetch);
 
     let syncResult: SyncResult;
     if (this.upstream_branch === '') {
@@ -326,11 +326,8 @@ export class RemoteAccess implements IRemoteAccess {
     return remote;
   }
 
-  private async _ensureRemoteRepository (
-    remoteURL: string,
-    remote: nodegit.Remote,
-    onlyFetch?: boolean
-  ) {
+  private async _ensureRemoteRepository (remote: nodegit.Remote, onlyFetch?: boolean) {
+    const remoteURL = remote.url();
     // Check fetch and push
     const result = await this._checkFetch(remote).catch(err => {
       if (
