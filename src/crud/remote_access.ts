@@ -257,8 +257,9 @@ export class RemoteAccess implements IRemoteAccess {
     }
   }
 
+  // Get remote from arguments to be called from test
   // eslint-disable-next-line complexity
-  async _checkFetch (remote: nodegit.Remote) {
+  private async _checkFetch (remote: nodegit.Remote) {
     const remoteURL = remote.url();
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
@@ -286,6 +287,7 @@ export class RemoteAccess implements IRemoteAccess {
     return 'ok';
   }
 
+  // Get remote from arguments to be called from test
   private async _checkPush (remote: nodegit.Remote) {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
