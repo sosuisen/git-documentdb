@@ -99,7 +99,12 @@ click on the Advanced button, and then click [disable inheritance] button.
 
     // Create db
     await expect(gitDDB.open())
-      .resolves.toMatchObject({ is_new: true })
+      .resolves.toMatchObject({
+        is_new: true,
+        is_clone: false,
+        is_created_by_gitddb: true,
+        is_valid_version: true,
+      })
       .catch(e => console.error(e));
     // Check path of working directory
     expect(gitDDB.workingDir()).toBe(path.resolve('./test/database_open01_1/test_repos_2'));
@@ -120,7 +125,12 @@ click on the Advanced button, and then click [disable inheritance] button.
     const defaultLocalDir = './gitddb/';
     // Create db
     await expect(gitDDB.open())
-      .resolves.toMatchObject({ is_new: true })
+      .resolves.toMatchObject({
+        is_new: true,
+        is_clone: false,
+        is_created_by_gitddb: true,
+        is_valid_version: true,
+      })
       .catch(e => console.error(e));
     expect(gitDDB.workingDir()).toBe(path.resolve(defaultLocalDir, dbName));
     // Destroy db
@@ -178,6 +188,7 @@ describe('Open, close and destroy repository', () => {
     // Open existing db
     await expect(gitDDB.open()).resolves.toMatchObject({
       is_new: false,
+      is_clone: false,
       is_created_by_gitddb: true,
       is_valid_version: true,
     });
@@ -205,6 +216,7 @@ describe('Open, close and destroy repository', () => {
 
     await expect(gitDDB.open()).resolves.toMatchObject({
       is_new: false,
+      is_clone: false,
       is_created_by_gitddb: false,
       is_valid_version: false,
     });
@@ -229,6 +241,7 @@ describe('Open, close and destroy repository', () => {
 
     await expect(gitDDB.open()).resolves.toMatchObject({
       is_new: false,
+      is_clone: false,
       is_created_by_gitddb: true,
       is_valid_version: false,
     });
@@ -248,6 +261,7 @@ describe('Open, close and destroy repository', () => {
 
     await expect(gitDDB.open()).resolves.toMatchObject({
       is_new: false,
+      is_clone: false,
       is_created_by_gitddb: false,
       is_valid_version: false,
     });
@@ -264,6 +278,9 @@ describe('Open, close and destroy repository', () => {
     const info = await gitDDB.open();
     await expect(gitDDB.open()).resolves.toMatchObject({
       is_new: false,
+      is_clone: false,
+      is_created_by_gitddb: true,
+      is_valid_version: true,
     });
     await gitDDB.destroy();
   });
