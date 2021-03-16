@@ -467,9 +467,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
          * See https://github.com/nodegit/nodegit/issues/1817#issuecomment-776844425
          * https://github.com/nodegit/nodegit/pull/1570
          *
+         * Use cleanup() instead.
+         * http://carlosmn.github.io/libgit2/#v0.23.0/group/repository/git_repository__cleanup
          */
         // this._currentRepository.free();
 
+        this._currentRepository.cleanup();
         this._currentRepository = undefined;
 
         this._remotes = {};
