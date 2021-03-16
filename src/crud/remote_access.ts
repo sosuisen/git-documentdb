@@ -264,10 +264,10 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
     );
+    await remote.disconnect();
     if (error !== 'undefined') console.log('connect fetch error: ' + error);
     switch (true) {
       case error === 'undefined':
-        await remote.disconnect();
         break;
       case error.startsWith('Error: unsupported URL protocol'):
         throw new InvalidURLFormatError(remoteURL);
@@ -292,10 +292,10 @@ export class RemoteAccess implements IRemoteAccess {
     const error = String(
       await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
     );
+    await remote.disconnect();
     if (error !== 'undefined') console.log('connect push error: ' + error);
     switch (true) {
       case error === 'undefined':
-        await remote.disconnect();
         break;
       case error.startsWith('Error: request failed with status code: 401'):
         throw new PushAuthenticationError();
