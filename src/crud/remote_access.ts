@@ -32,7 +32,7 @@ import {
   SyncResult,
 } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { push_worker, sync_worker } from './sync';
+import { push_worker, sync_worker } from './remote_worker';
 
 export async function syncImpl (
   this: AbstractDocumentDB,
