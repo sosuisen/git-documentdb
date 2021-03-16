@@ -574,6 +574,42 @@ maybe('remote: use personal access token: ', () => {
       await dbA.destroy();
       await dbB.destroy();
     });
+
+    test('retrySync()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        live: false,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      // Check dbInfo
+      await dbA.open(remoteURL, options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      const remoteA = dbA.getRemote(remoteURL);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.open(remoteURL, options);
+      const jsonB1 = { _id: '2', name: 'fromB' };
+      await dbB.put(jsonB1);
+      const remoteB = dbB.getRemote(remoteURL);
+
+      await remoteA.tryPush();
+      await remoteB.trySync();
+
+      await dbA.destroy();
+      await dbB.destroy();
+    });
   });
   test.skip('Test _addRemoteRepository');
   test.skip('Test ours option for behavior_for_no_merge_base');
