@@ -164,20 +164,6 @@ export async function sync_worker (
     return 'push';
   }
 
-  /*  
-      // Check if merge is needed.
-      const annotatedCommit = await nodegit.AnnotatedCommit.fromRevspec(repos, 'refs/remotes/origin/main')
-      const head = await repos.getHeadCommit()
-      console.log('ours:' + head.id().tostrS());
-      console.log('theirs:' + annotatedCommit.id().tostrS());
-      if (head.id().tostrS() === annotatedCommit.id().tostrS()){
-        console.log('cancel merge');
-        return;
-      }
-    
-      // Start merge
-      await nodegit.Merge.merge(repos, annotatedCommit, undefined, checkoutOptions);
-    */
   /**
    * NOTE:
    * This _index from Merge.merge or Merge.commit is in-memory only.
@@ -191,22 +177,6 @@ export async function sync_worker (
   if (conflictedIndex === undefined) {
     // Conflict is not occurred if a local file is removed and the same remote file is removed.
     // But they cannot be fast-forward merged. They are merged by usual merging branch.
-
-    /*
-      await _index.write();
-      const treeOid: nodegit.Oid = await _index.writeTree();
-      const commitMessage = 'put: xxx';
-      const commitOid: nodegit.Oid = await repos.createCommit(
-          'HEAD',
-          author,
-          committer,
-          commitMessage,
-          treeOid!,
-          [await repos.getHeadCommit(), annotatedCommit.id()]
-        );
-      repos.stateCleanup();
-      // await nodegit.Checkout.head(repos, checkoutOptions);
-      */
 
     const distance_again = ((await nodegit.Graph.aheadBehind(
       repos,
