@@ -9,12 +9,39 @@ import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
+  CannotPushBecauseUnfetchedCommitExistsError,
   NoMergeBaseFoundError,
   RepositoryNotOpenError,
   SyncWorkerFetchError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { IRemoteAccess, SyncResult } from '../types';
+
+async function validatePushResult (repos: nodegit.Repository, remoteAccess: IRemoteAccess) {
+  await repos
+    .fetch('origin', {
+      callbacks: remoteAccess.callbacks,
+    })
+    .catch(err => {
+      throw new SyncWorkerFetchError(err.message);
+    });
+
+  const localCommit = await repos.getHeadCommit();
+  const remoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
+  // @types/nodegit is wrong
+  const distance = ((await nodegit.Graph.aheadBehind(
+    repos,
+    localCommit.id(),
+    remoteCommit.id()
+  )) as unknown) as { ahead: number; behind: number };
+
+  if (distance.ahead !== 0 || distance.behind !== 0) {
+    console.log(
+      `- sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
+    );
+    throw new CannotPushBecauseUnfetchedCommitExistsError();
+  }
+}
 
 export async function push_worker (
   gitddb: AbstractDocumentDB,
@@ -25,12 +52,23 @@ export async function push_worker (
     throw new RepositoryNotOpenError();
   }
   const remote: nodegit.Remote = await repos.getRemote('origin');
-  await remote.push(
-    [`refs/heads/${gitddb.defaultBranch}:refs/heads/${gitddb.defaultBranch}`],
-    {
+  await remote
+    .push([`refs/heads/${gitddb.defaultBranch}:refs/heads/${gitddb.defaultBranch}`], {
       callbacks: remoteAccess.callbacks,
-    }
-  );
+    })
+    .catch((err: Error) => {
+      if (
+        err.message.startsWith(
+          'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
+        )
+      ) {
+        throw new CannotPushBecauseUnfetchedCommitExistsError();
+      }
+      throw err;
+    });
+  console.log('- sync_worker: May pushed.');
+  console.log('- sync_worker: Check if pushed.');
+  await validatePushResult(repos, remoteAccess);
 
   return 'push';
 }
@@ -117,10 +155,26 @@ export async function sync_worker (
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
     const remote: nodegit.Remote = await repos.getRemote('origin');
-    await remote.push(['refs/heads/main:refs/heads/main'], {
-      callbacks: remoteAccess.callbacks,
-    });
-    console.log('- sync_worker: Pushed.');
+    await remote
+      .push(['refs/heads/main:refs/heads/main'], {
+        callbacks: remoteAccess.callbacks,
+      })
+      .catch((err: Error) => {
+        console.log(err);
+        if (
+          err.message.startsWith(
+            'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
+          )
+        ) {
+          throw new CannotPushBecauseUnfetchedCommitExistsError();
+        }
+        throw err;
+      });
+    console.log('- sync_worker: May pushed.');
+
+    console.log('- sync_worker: Check if pushed.');
+    await validatePushResult(repos, remoteAccess);
+
     return 'push';
   }
 
@@ -179,7 +233,9 @@ export async function sync_worker (
       return 'fast-forward merge';
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
-      // It is occurred when a local file is removed and the same remote file is removed.
+      // It is occurred when
+      // - a local file is changed and another remote file is changed.
+      // - a local file is removed and the same remote file is removed.
       // Normal merge. Need push
       const commit = await repos.getCommit(commitOid!);
       const commitMessage = 'merge';
@@ -193,9 +249,25 @@ export async function sync_worker (
       );
       // Push
       const remote: nodegit.Remote = await repos.getRemote('origin');
-      await remote.push(['refs/heads/main:refs/heads/main'], {
-        callbacks: remoteAccess.callbacks,
-      });
+      await remote
+        .push(['refs/heads/main:refs/heads/main'], {
+          callbacks: remoteAccess.callbacks,
+        })
+        .catch((err: Error) => {
+          console.log(err);
+          if (
+            err.message.startsWith(
+              'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
+            )
+          ) {
+            throw new CannotPushBecauseUnfetchedCommitExistsError();
+          }
+          throw err;
+        });
+      console.log('- sync_worker: May pushed.');
+      console.log('- sync_worker: Check if pushed.');
+      await validatePushResult(repos, remoteAccess);
+
       console.log('- sync_worker: Merge and push');
       return 'merge and push';
     }
@@ -287,10 +359,25 @@ export async function sync_worker (
 
     // Push
     const remote: nodegit.Remote = await repos.getRemote('origin');
-    await remote.push(['refs/heads/main:refs/heads/main'], {
-      callbacks: remoteAccess.callbacks,
-    });
-    console.log('- sync_worker: Pushed.');
+    await remote
+      .push(['refs/heads/main:refs/heads/main'], {
+        callbacks: remoteAccess.callbacks,
+      })
+      .catch((err: Error) => {
+        console.log(err);
+        if (
+          err.message.startsWith(
+            'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
+          )
+        ) {
+          throw new CannotPushBecauseUnfetchedCommitExistsError();
+        }
+        throw err;
+      });
+    console.log('- sync_worker: May pushed.');
+    console.log('- sync_worker: Check if pushed.');
+    await validatePushResult(repos, remoteAccess);
+
     return 'resolve conflicts and push';
   }
 }
