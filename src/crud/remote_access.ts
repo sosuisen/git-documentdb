@@ -48,7 +48,9 @@ export async function syncImpl (
   return remote;
 }
 
-export const defaultPullInterval = 10000;
+export const defaultSyncInterval = 10000;
+export const defaultRetryInterval = 3000;
+export const defaultRetry = 2;
 
 /**
  * RemoteAccess class
@@ -78,11 +80,15 @@ export class RemoteAccess implements IRemoteAccess {
       live: false,
       sync_direction: undefined,
       interval: undefined,
+      retry: undefined,
+      retry_interval: undefined,
       auth: undefined,
       behavior_for_no_merge_base: undefined,
     };
     this._options.sync_direction ??= 'pull'; // auth is not required for pulling
-    this._options.interval ??= defaultPullInterval;
+    this._options.interval ??= defaultSyncInterval;
+    this._options.retry_interval ??= defaultRetryInterval;
+    this._options.retry ??= defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
 
     this.callbacks = {
@@ -428,6 +434,32 @@ export class RemoteAccess implements IRemoteAccess {
     this._syncTimer = setInterval(this.trySync, this._options.interval!);
   }
 
+  private _retrySyncCounter = 0;
+
+  private async _retrySync (): Promise<SyncResult | 'never'> {
+    if (this._retrySyncCounter === 0) {
+      this._retrySyncCounter = this._options.retry!;
+    }
+    while (this._retrySyncCounter > 0) {
+      console.log('Enqueue retry: ' + (this._options.retry! - this._retrySyncCounter));
+      // eslint-disable-next-line no-await-in-loop
+      const result = await this.trySync().catch((err: Error) => {
+        // Invoke retry fail event
+        console.log(err);
+        this._retrySyncCounter--;
+        if (this._retrySyncCounter === 0) {
+          throw err;
+        }
+        return undefined;
+      });
+      if (result !== undefined) {
+        return result;
+      }
+    }
+    // This line is not reached.
+    return 'never';
+  }
+
   tryPush () {
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
@@ -436,9 +468,21 @@ export class RemoteAccess implements IRemoteAccess {
           func: () =>
             push_worker(this._gitDDB, this)
               .then((result: SyncResult) => {
+                // Invoke success event
                 resolve(result);
               })
-              .catch(err => reject(err)),
+              .catch(err => {
+                // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
+                if (this._retrySyncCounter === 0) {
+                  const promise = this._retrySync();
+                  // Invoke fail event
+                  // Give promise to the event.
+                }
+                else {
+                  // Invoke fail event
+                }
+                reject(err);
+              }),
         });
       }
     );
@@ -452,9 +496,20 @@ export class RemoteAccess implements IRemoteAccess {
           func: () =>
             sync_worker(this._gitDDB, this)
               .then(result => {
+                // Invoke success event
                 resolve(result);
               })
-              .catch(err => reject(err)),
+              .catch(err => {
+                if (this._retrySyncCounter === 0) {
+                  const promise = this._retrySync();
+                  // Invoke fail event
+                  // Give promise to the event.
+                }
+                else {
+                  // Invoke fail event
+                }
+                reject(err);
+              }),
         });
       }
     );

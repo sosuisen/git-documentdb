@@ -269,6 +269,8 @@ export type RemoteOptions = {
   live: boolean;
   sync_direction?: SyncDirection;
   interval?: number; // msec
+  retry?: number;
+  retry_interval?: number; // msec
   auth?: RemoteAuth;
   behavior_for_no_merge_base?: BehaviorForNoMergeBase;
 };
