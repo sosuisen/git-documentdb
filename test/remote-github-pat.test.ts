@@ -383,40 +383,6 @@ maybe('remote: use personal access token: ', () => {
       // fs.removeSync(path.resolve(localDir));
     });
 
-    describe('A creates remote repository and puts data', () => {
-      test('B clones the remote repository', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          live: false,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        // Check dbInfo
-        await dbA.open(remoteURL, options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-        await remoteA.tryPush();
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(remoteURL, options);
-        await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-
-        // await dbA.destroy();
-        // await dbB.destroy();
-      });
-    });
-
     test('No merge base found', async () => {
       const remoteURL = remoteURLBase + serialId();
 
@@ -426,15 +392,14 @@ maybe('remote: use personal access token: ', () => {
         db_name: dbNameA,
         local_dir: localDir,
       });
-      await dbA.open();
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-
       const options: RemoteOptions = {
         live: false,
         auth: { type: 'github', personal_access_token: token },
       };
-      await dbA.sync(remoteURL, options).catch(err => console.error(err));
+
+      await dbA.open(remoteURL, options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -443,16 +408,41 @@ maybe('remote: use personal access token: ', () => {
       });
       await dbB.open();
 
-      await dbB.sync(remoteURL, options).catch(err => {
-        console.log('Error in test: ' + err);
-      });
-      /*
       await expect(dbB.sync(remoteURL, options)).rejects.toThrowError(
         NoMergeBaseFoundError
       );
-      */
-      // console.log('dbB sync done');
-      // await expect(dbB.get('1')).toMatchObject(jsonA1);
+
+      await dbA.destroy();
+      await dbB.destroy();
+    });
+
+    test('A creates remote repository and puts data: B clones the remote repository', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        live: false,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      // Check dbInfo
+      await dbA.open(remoteURL, options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      const remoteA = dbA.getRemote(remoteURL);
+      await remoteA.tryPush();
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.open(remoteURL, options);
+      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
       await dbA.destroy();
       await dbB.destroy();
