@@ -286,7 +286,7 @@ export type SyncResult =
 /**
  * Task
  */
-export type TaskLabel = 'put' | 'remove' | 'sync';
+export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
 
 export type Task = {
   taskName: TaskLabel;

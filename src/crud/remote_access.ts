@@ -198,7 +198,11 @@ export class RemoteAccess implements IRemoteAccess {
       console.log('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
-      syncResult = await this.tryPush();
+      syncResult = await this.tryPush().catch(err => {
+        // Push fails if the remote repository has already changed by another client.
+        // It's rare. Throw exception.
+        throw err;
+      });
 
       // An upstream branch must be set to a local branch after the first push
       // because refs/remotes/origin/main is not created until the first push.
@@ -428,7 +432,7 @@ export class RemoteAccess implements IRemoteAccess {
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
         this._gitDDB._unshiftSyncTaskToTaskQueue({
-          taskName: 'sync',
+          taskName: 'push',
           func: () =>
             push_worker(this._gitDDB, this)
               .then((result: SyncResult) => {

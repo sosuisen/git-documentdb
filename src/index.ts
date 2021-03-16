@@ -393,6 +393,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   public _unshiftSyncTaskToTaskQueue (task: Task) {
+    if (this._taskQueue.length > 0 && this._taskQueue[0].taskName === 'sync') {
+      return;
+    }
     this._taskQueue.unshift(task);
     this._execTaskQueue();
   }
