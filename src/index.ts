@@ -223,7 +223,19 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       }
 
       // Clone repository if remoteURL exists
-      await this._cloneRepository(remoteURL, remoteOptions);
+      this._currentRepository = await this._cloneRepository(remoteURL, remoteOptions);
+
+      if (this._currentRepository === undefined) {
+        // Clone failed
+        this._dbInfo = await this._createRepository();
+      }
+      else {
+        console.log('Clone succeeded.');
+        /**
+         * TODO: validate db
+         */
+        this._dbInfo.is_clone = true;
+      }
     }
 
     /**
@@ -284,7 +296,20 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     /**
      * TODO: Handle exceptions
      */
-    this._currentRepository = await nodegit.Clone.clone(remoteURL, this.workingDir(), {
+
+    /*    
+    const tmpRemote = await nodegit.Remote.createDetached(remoteURL);
+    const error = String(
+      await tmpRemote.connect(nodegit.Enums.DIRECTION.FETCH, callbacks).catch(err => err)
+    );
+    await tmpRemote.disconnect();
+    if (error !== 'undefined') {
+      console.log('Connect before clone failed.');
+      return Promise.resolve(undefined);
+    }
+    */
+
+    return await nodegit.Clone.clone(remoteURL, this.workingDir(), {
       fetchOpts: {
         callbacks,
       },
@@ -292,20 +317,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       console.log(err);
       return undefined;
     });
-
-    /**
-     * TODO: validate db
-     */
-
-    /**
-     * Clone failed
-     */
-    if (this._currentRepository === undefined) {
-      this._dbInfo = await this._createRepository();
-    }
-    else {
-      this._dbInfo.is_clone = true;
-    }
   }
 
   private async _setDbInfo () {
