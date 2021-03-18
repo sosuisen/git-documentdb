@@ -9,6 +9,7 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import { monotonicFactory } from 'ulid';
 import {
   CannotCreateDirectoryError,
   DatabaseCloseTimeoutError,
@@ -40,6 +41,8 @@ import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { RemoteAccess, syncImpl } from './crud/remote_access';
+import { ConsoleStyle, logger, sleep } from './utils';
+const ulid = monotonicFactory();
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -69,8 +72,6 @@ const repositoryInitOptionFlags = {
 */
 
 const defaultLocalDir = './gitddb';
-
-const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 
 /**
  * Main class of GitDocumentDB
@@ -103,6 +104,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   private _taskQueue: Task[];
 
   private _isTaskQueueWorking = false;
+  private _setIsTaskQueueWorking (bool: boolean, taskId?: string) {
+    if (taskId !== undefined) {
+      // logger.debug(bool + ', by: ' + taskId);
+    }
+    this._isTaskQueueWorking = bool;
+  }
 
   private _currentTask: Task | undefined = undefined;
 
@@ -230,7 +237,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         this._dbInfo = await this._createRepository();
       }
       else {
-        console.log('Clone succeeded.');
+        logger.warn('Clone succeeded.');
         /**
          * TODO: validate db
          */
@@ -295,26 +302,16 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
     /**
      * TODO: Handle exceptions
+     * If repository exists and cannot clone, you have not permission.
+     * Only 'pull' is allowed.
      */
-
-    /*    
-    const tmpRemote = await nodegit.Remote.createDetached(remoteURL);
-    const error = String(
-      await tmpRemote.connect(nodegit.Enums.DIRECTION.FETCH, callbacks).catch(err => err)
-    );
-    await tmpRemote.disconnect();
-    if (error !== 'undefined') {
-      console.log('Connect before clone failed.');
-      return Promise.resolve(undefined);
-    }
-    */
 
     return await nodegit.Clone.clone(remoteURL, this.workingDir(), {
       fetchOpts: {
         callbacks,
       },
     }).catch(err => {
-      console.log(err);
+      logger.debug(err);
       return undefined;
     });
   }
@@ -387,6 +384,11 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * Task queue
    * @internal
    */
+  //  Use monotonic ulid for taskId
+  public newTaskId = () => {
+    return this._dbName + '_' + ulid(Date.now());
+  };
+
   public _pushToTaskQueue (task: Task) {
     this._taskQueue.push(task);
     this._execTaskQueue();
@@ -402,18 +404,24 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   private _execTaskQueue () {
     if (this._taskQueue.length > 0 && !this._isTaskQueueWorking) {
-      this._isTaskQueueWorking = true;
       this._currentTask = this._taskQueue.shift();
       if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
-        console.debug(
-          `-- Exec ${this._currentTask.label}${
-            this._currentTask.targetId
-              ? `(${this._currentTask.targetId})`
-              : `#${this._currentTask.taskId}`
-          }`
+        const label = this._currentTask.label;
+        const targetId = this._currentTask.targetId;
+        const taskId = this._currentTask.taskId;
+        logger.debug(
+          ConsoleStyle.BgYellow().FgBlack().tag()`-- Exec start ${label}(${
+            targetId || ''
+          })#${taskId}`
         );
+        this._setIsTaskQueueWorking(true, this._currentTask.taskId);
         this._currentTask.func().finally(() => {
-          this._isTaskQueueWorking = false;
+          logger.debug(
+            ConsoleStyle.BgYellow().FgBlue().tag()`-- Exec end ${label}(${
+              targetId || ''
+            })#${taskId}`
+          );
+          this._setIsTaskQueueWorking(false, taskId);
           this._execTaskQueue();
         });
       }
@@ -470,7 +478,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       } finally {
         this.isClosing = false;
         this._taskQueue = [];
-        this._isTaskQueueWorking = false;
+        this._setIsTaskQueueWorking(false);
 
         /**
          * The types are wrong. Repository does not have free() method.

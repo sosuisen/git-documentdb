@@ -6,8 +6,9 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { monotonicFactory } from 'ulid';
+import { Logger } from 'tslog';
 
+export const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 /**
  * Returns JSON string which properties are sorted.
  * The sorting follows the UTF-16 (Number < Uppercase < Lowercase), except that heading underscore _ is the last.
@@ -36,7 +37,63 @@ export const toSortedJSONString = (obj: Record<string, any>) => {
   );
 };
 
-const ulid = monotonicFactory();
-export const newTaskId = () => {
-  return ulid(Date.now());
-};
+/**
+ * Logger
+ */
+export const logger = new Logger({
+  name: 'GitDDB',
+  minLevel: 'trace',
+  displayDateTime: false,
+});
+
+/**
+ * Template literal tag for console style
+ * https://bluesock.org/~willkg/dev/ansi.html#ansicodes
+ */
+class ConsoleStyleClass {
+  private _style = '';
+  constructor (_style?: string) {
+    this._style = _style ?? '';
+  }
+
+  tag = () => {
+    return (literals: TemplateStringsArray, ...placeholders: string[]) => {
+      let result = this._style;
+      for (let i = 0; i < placeholders.length; i++) {
+        result += literals[i];
+        result += placeholders[i];
+      }
+      result += literals[literals.length - 1];
+      // Reset style
+      result += '\x1b[0m';
+      return result;
+    };
+  };
+
+  Bright = () => new ConsoleStyleClass(this._style + '\x1b[1m');
+  Dim = () => new ConsoleStyleClass(this._style + '\x1b[2m');
+  Underscore = () => new ConsoleStyleClass(this._style + '\x1b[4m');
+  Blink = () => new ConsoleStyleClass(this._style + '\x1b[5m');
+  Reverse = () => new ConsoleStyleClass(this._style + '\x1b[7m');
+  Hidden = () => new ConsoleStyleClass(this._style + '\x1b[8m');
+
+  FgBlack = () => new ConsoleStyleClass(this._style + '\x1b[30m');
+  FgRed = () => new ConsoleStyleClass(this._style + '\x1b[31m');
+  FgGreen = () => new ConsoleStyleClass(this._style + '\x1b[32m');
+  FgYellow = () => new ConsoleStyleClass(this._style + '\x1b[33m');
+  FgBlue = () => new ConsoleStyleClass(this._style + '\x1b[34m');
+  FgMagenta = () => new ConsoleStyleClass(this._style + '\x1b[35m');
+  FgCyan = () => new ConsoleStyleClass(this._style + '\x1b[36m');
+  FgWhite = () => new ConsoleStyleClass(this._style + '\x1b[37m');
+
+  BgBlack = () => new ConsoleStyleClass(this._style + '\x1b[40m');
+  BgRed = () => new ConsoleStyleClass(this._style + '\x1b[41m');
+  BgGreen = () => new ConsoleStyleClass(this._style + '\x1b[42m');
+  BgYellow = () => new ConsoleStyleClass(this._style + '\x1b[43m');
+  BgBlue = () => new ConsoleStyleClass(this._style + '\x1b[44m');
+  BgMagenta = () => new ConsoleStyleClass(this._style + '\x1b[45m');
+  BgCyan = () => new ConsoleStyleClass(this._style + '\x1b[46m');
+  BgWhite = () => new ConsoleStyleClass(this._style + '\x1b[47m');
+}
+
+export const ConsoleStyle = new ConsoleStyleClass('');

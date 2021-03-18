@@ -20,7 +20,7 @@ import {
   UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
-import { newTaskId, toSortedJSONString } from '../utils';
+import { toSortedJSONString } from '../utils';
 
 /**
  * Implementation of put()
@@ -102,7 +102,7 @@ export function putImpl (
   return new Promise((resolve, reject) => {
     this._pushToTaskQueue({
       label: 'put',
-      taskId: newTaskId(),
+      taskId: this.newTaskId(),
       targetId: _id,
       func: () =>
         put_worker(this, _id, this.fileExt, data, options!.commit_message!)
@@ -202,7 +202,6 @@ export async function put_worker (
   } catch (err) {
     return Promise.reject(new CannotWriteDataError(err.message));
   }
-  // console.log(commitId.tostrS());
 
   return {
     ok: true,

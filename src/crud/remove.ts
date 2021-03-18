@@ -19,7 +19,6 @@ import {
   UndefinedDocumentIdError,
 } from '../error';
 import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
-import { newTaskId } from '../utils';
 
 /**
  * Implementation of remove()
@@ -65,7 +64,7 @@ export function removeImpl (
   return new Promise((resolve, reject) => {
     this._pushToTaskQueue({
       label: 'remove',
-      taskId: newTaskId(),
+      taskId: this.newTaskId(),
       targetId: _id,
       func: () =>
         remove_worker(this, _id, this.fileExt, options!.commit_message!)
