@@ -6,8 +6,10 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import { setInterval } from 'timers';
 import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
+import { newTaskId } from '../utils';
 import {
   AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
@@ -441,11 +443,11 @@ export class RemoteAccess implements IRemoteAccess {
       this._retrySyncCounter = this._options.retry!;
     }
     while (this._retrySyncCounter > 0) {
-      console.log('Enqueue retry: ' + (this._options.retry! - this._retrySyncCounter));
+      console.log('...retrySync: ' + (this._options.retry! - this._retrySyncCounter + 1));
       // eslint-disable-next-line no-await-in-loop
       const result = await this.trySync().catch((err: Error) => {
         // Invoke retry fail event
-        console.log(err);
+        console.warn('retrySync failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
           throw err;
@@ -460,11 +462,13 @@ export class RemoteAccess implements IRemoteAccess {
     return 'never';
   }
 
-  tryPush () {
+  tryPush (taskId?: string) {
+    taskId ??= newTaskId();
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
         this._gitDDB._unshiftSyncTaskToTaskQueue({
-          taskName: 'push',
+          label: 'push',
+          taskId: taskId!,
           func: () =>
             push_worker(this._gitDDB, this)
               .then((result: SyncResult) => {
@@ -488,11 +492,13 @@ export class RemoteAccess implements IRemoteAccess {
     );
   }
 
-  trySync () {
+  trySync (taskId?: string) {
+    taskId ??= newTaskId();
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
         this._gitDDB._unshiftSyncTaskToTaskQueue({
-          taskName: 'sync',
+          label: 'sync',
+          taskId: taskId!,
           func: () =>
             sync_worker(this._gitDDB, this)
               .then(result => {

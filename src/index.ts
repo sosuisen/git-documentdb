@@ -393,7 +393,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   public _unshiftSyncTaskToTaskQueue (task: Task) {
-    if (this._taskQueue.length > 0 && this._taskQueue[0].taskName === 'sync') {
+    if (this._taskQueue.length > 0 && this._taskQueue[0].label === 'sync') {
       return;
     }
     this._taskQueue.unshift(task);
@@ -405,6 +405,13 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       this._isTaskQueueWorking = true;
       this._currentTask = this._taskQueue.shift();
       if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
+        console.debug(
+          `-- Exec ${this._currentTask.label}${
+            this._currentTask.targetId
+              ? `(${this._currentTask.targetId})`
+              : `#${this._currentTask.taskId}`
+          }`
+        );
         this._currentTask.func().finally(() => {
           this._isTaskQueueWorking = false;
           this._execTaskQueue();

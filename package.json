@@ -56,13 +56,13 @@
     "ts-loader": "^8.0.14",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.1.3",
-    "ulid": "^2.3.0"
+    "typescript": "^4.1.3"
   },
   "dependencies": {
     "@octokit/rest": "^18.3.5",
     "@octokit/types": "^6.12.2",
     "@sosuisen/nodegit": "^0.27.3",
-    "fs-extra": "^9.1.0"
+    "fs-extra": "^9.1.0",
+    "ulid": "^2.3.0"
   }
 }

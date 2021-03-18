@@ -291,8 +291,9 @@ export type SyncResult =
 export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
 
 export type Task = {
-  taskName: TaskLabel;
-  id?: string;
+  label: TaskLabel;
+  taskId: string;
+  targetId?: string;
   func: () => Promise<void>;
 };
 

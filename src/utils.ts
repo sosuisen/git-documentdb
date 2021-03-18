@@ -6,6 +6,8 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import { monotonicFactory } from 'ulid';
+
 /**
  * Returns JSON string which properties are sorted.
  * The sorting follows the UTF-16 (Number < Uppercase < Lowercase), except that heading underscore _ is the last.
@@ -32,4 +34,9 @@ export const toSortedJSONString = (obj: Record<string, any>) => {
         : v,
     2
   );
+};
+
+const ulid = monotonicFactory();
+export const newTaskId = () => {
+  return ulid(Date.now());
 };

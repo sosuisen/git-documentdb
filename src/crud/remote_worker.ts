@@ -17,6 +17,9 @@ import {
 import { AbstractDocumentDB } from '../types_gitddb';
 import { IRemoteAccess, SyncResult } from '../types';
 
+/**
+ * git push
+ */
 async function push (repos: nodegit.Repository, remoteAccess: IRemoteAccess) {
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
@@ -24,7 +27,7 @@ async function push (repos: nodegit.Repository, remoteAccess: IRemoteAccess) {
       callbacks: remoteAccess.callbacks,
     })
     .catch((err: Error) => {
-      console.log(err);
+      console.warn(err);
       if (
         err.message.startsWith(
           'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
@@ -38,6 +41,10 @@ async function push (repos: nodegit.Repository, remoteAccess: IRemoteAccess) {
   await validatePushResult(repos, remoteAccess);
 }
 
+/**
+ * Remote.push does not return valid error in race condition,
+ * so check is needed.
+ */
 async function validatePushResult (repos: nodegit.Repository, remoteAccess: IRemoteAccess) {
   console.log('- sync_worker: Check if pushed.');
   await repos
@@ -58,7 +65,7 @@ async function validatePushResult (repos: nodegit.Repository, remoteAccess: IRem
   )) as unknown) as { ahead: number; behind: number };
 
   if (distance.ahead !== 0 || distance.behind !== 0) {
-    console.log(
+    console.warn(
       `- sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
     );
     throw new CannotPushBecauseUnfetchedCommitExistsError();
@@ -107,7 +114,7 @@ export async function sync_worker (
     localCommit.id(),
     remoteCommit.id()
   )) as unknown) as { ahead: number; behind: number };
-  console.dir('- sync_worker: ' + JSON.stringify(distance));
+  console.log('- sync_worker: ' + JSON.stringify(distance));
   // ahead: 0, behind 0 => Nothing to do: If local does not commit and remote does not commit
   // ahead: 0, behind 1 => Fast-forward merge : If local does not commit and remote pushed
   // ahead: 1, behind 0 => Push : If local committed and remote does not commit
