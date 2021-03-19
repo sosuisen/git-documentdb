@@ -107,9 +107,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   private _isTaskQueueWorking = false;
   private _setIsTaskQueueWorking (bool: boolean, taskId?: string) {
-    if (taskId !== undefined) {
-      // logger.debug(bool + ', by: ' + taskId);
-    }
+    // if (taskId !== undefined) {
+    // logger.debug(bool + ', by: ' + taskId);
+    // }
     this._isTaskQueueWorking = bool;
   }
 
@@ -458,10 +458,11 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         const targetId = this._currentTask.targetId;
         const taskId = this._currentTask.taskId;
 
+        this._setIsTaskQueueWorking(true, this._currentTask.taskId);
         this.logger.debug(
           ConsoleStyle.BgYellow().FgBlack().tag()`Start ${label}(${targetId || ''})`
         );
-        this._setIsTaskQueueWorking(true, this._currentTask.taskId);
+
         this._currentTask.func().finally(() => {
           this._statistics.taskCount[label]++;
 
@@ -469,6 +470,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
             ConsoleStyle.BgGreen().FgBlack().tag()`End ${label}(${targetId || ''})`
           );
           this._setIsTaskQueueWorking(false, taskId);
+          this._currentTask = undefined;
           this._execTaskQueue();
         });
       }
