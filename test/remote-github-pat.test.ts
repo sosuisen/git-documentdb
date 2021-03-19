@@ -20,13 +20,14 @@ import { RemoteOptions } from '../src/types';
 import {
   CannotPushBecauseUnfetchedCommitExistsError,
   HttpProtocolRequiredError,
+  IntervalTooSmallError,
   InvalidRepositoryURLError,
   NoMergeBaseFoundError,
   RepositoryNotOpenError,
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
 } from '../src/error';
-import { RemoteAccess } from '../src/crud/remote_access';
+import { minimumSyncInterval, RemoteAccess } from '../src/crud/remote_access';
 import { sleep } from '../src/utils';
 
 const ulid = monotonicFactory();
@@ -36,7 +37,7 @@ const monoId = () => {
 
 const idPool: string[] = [];
 const allIds: string[] = [];
-const MAX_ID = 40;
+const MAX_ID = 60;
 for (let i = 0; i < MAX_ID; i++) {
   idPool.push(`test_repos_${i}`);
   allIds.push(`test_repos_${i}`);
@@ -220,6 +221,41 @@ maybe('remote: use personal access token: ', () => {
       await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
         InvalidRepositoryURLError
       );
+      await gitDDB.destroy();
+    });
+
+    test('Interval is too small', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = serialId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.open();
+      const invalid_options: RemoteOptions = {
+        live: false,
+        interval: minimumSyncInterval - 1,
+        auth: {
+          type: 'github',
+          personal_access_token: '',
+        },
+      };
+      await expect(gitDDB.sync(remoteURL, invalid_options)).rejects.toThrowError(
+        IntervalTooSmallError
+      );
+      await gitDDB.destroy();
+
+      await gitDDB.open();
+      const valid_options: RemoteOptions = {
+        live: false,
+        interval: minimumSyncInterval,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      };
+      await expect(gitDDB.sync(remoteURL, valid_options)).resolves.not.toThrowError();
+
       await gitDDB.destroy();
     });
   });
@@ -541,11 +577,11 @@ maybe('remote: use personal access token: ', () => {
         db_name: dbNameA,
         local_dir: localDir,
       });
-      // Set interval to 0ms
+      // Set retry interval to 0ms
       const options: RemoteOptions = {
         live: false,
         auth: { type: 'github', personal_access_token: token },
-        interval: 0,
+        retry_interval: 0,
       };
       await dbA.open(remoteURL, options);
       const jsonA1 = { _id: '1', name: 'fromA' };
@@ -643,8 +679,8 @@ maybe('remote: use personal access token: ', () => {
       await dbA.put(jsonA1);
 
       const remoteA = dbA.getRemote(remoteURL);
-      expect(remoteA.getLiveStatus()).toBeTruthy();
-      expect(remoteA.getInterval()).toBe(interval);
+      expect(remoteA.options().live).toBeTruthy();
+      expect(remoteA.options().interval).toBe(interval);
 
       // Wait live sync()
       while (dbA.statistics().taskCount.sync === 0) {
@@ -663,16 +699,177 @@ maybe('remote: use personal access token: ', () => {
       await dbA.destroy();
       await dbB.destroy();
     });
-    test.skip('cancel()', () => {
-      // check getLiveStatus()
-    });
-    test.skip('pause()', () => {});
-    test.skip('resume()', () => {});
 
-    test.skip('Check intervals', () => {
-      // getInterval
+    test('cancel()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const interval = 1000;
+      const options: RemoteOptions = {
+        live: true,
+        sync_direction: 'both',
+        interval,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, options);
+
+      const remoteA = dbA.getRemote(remoteURL);
+      expect(remoteA.options().live).toBeTruthy();
+      const count = dbA.statistics().taskCount.sync;
+      remoteA.cancel();
+      await sleep(3000);
+      expect(remoteA.options().live).toBeFalsy();
+      expect(dbA.statistics().taskCount.sync).toBe(count);
+
+      await dbA.destroy();
     });
-    test.skip('Check skip of consecutive sync tasks', () => {});
+
+    test('pause() and resume()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const interval = 1000;
+      const options: RemoteOptions = {
+        live: true,
+        sync_direction: 'both',
+        interval,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, options);
+
+      const remoteA = dbA.getRemote(remoteURL);
+      expect(remoteA.options().live).toBeTruthy();
+      const count = dbA.statistics().taskCount.sync;
+      expect(remoteA.pause()).toBeTruthy();
+      expect(remoteA.pause()).toBeFalsy(); // ignored
+
+      await sleep(3000);
+      expect(remoteA.options().live).toBeFalsy();
+      expect(dbA.statistics().taskCount.sync).toBe(count);
+
+      expect(remoteA.resume()).toBeTruthy();
+      expect(remoteA.resume()).toBeFalsy(); // ignored
+      await sleep(3000);
+      expect(remoteA.options().live).toBeTruthy();
+      expect(dbA.statistics().taskCount.sync).toBeGreaterThan(count);
+
+      await dbA.destroy();
+    });
+
+    test('Cancel when gitDDB.close()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const interval = 1000;
+      const options: RemoteOptions = {
+        live: true,
+        sync_direction: 'both',
+        interval,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, options);
+
+      const remoteA = dbA.getRemote(remoteURL);
+      expect(remoteA.options().live).toBeTruthy();
+      const count = dbA.statistics().taskCount.sync;
+      await dbA.close();
+
+      remoteA.resume(); // resume() must be ignored after close();
+
+      await sleep(3000);
+      expect(remoteA.options().live).toBeFalsy();
+      expect(dbA.statistics().taskCount.sync).toBe(count);
+
+      await dbA.destroy();
+    });
+
+    test('Check intervals', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const interval = 1000;
+      const options: RemoteOptions = {
+        live: true,
+        sync_direction: 'both',
+        interval,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, options);
+
+      const remoteA = dbA.getRemote(remoteURL);
+      expect(remoteA.options().interval).toBe(interval);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      // Wait live sync()
+      while (dbA.statistics().taskCount.sync === 0) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(500);
+      }
+      remoteA.pause();
+
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      await dbA.put(jsonA2);
+
+      const currentCount = dbA.statistics().taskCount.sync;
+      // Change interval
+      remoteA.resume({
+        interval: 5000,
+      });
+      expect(remoteA.options().interval).toBe(5000);
+      await sleep(3000);
+      // Check count before next sync()
+      expect(dbA.statistics().taskCount.sync).toBe(currentCount);
+
+      await dbA.destroy();
+    });
+
+    test('Check skip of consecutive sync tasks', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const interval = 30000;
+      const options: RemoteOptions = {
+        live: true,
+        sync_direction: 'both',
+        interval,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, options);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const remoteA = dbA.getRemote(remoteURL);
+
+      for (let i = 0; i < 10; i++) {
+        remoteA.trySync();
+      }
+      await sleep(5000);
+      expect(dbA.statistics().taskCount.sync).toBe(1);
+
+      await dbA.destroy();
+    });
   });
 
   describe.skip('Test retry options ', () => {
@@ -727,4 +924,5 @@ maybe('remote: use personal access token: ', () => {
   test.skip('Remove remote');
   test.skip('Test network errors');
   test.skip('Test _addRemoteRepository');
+  test.skip('Multiple RemoteAccess');
 });
