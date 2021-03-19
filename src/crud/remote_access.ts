@@ -460,7 +460,7 @@ export class RemoteAccess implements IRemoteAccess {
     }
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
-      await sleep(this._options.interval!);
+      await sleep(this._options.retry_interval!);
       if (this._retrySyncCounter === 0) {
         break;
       }
