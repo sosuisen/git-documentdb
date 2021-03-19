@@ -402,6 +402,8 @@ export class RemoteAccess implements IRemoteAccess {
    * Stop sync
    */
   cancel () {
+    if (!this._options.live) return false;
+
     // Cancel retrying
     this._retrySyncCounter = 0;
 
@@ -423,6 +425,8 @@ export class RemoteAccess implements IRemoteAccess {
    * Resume sync
    */
   resume (options?: { interval?: number; retry?: number }) {
+    if (this._options.live) return false;
+
     options ??= {
       interval: undefined,
       retry: undefined,
