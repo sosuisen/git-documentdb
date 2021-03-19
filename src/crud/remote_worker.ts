@@ -201,8 +201,11 @@ export async function sync_worker (
   // const _index = await repos.refreshIndex();
 
   if (conflictedIndex === undefined) {
-    // Conflict is not occurred if a local file is removed and the same remote file is removed.
-    // But they cannot be fast-forward merged. They are merged by usual merging branch.
+    // Conflict has not been occurred.
+    // Exec fast-forward or normal merge.
+
+    // When a local file is removed and the same remote file is removed,
+    // they cannot be merged by fast-forward. They are merged as usual.
 
     const distance_again = ((await nodegit.Graph.aheadBehind(
       repos,
@@ -227,6 +230,7 @@ export async function sync_worker (
       // Normal merge. Need push
       const commit = await repos.getCommit(commitOid!);
       const commitMessage = 'merge';
+      // Change commit message
       await commit.amend(
         'HEAD',
         remoteAccess.author,
