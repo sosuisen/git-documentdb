@@ -438,7 +438,9 @@ export class RemoteAccess implements IRemoteAccess {
    */
   resume () {
     this._options.live = true;
-    this._syncTimer = setInterval(this.trySync, this._options.interval!);
+    this._syncTimer = setInterval(() => {
+      this.trySync();
+    }, this._options.interval!);
   }
 
   private _retrySyncCounter = 0;
