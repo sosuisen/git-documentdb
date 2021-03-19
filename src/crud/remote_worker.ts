@@ -8,7 +8,7 @@
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { logger } from '../utils';
+import { ConsoleStyle, logger } from '../utils';
 import {
   CannotPushBecauseUnfetchedCommitExistsError,
   NoMergeBaseFoundError,
@@ -42,7 +42,7 @@ async function push (
       }
       throw err;
     });
-  logger.debug(`- sync_worker#${taskId}: May pushed.`);
+  logger.debug(ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: May pushed.`);
   await validatePushResult(repos, remoteAccess, taskId);
 }
 
@@ -55,7 +55,9 @@ async function validatePushResult (
   remoteAccess: IRemoteAccess,
   taskId: string
 ) {
-  logger.debug(`- sync_worker#${taskId}: Check if pushed.`);
+  logger.debug(
+    ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: Check if pushed.`
+  );
   await repos
     .fetch('origin', {
       callbacks: remoteAccess.callbacks,
@@ -75,7 +77,9 @@ async function validatePushResult (
 
   if (distance.ahead !== 0 || distance.behind !== 0) {
     logger.debug(
-      `- sync_worker#${taskId}: push failed: ahead ${distance.ahead} behind ${distance.behind}`
+      ConsoleStyle.BgBlue()
+        .FgBlack()
+        .tag()`sync_worker#${taskId}: push failed: ahead ${distance.ahead} behind ${distance.behind}`
     );
     throw new CannotPushBecauseUnfetchedCommitExistsError();
   }
@@ -106,7 +110,11 @@ export async function sync_worker (
     throw new RepositoryNotOpenError();
   }
 
-  logger.debug(`- sync_worker#${taskId}: fetch: ${remoteAccess.getRemoteURL()}`);
+  logger.debug(
+    ConsoleStyle.BgBlue()
+      .FgBlack()
+      .tag()`sync_worker#${taskId}: fetch: ${remoteAccess.getRemoteURL()}`
+  );
   // Fetch
   await repos
     .fetch('origin', {
@@ -125,7 +133,11 @@ export async function sync_worker (
     localCommit.id(),
     remoteCommit.id()
   )) as unknown) as { ahead: number; behind: number };
-  logger.debug(`- sync_worker#${taskId}: ${JSON.stringify(distance)}`);
+  logger.debug(
+    ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: ${JSON.stringify(
+      distance
+    )}`
+  );
   // ahead: 0, behind 0 => Nothing to do: If local does not commit and remote does not commit
   // ahead: 0, behind 1 => Fast-forward merge : If local does not commit and remote pushed
   // ahead: 1, behind 0 => Push : If local committed and remote does not commit
@@ -134,7 +146,7 @@ export async function sync_worker (
   let conflictedIndex: nodegit.Index | undefined;
   let commitOid: nodegit.Oid | undefined;
   if (distance.ahead === 0 && distance.behind === 0) {
-    logger.debug(`- sync_worker#${taskId}: nop`);
+    logger.debug(ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: nop`);
     return 'nop';
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
@@ -202,10 +214,16 @@ export async function sync_worker (
       (await repos.getReferenceCommit('refs/remotes/origin/main')).id()
     )) as unknown) as { ahead: number; behind: number };
     logger.debug(
-      `- sync_worker#${taskId}: check distance again ${JSON.stringify(distance_again)}`
+      ConsoleStyle.BgBlue()
+        .FgBlack()
+        .tag()`sync_worker#${taskId}: check distance again ${JSON.stringify(
+        distance_again
+      )}`
     );
     if (distance_again.ahead === 0 && distance_again.behind === 0) {
-      logger.debug(`- sync_worker#${taskId}: fast-forward merge`);
+      logger.debug(
+        ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: fast-forward merge`
+      );
       return 'fast-forward merge';
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
@@ -226,7 +244,9 @@ export async function sync_worker (
       // Push
       await push(repos, remoteAccess, taskId);
 
-      logger.debug(`- sync_worker#${taskId}: Merge and push`);
+      logger.debug(
+        ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: merge and push`
+      );
       return 'merge and push';
     }
 
@@ -260,7 +280,11 @@ export async function sync_worker (
 
     conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
       const stage = nodegit.Index.entryStage(entry);
-      logger.debug(`- sync_worker#${taskId}: ${stage} : ${entry.path}`);
+      logger.debug(
+        ConsoleStyle.BgBlue()
+          .FgBlack()
+          .tag()`sync_worker#${taskId}: ${stage} : ${entry.path}`
+      );
 
       // entries() returns all files in stage 0, 1, 2 and 3.
       if (stage !== 0) {
@@ -292,7 +316,9 @@ export async function sync_worker (
       }
     });
     _index.conflictCleanup();
-    logger.debug(`- sync_worker#${taskId}: overwritten by ours`);
+    logger.debug(
+      ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: overwritten by ours`
+    );
 
     await _index.write();
 
@@ -313,10 +339,15 @@ export async function sync_worker (
     const opt = new nodegit.CheckoutOptions();
     opt.checkoutStrategy = nodegit.Checkout.STRATEGY.FORCE;
     await nodegit.Checkout.head(repos, opt);
-    logger.debug(`- sync_worker${taskId}: Resolving conflict done.`);
 
     // Push
     await push(repos, remoteAccess, taskId);
+
+    logger.debug(
+      ConsoleStyle.BgBlue()
+        .FgBlack()
+        .tag()`sync_worker${taskId}: resolve conflicts and push`
+    );
 
     return 'resolve conflicts and push';
   }

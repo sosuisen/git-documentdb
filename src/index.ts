@@ -410,14 +410,14 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         const targetId = this._currentTask.targetId;
         const taskId = this._currentTask.taskId;
         logger.debug(
-          ConsoleStyle.BgYellow().FgBlack().tag()`-- Exec start ${label}(${
+          ConsoleStyle.BgYellow().FgBlack().tag()`Exec start ${label}(${
             targetId || ''
           })#${taskId}`
         );
         this._setIsTaskQueueWorking(true, this._currentTask.taskId);
         this._currentTask.func().finally(() => {
           logger.debug(
-            ConsoleStyle.BgYellow().FgBlue().tag()`-- Exec end ${label}(${
+            ConsoleStyle.BgGreen().FgWhite().tag()`Exec end ${label}(${
               targetId || ''
             })#${taskId}`
           );
