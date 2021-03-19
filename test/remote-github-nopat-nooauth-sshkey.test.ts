@@ -59,6 +59,6 @@ maybe('sync(): Sync Class:', () => {
         public_key_path: '',
       },
     };
-    expect(() => gitDDB.sync('', options)).toThrowError(UndefinedRemoteURLError);
+    expect(() => gitDDB.sync(options)).toThrowError(UndefinedRemoteURLError);
   });
 });

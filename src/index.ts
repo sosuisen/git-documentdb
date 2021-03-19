@@ -215,7 +215,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link CannotCreateDirectoryError} You may not have write permission.
    * @throws {@link DatabaseClosingError}
    */
-  async open (remoteURL?: string, remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
+  async open (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -265,13 +265,20 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      * Create or clone repository if not exists
      */
     if (this._currentRepository === undefined) {
-      if (remoteURL === undefined) {
+      if (remoteOptions?.remote_url === undefined) {
+        /**
+         * TODO: Check upstream branch of this repository
+         * Set remote_url to the upstream branch and cloneRepository() if exists.
+         * Throw exception if not exists and remoteOptions exists.
+         * Otherwise, createRepository()
+         */
+
         this._dbInfo = await this._createRepository();
         return this._dbInfo;
       }
 
       // Clone repository if remoteURL exists
-      this._currentRepository = await this._cloneRepository(remoteURL, remoteOptions);
+      this._currentRepository = await this._cloneRepository(remoteOptions);
 
       if (this._currentRepository === undefined) {
         // Clone failed
@@ -291,14 +298,14 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      */
     await this._setDbInfo();
 
-    if (remoteURL !== undefined) {
+    if (remoteOptions?.remote_url !== undefined) {
       if (this._dbInfo.is_created_by_gitddb && this._dbInfo.is_valid_version) {
         // Can synchronize
         /**
          * TODO:
-         * sync()内でbehavior_for_no_merge_base の処理をすること
+         * Handle behavior_for_no_merge_base in sync()
          */
-        await this.sync(remoteURL, remoteOptions);
+        await this.sync(remoteOptions);
       }
     }
 
@@ -332,8 +339,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     return this._dbInfo;
   }
 
-  private async _cloneRepository (remoteURL: string, remoteOptions?: RemoteOptions) {
-    const remote = new RemoteAccess(this, remoteURL, remoteOptions);
+  private async _cloneRepository (remoteOptions?: RemoteOptions) {
+    const remote = new RemoteAccess(this, remoteOptions);
     const callbacks = {
       credentials: remote.createCredential(),
     };
@@ -346,15 +353,18 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      * If repository exists and cannot clone, you have not permission.
      * Only 'pull' is allowed.
      */
+    if (remoteOptions?.remote_url !== undefined) {
+      return await nodegit.Clone.clone(remoteOptions?.remote_url, this.workingDir(), {
+        fetchOpts: {
+          callbacks,
+        },
+      }).catch(err => {
+        this.logger.debug(err);
+        return undefined;
+      });
+    }
 
-    return await nodegit.Clone.clone(remoteURL, this.workingDir(), {
-      fetchOpts: {
-        callbacks,
-      },
-    }).catch(err => {
-      this.logger.debug(err);
-      return undefined;
-    });
+    return undefined;
   }
 
   private async _setDbInfo () {
@@ -760,12 +770,15 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @remarks
    * Do not register the same remote repository again. Call removeRemote() before register it again.
    */
-  async sync (remoteURL: string, options?: RemoteOptions): Promise<RemoteAccess> {
-    if (this._remotes[remoteURL] !== undefined) {
-      throw new RemoteAlreadyRegisteredError(remoteURL);
+  async sync (options?: RemoteOptions): Promise<RemoteAccess> {
+    if (
+      options?.remote_url !== undefined &&
+      this._remotes[options?.remote_url] !== undefined
+    ) {
+      throw new RemoteAlreadyRegisteredError(options.remote_url);
     }
-    const remote = await syncImpl.call(this, remoteURL, options);
-    this._remotes[remoteURL] = remote;
+    const remote = await syncImpl.call(this, options);
+    this._remotes[remote.remoteURL()] = remote;
     return remote;
   }
 }

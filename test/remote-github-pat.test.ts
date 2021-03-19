@@ -42,7 +42,7 @@ const monoId = () => {
 
 const idPool: string[] = [];
 const allIds: string[] = [];
-const MAX_ID = 60;
+const MAX_ID = 80;
 for (let i = 0; i < MAX_ID; i++) {
   idPool.push(`test_repos_${i}`);
   allIds.push(`test_repos_${i}`);
@@ -69,7 +69,8 @@ maybe('remote: use personal access token: ', () => {
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   const createRemoteRepository = async (gitDDB: GitDocumentDB, remoteURL: string) => {
-    await new RemoteAccess(gitDDB, remoteURL, {
+    await new RemoteAccess(gitDDB, {
+      remote_url: remoteURL,
       live: false,
       auth: { type: 'github', personal_access_token: token },
     })
@@ -78,7 +79,8 @@ maybe('remote: use personal access token: ', () => {
   };
 
   const destroyRemoteRepository = async (gitDDB: GitDocumentDB, remoteURL: string) => {
-    await new RemoteAccess(gitDDB, remoteURL, {
+    await new RemoteAccess(gitDDB, {
+      remote_url: remoteURL,
       live: false,
       auth: { type: 'github', personal_access_token: token },
     })
@@ -162,7 +164,7 @@ maybe('remote: use personal access token: ', () => {
           personal_access_token: '',
         },
       };
-      await expect(gitDDB.sync('', options)).rejects.toThrowError(UndefinedRemoteURLError);
+      await expect(gitDDB.sync(options)).rejects.toThrowError(UndefinedRemoteURLError);
       await gitDDB.destroy();
     });
 
@@ -175,15 +177,14 @@ maybe('remote: use personal access token: ', () => {
       });
       await gitDDB.open();
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         auth: {
           type: 'github',
           personal_access_token: 'foobar',
         },
       };
-      await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
-        HttpProtocolRequiredError
-      );
+      await expect(gitDDB.sync(options)).rejects.toThrowError(HttpProtocolRequiredError);
       await gitDDB.destroy();
     });
 
@@ -196,13 +197,14 @@ maybe('remote: use personal access token: ', () => {
       });
       await gitDDB.open();
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         auth: {
           type: 'github',
           personal_access_token: '',
         },
       };
-      await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
+      await expect(gitDDB.sync(options)).rejects.toThrowError(
         UndefinedPersonalAccessTokenError
       );
       await gitDDB.destroy();
@@ -217,15 +219,14 @@ maybe('remote: use personal access token: ', () => {
       });
       await gitDDB.open();
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         auth: {
           type: 'github',
           personal_access_token: 'foobar',
         },
       };
-      await expect(gitDDB.sync(remoteURL, options)).rejects.toThrowError(
-        InvalidRepositoryURLError
-      );
+      await expect(gitDDB.sync(options)).rejects.toThrowError(InvalidRepositoryURLError);
       await gitDDB.destroy();
     });
 
@@ -238,6 +239,7 @@ maybe('remote: use personal access token: ', () => {
       });
       await gitDDB.open();
       const invalid_options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         interval: minimumSyncInterval - 1,
         auth: {
@@ -245,13 +247,14 @@ maybe('remote: use personal access token: ', () => {
           personal_access_token: '',
         },
       };
-      await expect(gitDDB.sync(remoteURL, invalid_options)).rejects.toThrowError(
+      await expect(gitDDB.sync(invalid_options)).rejects.toThrowError(
         IntervalTooSmallError
       );
       await gitDDB.destroy();
 
       await gitDDB.open();
       const valid_options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         interval: minimumSyncInterval,
         auth: {
@@ -259,7 +262,7 @@ maybe('remote: use personal access token: ', () => {
           personal_access_token: token,
         },
       };
-      await expect(gitDDB.sync(remoteURL, valid_options)).resolves.not.toThrowError();
+      await expect(gitDDB.sync(valid_options)).resolves.not.toThrowError();
 
       await gitDDB.destroy();
     });
@@ -287,7 +290,8 @@ maybe('remote: use personal access token: ', () => {
         local_dir: localDir,
       });
       await expect(
-        gitDDB.sync(remoteURL, {
+        gitDDB.sync({
+          remote_url: remoteURL,
           live: false,
           auth: { type: 'github', personal_access_token: token },
         })
@@ -305,11 +309,12 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.open();
 
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         auth: { type: 'github', personal_access_token: token },
       };
       const repos = gitDDB.repository();
-      const remote = new RemoteAccess(gitDDB, remoteURL, options);
+      const remote = new RemoteAccess(gitDDB, options);
       await expect(remote.connectToRemote(repos!)).resolves.toBe('push');
       expect(remote.upstream_branch).toBe(`origin/${gitDDB.defaultBranch}`);
 
@@ -326,17 +331,18 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.open();
 
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         auth: { type: 'github', personal_access_token: token },
       };
-      await gitDDB.sync(remoteURL, options);
+      await gitDDB.sync(options);
       // A remote repository has been created by the first sync().
 
       gitDDB.removeRemote(remoteURL);
 
       // Sync with an existed remote repository
       const repos = gitDDB.repository();
-      const remote = new RemoteAccess(gitDDB, remoteURL, options);
+      const remote = new RemoteAccess(gitDDB, options);
       await expect(remote.connectToRemote(repos!)).resolves.toBe('nop');
 
       await gitDDB.destroy();
@@ -351,7 +357,8 @@ maybe('remote: use personal access token: ', () => {
       });
       await gitDDB.open();
 
-      const remote = await gitDDB.sync(remoteURL, {
+      const remote = await gitDDB.sync({
+        remote_url: remoteURL,
         live: false,
         auth: { type: 'github', personal_access_token: token },
       });
@@ -385,11 +392,12 @@ maybe('remote: use personal access token: ', () => {
         local_dir: localDir,
       });
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         auth: { type: 'github', personal_access_token: token },
       };
       // Check dbInfo
-      await expect(dbA.open(remoteURL, options)).resolves.toMatchObject({
+      await expect(dbA.open(options)).resolves.toMatchObject({
         is_new: true,
         is_clone: false,
         is_created_by_gitddb: true,
@@ -414,7 +422,7 @@ maybe('remote: use personal access token: ', () => {
 
   /**
    * Initialize synchronization by open() with remoteURL
-   * Initialize means creating local and remote repositories by using a remoteURL
+   * Initialize means creating local and remote repositories by using a remote_url
    */
   describe('Initialize synchronization by open(): ', () => {
     /**
@@ -441,10 +449,11 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getRemote(remoteURL);
@@ -455,7 +464,7 @@ maybe('remote: use personal access token: ', () => {
           db_name: dbNameB,
           local_dir: localDir,
         });
-        await dbB.open(remoteURL, options);
+        await dbB.open(options);
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
         await dbA.destroy();
@@ -472,10 +481,11 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getRemote(remoteURL);
@@ -485,7 +495,7 @@ maybe('remote: use personal access token: ', () => {
           db_name: dbNameB,
           local_dir: localDir,
         });
-        await dbB.open(remoteURL, options);
+        await dbB.open(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
@@ -508,10 +518,11 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getRemote(remoteURL);
@@ -521,7 +532,7 @@ maybe('remote: use personal access token: ', () => {
           db_name: dbNameB,
           local_dir: localDir,
         });
-        await dbB.open(remoteURL, options);
+        await dbB.open(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
@@ -545,10 +556,11 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getRemote(remoteURL);
@@ -558,7 +570,7 @@ maybe('remote: use personal access token: ', () => {
           db_name: dbNameB,
           local_dir: localDir,
         });
-        await dbB.open(remoteURL, options);
+        await dbB.open(options);
         const jsonB1 = { _id: '2', name: 'fromB' };
         await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
@@ -591,11 +603,12 @@ maybe('remote: use personal access token: ', () => {
         });
         // Set retry interval to 0ms
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           auth: { type: 'github', personal_access_token: token },
           retry_interval: 0,
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getRemote(remoteURL);
@@ -605,7 +618,7 @@ maybe('remote: use personal access token: ', () => {
           db_name: dbNameB,
           local_dir: localDir,
         });
-        await dbB.open(remoteURL, options);
+        await dbB.open(options);
         const jsonB1 = { _id: '2', name: 'fromB' };
         await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
@@ -640,10 +653,11 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getRemote(remoteURL);
@@ -653,7 +667,7 @@ maybe('remote: use personal access token: ', () => {
           db_name: dbNameB,
           local_dir: localDir,
         });
-        await dbB.open(remoteURL, options);
+        await dbB.open(options);
         // The same id
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
@@ -683,12 +697,13 @@ maybe('remote: use personal access token: ', () => {
         });
         const interval = 3000;
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           sync_direction: 'both',
           interval,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -708,7 +723,7 @@ maybe('remote: use personal access token: ', () => {
           db_name: dbNameB,
           local_dir: localDir,
         });
-        await dbB.open(remoteURL, options);
+        await dbB.open(options);
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
         await dbA.destroy();
         await dbB.destroy();
@@ -724,12 +739,13 @@ maybe('remote: use personal access token: ', () => {
         });
         const interval = 1000;
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           sync_direction: 'both',
           interval,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
@@ -752,12 +768,13 @@ maybe('remote: use personal access token: ', () => {
         });
         const interval = 1000;
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           sync_direction: 'both',
           interval,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
@@ -788,12 +805,13 @@ maybe('remote: use personal access token: ', () => {
         });
         const interval = 1000;
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           sync_direction: 'both',
           interval,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
@@ -819,12 +837,13 @@ maybe('remote: use personal access token: ', () => {
         });
         const interval = 1000;
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           sync_direction: 'both',
           interval,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().interval).toBe(interval);
@@ -864,12 +883,13 @@ maybe('remote: use personal access token: ', () => {
         });
         const interval = 1000;
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           sync_direction: 'both',
           interval,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
 
         const remoteA = dbA.getRemote(remoteURL);
 
@@ -889,12 +909,13 @@ maybe('remote: use personal access token: ', () => {
         });
         const interval = 30000;
         const options: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           sync_direction: 'both',
           interval,
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, options);
+        await dbA.open(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -925,12 +946,13 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const optionsA: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           interval: 1000,
           sync_direction: 'both',
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, optionsA);
+        await dbA.open(optionsA);
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().retry).toBe(defaultRetry);
@@ -941,6 +963,7 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const optionsB: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           retry: 0, // no retry
           retry_interval: 0,
@@ -948,7 +971,7 @@ maybe('remote: use personal access token: ', () => {
           auth: { type: 'github', personal_access_token: token },
         };
 
-        await dbB.open(remoteURL, optionsB);
+        await dbB.open(optionsB);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -978,12 +1001,13 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const optionsA: RemoteOptions = {
+          remote_url: remoteURL,
           live: true,
           interval: 1000,
           sync_direction: 'both',
           auth: { type: 'github', personal_access_token: token },
         };
-        await dbA.open(remoteURL, optionsA);
+        await dbA.open(optionsA);
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().retry).toBe(defaultRetry);
@@ -994,13 +1018,14 @@ maybe('remote: use personal access token: ', () => {
           local_dir: localDir,
         });
         const optionsB: RemoteOptions = {
+          remote_url: remoteURL,
           live: false,
           retry_interval: 5000,
           sync_direction: 'both',
           auth: { type: 'github', personal_access_token: token },
         };
 
-        await dbB.open(remoteURL, optionsB);
+        await dbB.open(optionsB);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -1031,7 +1056,7 @@ maybe('remote: use personal access token: ', () => {
 
   /**
    * Initialize synchronization by sync() with remoteURL
-   * Initialize means creating local and remote repositories by using a remoteURL
+   * Initialize means creating local and remote repositories by using a remote_url
    */
   describe('Initialize synchronization by sync()', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
@@ -1046,6 +1071,7 @@ maybe('remote: use personal access token: ', () => {
 
       await dbA.open();
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: true,
         interval: 1000,
         sync_direction: 'both',
@@ -1054,14 +1080,14 @@ maybe('remote: use personal access token: ', () => {
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
 
-      const remoteA = await dbA.sync(remoteURL, options);
+      const remoteA = await dbA.sync(options);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
         db_name: dbNameB,
         local_dir: localDir,
       });
-      await dbB.open(remoteURL, options);
+      await dbB.open(options);
       await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
       await dbA.destroy();
@@ -1079,6 +1105,7 @@ maybe('remote: use personal access token: ', () => {
 
       await dbA.open();
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: true,
         interval: 1000,
         sync_direction: 'both',
@@ -1087,21 +1114,21 @@ maybe('remote: use personal access token: ', () => {
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
 
-      const remoteA = await dbA.sync(remoteURL, options);
+      const remoteA = await dbA.sync(options);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
         db_name: dbNameB,
         local_dir: localDir,
       });
-      await dbB.open(remoteURL, options);
+      await dbB.open(options);
       await dbB.close();
 
       await dbB.open();
       const jsonB1 = { _id: '1', name: 'fromB' };
       await dbB.put(jsonB1);
 
-      await dbB.sync(remoteURL, options);
+      await dbB.sync(options);
       await expect(dbB.get(jsonB1._id)).resolves.toMatchObject(jsonB1);
 
       // Wait next sync()
@@ -1119,21 +1146,21 @@ maybe('remote: use personal access token: ', () => {
 
   /**
    * Initialize synchronization by open() with remoteURL, close(), open() again with another remoteURL
-   * Initialize means creating local and remote repositories by using a remoteURL
+   * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe.skip('Initialize synchronization by open() with remoteURL, close(), open() again with another remoteURL: ', () => {
-    test.skip('Open() again with the same repository with another remoteURL');
-    test.skip('Open() again with a different repository with another remoteURL', () => {
+  describe.skip('Initialize synchronization by open() with remote_url, close(), open() again with another remote_url: ', () => {
+    test.skip('Open() again with the same repository with another remote_url');
+    test.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base
     });
   });
   /**
    * Initialize synchronization by open() with remoteURL, close(), open() again with no remoteURL, following sync() with another remoteURL
-   * Initialize means creating local and remote repositories by using a remoteURL
+   * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe.skip('Initialize synchronization by open() with remoteURL, close(), open() again with no remoteURL, following sync() with another remoteURL: ', () => {
-    test.skip('Open() again with the same repository with another remoteURL');
-    test.skip('Open() again with a different repository with another remoteURL', () => {
+  describe.skip('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
+    test.skip('Open() again with the same repository with another remote_url');
+    test.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base
     });
   });
@@ -1159,11 +1186,12 @@ maybe('remote: use personal access token: ', () => {
         local_dir: localDir,
       });
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         live: false,
         auth: { type: 'github', personal_access_token: token },
       };
 
-      await dbA.open(remoteURL, options);
+      await dbA.open(options);
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
 
@@ -1174,9 +1202,7 @@ maybe('remote: use personal access token: ', () => {
       });
       await dbB.open();
 
-      await expect(dbB.sync(remoteURL, options)).rejects.toThrowError(
-        NoMergeBaseFoundError
-      );
+      await expect(dbB.sync(options)).rejects.toThrowError(NoMergeBaseFoundError);
 
       await dbA.destroy();
       await dbB.destroy();

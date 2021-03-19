@@ -279,7 +279,8 @@ export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
  * Options for RemoteAccess class
  */
 export type RemoteOptions = {
-  live: boolean;
+  remote_url?: string;
+  live?: boolean;
   sync_direction?: SyncDirection;
   interval?: number; // msec
   retry?: number; // Retry does not occurred if retry is 0.

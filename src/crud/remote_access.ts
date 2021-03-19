@@ -37,17 +37,14 @@ import {
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './remote_worker';
 
-export async function syncImpl (
-  this: AbstractDocumentDB,
-  remoteURL: string,
-  options?: RemoteOptions
-) {
+export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOptions) {
   const repos = this.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-  const remote = new RemoteAccess(this, remoteURL, options);
+  const remote = new RemoteAccess(this, options);
   await remote.connectToRemote(repos);
+
   return remote;
 }
 
@@ -65,7 +62,6 @@ export class RemoteAccess implements IRemoteAccess {
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
   private _octokit: Octokit | undefined;
-  private _remoteURL: string;
 
   upstream_branch = '';
 
@@ -73,15 +69,12 @@ export class RemoteAccess implements IRemoteAccess {
   author: nodegit.Signature;
   committer: nodegit.Signature;
 
-  constructor (_gitDDB: AbstractDocumentDB, _remoteURL: string, _options?: RemoteOptions) {
+  constructor (_gitDDB: AbstractDocumentDB, _options?: RemoteOptions) {
     this._gitDDB = _gitDDB;
-    this._remoteURL = _remoteURL;
-    if (_remoteURL === undefined || _remoteURL === '') {
-      throw new UndefinedRemoteURLError();
-    }
 
     _options ??= {
-      live: false,
+      remote_url: undefined,
+      live: undefined,
       sync_direction: undefined,
       interval: undefined,
       retry: undefined,
@@ -91,6 +84,14 @@ export class RemoteAccess implements IRemoteAccess {
     };
     // Deep clone
     this._options = JSON.parse(JSON.stringify(_options));
+
+    if (this._options.remote_url === undefined || this._options.remote_url === '') {
+      /**
+       * TODO: Check upstream branch of this repository
+       * Set remote_url to the upstream branch and cloneRepository() if exists.
+       */
+      throw new UndefinedRemoteURLError();
+    }
 
     this._options.live ??= false;
     this._options.sync_direction ??= 'pull';
@@ -132,8 +133,8 @@ export class RemoteAccess implements IRemoteAccess {
    * Create credential options for GitHub
    */
   private _createCredentialForGitHub () {
-    if (!this._remoteURL.match(/^https?:\/\//)) {
-      throw new HttpProtocolRequiredError(this._remoteURL);
+    if (!this._options.remote_url!.match(/^https?:\/\//)) {
+      throw new HttpProtocolRequiredError(this._options.remote_url!);
     }
     const auth = this._options.auth as RemoteAuthGitHub;
     if (!auth.personal_access_token) {
@@ -142,10 +143,10 @@ export class RemoteAccess implements IRemoteAccess {
     this._octokit = new Octokit({
       auth: auth.personal_access_token,
     });
-    const urlArray = this._remoteURL.replace(/^https?:\/\//, '').split('/');
+    const urlArray = this._options.remote_url!.replace(/^https?:\/\//, '').split('/');
     // github.com/account_name/repository_name
     if (urlArray.length !== 3) {
-      throw new InvalidRepositoryURLError(this._remoteURL);
+      throw new InvalidRepositoryURLError(this._options.remote_url!);
     }
     const owner = urlArray[urlArray.length - 2];
     const credentials = () => {
@@ -207,7 +208,7 @@ export class RemoteAccess implements IRemoteAccess {
    * Call this just after creating instance.
    */
   async connectToRemote (repos: nodegit.Repository): Promise<SyncResult> {
-    const remote = await this._addRemote(repos, this._remoteURL);
+    const remote = await this._addRemote(repos, this._options.remote_url!);
     const onlyFetch = this._options.sync_direction === 'pull';
     await this._ensureRemoteRepository(remote, onlyFetch);
 
@@ -392,14 +393,15 @@ export class RemoteAccess implements IRemoteAccess {
    * Get remoteURL
    */
   remoteURL () {
-    return this._remoteURL;
+    return this._options.remote_url!;
   }
 
   /**
    * Get remote options
+   * (options are read only)
    */
   options () {
-    return this._options;
+    return JSON.parse(JSON.stringify(this._options));
   }
 
   /**
