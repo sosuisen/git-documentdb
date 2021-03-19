@@ -10,6 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import { Logger } from 'tslog';
 import {
   CannotCreateDirectoryError,
   DatabaseCloseTimeoutError,
@@ -42,7 +43,7 @@ import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { RemoteAccess, syncImpl } from './crud/remote_access';
-import { ConsoleStyle, logger, sleep } from './utils';
+import { ConsoleStyle, sleep } from './utils';
 const ulid = monotonicFactory();
 
 const databaseName = 'GitDocumentDB';
@@ -145,6 +146,11 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   };
 
   /**
+   * Logger
+   */
+  logger: Logger;
+
+  /**
    * Constructor
    *
    * @remarks
@@ -179,6 +185,19 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         Validator.maxWorkingDirectoryLength()
       );
     }
+    this.logger = new Logger({
+      name: this._dbName,
+      minLevel: 'trace',
+      displayDateTime: false,
+      displayFunctionName: false,
+      displayFilePath: 'hidden',
+      requestId: () => {
+        if (this._currentTask?.taskId !== undefined) {
+          return this._currentTask?.taskId;
+        }
+        return '';
+      },
+    });
   }
 
   /**
@@ -258,7 +277,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         this._dbInfo = await this._createRepository();
       }
       else {
-        logger.warn('Clone succeeded.');
+        this.logger.warn('Clone succeeded.');
         /**
          * TODO: validate db
          */
@@ -332,7 +351,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         callbacks,
       },
     }).catch(err => {
-      logger.debug(err);
+      this.logger.debug(err);
       return undefined;
     });
   }
@@ -414,7 +433,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    */
   //  Use monotonic ulid for taskId
   public newTaskId = () => {
-    return this._dbName + '_' + ulid(Date.now());
+    return ulid(Date.now());
   };
 
   public _pushToTaskQueue (task: Task) {
@@ -438,19 +457,15 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         const targetId = this._currentTask.targetId;
         const taskId = this._currentTask.taskId;
 
-        logger.debug(
-          ConsoleStyle.BgYellow().FgBlack().tag()`Exec start ${label}(${
-            targetId || ''
-          })#${taskId}`
+        this.logger.debug(
+          ConsoleStyle.BgYellow().FgBlack().tag()`Start ${label}(${targetId || ''})`
         );
         this._setIsTaskQueueWorking(true, this._currentTask.taskId);
         this._currentTask.func().finally(() => {
           this._statistics.taskCount[label]++;
 
-          logger.debug(
-            ConsoleStyle.BgGreen().FgWhite().tag()`Exec end ${label}(${
-              targetId || ''
-            })#${taskId}`
+          this.logger.debug(
+            ConsoleStyle.BgGreen().FgBlack().tag()`End ${label}(${targetId || ''})`
           );
           this._setIsTaskQueueWorking(false, taskId);
           this._execTaskQueue();

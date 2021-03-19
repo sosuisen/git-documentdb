@@ -9,7 +9,7 @@
 import { setInterval } from 'timers';
 import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
-import { ConsoleStyle, logger, sleep } from '../utils';
+import { ConsoleStyle, sleep } from '../utils';
 import {
   AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
@@ -87,7 +87,7 @@ export class RemoteAccess implements IRemoteAccess {
       auth: undefined,
       behavior_for_no_merge_base: undefined,
     };
-    this._options.sync_direction ??= 'pull'; // auth is not required for pulling
+    this._options.sync_direction ??= 'pull';
     this._options.interval ??= defaultSyncInterval;
     this._options.retry_interval ??= defaultRetryInterval;
     this._options.retry ??= defaultRetry;
@@ -203,7 +203,7 @@ export class RemoteAccess implements IRemoteAccess {
 
     let syncResult: SyncResult;
     if (this.upstream_branch === '') {
-      logger.debug('upstream_branch is empty. tryPush..');
+      this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
       syncResult = await this.tryPush().catch(err => {
@@ -221,7 +221,7 @@ export class RemoteAccess implements IRemoteAccess {
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else {
-      logger.debug('upstream_branch exists. trySync..');
+      this._gitDDB.logger.debug('upstream_branch exists. trySync..');
       syncResult = await this.trySync();
     }
 
@@ -279,7 +279,7 @@ export class RemoteAccess implements IRemoteAccess {
       await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
     );
     await remote.disconnect();
-    if (error !== 'undefined') logger.debug('connect fetch error: ' + error);
+    if (error !== 'undefined') this._gitDDB.logger.debug('connect fetch error: ' + error);
     switch (true) {
       case error === 'undefined':
         break;
@@ -307,7 +307,7 @@ export class RemoteAccess implements IRemoteAccess {
       await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
     );
     await remote.disconnect();
-    if (error !== 'undefined') logger.debug('connect push error: ' + error);
+    if (error !== 'undefined') this._gitDDB.logger.debug('connect push error: ' + error);
     switch (true) {
       case error === 'undefined':
         break;
@@ -332,16 +332,16 @@ export class RemoteAccess implements IRemoteAccess {
     // Check if remote repository already exists
     let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
-      logger.debug('remote add: ' + remoteURL);
+      this._gitDDB.logger.debug('remote add: ' + remoteURL);
       // Add remote repository
       remote = await nodegit.Remote.create(repos, 'origin', remoteURL);
     }
     else if (remote.url() !== remoteURL) {
-      logger.debug('remote rename from: ' + remote.url() + ' to ' + remoteURL);
+      this._gitDDB.logger.debug('remote rename from: ' + remote.url() + ' to ' + remoteURL);
       nodegit.Remote.setUrl(repos, 'origin', remoteURL);
     }
     else {
-      logger.debug('remote exists: ' + remoteURL);
+      this._gitDDB.logger.debug('remote exists: ' + remoteURL);
     }
     return remote;
   }
@@ -360,7 +360,7 @@ export class RemoteAccess implements IRemoteAccess {
       throw err;
     });
     if (result === 'create') {
-      logger.debug('create remote repository');
+      this._gitDDB.logger.debug('create remote repository');
       // Try to create repository by octokit
       await this.createRepositoryOnRemote(remoteURL).catch(err => {
         // Expected errors:
@@ -371,7 +371,7 @@ export class RemoteAccess implements IRemoteAccess {
       });
     }
     else {
-      logger.debug('remote repository exists');
+      this._gitDDB.logger.debug('remote repository exists');
     }
     if (!onlyFetch) {
       await this._checkPush(remote);
@@ -453,7 +453,7 @@ export class RemoteAccess implements IRemoteAccess {
       if (this._retrySyncCounter === 0) {
         break;
       }
-      logger.debug(
+      this._gitDDB.logger.debug(
         ConsoleStyle.BgRed().tag()`...retrySync: ${(
           this._options.retry! -
           this._retrySyncCounter +
@@ -463,7 +463,7 @@ export class RemoteAccess implements IRemoteAccess {
       // eslint-disable-next-line no-await-in-loop
       const result = await this.trySync().catch((err: Error) => {
         // Invoke retry fail event
-        logger.debug('retrySync failed: ' + err.message);
+        this._gitDDB.logger.debug('retrySync failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
           throw err;

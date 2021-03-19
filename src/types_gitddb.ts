@@ -7,6 +7,7 @@
  */
 
 import nodegit from '@sosuisen/nodegit';
+import { Logger } from 'tslog';
 import {
   AllDocsOptions,
   AllDocsResult,
@@ -64,4 +65,5 @@ export abstract class AbstractDocumentDB {
   abstract _pushToTaskQueue (task: Task): void;
   abstract _unshiftSyncTaskToTaskQueue (task: Task): void;
   abstract newTaskId (): string;
+  abstract logger: Logger;
 }

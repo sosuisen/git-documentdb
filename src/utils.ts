@@ -38,15 +38,6 @@ export const toSortedJSONString = (obj: Record<string, any>) => {
 };
 
 /**
- * Logger
- */
-export const logger = new Logger({
-  name: 'GitDDB',
-  minLevel: 'trace',
-  displayDateTime: false,
-});
-
-/**
  * Template literal tag for console style
  * https://bluesock.org/~willkg/dev/ansi.html#ansicodes
  */

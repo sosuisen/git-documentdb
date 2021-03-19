@@ -3,12 +3,12 @@
  * Copyright (c) Hidekazu Kubota
  *
  * This source code is licensed under the Mozilla Public License Version 2.0
- * found in the LICENSE file in the root directory of gitddb source tree.
+ * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { ConsoleStyle, logger } from '../utils';
+import { ConsoleStyle } from '../utils';
 import {
   CannotPushBecauseUnfetchedCommitExistsError,
   NoMergeBaseFoundError,
@@ -22,17 +22,19 @@ import { IRemoteAccess, SyncResult } from '../types';
  * git push
  */
 async function push (
-  repos: nodegit.Repository,
+  gitDDB: AbstractDocumentDB,
   remoteAccess: IRemoteAccess,
   taskId: string
 ) {
+  const repos = gitDDB.getRepository();
+  if (repos === undefined) return;
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
     .push(['refs/heads/main:refs/heads/main'], {
       callbacks: remoteAccess.callbacks,
     })
     .catch((err: Error) => {
-      logger.debug(err);
+      gitDDB.logger.debug(err);
       if (
         err.message.startsWith(
           'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
@@ -42,8 +44,8 @@ async function push (
       }
       throw err;
     });
-  logger.debug(ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: May pushed.`);
-  await validatePushResult(repos, remoteAccess, taskId);
+  gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
+  await validatePushResult(gitDDB, remoteAccess, taskId);
 }
 
 /**
@@ -51,12 +53,14 @@ async function push (
  * so check is needed.
  */
 async function validatePushResult (
-  repos: nodegit.Repository,
+  gitDDB: AbstractDocumentDB,
   remoteAccess: IRemoteAccess,
   taskId: string
 ) {
-  logger.debug(
-    ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: Check if pushed.`
+  const repos = gitDDB.getRepository();
+  if (repos === undefined) return;
+  gitDDB.logger.debug(
+    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: Check if pushed.`
   );
   await repos
     .fetch('origin', {
@@ -76,44 +80,40 @@ async function validatePushResult (
   )) as unknown) as { ahead: number; behind: number };
 
   if (distance.ahead !== 0 || distance.behind !== 0) {
-    logger.debug(
-      ConsoleStyle.BgBlue()
+    gitDDB.logger.debug(
+      ConsoleStyle.BgWhite()
         .FgBlack()
-        .tag()`sync_worker#${taskId}: push failed: ahead ${distance.ahead} behind ${distance.behind}`
+        .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
     );
     throw new CannotPushBecauseUnfetchedCommitExistsError();
   }
 }
 
 export async function push_worker (
-  gitddb: AbstractDocumentDB,
+  gitDDB: AbstractDocumentDB,
   remoteAccess: IRemoteAccess,
   taskId: string
 ): Promise<SyncResult> {
-  const repos = gitddb.getRepository();
-  if (repos === undefined) {
-    throw new RepositoryNotOpenError();
-  }
-  await push(repos, remoteAccess, taskId);
+  await push(gitDDB, remoteAccess, taskId);
 
   return 'push';
 }
 
 // eslint-disable-next-line complexity
 export async function sync_worker (
-  gitddb: AbstractDocumentDB,
+  gitDDB: AbstractDocumentDB,
   remoteAccess: IRemoteAccess,
   taskId: string
 ): Promise<SyncResult> {
-  const repos = gitddb.getRepository();
+  const repos = gitDDB.getRepository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
 
-  logger.debug(
-    ConsoleStyle.BgBlue()
+  gitDDB.logger.debug(
+    ConsoleStyle.BgWhite()
       .FgBlack()
-      .tag()`sync_worker#${taskId}: fetch: ${remoteAccess.getRemoteURL()}`
+      .tag()`sync_worker: fetch: ${remoteAccess.getRemoteURL()}`
   );
   // Fetch
   await repos
@@ -133,10 +133,8 @@ export async function sync_worker (
     localCommit.id(),
     remoteCommit.id()
   )) as unknown) as { ahead: number; behind: number };
-  logger.debug(
-    ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: ${JSON.stringify(
-      distance
-    )}`
+  gitDDB.logger.debug(
+    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(distance)}`
   );
   // ahead: 0, behind 0 => Nothing to do: If local does not commit and remote does not commit
   // ahead: 0, behind 1 => Fast-forward merge : If local does not commit and remote pushed
@@ -146,12 +144,12 @@ export async function sync_worker (
   let conflictedIndex: nodegit.Index | undefined;
   let commitOid: nodegit.Oid | undefined;
   if (distance.ahead === 0 && distance.behind === 0) {
-    logger.debug(ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: nop`);
+    gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: nop`);
     return 'nop';
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
     commitOid = await repos
-      .mergeBranches(gitddb.defaultBranch, `origin/${gitddb.defaultBranch}`)
+      .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`)
       .catch((res: nodegit.Index) => {
         /* returns conflicted index */ conflictedIndex = res;
         return undefined;
@@ -159,7 +157,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind > 0) {
     commitOid = await repos
-      .mergeBranches(gitddb.defaultBranch, `origin/${gitddb.defaultBranch}`)
+      .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`)
       .catch((res: nodegit.Index) => {
         // Exception locks files. Try cleanup
         repos.cleanup();
@@ -189,7 +187,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    await push(repos, remoteAccess, taskId);
+    await push(gitDDB, remoteAccess, taskId);
 
     return 'push';
   }
@@ -213,16 +211,14 @@ export async function sync_worker (
       (await repos.getHeadCommit()).id(),
       (await repos.getReferenceCommit('refs/remotes/origin/main')).id()
     )) as unknown) as { ahead: number; behind: number };
-    logger.debug(
-      ConsoleStyle.BgBlue()
+    gitDDB.logger.debug(
+      ConsoleStyle.BgWhite()
         .FgBlack()
-        .tag()`sync_worker#${taskId}: check distance again ${JSON.stringify(
-        distance_again
-      )}`
+        .tag()`sync_worker: check distance again ${JSON.stringify(distance_again)}`
     );
     if (distance_again.ahead === 0 && distance_again.behind === 0) {
-      logger.debug(
-        ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: fast-forward merge`
+      gitDDB.logger.debug(
+        ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fast-forward merge`
       );
       return 'fast-forward merge';
     }
@@ -242,10 +238,10 @@ export async function sync_worker (
         await commit.getTree()
       );
       // Push
-      await push(repos, remoteAccess, taskId);
+      await push(gitDDB, remoteAccess, taskId);
 
-      logger.debug(
-        ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: merge and push`
+      gitDDB.logger.debug(
+        ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: merge and push`
       );
       return 'merge and push';
     }
@@ -280,10 +276,8 @@ export async function sync_worker (
 
     conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
       const stage = nodegit.Index.entryStage(entry);
-      logger.debug(
-        ConsoleStyle.BgBlue()
-          .FgBlack()
-          .tag()`sync_worker#${taskId}: ${stage} : ${entry.path}`
+      gitDDB.logger.debug(
+        ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${stage} : ${entry.path}`
       );
 
       // entries() returns all files in stage 0, 1, 2 and 3.
@@ -316,8 +310,8 @@ export async function sync_worker (
       }
     });
     _index.conflictCleanup();
-    logger.debug(
-      ConsoleStyle.BgBlue().FgBlack().tag()`sync_worker#${taskId}: overwritten by ours`
+    gitDDB.logger.debug(
+      ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: overwritten by ours`
     );
 
     await _index.write();
@@ -333,7 +327,7 @@ export async function sync_worker (
       [await repos.getHeadCommit(), remoteCommit]
     );
     repos.stateCleanup();
-    // logger.debug('committed');
+    // gitDDB.logger.debug('committed');
     await repos.getCommit(overwriteCommitOid);
 
     const opt = new nodegit.CheckoutOptions();
@@ -341,10 +335,10 @@ export async function sync_worker (
     await nodegit.Checkout.head(repos, opt);
 
     // Push
-    await push(repos, remoteAccess, taskId);
+    await push(gitDDB, remoteAccess, taskId);
 
-    logger.debug(
-      ConsoleStyle.BgBlue()
+    gitDDB.logger.debug(
+      ConsoleStyle.BgWhite()
         .FgBlack()
         .tag()`sync_worker${taskId}: resolve conflicts and push`
     );
