@@ -27,7 +27,12 @@ import {
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
 } from '../src/error';
-import { minimumSyncInterval, RemoteAccess } from '../src/crud/remote_access';
+import {
+  defaultRetry,
+  defaultRetryInterval,
+  minimumSyncInterval,
+  RemoteAccess,
+} from '../src/crud/remote_access';
 import { sleep } from '../src/utils';
 
 const ulid = monotonicFactory();
@@ -839,6 +844,31 @@ maybe('remote: use personal access token: ', () => {
       await dbA.destroy();
     });
 
+    test('Repeat trySync() automatically', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const interval = 1000;
+      const options: RemoteOptions = {
+        live: true,
+        sync_direction: 'both',
+        interval,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, options);
+
+      const remoteA = dbA.getRemote(remoteURL);
+
+      await sleep(10000);
+      expect(dbA.statistics().taskCount.sync).toBeGreaterThan(5);
+
+      await dbA.destroy();
+    });
+
     test('Check skip of consecutive sync tasks', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
@@ -871,17 +901,124 @@ maybe('remote: use personal access token: ', () => {
     });
   });
 
-  describe.skip('Test retry options ', () => {
-    test.skip('Check retry counter', () => {});
-    test.skip('Check retry interval', () => {});
-    test.skip('Cancel retrying', () => {
-      // nop（成功） でリトライやめること。
+  describe('Test retry options ', () => {
+    const localDir = `./test/database_remote_by_pat_${monoId()}`;
+    test('No retry', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const optionsA: RemoteOptions = {
+        live: true,
+        interval: 1000,
+        sync_direction: 'both',
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, optionsA);
+
+      const remoteA = dbA.getRemote(remoteURL);
+      expect(remoteA.options().retry).toBe(defaultRetry);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      const optionsB: RemoteOptions = {
+        live: false,
+        retry: 0, // no retry
+        retry_interval: 0,
+        sync_direction: 'both',
+        auth: { type: 'github', personal_access_token: token },
+      };
+
+      await dbB.open(remoteURL, optionsB);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await sleep(3000);
+
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      await dbB.put(jsonB1);
+      const remoteB = dbB.getRemote(remoteURL);
+
+      await expect(remoteB.tryPush()).rejects.toThrowError(
+        CannotPushBecauseUnfetchedCommitExistsError
+      );
+      const currentSyncCount = dbB.statistics().taskCount.sync;
+      await sleep(5000);
+      expect(dbB.statistics().taskCount.sync).toBe(currentSyncCount);
+
+      await dbA.destroy();
+      await dbB.destroy();
+    });
+
+    test('Check retry interval', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const optionsA: RemoteOptions = {
+        live: true,
+        interval: 1000,
+        sync_direction: 'both',
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, optionsA);
+
+      const remoteA = dbA.getRemote(remoteURL);
+      expect(remoteA.options().retry).toBe(defaultRetry);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      const optionsB: RemoteOptions = {
+        live: false,
+        retry_interval: 5000,
+        sync_direction: 'both',
+        auth: { type: 'github', personal_access_token: token },
+      };
+
+      await dbB.open(remoteURL, optionsB);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await sleep(3000);
+
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      await dbB.put(jsonB1);
+      const remoteB = dbB.getRemote(remoteURL);
+
+      await expect(remoteB.tryPush()).rejects.toThrowError(
+        CannotPushBecauseUnfetchedCommitExistsError
+      );
+      const currentSyncCount = dbB.statistics().taskCount.sync;
+      await sleep(2000);
+      expect(dbB.statistics().taskCount.sync).toBe(currentSyncCount);
+      await sleep(7000);
+      expect(dbB.statistics().taskCount.sync).toBe(currentSyncCount + 1);
+
+      await dbA.destroy();
+      await dbB.destroy();
+    });
+
+    test.skip('More retries', () => {
+      // Test this using behavior_for_no_merge_base option
     });
   });
 
   describe.skip('Remote exists; B is empty, clones the remote; B closes and opens again with remote params: ', () => {});
   describe.skip('Remote exists; B is empty, clones the remote; B closes and opens again, calls sync() with remote params: ', () => {});
   describe.skip('A is not empty, starts sync(), creates remote, puts data; B is empty, clones the remote: ', () => {});
+  describe.skip('A is empty, creates remote, puts data, close(), open(), creates another remote: ', () => {});
 
   // Do later
   describe.skip('A is not empty, starts sync(), creates remote, puts data; B is not empty, clone invokes no_merge_base: ', () => {
