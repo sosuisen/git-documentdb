@@ -112,7 +112,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * Tests for constructor
    */
-  describe.skip('constructor: ', () => {
+  describe('constructor: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -268,7 +268,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * connectToRemote
    */
-  describe.skip('connectToRemote: ', () => {
+  describe('connectToRemote: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -364,7 +364,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * Operate remote repository
    */
-  describe.skip('Operate remote repository', () => {
+  describe('Operate remote repository: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -416,7 +416,7 @@ maybe('remote: use personal access token: ', () => {
    * Initialize synchronization by open() with remoteURL
    * Initialize means creating local and remote repositories by using a remoteURL
    */
-  describe.skip('Initialize synchronization by open(): ', () => {
+  describe('Initialize synchronization by open(): ', () => {
     /**
      * Basics: A is empty, creates remote, puts data; B is empty, clones the remote
      */
@@ -1137,6 +1137,11 @@ maybe('remote: use personal access token: ', () => {
       // no merge base
     });
   });
+
+  /**
+   * Events
+   */
+  describe.skip('Events: ', () => {});
 
   /**
    * No merge base
