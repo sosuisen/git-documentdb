@@ -80,7 +80,7 @@ export class RemoteAccess implements IRemoteAccess {
       throw new UndefinedRemoteURLError();
     }
 
-    this._options = _options ?? {
+    _options ??= {
       live: false,
       sync_direction: undefined,
       interval: undefined,
@@ -89,6 +89,9 @@ export class RemoteAccess implements IRemoteAccess {
       auth: undefined,
       behavior_for_no_merge_base: undefined,
     };
+    // Deep clone
+    this._options = JSON.parse(JSON.stringify(_options));
+
     this._options.sync_direction ??= 'pull';
     this._options.interval ??= defaultSyncInterval;
 
