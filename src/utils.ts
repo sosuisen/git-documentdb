@@ -57,11 +57,11 @@ class ConsoleStyleClass {
   }
 
   tag = () => {
-    return (literals: TemplateStringsArray, ...placeholders: string[]) => {
+    return (literals: TemplateStringsArray, ...placeholders: any[]) => {
       let result = this._style;
       for (let i = 0; i < placeholders.length; i++) {
         result += literals[i];
-        result += placeholders[i];
+        result += placeholders[i].toString();
       }
       result += literals[literals.length - 1];
       // Reset style
