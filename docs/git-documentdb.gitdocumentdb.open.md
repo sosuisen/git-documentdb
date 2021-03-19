@@ -12,8 +12,16 @@ Create a repository or open an existing one.
 <b>Signature:</b>
 
 ```typescript
-open(): Promise<DatabaseInfo>;
+open(remoteURL?: string, remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  remoteURL | string |  |
+|  remoteOptions | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
+
 <b>Returns:</b>
 
 Promise&lt;[DatabaseInfo](./git-documentdb.databaseinfo.md)<!-- -->&gt;

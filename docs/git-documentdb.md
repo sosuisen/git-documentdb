@@ -14,15 +14,21 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 
 |  Class | Description |
 |  --- | --- |
+|  [AuthNeededForPushOrSyncError](./git-documentdb.authneededforpushorsyncerror.md) |  |
 |  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
 |  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
+|  [CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md) |  |
 |  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
 |  [Collection](./git-documentdb.collection.md) | Documents are gathered together in collections. |
 |  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
 |  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
 |  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | <b><i>(BETA)</i></b> Main class of GitDocumentDB |
+|  [HttpProtocolRequiredError](./git-documentdb.httpprotocolrequirederror.md) |  |
+|  [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) |  |
+|  [InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md) |  |
 |  [InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md) |  |
+|  [InvalidCollectionPathError](./git-documentdb.invalidcollectionpatherror.md) |  |
 |  [InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md) |  |
 |  [InvalidDbNameCharacterError](./git-documentdb.invaliddbnamecharactererror.md) |  |
 |  [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) |  |
@@ -30,10 +36,31 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) |  |
 |  [InvalidLocalDirCharacterError](./git-documentdb.invalidlocaldircharactererror.md) |  |
 |  [InvalidPropertyNameInDocumentError](./git-documentdb.invalidpropertynameindocumenterror.md) |  |
+|  [InvalidRepositoryURLError](./git-documentdb.invalidrepositoryurlerror.md) |  |
+|  [InvalidSSHKeyFormatError](./git-documentdb.invalidsshkeyformaterror.md) |  |
+|  [InvalidSSHKeyPathError](./git-documentdb.invalidsshkeypatherror.md) |  |
+|  [InvalidURLFormatError](./git-documentdb.invalidurlformaterror.md) |  |
 |  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) |  |
+|  [NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md) |  |
+|  [PushAuthenticationError](./git-documentdb.pushauthenticationerror.md) |  |
+|  [PushPermissionDeniedError](./git-documentdb.pushpermissiondeniederror.md) |  |
+|  [RemoteAlreadyRegisteredError](./git-documentdb.remotealreadyregisterederror.md) |  |
+|  [RemoteRepositoryNotFoundError](./git-documentdb.remoterepositorynotfounderror.md) |  |
 |  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
+|  [SyncWorkerFetchError](./git-documentdb.syncworkerfetcherror.md) |  |
 |  [UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md) |  |
+|  [UndefinedDBError](./git-documentdb.undefineddberror.md) |  |
 |  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) |  |
+|  [UndefinedGitHubAuthenticationError](./git-documentdb.undefinedgithubauthenticationerror.md) |  |
+|  [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md) |  |
+|  [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) |  |
+|  [UnresolvedHostError](./git-documentdb.unresolvedhosterror.md) |  |
+
+## Interfaces
+
+|  Interface | Description |
+|  --- | --- |
+|  [IRemoteAccess](./git-documentdb.iremoteaccess.md) | Interface of RemoteAccess |
 
 ## Type Aliases
 
@@ -41,14 +68,25 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  --- | --- |
 |  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | Options for allDocs() |
 |  [AllDocsResult](./git-documentdb.alldocsresult.md) | Result of allDocs() |
+|  [BehaviorForNoMergeBase](./git-documentdb.behaviorfornomergebase.md) | Behavior when no merge base nop: (default) theirs: remove local repository and git clone &lt;<!-- -->remote repository<!-- -->&gt; ours: git merge -s ours &lt;<!-- -->remote branch<!-- -->&gt; |
 |  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
 |  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | How to close database |
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | <b><i>(BETA)</i></b> Database information |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
+|  [DatabaseStatistics](./git-documentdb.databasestatistics.md) | Database Statistics |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
 |  [PutResult](./git-documentdb.putresult.md) | Result of put() |
+|  [RemoteAuth](./git-documentdb.remoteauth.md) |  |
+|  [RemoteAuthGitHub](./git-documentdb.remoteauthgithub.md) |  |
+|  [RemoteAuthNone](./git-documentdb.remoteauthnone.md) |  |
+|  [RemoteAuthSSH](./git-documentdb.remoteauthssh.md) |  |
+|  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for RemoteAccess class |
 |  [RemoveOptions](./git-documentdb.removeoptions.md) | Options for remove() |
 |  [RemoveResult](./git-documentdb.removeresult.md) | Result of remove() |
+|  [SyncDirection](./git-documentdb.syncdirection.md) |  |
+|  [SyncResult](./git-documentdb.syncresult.md) | Result from sync\_worker() |
+|  [Task](./git-documentdb.task.md) | Task for taskQueue |
+|  [TaskLabel](./git-documentdb.tasklabel.md) | TaskLabel DatabaseStatistics.taskCount must have the same members. |
 

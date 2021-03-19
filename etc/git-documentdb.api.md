@@ -4,6 +4,7 @@
 
 ```ts
 
+import { Logger } from 'tslog';
 import nodegit from '@sosuisen/nodegit';
 
 // @public
@@ -24,6 +25,14 @@ export type AllDocsResult = {
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
 //
 // @public (undocumented)
+export class AuthNeededForPushOrSyncError extends BaseError {
+    constructor(direction: SyncDirection);
+}
+
+// @public
+export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
+
+// @public (undocumented)
 export class CannotCreateDirectoryError extends BaseError {
     constructor(e?: string);
 }
@@ -31,6 +40,11 @@ export class CannotCreateDirectoryError extends BaseError {
 // @public (undocumented)
 export class CannotDeleteDataError extends BaseError {
     constructor(e?: string);
+}
+
+// @public (undocumented)
+export class CannotPushBecauseUnfetchedCommitExistsError extends BaseError {
+    constructor();
 }
 
 // @public (undocumented)
@@ -80,6 +94,7 @@ export class DatabaseClosingError extends BaseError {
 // @beta
 export type DatabaseInfo = {
     is_new: boolean;
+    is_clone: boolean;
     is_created_by_gitddb: boolean;
     is_valid_version: boolean;
 };
@@ -88,6 +103,16 @@ export type DatabaseInfo = {
 export type DatabaseOption = {
     local_dir?: string;
     db_name: string;
+};
+
+// @public
+export type DatabaseStatistics = {
+    taskCount: {
+        put: number;
+        remove: number;
+        push: number;
+        sync: number;
+    };
 };
 
 // @public (undocumented)
@@ -101,6 +126,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
     collection(collectionPath: CollectionPath): Collection;
+    dbName(): string;
+    // (undocumented)
+    readonly defaultBranch = "main";
     delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
@@ -108,37 +136,60 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }>;
     readonly fileExt = ".json";
     get(docId: string): Promise<JsonDoc>;
-    repository(): nodegit.Repository | undefined;
+    // Warning: (ae-forgotten-export) The symbol "RemoteAccess" needs to be exported by the entry point main.d.ts
+    getRemote(remoteURL: string): RemoteAccess;
+    getRemoteURLs(): string[];
     readonly gitAuthor: {
         readonly name: "GitDocumentDB";
         readonly email: "gitddb@example.com";
     };
     isClosing: boolean;
     isOpened(): boolean;
-    open(): Promise<DatabaseInfo>;
+    logger: Logger;
     // @internal
-    _pushToTaskQueue(func: () => Promise<void>): void;
+    newTaskId: () => string;
+    open(remoteURL?: string, remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
+    // (undocumented)
+    _pushToTaskQueue(task: Task): void;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(_id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
-    // Warning: (ae-forgotten-export) The symbol "_put_worker_impl" needs to be exported by the entry point main.d.ts
-    //
-    // @internal (undocumented)
-    _put_worker: typeof _put_worker_impl;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-    // Warning: (ae-forgotten-export) The symbol "_remove_worker_impl" needs to be exported by the entry point main.d.ts
-    //
-    // @internal (undocumented)
-    _remove_worker: typeof _remove_worker_impl;
+    removeRemote(remoteURL: string): void;
+    repository(): nodegit.Repository | undefined;
+    statistics(): DatabaseStatistics;
+    sync(remoteURL: string, options?: RemoteOptions): Promise<RemoteAccess>;
+    // (undocumented)
+    _unshiftSyncTaskToTaskQueue(task: Task): void;
     // @internal (undocumented)
     _validator: Validator;
     workingDir(): string;
     }
 
 // @public (undocumented)
+export class HttpProtocolRequiredError extends BaseError {
+    constructor(url: string);
+}
+
+// @public (undocumented)
+export class IntervalTooSmallError extends BaseError {
+    constructor(min: number, current: number);
+}
+
+// @public (undocumented)
+export class InvalidAuthenticationTypeError extends BaseError {
+    constructor(type: string);
+}
+
+// @public (undocumented)
 export class InvalidCollectionPathCharacterError extends BaseError {
+    constructor(name: string);
+}
+
+// @public (undocumented)
+export class InvalidCollectionPathError extends BaseError {
     constructor(name: string);
 }
 
@@ -178,8 +229,46 @@ export class InvalidPropertyNameInDocumentError extends BaseError {
 }
 
 // @public (undocumented)
+export class InvalidRepositoryURLError extends BaseError {
+    constructor(url: string);
+}
+
+// @public (undocumented)
+export class InvalidSSHKeyFormatError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
+export class InvalidSSHKeyPathError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
+export class InvalidURLFormatError extends BaseError {
+    constructor(url: string);
+}
+
+// @public (undocumented)
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
     constructor(path: string, minLength: number, maxLength: number);
+}
+
+// @public
+export interface IRemoteAccess {
+    // (undocumented)
+    author: nodegit.Signature;
+    // (undocumented)
+    callbacks: {
+        [key: string]: any;
+    };
+    // (undocumented)
+    committer: nodegit.Signature;
+    // (undocumented)
+    options(): RemoteOptions;
+    // (undocumented)
+    remoteURL(): string;
+    // (undocumented)
+    upstream_branch: string;
 }
 
 // @public
@@ -194,6 +283,21 @@ export type JsonDocWithMetadata = {
     doc?: JsonDoc;
 };
 
+// @public (undocumented)
+export class NoMergeBaseFoundError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
+export class PushAuthenticationError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
+export class PushPermissionDeniedError extends BaseError {
+    constructor();
+}
+
 // @public
 export type PutOptions = {
     commit_message?: string;
@@ -206,6 +310,49 @@ export type PutResult = {
     file_sha: string;
     commit_sha: string;
 };
+
+// @public (undocumented)
+export class RemoteAlreadyRegisteredError extends BaseError {
+    constructor(url: string);
+}
+
+// @public (undocumented)
+export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
+
+// @public (undocumented)
+export type RemoteAuthGitHub = {
+    type: 'github';
+    personal_access_token?: string;
+};
+
+// @public (undocumented)
+export type RemoteAuthNone = {
+    type: 'none';
+};
+
+// @public (undocumented)
+export type RemoteAuthSSH = {
+    type: 'ssh';
+    private_key_path: string;
+    public_key_path: string;
+    pass_phrase?: string;
+};
+
+// @public
+export type RemoteOptions = {
+    live: boolean;
+    sync_direction?: SyncDirection;
+    interval?: number;
+    retry?: number;
+    retry_interval?: number;
+    auth?: RemoteAuth;
+    behavior_for_no_merge_base?: BehaviorForNoMergeBase;
+};
+
+// @public (undocumented)
+export class RemoteRepositoryNotFoundError extends BaseError {
+    constructor(url: string);
+}
 
 // @public
 export type RemoveOptions = {
@@ -226,13 +373,60 @@ export class RepositoryNotOpenError extends BaseError {
 }
 
 // @public (undocumented)
+export type SyncDirection = 'pull' | 'push' | 'both';
+
+// @public
+export type SyncResult = 'nop' | 'push' | 'fast-forward merge' | 'merge and push' | 'resolve conflicts and push' | 'canceled';
+
+// @public (undocumented)
+export class SyncWorkerFetchError extends BaseError {
+    constructor(mes: string);
+}
+
+// @public
+export type Task = {
+    label: TaskLabel;
+    taskId: string;
+    targetId?: string;
+    func: () => Promise<void>;
+};
+
+// @public
+export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
+
+// @public (undocumented)
 export class UndefinedDatabaseNameError extends BaseError {
     constructor(e?: string);
 }
 
 // @public (undocumented)
+export class UndefinedDBError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
 export class UndefinedDocumentIdError extends BaseError {
     constructor(e?: string);
+}
+
+// @public (undocumented)
+export class UndefinedGitHubAuthenticationError extends BaseError {
+    constructor(mes: string);
+}
+
+// @public (undocumented)
+export class UndefinedPersonalAccessTokenError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
+export class UndefinedRemoteURLError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
+export class UnresolvedHostError extends BaseError {
+    constructor(url: string);
 }
 
 // Warning: (ae-internal-missing-underscore) The name "Validator" should be prefixed with an underscore because the declaration is marked as @internal

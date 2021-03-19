@@ -14,6 +14,7 @@ Database information
 ```typescript
 export declare type DatabaseInfo = {
     is_new: boolean;
+    is_clone: boolean;
     is_created_by_gitddb: boolean;
     is_valid_version: boolean;
 };
@@ -22,6 +23,8 @@ export declare type DatabaseInfo = {
 ## Remarks
 
 - is\_new: Whether a repository is newly created or existing.
+
+- is\_clone: Whether a repository is cloned from a remote repository or not.
 
 - is\_created\_by\_gitddb: Whether a repository is created by GitDocumentDB or other means.
 
