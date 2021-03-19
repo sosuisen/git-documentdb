@@ -92,6 +92,7 @@ export class RemoteAccess implements IRemoteAccess {
     // Deep clone
     this._options = JSON.parse(JSON.stringify(_options));
 
+    this._options.live ??= false;
     this._options.sync_direction ??= 'pull';
     this._options.interval ??= defaultSyncInterval;
 
