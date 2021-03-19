@@ -228,7 +228,6 @@ maybe('remote: use personal access token: ', () => {
    * connectToRemote
    */
   describe('connectToRemote: ', () => {
-    // describe.skip('connectToRemote: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -319,7 +318,6 @@ maybe('remote: use personal access token: ', () => {
 
       await gitDDB.destroy();
     });
-    test.skip('Remove remote');
   });
 
   /**
@@ -620,22 +618,78 @@ maybe('remote: use personal access token: ', () => {
       await dbB.destroy();
     });
   });
-  describe.skip('Test live options', () => {
-    test.skip('Check if live starts', () => {});
+
+  describe('Test live', () => {
+    const localDir = `./test/database_remote_by_pat_${monoId()}`;
+    test('Live starts from open(): Check if live starts', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const interval = 3000;
+      const options: RemoteOptions = {
+        live: true,
+        sync_direction: 'both',
+        interval,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(remoteURL, options);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const remoteA = dbA.getRemote(remoteURL);
+      expect(remoteA.getLiveStatus()).toBeTruthy();
+      expect(remoteA.getInterval()).toBe(interval);
+
+      // Wait live sync()
+      while (dbA.statistics().taskCount.sync === 0) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(500);
+      }
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.open(remoteURL, options);
+      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
+
+      await dbA.destroy();
+      await dbB.destroy();
+    });
+    test.skip('cancel()', () => {
+      // check getLiveStatus()
+    });
+    test.skip('pause()', () => {});
+    test.skip('resume()', () => {});
+
+    test.skip('Check intervals', () => {
+      // getInterval
+    });
     test.skip('Check skip of consecutive sync tasks', () => {});
-    test.skip('Check intervals', () => {});
   });
 
   describe.skip('Test retry options ', () => {
     test.skip('Check retry counter', () => {});
     test.skip('Check retry interval', () => {});
-    test.skip('Cancel retrying', () => {});
+    test.skip('Cancel retrying', () => {
+      // nop（成功） でリトライやめること。
+    });
   });
 
   describe.skip('Remote exists; B is empty, clones the remote; B closes and opens again with remote params: ', () => {});
   describe.skip('Remote exists; B is empty, clones the remote; B closes and opens again, calls sync() with remote params: ', () => {});
   describe.skip('A is not empty, starts sync(), creates remote, puts data; B is empty, clones the remote: ', () => {});
+
+  // Do later
   describe.skip('A is not empty, starts sync(), creates remote, puts data; B is not empty, clone invokes no_merge_base: ', () => {
+    // behavior_for_no_merge_base が nop のときリトライしないこと。
     test.skip('Test ours option for behavior_for_no_merge_base', async () => {
       const localDir = `./test/database_remote_by_pat_${monoId()}`;
       const remoteURL = remoteURLBase + serialId();
@@ -670,7 +724,7 @@ maybe('remote: use personal access token: ', () => {
       await dbB.destroy();
     });
   });
-
+  test.skip('Remove remote');
   test.skip('Test network errors');
   test.skip('Test _addRemoteRepository');
 });
