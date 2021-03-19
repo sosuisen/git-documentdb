@@ -408,6 +408,9 @@ export class RemoteAccess implements IRemoteAccess {
    * Stop sync
    */
   cancel () {
+    // Cancel retrying
+    this._retrySyncCounter = 0;
+
     if (this._syncTimer) {
       clearInterval(this._syncTimer);
     }
@@ -438,13 +441,16 @@ export class RemoteAccess implements IRemoteAccess {
 
   private _retrySyncCounter = 0;
 
-  private async _retrySync (): Promise<SyncResult | 'never'> {
+  private async _retrySync (): Promise<SyncResult> {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry!;
     }
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
       await sleep(this._options.interval!);
+      if (this._retrySyncCounter === 0) {
+        break;
+      }
       logger.debug(
         ConsoleStyle.BgRed().tag()`...retrySync: ${(
           this._options.retry! -
@@ -466,8 +472,8 @@ export class RemoteAccess implements IRemoteAccess {
         return result;
       }
     }
-    // This line is not reached.
-    return 'never';
+    // This line is reached when cancel() set _retrySyncCounter to 0;
+    return 'canceled';
   }
 
   tryPush (taskId?: string) {

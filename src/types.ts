@@ -283,7 +283,8 @@ export type SyncResult =
   | 'push'
   | 'fast-forward merge'
   | 'merge and push'
-  | 'resolve conflicts and push';
+  | 'resolve conflicts and push'
+  | 'canceled';
 
 /**
  * Task
