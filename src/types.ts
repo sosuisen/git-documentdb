@@ -55,6 +55,19 @@ export type DatabaseInfo = {
   is_valid_version: boolean;
 };
 /**
+ * Database Statistics
+ */
+export type DatabaseStatistics = {
+  taskCount: {
+    // A property name equals a member of TaskLabel type
+    put: number;
+    remove: number;
+    push: number;
+    sync: number;
+  };
+};
+
+/**
  * Type for a JSON document that is stored in a database
  *
  * @remarks A document must be a JSON Object that matches the following conditions:
@@ -287,10 +300,14 @@ export type SyncResult =
   | 'canceled';
 
 /**
- * Task
+ * TaskLabel
+ * DatabaseStatistics.taskCount must have the same members.
  */
 export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
 
+/**
+ * Task for taskQueue
+ */
 export type Task = {
   label: TaskLabel;
   taskId: string;
@@ -298,6 +315,9 @@ export type Task = {
   func: () => Promise<void>;
 };
 
+/**
+ * Interface of RemoteAccess
+ */
 export interface IRemoteAccess {
   upstream_branch: string;
   callbacks: { [key: string]: any };

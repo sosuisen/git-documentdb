@@ -27,6 +27,7 @@ import {
   DatabaseCloseOption,
   DatabaseInfo,
   DatabaseOption,
+  DatabaseStatistics,
   JsonDoc,
   PutOptions,
   PutResult,
@@ -132,6 +133,18 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   };
 
   /**
+   * DB Statistics
+   */
+  private _statistics: DatabaseStatistics = {
+    taskCount: {
+      put: 0,
+      remove: 0,
+      push: 0,
+      sync: 0,
+    },
+  };
+
+  /**
    * Constructor
    *
    * @remarks
@@ -202,6 +215,14 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       is_clone: false,
       is_created_by_gitddb: true,
       is_valid_version: true,
+    };
+    this._statistics = {
+      taskCount: {
+        put: 0,
+        remove: 0,
+        push: 0,
+        sync: 0,
+      },
     };
 
     /**
@@ -369,6 +390,13 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
+   * DB Statistics
+   */
+  statistics () {
+    return this._statistics;
+  }
+
+  /**
    * Get a collection
    *
    * @remarks
@@ -409,6 +437,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         const label = this._currentTask.label;
         const targetId = this._currentTask.targetId;
         const taskId = this._currentTask.taskId;
+
         logger.debug(
           ConsoleStyle.BgYellow().FgBlack().tag()`Exec start ${label}(${
             targetId || ''
@@ -416,6 +445,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         );
         this._setIsTaskQueueWorking(true, this._currentTask.taskId);
         this._currentTask.func().finally(() => {
+          this._statistics.taskCount[label]++;
+
           logger.debug(
             ConsoleStyle.BgGreen().FgWhite().tag()`Exec end ${label}(${
               targetId || ''
