@@ -395,3 +395,12 @@ export class CannotPushBecauseUnfetchedCommitExistsError extends BaseError {
     );
   }
 }
+
+/**
+ * @public
+ */
+export class IntervalTooSmallError extends BaseError {
+  constructor (min: number, current: number) {
+    super(`Interval is too small. Minimum value is ${min}. Current value is ${current}.`);
+  }
+}
