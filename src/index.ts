@@ -499,7 +499,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
+    // Stop remote
     Object.values(this._remotes).forEach(remote => remote.cancel());
+
+    // Wait taskQueue
     if (this._currentRepository instanceof nodegit.Repository) {
       let isTimeout = false;
       try {
@@ -524,6 +527,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       } finally {
         this.isClosing = false;
         this._taskQueue = [];
+
         this._setIsTaskQueueWorking(false);
 
         /**
