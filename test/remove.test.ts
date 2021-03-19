@@ -95,7 +95,7 @@ describe('delete(): delete document:', () => {
     });
 
     // Check commit message
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -149,7 +149,7 @@ describe('delete(): delete document:', () => {
     });
 
     // Check commit message
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -223,7 +223,7 @@ describe('remove(): remove document:', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
     // Check commit message
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -302,7 +302,7 @@ describe('remove(): remove document:', () => {
     await gitDDB.remove(_id, { commit_message: 'my commit message' });
 
     // Check commit message
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD

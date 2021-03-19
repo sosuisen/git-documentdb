@@ -22,7 +22,7 @@ export async function getImpl (this: AbstractDocumentDB, docId: string): Promise
   if (this.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
-  const _currentRepository = this.getRepository();
+  const _currentRepository = this.repository();
   if (_currentRepository === undefined) {
     return Promise.reject(new RepositoryNotOpenError());
   }

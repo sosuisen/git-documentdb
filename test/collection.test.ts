@@ -109,7 +109,7 @@ describe('Collection: put()', () => {
     // Read JSON and check doc._id
     expect(fs.readJSONSync(filePath)._id).toBe('page01'); // not 'prof01/page01'
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -135,7 +135,7 @@ describe('Collection: put()', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -165,7 +165,7 @@ describe('Collection: put()', () => {
     // doc._id is ignored.
     expect(doc._id).toBe('id-in-document');
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -272,7 +272,7 @@ describe('Collection: remove()', () => {
     });
 
     // Check commit message
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -356,7 +356,7 @@ describe('Collection: remove()', () => {
     await users.remove(_id, { commit_message: 'my commit message' });
 
     // Check commit message
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD

@@ -101,7 +101,7 @@ describe('Read document', () => {
     const _id = 'invalidJSON';
     let file_sha: string;
     const data = 'invalid data'; // JSON.parse() will throw error
-    const _currentRepository = gitDDB.getRepository();
+    const _currentRepository = gitDDB.repository();
     if (_currentRepository) {
       try {
         const fileExt = '.json';

@@ -164,6 +164,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     if (options.db_name === undefined || options.db_name === '') {
       throw new UndefinedDatabaseNameError();
     }
+
     this._dbName = options.db_name;
     this._localDir = options.local_dir ?? defaultLocalDir;
 
@@ -404,7 +405,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * Get a current repository
    * @remarks Be aware that direct operation of the current repository can corrupt the database.
    */
-  getRepository (): nodegit.Repository | undefined {
+  repository (): nodegit.Repository | undefined {
     return this._currentRepository;
   }
 

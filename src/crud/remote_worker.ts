@@ -26,7 +26,7 @@ async function push (
   remoteAccess: IRemoteAccess,
   taskId: string
 ) {
-  const repos = gitDDB.getRepository();
+  const repos = gitDDB.repository();
   if (repos === undefined) return;
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
@@ -57,7 +57,7 @@ async function validatePushResult (
   remoteAccess: IRemoteAccess,
   taskId: string
 ) {
-  const repos = gitDDB.getRepository();
+  const repos = gitDDB.repository();
   if (repos === undefined) return;
   gitDDB.logger.debug(
     ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: Check if pushed.`
@@ -105,7 +105,7 @@ export async function sync_worker (
   remoteAccess: IRemoteAccess,
   taskId: string
 ): Promise<SyncResult> {
-  const repos = gitDDB.getRepository();
+  const repos = gitDDB.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }

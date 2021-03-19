@@ -303,7 +303,7 @@ maybe('remote: use personal access token: ', () => {
         live: false,
         auth: { type: 'github', personal_access_token: token },
       };
-      const repos = gitDDB.getRepository();
+      const repos = gitDDB.repository();
       const remote = new RemoteAccess(gitDDB, remoteURL, options);
       await expect(remote.connectToRemote(repos!)).resolves.toBe('push');
       expect(remote.upstream_branch).toBe(`origin/${gitDDB.defaultBranch}`);
@@ -330,7 +330,7 @@ maybe('remote: use personal access token: ', () => {
       gitDDB.removeRemote(remoteURL);
 
       // Sync with an existed remote repository
-      const repos = gitDDB.getRepository();
+      const repos = gitDDB.repository();
       const remote = new RemoteAccess(gitDDB, remoteURL, options);
       await expect(remote.connectToRemote(repos!)).resolves.toBe('nop');
 
@@ -695,7 +695,6 @@ maybe('remote: use personal access token: ', () => {
       });
       await dbB.open(remoteURL, options);
       await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-
       await dbA.destroy();
       await dbB.destroy();
     });

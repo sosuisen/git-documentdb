@@ -383,7 +383,7 @@ describe('validator', () => {
     const _id = 'invalidJSON';
     let file_sha, commit_sha: string;
     const data = 'invalid data'; // JSON.parse() will throw error
-    const _currentRepository = gitDDB.getRepository();
+    const _currentRepository = gitDDB.repository();
     if (_currentRepository) {
       try {
         const filePath = path.resolve(gitDDB.workingDir(), _id);

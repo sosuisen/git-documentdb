@@ -42,7 +42,7 @@ export async function syncImpl (
   remoteURL: string,
   options?: RemoteOptions
 ) {
-  const repos = this.getRepository();
+  const repos = this.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
@@ -446,7 +446,7 @@ export class RemoteAccess implements IRemoteAccess {
       this._options.retry = options.retry;
     }
 
-    if (this._gitDDB.getRepository() !== undefined) {
+    if (this._gitDDB.repository() !== undefined) {
       this._options.live = true;
       this._syncTimer = setInterval(() => {
         this.trySync();

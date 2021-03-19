@@ -245,7 +245,7 @@ describe('put(): validate: overload 1:', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -346,7 +346,7 @@ describe('put(): create document: overload 1:', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -380,7 +380,7 @@ describe('put(): create document: overload 1:', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -435,7 +435,7 @@ describe('put(): create document: overload 1:', () => {
       { _id: _id, name: 'Shirase' },
       { commit_message: 'my commit message' }
     );
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -517,7 +517,7 @@ describe('put(): create document: overload 2:', () => {
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -552,7 +552,7 @@ describe('put(): create document: overload 2:', () => {
     });
     expect(doc._id).toBe('id-in-doc');
 
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -578,7 +578,7 @@ describe('put(): create document: overload 2:', () => {
     await gitDDB.open();
     const _id = 'dir01/prof01';
     await gitDDB.put(_id, { name: 'Shirase' }, { commit_message: 'my commit message' });
-    const repository = gitDDB.getRepository();
+    const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD

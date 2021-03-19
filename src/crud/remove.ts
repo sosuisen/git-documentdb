@@ -45,7 +45,7 @@ export function removeImpl (
     return Promise.reject(new DatabaseClosingError());
   }
 
-  if (this.getRepository() === undefined) {
+  if (this.repository() === undefined) {
     return Promise.reject(new RepositoryNotOpenError());
   }
 
@@ -91,7 +91,7 @@ export async function remove_worker (
     return Promise.reject(new UndefinedDBError());
   }
 
-  const _currentRepository = gitDDB.getRepository();
+  const _currentRepository = gitDDB.repository();
 
   if (_currentRepository === undefined) {
     return Promise.reject(new RepositoryNotOpenError());

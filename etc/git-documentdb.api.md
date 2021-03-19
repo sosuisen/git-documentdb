@@ -108,7 +108,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }>;
     readonly fileExt = ".json";
     get(docId: string): Promise<JsonDoc>;
-    getRepository(): nodegit.Repository | undefined;
+    repository(): nodegit.Repository | undefined;
     readonly gitAuthor: {
         readonly name: "GitDocumentDB";
         readonly email: "gitddb@example.com";
