@@ -13,6 +13,7 @@ import { ConsoleStyle, sleep } from '../utils';
 import {
   AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
+  IntervalTooSmallError,
   InvalidAuthenticationTypeError,
   InvalidRepositoryURLError,
   InvalidSSHKeyFormatError,
@@ -51,6 +52,7 @@ export async function syncImpl (
 }
 
 export const defaultSyncInterval = 10000;
+export const minimumSyncInterval = 1000;
 export const defaultRetryInterval = 3000;
 export const defaultRetry = 2;
 
@@ -89,6 +91,10 @@ export class RemoteAccess implements IRemoteAccess {
     };
     this._options.sync_direction ??= 'pull';
     this._options.interval ??= defaultSyncInterval;
+
+    if (this._options.interval < minimumSyncInterval) {
+      throw new IntervalTooSmallError(minimumSyncInterval, this._options.interval);
+    }
     this._options.retry_interval ??= defaultRetryInterval;
     this._options.retry ??= defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
@@ -403,30 +409,43 @@ export class RemoteAccess implements IRemoteAccess {
       clearInterval(this._syncTimer);
     }
     this._options.live = false;
+    return true;
   }
 
   /**
    * Alias of cancel()
    */
   pause () {
-    this.cancel();
-  }
-
-  /**
-   * Get remote options
-   */
-  options () {
-    return this._options;
+    return this.cancel();
   }
 
   /**
    * Resume sync
    */
-  resume () {
-    this._options.live = true;
-    this._syncTimer = setInterval(() => {
-      this.trySync();
-    }, this._options.interval!);
+  resume (options?: { interval?: number; retry?: number }) {
+    options ??= {
+      interval: undefined,
+      retry: undefined,
+    };
+    if (options.interval !== undefined) {
+      if (options.interval >= minimumSyncInterval) {
+        this._options.interval = options.interval;
+      }
+      else {
+        throw new IntervalTooSmallError(minimumSyncInterval, options.interval);
+      }
+    }
+    if (options.retry !== undefined) {
+      this._options.retry = options.retry;
+    }
+
+    if (this._gitDDB.getRepository() !== undefined) {
+      this._options.live = true;
+      this._syncTimer = setInterval(() => {
+        this.trySync();
+      }, this._options.interval!);
+    }
+    return true;
   }
 
   private _retrySyncCounter = 0;
