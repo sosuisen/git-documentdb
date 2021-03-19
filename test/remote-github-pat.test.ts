@@ -71,7 +71,6 @@ maybe('remote: use personal access token: ', () => {
   const createRemoteRepository = async (gitDDB: GitDocumentDB, remoteURL: string) => {
     await new RemoteAccess(gitDDB, {
       remote_url: remoteURL,
-      live: false,
       auth: { type: 'github', personal_access_token: token },
     })
       .createRepositoryOnRemote(remoteURL)
@@ -81,7 +80,6 @@ maybe('remote: use personal access token: ', () => {
   const destroyRemoteRepository = async (gitDDB: GitDocumentDB, remoteURL: string) => {
     await new RemoteAccess(gitDDB, {
       remote_url: remoteURL,
-      live: false,
       auth: { type: 'github', personal_access_token: token },
     })
       .destroyRepositoryOnRemote(remoteURL)
@@ -158,7 +156,6 @@ maybe('remote: use personal access token: ', () => {
       });
       await gitDDB.open();
       const options: RemoteOptions = {
-        live: false,
         auth: {
           type: 'github',
           personal_access_token: '',
@@ -178,7 +175,6 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.open();
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         auth: {
           type: 'github',
           personal_access_token: 'foobar',
@@ -198,7 +194,6 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.open();
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         auth: {
           type: 'github',
           personal_access_token: '',
@@ -220,7 +215,6 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.open();
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         auth: {
           type: 'github',
           personal_access_token: 'foobar',
@@ -240,7 +234,6 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.open();
       const invalid_options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         interval: minimumSyncInterval - 1,
         auth: {
           type: 'github',
@@ -255,7 +248,6 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.open();
       const valid_options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         interval: minimumSyncInterval,
         auth: {
           type: 'github',
@@ -292,7 +284,6 @@ maybe('remote: use personal access token: ', () => {
       await expect(
         gitDDB.sync({
           remote_url: remoteURL,
-          live: false,
           auth: { type: 'github', personal_access_token: token },
         })
       ).rejects.toThrowError(RepositoryNotOpenError);
@@ -310,7 +301,6 @@ maybe('remote: use personal access token: ', () => {
 
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         auth: { type: 'github', personal_access_token: token },
       };
       const repos = gitDDB.repository();
@@ -332,7 +322,6 @@ maybe('remote: use personal access token: ', () => {
 
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         auth: { type: 'github', personal_access_token: token },
       };
       await gitDDB.sync(options);
@@ -359,7 +348,6 @@ maybe('remote: use personal access token: ', () => {
 
       const remote = await gitDDB.sync({
         remote_url: remoteURL,
-        live: false,
         auth: { type: 'github', personal_access_token: token },
       });
       expect(gitDDB.getRemote(remoteURL)).toBe(remote);
@@ -393,7 +381,6 @@ maybe('remote: use personal access token: ', () => {
       });
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         auth: { type: 'github', personal_access_token: token },
       };
       // Check dbInfo
@@ -450,7 +437,6 @@ maybe('remote: use personal access token: ', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           auth: { type: 'github', personal_access_token: token },
         };
         await dbA.open(options);
@@ -482,7 +468,6 @@ maybe('remote: use personal access token: ', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           auth: { type: 'github', personal_access_token: token },
         };
         await dbA.open(options);
@@ -519,7 +504,6 @@ maybe('remote: use personal access token: ', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           auth: { type: 'github', personal_access_token: token },
         };
         await dbA.open(options);
@@ -557,7 +541,6 @@ maybe('remote: use personal access token: ', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           auth: { type: 'github', personal_access_token: token },
         };
         await dbA.open(options);
@@ -604,7 +587,6 @@ maybe('remote: use personal access token: ', () => {
         // Set retry interval to 0ms
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           auth: { type: 'github', personal_access_token: token },
           retry_interval: 0,
         };
@@ -654,7 +636,6 @@ maybe('remote: use personal access token: ', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           auth: { type: 'github', personal_access_token: token },
         };
         await dbA.open(options);
@@ -964,7 +945,6 @@ maybe('remote: use personal access token: ', () => {
         });
         const optionsB: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           retry: 0, // no retry
           retry_interval: 0,
           sync_direction: 'both',
@@ -1019,7 +999,6 @@ maybe('remote: use personal access token: ', () => {
         });
         const optionsB: RemoteOptions = {
           remote_url: remoteURL,
-          live: false,
           retry_interval: 5000,
           sync_direction: 'both',
           auth: { type: 'github', personal_access_token: token },
@@ -1187,7 +1166,6 @@ maybe('remote: use personal access token: ', () => {
       });
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: false,
         auth: { type: 'github', personal_access_token: token },
       };
 
