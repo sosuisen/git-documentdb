@@ -111,9 +111,7 @@ export async function sync_worker (
   }
 
   gitDDB.logger.debug(
-    ConsoleStyle.BgWhite()
-      .FgBlack()
-      .tag()`sync_worker: fetch: ${remoteAccess.getRemoteURL()}`
+    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${remoteAccess.remoteURL()}`
   );
   // Fetch
   await repos
