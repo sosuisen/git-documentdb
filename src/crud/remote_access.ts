@@ -464,6 +464,7 @@ export class RemoteAccess implements IRemoteAccess {
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
       await sleep(this._options.retry_interval!);
+
       if (this._retrySyncCounter === 0) {
         break;
       }
@@ -508,9 +509,17 @@ export class RemoteAccess implements IRemoteAccess {
               .catch(err => {
                 // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
                 if (this._retrySyncCounter === 0) {
-                  const promise = this._retrySync();
-                  // Invoke fail event
-                  // Give promise to the event.
+                  if (this._options.sync_direction === 'both') {
+                    const promise = this._retrySync();
+                    // Invoke fail event
+                    // Give promise to the event.
+                  }
+                  else if (this._options.sync_direction === 'pull') {
+                    // TODO:
+                  }
+                  else if (this._options.sync_direction === 'push') {
+                    // TODO:
+                  }
                 }
                 else {
                   // Invoke fail event
