@@ -33,7 +33,7 @@ export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOption
     throw new RepositoryNotOpenError();
   }
   const remote = new RemoteAccess(this, options);
-  await remote.connect(repos);
+  await remote.init(repos);
 
   return remote;
 }
@@ -119,15 +119,22 @@ export class RemoteAccess implements IRemoteAccess {
   }
 
   /**
-   * Connect to remote repository
+   * Create remote connection
    *
    * Call this just after creating instance.
    */
-  async connect (repos: nodegit.Repository): Promise<SyncResult> {
-    const remote = await this._addRemote(repos, this._options.remote_url!);
+  async init (repos: nodegit.Repository): Promise<SyncResult> {
     const onlyFetch = this._options.sync_direction === 'pull';
-    await this._ensureRemoteRepository(remote, onlyFetch);
-
+    const [gitResult, remoteResult] = await this._remoteRepository.connect(
+      this._gitDDB.repository()!,
+      this.callbacks,
+      onlyFetch
+    );
+    this._gitDDB.logger.debug('git remote: ' + gitResult);
+    this._gitDDB.logger.debug('remote repository: ' + remoteResult);
+    if (remoteResult === 'create') {
+      this.upstream_branch = '';
+    }
     let syncResult: SyncResult;
     if (this.upstream_branch === '') {
       this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
@@ -158,114 +165,6 @@ export class RemoteAccess implements IRemoteAccess {
       }, this._options.interval!);
     }
     return syncResult;
-  }
-
-  // Get remote from arguments to be called from test
-  // eslint-disable-next-line complexity
-  private async _checkFetch (remote: nodegit.Remote) {
-    const remoteURL = remote.url();
-    const error = String(
-      await remote.connect(nodegit.Enums.DIRECTION.FETCH, this.callbacks).catch(err => err)
-    );
-    await remote.disconnect();
-    if (error !== 'undefined') this._gitDDB.logger.debug('connect fetch error: ' + error);
-    switch (true) {
-      case error === 'undefined':
-        break;
-      case error.startsWith('Error: unsupported URL protocol'):
-        throw new InvalidURLFormatError(remoteURL);
-      case error.startsWith('Error: failed to resolve address'):
-        throw new UnresolvedHostError(remoteURL);
-      case error.startsWith('Error: request failed with status code: 401'):
-      case error.startsWith('Error: request failed with status code: 404'):
-      case error.startsWith('Error: Method connect has thrown an error'):
-      case error.startsWith('Error: ERROR: Repository not found'):
-        // Remote repository does not exist, or you do not have permission to the private repository
-        throw new RemoteRepositoryNotFoundError(remoteURL);
-      case error.startsWith('Failed to retrieve list of SSH authentication methods'):
-        throw new InvalidSSHKeyFormatError();
-      default:
-        throw new Error(error);
-    }
-    return 'ok';
-  }
-
-  // Get remote from arguments to be called from test
-  private async _checkPush (remote: nodegit.Remote) {
-    const error = String(
-      await remote.connect(nodegit.Enums.DIRECTION.PUSH, this.callbacks).catch(err => err)
-    );
-    await remote.disconnect();
-    if (error !== 'undefined') this._gitDDB.logger.debug('connect push error: ' + error);
-    switch (true) {
-      case error === 'undefined':
-        break;
-      case error.startsWith('Error: request failed with status code: 401'):
-        throw new PushAuthenticationError();
-      case error.startsWith('Error: ERROR: Permission to'): {
-        // Remote repository is read only
-        throw new PushPermissionDeniedError();
-      }
-      default:
-        throw new Error(error);
-    }
-    return 'ok';
-  }
-
-  /**
-   * Add remote repository (git remote add)
-   * @internal
-   */
-  // eslint-disable-next-line complexity
-  private async _addRemote (repos: nodegit.Repository, remoteURL: string) {
-    // Check if remote repository already exists
-    let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
-    if (remote === undefined) {
-      this._gitDDB.logger.debug('remote add: ' + remoteURL);
-      // Add remote repository
-      remote = await nodegit.Remote.create(repos, 'origin', remoteURL);
-    }
-    else if (remote.url() !== remoteURL) {
-      this._gitDDB.logger.debug('remote rename from: ' + remote.url() + ' to ' + remoteURL);
-      nodegit.Remote.setUrl(repos, 'origin', remoteURL);
-    }
-    else {
-      this._gitDDB.logger.debug('remote exists: ' + remoteURL);
-    }
-    return remote;
-  }
-
-  private async _ensureRemoteRepository (remote: nodegit.Remote, onlyFetch?: boolean) {
-    const remoteURL = remote.url();
-    // Check fetch and push
-    const result = await this._checkFetch(remote).catch(err => {
-      if (
-        err instanceof RemoteRepositoryNotFoundError &&
-        this._options.auth?.type === 'github'
-      ) {
-        return 'create';
-      }
-
-      throw err;
-    });
-    if (result === 'create') {
-      this._gitDDB.logger.debug('create remote repository');
-      // Try to create repository by octokit
-      this.upstream_branch = '';
-      await this._remoteRepository.create().catch(err => {
-        // Expected errors:
-        //  - The private repository which has the same name exists.
-        //  - Authentication error
-        //  - Permission error
-        throw err;
-      });
-    }
-    else {
-      this._gitDDB.logger.debug('remote repository exists');
-    }
-    if (!onlyFetch) {
-      await this._checkPush(remote);
-    }
   }
 
   /**
