@@ -348,9 +348,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      */
     if (remoteOptions !== undefined && remoteOptions.remote_url !== undefined) {
       const remote = new RemoteAccess(this, remoteOptions);
-      const callbacks = {
-        credentials: createCredential(remoteOptions),
-      };
+      const callbacks = createCredential(remoteOptions);
+
       if (process.platform === 'darwin') {
         // @ts-ignore
         this._callbacks.certificateCheck = () => 0;

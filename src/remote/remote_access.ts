@@ -94,13 +94,7 @@ export class RemoteAccess implements IRemoteAccess {
     this._options.retry ??= defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
 
-    this.callbacks = {
-      credentials: createCredential(this._options),
-    };
-    if (process.platform === 'darwin') {
-      // @ts-ignore
-      this._callbacks.certificateCheck = () => 0;
-    }
+    this.callbacks = createCredential(this._options);
 
     this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
 

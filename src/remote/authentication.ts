@@ -1,4 +1,4 @@
-import nodegit from '@sosuisen/nodegit';
+import nodegit, { Cred } from '@sosuisen/nodegit';
 import {
   AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
@@ -60,12 +60,12 @@ const createCredentialForSSH = (options: RemoteOptions) => {
  */
 export const createCredential = (options: RemoteOptions) => {
   options.auth ??= { type: 'none' };
-
+  let cred: any;
   if (options.auth.type === 'github') {
-    return createCredentialForGitHub(options);
+    cred = createCredentialForGitHub(options);
   }
   else if (options.auth.type === 'ssh') {
-    return createCredentialForSSH(options);
+    cred = createCredentialForSSH(options);
   }
   else if (options.auth.type === 'none') {
     if (options.sync_direction !== 'pull') {
@@ -76,4 +76,14 @@ export const createCredential = (options: RemoteOptions) => {
     // @ts-ignore
     throw new InvalidAuthenticationTypeError(this._options.auth.type);
   }
+
+  const callbacks = {
+    credentials: cred,
+  };
+
+  if (process.platform === 'darwin') {
+    // @ts-ignore
+    callbacks.certificateCheck = () => 0;
+  }
+  return callbacks;
 };
