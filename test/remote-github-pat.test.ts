@@ -32,7 +32,7 @@ import {
   defaultRetryInterval,
   minimumSyncInterval,
   RemoteAccess,
-} from '../src/crud/remote_access';
+} from '../src/remote/remote_access';
 import { sleep } from '../src/utils';
 
 const ulid = monotonicFactory();

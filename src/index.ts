@@ -42,7 +42,7 @@ import { put_worker, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
-import { RemoteAccess, syncImpl } from './crud/remote_access';
+import { RemoteAccess, syncImpl } from './remote/remote_access';
 import { ConsoleStyle, sleep } from './utils';
 const ulid = monotonicFactory();
 
