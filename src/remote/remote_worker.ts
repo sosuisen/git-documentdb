@@ -16,22 +16,18 @@ import {
   SyncWorkerFetchError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { IRemoteAccess, SyncResult } from '../types';
+import { ISync, SyncResult } from '../types';
 
 /**
  * git push
  */
-async function push (
-  gitDDB: AbstractDocumentDB,
-  remoteAccess: IRemoteAccess,
-  taskId: string
-) {
+async function push (gitDDB: AbstractDocumentDB, sync: ISync, taskId: string) {
   const repos = gitDDB.repository();
   if (repos === undefined) return;
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
     .push(['refs/heads/main:refs/heads/main'], {
-      callbacks: remoteAccess.credential_callbacks,
+      callbacks: sync.credential_callbacks,
     })
     .catch((err: Error) => {
       gitDDB.logger.debug(err);
@@ -45,7 +41,7 @@ async function push (
       throw err;
     });
   gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
-  await validatePushResult(gitDDB, remoteAccess, taskId);
+  await validatePushResult(gitDDB, sync, taskId);
 }
 
 /**
@@ -54,7 +50,7 @@ async function push (
  */
 async function validatePushResult (
   gitDDB: AbstractDocumentDB,
-  remoteAccess: IRemoteAccess,
+  sync: ISync,
   taskId: string
 ) {
   const repos = gitDDB.repository();
@@ -64,7 +60,7 @@ async function validatePushResult (
   );
   await repos
     .fetch('origin', {
-      callbacks: remoteAccess.credential_callbacks,
+      callbacks: sync.credential_callbacks,
     })
     .catch(err => {
       throw new SyncWorkerFetchError(err.message);
@@ -91,10 +87,10 @@ async function validatePushResult (
 
 export async function push_worker (
   gitDDB: AbstractDocumentDB,
-  remoteAccess: IRemoteAccess,
+  sync: ISync,
   taskId: string
 ): Promise<SyncResult> {
-  await push(gitDDB, remoteAccess, taskId);
+  await push(gitDDB, sync, taskId);
 
   return 'push';
 }
@@ -102,7 +98,7 @@ export async function push_worker (
 // eslint-disable-next-line complexity
 export async function sync_worker (
   gitDDB: AbstractDocumentDB,
-  remoteAccess: IRemoteAccess,
+  sync: ISync,
   taskId: string
 ): Promise<SyncResult> {
   const repos = gitDDB.repository();
@@ -111,12 +107,12 @@ export async function sync_worker (
   }
 
   gitDDB.logger.debug(
-    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${remoteAccess.remoteURL()}`
+    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`
   );
   // Fetch
   await repos
     .fetch('origin', {
-      callbacks: remoteAccess.credential_callbacks,
+      callbacks: sync.credential_callbacks,
     })
     .catch(err => {
       throw new SyncWorkerFetchError(err.message);
@@ -163,13 +159,13 @@ export async function sync_worker (
         // May throw 'Error: no merge base found'
         if (res instanceof Error) {
           if (res.message.startsWith('no merge base found')) {
-            if (remoteAccess.options().behavior_for_no_merge_base === 'nop') {
+            if (sync.options().behavior_for_no_merge_base === 'nop') {
               throw new NoMergeBaseFoundError();
             }
-            else if (remoteAccess.options().behavior_for_no_merge_base === 'theirs') {
+            else if (sync.options().behavior_for_no_merge_base === 'theirs') {
               // remote local repository and clone remote repository
             }
-            else if (remoteAccess.options().behavior_for_no_merge_base === 'ours') {
+            else if (sync.options().behavior_for_no_merge_base === 'ours') {
               // git merge -s ours
               // TODO:
               throw new Error(
@@ -185,7 +181,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    await push(gitDDB, remoteAccess, taskId);
+    await push(gitDDB, sync, taskId);
 
     return 'push';
   }
@@ -233,14 +229,14 @@ export async function sync_worker (
       // Change commit message
       await commit.amend(
         'HEAD',
-        remoteAccess.author,
-        remoteAccess.committer,
+        sync.author,
+        sync.committer,
         commit.messageEncoding(),
         commitMessage,
         await commit.getTree()
       );
       // Push
-      await push(gitDDB, remoteAccess, taskId);
+      await push(gitDDB, sync, taskId);
 
       gitDDB.logger.debug(
         ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: merge and push`
@@ -322,8 +318,8 @@ export async function sync_worker (
 
     const overwriteCommitOid: nodegit.Oid = await repos.createCommit(
       'HEAD',
-      remoteAccess.author,
-      remoteAccess.committer,
+      sync.author,
+      sync.committer,
       commitMessage,
       treeOid,
       [await repos.getHeadCommit(), remoteCommit]
@@ -337,7 +333,7 @@ export async function sync_worker (
     await nodegit.Checkout.head(repos, opt);
 
     // Push
-    await push(gitDDB, remoteAccess, taskId);
+    await push(gitDDB, sync, taskId);
 
     gitDDB.logger.debug(
       ConsoleStyle.BgWhite()

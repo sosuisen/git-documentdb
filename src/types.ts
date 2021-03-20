@@ -276,7 +276,7 @@ export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
  */
 export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
 /**
- * Options for RemoteAccess class
+ * Options for Sync class
  */
 export type RemoteOptions = {
   remote_url?: string;
@@ -317,9 +317,9 @@ export type Task = {
 };
 
 /**
- * Interface of RemoteAccess
+ * Interface of Sync
  */
-export interface IRemoteAccess {
+export interface ISync {
   upstream_branch: string;
   credential_callbacks: { [key: string]: any };
   author: nodegit.Signature;

@@ -1,4 +1,4 @@
-import nodegit, { Cred } from '@sosuisen/nodegit';
+import nodegit from '@sosuisen/nodegit';
 import {
   AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,

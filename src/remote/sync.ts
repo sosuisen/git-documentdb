@@ -7,21 +7,14 @@
  */
 
 import { setInterval } from 'timers';
-import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
   IntervalTooSmallError,
-  InvalidSSHKeyFormatError,
-  InvalidURLFormatError,
-  PushAuthenticationError,
-  PushPermissionDeniedError,
-  RemoteRepositoryNotFoundError,
   RepositoryNotOpenError,
   UndefinedRemoteURLError,
-  UnresolvedHostError,
 } from '../error';
-import { IRemoteAccess, RemoteOptions, SyncResult } from '../types';
+import { ISync, RemoteOptions, SyncResult } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './remote_worker';
 import { createCredential } from './authentication';
@@ -32,7 +25,7 @@ export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOption
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-  const remote = new RemoteAccess(this, options);
+  const remote = new Sync(this, options);
   await remote.init(repos);
 
   return remote;
@@ -44,9 +37,9 @@ export const defaultRetryInterval = 3000;
 export const defaultRetry = 2;
 
 /**
- * RemoteAccess class
+ * Sync class
  */
-export class RemoteAccess implements IRemoteAccess {
+export class Sync implements ISync {
   private _gitDDB: AbstractDocumentDB;
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;

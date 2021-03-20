@@ -136,8 +136,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }>;
     readonly fileExt = ".json";
     get(docId: string): Promise<JsonDoc>;
-    // Warning: (ae-forgotten-export) The symbol "RemoteAccess" needs to be exported by the entry point main.d.ts
-    getRemote(remoteURL: string): RemoteAccess;
+    // Warning: (ae-forgotten-export) The symbol "Sync" needs to be exported by the entry point main.d.ts
+    getRemote(remoteURL: string): Sync;
     getRemoteURLs(): string[];
     readonly gitAuthor: {
         readonly name: "GitDocumentDB";
@@ -160,7 +160,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     removeRemote(remoteURL: string): void;
     repository(): nodegit.Repository | undefined;
     statistics(): DatabaseStatistics;
-    sync(remoteURL: string, options?: RemoteOptions): Promise<RemoteAccess>;
+    sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
     // (undocumented)
     _unshiftSyncTaskToTaskQueue(task: Task): void;
     // @internal (undocumented)
@@ -254,7 +254,7 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
 }
 
 // @public
-export interface IRemoteAccess {
+export interface ISync {
     // (undocumented)
     author: nodegit.Signature;
     // (undocumented)

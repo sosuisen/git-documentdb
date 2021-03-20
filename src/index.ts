@@ -42,7 +42,7 @@ import { put_worker, putImpl } from './crud/put';
 import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
-import { RemoteAccess, syncImpl } from './remote/remote_access';
+import { Sync, syncImpl } from './remote/sync';
 import { ConsoleStyle, sleep } from './utils';
 import { createCredential } from './remote/authentication';
 const ulid = monotonicFactory();
@@ -116,7 +116,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   private _currentTask: Task | undefined = undefined;
 
-  private _remotes: { [url: string]: RemoteAccess } = {};
+  private _remotes: { [url: string]: Sync } = {};
   /**
    * @internal
    */
@@ -347,7 +347,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      * Only 'pull' is allowed.
      */
     if (remoteOptions !== undefined && remoteOptions.remote_url !== undefined) {
-      const remote = new RemoteAccess(this, remoteOptions);
+      const remote = new Sync(this, remoteOptions);
       return await nodegit.Clone.clone(remoteOptions?.remote_url, this.workingDir(), {
         fetchOpts: {
           callbacks: createCredential(remoteOptions),
@@ -764,12 +764,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @remarks
    * Do not register the same remote repository again. Call removeRemote() before register it again.
    */
-  async sync (remoteURL: string, options?: RemoteOptions): Promise<RemoteAccess>;
-  async sync (options?: RemoteOptions): Promise<RemoteAccess>;
+  async sync (remoteURL: string, options?: RemoteOptions): Promise<Sync>;
+  async sync (options?: RemoteOptions): Promise<Sync>;
   async sync (
     remoteUrlOrOption?: string | RemoteOptions,
     options?: RemoteOptions
-  ): Promise<RemoteAccess> {
+  ): Promise<Sync> {
     if (typeof remoteUrlOrOption === 'string') {
       options ??= {};
       options.remote_url = remoteUrlOrOption;

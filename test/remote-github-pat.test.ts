@@ -31,8 +31,8 @@ import {
   defaultRetry,
   defaultRetryInterval,
   minimumSyncInterval,
-  RemoteAccess,
-} from '../src/remote/remote_access';
+  Sync,
+} from '../src/remote/sync';
 import { sleep } from '../src/utils';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
@@ -291,7 +291,7 @@ maybe('remote: use personal access token: ', () => {
       await gitDDB.destroy();
     });
 
-    test('Create RemoteAccess with a new remote repository', async () => {
+    test('Create Sync with a new remote repository', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + dbName;
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -305,14 +305,14 @@ maybe('remote: use personal access token: ', () => {
         auth: { type: 'github', personal_access_token: token },
       };
       const repos = gitDDB.repository();
-      const remote = new RemoteAccess(gitDDB, options);
+      const remote = new Sync(gitDDB, options);
       await expect(remote.init(repos!)).resolves.toBe('push');
       expect(remote.upstream_branch).toBe(`origin/${gitDDB.defaultBranch}`);
 
       await gitDDB.destroy();
     });
 
-    test('Create RemoteAccess with an existed remote repository', async () => {
+    test('Create Sync with an existed remote repository', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + dbName;
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -332,7 +332,7 @@ maybe('remote: use personal access token: ', () => {
 
       // Sync with an existed remote repository
       const repos = gitDDB.repository();
-      const remote = new RemoteAccess(gitDDB, options);
+      const remote = new Sync(gitDDB, options);
       await expect(remote.init(repos!)).resolves.toBe('nop');
 
       await gitDDB.destroy();
@@ -1224,5 +1224,5 @@ maybe('remote: use personal access token: ', () => {
 
   test.skip('Test network errors');
 
-  test.skip('Multiple RemoteAccess');
+  test.skip('Multiple Sync');
 });
