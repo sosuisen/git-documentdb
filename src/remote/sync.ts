@@ -16,7 +16,7 @@ import {
 } from '../error';
 import { ISync, RemoteOptions, SyncEvent, SyncResult } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { push_worker, sync_worker } from './remote_worker';
+import { push_worker, sync_worker } from './sync_worker';
 import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 
