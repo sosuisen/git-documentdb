@@ -17,7 +17,7 @@ import {
   SyncWorkerFetchError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { ISync, SyncResult } from '../types';
+import { FileChanges, ISync, SyncResult } from '../types';
 
 /**
  * git push
@@ -165,6 +165,60 @@ function resolveNoMergeBase (sync: ISync) {
 }
 
 /**
+ * Get changed files
+ */
+function getChanges (diffs: nodegit.Diff[]) {
+  const changes: FileChanges = {
+    add: [],
+    remove: [],
+    modify: [],
+  };
+  diffs.forEach(diff => {
+    for (let i = 0; i < diff.numDeltas(); i++) {
+      const delta = diff.getDelta(i);
+      // https://libgit2.org/libgit2/#HEAD/type/git_diff_delta
+      // Both oldFile() and newFile() will return the same file to show diffs.
+      console.log(
+        `changed old: ${delta.oldFile().path()}, ${delta.oldFile().flags().toString(2)}`
+      );
+      console.log(
+        `        new: ${delta.newFile().path()}, ${delta.newFile().flags().toString(2)}`
+      );
+      /**
+       * flags:
+       * https://libgit2.org/libgit2/#HEAD/type/git_diff_flag_t
+       * The fourth bit represents whether file exists at this side of the delta or not.
+       * [a file is removed]
+       * changed old: test.txt, 1100
+       *         new: test.txt,  100
+       * [a file is added]
+       * changed old: test.txt,  100
+       *         new: test.txt, 1100
+       *
+       * [a file is modified]
+       * changed old: test.txt, 1100
+       *         new: test.txt, 1100
+       */
+      const oldExist = delta.oldFile().flags() >> 3;
+      const newExist = delta.newFile().flags() >> 3;
+      if (oldExist && !newExist) {
+        console.log(delta.newFile().path() + ' is removed.');
+        changes.remove.push(delta.newFile().path());
+      }
+      else if (!oldExist && newExist) {
+        console.log(delta.newFile().path() + ' is added.');
+        changes.add.push(delta.newFile().path());
+      }
+      else if (oldExist && newExist) {
+        console.log(delta.newFile().path() + ' is modified.');
+        changes.modify.push(delta.newFile().path());
+      }
+    }
+  });
+
+  return changes;
+}
+/**
  * push_worker
  */
 export async function push_worker (
@@ -174,7 +228,7 @@ export async function push_worker (
 ): Promise<SyncResult> {
   await push(gitDDB, sync, taskId);
 
-  return 'push';
+  return { operation: 'push' };
 }
 
 /**
@@ -208,7 +262,7 @@ export async function sync_worker (
   let conflictedIndex: nodegit.Index | undefined;
   let commitOid: nodegit.Oid | undefined;
   if (distance.ahead === 0 && distance.behind === 0) {
-    return 'nop';
+    return { operation: 'nop' };
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
     commitOid = await repos
@@ -225,7 +279,10 @@ export async function sync_worker (
         // Exception locks files. Try cleanup
         repos.cleanup();
 
-        // May throw 'Error: no merge base found'
+        /**
+         * TODO:
+         * May throw 'Error: no merge base found'
+         */
         if (res instanceof Error) {
           if (res.message.startsWith('no merge base found')) {
             resolveNoMergeBase(sync);
@@ -240,7 +297,7 @@ export async function sync_worker (
     // Push
     await push(gitDDB, sync, taskId);
 
-    return 'push';
+    return { operation: 'push' };
   }
 
   if (conflictedIndex === undefined) {
@@ -252,12 +309,22 @@ export async function sync_worker (
 
     const distance_again = await calcDistance(gitDDB);
     if (distance_again.ahead === 0 && distance_again.behind === 0) {
-      return 'fast-forward merge';
+      const commit = await repos.getCommit(commitOid!);
+      const diffs = await commit.getDiff();
+      // This commit has one parent, so returns one diff.
+      const changes = getChanges(diffs);
+
+      return { operation: 'fast-forward merge', changes };
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
       // This case is occurred when
       // - a local file is changed and another remote file is changed.
       // - a local file is removed and the same remote file is removed.
+
+      const commit = await repos.getCommit(commitOid!);
+      const diffs = await commit.getDiff();
+      // This commit has two parent, so returns two diffs.
+      const changes = getChanges(diffs);
 
       // Change commit message
       await commitAmendMessage(gitDDB, sync, commitOid!, 'merge');
@@ -265,7 +332,7 @@ export async function sync_worker (
       // Need push because it is merged normally.
       await push(gitDDB, sync, taskId);
 
-      return 'merge and push';
+      return { operation: 'merge and push', changes };
     }
 
     /**
@@ -356,7 +423,8 @@ export async function sync_worker (
     );
     repos.stateCleanup();
 
-    await repos.getCommit(overwriteCommitOid);
+    const diffs = await (await repos.getCommit(overwriteCommitOid)).getDiff();
+    const changes = getChanges(diffs);
 
     const opt = new nodegit.CheckoutOptions();
     opt.checkoutStrategy = nodegit.Checkout.STRATEGY.FORCE;
@@ -365,6 +433,6 @@ export async function sync_worker (
     // Push
     await push(gitDDB, sync, taskId);
 
-    return 'resolve conflicts and push';
+    return { operation: 'resolve conflicts and push', changes };
   }
 }

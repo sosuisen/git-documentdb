@@ -43,7 +43,7 @@ const monoId = () => {
 
 const idPool: string[] = [];
 const allIds: string[] = [];
-const MAX_ID = 80;
+const MAX_ID = 90;
 for (let i = 0; i < MAX_ID; i++) {
   idPool.push(`test_repos_${i}`);
   allIds.push(`test_repos_${i}`);
@@ -306,7 +306,7 @@ maybe('remote: use personal access token: ', () => {
       };
       const repos = gitDDB.repository();
       const remote = new Sync(gitDDB, options);
-      await expect(remote.init(repos!)).resolves.toBe('push');
+      await expect(remote.init(repos!)).resolves.toMatchObject({ operation: 'push' });
       expect(remote.upstream_branch).toBe(`origin/${gitDDB.defaultBranch}`);
 
       await gitDDB.destroy();
@@ -333,7 +333,7 @@ maybe('remote: use personal access token: ', () => {
       // Sync with an existed remote repository
       const repos = gitDDB.repository();
       const remote = new Sync(gitDDB, options);
-      await expect(remote.init(repos!)).resolves.toBe('nop');
+      await expect(remote.init(repos!)).resolves.toMatchObject({ operation: 'nop' });
 
       await gitDDB.destroy();
     });
@@ -566,10 +566,14 @@ maybe('remote: use personal access token: ', () => {
         // CannotPushBecauseUnfetchedCommitExistsError
         expect(resultA === undefined || resultB === undefined).toBe(true);
         if (resultA === undefined) {
-          await expect(remoteA.trySync('1')).resolves.toBe('merge and push');
+          await expect(remoteA.trySync('1')).resolves.toMatchObject({
+            operation: 'merge and push',
+          });
         }
         else {
-          await expect(remoteB.trySync('1')).resolves.toBe('merge and push');
+          await expect(remoteB.trySync('1')).resolves.toMatchObject({
+            operation: 'merge and push',
+          });
         }
 
         await dbA.destroy();
@@ -616,10 +620,10 @@ maybe('remote: use personal access token: ', () => {
         // so next trySync do nothing.
         await sleep(3000);
         if (resultA === undefined) {
-          await expect(remoteA.trySync('1')).resolves.toBe('nop');
+          await expect(remoteA.trySync('1')).resolves.toMatchObject({ operation: 'nop' });
         }
         else {
-          await expect(remoteB.trySync('1')).resolves.toBe('nop');
+          await expect(remoteB.trySync('1')).resolves.toMatchObject({ operation: 'nop' });
         }
 
         await dbA.destroy();
@@ -656,7 +660,9 @@ maybe('remote: use personal access token: ', () => {
         const remoteB = dbB.getRemote(remoteURL);
 
         await remoteA.tryPush();
-        await expect(remoteB.trySync()).resolves.toBe('resolve conflicts and push');
+        await expect(remoteB.trySync()).resolves.toMatchObject({
+          operation: 'resolve conflicts and push',
+        });
 
         await dbA.destroy();
         await dbB.destroy();

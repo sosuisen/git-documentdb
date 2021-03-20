@@ -288,17 +288,6 @@ export type RemoteOptions = {
 };
 
 /**
- * Result from sync_worker()
- */
-export type SyncResult =
-  | 'nop'
-  | 'push'
-  | 'fast-forward merge'
-  | 'merge and push'
-  | 'resolve conflicts and push'
-  | 'canceled';
-
-/**
  * TaskLabel
  * DatabaseStatistics.taskCount must have the same members.
  */
@@ -330,3 +319,26 @@ export interface ISync {
  * SyncEvent
  */
 export type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' | 'error';
+
+/**
+ * Changed files in merge
+ */
+export type FileChanges = {
+  add: string[];
+  remove: string[];
+  modify: string[];
+};
+
+/**
+ * Result from sync_worker()
+ */
+export type SyncResult = {
+  operation:
+    | 'nop'
+    | 'push'
+    | 'fast-forward merge'
+    | 'merge and push'
+    | 'resolve conflicts and push'
+    | 'canceled';
+  changes?: FileChanges;
+};

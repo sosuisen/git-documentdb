@@ -14,7 +14,7 @@ import {
   RepositoryNotOpenError,
   UndefinedRemoteURLError,
 } from '../error';
-import { ISync, RemoteOptions, SyncEvent, SyncResult } from '../types';
+import { FileChanges, ISync, RemoteOptions, SyncEvent, SyncResult } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './sync_worker';
 import { createCredential } from './authentication';
@@ -47,7 +47,14 @@ export class Sync implements ISync {
   private _remoteRepository: RemoteRepository;
   private _retrySyncCounter = 0;
 
-  private _eventHandlers: { [key: string]: (() => void)[] } = {};
+  private _eventHandlers: {
+    change: ((res: FileChanges) => void)[];
+    paused: ((res: any) => void)[];
+    active: ((res: any) => void)[];
+    denied: ((res: any) => void)[];
+    complete: ((res: any) => void)[];
+    error: ((res: any) => void)[];
+  } = { change: [], paused: [], active: [], denied: [], complete: [], error: [] };
 
   upstream_branch = '';
 
@@ -268,7 +275,7 @@ export class Sync implements ISync {
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
-    return 'canceled';
+    return { operation: 'canceled' };
   }
 
   /**
@@ -285,7 +292,7 @@ export class Sync implements ISync {
             push_worker(this._gitDDB, this, taskId!)
               .then((result: SyncResult) => {
                 this._gitDDB.logger.debug(
-                  ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${result}`
+                  ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${result.operation}`
                 );
                 // Invoke success event
                 resolve(result);
@@ -327,12 +334,20 @@ export class Sync implements ISync {
           taskId: taskId!,
           func: () =>
             sync_worker(this._gitDDB, this, taskId!)
-              .then(result => {
+              .then(syncResult => {
                 this._gitDDB.logger.debug(
-                  ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${result}`
+                  ConsoleStyle.BgWhite()
+                    .FgBlack()
+                    .tag()`sync_worker: ${syncResult.operation}`
                 );
+                if (syncResult.changes !== undefined) {
+                  ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
+                    syncResult.changes
+                  )}`;
+                  this._eventHandlers.change.forEach(func => func(syncResult.changes!));
+                }
                 // Invoke success event
-                resolve(result);
+                resolve(syncResult);
               })
               .catch(err => {
                 if (this._retrySyncCounter === 0) {
@@ -350,12 +365,12 @@ export class Sync implements ISync {
     );
   }
 
-  on (event: SyncEvent, callback: () => void) {
+  on (event: SyncEvent, callback: (res: FileChanges) => void) {
     this._eventHandlers[event].push(callback);
     return this;
   }
 
-  off (event: SyncEvent, callback: () => void) {
+  off (event: SyncEvent, callback: (res: FileChanges) => void) {
     this._eventHandlers[event] = this._eventHandlers[event].filter(
       func => func !== callback
     );
@@ -364,6 +379,13 @@ export class Sync implements ISync {
 
   close () {
     this.cancel();
-    this._eventHandlers = {};
+    this._eventHandlers = {
+      change: [],
+      paused: [],
+      active: [],
+      denied: [],
+      complete: [],
+      error: [],
+    };
   }
 }
