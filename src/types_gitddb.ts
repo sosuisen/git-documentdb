@@ -62,7 +62,7 @@ export abstract class AbstractDocumentDB {
   abstract workingDir (): string;
   abstract isClosing: boolean;
   abstract repository (): nodegit.Repository | undefined;
-  abstract _validator: Validator;
+  abstract validator: Validator;
   abstract logger: Logger;
   abstract taskQueue: TaskQueue;
 }

@@ -50,7 +50,7 @@ export async function allDocsImpl (
   if (options?.collection_path) {
     collection_path = Validator.normalizeCollectionPath(options.collection_path);
     try {
-      this._validator.validateCollectionPath(collection_path);
+      this.validator.validateCollectionPath(collection_path);
     } catch (err) {
       return Promise.reject(err);
     }

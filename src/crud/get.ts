@@ -32,7 +32,7 @@ export async function getImpl (this: AbstractDocumentDB, docId: string): Promise
   }
 
   try {
-    this._validator.validateId(_id);
+    this.validator.validateId(_id);
   } catch (err) {
     return Promise.reject(err);
   }

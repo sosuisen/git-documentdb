@@ -118,7 +118,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * Name validator
    */
-  _validator: Validator;
+  validator: Validator;
 
   /**
    * DB is going to close
@@ -151,10 +151,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
 
-    this._validator = new Validator(this._workingDirectory);
+    this.validator = new Validator(this._workingDirectory);
 
-    this._validator.validateDbName(this._dbName);
-    this._validator.validateLocalDir(this._localDir);
+    this.validator.validateDbName(this._dbName);
+    this.validator.validateLocalDir(this._localDir);
 
     if (
       this._workingDirectory.length === 0 ||

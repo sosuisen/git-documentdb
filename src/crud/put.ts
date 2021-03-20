@@ -66,7 +66,7 @@ export function putImpl (
   }
 
   try {
-    this._validator.validateId(_id);
+    this.validator.validateId(_id);
   } catch (err) {
     return Promise.reject(err);
   }
@@ -85,7 +85,7 @@ export function putImpl (
   clone._id = path.basename(_id);
 
   try {
-    this._validator.validateDocument(clone);
+    this.validator.validateDocument(clone);
   } catch (err) {
     return Promise.reject(err);
   }
