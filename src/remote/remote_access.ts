@@ -25,6 +25,7 @@ import { IRemoteAccess, RemoteOptions, SyncResult } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './remote_worker';
 import { createCredential } from './authentication';
+import { RemoteRepository } from './remote_repository';
 
 export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOptions) {
   const repos = this.repository();
@@ -32,7 +33,7 @@ export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOption
     throw new RepositoryNotOpenError();
   }
   const remote = new RemoteAccess(this, options);
-  await remote.connectToRemote(repos);
+  await remote.connect(repos);
 
   return remote;
 }
@@ -50,7 +51,7 @@ export class RemoteAccess implements IRemoteAccess {
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
-  private _octokit: Octokit | undefined;
+  private _remoteRepository: RemoteRepository;
 
   upstream_branch = '';
 
@@ -117,14 +118,10 @@ export class RemoteAccess implements IRemoteAccess {
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
-    if (
-      this._options.auth?.type === 'github' &&
-      this._options.auth?.personal_access_token !== undefined
-    ) {
-      this._octokit = new Octokit({
-        auth: this._options.auth.personal_access_token,
-      });
-    }
+    this._remoteRepository = new RemoteRepository(
+      this._options.remote_url,
+      this._options.auth
+    );
   }
 
   /**
@@ -132,7 +129,7 @@ export class RemoteAccess implements IRemoteAccess {
    *
    * Call this just after creating instance.
    */
-  async connectToRemote (repos: nodegit.Repository): Promise<SyncResult> {
+  async connect (repos: nodegit.Repository): Promise<SyncResult> {
     const remote = await this._addRemote(repos, this._options.remote_url!);
     const onlyFetch = this._options.sync_direction === 'pull';
     await this._ensureRemoteRepository(remote, onlyFetch);
@@ -167,44 +164,6 @@ export class RemoteAccess implements IRemoteAccess {
       }, this._options.interval!);
     }
     return syncResult;
-  }
-
-  /**
-   * Create repository on remote site
-   * @remarks
-   * auth.type must be 'github'
-   */
-  async createRepositoryOnRemote (remoteURL: string) {
-    this.upstream_branch = '';
-    if (this._options.auth?.type === 'github') {
-      const urlArray = remoteURL.split('/');
-      const owner = urlArray[urlArray.length - 2];
-      const repo = urlArray[urlArray.length - 1];
-      await this._octokit!.repos.createForAuthenticatedUser({
-        name: repo,
-      });
-      // May throw HttpError
-      // HttpError: Repository creation failed.:
-      // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
-    }
-    else {
-      // TODO:
-      throw new Error('Cannot create remote repository because auth type is not github');
-    }
-  }
-
-  /**
-   * Delete repository on remote site
-   * @remarks
-   * auth.type must be 'github'
-   */
-  async destroyRepositoryOnRemote (_remoteURL: string) {
-    if (this._options.auth?.type === 'github') {
-      const urlArray = _remoteURL.split('/');
-      const owner = urlArray[urlArray.length - 2];
-      const repo = urlArray[urlArray.length - 1];
-      await this._octokit!.repos.delete({ owner, repo });
-    }
   }
 
   // Get remote from arguments to be called from test
@@ -298,7 +257,8 @@ export class RemoteAccess implements IRemoteAccess {
     if (result === 'create') {
       this._gitDDB.logger.debug('create remote repository');
       // Try to create repository by octokit
-      await this.createRepositoryOnRemote(remoteURL).catch(err => {
+      this.upstream_branch = '';
+      await this._remoteRepository.create().catch(err => {
         // Expected errors:
         //  - The private repository which has the same name exists.
         //  - Authentication error

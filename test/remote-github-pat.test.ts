@@ -34,6 +34,7 @@ import {
   RemoteAccess,
 } from '../src/remote/remote_access';
 import { sleep } from '../src/utils';
+import { RemoteRepository } from '../src/remote/remote_repository';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -68,21 +69,21 @@ maybe('remote: use personal access token: ', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  const createRemoteRepository = async (gitDDB: GitDocumentDB, remoteURL: string) => {
-    await new RemoteAccess(gitDDB, {
-      remote_url: remoteURL,
-      auth: { type: 'github', personal_access_token: token },
+  const createRemoteRepository = async (remoteURL: string) => {
+    await new RemoteRepository(remoteURL, {
+      type: 'github',
+      personal_access_token: token,
     })
-      .createRepositoryOnRemote(remoteURL)
+      .create()
       .catch(() => {});
   };
 
-  const destroyRemoteRepository = async (gitDDB: GitDocumentDB, remoteURL: string) => {
-    await new RemoteAccess(gitDDB, {
-      remote_url: remoteURL,
-      auth: { type: 'github', personal_access_token: token },
+  const destroyRemoteRepository = async (remoteURL: string) => {
+    await new RemoteRepository(remoteURL, {
+      type: 'github',
+      personal_access_token: token,
     })
-      .destroyRepositoryOnRemote(remoteURL)
+      .destroy()
       .catch(() => {});
   };
 
@@ -139,11 +140,11 @@ maybe('remote: use personal access token: ', () => {
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
 
-      await createRemoteRepository(gitDDB, remoteURL);
+      await createRemoteRepository(remoteURL);
 
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
 
-      await destroyRemoteRepository(gitDDB, remoteURL);
+      await destroyRemoteRepository(remoteURL);
 
       await expect(octokit.repos.listBranches({ owner, repo })).rejects.toThrowError();
     });
@@ -263,7 +264,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * connectToRemote
    */
-  describe('connectToRemote: ', () => {
+  describe('connect(): ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -305,7 +306,7 @@ maybe('remote: use personal access token: ', () => {
       };
       const repos = gitDDB.repository();
       const remote = new RemoteAccess(gitDDB, options);
-      await expect(remote.connectToRemote(repos!)).resolves.toBe('push');
+      await expect(remote.connect(repos!)).resolves.toBe('push');
       expect(remote.upstream_branch).toBe(`origin/${gitDDB.defaultBranch}`);
 
       await gitDDB.destroy();
@@ -332,7 +333,7 @@ maybe('remote: use personal access token: ', () => {
       // Sync with an existed remote repository
       const repos = gitDDB.repository();
       const remote = new RemoteAccess(gitDDB, options);
-      await expect(remote.connectToRemote(repos!)).resolves.toBe('nop');
+      await expect(remote.connect(repos!)).resolves.toBe('nop');
 
       await gitDDB.destroy();
     });
