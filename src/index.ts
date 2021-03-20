@@ -417,7 +417,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       return Promise.reject(new DatabaseClosingError());
     }
     // Stop remote
-    Object.values(this._remotes).forEach(remote => remote.cancel());
+    Object.values(this._remotes).forEach(remote => remote.close());
 
     // Wait taskQueue
     if (this._currentRepository instanceof nodegit.Repository) {

@@ -341,4 +341,8 @@ export class Sync implements ISync {
       }
     );
   }
+  close () {
+    this.cancel();
+    this._eventHandlers = {};
+  }
 }
