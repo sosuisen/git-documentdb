@@ -14,7 +14,7 @@ import {
   RepositoryNotOpenError,
   UndefinedRemoteURLError,
 } from '../error';
-import { ISync, RemoteOptions, SyncResult } from '../types';
+import { ISync, RemoteOptions, SyncEvent, SyncResult } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './remote_worker';
 import { createCredential } from './authentication';
@@ -46,6 +46,8 @@ export class Sync implements ISync {
   private _syncTimer: NodeJS.Timeout | undefined;
   private _remoteRepository: RemoteRepository;
   private _retrySyncCounter = 0;
+
+  private _eventHandlers: { [key: string]: (() => void)[] } = {};
 
   upstream_branch = '';
 
@@ -341,6 +343,19 @@ export class Sync implements ISync {
       }
     );
   }
+
+  on (event: SyncEvent, callback: () => void) {
+    this._eventHandlers[event].push(callback);
+    return this;
+  }
+
+  off (event: SyncEvent, callback: () => void) {
+    this._eventHandlers[event] = this._eventHandlers[event].filter(
+      func => func !== callback
+    );
+    return this;
+  }
+
   close () {
     this.cancel();
     this._eventHandlers = {};

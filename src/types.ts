@@ -325,3 +325,8 @@ export interface ISync {
   remoteURL(): string;
   options(): RemoteOptions;
 }
+
+/**
+ * SyncEvent
+ */
+export type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' | 'error';
