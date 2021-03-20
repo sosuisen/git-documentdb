@@ -52,6 +52,7 @@ export class RemoteAccess implements IRemoteAccess {
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
   private _remoteRepository: RemoteRepository;
+  private _retrySyncCounter = 0;
 
   upstream_branch = '';
 
@@ -183,7 +184,7 @@ export class RemoteAccess implements IRemoteAccess {
   }
 
   /**
-   * Stop sync
+   * Stop synchronization
    */
   cancel () {
     if (!this._options.live) return false;
@@ -206,7 +207,7 @@ export class RemoteAccess implements IRemoteAccess {
   }
 
   /**
-   * Resume sync
+   * Resume synchronization
    */
   resume (options?: { interval?: number; retry?: number }) {
     if (this._options.live) return false;
@@ -236,8 +237,9 @@ export class RemoteAccess implements IRemoteAccess {
     return true;
   }
 
-  private _retrySyncCounter = 0;
-
+  /**
+   * Retry failed synchronization
+   */
   private async _retrySync (): Promise<SyncResult> {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry!;
@@ -274,6 +276,9 @@ export class RemoteAccess implements IRemoteAccess {
     return 'canceled';
   }
 
+  /**
+   * Try push to remote
+   */
   tryPush (taskId?: string) {
     taskId ??= this._gitDDB.newTaskId();
     return new Promise(
@@ -312,6 +317,9 @@ export class RemoteAccess implements IRemoteAccess {
     );
   }
 
+  /**
+   * Try synchronization with remote
+   */
   trySync (taskId?: string) {
     taskId ??= this._gitDDB.newTaskId();
     return new Promise(
