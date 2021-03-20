@@ -41,7 +41,7 @@ async function push (gitDDB: AbstractDocumentDB, sync: ISync, taskId: string) {
       }
       throw err;
     });
-  gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
+  // gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
   await validatePushResult(gitDDB, sync, taskId);
 }
 
@@ -56,9 +56,11 @@ async function validatePushResult (
 ) {
   const repos = gitDDB.repository();
   if (repos === undefined) return;
+  /*
   gitDDB.logger.debug(
     ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: Check if pushed.`
   );
+  */
   await repos
     .fetch('origin', {
       callbacks: sync.credential_callbacks,
@@ -139,7 +141,6 @@ export async function sync_worker (
   let conflictedIndex: nodegit.Index | undefined;
   let commitOid: nodegit.Oid | undefined;
   if (distance.ahead === 0 && distance.behind === 0) {
-    gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: nop`);
     return 'nop';
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
@@ -335,12 +336,6 @@ export async function sync_worker (
 
     // Push
     await push(gitDDB, sync, taskId);
-
-    gitDDB.logger.debug(
-      ConsoleStyle.BgWhite()
-        .FgBlack()
-        .tag()`sync_worker${taskId}: resolve conflicts and push`
-    );
 
     return 'resolve conflicts and push';
   }

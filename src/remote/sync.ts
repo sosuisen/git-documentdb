@@ -284,6 +284,9 @@ export class Sync implements ISync {
           func: () =>
             push_worker(this._gitDDB, this, taskId!)
               .then((result: SyncResult) => {
+                this._gitDDB.logger.debug(
+                  ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${result}`
+                );
                 // Invoke success event
                 resolve(result);
               })
@@ -325,6 +328,9 @@ export class Sync implements ISync {
           func: () =>
             sync_worker(this._gitDDB, this, taskId!)
               .then(result => {
+                this._gitDDB.logger.debug(
+                  ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${result}`
+                );
                 // Invoke success event
                 resolve(result);
               })
