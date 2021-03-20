@@ -55,16 +55,14 @@ export type DatabaseInfo = {
   is_valid_version: boolean;
 };
 /**
- * Database Statistics
+ * Task Statistics
  */
-export type DatabaseStatistics = {
-  taskCount: {
-    // A property name equals a member of TaskLabel type
-    put: number;
-    remove: number;
-    push: number;
-    sync: number;
-  };
+export type TaskStatistics = {
+  // A property name equals a member of TaskLabel type
+  put: number;
+  remove: number;
+  push: number;
+  sync: number;
 };
 
 /**

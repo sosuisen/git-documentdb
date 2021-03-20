@@ -273,10 +273,10 @@ export class Sync implements ISync {
    * Try push to remote
    */
   tryPush (taskId?: string) {
-    taskId ??= this._gitDDB.newTaskId();
+    taskId ??= this._gitDDB.taskQueue.newTaskId();
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
-        this._gitDDB._unshiftSyncTaskToTaskQueue({
+        this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue({
           label: 'push',
           taskId: taskId!,
           func: () =>
@@ -314,10 +314,10 @@ export class Sync implements ISync {
    * Try synchronization with remote
    */
   trySync (taskId?: string) {
-    taskId ??= this._gitDDB.newTaskId();
+    taskId ??= this._gitDDB.taskQueue.newTaskId();
     return new Promise(
       (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
-        this._gitDDB._unshiftSyncTaskToTaskQueue({
+        this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue({
           label: 'sync',
           taskId: taskId!,
           func: () =>

@@ -62,9 +62,9 @@ export function removeImpl (
 
   // delete() must be serial.
   return new Promise((resolve, reject) => {
-    this._pushToTaskQueue({
+    this.taskQueue.pushToTaskQueue({
       label: 'remove',
-      taskId: this.newTaskId(),
+      taskId: this.taskQueue.newTaskId(),
       targetId: _id,
       func: () =>
         remove_worker(this, _id, this.fileExt, options!.commit_message!)

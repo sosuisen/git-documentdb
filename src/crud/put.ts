@@ -100,9 +100,9 @@ export function putImpl (
 
   // put() must be serial.
   return new Promise((resolve, reject) => {
-    this._pushToTaskQueue({
+    this.taskQueue.pushToTaskQueue({
       label: 'put',
-      taskId: this.newTaskId(),
+      taskId: this.taskQueue.newTaskId(),
       targetId: _id,
       func: () =>
         put_worker(this, _id, this.fileExt, data, options!.commit_message!)

@@ -8,6 +8,7 @@
 
 import nodegit from '@sosuisen/nodegit';
 import { Logger } from 'tslog';
+import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
   AllDocsResult,
@@ -62,8 +63,6 @@ export abstract class AbstractDocumentDB {
   abstract isClosing: boolean;
   abstract repository (): nodegit.Repository | undefined;
   abstract _validator: Validator;
-  abstract _pushToTaskQueue (task: Task): void;
-  abstract _unshiftSyncTaskToTaskQueue (task: Task): void;
-  abstract newTaskId (): string;
   abstract logger: Logger;
+  abstract taskQueue: TaskQueue;
 }

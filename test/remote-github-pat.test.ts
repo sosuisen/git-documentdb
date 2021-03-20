@@ -695,7 +695,7 @@ maybe('remote: use personal access token: ', () => {
         expect(remoteA.options().interval).toBe(interval);
 
         // Wait live sync()
-        while (dbA.statistics().taskCount.sync === 0) {
+        while (dbA.taskQueue.statistics().sync === 0) {
           // eslint-disable-next-line no-await-in-loop
           await sleep(500);
         }
@@ -731,11 +731,11 @@ maybe('remote: use personal access token: ', () => {
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.statistics().taskCount.sync;
+        const count = dbA.taskQueue.statistics().sync;
         remoteA.cancel();
         await sleep(3000);
         expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.statistics().taskCount.sync).toBe(count);
+        expect(dbA.taskQueue.statistics().sync).toBe(count);
 
         await dbA.destroy();
       });
@@ -760,19 +760,19 @@ maybe('remote: use personal access token: ', () => {
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.statistics().taskCount.sync;
+        const count = dbA.taskQueue.statistics().sync;
         expect(remoteA.pause()).toBeTruthy();
         expect(remoteA.pause()).toBeFalsy(); // ignored
 
         await sleep(3000);
         expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.statistics().taskCount.sync).toBe(count);
+        expect(dbA.taskQueue.statistics().sync).toBe(count);
 
         expect(remoteA.resume()).toBeTruthy();
         expect(remoteA.resume()).toBeFalsy(); // ignored
         await sleep(3000);
         expect(remoteA.options().live).toBeTruthy();
-        expect(dbA.statistics().taskCount.sync).toBeGreaterThan(count);
+        expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(count);
 
         await dbA.destroy();
       });
@@ -797,14 +797,14 @@ maybe('remote: use personal access token: ', () => {
 
         const remoteA = dbA.getRemote(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.statistics().taskCount.sync;
+        const count = dbA.taskQueue.statistics().sync;
         await dbA.close();
 
         remoteA.resume(); // resume() must be ignored after close();
 
         await sleep(3000);
         expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.statistics().taskCount.sync).toBe(count);
+        expect(dbA.taskQueue.statistics().sync).toBe(count);
 
         await dbA.destroy();
       });
@@ -833,7 +833,7 @@ maybe('remote: use personal access token: ', () => {
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         // Wait live sync()
-        while (dbA.statistics().taskCount.sync === 0) {
+        while (dbA.taskQueue.statistics().sync === 0) {
           // eslint-disable-next-line no-await-in-loop
           await sleep(500);
         }
@@ -842,7 +842,7 @@ maybe('remote: use personal access token: ', () => {
         const jsonA2 = { _id: '2', name: 'fromA' };
         await dbA.put(jsonA2);
 
-        const currentCount = dbA.statistics().taskCount.sync;
+        const currentCount = dbA.taskQueue.statistics().sync;
         // Change interval
         remoteA.resume({
           interval: 5000,
@@ -850,7 +850,7 @@ maybe('remote: use personal access token: ', () => {
         expect(remoteA.options().interval).toBe(5000);
         await sleep(3000);
         // Check count before next sync()
-        expect(dbA.statistics().taskCount.sync).toBe(currentCount);
+        expect(dbA.taskQueue.statistics().sync).toBe(currentCount);
 
         await dbA.destroy();
       });
@@ -876,7 +876,7 @@ maybe('remote: use personal access token: ', () => {
         const remoteA = dbA.getRemote(remoteURL);
 
         await sleep(10000);
-        expect(dbA.statistics().taskCount.sync).toBeGreaterThan(5);
+        expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(5);
 
         await dbA.destroy();
       });
@@ -908,7 +908,7 @@ maybe('remote: use personal access token: ', () => {
           remoteA.trySync();
         }
         await sleep(5000);
-        expect(dbA.statistics().taskCount.sync).toBe(1);
+        expect(dbA.taskQueue.statistics().sync).toBe(1);
 
         await dbA.destroy();
       });
@@ -965,9 +965,9 @@ maybe('remote: use personal access token: ', () => {
         await expect(remoteB.tryPush()).rejects.toThrowError(
           CannotPushBecauseUnfetchedCommitExistsError
         );
-        const currentSyncCount = dbB.statistics().taskCount.sync;
+        const currentSyncCount = dbB.taskQueue.statistics().sync;
         await sleep(5000);
-        expect(dbB.statistics().taskCount.sync).toBe(currentSyncCount);
+        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
 
         await dbA.destroy();
         await dbB.destroy();
@@ -1018,11 +1018,11 @@ maybe('remote: use personal access token: ', () => {
         await expect(remoteB.tryPush()).rejects.toThrowError(
           CannotPushBecauseUnfetchedCommitExistsError
         );
-        const currentSyncCount = dbB.statistics().taskCount.sync;
+        const currentSyncCount = dbB.taskQueue.statistics().sync;
         await sleep(2000);
-        expect(dbB.statistics().taskCount.sync).toBe(currentSyncCount);
+        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
         await sleep(7000);
-        expect(dbB.statistics().taskCount.sync).toBe(currentSyncCount + 1);
+        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount + 1);
 
         await dbA.destroy();
         await dbB.destroy();
@@ -1146,8 +1146,8 @@ maybe('remote: use personal access token: ', () => {
       await expect(dbB.get(jsonB1._id)).resolves.toMatchObject(jsonB1);
 
       // Wait next sync()
-      const count = dbA.statistics().taskCount.sync;
-      while (dbA.statistics().taskCount.sync === count) {
+      const count = dbA.taskQueue.statistics().sync;
+      while (dbA.taskQueue.statistics().sync === count) {
         // eslint-disable-next-line no-await-in-loop
         await sleep(500);
       }
@@ -1162,7 +1162,7 @@ maybe('remote: use personal access token: ', () => {
    * Initialize synchronization by open() with remoteURL, close(), open() again with another remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe.skip('Initialize synchronization by open() with remote_url, close(), open() again with another remote_url: ', () => {
+  describe('Initialize synchronization by open() with remote_url, close(), open() again with another remote_url: ', () => {
     test.skip('Open() again with the same repository with another remote_url');
     test.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base
@@ -1172,7 +1172,7 @@ maybe('remote: use personal access token: ', () => {
    * Initialize synchronization by open() with remoteURL, close(), open() again with no remoteURL, following sync() with another remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe.skip('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
+  describe('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
     test.skip('Open() again with the same repository with another remote_url');
     test.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base

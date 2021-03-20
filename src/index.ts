@@ -9,7 +9,6 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
 import {
   CannotCreateDirectoryError,
@@ -28,7 +27,6 @@ import {
   DatabaseCloseOption,
   DatabaseInfo,
   DatabaseOption,
-  DatabaseStatistics,
   JsonDoc,
   PutOptions,
   PutResult,
@@ -45,7 +43,7 @@ import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
 import { ConsoleStyle, sleep } from './utils';
 import { createCredential } from './remote/authentication';
-const ulid = monotonicFactory();
+import { TaskQueue } from './task_queue';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -85,16 +83,16 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * File extension of a repository document
    */
-  public readonly fileExt = '.json';
+  readonly fileExt = '.json';
   /**
    * Author name and email
    */
-  public readonly gitAuthor = {
+  readonly gitAuthor = {
     name: 'GitDocumentDB',
     email: 'gitddb@example.com',
   } as const;
 
-  public readonly defaultBranch = 'main';
+  readonly defaultBranch = 'main';
 
   private _firstCommitMessage = 'first commit';
 
@@ -103,29 +101,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
 
-  // @ts-ignore
-  private _taskQueue: Task[];
-
-  private _isTaskQueueWorking = false;
-  private _setIsTaskQueueWorking (bool: boolean, taskId?: string) {
-    // if (taskId !== undefined) {
-    // logger.debug(bool + ', by: ' + taskId);
-    // }
-    this._isTaskQueueWorking = bool;
-  }
-
-  private _currentTask: Task | undefined = undefined;
-
   private _remotes: { [url: string]: Sync } = {};
-  /**
-   * @internal
-   */
-  public _validator: Validator;
-
-  /**
-   * DB is going to close
-   */
-  isClosing = false;
 
   private _dbInfo: DatabaseInfo = {
     is_new: false,
@@ -135,16 +111,19 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   };
 
   /**
-   * DB Statistics
+   * Task queue
    */
-  private _statistics: DatabaseStatistics = {
-    taskCount: {
-      put: 0,
-      remove: 0,
-      push: 0,
-      sync: 0,
-    },
-  };
+  taskQueue: TaskQueue;
+
+  /**
+   * Name validator
+   */
+  _validator: Validator;
+
+  /**
+   * DB is going to close
+   */
+  isClosing = false;
 
   /**
    * Logger
@@ -193,13 +172,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       displayDateTime: false,
       displayFunctionName: false,
       displayFilePath: 'hidden',
-      requestId: () => {
-        if (this._currentTask?.taskId !== undefined) {
-          return this._currentTask?.taskId;
-        }
-        return '';
-      },
+      requestId: () => this.taskQueue.currentTaskId() ?? '',
     });
+    this.taskQueue = new TaskQueue(this.logger);
   }
 
   /**
@@ -228,8 +203,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     /**
      * Reset
      */
-    this._taskQueue = [];
-    this._currentTask = undefined;
     this._remotes = {};
     this._dbInfo = {
       is_new: false,
@@ -237,14 +210,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       is_created_by_gitddb: true,
       is_valid_version: true,
     };
-    this._statistics = {
-      taskCount: {
-        put: 0,
-        remove: 0,
-        push: 0,
-        sync: 0,
-      },
-    };
+    this.taskQueue.clear();
 
     /**
      * Create directory
@@ -414,13 +380,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
-   * DB Statistics
-   */
-  statistics () {
-    return this._statistics;
-  }
-
-  /**
    * Get a collection
    *
    * @remarks
@@ -430,55 +389,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    */
   collection (collectionPath: CollectionPath) {
     return new Collection(this, collectionPath);
-  }
-
-  /**
-   * Task queue
-   * @internal
-   */
-  //  Use monotonic ulid for taskId
-  public newTaskId = () => {
-    return ulid(Date.now());
-  };
-
-  public _pushToTaskQueue (task: Task) {
-    this._taskQueue.push(task);
-    this._execTaskQueue();
-  }
-
-  public _unshiftSyncTaskToTaskQueue (task: Task) {
-    if (this._taskQueue.length > 0 && this._taskQueue[0].label === 'sync') {
-      return;
-    }
-    this._taskQueue.unshift(task);
-    this._execTaskQueue();
-  }
-
-  private _execTaskQueue () {
-    if (this._taskQueue.length > 0 && !this._isTaskQueueWorking) {
-      this._currentTask = this._taskQueue.shift();
-      if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
-        const label = this._currentTask.label;
-        const targetId = this._currentTask.targetId;
-        const taskId = this._currentTask.taskId;
-
-        this._setIsTaskQueueWorking(true, this._currentTask.taskId);
-        this.logger.debug(
-          ConsoleStyle.BgYellow().FgBlack().tag()`Start ${label}(${targetId || ''})`
-        );
-
-        this._currentTask.func().finally(() => {
-          this._statistics.taskCount[label]++;
-
-          this.logger.debug(
-            ConsoleStyle.BgGreen().FgBlack().tag()`End ${label}(${targetId || ''})`
-          );
-          this._setIsTaskQueueWorking(false, taskId);
-          this._currentTask = undefined;
-          this._execTaskQueue();
-        });
-      }
-    }
   }
 
   /**
@@ -511,31 +421,20 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
     // Wait taskQueue
     if (this._currentRepository instanceof nodegit.Repository) {
-      let isTimeout = false;
       try {
         this.isClosing = true;
         if (options.force) {
-          // Clear queue
-          this._taskQueue.length = 0;
+          this.taskQueue.clear();
         }
         const timeoutMsec = options.timeout || 10000;
-        const startMsec = Date.now();
-        while (this._taskQueue.length > 0 || this._isTaskQueueWorking) {
-          if (Date.now() - startMsec > timeoutMsec) {
-            this._taskQueue.length = 0;
-            isTimeout = true;
-          }
-          // eslint-disable-next-line no-await-in-loop
-          await sleep(100);
-        }
+        const isTimeout = await this.taskQueue.waitCompletion(timeoutMsec);
+
         if (isTimeout) {
           return Promise.reject(new DatabaseCloseTimeoutError());
         }
       } finally {
         this.isClosing = false;
-        this._taskQueue = [];
-
-        this._setIsTaskQueueWorking(false);
+        this.taskQueue.clear();
 
         /**
          * The types are wrong. Repository does not have free() method.
