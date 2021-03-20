@@ -56,7 +56,7 @@ export class RemoteAccess implements IRemoteAccess {
 
   upstream_branch = '';
 
-  callbacks: { [key: string]: any };
+  credential_callbacks: { [key: string]: any };
   author: nodegit.Signature;
   committer: nodegit.Signature;
 
@@ -95,7 +95,7 @@ export class RemoteAccess implements IRemoteAccess {
     this._options.retry ??= defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
 
-    this.callbacks = createCredential(this._options);
+    this.credential_callbacks = createCredential(this._options);
 
     this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
 
@@ -128,7 +128,7 @@ export class RemoteAccess implements IRemoteAccess {
     const onlyFetch = this._options.sync_direction === 'pull';
     const [gitResult, remoteResult] = await this._remoteRepository.connect(
       this._gitDDB.repository()!,
-      this.callbacks,
+      this.credential_callbacks,
       onlyFetch
     );
     this._gitDDB.logger.debug('git remote: ' + gitResult);

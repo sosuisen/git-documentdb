@@ -97,6 +97,10 @@ export class RemoteRepository {
     return [result, remote];
   }
 
+  /**
+   * Set a remote repository to a local repository, and the connect to a remote repository.
+   * A remote repository will be created if not exists.
+   */
   async connect (
     repos: nodegit.Repository,
     credential_callbacks: { [key: string]: any },
@@ -132,8 +136,9 @@ export class RemoteRepository {
     return [gitResult, remoteResult];
   }
 
-  // Get remote from arguments to be called from test
-  // eslint-disable-next-line complexity
+  /**
+   * Check connection by FETCH
+   */
   private async _checkFetch (
     remote: nodegit.Remote,
     credential_callbacks: { [key: string]: any }
@@ -167,7 +172,9 @@ export class RemoteRepository {
     return 'ok';
   }
 
-  // Get remote from arguments to be called from test
+  /**
+   * Check connection by PUSH
+   */
   private async _checkPush (
     remote: nodegit.Remote,
     credential_callbacks: { [key: string]: any }

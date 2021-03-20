@@ -321,7 +321,7 @@ export type Task = {
  */
 export interface IRemoteAccess {
   upstream_branch: string;
-  callbacks: { [key: string]: any };
+  credential_callbacks: { [key: string]: any };
   author: nodegit.Signature;
   committer: nodegit.Signature;
   remoteURL(): string;

@@ -348,15 +348,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      */
     if (remoteOptions !== undefined && remoteOptions.remote_url !== undefined) {
       const remote = new RemoteAccess(this, remoteOptions);
-      const callbacks = createCredential(remoteOptions);
-
-      if (process.platform === 'darwin') {
-        // @ts-ignore
-        this._callbacks.certificateCheck = () => 0;
-      }
       return await nodegit.Clone.clone(remoteOptions?.remote_url, this.workingDir(), {
         fetchOpts: {
-          callbacks,
+          callbacks: createCredential(remoteOptions),
         },
       }).catch(err => {
         this.logger.debug(err);

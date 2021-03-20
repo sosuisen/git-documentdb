@@ -31,7 +31,7 @@ async function push (
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
     .push(['refs/heads/main:refs/heads/main'], {
-      callbacks: remoteAccess.callbacks,
+      callbacks: remoteAccess.credential_callbacks,
     })
     .catch((err: Error) => {
       gitDDB.logger.debug(err);
@@ -64,7 +64,7 @@ async function validatePushResult (
   );
   await repos
     .fetch('origin', {
-      callbacks: remoteAccess.callbacks,
+      callbacks: remoteAccess.credential_callbacks,
     })
     .catch(err => {
       throw new SyncWorkerFetchError(err.message);
@@ -116,7 +116,7 @@ export async function sync_worker (
   // Fetch
   await repos
     .fetch('origin', {
-      callbacks: remoteAccess.callbacks,
+      callbacks: remoteAccess.credential_callbacks,
     })
     .catch(err => {
       throw new SyncWorkerFetchError(err.message);
