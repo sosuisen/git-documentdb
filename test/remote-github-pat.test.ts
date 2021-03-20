@@ -1039,6 +1039,40 @@ maybe('remote: use personal access token: ', () => {
    */
   describe('Initialize synchronization by sync()', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
+
+    test('Overload of sync()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+
+      await dbA.open();
+      const options: RemoteOptions = {
+        live: true,
+        interval: 1000,
+        sync_direction: 'both',
+        auth: { type: 'github', personal_access_token: token },
+      };
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const remoteA = await dbA.sync(remoteURL, options);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.open(options);
+      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
+
+      await dbA.destroy();
+      await dbB.destroy();
+    });
+
     test('A initializes synchronization by sync(); B initializes synchronization by open(), clones the remote: ', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
