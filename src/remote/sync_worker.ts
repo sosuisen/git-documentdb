@@ -88,39 +88,48 @@ async function validatePushResult (
   }
 }
 
-export async function push_worker (
-  gitDDB: AbstractDocumentDB,
-  sync: ISync,
-  taskId: string
-): Promise<SyncResult> {
-  await push(gitDDB, sync, taskId);
-
-  return 'push';
-}
-
-// eslint-disable-next-line complexity
-export async function sync_worker (
-  gitDDB: AbstractDocumentDB,
-  sync: ISync,
-  taskId: string
-): Promise<SyncResult> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) {
-    throw new RepositoryNotOpenError();
-  }
-
+/**
+ * git fetch
+ */
+async function fetch (gitDDB: AbstractDocumentDB, sync: ISync) {
   gitDDB.logger.debug(
     ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`
   );
-  // Fetch
-  await repos
+  await gitDDB
+    .repository()!
     .fetch('origin', {
       callbacks: sync.credential_callbacks,
     })
     .catch(err => {
       throw new SyncWorkerFetchError(err.message);
     });
+}
 
+/**
+ * git commit --amend -m <commitMessage>
+ */
+async function commitAmendMessage (
+  gitDDB: AbstractDocumentDB,
+  sync: ISync,
+  commitOid: nodegit.Oid,
+  commitMessage: string
+) {
+  const commit = await gitDDB.repository()!.getCommit(commitOid!);
+  // Change commit message
+  await commit.amend(
+    'HEAD',
+    sync.author,
+    sync.committer,
+    commit.messageEncoding(),
+    commitMessage,
+    await commit.getTree()
+  );
+}
+/**
+ * Calc distance
+ */
+async function calcDistance (gitDDB: AbstractDocumentDB) {
+  const repos = gitDDB.repository()!;
   const localCommit = await repos.getHeadCommit();
   const remoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
 
@@ -133,6 +142,64 @@ export async function sync_worker (
   gitDDB.logger.debug(
     ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(distance)}`
   );
+  return distance;
+}
+
+/**
+ * Resolve no merge base
+ */
+function resolveNoMergeBase (sync: ISync) {
+  if (sync.options().behavior_for_no_merge_base === 'nop') {
+    throw new NoMergeBaseFoundError();
+  }
+  else if (sync.options().behavior_for_no_merge_base === 'theirs') {
+    // remote local repository and clone remote repository
+  }
+  else if (sync.options().behavior_for_no_merge_base === 'ours') {
+    // git merge -s ours
+    // TODO:
+    throw new Error(
+      'ours option for behavior_for_no_merge_base is not implemented currently.'
+    );
+  }
+}
+
+/**
+ * push_worker
+ */
+export async function push_worker (
+  gitDDB: AbstractDocumentDB,
+  sync: ISync,
+  taskId: string
+): Promise<SyncResult> {
+  await push(gitDDB, sync, taskId);
+
+  return 'push';
+}
+
+/**
+ * sync_worker
+ */
+// eslint-disable-next-line complexity
+export async function sync_worker (
+  gitDDB: AbstractDocumentDB,
+  sync: ISync,
+  taskId: string
+): Promise<SyncResult> {
+  const repos = gitDDB.repository();
+  if (repos === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+
+  /**
+   * Fetch
+   */
+  await fetch(gitDDB, sync);
+
+  /**
+   * Calc distance
+   */
+  const distance = await calcDistance(gitDDB);
   // ahead: 0, behind 0 => Nothing to do: If local does not commit and remote does not commit
   // ahead: 0, behind 1 => Fast-forward merge : If local does not commit and remote pushed
   // ahead: 1, behind 0 => Push : If local committed and remote does not commit
@@ -161,19 +228,7 @@ export async function sync_worker (
         // May throw 'Error: no merge base found'
         if (res instanceof Error) {
           if (res.message.startsWith('no merge base found')) {
-            if (sync.options().behavior_for_no_merge_base === 'nop') {
-              throw new NoMergeBaseFoundError();
-            }
-            else if (sync.options().behavior_for_no_merge_base === 'theirs') {
-              // remote local repository and clone remote repository
-            }
-            else if (sync.options().behavior_for_no_merge_base === 'ours') {
-              // git merge -s ours
-              // TODO:
-              throw new Error(
-                'ours option for behavior_for_no_merge_base is not implemented currently.'
-              );
-            }
+            resolveNoMergeBase(sync);
           }
           throw res;
         }
@@ -188,16 +243,6 @@ export async function sync_worker (
     return 'push';
   }
 
-  /**
-   * NOTE:
-   * This _index from Merge.merge or Merge.commit is in-memory only.
-   * It cannot be used for commit operations.
-   * Create a new copy of index for commit.
-   * Repository#refreshIndex() grabs copy of latest index
-   * See https://github.com/nodegit/nodegit/blob/master/examples/merge-with-conflicts.js
-   */
-  // const _index = await repos.refreshIndex();
-
   if (conflictedIndex === undefined) {
     // Conflict has not been occurred.
     // Exec fast-forward or normal merge.
@@ -205,44 +250,21 @@ export async function sync_worker (
     // When a local file is removed and the same remote file is removed,
     // they cannot be merged by fast-forward. They are merged as usual.
 
-    const distance_again = ((await nodegit.Graph.aheadBehind(
-      repos,
-      (await repos.getHeadCommit()).id(),
-      (await repos.getReferenceCommit('refs/remotes/origin/main')).id()
-    )) as unknown) as { ahead: number; behind: number };
-    gitDDB.logger.debug(
-      ConsoleStyle.BgWhite()
-        .FgBlack()
-        .tag()`sync_worker: check distance again ${JSON.stringify(distance_again)}`
-    );
+    const distance_again = await calcDistance(gitDDB);
     if (distance_again.ahead === 0 && distance_again.behind === 0) {
-      gitDDB.logger.debug(
-        ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fast-forward merge`
-      );
       return 'fast-forward merge';
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
-      // It is occurred when
+      // This case is occurred when
       // - a local file is changed and another remote file is changed.
       // - a local file is removed and the same remote file is removed.
-      // Normal merge. Need push
-      const commit = await repos.getCommit(commitOid!);
-      const commitMessage = 'merge';
+
       // Change commit message
-      await commit.amend(
-        'HEAD',
-        sync.author,
-        sync.committer,
-        commit.messageEncoding(),
-        commitMessage,
-        await commit.getTree()
-      );
-      // Push
+      await commitAmendMessage(gitDDB, sync, commitOid!, 'merge');
+
+      // Need push because it is merged normally.
       await push(gitDDB, sync, taskId);
 
-      gitDDB.logger.debug(
-        ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: merge and push`
-      );
       return 'merge and push';
     }
 
@@ -253,16 +275,7 @@ export async function sync_worker (
   }
   else {
     /**
-     * NOTE:
-     * This _index from Repository.mergeBranch is in-memory only.
-     * It cannot be used for commit operations.
-     * Create a new copy of index for commit.
-     * Repository#refreshIndex() grabs copy of latest index
-     * See https://github.com/nodegit/nodegit/blob/master/examples/merge-with-conflicts.js
-     */
-    const _index = await repos.refreshIndex();
-    /**
-     * conflict
+     * Conflict
      * https://git-scm.com/docs/git-merge#_true_merge
      * The index file records up to three versions:
      * stage 1 stores the version from the common ancestor (Index.STAGE.ANCESTOR),
@@ -271,6 +284,7 @@ export async function sync_worker (
      *
      * In libgit2, non-conflicted file is distinguished by using 0 (Index.STAGE.NORMAL)
      */
+
     let commitMessage = '';
     const conflicts: { [key: string]: { [keys: string]: boolean } } = {};
 
@@ -287,6 +301,17 @@ export async function sync_worker (
         conflicts[entry.path][stage] = true;
       }
     });
+
+    /**
+     * NOTE:
+     * Index from Repository.mergeBranch, Merge.merge or Merge.commit is in-memory only.
+     * It cannot be used for commit operations.
+     * Create a new copy of index for commit.
+     * Repository#refreshIndex() grabs copy of latest index
+     * See https://github.com/nodegit/nodegit/blob/master/examples/merge-with-conflicts.js
+     */
+    const _index = await repos.refreshIndex();
+
     Object.keys(conflicts).forEach(async path => {
       // Conflict is resolved by using OURS.
       if (conflicts[path][2]) {
@@ -324,10 +349,13 @@ export async function sync_worker (
       sync.committer,
       commitMessage,
       treeOid,
-      [await repos.getHeadCommit(), remoteCommit]
+      [
+        await repos.getHeadCommit(),
+        await repos.getReferenceCommit('refs/remotes/origin/main'),
+      ]
     );
     repos.stateCleanup();
-    // gitDDB.logger.debug('committed');
+
     await repos.getCommit(overwriteCommitOid);
 
     const opt = new nodegit.CheckoutOptions();
