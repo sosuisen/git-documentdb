@@ -11,31 +11,20 @@ import { Octokit } from '@octokit/rest';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
-  AuthNeededForPushOrSyncError,
-  HttpProtocolRequiredError,
   IntervalTooSmallError,
-  InvalidAuthenticationTypeError,
-  InvalidRepositoryURLError,
   InvalidSSHKeyFormatError,
-  InvalidSSHKeyPathError,
   InvalidURLFormatError,
   PushAuthenticationError,
   PushPermissionDeniedError,
   RemoteRepositoryNotFoundError,
   RepositoryNotOpenError,
-  UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
   UnresolvedHostError,
 } from '../error';
-import {
-  IRemoteAccess,
-  RemoteAuthGitHub,
-  RemoteAuthSSH,
-  RemoteOptions,
-  SyncResult,
-} from '../types';
+import { IRemoteAccess, RemoteOptions, SyncResult } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './remote_worker';
+import { createCredential } from './authentication';
 
 export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOptions) {
   const repos = this.repository();
@@ -105,7 +94,7 @@ export class RemoteAccess implements IRemoteAccess {
     this._options.behavior_for_no_merge_base ??= 'nop';
 
     this.callbacks = {
-      credentials: this.createCredential(),
+      credentials: createCredential(this._options),
     };
     if (process.platform === 'darwin') {
       // @ts-ignore
@@ -127,78 +116,14 @@ export class RemoteAccess implements IRemoteAccess {
     // nodegit.Checkout.STRATEGY.USE_OURS: For unmerged files, checkout stage 2 from index
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
-  }
 
-  /**
-   * Create credential options for GitHub
-   */
-  private _createCredentialForGitHub () {
-    if (!this._options.remote_url!.match(/^https?:\/\//)) {
-      throw new HttpProtocolRequiredError(this._options.remote_url!);
-    }
-    const auth = this._options.auth as RemoteAuthGitHub;
-    if (!auth.personal_access_token) {
-      throw new UndefinedPersonalAccessTokenError();
-    }
-    this._octokit = new Octokit({
-      auth: auth.personal_access_token,
-    });
-    const urlArray = this._options.remote_url!.replace(/^https?:\/\//, '').split('/');
-    // github.com/account_name/repository_name
-    if (urlArray.length !== 3) {
-      throw new InvalidRepositoryURLError(this._options.remote_url!);
-    }
-    const owner = urlArray[urlArray.length - 2];
-    const credentials = () => {
-      return nodegit.Cred.userpassPlaintextNew(owner, auth.personal_access_token!);
-    };
-    return credentials;
-  }
-
-  /**
-   * Create credential options for SSH
-   */
-  private _createCredentialForSSH () {
-    const auth = this._options.auth as RemoteAuthSSH;
-    if (auth.private_key_path === undefined || auth.private_key_path === '') {
-      throw new InvalidSSHKeyPathError();
-    }
-    if (auth.public_key_path === undefined || auth.public_key_path === '') {
-      throw new InvalidSSHKeyPathError();
-    }
-    auth.pass_phrase ??= '';
-
-    const credentials = (url: string, userName: string) => {
-      return nodegit.Cred.sshKeyNew(
-        userName,
-        auth.public_key_path,
-        auth.private_key_path,
-        auth.pass_phrase!
-      );
-    };
-    return credentials;
-  }
-
-  /**
-   * Create credential options
-   */
-  createCredential () {
-    this._options.auth ??= { type: 'none' };
-
-    if (this._options.auth.type === 'github') {
-      return this._createCredentialForGitHub();
-    }
-    else if (this._options.auth.type === 'ssh') {
-      return this._createCredentialForSSH();
-    }
-    else if (this._options.auth.type === 'none') {
-      if (this._options.sync_direction !== 'pull') {
-        throw new AuthNeededForPushOrSyncError(this._options.sync_direction!);
-      }
-    }
-    else {
-      // @ts-ignore
-      throw new InvalidAuthenticationTypeError(this._options.auth.type);
+    if (
+      this._options.auth?.type === 'github' &&
+      this._options.auth?.personal_access_token !== undefined
+    ) {
+      this._octokit = new Octokit({
+        auth: this._options.auth.personal_access_token,
+      });
     }
   }
 

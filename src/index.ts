@@ -44,6 +44,7 @@ import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { RemoteAccess, syncImpl } from './remote/remote_access';
 import { ConsoleStyle, sleep } from './utils';
+import { createCredential } from './remote/authentication';
 const ulid = monotonicFactory();
 
 const databaseName = 'GitDocumentDB';
@@ -340,20 +341,20 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   private async _cloneRepository (remoteOptions?: RemoteOptions) {
-    const remote = new RemoteAccess(this, remoteOptions);
-    const callbacks = {
-      credentials: remote.createCredential(),
-    };
-    if (process.platform === 'darwin') {
-      // @ts-ignore
-      this._callbacks.certificateCheck = () => 0;
-    }
     /**
      * TODO: Handle exceptions
      * If repository exists and cannot clone, you have not permission.
      * Only 'pull' is allowed.
      */
-    if (remoteOptions?.remote_url !== undefined) {
+    if (remoteOptions !== undefined && remoteOptions.remote_url !== undefined) {
+      const remote = new RemoteAccess(this, remoteOptions);
+      const callbacks = {
+        credentials: createCredential(remoteOptions),
+      };
+      if (process.platform === 'darwin') {
+        // @ts-ignore
+        this._callbacks.certificateCheck = () => 0;
+      }
       return await nodegit.Clone.clone(remoteOptions?.remote_url, this.workingDir(), {
         fetchOpts: {
           callbacks,
