@@ -33,7 +33,6 @@ import {
   RemoteOptions,
   RemoveOptions,
   RemoveResult,
-  Task,
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
@@ -41,7 +40,6 @@ import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
-import { ConsoleStyle, sleep } from './utils';
 import { createCredential } from './remote/authentication';
 import { TaskQueue } from './task_queue';
 
@@ -101,7 +99,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
 
-  private _remotes: { [url: string]: Sync } = {};
+  private _synchronizers: { [url: string]: Sync } = {};
 
   private _dbInfo: DatabaseInfo = {
     is_new: false,
@@ -203,7 +201,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     /**
      * Reset
      */
-    this._remotes = {};
+    this._synchronizers = {};
     this._dbInfo = {
       is_new: false,
       is_clone: false,
@@ -417,7 +415,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       return Promise.reject(new DatabaseClosingError());
     }
     // Stop remote
-    Object.values(this._remotes).forEach(remote => remote.close());
+    Object.values(this._synchronizers).forEach(_sync => _sync.close());
 
     // Wait taskQueue
     if (this._currentRepository instanceof nodegit.Repository) {
@@ -449,7 +447,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         this._currentRepository.cleanup();
         this._currentRepository = undefined;
 
-        this._remotes = {};
+        this._synchronizers = {};
       }
     }
   }
@@ -639,22 +637,22 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * getRemoteURLs
    */
   getRemoteURLs (): string[] {
-    return Object.keys(this._remotes);
+    return Object.keys(this._synchronizers);
   }
 
   /**
    * getRemote
    */
   getRemote (remoteURL: string) {
-    return this._remotes[remoteURL];
+    return this._synchronizers[remoteURL];
   }
 
   /**
    * removeRemote
    */
   removeRemote (remoteURL: string) {
-    this._remotes[remoteURL].cancel();
-    delete this._remotes[remoteURL];
+    this._synchronizers[remoteURL].cancel();
+    delete this._synchronizers[remoteURL];
   }
 
   /**
@@ -679,12 +677,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
     if (
       options?.remote_url !== undefined &&
-      this._remotes[options?.remote_url] !== undefined
+      this._synchronizers[options?.remote_url] !== undefined
     ) {
       throw new RemoteAlreadyRegisteredError(options.remote_url);
     }
     const remote = await syncImpl.call(this, options);
-    this._remotes[remote.remoteURL()] = remote;
+    this._synchronizers[remote.remoteURL()] = remote;
     return remote;
   }
 }
