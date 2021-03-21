@@ -560,7 +560,7 @@ maybe('remote: use personal access token: ', () => {
 
     test.skip('Push');
 
-    test('Fast-forward merge: add one file', async () => {
+    test.skip('Fast-forward merge: add one file', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -604,7 +604,7 @@ maybe('remote: use personal access token: ', () => {
       await dbB.destroy().catch(e => console.debug(e));
     });
 
-    test('Fast-forward merge: add two files', async () => {
+    test.skip('Fast-forward merge: add two files', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -649,6 +649,60 @@ maybe('remote: use personal access token: ', () => {
       await dbA.destroy().catch(err => console.debug(err));
       await dbB.destroy().catch(err => console.debug(err));
     });
+
+    test('Normal merge: add two files', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(options);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      // Clone dbA
+      await dbB.open(options);
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResultA1 = await dbA.put(jsonA1);
+      const remoteA = dbA.getRemote(remoteURL);
+      await remoteA.tryPush();
+
+      // B syncs
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      const putResultB1 = await dbB.put(jsonB1);
+      const remoteB = dbB.getRemote(remoteURL);
+
+      const syncResult1 = await remoteB.trySync();
+      expect(syncResult1.operation).toBe('merge and push');
+      expect(syncResult1.commits!.length).toBe(1);
+      expect(syncResult1.commits![0].id).toBe(putResultA1.commit_sha);
+      expect(syncResult1.commits![1].id).toBe(putResultB1.commit_sha);
+      expect(syncResult1.local_changes!.add.length).toBe(1);
+      expect(syncResult1.local_changes!.modify.length).toBe(0);
+      expect(syncResult1.local_changes!.remove.length).toBe(0);
+      expect(syncResult1.local_changes!.add[0].doc).toMatchObject(jsonA1);
+      expect(syncResult1.remote_changes!.add.length).toBe(1);
+      expect(syncResult1.remote_changes!.modify.length).toBe(0);
+      expect(syncResult1.remote_changes!.remove.length).toBe(0);
+      expect(syncResult1.remote_changes!.add[0].doc).toMatchObject(jsonB1);
+
+      await dbA.destroy().catch(err => console.debug(err));
+      await dbB.destroy().catch(err => console.debug(err));
+    });
+
+    test.skip('Normal merge: remove the same file');
   });
 
   /**
