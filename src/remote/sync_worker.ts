@@ -282,14 +282,14 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
  *
  * @remarks Logs are sorted from old to new
  */
-async function getCommitLogs (gitDDB: AbstractDocumentDB, remoteCommit: nodegit.Commit) {
-  const stopId = remoteCommit.id().tostrS();
+async function getCommitLogs (newCommit: nodegit.Commit, oldCommit: nodegit.Commit) {
+  const endId = oldCommit.id().tostrS();
   // Walk the history from this commit backwards.
-  const history = (await gitDDB.repository()!.getHeadCommit()).history();
+  const history = newCommit.history();
   const commitList = await new Promise<nodegit.Commit[]>((resolve, reject) => {
     const list: nodegit.Commit[] = [];
     history.on('commit', (commit: nodegit.Commit) => {
-      if (commit.id().tostrS() === stopId) {
+      if (commit.id().tostrS() === endId) {
         resolve(list);
       }
       else {
@@ -335,7 +335,10 @@ export async function push_worker (
 
   // Get commit log
   if (remoteCommit) {
-    syncResult.commits = await getCommitLogs(gitDDB, remoteCommit);
+    syncResult.commits = await getCommitLogs(
+      await gitDDB.repository()!.getHeadCommit(),
+      remoteCommit
+    );
   }
 
   const headCommit = await push(gitDDB, sync, taskId);
@@ -447,7 +450,14 @@ export async function sync_worker (
       );
       const changes = await getChanges(gitDDB, diff);
 
-      return { operation: 'fast-forward merge', local_changes: changes };
+      const syncResult: SyncResult = {
+        operation: 'fast-forward merge',
+        local_changes: changes,
+      };
+      // Get commit log
+      syncResult.commits = await getCommitLogs(newCommit, oldCommit);
+
+      return syncResult;
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
       // This case is occurred when
