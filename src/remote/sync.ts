@@ -292,49 +292,62 @@ export class Sync implements ISync {
    */
   tryPush (taskId?: string) {
     taskId ??= this._gitDDB.taskQueue.newTaskId();
-    return new Promise(
-      (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
-        this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue({
-          label: 'push',
-          taskId: taskId!,
-          func: beforeResolve =>
-            push_worker(this._gitDDB, this, taskId!)
-              .then((syncResult: SyncResult) => {
-                this._gitDDB.logger.debug(
-                  ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
-                    syncResult
-                  )}`
-                );
-                // Invoke success event
-                beforeResolve();
-                resolve(syncResult);
-              })
-              .catch(err => {
-                console.log(err);
+    const callback = (
+      resolve: (value: SyncResult) => void,
+      reject: (reason: any) => void
+    ) => {
+      return (beforeResolve: () => void) => {
+        return push_worker(this._gitDDB, this, taskId!)
+          .then((syncResult: SyncResult) => {
+            this._gitDDB.logger.debug(
+              ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
+                syncResult
+              )}`
+            );
+            // Invoke success event
+            beforeResolve();
+            resolve(syncResult);
+          })
+          .catch(err => {
+            console.log(err);
 
-                // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
-                if (this._retrySyncCounter === 0) {
-                  if (this._options.sync_direction === 'both') {
-                    const promise = this._retrySync();
-                    // Invoke fail event
-                    // Give promise to the event.
-                  }
-                  else if (this._options.sync_direction === 'pull') {
-                    // TODO:
-                  }
-                  else if (this._options.sync_direction === 'push') {
-                    // TODO:
-                  }
-                }
-                else {
-                  // Invoke fail event
-                }
-                beforeResolve();
-                reject(err);
-              }),
-        });
-      }
-    );
+            // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
+            if (this._retrySyncCounter === 0) {
+              if (this._options.sync_direction === 'both') {
+                const promise = this._retrySync();
+                // Invoke fail event
+                // Give promise to the event.
+              }
+              else if (this._options.sync_direction === 'pull') {
+                // TODO:
+              }
+              else if (this._options.sync_direction === 'push') {
+                // TODO:
+              }
+            }
+            else {
+              // Invoke fail event
+            }
+            beforeResolve();
+            reject(err);
+          });
+      };
+    };
+
+    const task = (
+      resolve: (value: SyncResult) => void,
+      reject: (reason: any) => void
+    ): Task => {
+      return {
+        label: 'push',
+        taskId: taskId!,
+        func: callback(resolve, reject),
+      };
+    };
+
+    return new Promise((resolve: (value: SyncResult) => void, reject) => {
+      this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
+    });
   }
 
   /**
