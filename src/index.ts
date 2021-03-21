@@ -518,6 +518,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
+   * - A put operation is not skipped when no change occurred on a specified document.
+   *
    * @param jsonDoc - See {@link JsonDoc} for restriction
    *
    * @throws {@link DatabaseClosingError}
@@ -541,6 +543,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * - put() does not check a write permission of your file system (unlike open()).
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   
+   * - A put operation is not skipped when no change occurred on a specified document.
    *
    * @param _id - _id property of a document
    * @param document - This is a {@link JsonDoc}, but _id property is ignored.
