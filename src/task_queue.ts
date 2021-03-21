@@ -114,12 +114,14 @@ export class TaskQueue {
           ConsoleStyle.BgYellow().FgBlack().tag()`Start ${label}(${targetId || ''})`
         );
 
-        this._currentTask.func().finally(() => {
-          this._statistics[label]++;
-
+        const beforeResolve = () => {
           this._logger.debug(
             ConsoleStyle.BgGreen().FgBlack().tag()`End ${label}(${targetId || ''})`
           );
+        };
+        this._currentTask.func(beforeResolve).finally(() => {
+          this._statistics[label]++;
+
           this._isTaskQueueWorking = false;
           this._currentTask = undefined;
           this._execTaskQueue();

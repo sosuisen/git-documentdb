@@ -313,7 +313,7 @@ export type Task = {
   label: TaskLabel;
   taskId: string;
   targetId?: string;
-  func: () => Promise<void>;
+  func: (beforeResolve: () => void) => Promise<void>;
 };
 
 /**

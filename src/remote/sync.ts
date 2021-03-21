@@ -295,7 +295,7 @@ export class Sync implements ISync {
         this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue({
           label: 'push',
           taskId: taskId!,
-          func: () =>
+          func: beforeResolve =>
             push_worker(this._gitDDB, this, taskId!)
               .then((syncResult: SyncResult) => {
                 this._gitDDB.logger.debug(
@@ -304,6 +304,7 @@ export class Sync implements ISync {
                   )}`
                 );
                 // Invoke success event
+                beforeResolve();
                 resolve(syncResult);
               })
               .catch(err => {
@@ -326,6 +327,7 @@ export class Sync implements ISync {
                 else {
                   // Invoke fail event
                 }
+                beforeResolve();
                 reject(err);
               }),
         });
@@ -343,7 +345,7 @@ export class Sync implements ISync {
         this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue({
           label: 'sync',
           taskId: taskId!,
-          func: () =>
+          func: beforeResolve =>
             sync_worker(this._gitDDB, this, taskId!)
               .then(syncResult => {
                 this._gitDDB.logger.debug(
@@ -354,6 +356,7 @@ export class Sync implements ISync {
                 // if changes
                 // this._eventHandlers.change.forEach(func => func(syncResult));
 
+                beforeResolve();
                 resolve(syncResult);
               })
               .catch(err => {
@@ -365,6 +368,7 @@ export class Sync implements ISync {
                 else {
                   // Invoke fail event
                 }
+                beforeResolve();
                 reject(err);
               }),
         });

@@ -66,10 +66,16 @@ export function removeImpl (
       label: 'remove',
       taskId: this.taskQueue.newTaskId(),
       targetId: _id,
-      func: () =>
+      func: beforeResolve =>
         remove_worker(this, _id, this.fileExt, options!.commit_message!)
-          .then((result: RemoveResult) => resolve(result))
-          .catch((err: Error) => reject(err)),
+          .then((result: RemoveResult) => {
+            beforeResolve();
+            resolve(result);
+          })
+          .catch((err: Error) => {
+            beforeResolve();
+            reject(err);
+          }),
     });
   });
 }
