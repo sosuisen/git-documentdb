@@ -278,6 +278,45 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
 }
 
 /**
+ * Get commit logs
+ *
+ * @remarks Logs are sorted from old to new
+ */
+async function getCommitLogs (gitDDB: AbstractDocumentDB, remoteCommit: nodegit.Commit) {
+  const stopId = remoteCommit.id().tostrS();
+  // Walk the history from this commit backwards.
+  const history = (await gitDDB.repository()!.getHeadCommit()).history();
+  const commitList = await new Promise<nodegit.Commit[]>((resolve, reject) => {
+    const list: nodegit.Commit[] = [];
+    history.on('commit', (commit: nodegit.Commit) => {
+      if (commit.id().tostrS() === stopId) {
+        resolve(list);
+      }
+      else {
+        list.unshift(commit);
+      }
+    });
+    history.on('end', () => {
+      reject(new Error('Unexpected end of walking commit history'));
+    });
+    history.on('error', error => {
+      reject(error);
+    });
+    history.start();
+  });
+  // The list is sorted from old to new.
+  const commitInfoList = commitList.map(commit => {
+    return {
+      id: commit.id().tostrS(),
+      date: commit.date(),
+      author: commit.author().toString(),
+      message: commit.message(),
+    };
+  });
+  return commitInfoList;
+}
+
+/**
  * push_worker
  */
 export async function push_worker (
@@ -295,39 +334,8 @@ export async function push_worker (
   };
 
   // Get commit log
-  let commitInfoList: CommitInfo[] | undefined;
-  if (remoteCommit !== undefined) {
-    const stopId = remoteCommit.id().tostrS();
-    // Walk the history from this commit backwards.
-    const history = (await gitDDB.repository()!.getHeadCommit()).history();
-    const commitList = await new Promise<nodegit.Commit[]>((resolve, reject) => {
-      const list: nodegit.Commit[] = [];
-      history.on('commit', (commit: nodegit.Commit) => {
-        if (commit.id().tostrS() === stopId) {
-          resolve(list);
-        }
-        else {
-          list.unshift(commit);
-        }
-      });
-      history.on('end', () => {
-        reject(new Error('Unexpected end of walking commit history'));
-      });
-      history.on('error', error => {
-        reject(error);
-      });
-      history.start();
-    });
-    // The list is sorted from old to new.
-    commitInfoList = commitList.map(commit => {
-      return {
-        id: commit.id().tostrS(),
-        date: commit.date(),
-        author: commit.author().toString(),
-        message: commit.message(),
-      };
-    });
-    syncResult.commits = commitInfoList;
+  if (remoteCommit) {
+    syncResult.commits = await getCommitLogs(gitDDB, remoteCommit);
   }
 
   const headCommit = await push(gitDDB, sync, taskId);
@@ -339,7 +347,7 @@ export async function push_worker (
       await remoteCommit.getTree(),
       await headCommit.getTree()
     );
-    syncResult.changes = await getChanges(gitDDB, diff);
+    syncResult.remote_changes = await getChanges(gitDDB, diff);
   }
 
   return syncResult;
@@ -414,9 +422,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    await push(gitDDB, sync, taskId);
-
-    return { operation: 'push' };
+    return await push_worker(gitDDB, sync, taskId);
   }
 
   if (conflictedIndex === undefined) {
@@ -441,7 +447,7 @@ export async function sync_worker (
       );
       const changes = await getChanges(gitDDB, diff);
 
-      return { operation: 'fast-forward merge', changes };
+      return { operation: 'fast-forward merge', local_changes: changes };
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
       // This case is occurred when
@@ -453,15 +459,16 @@ export async function sync_worker (
         await oldCommit.getTree(),
         await newCommit.getTree()
       );
-      const changes = await getChanges(gitDDB, diff);
+      const local_changes = await getChanges(gitDDB, diff);
 
       // Change commit message
       await commitAmendMessage(gitDDB, sync, newCommitOid!, 'merge');
 
       // Need push because it is merged normally.
-      await push(gitDDB, sync, taskId);
-
-      return { operation: 'merge and push', changes };
+      const syncResult = await push_worker(gitDDB, sync, taskId);
+      syncResult.operation = 'merge and push';
+      syncResult.local_changes = local_changes;
+      return syncResult;
     }
 
     /**
@@ -557,15 +564,16 @@ export async function sync_worker (
       await oldCommit.getTree(),
       await (await repos.getCommit(overwriteCommitOid)).getTree()
     );
-    const changes = await getChanges(gitDDB, diff);
+    const local_changes = await getChanges(gitDDB, diff);
 
     const opt = new nodegit.CheckoutOptions();
     opt.checkoutStrategy = nodegit.Checkout.STRATEGY.FORCE;
     await nodegit.Checkout.head(repos, opt);
 
     // Push
-    await push(gitDDB, sync, taskId);
-
-    return { operation: 'resolve conflicts and push', changes };
+    const syncResult = await push_worker(gitDDB, sync, taskId);
+    syncResult.operation = 'resolve conflicts and push';
+    syncResult.local_changes = local_changes;
+    return syncResult;
   }
 }

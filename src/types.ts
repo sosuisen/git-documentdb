@@ -365,7 +365,8 @@ export type SyncResult = {
     | 'merge and push'
     | 'resolve conflicts and push'
     | 'canceled';
-  changes?: FileChanges;
+  local_changes?: FileChanges;
+  remote_changes?: FileChanges;
   commits?: CommitInfo[]; // The list is sorted from old to new.
 };
 

@@ -425,8 +425,8 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult.operation).toBe('push');
       expect(syncResult.commits!.length).toBe(1);
       expect(syncResult.commits![0].id).toBe(putResult.commit_sha);
-      expect(syncResult.changes!.add.length).toBe(1); // A file is added
-      expect(syncResult.changes!.add[0].doc).toMatchObject(jsonA1);
+      expect(syncResult.remote_changes!.add.length).toBe(1); // A file is added
+      expect(syncResult.remote_changes!.add[0].doc).toMatchObject(jsonA1);
 
       // Put and push the same document again
 
@@ -438,8 +438,8 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult2.operation).toBe('push');
       expect(syncResult2.commits!.length).toBe(1);
       expect(syncResult2.commits![0].id).toBe(putResult2.commit_sha);
-      expect(syncResult2.changes!.add.length).toBe(0);
-      expect(syncResult2.changes!.modify.length).toBe(0); // No file change
+      expect(syncResult2.remote_changes!.add.length).toBe(0);
+      expect(syncResult2.remote_changes!.modify.length).toBe(0); // No file change
 
       // Put and push an updated document
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -448,9 +448,9 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult3.operation).toBe('push');
       expect(syncResult3.commits!.length).toBe(1);
       expect(syncResult3.commits![0].id).toBe(putResult3.commit_sha);
-      expect(syncResult3.changes!.add.length).toBe(0);
-      expect(syncResult3.changes!.modify.length).toBe(1);
-      expect(syncResult3.changes!.modify[0].doc).toMatchObject(jsonA1dash);
+      expect(syncResult3.remote_changes!.add.length).toBe(0);
+      expect(syncResult3.remote_changes!.modify.length).toBe(1);
+      expect(syncResult3.remote_changes!.modify[0].doc).toMatchObject(jsonA1dash);
 
       // Put and push another document
       const jsonA4 = { _id: '2', name: 'fromA' };
@@ -459,9 +459,9 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult4.operation).toBe('push');
       expect(syncResult4.commits!.length).toBe(1);
       expect(syncResult4.commits![0].id).toBe(putResult4.commit_sha);
-      expect(syncResult4.changes!.add.length).toBe(1);
-      expect(syncResult4.changes!.add[0].doc).toMatchObject(jsonA4);
-      expect(syncResult4.changes!.modify.length).toBe(0);
+      expect(syncResult4.remote_changes!.add.length).toBe(1);
+      expect(syncResult4.remote_changes!.add[0].doc).toMatchObject(jsonA4);
+      expect(syncResult4.remote_changes!.modify.length).toBe(0);
 
       await dbA.destroy();
     });
@@ -490,7 +490,7 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult.commits!.length).toBe(2);
       expect(syncResult.commits![0].id).toBe(putResult1.commit_sha);
       expect(syncResult.commits![1].id).toBe(putResult2.commit_sha);
-      expect(syncResult.changes!.add.length).toBe(2);
+      expect(syncResult.remote_changes!.add.length).toBe(2);
 
       // put an updated document and another document
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -502,10 +502,10 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult2.commits!.length).toBe(2);
       expect(syncResult2.commits![0].id).toBe(putResult3.commit_sha);
       expect(syncResult2.commits![1].id).toBe(putResult4.commit_sha);
-      expect(syncResult2.changes!.add.length).toBe(1);
-      expect(syncResult2.changes!.add[0].doc).toMatchObject(jsonA4);
-      expect(syncResult2.changes!.modify.length).toBe(1);
-      expect(syncResult2.changes!.modify[0].doc).toMatchObject(jsonA1dash);
+      expect(syncResult2.remote_changes!.add.length).toBe(1);
+      expect(syncResult2.remote_changes!.add[0].doc).toMatchObject(jsonA4);
+      expect(syncResult2.remote_changes!.modify.length).toBe(1);
+      expect(syncResult2.remote_changes!.modify[0].doc).toMatchObject(jsonA1dash);
 
       await dbA.destroy();
     });
@@ -534,10 +534,10 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult1.operation).toBe('push');
       expect(syncResult1.commits!.length).toBe(1);
       expect(syncResult1.commits![0].id).toBe(removeResult1.commit_sha);
-      expect(syncResult1.changes!.add.length).toBe(0);
-      expect(syncResult1.changes!.modify.length).toBe(0);
-      expect(syncResult1.changes!.remove.length).toBe(1);
-      expect(syncResult1.changes!.remove[0].id).toBe('1');
+      expect(syncResult1.remote_changes!.add.length).toBe(0);
+      expect(syncResult1.remote_changes!.modify.length).toBe(0);
+      expect(syncResult1.remote_changes!.remove.length).toBe(1);
+      expect(syncResult1.remote_changes!.remove[0].id).toBe('1');
 
       // Put and remove a document
       const putResult2 = await dbA.put(jsonA1);
@@ -547,9 +547,9 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult2.commits!.length).toBe(2);
       expect(syncResult2.commits![0].id).toBe(putResult2.commit_sha);
       expect(syncResult2.commits![1].id).toBe(removeResult2.commit_sha);
-      expect(syncResult2.changes!.add.length).toBe(0); // Must not be 1 but 0, because diff is empty.
-      expect(syncResult2.changes!.modify.length).toBe(0);
-      expect(syncResult2.changes!.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
+      expect(syncResult2.remote_changes!.add.length).toBe(0); // Must not be 1 but 0, because diff is empty.
+      expect(syncResult2.remote_changes!.modify.length).toBe(0);
+      expect(syncResult2.remote_changes!.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
       await dbA.destroy();
     });
