@@ -228,10 +228,23 @@ export type AllDocsResult = {
  *
  * @public
  */
-export type JsonDocWithMetadata = {
+export type JsonDocWithMetadata = DocMetadata & {
+  doc?: JsonDoc;
+};
+
+/**
+ * Type for a document metadata
+ *
+ * @remarks
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ *
+ * - file_sha: SHA-1 hash of Git object (40 characters)
+ *
+ * @public
+ */
+export type DocMetadata = {
   id: string;
   file_sha: string;
-  doc?: JsonDoc;
 };
 
 /**
@@ -324,13 +337,25 @@ export type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' |
  * Changed files in merge
  */
 export type FileChanges = {
-  add: string[];
-  remove: string[];
-  modify: string[];
+  add: JsonDocWithMetadata[];
+  remove: DocMetadata[];
+  modify: JsonDocWithMetadata[];
+};
+
+/**
+ * Commit information
+ */
+export type CommitInfo = {
+  id: string;
+  date: Date;
+  author: string;
+  message: string;
 };
 
 /**
  * Result from sync_worker()
+ *
+ * @remarks 'commits' is sorted from old to new.
  */
 export type SyncResult = {
   operation:
@@ -341,4 +366,15 @@ export type SyncResult = {
     | 'resolve conflicts and push'
     | 'canceled';
   changes?: FileChanges;
+  commits?: CommitInfo[]; // The list is sorted from old to new.
+};
+
+/**
+ * Sync event
+ *
+ * @remarks 'commits' is sorted from old to new.
+ */
+export type SyncChangeEvent = {
+  changes: FileChanges;
+  commits?: CommitInfo[]; // The list is sorted from old to new.
 };

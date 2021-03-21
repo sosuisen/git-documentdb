@@ -14,7 +14,14 @@ import {
   RepositoryNotOpenError,
   UndefinedRemoteURLError,
 } from '../error';
-import { FileChanges, ISync, RemoteOptions, SyncEvent, SyncResult } from '../types';
+import {
+  FileChanges,
+  ISync,
+  RemoteOptions,
+  SyncChangeEvent,
+  SyncEvent,
+  SyncResult,
+} from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './sync_worker';
 import { createCredential } from './authentication';
@@ -48,7 +55,7 @@ export class Sync implements ISync {
   private _retrySyncCounter = 0;
 
   private _eventHandlers: {
-    change: ((res: FileChanges) => void)[];
+    change: ((event: SyncChangeEvent) => void)[];
     paused: ((res: any) => void)[];
     active: ((res: any) => void)[];
     denied: ((res: any) => void)[];
@@ -290,14 +297,18 @@ export class Sync implements ISync {
           taskId: taskId!,
           func: () =>
             push_worker(this._gitDDB, this, taskId!)
-              .then((result: SyncResult) => {
+              .then((syncResult: SyncResult) => {
                 this._gitDDB.logger.debug(
-                  ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${result.operation}`
+                  ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
+                    syncResult
+                  )}`
                 );
                 // Invoke success event
-                resolve(result);
+                resolve(syncResult);
               })
               .catch(err => {
+                console.log(err);
+
                 // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
                 if (this._retrySyncCounter === 0) {
                   if (this._options.sync_direction === 'both') {
@@ -336,17 +347,13 @@ export class Sync implements ISync {
             sync_worker(this._gitDDB, this, taskId!)
               .then(syncResult => {
                 this._gitDDB.logger.debug(
-                  ConsoleStyle.BgWhite()
-                    .FgBlack()
-                    .tag()`sync_worker: ${syncResult.operation}`
-                );
-                if (syncResult.changes !== undefined) {
                   ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
-                    syncResult.changes
-                  )}`;
-                  this._eventHandlers.change.forEach(func => func(syncResult.changes!));
-                }
-                // Invoke success event
+                    syncResult
+                  )}`
+                );
+                // if changes
+                // this._eventHandlers.change.forEach(func => func(syncResult));
+
                 resolve(syncResult);
               })
               .catch(err => {
@@ -365,12 +372,12 @@ export class Sync implements ISync {
     );
   }
 
-  on (event: SyncEvent, callback: (res: FileChanges) => void) {
+  on (event: SyncEvent, callback: (res: SyncChangeEvent) => void) {
     this._eventHandlers[event].push(callback);
     return this;
   }
 
-  off (event: SyncEvent, callback: (res: FileChanges) => void) {
+  off (event: SyncEvent, callback: (res: SyncChangeEvent) => void) {
     this._eventHandlers[event] = this._eventHandlers[event].filter(
       func => func !== callback
     );
