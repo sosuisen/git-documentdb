@@ -18,7 +18,6 @@ import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
-  CannotPushBecauseUnfetchedCommitExistsError,
   HttpProtocolRequiredError,
   IntervalTooSmallError,
   InvalidRepositoryURLError,
@@ -27,13 +26,7 @@ import {
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
 } from '../src/error';
-import {
-  defaultRetry,
-  defaultRetryInterval,
-  minimumSyncInterval,
-  Sync,
-} from '../src/remote/sync';
-import { sleep } from '../src/utils';
+import { minimumSyncInterval, Sync } from '../src/remote/sync';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
 const ulid = monotonicFactory();

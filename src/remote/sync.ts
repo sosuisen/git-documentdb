@@ -7,7 +7,6 @@
  */
 
 import { setInterval } from 'timers';
-import { callbackify } from 'util';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
@@ -16,7 +15,6 @@ import {
   UndefinedRemoteURLError,
 } from '../error';
 import {
-  FileChanges,
   ISync,
   RemoteOptions,
   SyncChangeEvent,
