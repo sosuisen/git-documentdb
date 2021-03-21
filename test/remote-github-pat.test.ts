@@ -408,780 +408,241 @@ maybe('remote: use personal access token: ', () => {
     test.skip('Remote remote repository');
   });
 
-  /**
-   * Initialize synchronization by open() with remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
-   */
-  describe('Initialize synchronization by open(): ', () => {
-    /**
-     * Basics: A is empty, creates remote, puts data; B is empty, clones the remote
-     */
-    describe('Basics: A puts data; B clones the remote: ', () => {
-      const localDir = `./test/database_remote_by_pat_${monoId()}`;
-      beforeAll(() => {
-        // Remove local repositories
-        fs.removeSync(path.resolve(localDir));
-      });
-
-      afterAll(() => {
-        // fs.removeSync(path.resolve(localDir));
-      });
-
-      test('B checks cloned document', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-        await remoteA.tryPush();
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(options);
-        await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test('Race condition of two tryPush() calls', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(options);
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        await expect(
-          Promise.all([remoteA.tryPush(), remoteB.tryPush()])
-        ).rejects.toThrowError(CannotPushBecauseUnfetchedCommitExistsError);
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test('Ordered condition of two tryPush() calls', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(options);
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        await remoteA.tryPush();
-        await expect(remoteB.tryPush()).rejects.toThrowError(
-          CannotPushBecauseUnfetchedCommitExistsError
-        );
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test('Race condition of two trySync() calls: trySync() again by hand before retrySync()', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(options);
-        const jsonB1 = { _id: '2', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        const [resultA, resultB] = await Promise.all([
-          remoteA.trySync().catch(() => undefined),
-          remoteB.trySync().catch(() => undefined),
-        ]);
-        // CannotPushBecauseUnfetchedCommitExistsError
-        expect(resultA === undefined || resultB === undefined).toBe(true);
-        if (resultA === undefined) {
-          await expect(remoteA.trySync('1')).resolves.toMatchObject({
-            operation: 'merge and push',
-          });
-        }
-        else {
-          await expect(remoteB.trySync('1')).resolves.toMatchObject({
-            operation: 'merge and push',
-          });
-        }
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test('Race condition of two trySync() calls: retrySync() will occur (interval 0ms) before trySync by hand', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        // Set retry interval to 0ms
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          retry_interval: 0,
-        };
-        await dbA.open(options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(options);
-        const jsonB1 = { _id: '2', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        const [resultA, resultB] = await Promise.all([
-          remoteA.trySync().catch(() => undefined),
-          remoteB.trySync().catch(() => undefined),
-        ]);
-        // CannotPushBecauseUnfetchedCommitExistsError
-
-        // Problem has been solved automatically by retrySync(),
-        // so next trySync do nothing.
-        await sleep(3000);
-        if (resultA === undefined) {
-          await expect(remoteA.trySync('1')).resolves.toMatchObject({ operation: 'nop' });
-        }
-        else {
-          await expect(remoteB.trySync('1')).resolves.toMatchObject({ operation: 'nop' });
-        }
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test('Resolve conflict', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(options);
-        // The same id
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        await remoteA.tryPush();
-        await expect(remoteB.trySync()).resolves.toMatchObject({
-          operation: 'resolve conflicts and push',
-        });
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-    });
-
-    /**
-     * Sync automatically (live)
-     */
-    describe('Sync automatically (live): ', () => {
-      const localDir = `./test/database_remote_by_pat_${monoId()}`;
-      test('Live starts from open(): Check if live starts', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 3000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
-        expect(remoteA.options().interval).toBe(interval);
-
-        // Wait live sync()
-        while (dbA.taskQueue.statistics().sync === 0) {
-          // eslint-disable-next-line no-await-in-loop
-          await sleep(500);
-        }
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.open(options);
-        await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test('cancel()', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 1000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.taskQueue.statistics().sync;
-        remoteA.cancel();
-        await sleep(3000);
-        expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.taskQueue.statistics().sync).toBe(count);
-
-        await dbA.destroy();
-      });
-
-      test('pause() and resume()', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 1000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.taskQueue.statistics().sync;
-        expect(remoteA.pause()).toBeTruthy();
-        expect(remoteA.pause()).toBeFalsy(); // ignored
-
-        await sleep(3000);
-        expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.taskQueue.statistics().sync).toBe(count);
-
-        expect(remoteA.resume()).toBeTruthy();
-        expect(remoteA.resume()).toBeFalsy(); // ignored
-        await sleep(3000);
-        expect(remoteA.options().live).toBeTruthy();
-        expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(count);
-
-        await dbA.destroy();
-      });
-
-      test('Cancel when gitDDB.close()', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 1000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.taskQueue.statistics().sync;
-        await dbA.close();
-
-        remoteA.resume(); // resume() must be ignored after close();
-
-        await sleep(3000);
-        expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.taskQueue.statistics().sync).toBe(count);
-
-        await dbA.destroy();
-      });
-
-      test('Check intervals', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 1000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().interval).toBe(interval);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        // Wait live sync()
-        while (dbA.taskQueue.statistics().sync === 0) {
-          // eslint-disable-next-line no-await-in-loop
-          await sleep(500);
-        }
-        remoteA.pause();
-
-        const jsonA2 = { _id: '2', name: 'fromA' };
-        await dbA.put(jsonA2);
-
-        const currentCount = dbA.taskQueue.statistics().sync;
-        // Change interval
-        remoteA.resume({
-          interval: 5000,
-        });
-        expect(remoteA.options().interval).toBe(5000);
-        await sleep(3000);
-        // Check count before next sync()
-        expect(dbA.taskQueue.statistics().sync).toBe(currentCount);
-
-        await dbA.destroy();
-      });
-
-      test('Repeat trySync() automatically', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 1000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-
-        const remoteA = dbA.getRemote(remoteURL);
-
-        await sleep(10000);
-        expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(5);
-
-        await dbA.destroy();
-      });
-
-      test('Check skip of consecutive sync tasks', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 30000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(options);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-
-        const remoteA = dbA.getRemote(remoteURL);
-
-        for (let i = 0; i < 10; i++) {
-          remoteA.trySync();
-        }
-        await sleep(5000);
-        expect(dbA.taskQueue.statistics().sync).toBe(1);
-
-        await dbA.destroy();
-      });
-    });
-
-    /**
-     * Retry sync
-     */
-    describe('Retry sync: ', () => {
-      const localDir = `./test/database_remote_by_pat_${monoId()}`;
-      test('No retry', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const optionsA: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          interval: 1000,
-          sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(optionsA);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().retry).toBe(defaultRetry);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        const optionsB: RemoteOptions = {
-          remote_url: remoteURL,
-          retry: 0, // no retry
-          retry_interval: 0,
-          sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
-        };
-
-        await dbB.open(optionsB);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        await sleep(3000);
-
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        await expect(remoteB.tryPush()).rejects.toThrowError(
-          CannotPushBecauseUnfetchedCommitExistsError
-        );
-        const currentSyncCount = dbB.taskQueue.statistics().sync;
-        await sleep(5000);
-        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test('Check retry interval', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const optionsA: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          interval: 1000,
-          sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.open(optionsA);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().retry).toBe(defaultRetry);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        const optionsB: RemoteOptions = {
-          remote_url: remoteURL,
-          retry_interval: 5000,
-          sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
-        };
-
-        await dbB.open(optionsB);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        await sleep(3000);
-
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        await expect(remoteB.tryPush()).rejects.toThrowError(
-          CannotPushBecauseUnfetchedCommitExistsError
-        );
-        const currentSyncCount = dbB.taskQueue.statistics().sync;
-        await sleep(2000);
-        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
-        await sleep(7000);
-        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount + 1);
-
-        await dbA.destroy();
-        await dbB.destroy();
-      });
-
-      test.skip('More retries', () => {
-        // Test this using behavior_for_no_merge_base option
-      });
-    });
-  });
-
-  /**
-   * Initialize synchronization by sync() with remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
-   */
-  describe('Initialize synchronization by sync()', () => {
+  describe('Check push result', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
 
-    test('Overload of sync()', async () => {
+    test('put once followed by push', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
-
       const dbA: GitDocumentDB = new GitDocumentDB({
         db_name: dbNameA,
         local_dir: localDir,
       });
-
-      await dbA.open();
-      const options: RemoteOptions = {
-        live: true,
-        interval: 1000,
-        sync_direction: 'both',
-        auth: { type: 'github', personal_access_token: token },
-      };
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-
-      const remoteA = await dbA.sync(remoteURL, options);
-
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
-      });
-      await dbB.open(options);
-      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-
-      await dbA.destroy();
-      await dbB.destroy();
-    });
-
-    test('A initializes synchronization by sync(); B initializes synchronization by open(), clones the remote: ', async () => {
-      const remoteURL = remoteURLBase + serialId();
-      const dbNameA = serialId();
-
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-
-      await dbA.open();
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: true,
-        interval: 1000,
-        sync_direction: 'both',
         auth: { type: 'github', personal_access_token: token },
       };
+      await dbA.open(options);
+
+      // Put and push
       const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
+      const putResult = await dbA.put(jsonA1);
+      const remoteA = dbA.getRemote(remoteURL);
+      const syncResult = await remoteA.tryPush();
+      expect(syncResult.operation).toBe('push');
+      expect(syncResult.commits!.length).toBe(1);
+      expect(syncResult.commits![0].id).toBe(putResult.commit_sha);
+      expect(syncResult.changes!.add.length).toBe(1); // A file is added
+      expect(syncResult.changes!.add[0].doc).toMatchObject(jsonA1);
 
-      const remoteA = await dbA.sync(options);
+      // Put and push the same document again
 
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
-      });
-      await dbB.open(options);
-      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
+      // This document is same as the previous document.
+      // put() executes a commit though no change is occurred on the document.
+      // (This behavior aligns with put() API)
+      const putResult2 = await dbA.put(jsonA1);
+      const syncResult2 = await remoteA.tryPush();
+      expect(syncResult2.operation).toBe('push');
+      expect(syncResult2.commits!.length).toBe(1);
+      expect(syncResult2.commits![0].id).toBe(putResult2.commit_sha);
+      expect(syncResult2.changes!.add.length).toBe(0);
+      expect(syncResult2.changes!.modify.length).toBe(0); // No file change
+
+      // Put and push an updated document
+      const jsonA1dash = { _id: '1', name: 'updated' };
+      const putResult3 = await dbA.put(jsonA1dash);
+      const syncResult3 = await remoteA.tryPush();
+      expect(syncResult3.operation).toBe('push');
+      expect(syncResult3.commits!.length).toBe(1);
+      expect(syncResult3.commits![0].id).toBe(putResult3.commit_sha);
+      expect(syncResult3.changes!.add.length).toBe(0);
+      expect(syncResult3.changes!.modify.length).toBe(1);
+      expect(syncResult3.changes!.modify[0].doc).toMatchObject(jsonA1dash);
+
+      // Put and push another document
+      const jsonA4 = { _id: '2', name: 'fromA' };
+      const putResult4 = await dbA.put(jsonA4);
+      const syncResult4 = await remoteA.tryPush();
+      expect(syncResult4.operation).toBe('push');
+      expect(syncResult4.commits!.length).toBe(1);
+      expect(syncResult4.commits![0].id).toBe(putResult4.commit_sha);
+      expect(syncResult4.changes!.add.length).toBe(1);
+      expect(syncResult4.changes!.add[0].doc).toMatchObject(jsonA4);
+      expect(syncResult4.changes!.modify.length).toBe(0);
 
       await dbA.destroy();
-      await dbB.destroy();
     });
 
-    test('A initializes synchronization by sync(); B initialize synchronization by open(), close(), open() again with no remote, following sync(): ', async () => {
+    test('put twice followed by push', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
-
       const dbA: GitDocumentDB = new GitDocumentDB({
         db_name: dbNameA,
         local_dir: localDir,
       });
-
-      await dbA.open();
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: true,
-        interval: 1000,
-        sync_direction: 'both',
         auth: { type: 'github', personal_access_token: token },
       };
+      await dbA.open(options);
+
+      // Two put commands and push
       const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
+      const putResult1 = await dbA.put(jsonA1);
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult2 = await dbA.put(jsonA2);
+      const remoteA = dbA.getRemote(remoteURL);
+      const syncResult = await remoteA.tryPush();
+      expect(syncResult.operation).toBe('push');
+      expect(syncResult.commits!.length).toBe(2);
+      expect(syncResult.commits![0].id).toBe(putResult1.commit_sha);
+      expect(syncResult.commits![1].id).toBe(putResult2.commit_sha);
+      expect(syncResult.changes!.add.length).toBe(2);
 
-      const remoteA = await dbA.sync(options);
-
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
-      });
-      await dbB.open(options);
-      await dbB.close();
-
-      await dbB.open();
-      const jsonB1 = { _id: '1', name: 'fromB' };
-      await dbB.put(jsonB1);
-
-      await dbB.sync(options);
-      await expect(dbB.get(jsonB1._id)).resolves.toMatchObject(jsonB1);
-
-      // Wait next sync()
-      const count = dbA.taskQueue.statistics().sync;
-      while (dbA.taskQueue.statistics().sync === count) {
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(500);
-      }
-      await expect(dbA.get(jsonA1._id)).resolves.toMatchObject(jsonB1);
+      // put an updated document and another document
+      const jsonA1dash = { _id: '1', name: 'updated' };
+      const putResult3 = await dbA.put(jsonA1dash);
+      const jsonA4 = { _id: '4', name: 'fromA' };
+      const putResult4 = await dbA.put(jsonA4);
+      const syncResult2 = await remoteA.tryPush();
+      expect(syncResult2.operation).toBe('push');
+      expect(syncResult2.commits!.length).toBe(2);
+      expect(syncResult2.commits![0].id).toBe(putResult3.commit_sha);
+      expect(syncResult2.commits![1].id).toBe(putResult4.commit_sha);
+      expect(syncResult2.changes!.add.length).toBe(1);
+      expect(syncResult2.changes!.add[0].doc).toMatchObject(jsonA4);
+      expect(syncResult2.changes!.modify.length).toBe(1);
+      expect(syncResult2.changes!.modify[0].doc).toMatchObject(jsonA1dash);
 
       await dbA.destroy();
-      await dbB.destroy();
+    });
+
+    test('put and remove followed by push', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(options);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      const remoteA = dbA.getRemote(remoteURL);
+      await remoteA.tryPush();
+
+      // Remove the previous put document
+      const removeResult1 = await dbA.remove(jsonA1);
+      const syncResult1 = await remoteA.tryPush();
+      expect(syncResult1.operation).toBe('push');
+      expect(syncResult1.commits!.length).toBe(1);
+      expect(syncResult1.commits![0].id).toBe(removeResult1.commit_sha);
+      expect(syncResult1.changes!.add.length).toBe(0);
+      expect(syncResult1.changes!.modify.length).toBe(0);
+      expect(syncResult1.changes!.remove.length).toBe(1);
+      expect(syncResult1.changes!.remove[0].id).toBe('1');
+
+      // Put and remove a document
+      const putResult2 = await dbA.put(jsonA1);
+      const removeResult2 = await dbA.remove(jsonA1);
+      const syncResult2 = await remoteA.tryPush();
+      expect(syncResult2.operation).toBe('push');
+      expect(syncResult2.commits!.length).toBe(2);
+      expect(syncResult2.commits![0].id).toBe(putResult2.commit_sha);
+      expect(syncResult2.commits![1].id).toBe(removeResult2.commit_sha);
+      expect(syncResult2.changes!.add.length).toBe(0); // Must not be 1 but 0, because diff is empty.
+      expect(syncResult2.changes!.modify.length).toBe(0);
+      expect(syncResult2.changes!.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
+
+      await dbA.destroy();
     });
   });
 
-  /**
-   * Initialize synchronization by open() with remoteURL, close(), open() again with another remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
-   */
-  describe('Initialize synchronization by open() with remote_url, close(), open() again with another remote_url: ', () => {
-    test.skip('Open() again with the same repository with another remote_url');
-    test.skip('Open() again with a different repository with another remote_url', () => {
-      // no merge base
+  describe.skip('Check sync result', () => {
+    const localDir = `./test/database_remote_by_pat_${monoId()}`;
+
+    test.skip('Fast-forward merge: add one file', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(options);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      // Clone dbA
+      await dbB.open(options);
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      const remoteA = dbA.getRemote(remoteURL);
+      await remoteA.tryPush();
+
+      // B syncs
+      const remoteB = dbB.getRemote(remoteURL);
+      const result = await remoteB.trySync();
+      console.log('#Fast-forward merge: add 1.json');
+      console.log(JSON.stringify(result));
+
+      await dbA.destroy();
+      await dbB.destroy();
     });
-  });
-  /**
-   * Initialize synchronization by open() with remoteURL, close(), open() again with no remoteURL, following sync() with another remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
-   */
-  describe('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
-    test.skip('Open() again with the same repository with another remote_url');
-    test.skip('Open() again with a different repository with another remote_url', () => {
-      // no merge base
+
+    test('Fast-forward merge: add two files', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      await dbA.open(options);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      // Clone dbA
+      await dbB.open(options);
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await dbA.put(jsonA2);
+      const remoteA = dbA.getRemote(remoteURL);
+      await remoteA.tryPush();
+
+      // B syncs
+      const remoteB = dbB.getRemote(remoteURL);
+      const result = await remoteB.trySync();
+      console.log('#Fast-forward merge: add 1.json, 2.json');
+      console.log(JSON.stringify(result));
+
+      await dbA.destroy();
+      await dbB.destroy();
     });
   });
 
