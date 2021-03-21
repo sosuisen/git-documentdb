@@ -7,6 +7,7 @@
  */
 
 import { setInterval } from 'timers';
+import { callbackify } from 'util';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
@@ -21,6 +22,7 @@ import {
   SyncChangeEvent,
   SyncEvent,
   SyncResult,
+  Task,
 } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { push_worker, sync_worker } from './sync_worker';
@@ -340,40 +342,53 @@ export class Sync implements ISync {
    */
   trySync (taskId?: string) {
     taskId ??= this._gitDDB.taskQueue.newTaskId();
-    return new Promise(
-      (resolve: (value: SyncResult | PromiseLike<SyncResult>) => void, reject) => {
-        this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue({
-          label: 'sync',
-          taskId: taskId!,
-          func: beforeResolve =>
-            sync_worker(this._gitDDB, this, taskId!)
-              .then(syncResult => {
-                this._gitDDB.logger.debug(
-                  ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
-                    syncResult
-                  )}`
-                );
-                // if changes
-                // this._eventHandlers.change.forEach(func => func(syncResult));
+    const callback = (
+      resolve: (value: SyncResult) => void,
+      reject: (reason: any) => void
+    ) => {
+      return (beforeResolve: () => void) => {
+        return sync_worker(this._gitDDB, this, taskId!)
+          .then(syncResult => {
+            this._gitDDB.logger.debug(
+              ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
+                syncResult
+              )}`
+            );
+            // if changes
+            // this._eventHandlers.change.forEach(func => func(syncResult));
 
-                beforeResolve();
-                resolve(syncResult);
-              })
-              .catch(err => {
-                if (this._retrySyncCounter === 0) {
-                  const promise = this._retrySync();
-                  // Invoke fail event
-                  // Give promise to the event.
-                }
-                else {
-                  // Invoke fail event
-                }
-                beforeResolve();
-                reject(err);
-              }),
-        });
-      }
-    );
+            beforeResolve();
+            resolve(syncResult);
+          })
+          .catch(err => {
+            if (this._retrySyncCounter === 0) {
+              const promise = this._retrySync();
+              // Invoke fail event
+              // Give promise to the event.
+            }
+            else {
+              // Invoke fail event
+            }
+            beforeResolve();
+            reject(err);
+          });
+      };
+    };
+
+    const task = (
+      resolve: (value: SyncResult) => void,
+      reject: (reason: any) => void
+    ): Task => {
+      return {
+        label: 'sync',
+        taskId: taskId!,
+        func: callback(resolve, reject),
+      };
+    };
+
+    return new Promise((resolve: (value: SyncResult) => void, reject) => {
+      this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
+    });
   }
 
   on (event: SyncEvent, callback: (res: SyncChangeEvent) => void) {
