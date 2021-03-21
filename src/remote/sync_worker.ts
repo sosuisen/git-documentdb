@@ -243,18 +243,23 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
       .newFile()
       .path()
       .replace(new RegExp(gitDDB.fileExt + '$'), '');
-    const docMetadata: DocMetadata = {
+    const oldDocMetadata: DocMetadata = {
+      id: docId,
+      file_sha: delta.oldFile().id().tostrS(),
+    };
+    const newDocMetadata: DocMetadata = {
       id: docId,
       file_sha: delta.newFile().id().tostrS(),
     };
     if (oldExist && !newExist) {
       //      console.log(delta.newFile().path() + ' is removed.');
-      changes.remove.push(docMetadata);
+      // Use oldFile. newFile is empty when removed.
+      changes.remove.push(oldDocMetadata);
     }
     else if (!oldExist && newExist) {
       // console.log(delta.newFile().path() + ' is added.');
       changes.add.push({
-        ...docMetadata,
+        ...newDocMetadata,
         // eslint-disable-next-line no-await-in-loop
         doc: await getDocument(gitDDB, docId, delta.newFile().id()),
       });
@@ -262,7 +267,7 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
     else if (oldExist && newExist) {
       // console.log(delta.newFile().path() + ' is modified.');
       changes.modify.push({
-        ...docMetadata,
+        ...newDocMetadata,
         // eslint-disable-next-line no-await-in-loop
         doc: await getDocument(gitDDB, docId, delta.newFile().id()),
       });
