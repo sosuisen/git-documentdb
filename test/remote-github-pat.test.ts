@@ -106,7 +106,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * Tests for constructor
    */
-  describe('constructor: ', () => {
+  describe.skip('constructor: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -257,7 +257,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * connectToRemote
    */
-  describe('connect(): ', () => {
+  describe.skip('connect(): ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -353,7 +353,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * Operate remote repository
    */
-  describe('Operate remote repository: ', () => {
+  describe.skip('Operate remote repository: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -401,7 +401,7 @@ maybe('remote: use personal access token: ', () => {
     test.skip('Remote remote repository');
   });
 
-  describe('Check push result', () => {
+  describe.skip('Check push result', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
 
     test('put once followed by push', async () => {
@@ -555,10 +555,12 @@ maybe('remote: use personal access token: ', () => {
     });
   });
 
-  describe.skip('Check sync result', () => {
+  describe('Check sync result', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
 
-    test.skip('Fast-forward merge: add one file', async () => {
+    test.skip('Push');
+
+    test('Fast-forward merge: add one file', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -583,18 +585,23 @@ maybe('remote: use personal access token: ', () => {
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
+      const putResult1 = await dbA.put(jsonA1);
       const remoteA = dbA.getRemote(remoteURL);
       await remoteA.tryPush();
 
       // B syncs
       const remoteB = dbB.getRemote(remoteURL);
-      const result = await remoteB.trySync();
-      console.log('#Fast-forward merge: add 1.json');
-      console.log(JSON.stringify(result));
+      const syncResult1 = await remoteB.trySync();
+      expect(syncResult1.operation).toBe('fast-forward merge');
+      expect(syncResult1.commits!.length).toBe(1);
+      expect(syncResult1.commits![0].id).toBe(putResult1.commit_sha);
+      expect(syncResult1.local_changes!.add.length).toBe(1);
+      expect(syncResult1.local_changes!.modify.length).toBe(0);
+      expect(syncResult1.local_changes!.remove.length).toBe(0);
+      expect(syncResult1.local_changes!.add[0].doc).toMatchObject(jsonA1);
 
-      await dbA.destroy();
-      await dbB.destroy();
+      await dbA.destroy().catch(e => console.debug(e));
+      await dbB.destroy().catch(e => console.debug(e));
     });
 
     test('Fast-forward merge: add two files', async () => {
@@ -623,19 +630,24 @@ maybe('remote: use personal access token: ', () => {
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const jsonA2 = { _id: '2', name: 'fromA' };
-      await dbA.put(jsonA1);
-      await dbA.put(jsonA2);
+      const putResult1 = await dbA.put(jsonA1);
+      const putResult2 = await dbA.put(jsonA2);
       const remoteA = dbA.getRemote(remoteURL);
       await remoteA.tryPush();
 
       // B syncs
       const remoteB = dbB.getRemote(remoteURL);
-      const result = await remoteB.trySync();
-      console.log('#Fast-forward merge: add 1.json, 2.json');
-      console.log(JSON.stringify(result));
+      const syncResult1 = await remoteB.trySync();
+      expect(syncResult1.operation).toBe('fast-forward merge');
+      expect(syncResult1.commits!.length).toBe(2);
+      expect(syncResult1.commits![0].id).toBe(putResult1.commit_sha);
+      expect(syncResult1.commits![1].id).toBe(putResult2.commit_sha);
+      expect(syncResult1.local_changes!.add.length).toBe(2);
+      expect(syncResult1.local_changes!.modify.length).toBe(0);
+      expect(syncResult1.local_changes!.remove.length).toBe(0);
 
-      await dbA.destroy();
-      await dbB.destroy();
+      await dbA.destroy().catch(err => console.debug(err));
+      await dbB.destroy().catch(err => console.debug(err));
     });
   });
 
