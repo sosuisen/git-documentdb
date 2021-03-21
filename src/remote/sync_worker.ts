@@ -12,17 +12,22 @@ import fs from 'fs-extra';
 import { ConsoleStyle } from '../utils';
 import {
   CannotPushBecauseUnfetchedCommitExistsError,
+  InvalidJsonObjectError,
   NoMergeBaseFoundError,
   RepositoryNotOpenError,
   SyncWorkerFetchError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { FileChanges, ISync, SyncResult } from '../types';
+import { CommitInfo, DocMetadata, FileChanges, ISync, JsonDoc, SyncResult } from '../types';
 
 /**
  * git push
  */
-async function push (gitDDB: AbstractDocumentDB, sync: ISync, taskId: string) {
+async function push (
+  gitDDB: AbstractDocumentDB,
+  sync: ISync,
+  taskId: string
+): Promise<nodegit.Commit | undefined> {
   const repos = gitDDB.repository();
   if (repos === undefined) return;
   const remote: nodegit.Remote = await repos.getRemote('origin');
@@ -45,7 +50,8 @@ async function push (gitDDB: AbstractDocumentDB, sync: ISync, taskId: string) {
       throw err;
     });
   // gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
-  await validatePushResult(gitDDB, sync, taskId);
+  const headCommit = await validatePushResult(gitDDB, sync, taskId);
+  return headCommit;
 }
 
 /**
@@ -56,9 +62,9 @@ async function validatePushResult (
   gitDDB: AbstractDocumentDB,
   sync: ISync,
   taskId: string
-) {
+): Promise<nodegit.Commit | undefined> {
   const repos = gitDDB.repository();
-  if (repos === undefined) return;
+  if (repos === undefined) return undefined;
   /*
   gitDDB.logger.debug(
     ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: Check if pushed.`
@@ -92,6 +98,8 @@ async function validatePushResult (
 
     throw new CannotPushBecauseUnfetchedCommitExistsError();
   }
+
+  return localCommit;
 }
 
 /**
