@@ -9,11 +9,13 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import rimraf from 'rimraf';
 import { Logger } from 'tslog';
 import {
   CannotCreateDirectoryError,
   DatabaseCloseTimeoutError,
   DatabaseClosingError,
+  FileRemoveTimeoutError,
   InvalidWorkingDirectoryPathLengthError,
   RemoteAlreadyRegisteredError,
   UndefinedDatabaseNameError,
@@ -467,6 +469,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @param options - The options specify how to close database.
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
+   * @throws {@link FileRemoveTimeoutError}
    */
   async destroy (options: DatabaseCloseOption = {}): Promise<{ ok: true }> {
     if (this.isClosing) {
@@ -482,8 +485,19 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
       // If the path does not exist, remove() silently does nothing.
       // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
-      await fs.remove(this._workingDirectory).catch(err => {
-        throw err;
+      //      await fs.remove(this._workingDirectory).catch(err => {
+
+      await new Promise<void>((resolve, reject) => {
+        // rimraf sometimes does not catch EPERM error
+        setTimeout(() => {
+          reject(new FileRemoveTimeoutError());
+        }, 10000);
+        rimraf(this._workingDirectory, error => {
+          if (error) {
+            reject(error);
+          }
+          resolve();
+        });
       });
     }
 

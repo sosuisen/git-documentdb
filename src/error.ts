@@ -404,3 +404,12 @@ export class IntervalTooSmallError extends BaseError {
     super(`Interval is too small. Minimum value is ${min}. Current value is ${current}.`);
   }
 }
+
+/**
+ * @public
+ */
+export class FileRemoveTimeoutError extends BaseError {
+  constructor () {
+    super(`Removing file is timed out for some reason.`);
+  }
+}

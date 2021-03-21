@@ -37,12 +37,14 @@
   "devDependencies": {
     "@microsoft/api-documenter": "^7.12.4",
     "@microsoft/api-extractor": "^7.13.0",
+    "@octokit/types": "^6.12.2",
     "@types/fs-extra": "^9.0.6",
     "@types/jest": "^26.0.20",
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.20",
     "@typescript-eslint/eslint-plugin": "^4.12.0",
     "@typescript-eslint/parser": "^4.12.0",
+    "@types/rimraf": "^3.0.0",    
     "coveralls": "^3.1.0",
     "crlf": "^1.1.1",
     "cross-env": "^7.0.3",
@@ -60,9 +62,9 @@
   },
   "dependencies": {
     "@octokit/rest": "^18.3.5",
-    "@octokit/types": "^6.12.2",
     "@sosuisen/nodegit": "^0.27.3",
     "fs-extra": "^9.1.0",
+    "rimraf": "^3.0.2",
     "tslog": "^3.1.2",
     "ulid": "^2.3.0"
   }
