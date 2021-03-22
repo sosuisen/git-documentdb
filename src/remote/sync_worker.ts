@@ -288,20 +288,33 @@ async function getCommitLogs (newCommit: nodegit.Commit, oldCommit: nodegit.Comm
   const history = newCommit.history();
   const commitList = await new Promise<nodegit.Commit[]>((resolve, reject) => {
     const list: nodegit.Commit[] = [];
-    history.on('commit', (commit: nodegit.Commit) => {
+    const onCommit = (commit: nodegit.Commit) => {
       if (commit.id().tostrS() === endId) {
+        history.removeAllListeners();
         resolve(list);
       }
       else {
         list.unshift(commit);
       }
-    });
-    history.on('end', () => {
+    };
+    const onEnd = (commits: nodegit.Commit[]) => {
+      console.log(
+        JSON.stringify(
+          commits.map(commit => {
+            return { id: commit.id, message: commit.message };
+          })
+        )
+      );
+      history.removeAllListeners();
       reject(new Error('Unexpected end of walking commit history'));
-    });
-    history.on('error', error => {
+    };
+    const onError = (error: Error) => {
+      history.removeAllListeners();
       reject(error);
-    });
+    };
+    history.on('commit', onCommit);
+    history.on('end', onEnd);
+    history.on('error', onError);
     history.start();
   });
   // The list is sorted from old to new.
