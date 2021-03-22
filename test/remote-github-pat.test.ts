@@ -414,6 +414,7 @@ maybe('remote: use personal access token: ', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
+        include_commits: true,
       };
       await dbA.open(options);
 
@@ -463,7 +464,7 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult4.changes!.remote!.add[0].doc).toMatchObject(jsonA4);
       expect(syncResult4.changes!.remote!.modify.length).toBe(0);
 
-      await dbA.destroy();
+      await dbA.destroy().catch(err => console.log(err));
     });
 
     test('put twice followed by push', async () => {
@@ -476,6 +477,7 @@ maybe('remote: use personal access token: ', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
+        include_commits: true,
       };
       await dbA.open(options);
 
@@ -507,7 +509,7 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult2.changes!.remote!.modify.length).toBe(1);
       expect(syncResult2.changes!.remote!.modify[0].doc).toMatchObject(jsonA1dash);
 
-      await dbA.destroy();
+      await dbA.destroy().catch(err => console.log(err));
     });
 
     test('put and remove followed by push', async () => {
@@ -520,6 +522,7 @@ maybe('remote: use personal access token: ', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
+        include_commits: true,
       };
       await dbA.open(options);
 
@@ -551,7 +554,7 @@ maybe('remote: use personal access token: ', () => {
       expect(syncResult2.changes!.remote!.modify.length).toBe(0);
       expect(syncResult2.changes!.remote!.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
-      await dbA.destroy();
+      await dbA.destroy().catch(err => console.log(err));
     });
   });
 
@@ -570,6 +573,7 @@ maybe('remote: use personal access token: ', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
+        include_commits: true,
       };
       await dbA.open(options);
 
@@ -614,6 +618,7 @@ maybe('remote: use personal access token: ', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
+        include_commits: true,
       };
       await dbA.open(options);
 
@@ -660,6 +665,7 @@ maybe('remote: use personal access token: ', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
+        include_commits: true,
       };
       await dbA.open(options);
 

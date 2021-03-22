@@ -81,6 +81,7 @@ export class Sync implements ISync {
       retry_interval: undefined,
       auth: undefined,
       behavior_for_no_merge_base: undefined,
+      include_commits: undefined,
     };
     // Deep clone
     this._options = JSON.parse(JSON.stringify(_options));
@@ -103,6 +104,7 @@ export class Sync implements ISync {
     this._options.retry_interval ??= defaultRetryInterval;
     this._options.retry ??= defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
+    this._options.include_commits ??= false;
 
     this.credential_callbacks = createCredential(this._options);
 

@@ -18,7 +18,7 @@ import {
   SyncWorkerFetchError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { DocMetadata, FileChanges, ISync, JsonDoc, SyncResult } from '../types';
+import { CommitInfo, DocMetadata, FileChanges, ISync, JsonDoc, SyncResult } from '../types';
 
 /**
  * git push
@@ -348,7 +348,7 @@ export async function push_worker (
   };
 
   // Get a list of commits which will be pushed to remote.
-  if (remoteCommit) {
+  if (sync.options().include_commits && remoteCommit) {
     syncResult.commits ??= {};
     syncResult.commits.remote = await getCommitLogs(
       remoteCommit,
@@ -465,19 +465,19 @@ export async function sync_worker (
       );
       const localChanges = await getChanges(gitDDB, diff);
 
-      // Get list of commits which has been merged to local
-      const commitsFromRemote = await getCommitLogs(oldCommit, oldRemoteCommit);
-
       const syncResult: SyncResult = {
         operation: 'fast-forward merge',
         changes: {
           local: localChanges,
         },
-        commits: {
-          local: commitsFromRemote,
-        },
       };
 
+      if (sync.options().include_commits) {
+        syncResult.commits = {};
+        // Get list of commits which has been merged to local
+        const commitsFromRemote = await getCommitLogs(oldCommit, oldRemoteCommit);
+        syncResult.commits.local = commitsFromRemote;
+      }
       return syncResult;
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
@@ -496,36 +496,42 @@ export async function sync_worker (
 
       // Change commit message
       await commitAmendMessage(gitDDB, sync, newCommitOid!, 'merge');
-      const amendedNewCommit = await repos.getHeadCommit();
 
-      const mergeBase = await nodegit.Merge.base(
-        repos,
-        oldCommit.id(),
-        oldRemoteCommit.id()
-      );
+      let localCommits: CommitInfo[] | undefined;
+      if (sync.options().include_commits) {
+        const amendedNewCommit = await repos.getHeadCommit();
 
-      const commitsFromRemote = await getCommitLogs(
-        await repos.getCommit(mergeBase),
-        oldRemoteCommit
-      );
-      // Add merge commit
-      const localCommits = [
-        ...commitsFromRemote,
-        {
-          id: amendedNewCommit.id().tostrS(),
-          date: amendedNewCommit.date(),
-          author: amendedNewCommit.author().toString(),
-          message: amendedNewCommit.message(),
-        },
-      ];
+        const mergeBase = await nodegit.Merge.base(
+          repos,
+          oldCommit.id(),
+          oldRemoteCommit.id()
+        );
 
+        const commitsFromRemote = await getCommitLogs(
+          await repos.getCommit(mergeBase),
+          oldRemoteCommit
+        );
+        // Add merge commit
+        localCommits = [
+          ...commitsFromRemote,
+          {
+            id: amendedNewCommit.id().tostrS(),
+            date: amendedNewCommit.date(),
+            author: amendedNewCommit.author().toString(),
+            message: amendedNewCommit.message(),
+          },
+        ];
+      }
       // Need push because it is merged normally.
       const syncResult = await push_worker(gitDDB, sync, taskId);
       syncResult.operation = 'merge and push';
       syncResult.changes ??= {};
       syncResult.changes.local = localChanges;
-      syncResult.commits ??= {};
-      syncResult.commits.local = localCommits;
+
+      if (localCommits) {
+        syncResult.commits ??= {};
+        syncResult.commits.local = localCommits;
+      }
 
       return syncResult;
     }
@@ -627,21 +633,28 @@ export async function sync_worker (
     const localChanges = await getChanges(gitDDB, diff);
 
     // Get list of commits which has been added to local
-    const mergeBase = await nodegit.Merge.base(repos, oldCommit.id(), oldRemoteCommit.id());
-    const commitsFromRemote = await getCommitLogs(
-      await repos.getCommit(mergeBase),
-      oldRemoteCommit
-    );
-    // Add merge commit
-    const localCommits = [
-      ...commitsFromRemote,
-      {
-        id: overwriteCommit.id().tostrS(),
-        date: overwriteCommit.date(),
-        author: overwriteCommit.author().toString(),
-        message: overwriteCommit.message(),
-      },
-    ];
+    let localCommits: CommitInfo[] | undefined;
+    if (sync.options().include_commits) {
+      const mergeBase = await nodegit.Merge.base(
+        repos,
+        oldCommit.id(),
+        oldRemoteCommit.id()
+      );
+      const commitsFromRemote = await getCommitLogs(
+        await repos.getCommit(mergeBase),
+        oldRemoteCommit
+      );
+      // Add merge commit
+      localCommits = [
+        ...commitsFromRemote,
+        {
+          id: overwriteCommit.id().tostrS(),
+          date: overwriteCommit.date(),
+          author: overwriteCommit.author().toString(),
+          message: overwriteCommit.message(),
+        },
+      ];
+    }
 
     const opt = new nodegit.CheckoutOptions();
     opt.checkoutStrategy = nodegit.Checkout.STRATEGY.FORCE;
@@ -652,8 +665,10 @@ export async function sync_worker (
     syncResult.operation = 'resolve conflicts and push';
     syncResult.changes ??= {};
     syncResult.changes.local = localChanges;
-    syncResult.commits ??= {};
-    syncResult.commits.local = localCommits;
+    if (localCommits) {
+      syncResult.commits ??= {};
+      syncResult.commits.local = localCommits;
+    }
 
     return syncResult;
   }

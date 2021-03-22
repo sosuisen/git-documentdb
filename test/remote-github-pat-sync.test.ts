@@ -179,13 +179,8 @@ maybe('remote: use personal access token: ', () => {
           Promise.all([remoteA.tryPush(), remoteB.tryPush()])
         ).rejects.toThrowError(CannotPushBecauseUnfetchedCommitExistsError);
 
-        /**
-         * TODO:
-         * Memory may leak when CannotPushBecauseUnfetchedCommitExistsError occurs.
-         * Some files cannot be removed because they are used by a process.
-         */
-        await dbA.destroy().catch(err => console.log(err));
-        await dbB.destroy().catch(err => console.log(err));
+        await dbA.destroy();
+        await dbB.destroy();
       });
 
       test('Ordered condition of two tryPush() calls', async () => {
@@ -221,13 +216,8 @@ maybe('remote: use personal access token: ', () => {
           CannotPushBecauseUnfetchedCommitExistsError
         );
 
-        /**
-         * TODO:
-         * Memory may leak when CannotPushBecauseUnfetchedCommitExistsError occurs.
-         * Some files cannot be removed because they are used by a process.
-         */
-        await dbA.destroy().catch(err => console.log(err));
-        await dbB.destroy().catch(err => console.log(err));
+        await dbA.destroy();
+        await dbB.destroy();
       });
 
       test('Race condition of two trySync() calls: trySync() again by hand before retrySync()', async () => {
@@ -677,13 +667,8 @@ maybe('remote: use personal access token: ', () => {
         await sleep(5000);
         expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
 
-        /**
-         * TODO:
-         * Memory may leak when CannotPushBecauseUnfetchedCommitExistsError occurs.
-         * Some files cannot be removed because they are used by a process.
-         */
-        await dbA.destroy().catch(err => console.log(err));
-        await dbB.destroy().catch(err => console.log(err));
+        await dbA.destroy();
+        await dbB.destroy();
       });
 
       test('Check retry interval', async () => {
@@ -742,13 +727,8 @@ maybe('remote: use personal access token: ', () => {
           currentSyncCount + 1
         );
 
-        /**
-         * TODO:
-         * Memory may leak when CannotPushBecauseUnfetchedCommitExistsError occurs.
-         * Some files cannot be removed because they are used by a process.
-         */
-        await dbA.destroy().catch(err => console.log(err));
-        await dbB.destroy().catch(err => console.log(err));
+        await dbA.destroy();
+        await dbB.destroy();
       });
 
       test.skip('More retries', () => {
@@ -895,7 +875,7 @@ maybe('remote: use personal access token: ', () => {
    * Initialize synchronization by open() with remoteURL, close(), open() again with no remoteURL, following sync() with another remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
+  describe.skip('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
     test.skip('Open() again with the same repository with another remote_url');
     test.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base

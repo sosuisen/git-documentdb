@@ -288,6 +288,9 @@ export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
 export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
 /**
  * Options for Sync class
+ *
+ * @remarks
+ * - include_commits: (Beta version: It may leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
  */
 export type RemoteOptions = {
   remote_url?: string;
@@ -298,6 +301,7 @@ export type RemoteOptions = {
   retry_interval?: number; // msec
   auth?: RemoteAuth;
   behavior_for_no_merge_base?: BehaviorForNoMergeBase;
+  include_commits?: boolean;
 };
 
 /**
