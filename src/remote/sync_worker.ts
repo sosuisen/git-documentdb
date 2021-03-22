@@ -148,7 +148,6 @@ async function calcDistance (
   remoteCommit: nodegit.Commit
 ) {
   const repos = gitDDB.repository()!;
-
   // @types/nodegit is wrong
   const distance = ((await nodegit.Graph.aheadBehind(
     repos,
@@ -231,7 +230,6 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
      * [a file is added]
      * changed old: test.txt,  100
      *         new: test.txt, 1100
-     *
      * [a file is modified]
      * changed old: test.txt, 1100
      *         new: test.txt, 1100
