@@ -36,10 +36,6 @@ async function push (
       callbacks: sync.credential_callbacks,
     })
     .catch((err: Error) => {
-      // gitDDB.logger.debug('Error in push: ' + err);
-
-      repos.cleanup();
-
       if (
         err.message.startsWith(
           'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
@@ -93,8 +89,6 @@ async function validatePushResult (
         .FgBlack()
         .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
     );
-
-    repos.cleanup();
 
     throw new CannotPushBecauseUnfetchedCommitExistsError();
   }
