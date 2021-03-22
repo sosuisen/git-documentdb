@@ -293,7 +293,7 @@ export class Sync implements ISync {
     const callback = (
       resolve: (value: SyncResult) => void,
       reject: (reason: any) => void
-    ) => (beforeResolve: () => void) =>
+    ) => (beforeResolve: () => void, beforeReject: () => void) =>
       push_worker(this._gitDDB, this, taskId!)
         .then((syncResult: SyncResult) => {
           this._gitDDB.logger.debug(
@@ -325,7 +325,7 @@ export class Sync implements ISync {
           else {
             // Invoke fail event
           }
-          beforeResolve();
+          beforeReject();
           reject(err);
         });
 
@@ -353,7 +353,7 @@ export class Sync implements ISync {
     const callback = (
       resolve: (value: SyncResult) => void,
       reject: (reason: any) => void
-    ) => (beforeResolve: () => void) =>
+    ) => (beforeResolve: () => void, beforeReject: () => void) =>
       sync_worker(this._gitDDB, this, taskId!)
         .then(syncResult => {
           this._gitDDB.logger.debug(
@@ -376,7 +376,7 @@ export class Sync implements ISync {
           else {
             // Invoke fail event
           }
-          beforeResolve();
+          beforeReject();
           reject(err);
         });
 

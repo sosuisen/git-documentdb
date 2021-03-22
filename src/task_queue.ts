@@ -111,15 +111,22 @@ export class TaskQueue {
 
         this._isTaskQueueWorking = true;
         this._logger.debug(
-          ConsoleStyle.BgYellow().FgBlack().tag()`Start ${label}(${targetId || ''})`
+          ConsoleStyle.BgYellow().FgBlack().tag()`Start: ${label}(${targetId || ''})`
         );
 
         const beforeResolve = () => {
           this._logger.debug(
-            ConsoleStyle.BgGreen().FgBlack().tag()`End ${label}(${targetId || ''})`
+            ConsoleStyle.BgGreen().FgBlack().tag()`End: ${label}(${targetId || ''})`
           );
         };
-        this._currentTask.func(beforeResolve).finally(() => {
+        const beforeReject = () => {
+          this._logger.debug(
+            ConsoleStyle.BgGreen().FgRed().tag()`End with error: ${label}(${
+              targetId || ''
+            })`
+          );
+        };
+        this._currentTask.func(beforeResolve, beforeReject).finally(() => {
           this._statistics[label]++;
 
           this._isTaskQueueWorking = false;

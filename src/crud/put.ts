@@ -104,14 +104,14 @@ export function putImpl (
       label: 'put',
       taskId: this.taskQueue.newTaskId(),
       targetId: _id,
-      func: beforeResolve =>
+      func: (beforeResolve, beforeReject) =>
         put_worker(this, _id, this.fileExt, data, options!.commit_message!)
           .then(result => {
             beforeResolve();
             resolve(result);
           })
           .catch(err => {
-            beforeResolve();
+            beforeReject();
             reject(err);
           }),
     });
