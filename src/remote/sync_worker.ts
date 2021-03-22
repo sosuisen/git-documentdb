@@ -18,7 +18,7 @@ import {
   SyncWorkerFetchError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { CommitInfo, DocMetadata, FileChanges, ISync, JsonDoc, SyncResult } from '../types';
+import { DocMetadata, FileChanges, ISync, JsonDoc, SyncResult } from '../types';
 
 /**
  * git push
