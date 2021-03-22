@@ -290,7 +290,7 @@ export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
  * Options for Sync class
  *
  * @remarks
- * - include_commits: (Beta version: It may leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
+ * - include_commits: (Beta version: It will leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
  */
 export type RemoteOptions = {
   remote_url?: string;

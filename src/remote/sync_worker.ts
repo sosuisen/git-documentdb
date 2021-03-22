@@ -273,9 +273,13 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
  * Get commit logs newer than an oldCommit, until a newCommit
  *
  * @remarks
+ * - This will leak memory. It is bug in NodeGit 0.27.
+ *
  * - Logs are sorted from old to new.
  *
  * - oldCommit is not included to return value.
+ *
+ * @beta
  */
 async function getCommitLogs (oldCommit: nodegit.Commit, newCommit: nodegit.Commit) {
   const endId = oldCommit.id().tostrS();
