@@ -276,11 +276,14 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
 }
 
 /**
- * Get commit logs
+ * Get commit logs newer than an oldCommit, until a newCommit
  *
- * @remarks Logs are sorted from old to new
+ * @remarks
+ * - Logs are sorted from old to new.
+ *
+ * - oldCommit is not included to return value.
  */
-async function getCommitLogs (newCommit: nodegit.Commit, oldCommit: nodegit.Commit) {
+async function getCommitLogs (oldCommit: nodegit.Commit, newCommit: nodegit.Commit) {
   const endId = oldCommit.id().tostrS();
   // Walk the history from this commit backwards.
   const history = newCommit.history();
