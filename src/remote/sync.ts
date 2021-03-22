@@ -20,6 +20,7 @@ import {
   SyncChangeEvent,
   SyncEvent,
   SyncResult,
+  SyncResultPush,
   Task,
 } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
@@ -293,19 +294,19 @@ export class Sync implements ISync {
   tryPush (taskId?: string) {
     taskId ??= this._gitDDB.taskQueue.newTaskId();
     const callback = (
-      resolve: (value: SyncResult) => void,
+      resolve: (value: SyncResultPush) => void,
       reject: (reason: any) => void
     ) => (beforeResolve: () => void, beforeReject: () => void) =>
       push_worker(this._gitDDB, this, taskId!)
-        .then((syncResult: SyncResult) => {
+        .then((syncResultPush: SyncResultPush) => {
           this._gitDDB.logger.debug(
             ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
-              syncResult
+              syncResultPush
             )}`
           );
           // Invoke success event
           beforeResolve();
-          resolve(syncResult);
+          resolve(syncResultPush);
         })
         .catch(err => {
           console.log(err);
@@ -332,7 +333,7 @@ export class Sync implements ISync {
         });
 
     const task = (
-      resolve: (value: SyncResult) => void,
+      resolve: (value: SyncResultPush) => void,
       reject: (reason: any) => void
     ): Task => {
       return {
@@ -342,7 +343,7 @@ export class Sync implements ISync {
       };
     };
 
-    return new Promise((resolve: (value: SyncResult) => void, reject) => {
+    return new Promise((resolve: (value: SyncResultPush) => void, reject) => {
       this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
     });
   }

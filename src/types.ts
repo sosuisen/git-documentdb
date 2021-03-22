@@ -366,22 +366,58 @@ export type CommitInfo = {
  *
  * - commits.remote: List of commits which has been pushed to remote
  */
-export type SyncResult = {
-  operation:
-    | 'nop'
-    | 'push'
-    | 'fast-forward merge'
-    | 'merge and push'
-    | 'resolve conflicts and push'
-    | 'canceled';
-  changes?: {
-    local?: FileChanges;
-    remote?: FileChanges;
+export type SyncResult =
+  | SyncResultNop
+  | SyncResultPush
+  | SyncResultFastForwardMerge
+  | SyncResultMergeAndPush
+  | SyncResultResolveConflictsAndPush
+  | SyncResultCancel;
+export type SyncResultNop = {
+  operation: 'nop';
+};
+export type SyncResultPush = {
+  operation: 'push';
+  changes: {
+    remote: FileChanges;
   };
   commits?: {
-    local?: CommitInfo[];
-    remote?: CommitInfo[]; // The list is sorted from old to new.
+    remote: CommitInfo[]; // The list is sorted from old to new.
   };
+};
+export type SyncResultFastForwardMerge = {
+  operation: 'fast-forward merge';
+  changes: {
+    local: FileChanges;
+  };
+  commits?: {
+    local: CommitInfo[];
+  };
+};
+export type SyncResultMergeAndPush = {
+  operation: 'merge and push';
+  changes: {
+    local: FileChanges;
+    remote: FileChanges;
+  };
+  commits?: {
+    local: CommitInfo[];
+    remote: CommitInfo[]; // The list is sorted from old to new.
+  };
+};
+export type SyncResultResolveConflictsAndPush = {
+  operation: 'resolve conflicts and push';
+  changes: {
+    local: FileChanges;
+    remote: FileChanges;
+  };
+  commits?: {
+    local: CommitInfo[];
+    remote: CommitInfo[]; // The list is sorted from old to new.
+  };
+};
+export type SyncResultCancel = {
+  operation: 'canceled';
 };
 
 /**

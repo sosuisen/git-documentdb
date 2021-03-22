@@ -18,7 +18,18 @@ import {
   SyncWorkerFetchError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { CommitInfo, DocMetadata, FileChanges, ISync, JsonDoc, SyncResult } from '../types';
+import {
+  CommitInfo,
+  DocMetadata,
+  FileChanges,
+  ISync,
+  JsonDoc,
+  JsonDocWithMetadata,
+  SyncResult,
+  SyncResultMergeAndPush,
+  SyncResultPush,
+  SyncResultResolveConflictsAndPush,
+} from '../types';
 
 /**
  * git push
@@ -281,7 +292,10 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
  *
  * @beta
  */
-async function getCommitLogs (oldCommit: nodegit.Commit, newCommit: nodegit.Commit) {
+async function getCommitLogs (
+  oldCommit: nodegit.Commit,
+  newCommit: nodegit.Commit
+): Promise<CommitInfo[]> {
   const endId = oldCommit.id().tostrS();
 
   /**
@@ -341,20 +355,16 @@ export async function push_worker (
   gitDDB: AbstractDocumentDB,
   sync: ISync,
   taskId: string
-): Promise<SyncResult> {
+): Promise<SyncResultPush> {
   const remoteCommit = await gitDDB
     .repository()!
     .getReferenceCommit('refs/remotes/origin/main')
     .catch(() => undefined);
 
-  const syncResult: SyncResult = {
-    operation: 'push',
-  };
-
   // Get a list of commits which will be pushed to remote.
+  let commitListRemote: CommitInfo[] | undefined;
   if (sync.options().include_commits && remoteCommit) {
-    syncResult.commits ??= {};
-    syncResult.commits.remote = await getCommitLogs(
+    commitListRemote = await getCommitLogs(
       remoteCommit,
       await gitDDB.repository()!.getHeadCommit()
     );
@@ -364,14 +374,35 @@ export async function push_worker (
   const headCommit = await push(gitDDB, sync, taskId);
 
   // Get changes
-  if (headCommit && remoteCommit) {
+  let remoteChanges: FileChanges;
+  if (remoteCommit) {
     const diff = await nodegit.Diff.treeToTree(
       gitDDB.repository()!,
       await remoteCommit.getTree(),
-      await headCommit.getTree()
+      await headCommit!.getTree()
     );
-    syncResult.changes ??= {};
-    syncResult.changes.remote = await getChanges(gitDDB, diff);
+    remoteChanges = await getChanges(gitDDB, diff);
+  }
+  else {
+    // Initial push that uploads only .gitddb/
+    remoteChanges = {
+      add: [],
+      remove: [],
+      modify: [],
+    };
+  }
+
+  const syncResult: SyncResult = {
+    operation: 'push',
+    changes: {
+      remote: remoteChanges!,
+    },
+  };
+
+  if (commitListRemote) {
+    syncResult.commits = {
+      remote: commitListRemote,
+    };
   }
 
   return syncResult;
@@ -469,7 +500,7 @@ export async function sync_worker (
       );
       const localChanges = await getChanges(gitDDB, diff);
 
-      const syncResult: SyncResult = {
+      const SyncResultFastForwardMerge: SyncResult = {
         operation: 'fast-forward merge',
         changes: {
           local: localChanges,
@@ -477,12 +508,13 @@ export async function sync_worker (
       };
 
       if (sync.options().include_commits) {
-        syncResult.commits = {};
         // Get list of commits which has been merged to local
         const commitsFromRemote = await getCommitLogs(oldCommit, oldRemoteCommit);
-        syncResult.commits.local = commitsFromRemote;
+        SyncResultFastForwardMerge.commits = {
+          local: commitsFromRemote,
+        };
       }
-      return syncResult;
+      return SyncResultFastForwardMerge;
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
       // This case is occurred when
@@ -496,11 +528,11 @@ export async function sync_worker (
         await newCommit.getTree()
       );
       const localChanges = await getChanges(gitDDB, diff);
-      // Get list of commits which has been added to local
 
       // Change commit message
       await commitAmendMessage(gitDDB, sync, newCommitOid!, 'merge');
 
+      // Get list of commits which has been added to local
       let localCommits: CommitInfo[] | undefined;
       if (sync.options().include_commits) {
         const amendedNewCommit = await repos.getHeadCommit();
@@ -526,18 +558,24 @@ export async function sync_worker (
           },
         ];
       }
-      // Need push because it is merged normally.
-      const syncResult = await push_worker(gitDDB, sync, taskId);
-      syncResult.operation = 'merge and push';
-      syncResult.changes ??= {};
-      syncResult.changes.local = localChanges;
 
+      // Need push because it is merged normally.
+      const syncResultPush = await push_worker(gitDDB, sync, taskId);
+      const syncResultMergeAndPush: SyncResultMergeAndPush = {
+        operation: 'merge and push',
+        changes: {
+          local: localChanges,
+          remote: syncResultPush.changes.remote,
+        },
+      };
       if (localCommits) {
-        syncResult.commits ??= {};
-        syncResult.commits.local = localCommits;
+        syncResultMergeAndPush.commits = {
+          local: localCommits,
+          remote: syncResultPush.commits!.remote,
+        };
       }
 
-      return syncResult;
+      return syncResultMergeAndPush;
     }
 
     /**
@@ -665,15 +703,21 @@ export async function sync_worker (
     await nodegit.Checkout.head(repos, opt);
 
     // Push
-    const syncResult = await push_worker(gitDDB, sync, taskId);
-    syncResult.operation = 'resolve conflicts and push';
-    syncResult.changes ??= {};
-    syncResult.changes.local = localChanges;
+    const syncResultPush = await push_worker(gitDDB, sync, taskId);
+    const syncResultResolveConflictsAndPush: SyncResultResolveConflictsAndPush = {
+      operation: 'resolve conflicts and push',
+      changes: {
+        local: localChanges,
+        remote: syncResultPush.changes.remote,
+      },
+    };
     if (localCommits) {
-      syncResult.commits ??= {};
-      syncResult.commits.local = localCommits;
+      syncResultResolveConflictsAndPush.commits = {
+        local: localCommits,
+        remote: syncResultPush.commits!.remote,
+      };
     }
 
-    return syncResult;
+    return syncResultResolveConflictsAndPush;
   }
 }

@@ -56,24 +56,6 @@ maybe('remote: use personal access token: ', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  const createRemoteRepository = async (remoteURL: string) => {
-    await new RemoteRepository(remoteURL, {
-      type: 'github',
-      personal_access_token: token,
-    })
-      .create()
-      .catch(() => {});
-  };
-
-  const destroyRemoteRepository = async (remoteURL: string) => {
-    await new RemoteRepository(remoteURL, {
-      type: 'github',
-      personal_access_token: token,
-    })
-      .destroy()
-      .catch(() => {});
-  };
-
   beforeAll(async () => {
     console.log('deleting remote test repositories...');
     // Remove test repositories on remote
@@ -865,7 +847,7 @@ maybe('remote: use personal access token: ', () => {
    * Initialize synchronization by open() with remoteURL, close(), open() again with another remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe.skip('Initialize synchronization by open() with remote_url, close(), open() again with another remote_url: ', () => {
+  describe('Initialize synchronization by open() with remote_url, close(), open() again with another remote_url: ', () => {
     test.skip('Open() again with the same repository with another remote_url');
     test.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base
@@ -875,7 +857,7 @@ maybe('remote: use personal access token: ', () => {
    * Initialize synchronization by open() with remoteURL, close(), open() again with no remoteURL, following sync() with another remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe.skip('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
+  describe('Initialize synchronization by open() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
     test.skip('Open() again with the same repository with another remote_url');
     test.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base
