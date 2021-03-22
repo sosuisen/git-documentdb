@@ -423,10 +423,10 @@ maybe('remote: use personal access token: ', () => {
       const remoteA = dbA.getRemote(remoteURL);
       const syncResult = await remoteA.tryPush();
       expect(syncResult.operation).toBe('push');
-      expect(syncResult.commits!.length).toBe(1);
-      expect(syncResult.commits![0].id).toBe(putResult.commit_sha);
-      expect(syncResult.remote_changes!.add.length).toBe(1); // A file is added
-      expect(syncResult.remote_changes!.add[0].doc).toMatchObject(jsonA1);
+      expect(syncResult.commits!.remote!.length).toBe(1);
+      expect(syncResult.commits!.remote![0].id).toBe(putResult.commit_sha);
+      expect(syncResult.changes!.remote!.add.length).toBe(1); // A file is added
+      expect(syncResult.changes!.remote!.add[0].doc).toMatchObject(jsonA1);
 
       // Put and push the same document again
 
@@ -436,32 +436,32 @@ maybe('remote: use personal access token: ', () => {
       const putResult2 = await dbA.put(jsonA1);
       const syncResult2 = await remoteA.tryPush();
       expect(syncResult2.operation).toBe('push');
-      expect(syncResult2.commits!.length).toBe(1);
-      expect(syncResult2.commits![0].id).toBe(putResult2.commit_sha);
-      expect(syncResult2.remote_changes!.add.length).toBe(0);
-      expect(syncResult2.remote_changes!.modify.length).toBe(0); // No file change
+      expect(syncResult2.commits!.remote!.length).toBe(1);
+      expect(syncResult2.commits!.remote![0].id).toBe(putResult2.commit_sha);
+      expect(syncResult2.changes!.remote!.add.length).toBe(0);
+      expect(syncResult2.changes!.remote!.modify.length).toBe(0); // No file change
 
       // Put and push an updated document
       const jsonA1dash = { _id: '1', name: 'updated' };
       const putResult3 = await dbA.put(jsonA1dash);
       const syncResult3 = await remoteA.tryPush();
       expect(syncResult3.operation).toBe('push');
-      expect(syncResult3.commits!.length).toBe(1);
-      expect(syncResult3.commits![0].id).toBe(putResult3.commit_sha);
-      expect(syncResult3.remote_changes!.add.length).toBe(0);
-      expect(syncResult3.remote_changes!.modify.length).toBe(1);
-      expect(syncResult3.remote_changes!.modify[0].doc).toMatchObject(jsonA1dash);
+      expect(syncResult3.commits!.remote!.length).toBe(1);
+      expect(syncResult3.commits!.remote![0].id).toBe(putResult3.commit_sha);
+      expect(syncResult3.changes!.remote!.add.length).toBe(0);
+      expect(syncResult3.changes!.remote!.modify.length).toBe(1);
+      expect(syncResult3.changes!.remote!.modify[0].doc).toMatchObject(jsonA1dash);
 
       // Put and push another document
       const jsonA4 = { _id: '2', name: 'fromA' };
       const putResult4 = await dbA.put(jsonA4);
       const syncResult4 = await remoteA.tryPush();
       expect(syncResult4.operation).toBe('push');
-      expect(syncResult4.commits!.length).toBe(1);
-      expect(syncResult4.commits![0].id).toBe(putResult4.commit_sha);
-      expect(syncResult4.remote_changes!.add.length).toBe(1);
-      expect(syncResult4.remote_changes!.add[0].doc).toMatchObject(jsonA4);
-      expect(syncResult4.remote_changes!.modify.length).toBe(0);
+      expect(syncResult4.commits!.remote!.length).toBe(1);
+      expect(syncResult4.commits!.remote![0].id).toBe(putResult4.commit_sha);
+      expect(syncResult4.changes!.remote!.add.length).toBe(1);
+      expect(syncResult4.changes!.remote!.add[0].doc).toMatchObject(jsonA4);
+      expect(syncResult4.changes!.remote!.modify.length).toBe(0);
 
       await dbA.destroy();
     });
@@ -487,10 +487,10 @@ maybe('remote: use personal access token: ', () => {
       const remoteA = dbA.getRemote(remoteURL);
       const syncResult = await remoteA.tryPush();
       expect(syncResult.operation).toBe('push');
-      expect(syncResult.commits!.length).toBe(2);
-      expect(syncResult.commits![0].id).toBe(putResult1.commit_sha);
-      expect(syncResult.commits![1].id).toBe(putResult2.commit_sha);
-      expect(syncResult.remote_changes!.add.length).toBe(2);
+      expect(syncResult.commits!.remote!.length).toBe(2);
+      expect(syncResult.commits!.remote![0].id).toBe(putResult1.commit_sha);
+      expect(syncResult.commits!.remote![1].id).toBe(putResult2.commit_sha);
+      expect(syncResult.changes!.remote!.add.length).toBe(2);
 
       // put an updated document and another document
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -499,13 +499,13 @@ maybe('remote: use personal access token: ', () => {
       const putResult4 = await dbA.put(jsonA4);
       const syncResult2 = await remoteA.tryPush();
       expect(syncResult2.operation).toBe('push');
-      expect(syncResult2.commits!.length).toBe(2);
-      expect(syncResult2.commits![0].id).toBe(putResult3.commit_sha);
-      expect(syncResult2.commits![1].id).toBe(putResult4.commit_sha);
-      expect(syncResult2.remote_changes!.add.length).toBe(1);
-      expect(syncResult2.remote_changes!.add[0].doc).toMatchObject(jsonA4);
-      expect(syncResult2.remote_changes!.modify.length).toBe(1);
-      expect(syncResult2.remote_changes!.modify[0].doc).toMatchObject(jsonA1dash);
+      expect(syncResult2.commits!.remote!.length).toBe(2);
+      expect(syncResult2.commits!.remote![0].id).toBe(putResult3.commit_sha);
+      expect(syncResult2.commits!.remote![1].id).toBe(putResult4.commit_sha);
+      expect(syncResult2.changes!.remote!.add.length).toBe(1);
+      expect(syncResult2.changes!.remote!.add[0].doc).toMatchObject(jsonA4);
+      expect(syncResult2.changes!.remote!.modify.length).toBe(1);
+      expect(syncResult2.changes!.remote!.modify[0].doc).toMatchObject(jsonA1dash);
 
       await dbA.destroy();
     });
@@ -532,24 +532,24 @@ maybe('remote: use personal access token: ', () => {
       const removeResult1 = await dbA.remove(jsonA1);
       const syncResult1 = await remoteA.tryPush();
       expect(syncResult1.operation).toBe('push');
-      expect(syncResult1.commits!.length).toBe(1);
-      expect(syncResult1.commits![0].id).toBe(removeResult1.commit_sha);
-      expect(syncResult1.remote_changes!.add.length).toBe(0);
-      expect(syncResult1.remote_changes!.modify.length).toBe(0);
-      expect(syncResult1.remote_changes!.remove.length).toBe(1);
-      expect(syncResult1.remote_changes!.remove[0].id).toBe('1');
+      expect(syncResult1.commits!.remote!.length).toBe(1);
+      expect(syncResult1.commits!.remote![0].id).toBe(removeResult1.commit_sha);
+      expect(syncResult1.changes!.remote!.add.length).toBe(0);
+      expect(syncResult1.changes!.remote!.modify.length).toBe(0);
+      expect(syncResult1.changes!.remote!.remove.length).toBe(1);
+      expect(syncResult1.changes!.remote!.remove[0].id).toBe('1');
 
       // Put and remove a document
       const putResult2 = await dbA.put(jsonA1);
       const removeResult2 = await dbA.remove(jsonA1);
       const syncResult2 = await remoteA.tryPush();
       expect(syncResult2.operation).toBe('push');
-      expect(syncResult2.commits!.length).toBe(2);
-      expect(syncResult2.commits![0].id).toBe(putResult2.commit_sha);
-      expect(syncResult2.commits![1].id).toBe(removeResult2.commit_sha);
-      expect(syncResult2.remote_changes!.add.length).toBe(0); // Must not be 1 but 0, because diff is empty.
-      expect(syncResult2.remote_changes!.modify.length).toBe(0);
-      expect(syncResult2.remote_changes!.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
+      expect(syncResult2.commits!.remote!.length).toBe(2);
+      expect(syncResult2.commits!.remote![0].id).toBe(putResult2.commit_sha);
+      expect(syncResult2.commits!.remote![1].id).toBe(removeResult2.commit_sha);
+      expect(syncResult2.changes!.remote!.add.length).toBe(0); // Must not be 1 but 0, because diff is empty.
+      expect(syncResult2.changes!.remote!.modify.length).toBe(0);
+      expect(syncResult2.changes!.remote!.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
       await dbA.destroy();
     });
@@ -593,12 +593,12 @@ maybe('remote: use personal access token: ', () => {
       const remoteB = dbB.getRemote(remoteURL);
       const syncResult1 = await remoteB.trySync();
       expect(syncResult1.operation).toBe('fast-forward merge');
-      expect(syncResult1.commits!.length).toBe(1);
-      expect(syncResult1.commits![0].id).toBe(putResult1.commit_sha);
-      expect(syncResult1.local_changes!.add.length).toBe(1);
-      expect(syncResult1.local_changes!.modify.length).toBe(0);
-      expect(syncResult1.local_changes!.remove.length).toBe(0);
-      expect(syncResult1.local_changes!.add[0].doc).toMatchObject(jsonA1);
+      expect(syncResult1.commits!.local!.length).toBe(1);
+      expect(syncResult1.commits!.local![0].id).toBe(putResult1.commit_sha);
+      expect(syncResult1.changes!.local!.add.length).toBe(1);
+      expect(syncResult1.changes!.local!.modify.length).toBe(0);
+      expect(syncResult1.changes!.local!.remove.length).toBe(0);
+      expect(syncResult1.changes!.local!.add[0].doc).toMatchObject(jsonA1);
 
       await dbA.destroy().catch(e => console.debug(e));
       await dbB.destroy().catch(e => console.debug(e));
@@ -639,18 +639,18 @@ maybe('remote: use personal access token: ', () => {
       const remoteB = dbB.getRemote(remoteURL);
       const syncResult1 = await remoteB.trySync();
       expect(syncResult1.operation).toBe('fast-forward merge');
-      expect(syncResult1.commits!.length).toBe(2);
-      expect(syncResult1.commits![0].id).toBe(putResult1.commit_sha);
-      expect(syncResult1.commits![1].id).toBe(putResult2.commit_sha);
-      expect(syncResult1.local_changes!.add.length).toBe(2);
-      expect(syncResult1.local_changes!.modify.length).toBe(0);
-      expect(syncResult1.local_changes!.remove.length).toBe(0);
+      expect(syncResult1.commits!.local!.length).toBe(2);
+      expect(syncResult1.commits!.local![0].id).toBe(putResult1.commit_sha);
+      expect(syncResult1.commits!.local![1].id).toBe(putResult2.commit_sha);
+      expect(syncResult1.changes!.local!.add.length).toBe(2);
+      expect(syncResult1.changes!.local!.modify.length).toBe(0);
+      expect(syncResult1.changes!.local!.remove.length).toBe(0);
 
       await dbA.destroy().catch(err => console.debug(err));
       await dbB.destroy().catch(err => console.debug(err));
     });
 
-    test('Normal merge: add two files', async () => {
+    test('Normal merge: add different files', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -680,23 +680,26 @@ maybe('remote: use personal access token: ', () => {
       await remoteA.tryPush();
 
       // B syncs
-      const jsonB1 = { _id: '1', name: 'fromB' };
+      const jsonB1 = { _id: '2', name: 'fromB' };
       const putResultB1 = await dbB.put(jsonB1);
       const remoteB = dbB.getRemote(remoteURL);
 
       const syncResult1 = await remoteB.trySync();
       expect(syncResult1.operation).toBe('merge and push');
-      expect(syncResult1.commits!.length).toBe(1);
-      expect(syncResult1.commits![0].id).toBe(putResultA1.commit_sha);
-      expect(syncResult1.commits![1].id).toBe(putResultB1.commit_sha);
-      expect(syncResult1.local_changes!.add.length).toBe(1);
-      expect(syncResult1.local_changes!.modify.length).toBe(0);
-      expect(syncResult1.local_changes!.remove.length).toBe(0);
-      expect(syncResult1.local_changes!.add[0].doc).toMatchObject(jsonA1);
-      expect(syncResult1.remote_changes!.add.length).toBe(1);
-      expect(syncResult1.remote_changes!.modify.length).toBe(0);
-      expect(syncResult1.remote_changes!.remove.length).toBe(0);
-      expect(syncResult1.remote_changes!.add[0].doc).toMatchObject(jsonB1);
+      expect(syncResult1.commits!.local!.length).toBe(2); // put commit and merge commit
+      expect(syncResult1.commits!.remote!.length).toBe(2); // put commit and merge commit
+      expect(syncResult1.commits!.local![0].id).toBe(putResultA1.commit_sha);
+      expect(syncResult1.commits!.local![1].message).toBe('merge');
+      expect(syncResult1.commits!.remote![0].id).toBe(putResultB1.commit_sha);
+      expect(syncResult1.commits!.remote![1].message).toBe('merge');
+      expect(syncResult1.changes!.local!.add.length).toBe(1);
+      expect(syncResult1.changes!.local!.modify.length).toBe(0);
+      expect(syncResult1.changes!.local!.remove.length).toBe(0);
+      expect(syncResult1.changes!.local!.add[0].doc).toMatchObject(jsonA1);
+      expect(syncResult1.changes!.remote!.add.length).toBe(1);
+      expect(syncResult1.changes!.remote!.modify.length).toBe(0);
+      expect(syncResult1.changes!.remote!.remove.length).toBe(0);
+      expect(syncResult1.changes!.remote!.add[0].doc).toMatchObject(jsonB1);
 
       await dbA.destroy().catch(err => console.debug(err));
       await dbB.destroy().catch(err => console.debug(err));
