@@ -411,6 +411,10 @@ export type SyncResultResolveConflictsAndPush = {
     local: FileChanges;
     remote: FileChanges;
   };
+  conflicts: {
+    put: string[];
+    remove: string[];
+  };
   commits?: {
     local: CommitInfo[];
     remote: CommitInfo[]; // The list is sorted from old to new.

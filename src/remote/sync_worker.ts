@@ -622,11 +622,20 @@ export async function sync_worker (
      */
     const _index = await repos.refreshIndex();
 
+    const conflictList: {
+      put: string[];
+      remove: string[];
+    } = {
+      put: [],
+      remove: [],
+    };
     Object.keys(conflicts).forEach(async path => {
       // Conflict is resolved by using OURS.
       if (conflicts[path][2]) {
         // If 'ours' file is added or modified in a conflict, the file is sure to exist in stage 2.
         await _index.addByPath(path);
+        const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
+        conflictList.put.push(id);
         if (commitMessage !== '') {
           commitMessage += ', ';
         }
@@ -635,6 +644,8 @@ export async function sync_worker (
       else if (conflicts[path][1]) {
         // If 'ours' file is removed in a conflict, the file is sure to exist in stage 1 and not to exist in stage 2.
         await _index.removeByPath(path);
+        const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
+        conflictList.remove.push(id);
         await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
           // TODO
         });
@@ -706,6 +717,7 @@ export async function sync_worker (
     const syncResultPush = await push_worker(gitDDB, sync, taskId);
     const syncResultResolveConflictsAndPush: SyncResultResolveConflictsAndPush = {
       operation: 'resolve conflicts and push',
+      conflicts: conflictList,
       changes: {
         local: localChanges,
         remote: syncResultPush.changes.remote,
