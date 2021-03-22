@@ -273,7 +273,7 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
  * Get commit logs newer than an oldCommit, until a newCommit
  *
  * @remarks
- * - This will leak memory. It is bug in NodeGit 0.27.
+ * - This will leak memory. It may be a bug in NodeGit 0.27.
  *
  * - Logs are sorted from old to new.
  *
@@ -283,6 +283,12 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
  */
 async function getCommitLogs (oldCommit: nodegit.Commit, newCommit: nodegit.Commit) {
   const endId = oldCommit.id().tostrS();
+
+  /**
+   * TODO: Use RevWalk instead of Commit.history()
+   * Using history() is inefficient.
+   */
+
   // Walk the history from this commit backwards.
   const history = newCommit.history();
   const commitList = await new Promise<nodegit.Commit[]>((resolve, reject) => {
