@@ -106,7 +106,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * Tests for constructor
    */
-  describe.skip('constructor: ', () => {
+  describe('constructor: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -257,7 +257,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * connectToRemote
    */
-  describe.skip('connect(): ', () => {
+  describe('connect(): ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -353,7 +353,7 @@ maybe('remote: use personal access token: ', () => {
   /**
    * Operate remote repository
    */
-  describe.skip('Operate remote repository: ', () => {
+  describe('Operate remote repository: ', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
     beforeAll(() => {
       // Remove local repositories
@@ -401,7 +401,7 @@ maybe('remote: use personal access token: ', () => {
     test.skip('Remote remote repository');
   });
 
-  describe.skip('Check push result', () => {
+  describe('Check push result', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
 
     test('put once followed by push', async () => {
@@ -558,9 +558,7 @@ maybe('remote: use personal access token: ', () => {
   describe('Check sync result', () => {
     const localDir = `./test/database_remote_by_pat_${monoId()}`;
 
-    test.skip('Push');
-
-    test.skip('Fast-forward merge: add one file', async () => {
+    test('Fast-forward merge: add one file', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -604,7 +602,7 @@ maybe('remote: use personal access token: ', () => {
       await dbB.destroy().catch(e => console.debug(e));
     });
 
-    test.skip('Fast-forward merge: add two files', async () => {
+    test('Fast-forward merge: add two files', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -650,7 +648,7 @@ maybe('remote: use personal access token: ', () => {
       await dbB.destroy().catch(err => console.debug(err));
     });
 
-    test.skip('Normal merge: add different two files', async () => {
+    test('Normal merge: add different two files', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -708,6 +706,8 @@ maybe('remote: use personal access token: ', () => {
     test.skip('Normal merge: add different more files', async () => {});
 
     test.skip('Normal merge: remove the same file');
+
+    test.skip('Push');
 
     test.skip('Resolve conflict');
   });

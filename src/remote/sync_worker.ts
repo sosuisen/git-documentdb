@@ -466,7 +466,7 @@ export async function sync_worker (
       const localChanges = await getChanges(gitDDB, diff);
 
       // Get list of commits which has been merged to local
-      const commitsFromRemote = await getCommitLogs(oldRemoteCommit, oldCommit);
+      const commitsFromRemote = await getCommitLogs(oldCommit, oldRemoteCommit);
 
       const syncResult: SyncResult = {
         operation: 'fast-forward merge',
