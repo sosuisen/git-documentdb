@@ -650,7 +650,7 @@ maybe('remote: use personal access token: ', () => {
       await dbB.destroy().catch(err => console.debug(err));
     });
 
-    test('Normal merge: add different files', async () => {
+    test.skip('Normal merge: add different two files', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -705,7 +705,11 @@ maybe('remote: use personal access token: ', () => {
       await dbB.destroy().catch(err => console.debug(err));
     });
 
+    test.skip('Normal merge: add different more files', async () => {});
+
     test.skip('Normal merge: remove the same file');
+
+    test.skip('Resolve conflict');
   });
 
   /**
