@@ -313,7 +313,7 @@ export type Task = {
   label: TaskLabel;
   taskId: string;
   targetId?: string;
-  func: (beforeResolve: () => void) => Promise<void>;
+  func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
 };
 
 /**
@@ -355,7 +355,12 @@ export type CommitInfo = {
 /**
  * Result from sync_worker()
  *
- * @remarks 'commits' is sorted from old to new.
+ * @remarks
+ * - commits are sorted from old to new.
+ *
+ * - commits.local: List of commits which has been pulled to local
+ *
+ * - commits.remote: List of commits which has been pushed to remote
  */
 export type SyncResult = {
   operation:
@@ -365,17 +370,32 @@ export type SyncResult = {
     | 'merge and push'
     | 'resolve conflicts and push'
     | 'canceled';
-  local_changes?: FileChanges;
-  remote_changes?: FileChanges;
-  commits?: CommitInfo[]; // The list is sorted from old to new.
+  changes?: {
+    local?: FileChanges;
+    remote?: FileChanges;
+  };
+  commits?: {
+    local?: CommitInfo[];
+    remote?: CommitInfo[]; // The list is sorted from old to new.
+  };
 };
 
 /**
  * Sync event
  *
- * @remarks 'commits' is sorted from old to new.
+ * - commits are sorted from old to new.
+ *
+ * - commits.local: List of commits which has been pulled to local
+ *
+ * - commits.remote: List of commits which has been pushed to remote
  */
 export type SyncChangeEvent = {
-  changes: FileChanges;
-  commits?: CommitInfo[]; // The list is sorted from old to new.
+  changes?: {
+    local?: FileChanges;
+    remote?: FileChanges;
+  };
+  commits?: {
+    local?: CommitInfo[];
+    remote?: CommitInfo[]; // The list is sorted from old to new.
+  };
 };

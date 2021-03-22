@@ -331,7 +331,7 @@ async function getCommitLogs (oldCommit: nodegit.Commit, newCommit: nodegit.Comm
 }
 
 /**
- * push_worker
+ * Push and get changes
  */
 export async function push_worker (
   gitDDB: AbstractDocumentDB,
@@ -347,14 +347,16 @@ export async function push_worker (
     operation: 'push',
   };
 
-  // Get commit log
+  // Get a list of commits which will be pushed to remote.
   if (remoteCommit) {
-    syncResult.commits = await getCommitLogs(
-      await gitDDB.repository()!.getHeadCommit(),
-      remoteCommit
+    syncResult.commits ??= {};
+    syncResult.commits.remote = await getCommitLogs(
+      remoteCommit,
+      await gitDDB.repository()!.getHeadCommit()
     );
   }
 
+  // Push
   const headCommit = await push(gitDDB, sync, taskId);
 
   // Get changes
@@ -364,7 +366,8 @@ export async function push_worker (
       await remoteCommit.getTree(),
       await headCommit.getTree()
     );
-    syncResult.remote_changes = await getChanges(gitDDB, diff);
+    syncResult.changes ??= {};
+    syncResult.changes.remote = await getChanges(gitDDB, diff);
   }
 
   return syncResult;
@@ -393,11 +396,8 @@ export async function sync_worker (
    * Calc distance
    */
   const oldCommit = await repos.getHeadCommit();
-  const distance = await calcDistance(
-    gitDDB,
-    oldCommit,
-    await repos.getReferenceCommit('refs/remotes/origin/main')
-  );
+  const oldRemoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
+  const distance = await calcDistance(gitDDB, oldCommit, oldRemoteCommit);
   // ahead: 0, behind 0 => Nothing to do: If local does not commit and remote does not commit
   // ahead: 0, behind 1 => Fast-forward merge : If local does not commit and remote pushed
   // ahead: 1, behind 0 => Push : If local committed and remote does not commit
@@ -450,6 +450,7 @@ export async function sync_worker (
     // they cannot be merged by fast-forward. They are merged as usual.
 
     const newCommit = await repos.getCommit(newCommitOid!);
+
     const distance_again = await calcDistance(
       gitDDB,
       newCommit,
@@ -462,14 +463,20 @@ export async function sync_worker (
         await oldCommit.getTree(),
         await newCommit.getTree()
       );
-      const changes = await getChanges(gitDDB, diff);
+      const localChanges = await getChanges(gitDDB, diff);
+
+      // Get list of commits which has been merged to local
+      const commitsFromRemote = await getCommitLogs(oldRemoteCommit, oldCommit);
 
       const syncResult: SyncResult = {
         operation: 'fast-forward merge',
-        local_changes: changes,
+        changes: {
+          local: localChanges,
+        },
+        commits: {
+          local: commitsFromRemote,
+        },
       };
-      // Get commit log
-      syncResult.commits = await getCommitLogs(newCommit, oldCommit);
 
       return syncResult;
     }
@@ -478,20 +485,48 @@ export async function sync_worker (
       // - a local file is changed and another remote file is changed.
       // - a local file is removed and the same remote file is removed.
 
+      // Compare trees before and after merge
       const diff = await nodegit.Diff.treeToTree(
         repos,
         await oldCommit.getTree(),
         await newCommit.getTree()
       );
-      const local_changes = await getChanges(gitDDB, diff);
+      const localChanges = await getChanges(gitDDB, diff);
+      // Get list of commits which has been added to local
 
       // Change commit message
       await commitAmendMessage(gitDDB, sync, newCommitOid!, 'merge');
+      const amendedNewCommit = await repos.getHeadCommit();
+
+      const mergeBase = await nodegit.Merge.base(
+        repos,
+        oldCommit.id(),
+        oldRemoteCommit.id()
+      );
+
+      const commitsFromRemote = await getCommitLogs(
+        await repos.getCommit(mergeBase),
+        oldRemoteCommit
+      );
+      // Add merge commit
+      const localCommits = [
+        ...commitsFromRemote,
+        {
+          id: amendedNewCommit.id().tostrS(),
+          date: amendedNewCommit.date(),
+          author: amendedNewCommit.author().toString(),
+          message: amendedNewCommit.message(),
+        },
+      ];
 
       // Need push because it is merged normally.
       const syncResult = await push_worker(gitDDB, sync, taskId);
       syncResult.operation = 'merge and push';
-      syncResult.local_changes = local_changes;
+      syncResult.changes ??= {};
+      syncResult.changes.local = localChanges;
+      syncResult.commits ??= {};
+      syncResult.commits.local = localCommits;
+
       return syncResult;
     }
 
@@ -583,12 +618,30 @@ export async function sync_worker (
     );
     repos.stateCleanup();
 
+    const overwriteCommit = await repos.getCommit(overwriteCommitOid);
     const diff = await nodegit.Diff.treeToTree(
       repos,
       await oldCommit.getTree(),
-      await (await repos.getCommit(overwriteCommitOid)).getTree()
+      await overwriteCommit.getTree()
     );
-    const local_changes = await getChanges(gitDDB, diff);
+    const localChanges = await getChanges(gitDDB, diff);
+
+    // Get list of commits which has been added to local
+    const mergeBase = await nodegit.Merge.base(repos, oldCommit.id(), oldRemoteCommit.id());
+    const commitsFromRemote = await getCommitLogs(
+      await repos.getCommit(mergeBase),
+      oldRemoteCommit
+    );
+    // Add merge commit
+    const localCommits = [
+      ...commitsFromRemote,
+      {
+        id: overwriteCommit.id().tostrS(),
+        date: overwriteCommit.date(),
+        author: overwriteCommit.author().toString(),
+        message: overwriteCommit.message(),
+      },
+    ];
 
     const opt = new nodegit.CheckoutOptions();
     opt.checkoutStrategy = nodegit.Checkout.STRATEGY.FORCE;
@@ -597,7 +650,11 @@ export async function sync_worker (
     // Push
     const syncResult = await push_worker(gitDDB, sync, taskId);
     syncResult.operation = 'resolve conflicts and push';
-    syncResult.local_changes = local_changes;
+    syncResult.changes ??= {};
+    syncResult.changes.local = localChanges;
+    syncResult.commits ??= {};
+    syncResult.commits.local = localCommits;
+
     return syncResult;
   }
 }
