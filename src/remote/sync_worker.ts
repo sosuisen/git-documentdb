@@ -11,6 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { ConsoleStyle } from '../utils';
 import {
+  CannotCreateDirectoryError,
   CannotPushBecauseUnfetchedCommitExistsError,
   InvalidJsonObjectError,
   NoMergeBaseFoundError,
@@ -239,6 +240,7 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
      * changed old: test.txt, 1100
      *         new: test.txt, 1100
      */
+
     const oldExist = delta.oldFile().flags() >> 3;
     const newExist = delta.newFile().flags() >> 3;
 
@@ -595,8 +597,9 @@ export async function sync_worker (
      * In libgit2, non-conflicted file is distinguished by using 0 (Index.STAGE.NORMAL)
      */
 
-    let commitMessage = '';
+    const commitMessage = '';
     const conflicts: { [key: string]: { [keys: string]: boolean } } = {};
+
 
     conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
       const stage = nodegit.Index.entryStage(entry);
@@ -605,11 +608,8 @@ export async function sync_worker (
       );
 
       // entries() returns all files in stage 0, 1, 2 and 3.
-      if (stage !== 0) {
-        // is conflict
-        conflicts[entry.path] ??= {};
-        conflicts[entry.path][stage] = true;
-      }
+      conflicts[entry.path] ??= {};
+      conflicts[entry.path][stage] = true;
     });
 
     /**
@@ -629,9 +629,61 @@ export async function sync_worker (
       put: [],
       remove: [],
     };
+
+    const conflictedDiff = await nodegit.Diff.treeToTree(
+      repos,
+      await oldRemoteCommit.getTree(),
+      await oldCommit.getTree()
+    );
+    addOrRemove: { [key: string]: 'add' | 'remove' | 'merge or conflict'}
+    for (let i = 0; i < conflictedDiff.numDeltas(); i++) {
+      const delta = conflictedDiff.getDelta(i);
+      const remoteExist = delta.oldFile().flags() >> 3;
+      const localExist = delta.newFile().flags() >> 3;
+
+      const filepath = delta.newFile().path();
+      const docId = filepath.replace(new RegExp(gitDDB.fileExt + '$'), '');
+      console.log(` - ${filepath}: ${remoteExist} => ${localExist}`);
+    }
+    // eslint-disable-next-line complexity
     Object.keys(conflicts).forEach(async path => {
       // Conflict is resolved by using OURS.
-      if (conflicts[path][2]) {
+      if (conflicts[path][0]) {
+        console.log('no conflict: ' + path);
+
+        // This file is not conflicted.
+        const localEntry = await oldCommit.getEntry(path).catch(() => undefined);
+        const remoteEntry = await oldRemoteCommit.getEntry(path).catch(() => undefined);
+        if (!localEntry && !remoteEntry) {
+          // A file has been removed.
+          // Nothing to do here.
+          console.log(' - file removed: ' + path);
+        }
+        else if (localEntry && !remoteEntry) {
+          // Add a new file in a working directory.
+          await _index.addByPath(path);
+          console.log(' - local file add: ' + path);
+        }
+        else if (!localEntry && remoteEntry) {
+          // Download a remote file to local
+          await _index.addByPath(path);
+          const data = (await remoteEntry.getBlob()).toString();
+          const filename = remoteEntry.name() + gitDDB.fileExt;
+          const filePath = nodePath.resolve(gitDDB.workingDir(), filename);
+          const dir = nodePath.dirname(filePath);
+          await fs.ensureDir(dir).catch((err: Error) => {
+            return Promise.reject(new CannotCreateDirectoryError(err.message));
+          });
+          await fs.writeFile(filePath, data);
+          console.log(' - remote file add: ' + path);
+        }
+        else if (localEntry && remoteEntry) {
+          // A local file is overwritten of vice verse by remote with no conflict
+          // TODO:
+          // No good method here for determine which should be overwritten.
+        }
+      }
+      else if (conflicts[path][2]) {
         // If 'ours' file is added or modified in a conflict, the file is sure to exist in stage 2.
         await _index.addByPath(path);
         const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
@@ -655,6 +707,7 @@ export async function sync_worker (
         commitMessage += `remove-overwrite: ${path}`;
       }
     });
+    */
     _index.conflictCleanup();
     gitDDB.logger.debug(
       ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: overwritten by ours`
