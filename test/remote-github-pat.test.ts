@@ -12,7 +12,6 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
-import { threadId } from 'worker_threads';
 import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
@@ -1052,6 +1051,7 @@ maybe('remote: use personal access token: ', () => {
         // overwrite theirs by ours
         expect(syncResult1.operation).toBe('resolve conflicts and push');
         expect(syncResult1.commits).toMatchObject({
+          // two put commits and a merge commit
           local: [
             {
               id: putResultA1.commit_sha,
@@ -1073,6 +1073,7 @@ maybe('remote: use personal access token: ', () => {
             },
           ],
           remote: [
+            // put commit and merge commit
             {
               id: putResultB1.commit_sha,
               author: expect.stringMatching(/^.+$/),
@@ -1087,24 +1088,30 @@ maybe('remote: use personal access token: ', () => {
             },
           ],
         });
-        /*
-        expect(syncResult1.commits!.local.length).toBe(3); // two put commits and a merge commit
-        expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
-        expect(syncResult1.commits!.local[0].id).toBe(putResultA1.commit_sha);
-        expect(syncResult1.commits!.local[1].id).toBe(putResultA2.commit_sha);
-        expect(syncResult1.commits!.local[2].message).toBe(
-          '[resolve conflicts] put-accept-ours: 1'
-        );
-        expect(syncResult1.commits!.remote[0].id).toBe(putResultB1.commit_sha);
-        expect(syncResult1.commits!.remote[1].message).toBe('[resolve conflicts] put-accept-ours: 1');
-        */
-        expect(syncResult1.changes.local.add.length).toBe(1); // jsonA2 is merged normally
-        expect(syncResult1.changes.local.modify.length).toBe(0); // Must be 0, because diff is empty.
-        expect(syncResult1.changes.local.remove.length).toBe(0);
-        expect(syncResult1.changes.remote.add.length).toBe(0);
-        expect(syncResult1.changes.remote.modify.length).toBe(1); // Must be 1, because jsonA1 is overwritten by jsonB1
-        expect(syncResult1.changes.remote.modify[0].doc).toMatchObject(jsonB1); // overwritten
-        expect(syncResult1.changes.remote.remove.length).toBe(0);
+        expect(syncResult1.changes).toMatchObject({
+          local: {
+            add: [
+              {
+                id: jsonA2._id,
+                file_sha: putResultA2.file_sha,
+                doc: jsonA2,
+              },
+            ], // jsonA2 is merged normally
+            modify: [], // Must be 0, because diff is empty.
+            remove: [],
+          },
+          remote: {
+            add: [],
+            modify: [
+              {
+                id: jsonB1._id,
+                file_sha: putResultB1.file_sha,
+                doc: jsonB1,
+              },
+            ], // Must be 1, because jsonA1 is overwritten by jsonB1
+            remove: [],
+          },
+        });
         expect(syncResult1.conflicts).toMatchObject({
           ours: {
             put: ['1'],
