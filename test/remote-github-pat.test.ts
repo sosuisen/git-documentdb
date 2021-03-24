@@ -1010,7 +1010,7 @@ maybe('remote: use personal access token: ', () => {
     });
 
     describe('Resolve conflict: ', () => {
-      test('put with the same id', async () => {
+      test.skip('case (4): put with the same id', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -1127,7 +1127,123 @@ maybe('remote: use personal access token: ', () => {
         await dbB.destroy().catch(err => console.debug(err));
       });
 
-      test.skip('Resolve conflict: put and remove the same file');
+      test.skip('case (): put and remove the same file', async () => {
+        const remoteURL = remoteURLBase + serialId();
+
+        const dbNameA = serialId();
+
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          auth: { type: 'github', personal_access_token: token },
+          include_commits: true,
+        };
+        await dbA.open(options);
+        // A puts and pushes
+        const jsonA1 = { _id: '1', name: 'fromA' };
+        const putResultA1 = await dbA.put(jsonA1);
+        const remoteA = dbA.getRemote(remoteURL);
+        await remoteA.tryPush();
+
+        const dbNameB = serialId();
+        const dbB: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameB,
+          local_dir: localDir,
+        });
+        // Clone dbA
+        await dbB.open(options);
+
+        const removeResultA1 = await dbA.remove(jsonA1);
+        const jsonA2 = { _id: '2', name: 'fromA' };
+        const putResultA2 = await dbA.put(jsonA2);
+
+        // B updates and puts the same file and syncs
+        const jsonB1 = { _id: '1', name: 'fromB' };
+        const putResultB1 = await dbB.put(jsonB1);
+        const remoteB = dbB.getRemote(remoteURL);
+
+        const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+        // overwrite theirs by ours
+        expect(syncResult1.operation).toBe('resolve conflicts and push');
+        expect(syncResult1.commits).toMatchObject({
+          // two put commits and a merge commit
+          local: [
+            {
+              id: putResultA1.commit_sha,
+              author: expect.stringMatching(/^.+$/),
+              date: expect.any(Date),
+              message: expect.stringMatching(/^.+$/),
+            },
+            {
+              id: putResultA2.commit_sha,
+              author: expect.stringMatching(/^.+$/),
+              date: expect.any(Date),
+              message: expect.stringMatching(/^.+$/),
+            },
+            {
+              id: expect.stringMatching(/^.+$/),
+              author: expect.stringMatching(/^.+$/),
+              date: expect.any(Date),
+              message: '[resolve conflicts] put-accept-ours: 1',
+            },
+          ],
+          remote: [
+            // put commit and merge commit
+            {
+              id: putResultB1.commit_sha,
+              author: expect.stringMatching(/^.+$/),
+              date: expect.any(Date),
+              message: expect.stringMatching(/^.+$/),
+            },
+            {
+              id: expect.stringMatching(/^.+$/),
+              author: expect.stringMatching(/^.+$/),
+              date: expect.any(Date),
+              message: '[resolve conflicts] put-accept-ours: 1',
+            },
+          ],
+        });
+        expect(syncResult1.changes).toMatchObject({
+          local: {
+            add: [
+              {
+                id: jsonA2._id,
+                file_sha: putResultA2.file_sha,
+                doc: jsonA2,
+              },
+            ], // jsonA2 is merged normally
+            modify: [], // Must be 0, because diff is empty.
+            remove: [],
+          },
+          remote: {
+            add: [],
+            modify: [
+              {
+                id: jsonB1._id,
+                file_sha: putResultB1.file_sha,
+                doc: jsonB1,
+              },
+            ], // Must be 1, because jsonA1 is overwritten by jsonB1
+            remove: [],
+          },
+        });
+        expect(syncResult1.conflicts).toMatchObject({
+          ours: {
+            put: ['1'],
+            remove: [],
+          },
+          theirs: {
+            put: [],
+            remove: [],
+          },
+        }); // Conflicted document '1' is overwritten by jsonB1
+
+        await dbA.destroy().catch(err => console.debug(err));
+        await dbB.destroy().catch(err => console.debug(err));
+      });
     });
   });
 
