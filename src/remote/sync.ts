@@ -83,6 +83,7 @@ export class Sync implements ISync {
       auth: undefined,
       behavior_for_no_merge_base: undefined,
       include_commits: undefined,
+      conflict_resolve_strategy: undefined,
     };
     // Deep clone
     this._options = JSON.parse(JSON.stringify(_options));
@@ -106,6 +107,7 @@ export class Sync implements ISync {
     this._options.retry ??= defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
     this._options.include_commits ??= false;
+    this._options.conflict_resolve_strategy ??= 'ours';
 
     this.credential_callbacks = createCredential(this._options);
 

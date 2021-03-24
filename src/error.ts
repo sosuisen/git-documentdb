@@ -413,3 +413,12 @@ export class FileRemoveTimeoutError extends BaseError {
     super(`Removing file is timed out for some reason.`);
   }
 }
+
+/**
+ * @public
+ */
+export class InvalidConflictStateError extends BaseError {
+  constructor (mes: string) {
+    super(mes);
+  }
+}

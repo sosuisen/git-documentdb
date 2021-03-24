@@ -7,12 +7,15 @@
  */
 
 import nodePath from 'path';
-import nodegit from '@sosuisen/nodegit';
+import { exception } from 'console';
+import nodegit, { Remote } from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { ConsoleStyle } from '../utils';
 import {
   CannotCreateDirectoryError,
+  CannotDeleteDataError,
   CannotPushBecauseUnfetchedCommitExistsError,
+  InvalidConflictStateError,
   InvalidJsonObjectError,
   NoMergeBaseFoundError,
   RepositoryNotOpenError,
@@ -20,7 +23,9 @@ import {
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import {
+  AcceptedConflicts,
   CommitInfo,
+  ConflictResolveStrategies,
   DocMetadata,
   FileChanges,
   ISync,
@@ -199,7 +204,7 @@ async function getDocument (gitDDB: AbstractDocumentDB, id: string, fileOid: nod
       // Overwrite _id in a document by _id in arguments
       document._id = id;
     } catch (e) {
-      return Promise.reject(new InvalidJsonObjectError());
+      throw new InvalidJsonObjectError();
     }
   }
   return document;
@@ -351,6 +356,47 @@ async function getCommitLogs (
 }
 
 /**
+ * Write blob to file system
+ */
+async function writeBlobToFile (gitDDB: AbstractDocumentDB, entry: nodegit.TreeEntry) {
+  const data = (await entry.getBlob()).toString();
+  const filename = entry.name();
+  const filePath = nodePath.resolve(gitDDB.workingDir(), filename);
+  const dir = nodePath.dirname(filePath);
+  await fs.ensureDir(dir).catch((err: Error) => {
+    return Promise.reject(new CannotCreateDirectoryError(err.message));
+  });
+  await fs.writeFile(filePath, data);
+}
+
+async function getStrategy (
+  gitDDB: AbstractDocumentDB,
+  strategy: ConflictResolveStrategies | undefined,
+  path: string,
+  ours?: nodegit.TreeEntry,
+  theirs?: nodegit.TreeEntry
+) {
+  const defaultStrategy: ConflictResolveStrategies = 'ours';
+  if (strategy === undefined) {
+    strategy = defaultStrategy;
+  }
+  else if (strategy !== 'ours' && strategy !== 'theirs') {
+    // Strategy may be a function
+    const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
+    const oursDoc = ours
+      ? await getDocument(gitDDB, id, ours.id()).catch(() => undefined)
+      : undefined;
+    const theirsDoc = theirs
+      ? await getDocument(gitDDB, id, theirs.id()).catch(() => undefined)
+      : undefined;
+    strategy = strategy(oursDoc, theirsDoc);
+    if (strategy === undefined) {
+      strategy = defaultStrategy;
+    }
+  }
+  return strategy;
+}
+/**
  * Push and get changes
  */
 export async function push_worker (
@@ -408,6 +454,197 @@ export async function push_worker (
   }
 
   return syncResult;
+}
+
+// eslint-disable-next-line complexity
+async function threeWayMerge (
+  gitDDB: AbstractDocumentDB,
+  conflict_resolve_strategy: ConflictResolveStrategies,
+  resolvedIndex: nodegit.Index,
+  path: string,
+  mergeBase: nodegit.Commit,
+  oursCommit: nodegit.Commit,
+  theirsCommit: nodegit.Commit,
+  acceptedConflicts: AcceptedConflicts
+): Promise<void> {
+  const repos = gitDDB.repository();
+  if (repos === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+
+  // Try 3-way merge on the assumption that the is no conflict.
+  const baseCommit = await repos.getCommit(mergeBase);
+  const ours = await oursCommit.getEntry(path).catch(() => undefined);
+  const theirs = await theirsCommit.getEntry(path).catch(() => undefined);
+  const base = await baseCommit.getEntry(path).catch(() => undefined);
+
+  const docId = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
+
+  // 2 x 2 x 2 cases
+  if (!base && !ours && !theirs) {
+    // This case must not occurred.
+    throw new InvalidConflictStateError(
+      'Neither a base entry nor a local entry nor a remote entry exists.'
+    );
+  }
+  else if (!base && !ours && theirs) {
+    // A new file has been created on theirs.
+    // Write it to the file.
+    console.log('1 - Accept theirs (add): ' + path);
+    await writeBlobToFile(gitDDB, theirs);
+    console.log('try to add ' + path);
+    await resolvedIndex.addByPath(path);
+    console.log('end to add ' + path);
+  }
+  else if (!base && ours && !theirs) {
+    // A new file has been created on ours.
+    // Just add it to the index.
+    console.log('2 - Accept ours (add): ' + path);
+    await resolvedIndex.addByPath(path);
+  }
+  else if (!base && ours && theirs) {
+    if (ours.id().equal(theirs.id())) {
+      // The same filenames with exactly the same contents are created on both local and remote.
+      // Jut add it to the index.
+      console.log('3 - Accept both (add): ' + path);
+      await resolvedIndex.addByPath(path);
+    }
+    else {
+      // ! Conflict
+      const strategy = await getStrategy(
+        gitDDB,
+        conflict_resolve_strategy,
+        path,
+        ours,
+        theirs
+      );
+      if (strategy === 'ours') {
+        // Just add it to the index.
+        console.log('4 - Conflict. Accept ours (put): ' + path);
+        acceptedConflicts.ours.put.push(docId);
+        await resolvedIndex.addByPath(path);
+      }
+      else if (strategy === 'theirs') {
+        // Write theirs to the file.
+        console.log('5 - Conflict. Accept theirs (put): ' + path);
+        acceptedConflicts.theirs.put.push(docId);
+        await writeBlobToFile(gitDDB, theirs);
+        await resolvedIndex.addByPath(path);
+      }
+    }
+  }
+  else if (base && !ours && !theirs) {
+    // The same files are removed.
+    console.log('6 - Accept both (remove): ' + path);
+    await resolvedIndex.removeByPath(path);
+  }
+  else if (base && !ours && theirs) {
+    if (base.id().equal(theirs.id())) {
+      // A file has been removed on ours.
+      console.log('7 - Accept ours (remove): ' + path);
+      await resolvedIndex.removeByPath(path);
+    }
+    else {
+      // ! Conflict
+      const strategy = await getStrategy(
+        gitDDB,
+        conflict_resolve_strategy,
+        path,
+        ours,
+        theirs
+      );
+      if (strategy === 'ours') {
+        // Just add it to the index.
+        console.log('8 - Conflict. Accept ours (remove): ' + path);
+        acceptedConflicts.ours.remove.push(docId);
+        await resolvedIndex.removeByPath(path);
+      }
+      else if (strategy === 'theirs') {
+        // Write theirs to the file.
+        console.log('9 - Conflict. Accept theirs (put): ' + path);
+        acceptedConflicts.theirs.put.push(docId);
+        await writeBlobToFile(gitDDB, theirs);
+        await resolvedIndex.addByPath(path);
+      }
+    }
+  }
+  else if (base && ours && !theirs) {
+    if (base.id().equal(ours.id())) {
+      // A file has been removed on theirs.
+      console.log('10 - Accept theirs (remove): ' + path);
+      await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
+        throw new CannotDeleteDataError();
+      });
+      await resolvedIndex.removeByPath(path);
+    }
+    else {
+      // ! Conflict
+      const strategy = await getStrategy(
+        gitDDB,
+        conflict_resolve_strategy,
+        path,
+        ours,
+        theirs
+      );
+      if (strategy === 'ours') {
+        // Just add to the index.
+        console.log('11 - Conflict. Accept ours (put): ' + path);
+        acceptedConflicts.ours.put.push(docId);
+        await resolvedIndex.addByPath(path);
+      }
+      else if (strategy === 'theirs') {
+        // Remove file
+        console.log('12 - Conflict. Accept theirs (remove): ' + path);
+        acceptedConflicts.theirs.remove.push(docId);
+        await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
+          throw new CannotDeleteDataError();
+        });
+        await resolvedIndex.removeByPath(path);
+      }
+    }
+  }
+  else if (base && ours && theirs) {
+    if (ours.id().equal(theirs.id())) {
+      // The same filenames with exactly the same contents are created on both local and remote.
+      // Jut add it to the index.
+      console.log('13 - Accept both (put): ' + path);
+      await resolvedIndex.addByPath(path);
+    }
+    else if (base.id().equal(ours.id())) {
+      // Write theirs to the file.
+      console.log('14 - Accept theirs (put): ' + path);
+      await writeBlobToFile(gitDDB, theirs);
+      await resolvedIndex.addByPath(path);
+    }
+    else if (base.id().equal(theirs.id())) {
+      // Jut add it to the index.
+      console.log('15 - Accept both (put): ' + path);
+      await resolvedIndex.addByPath(path);
+    }
+    else {
+      // ! Conflict
+      const strategy = await getStrategy(
+        gitDDB,
+        conflict_resolve_strategy,
+        path,
+        ours,
+        theirs
+      );
+      if (strategy === 'ours') {
+        // Just add it to the index.
+        console.log('16 - Conflict. Accept ours (put): ' + path);
+        acceptedConflicts.ours.put.push(docId);
+        await resolvedIndex.addByPath(path);
+      }
+      else if (strategy === 'theirs') {
+        // Write theirs to the file.
+        console.log('17 - Conflict. Accept theirs (put): ' + path);
+        acceptedConflicts.theirs.put.push(docId);
+        await writeBlobToFile(gitDDB, theirs);
+        await resolvedIndex.addByPath(path);
+      }
+    }
+  }
 }
 
 /**
@@ -589,18 +826,11 @@ export async function sync_worker (
     /**
      * Conflict
      * https://git-scm.com/docs/git-merge#_true_merge
-     * The index file records up to three versions:
-     * stage 1 stores the version from the common ancestor (Index.STAGE.ANCESTOR),
-     * stage 2 from HEAD (Index.STAGE.OURS),
-     * and stage 3 from MERGE_HEAD (Index.STAGE.THEIRS).
-     *
-     * In libgit2, non-conflicted file is distinguished by using 0 (Index.STAGE.NORMAL)
      */
 
-    const commitMessage = '';
-    const conflicts: { [key: string]: { [keys: string]: boolean } } = {};
+    const mergeBase = await nodegit.Merge.base(repos, oldCommit.id(), oldRemoteCommit.id());
 
-
+    const allFileObj: { [key: string]: boolean } = {};
     conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
       const stage = nodegit.Index.entryStage(entry);
       gitDDB.logger.debug(
@@ -608,8 +838,9 @@ export async function sync_worker (
       );
 
       // entries() returns all files in stage 0, 1, 2 and 3.
-      conflicts[entry.path] ??= {};
-      conflicts[entry.path][stage] = true;
+      // A file may exist in multiple stages.
+      // Add once per file to allFileObj.
+      allFileObj[entry.path] = true;
     });
 
     /**
@@ -617,105 +848,66 @@ export async function sync_worker (
      * Index from Repository.mergeBranch, Merge.merge or Merge.commit is in-memory only.
      * It cannot be used for commit operations.
      * Create a new copy of index for commit.
-     * Repository#refreshIndex() grabs copy of latest index
+     *  Repository#refreshIndex() grabs copy of latest index
      * See https://github.com/nodegit/nodegit/blob/master/examples/merge-with-conflicts.js
      */
-    const _index = await repos.refreshIndex();
+    const resolvedIndex = await repos.refreshIndex();
 
-    const conflictList: {
-      put: string[];
-      remove: string[];
-    } = {
-      put: [],
-      remove: [],
+    const acceptedConflicts: AcceptedConflicts = {
+      ours: {
+        put: [],
+        remove: [],
+      },
+      theirs: {
+        put: [],
+        remove: [],
+      },
     };
 
-    const conflictedDiff = await nodegit.Diff.treeToTree(
-      repos,
-      await oldRemoteCommit.getTree(),
-      await oldCommit.getTree()
-    );
-    addOrRemove: { [key: string]: 'add' | 'remove' | 'merge or conflict'}
-    for (let i = 0; i < conflictedDiff.numDeltas(); i++) {
-      const delta = conflictedDiff.getDelta(i);
-      const remoteExist = delta.oldFile().flags() >> 3;
-      const localExist = delta.newFile().flags() >> 3;
+    console.log('Three way merge..');
 
-      const filepath = delta.newFile().path();
-      const docId = filepath.replace(new RegExp(gitDDB.fileExt + '$'), '');
-      console.log(` - ${filepath}: ${remoteExist} => ${localExist}`);
-    }
+    const mergeBaseCommit = await repos.getCommit(mergeBase);
+    const resolvers: Promise<void>[] = [];
+    const strategy = sync.options().conflict_resolve_strategy;
     // eslint-disable-next-line complexity
-    Object.keys(conflicts).forEach(async path => {
-      // Conflict is resolved by using OURS.
-      if (conflicts[path][0]) {
-        console.log('no conflict: ' + path);
-
-        // This file is not conflicted.
-        const localEntry = await oldCommit.getEntry(path).catch(() => undefined);
-        const remoteEntry = await oldRemoteCommit.getEntry(path).catch(() => undefined);
-        if (!localEntry && !remoteEntry) {
-          // A file has been removed.
-          // Nothing to do here.
-          console.log(' - file removed: ' + path);
-        }
-        else if (localEntry && !remoteEntry) {
-          // Add a new file in a working directory.
-          await _index.addByPath(path);
-          console.log(' - local file add: ' + path);
-        }
-        else if (!localEntry && remoteEntry) {
-          // Download a remote file to local
-          await _index.addByPath(path);
-          const data = (await remoteEntry.getBlob()).toString();
-          const filename = remoteEntry.name() + gitDDB.fileExt;
-          const filePath = nodePath.resolve(gitDDB.workingDir(), filename);
-          const dir = nodePath.dirname(filePath);
-          await fs.ensureDir(dir).catch((err: Error) => {
-            return Promise.reject(new CannotCreateDirectoryError(err.message));
-          });
-          await fs.writeFile(filePath, data);
-          console.log(' - remote file add: ' + path);
-        }
-        else if (localEntry && remoteEntry) {
-          // A local file is overwritten of vice verse by remote with no conflict
-          // TODO:
-          // No good method here for determine which should be overwritten.
-        }
-      }
-      else if (conflicts[path][2]) {
-        // If 'ours' file is added or modified in a conflict, the file is sure to exist in stage 2.
-        await _index.addByPath(path);
-        const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
-        conflictList.put.push(id);
-        if (commitMessage !== '') {
-          commitMessage += ', ';
-        }
-        commitMessage += `put-overwrite: ${path}`;
-      }
-      else if (conflicts[path][1]) {
-        // If 'ours' file is removed in a conflict, the file is sure to exist in stage 1 and not to exist in stage 2.
-        await _index.removeByPath(path);
-        const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
-        conflictList.remove.push(id);
-        await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
-          // TODO
-        });
-        if (commitMessage !== '') {
-          commitMessage += ', ';
-        }
-        commitMessage += `remove-overwrite: ${path}`;
-      }
+    Object.keys(allFileObj).forEach(path => {
+      resolvers.push(
+        threeWayMerge(
+          gitDDB,
+          strategy!,
+          resolvedIndex,
+          path,
+          mergeBaseCommit,
+          oldCommit,
+          oldRemoteCommit,
+          acceptedConflicts
+        )
+      );
     });
-    */
-    _index.conflictCleanup();
-    gitDDB.logger.debug(
-      ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: overwritten by ours`
-    );
+    await Promise.all(resolvers);
+    resolvedIndex.conflictCleanup();
+    console.log(acceptedConflicts);
 
-    await _index.write();
+    let commitMessage = '[resolve conflicts] ';
+    acceptedConflicts.ours.put.forEach(id => {
+      commitMessage += `put-accept-ours: ${id}, `;
+    });
+    acceptedConflicts.ours.remove.forEach(id => {
+      commitMessage += `remove-accept-ours: ${id}, `;
+    });
+    acceptedConflicts.theirs.put.forEach(id => {
+      commitMessage += `put-accept-theirs: ${id}, `;
+    });
+    acceptedConflicts.theirs.remove.forEach(id => {
+      commitMessage += `remove-accept-theirs: ${id}, `;
+    });
+    if (commitMessage.endsWith(', ')) {
+      commitMessage = commitMessage.slice(0, -2);
+    }
 
-    const treeOid: nodegit.Oid | void = await _index.writeTree();
+    await resolvedIndex.write();
+
+    const treeOid: nodegit.Oid | void = await resolvedIndex.writeTree();
 
     const overwriteCommitOid: nodegit.Oid = await repos.createCommit(
       'HEAD',
@@ -741,11 +933,6 @@ export async function sync_worker (
     // Get list of commits which has been added to local
     let localCommits: CommitInfo[] | undefined;
     if (sync.options().include_commits) {
-      const mergeBase = await nodegit.Merge.base(
-        repos,
-        oldCommit.id(),
-        oldRemoteCommit.id()
-      );
       const commitsFromRemote = await getCommitLogs(
         await repos.getCommit(mergeBase),
         oldRemoteCommit
@@ -770,7 +957,7 @@ export async function sync_worker (
     const syncResultPush = await push_worker(gitDDB, sync, taskId);
     const syncResultResolveConflictsAndPush: SyncResultResolveConflictsAndPush = {
       operation: 'resolve conflicts and push',
-      conflicts: conflictList,
+      conflicts: acceptedConflicts,
       changes: {
         local: localChanges,
         remote: syncResultPush.changes.remote,

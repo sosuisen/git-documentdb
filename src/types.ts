@@ -286,6 +286,37 @@ export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
  * ours: git merge -s ours <remote branch>
  */
 export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
+
+/**
+ * Strategy for resolving conflicts
+ *
+ * @remarks
+ * - 'ours': Accept ours (Default). When remote changes are conflicted with local changes, the local changes are accepted.
+ *
+ * - 'theirs': Accept theirs. When remote changes are conflicted with local changes, the remote changes are accepted.
+ *
+ * - Compare function that returns 'ours' or 'theirs' can be given. Each parameter will be undefined when a document is removed.
+ */
+export type ConflictResolveStrategies =
+  | 'ours'
+  | 'theirs'
+  | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
+
+/**
+ * Accepted Conflicts
+ *
+ * This shows which stage is accepted when a conflict occurs.
+ */
+export type AcceptedConflicts = {
+  ours: {
+    put: string[];
+    remove: string[];
+  };
+  theirs: {
+    put: string[];
+    remove: string[];
+  };
+};
 /**
  * Options for Sync class
  *
@@ -302,6 +333,7 @@ export type RemoteOptions = {
   auth?: RemoteAuth;
   behavior_for_no_merge_base?: BehaviorForNoMergeBase;
   include_commits?: boolean;
+  conflict_resolve_strategy?: ConflictResolveStrategies;
 };
 
 /**
@@ -411,13 +443,10 @@ export type SyncResultResolveConflictsAndPush = {
     local: FileChanges;
     remote: FileChanges;
   };
-  conflicts: {
-    put: string[];
-    remove: string[];
-  };
+  conflicts: AcceptedConflicts;
   commits?: {
     local: CommitInfo[];
-    remote: CommitInfo[]; // The list is sorted from old to new.
+    remote: CommitInfo[];
   };
 };
 export type SyncResultCancel = {
