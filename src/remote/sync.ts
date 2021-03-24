@@ -17,7 +17,7 @@ import {
 import {
   ISync,
   RemoteOptions,
-  SyncChangeEvent,
+  SyncBaseType,
   SyncEvent,
   SyncResult,
   SyncResultPush,
@@ -56,7 +56,7 @@ export class Sync implements ISync {
   private _retrySyncCounter = 0;
 
   private _eventHandlers: {
-    change: ((event: SyncChangeEvent) => void)[];
+    change: ((event: SyncResult) => void)[];
     paused: ((res: any) => void)[];
     active: ((res: any) => void)[];
     denied: ((res: any) => void)[];
@@ -366,8 +366,10 @@ export class Sync implements ISync {
               syncResult
             )}`
           );
-          // if changes
-          // this._eventHandlers.change.forEach(func => func(syncResult));
+
+          if ((syncResult as SyncBaseType).changes !== undefined) {
+            this._eventHandlers.change.forEach(func => func(syncResult));
+          }
 
           beforeResolve();
           resolve(syncResult);
@@ -401,12 +403,12 @@ export class Sync implements ISync {
     });
   }
 
-  on (event: SyncEvent, callback: (res: SyncChangeEvent) => void) {
+  on (event: SyncEvent, callback: (res: SyncResult) => void) {
     this._eventHandlers[event].push(callback);
     return this;
   }
 
-  off (event: SyncEvent, callback: (res: SyncChangeEvent) => void) {
+  off (event: SyncEvent, callback: (res: SyncResult) => void) {
     this._eventHandlers[event] = this._eventHandlers[event].filter(
       func => func !== callback
     );

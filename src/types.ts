@@ -399,12 +399,25 @@ export type CommitInfo = {
  * - commits.remote: List of commits which has been pushed to remote
  */
 export type SyncResult =
+  | SyncBaseType
   | SyncResultNop
   | SyncResultPush
   | SyncResultFastForwardMerge
   | SyncResultMergeAndPush
   | SyncResultResolveConflictsAndPush
   | SyncResultCancel;
+export type SyncBaseType = {
+  operation: string;
+  changes?: {
+    local?: FileChanges;
+    remote?: FileChanges;
+  };
+  conflicts: AcceptedConflicts;
+  commits?: {
+    local?: CommitInfo[];
+    remote?: CommitInfo[]; // The list is sorted from old to new.
+  };
+};
 export type SyncResultNop = {
   operation: 'nop';
 };
@@ -451,24 +464,4 @@ export type SyncResultResolveConflictsAndPush = {
 };
 export type SyncResultCancel = {
   operation: 'canceled';
-};
-
-/**
- * Sync event
- *
- * - commits are sorted from old to new.
- *
- * - commits.local: List of commits which has been pulled to local
- *
- * - commits.remote: List of commits which has been pushed to remote
- */
-export type SyncChangeEvent = {
-  changes?: {
-    local?: FileChanges;
-    remote?: FileChanges;
-  };
-  commits?: {
-    local?: CommitInfo[];
-    remote?: CommitInfo[]; // The list is sorted from old to new.
-  };
 };
