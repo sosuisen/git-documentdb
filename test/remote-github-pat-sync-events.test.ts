@@ -139,5 +139,13 @@ maybe('remote: use personal access token: events: ', () => {
       await dbA.destroy().catch(e => console.debug(e));
       await dbB.destroy().catch(e => console.debug(e));
     });
+
+    test.skip('paused');
+    test.skip('active');
+    test.skip('denied');
+    test.skip('complete');
+    test.skip('error');
   });
+
+  describe.skip('on and off', () => {});
 });
