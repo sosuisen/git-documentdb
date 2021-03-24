@@ -422,3 +422,41 @@ export class InvalidConflictStateError extends BaseError {
     super(mes);
   }
 }
+
+/**
+ * @public
+ */
+export class DatabaseExistsError extends BaseError {
+  constructor () {
+    super('Database already exists');
+  }
+}
+
+/**
+ * @public
+ */
+export class WorkingDirectoryExistsError extends BaseError {
+  constructor () {
+    super('Working directory already exists');
+  }
+}
+
+/**
+ * @public
+ */
+export class CannotOpenRepositoryError extends BaseError {
+  constructor (err: string) {
+    super(`Cannot open repository: ${err}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class RepositoryNotFoundError extends BaseError {
+  constructor (path: string) {
+    super(
+      `Repository does not exist, or you do not have permission to access the directory: ${path}`
+    );
+  }
+}

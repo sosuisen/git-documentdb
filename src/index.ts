@@ -13,12 +13,16 @@ import rimraf from 'rimraf';
 import { Logger } from 'tslog';
 import {
   CannotCreateDirectoryError,
+  CannotOpenRepositoryError,
   DatabaseCloseTimeoutError,
   DatabaseClosingError,
+  DatabaseExistsError,
   FileRemoveTimeoutError,
   InvalidWorkingDirectoryPathLengthError,
   RemoteAlreadyRegisteredError,
+  RepositoryNotFoundError,
   UndefinedDatabaseNameError,
+  WorkingDirectoryExistsError,
 } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -178,20 +182,90 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
-   * Create a repository or open an existing one.
+   * Create and open a repository
    *
    * @remarks
    *  - If localDir does not exist, it is created.
    *
+   * @returns Database information
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link DatabaseExistsError}
+   * @throws {@link WorkingDirectoryExistsError}
+   * @throws {@link CannotCreateDirectoryError}
+   */
+  async create (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
+    if (this.isClosing) {
+      return Promise.reject(new DatabaseClosingError());
+    }
+    if (this.isOpened()) {
+      throw new DatabaseExistsError();
+    }
+
+    if (fs.existsSync(this._workingDirectory)) {
+      throw new WorkingDirectoryExistsError();
+    }
+
+    /**
+     * Create directory
+     */
+    await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
+      return Promise.reject(new CannotCreateDirectoryError(err.message));
+    });
+
+    if (remoteOptions?.remote_url === undefined) {
+      this._dbInfo = await this._createRepository();
+      return this._dbInfo;
+    }
+
+    // Clone repository if remoteURL exists
+    this._currentRepository = await this._cloneRepository(remoteOptions);
+
+    if (this._currentRepository === undefined) {
+      // Clone failed
+      this._dbInfo = await this._createRepository();
+    }
+    else {
+      this.logger.warn('Clone succeeded.');
+      /**
+       * TODO: validate db
+       */
+      this._dbInfo.is_clone = true;
+    }
+
+    /**
+     * Check and sync repository if exists
+     */
+
+    await this._setDbInfo();
+
+    if (remoteOptions?.remote_url !== undefined) {
+      if (this._dbInfo.is_created_by_gitddb && this._dbInfo.is_valid_version) {
+        // Can synchronize
+        /**
+         * TODO:
+         * Handle behavior_for_no_merge_base in sync()
+         */
+        await this.sync(remoteOptions);
+      }
+    }
+
+    return this._dbInfo;
+  }
+
+  /**
+   * Open an existing repository
+   *
+   * @remarks
    *  - GitDocumentDB can load a git repository that is not created by git-documentdb module,
    *  however correct behavior is not guaranteed.
    *
    * @returns Database information
    *
-   * @throws {@link CannotCreateDirectoryError} You may not have write permission.
    * @throws {@link DatabaseClosingError}
+   * @throws {@link CannotOpenRepositoryError}
    */
-  async open (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
+  async open (): Promise<DatabaseInfo> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
@@ -213,68 +287,22 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     this.taskQueue.clear();
 
     /**
-     * Create directory
-     */
-    await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
-      return Promise.reject(new CannotCreateDirectoryError(err.message));
-    });
-
-    /**
      * nodegit.Repository.open() throws an error if the specified repository does not exist.
      * open() also throws an error if the path is invalid or not writable,
-     * however this case has been already checked in fs.ensureDir.
      */
     this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(
-      () => undefined
+      err => {
+        const gitDir = this._workingDirectory + '/.git/';
+        if (!fs.existsSync(gitDir)) {
+          throw new RepositoryNotFoundError(gitDir);
+        }
+        else {
+          throw new CannotOpenRepositoryError(err);
+        }
+      }
     );
 
-    /**
-     * Create or clone repository if not exists
-     */
-    if (this._currentRepository === undefined) {
-      if (remoteOptions?.remote_url === undefined) {
-        /**
-         * TODO: Check upstream branch of this repository
-         * Set remote_url to the upstream branch and cloneRepository() if exists.
-         * Throw exception if not exists and remoteOptions exists.
-         * Otherwise, createRepository()
-         */
-
-        this._dbInfo = await this._createRepository();
-        return this._dbInfo;
-      }
-
-      // Clone repository if remoteURL exists
-      this._currentRepository = await this._cloneRepository(remoteOptions);
-
-      if (this._currentRepository === undefined) {
-        // Clone failed
-        this._dbInfo = await this._createRepository();
-      }
-      else {
-        this.logger.warn('Clone succeeded.');
-        /**
-         * TODO: validate db
-         */
-        this._dbInfo.is_clone = true;
-      }
-    }
-
-    /**
-     * Check and sync repository if exists
-     */
     await this._setDbInfo();
-
-    if (remoteOptions?.remote_url !== undefined) {
-      if (this._dbInfo.is_created_by_gitddb && this._dbInfo.is_valid_version) {
-        // Can synchronize
-        /**
-         * TODO:
-         * Handle behavior_for_no_merge_base in sync()
-         */
-        await this.sync(remoteOptions);
-      }
-    }
 
     return this._dbInfo;
   }
@@ -466,6 +494,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * - local_dir (which is specified in constructor) is not removed.
    *
+   * - destroy() can remove a database which has not been created yet if a working directory exists.
+   *
    * @param options - The options specify how to close database.
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
@@ -482,24 +512,23 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       await this.close(options).catch(err => {
         throw err;
       });
-
-      // If the path does not exist, remove() silently does nothing.
-      // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
-      //      await fs.remove(this._workingDirectory).catch(err => {
-
-      await new Promise<void>((resolve, reject) => {
-        // rimraf sometimes does not catch EPERM error
-        setTimeout(() => {
-          reject(new FileRemoveTimeoutError());
-        }, 10000);
-        rimraf(this._workingDirectory, error => {
-          if (error) {
-            reject(error);
-          }
-          resolve();
-        });
-      });
     }
+    // If the path does not exist, remove() silently does nothing.
+    // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
+    //      await fs.remove(this._workingDirectory).catch(err => {
+
+    await new Promise<void>((resolve, reject) => {
+      // rimraf sometimes does not catch EPERM error
+      setTimeout(() => {
+        reject(new FileRemoveTimeoutError());
+      }, 10000);
+      rimraf(this._workingDirectory, error => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
+    });
 
     return {
       ok: true,
