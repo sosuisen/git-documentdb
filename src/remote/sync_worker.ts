@@ -7,8 +7,7 @@
  */
 
 import nodePath from 'path';
-import { exception } from 'console';
-import nodegit, { Remote } from '@sosuisen/nodegit';
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { ConsoleStyle } from '../utils';
 import {
@@ -262,12 +261,10 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
       file_sha: delta.newFile().id().tostrS(),
     };
     if (oldExist && !newExist) {
-      //      console.log(delta.newFile().path() + ' is removed.');
       // Use oldFile. newFile is empty when removed.
       changes.remove.push(oldDocMetadata);
     }
     else if (!oldExist && newExist) {
-      // console.log(delta.newFile().path() + ' is added.');
       changes.add.push({
         ...newDocMetadata,
         // eslint-disable-next-line no-await-in-loop
@@ -275,7 +272,6 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
       });
     }
     else if (oldExist && newExist) {
-      // console.log(delta.newFile().path() + ' is modified.');
       changes.modify.push({
         ...newDocMetadata,
         // eslint-disable-next-line no-await-in-loop
