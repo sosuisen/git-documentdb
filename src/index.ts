@@ -12,7 +12,6 @@ import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger } from 'tslog';
 import {
-  CannotCloneRepositoryError,
   CannotCreateDirectoryError,
   CannotOpenRepositoryError,
   DatabaseCloseTimeoutError,
@@ -228,8 +227,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     this._currentRepository = await this._cloneRepository(remoteOptions);
 
     if (this._currentRepository === undefined) {
-      // Clone failed
-      throw new CannotCloneRepositoryError(remoteOptions.remote_url);
+      // Clone failed. Create remote repository..
+      this._dbInfo = await this._createRepository();
     }
     else {
       this.logger.warn('Clone succeeded.');
