@@ -76,7 +76,7 @@ const repositoryInitOptionFlags = {
 };
 */
 
-const defaultLocalDir = './gitddb';
+const defaultLocalDir = './git-documentdb';
 
 /**
  * Main class of GitDocumentDB
@@ -186,6 +186,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * @remarks
    *  - If localDir does not exist, it is created.
+   *
+   *  - create() also opens the repository. create() followed by open() has no effect.
    *
    * @returns Database information
    *
