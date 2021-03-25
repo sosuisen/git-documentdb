@@ -29,7 +29,7 @@ describe('Close database', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     for (let i = 0; i < 100; i++) {
       gitDDB
@@ -55,7 +55,7 @@ describe('Close database', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by timeout.
@@ -84,7 +84,7 @@ describe('Close database', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -109,7 +109,7 @@ describe('Close database', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
