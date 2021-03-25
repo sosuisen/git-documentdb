@@ -34,7 +34,7 @@ describe('Collection', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    gitDDB.open();
+    gitDDB.create();
     expect(() => gitDDB.collection('users./')).toThrowError(
       InvalidCollectionPathCharacterError
     );
@@ -59,7 +59,7 @@ describe('Collection: put()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     const doc = { _id: 'prof01', name: 'Kimari' };
     await expect(users.put(doc)).resolves.toMatchObject({
@@ -89,7 +89,7 @@ describe('Collection: put()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users/Gunma');
     const doc = { _id: 'prof01/page01', name: 'Kimari' };
     await expect(users.put(doc)).resolves.toMatchObject({
@@ -125,7 +125,7 @@ describe('Collection: put()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     const doc = { _id: 'prof01', name: 'Kimari' };
     await expect(users.put(doc, { commit_message: 'message' })).resolves.toMatchObject({
@@ -151,7 +151,7 @@ describe('Collection: put()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     const doc = { _id: 'id-in-document', name: 'Kimari' };
     await expect(
@@ -181,7 +181,7 @@ describe('Collection: put()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     // @ts-ignore
     await expect(users.put()).rejects.toThrowError(UndefinedDocumentIdError);
@@ -208,7 +208,7 @@ describe('Collection: get()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     const _id = 'prof01';
     await users.put({ _id: _id, name: 'shirase' });
@@ -226,7 +226,7 @@ describe('Collection: get()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     const _id = 'dir01/prof01';
     await users.put({ _id: _id, name: 'shirase' });
@@ -254,7 +254,7 @@ describe('Collection: remove()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'test/prof01';
     const _id2 = 'test/prof02';
     const users = gitDDB.collection('users');
@@ -303,7 +303,7 @@ describe('Collection: remove()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'test/prof01';
     const users = gitDDB.collection('users');
     const doc = { _id: _id, name: 'shirase' };
@@ -326,7 +326,7 @@ describe('Collection: remove()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'test/prof01';
     const users = gitDDB.collection('users');
     const doc = { _id: _id, name: 'shirase' };
@@ -347,7 +347,7 @@ describe('Collection: remove()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     const _id = 'test/prof01';
     await users.put({ _id: _id, name: 'shirase' });
@@ -373,7 +373,7 @@ describe('Collection: remove()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     // @ts-ignore
     await expect(users.remove()).rejects.toThrowError(UndefinedDocumentIdError);
@@ -388,7 +388,7 @@ describe('Collection: remove()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     const _id = 'test/prof01';
     const doc = { _id: _id, name: 'shirase' };
@@ -413,7 +413,7 @@ describe('Collection: remove()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     // @ts-ignore
     await expect(users.delete()).rejects.toThrowError(UndefinedDocumentIdError);
@@ -459,7 +459,7 @@ describe('Collection: allDocs()', () => {
       RepositoryNotOpenError
     );
 
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     await expect(users.allDocs()).resolves.toStrictEqual({ total_rows: 0 });
 
@@ -491,7 +491,7 @@ describe('Collection: allDocs()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const users = gitDDB.collection('users');
     await users.put({ _id: _id_p, name: name_p });
 

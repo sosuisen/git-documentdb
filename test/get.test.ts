@@ -36,7 +36,7 @@ describe('Read document', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'prof01';
     await expect(gitDDB.get('_prof01')).rejects.toThrowError(InvalidIdCharacterError);
     await gitDDB.destroy();
@@ -49,7 +49,7 @@ describe('Read document', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'prof01';
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
@@ -66,7 +66,7 @@ describe('Read document', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'dir01/prof01';
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
@@ -80,7 +80,7 @@ describe('Read document', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'prof01';
     await expect(gitDDB.get('prof01')).rejects.toThrowError(DocumentNotFoundError);
     await gitDDB.put({ _id: _id, name: 'shirase' });
@@ -96,7 +96,7 @@ describe('Read document', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     const _id = 'invalidJSON';
     let file_sha: string;
@@ -171,7 +171,7 @@ describe('Read document', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = '春はあけぼの';
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get

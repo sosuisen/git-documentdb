@@ -53,7 +53,7 @@ describe('Fetch a batch of documents', () => {
       RepositoryNotOpenError
     );
 
-    await gitDDB.open();
+    await gitDDB.create();
 
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       total_rows: 0,
@@ -110,7 +110,7 @@ describe('Fetch a batch of documents', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -140,7 +140,7 @@ describe('Fetch a batch of documents', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -177,7 +177,7 @@ describe('Fetch a batch of documents', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -244,7 +244,7 @@ describe('Fetch a batch of documents', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -284,7 +284,7 @@ describe('Fetch a batch of documents', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -330,7 +330,7 @@ describe('Fetch a batch of documents', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await gitDDB.put({ _id: _id_p, name: name_p });
 
@@ -378,7 +378,7 @@ describe('validator', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     const _id = 'invalidJSON';
     let file_sha, commit_sha: string;

@@ -28,7 +28,7 @@ describe('Destroy database', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
     const workingDir = gitDDB.workingDir();
     await expect(gitDDB.destroy())
       .resolves.toMatchObject({ ok: true })
@@ -44,7 +44,7 @@ describe('Destroy database', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by timeout.
