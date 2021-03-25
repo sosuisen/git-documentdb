@@ -48,7 +48,7 @@ describe('remove(): validate:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
 
     await expect(gitDDB.remove('_underscore')).rejects.toThrowError(
       InvalidIdCharacterError
@@ -81,7 +81,7 @@ describe('delete(): delete document:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'prof01';
     const doc = { _id: _id, name: 'shirase' };
     await gitDDB.put(doc);
@@ -112,7 +112,7 @@ describe('delete(): delete document:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'prof01';
     const doc = { _id: _id, name: 'shirase' };
     await gitDDB.put(doc);
@@ -135,7 +135,7 @@ describe('delete(): delete document:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = '春はあけぼの';
     const doc = { _id: _id, name: 'shirase' };
     await gitDDB.put(doc);
@@ -166,7 +166,7 @@ describe('delete(): delete document:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     // @ts-ignore
     await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
     await gitDDB.destroy();
@@ -191,7 +191,7 @@ describe('remove(): remove document:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id1 = 'dir/1';
     const _id2 = 'dir/2';
     const _id3 = 'dir/childDir/3';
@@ -294,7 +294,7 @@ describe('remove(): remove document:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'test/prof01';
     await gitDDB.put({ _id: _id, name: 'shirase' });
 
@@ -319,7 +319,7 @@ describe('remove(): remove document:', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.open();
+    await gitDDB.create();
     const _id = 'test/prof01';
     const doc = { _id: _id, name: 'shirase' };
     await gitDDB.put(doc);
@@ -366,7 +366,7 @@ describe('remove(): worker:', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await Promise.all([
       gitDDB.put({ _id: _id_a, name: name_a }),
@@ -405,7 +405,7 @@ describe('remove(): worker:', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await Promise.all([
       gitDDB.put({ _id: _id_a, name: name_a }),
