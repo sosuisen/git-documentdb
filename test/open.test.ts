@@ -22,6 +22,7 @@ import {
 import { GitDocumentDB } from '../src/index';
 import { Validator } from '../src/validator';
 import { put_worker } from '../src/crud/put';
+import { DatabaseInfo, DatabaseInfoError } from '../src/types';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -221,6 +222,7 @@ click on the Advanced button, and then click [disable inheritance] button.
     // Create db
     await expect(gitDDB.create())
       .resolves.toMatchObject({
+        ok: true,
         is_new: true,
         is_clone: false,
         is_created_by_gitddb: true,
@@ -249,14 +251,8 @@ click on the Advanced button, and then click [disable inheritance] button.
     });
     const defaultLocalDir = './git-documentdb/';
     // Create db
-    await expect(gitDDB.open())
-      .resolves.toMatchObject({
-        is_new: true,
-        is_clone: false,
-        is_created_by_gitddb: true,
-        is_valid_version: true,
-      })
-      .catch(e => console.error(e));
+    await gitDDB.create();
+
     expect(gitDDB.workingDir()).toBe(path.resolve(defaultLocalDir, dbName));
     // Destroy db
     await gitDDB.destroy().catch(e => console.error(e));
@@ -283,7 +279,8 @@ describe('Open, close and destroy repository: ', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await expect(gitDDB.open()).rejects.toThrowError(RepositoryNotFoundError);
+    const dbInfo: DatabaseInfo = await gitDDB.open();
+    expect((dbInfo as DatabaseInfoError).error).toBeInstanceOf(RepositoryNotFoundError);
   });
 
   test('Repository is corrupted.', async () => {
@@ -294,7 +291,8 @@ describe('Open, close and destroy repository: ', () => {
     });
     // Create empty .git directory
     await fs.ensureDir(gitDDB.workingDir() + '/.git/');
-    await expect(gitDDB.open()).rejects.toThrowError(CannotOpenRepositoryError);
+    const dbInfo: DatabaseInfo = await gitDDB.open();
+    expect((dbInfo as DatabaseInfoError).error).toBeInstanceOf(CannotOpenRepositoryError);
   });
 
   test('Open an existing repository.', async () => {
@@ -312,6 +310,7 @@ describe('Open, close and destroy repository: ', () => {
 
     // Open existing db
     await expect(gitDDB.open()).resolves.toMatchObject({
+      ok: true,
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,
@@ -340,6 +339,7 @@ describe('Open, close and destroy repository: ', () => {
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
+      ok: true,
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: false,
@@ -371,6 +371,7 @@ describe('Open, close and destroy repository: ', () => {
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
+      ok: true,
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,
@@ -391,6 +392,7 @@ describe('Open, close and destroy repository: ', () => {
     });
 
     await expect(gitDDB.open()).resolves.toMatchObject({
+      ok: true,
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: false,
@@ -408,6 +410,7 @@ describe('Open, close and destroy repository: ', () => {
     // Create db
     await gitDDB.create();
     await expect(gitDDB.open()).resolves.toMatchObject({
+      ok: true,
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,

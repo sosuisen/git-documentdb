@@ -36,7 +36,15 @@ export type DatabaseOption = {
 /**
  * Database information
  *
+ * @public
+ */
+export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
+/**
+ * Database information (success)
+ *
  * @remarks
+ * - ok: Boolean which shows if a database is successfully opened.
+ *
  * - is_new: Whether a repository is newly created or existing.
  *
  * - is_clone: Whether a repository is cloned from a remote repository or not.
@@ -46,13 +54,28 @@ export type DatabaseOption = {
  * - is_valid_version: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
  *   The version is described in .git/description.
  *
- * @beta
+ * @public
  */
-export type DatabaseInfo = {
+export type DatabaseInfoSuccess = {
+  ok: true;
   is_new: boolean;
   is_clone: boolean;
   is_created_by_gitddb: boolean;
   is_valid_version: boolean;
+};
+/**
+ * Database information (failure)
+ *
+ * @remarks
+ * - ok: Boolean which shows if a database is successfully opened.
+ *
+ * - error: Error object is assigned if a database cannot be opened.
+ *
+ * @public
+ */
+export type DatabaseInfoError = {
+  ok: false;
+  error: Error;
 };
 /**
  * Task Statistics

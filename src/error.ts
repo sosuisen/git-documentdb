@@ -460,3 +460,12 @@ export class RepositoryNotFoundError extends BaseError {
     );
   }
 }
+
+/**
+ * @public
+ */
+export class CannotCloneRepositoryError extends BaseError {
+  constructor (url: string) {
+    super(`Cannot clone repository: ${url}`);
+  }
+}

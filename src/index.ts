@@ -12,6 +12,7 @@ import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger } from 'tslog';
 import {
+  CannotCloneRepositoryError,
   CannotCreateDirectoryError,
   CannotOpenRepositoryError,
   DatabaseCloseTimeoutError,
@@ -32,6 +33,7 @@ import {
   CollectionPath,
   DatabaseCloseOption,
   DatabaseInfo,
+  DatabaseInfoSuccess,
   DatabaseOption,
   JsonDoc,
   PutOptions,
@@ -108,6 +110,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   private _synchronizers: { [url: string]: Sync } = {};
 
   private _dbInfo: DatabaseInfo = {
+    ok: true,
     is_new: false,
     is_clone: false,
     is_created_by_gitddb: true,
@@ -195,6 +198,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link DatabaseExistsError}
    * @throws {@link WorkingDirectoryExistsError}
    * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link CannotCloneRepositoryError}
    */
   async create (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
     if (this.isClosing) {
@@ -225,14 +229,14 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
     if (this._currentRepository === undefined) {
       // Clone failed
-      this._dbInfo = await this._createRepository();
+      throw new CannotCloneRepositoryError(remoteOptions.remote_url);
     }
     else {
       this.logger.warn('Clone succeeded.');
       /**
        * TODO: validate db
        */
-      this._dbInfo.is_clone = true;
+      (this._dbInfo as DatabaseInfoSuccess).is_clone = true;
     }
 
     /**
@@ -242,7 +246,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     await this._setDbInfo();
 
     if (remoteOptions?.remote_url !== undefined) {
-      if (this._dbInfo.is_created_by_gitddb && this._dbInfo.is_valid_version) {
+      if (
+        (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb &&
+        (this._dbInfo as DatabaseInfoSuccess).is_valid_version
+      ) {
         // Can synchronize
         /**
          * TODO:
@@ -263,16 +270,21 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *  however correct behavior is not guaranteed.
    *
    * @returns Database information
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link CannotOpenRepositoryError}
    */
   async open (): Promise<DatabaseInfo> {
+    const dbInfoError = (err: Error) => {
+      this._dbInfo = {
+        ok: false,
+        error: err,
+      };
+      return this._dbInfo;
+    };
+
     if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
+      return dbInfoError(new DatabaseClosingError());
     }
     if (this.isOpened()) {
-      this._dbInfo.is_new = false;
+      (this._dbInfo as DatabaseInfoSuccess).is_new = false;
       return this._dbInfo;
     }
 
@@ -281,6 +293,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      */
     this._synchronizers = {};
     this._dbInfo = {
+      ok: true,
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,
@@ -292,17 +305,15 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      * nodegit.Repository.open() throws an error if the specified repository does not exist.
      * open() also throws an error if the path is invalid or not writable,
      */
-    this._currentRepository = await nodegit.Repository.open(this._workingDirectory).catch(
-      err => {
-        const gitDir = this._workingDirectory + '/.git/';
-        if (!fs.existsSync(gitDir)) {
-          throw new RepositoryNotFoundError(gitDir);
-        }
-        else {
-          throw new CannotOpenRepositoryError(err);
-        }
+    try {
+      this._currentRepository = await nodegit.Repository.open(this._workingDirectory);
+    } catch (err) {
+      const gitDir = this._workingDirectory + '/.git/';
+      if (!fs.existsSync(gitDir)) {
+        return dbInfoError(new RepositoryNotFoundError(gitDir));
       }
-    );
+      return dbInfoError(new CannotOpenRepositoryError(err));
+    }
 
     await this._setDbInfo();
 
@@ -316,7 +327,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     const options: RepositoryInitOptions = {
       initialHead: this.defaultBranch,
     };
-    this._dbInfo.is_new = true;
+    (this._dbInfo as DatabaseInfoSuccess).is_new = true;
     this._currentRepository = await nodegit.Repository.initExt(
       this._workingDirectory,
       // @ts-ignore
@@ -361,27 +372,27 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     const version = await fs
       .readFile(path.resolve(this._workingDirectory, gitddbVersionFileName), 'utf8')
       .catch(() => {
-        this._dbInfo.is_created_by_gitddb = false;
-        this._dbInfo.is_valid_version = false;
+        (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = false;
+        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
         return undefined;
       });
     if (version === undefined) return this._dbInfo;
 
     if (new RegExp('^' + databaseName).test(version)) {
-      this._dbInfo.is_created_by_gitddb = true;
+      (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = true;
       if (new RegExp('^' + gitddbVersion).test(version)) {
-        this._dbInfo.is_valid_version = true;
+        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = true;
       }
       else {
-        this._dbInfo.is_valid_version = false;
+        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
         /**
          * TODO: Need migration
          */
       }
     }
     else {
-      this._dbInfo.is_created_by_gitddb = false;
-      this._dbInfo.is_valid_version = false;
+      (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = false;
+      (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
     }
   }
 

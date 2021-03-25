@@ -10,6 +10,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { DatabaseCloseTimeoutError, DatabaseClosingError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
+import { DatabaseInfoError } from '../src/types';
 
 describe('Close database', () => {
   const localDir = './test/database_close01';
@@ -119,7 +120,8 @@ describe('Close database', () => {
       .close()
       .then(() => gitDDB.destroy())
       .catch(() => {});
-    await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
+    const dbInfo = await gitDDB.open();
+    expect((dbInfo as DatabaseInfoError).error).toBeInstanceOf(DatabaseClosingError);
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(
       DatabaseClosingError
