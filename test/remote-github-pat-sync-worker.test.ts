@@ -94,7 +94,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
 
         // Put and push
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -122,7 +122,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         const remoteA = dbA.getRemote(remoteURL);
         await dbA.put(jsonA1);
@@ -154,7 +154,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         const remoteA = dbA.getRemote(remoteURL);
         await dbA.put(jsonA1);
@@ -184,7 +184,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         const remoteA = dbA.getRemote(remoteURL);
         await dbA.put(jsonA1);
@@ -217,7 +217,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         auth: { type: 'github', personal_access_token: token },
         include_commits: true,
       };
-      await dbA.open(options);
+      await dbA.create(options);
 
       // Two put commands and push
       const jsonA1 = { _id: '1', name: 'fromA' };
@@ -262,7 +262,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         auth: { type: 'github', personal_access_token: token },
         include_commits: true,
       };
-      await dbA.open(options);
+      await dbA.create(options);
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -312,7 +312,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         auth: { type: 'github', personal_access_token: token },
         include_commits: true,
       };
-      await dbA.open(options);
+      await dbA.create(options);
       const remoteA = dbA.getRemote(remoteURL);
       const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
 
@@ -335,7 +335,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         auth: { type: 'github', personal_access_token: token },
         include_commits: true,
       };
-      await dbA.open(options);
+      await dbA.create(options);
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
@@ -365,7 +365,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -373,7 +373,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -410,7 +410,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -418,7 +418,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -459,7 +459,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -467,7 +467,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -515,7 +515,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -523,7 +523,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -581,7 +581,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -594,7 +594,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         // A removes and pushes
         const removeResultA1 = await dbA.remove(jsonA1);
@@ -640,7 +640,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -653,7 +653,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         // A removes and pushes
         const removeResultA1 = await dbA.remove(jsonA1);
@@ -698,7 +698,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -706,7 +706,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -815,7 +815,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           auth: { type: 'github', personal_access_token: token },
           include_commits: true,
         };
-        await dbA.open(options);
+        await dbA.create(options);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
@@ -828,7 +828,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.open(options);
+        await dbB.create(options);
 
         const removeResultA1 = await dbA.remove(jsonA1);
         const jsonA2 = { _id: '2', name: 'fromA' };
@@ -941,7 +941,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         auth: { type: 'github', personal_access_token: token },
       };
 
-      await dbA.open(options);
+      await dbA.create(options);
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
 
@@ -950,7 +950,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         db_name: dbNameB,
         local_dir: localDir,
       });
-      await dbB.open();
+      await dbB.create();
 
       await expect(dbB.sync(options)).rejects.toThrowError(NoMergeBaseFoundError);
 

@@ -101,7 +101,7 @@ maybe('remote: use personal access token: events: ', () => {
         auth: { type: 'github', personal_access_token: token },
         include_commits: true,
       };
-      await dbA.open(options);
+      await dbA.create(options);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -109,7 +109,7 @@ maybe('remote: use personal access token: events: ', () => {
         local_dir: localDir,
       });
       // Clone dbA
-      await dbB.open(options);
+      await dbB.create(options);
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };

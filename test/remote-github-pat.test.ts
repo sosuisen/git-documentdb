@@ -148,7 +148,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
       const options: RemoteOptions = {
         auth: {
           type: 'github',
@@ -166,7 +166,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: {
@@ -185,7 +185,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: {
@@ -206,7 +206,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: {
@@ -225,7 +225,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
       const invalid_options: RemoteOptions = {
         remote_url: remoteURL,
         interval: minimumSyncInterval - 1,
@@ -239,7 +239,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
       );
       await gitDDB.destroy();
 
-      await gitDDB.open();
+      await gitDDB.create();
       const valid_options: RemoteOptions = {
         remote_url: remoteURL,
         interval: minimumSyncInterval,
@@ -290,7 +290,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
 
       const options: RemoteOptions = {
         remote_url: remoteURL,
@@ -311,7 +311,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
 
       const options: RemoteOptions = {
         remote_url: remoteURL,
@@ -337,7 +337,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.open();
+      await gitDDB.create();
 
       const remote = await gitDDB.sync({
         remote_url: remoteURL,
@@ -376,7 +376,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
         auth: { type: 'github', personal_access_token: token },
       };
       // Check dbInfo
-      await expect(dbA.open(options)).resolves.toMatchObject({
+      await expect(dbA.create(options)).resolves.toMatchObject({
         is_new: true,
         is_clone: false,
         is_created_by_gitddb: true,
