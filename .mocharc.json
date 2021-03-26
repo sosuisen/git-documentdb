@@ -3,6 +3,6 @@
   "ui": "jest",
   "reporter": "list",
   "parallel": true,
-  "retries": 0,
+  "retries": 1,
   "timeout": 30000
 }
