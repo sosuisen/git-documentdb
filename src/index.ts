@@ -535,10 +535,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     //      await fs.remove(this._workingDirectory).catch(err => {
 
     await new Promise<void>((resolve, reject) => {
-      // rimraf sometimes does not catch EPERM error
+      // Set timeout because rimraf sometimes does not catch EPERM error.
       setTimeout(() => {
         reject(new FileRemoveTimeoutError());
-      }, 10000);
+      }, 7000);
       rimraf(this._workingDirectory, error => {
         if (error) {
           reject(error);
