@@ -38,7 +38,8 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  fs.removeSync(path.resolve(localDir));
+  // It may throw error due to memory leak with CannotPushBecauseUnfetchedCommitExistsErro
+  // fs.removeSync(path.resolve(localDir));
 });
 
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
