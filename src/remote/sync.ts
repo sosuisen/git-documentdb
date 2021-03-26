@@ -311,7 +311,7 @@ export class Sync implements ISync {
           resolve(syncResultPush);
         })
         .catch(err => {
-          console.log(err);
+          // console.log(`Error in push_worker: ${err}`);
 
           // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
           if (this._retrySyncCounter === 0) {
@@ -375,6 +375,7 @@ export class Sync implements ISync {
           resolve(syncResult);
         })
         .catch(err => {
+          // console.log(`Error in sync_worker: ${err}`);
           if (this._retrySyncCounter === 0) {
             const promise = this._retrySync();
             // Invoke fail event
