@@ -234,7 +234,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       this._dbInfo = await this._createRepository();
     }
     else {
-      this.logger.warn('Clone succeeded.');
+      // this.logger.warn('Clone succeeded.');
       /**
        * TODO: validate db
        */
