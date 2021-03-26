@@ -56,26 +56,22 @@ const repositoryInitOptionFlags = {
   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
 };
 
+const localDir = `./test/database_open`;
+
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
 });
 
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
 describe('GitDocumentDB constructor: ', () => {
-  const localDir = `./test/database_open_${monoId()}`;
-
-  beforeAll(() => {
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
-  });
-
-  afterAll(() => {
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
-  });
-
   test('new', () => {
     expect(() => {
       // eslint-disable-next-line no-new
@@ -139,19 +135,6 @@ describe('GitDocumentDB constructor: ', () => {
 
 describe('Create repository: ', () => {
   const readonlyDir = './test/readonly/';
-  const localDir = `./test/database_open_${monoId()}`;
-
-  beforeAll(() => {
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
-  });
-
-  afterAll(() => {
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
-  });
 
   test('Try to create a new repository on a readonly filesystem.', async () => {
     const dbName = monoId();
@@ -268,16 +251,6 @@ click on the Advanced button, and then click [disable inheritance] button.
 });
 
 describe('Open, close and destroy repository: ', () => {
-  const localDir = './test/database_open02_1';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('Repository does not exist.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({

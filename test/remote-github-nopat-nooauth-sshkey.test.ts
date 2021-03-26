@@ -25,9 +25,19 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
+const localDir = `./test/database_remote_github_nopat-nooauth-sshkey`;
+
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
 });
 
 const maybe =
@@ -36,22 +46,8 @@ const maybe =
     : describe.skip;
 
 maybe('sync(): Sync Class:', () => {
-  const localDir = `./test/database_put${monoId()}`;
-
-  beforeAll(() => {
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
-  });
-
-  afterAll(() => {
-    if (process.platform !== 'win32') {
-      fs.removeSync(path.resolve(localDir));
-    }
-  });
-
   test('Invalid private key path', () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

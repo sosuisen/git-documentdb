@@ -9,6 +9,7 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src/index';
 import {
   DocumentNotFoundError,
@@ -17,24 +18,29 @@ import {
   UndefinedDocumentIdError,
 } from '../src/error';
 
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
+
+const localDir = './test/database_collection';
+
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
 });
 
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
 describe('Collection', () => {
-  const localDir = './test/database_collection01';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('InvalidCollectionPathCharacterError', () => {
-    const dbName = 'test_repos_1';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -48,18 +54,8 @@ describe('Collection', () => {
 });
 
 describe('Collection: put()', () => {
-  const localDir = './test/database_collection02';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('put(): Put a JSON document.', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -89,7 +85,7 @@ describe('Collection: put()', () => {
   });
 
   test('put(): Put a sub-directory ID into sub-directory collection.', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -125,7 +121,7 @@ describe('Collection: put()', () => {
   });
 
   test('put(): Put with a commit_message', async () => {
-    const dbName = 'test_repos_4';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -151,7 +147,7 @@ describe('Collection: put()', () => {
   });
 
   test('put() overload: Put a JSON document with commit_message', async () => {
-    const dbName = 'test_repos_5';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -181,7 +177,7 @@ describe('Collection: put()', () => {
   });
 
   test('put(): undefined', async () => {
-    const dbName = 'test_repos_6';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -196,18 +192,8 @@ describe('Collection: put()', () => {
 });
 
 describe('Collection: get()', () => {
-  const localDir = './test/database_collection03';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('get(): Read an existing document', async () => {
-    const dbName = 'test_repos_1';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -225,7 +211,7 @@ describe('Collection: get()', () => {
   });
 
   test('get(): Read an existing document in subdirectory', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -242,18 +228,8 @@ describe('Collection: get()', () => {
 });
 
 describe('Collection: remove()', () => {
-  const localDir = './test/database_collection04';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('delete(): Use delete(id).', async () => {
-    const dbName = 'test_repos_01';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -302,7 +278,7 @@ describe('Collection: remove()', () => {
   });
 
   test('delete(): Use delete(doc).', async () => {
-    const dbName = 'test_repos_02';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -325,7 +301,7 @@ describe('Collection: remove()', () => {
   });
 
   test('remove(): Use _id as a key.', async () => {
-    const dbName = 'test_repos_03';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -346,7 +322,7 @@ describe('Collection: remove()', () => {
   });
 
   test('remove(): Set commit message.', async () => {
-    const dbName = 'test_repos_04';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -372,7 +348,7 @@ describe('Collection: remove()', () => {
   });
 
   test('remove(): _id is undefined', async () => {
-    const dbName = 'test_repos_05';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -387,7 +363,7 @@ describe('Collection: remove()', () => {
   });
 
   test('remove(): Use JsonObject as key.', async () => {
-    const dbName = 'test_repos_06';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -412,7 +388,7 @@ describe('Collection: remove()', () => {
   });
 
   test('delete(): _id is undefined', async () => {
-    const dbName = 'test_repos_05';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -428,8 +404,6 @@ describe('Collection: remove()', () => {
 });
 
 describe('Collection: allDocs()', () => {
-  const localDir = './test/database_collection05';
-
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';
@@ -444,16 +418,8 @@ describe('Collection: allDocs()', () => {
   const _id_p = 'pear/Japan/21st';
   const name_p = '21st century pear';
 
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('allDocs()', async () => {
-    const dbName = 'test_repos_1';
+    const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -490,7 +456,7 @@ describe('Collection: allDocs()', () => {
   });
 
   test('allDocs(): get from deep directory', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,

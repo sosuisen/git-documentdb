@@ -11,7 +11,8 @@
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
-import { monotonicFactory } from 'ulid';
+import path from 'path';
+import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import {
   RemoteOptions,
@@ -23,12 +24,8 @@ import {
 import { NoMergeBaseFoundError } from '../src/error';
 import { removeRemoteRepositories } from './remote_utils';
 
-const ulid = monotonicFactory();
-const monoId = () => {
-  return ulid(Date.now());
-};
-
 const reposPrefix = 'test_pat_sync_worker___';
+const localDir = `./test/database_remote_github_pat_sync_worker`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -38,6 +35,15 @@ const serialId = () => {
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  // It may throw error due to memory leak of getCommitLogs()
+  // fs.removeSync(path.resolve(localDir));
 });
 
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
@@ -52,8 +58,6 @@ maybe('remote: use personal access token: sync_worker: ', () => {
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
-
-  const localDir = `./test/database_remote_github_${reposPrefix}${monoId()}`;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);

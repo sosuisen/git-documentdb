@@ -17,13 +17,22 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
+const localDir = `./test/database_allDocs`;
+
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
 });
 
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
 describe('Fetch a batch of documents', () => {
-  const localDir = `./test/database_allDocs${monoId()}`;
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';
@@ -38,16 +47,8 @@ describe('Fetch a batch of documents', () => {
   const _id_p = 'pear/Japan/21st';
   const name_p = '21st century pear';
 
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('allDocs()', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -88,7 +89,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): db is not created by GitDocumentDB', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -109,7 +110,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): options.descendant', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -139,7 +140,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): options.include_docs', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -177,7 +178,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): breadth-first search (recursive)', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -243,7 +244,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): breadth-first search (not recursive)', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -284,7 +285,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): get from directory', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -330,7 +331,7 @@ describe('Fetch a batch of documents', () => {
   });
 
   test('allDocs(): get from deep directory', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -367,18 +368,8 @@ describe('Fetch a batch of documents', () => {
 });
 
 describe('validator', () => {
-  const localDir = `./test/database_allDocs${monoId()}`;
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('allDocs(): Get invalid JSON', async () => {
-    const dbName = `test_repos_${monoId()}`;
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

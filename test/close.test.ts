@@ -8,28 +8,34 @@
 
 import path from 'path';
 import fs from 'fs-extra';
+import { monotonicFactory } from 'ulid';
 import { DatabaseCloseTimeoutError, DatabaseClosingError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 import { DatabaseInfoError } from '../src/types';
+
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
+
+const localDir = './test/database_close';
 
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
 });
 
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
 describe('Close database', () => {
-  const localDir = './test/database_close01';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  test('close(): wait queued operations', async () => {
-    const dbName = 'test_repos_1';
+  test.only('close(): wait queued operations', async () => {
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -55,7 +61,7 @@ describe('Close database', () => {
   });
 
   test('close(): queued operations are timeout', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -84,7 +90,7 @@ describe('Close database', () => {
   });
 
   test('close(): close database by force', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -109,7 +115,7 @@ describe('Close database', () => {
   });
 
   test('Check isClosing flag', async () => {
-    const dbName = 'test_repos_4';
+    const dbName = monoId();
     const gitDDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

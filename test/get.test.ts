@@ -9,6 +9,7 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import { monotonicFactory } from 'ulid';
 import {
   DocumentNotFoundError,
   InvalidIdCharacterError,
@@ -18,24 +19,29 @@ import {
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
+
+const localDir = './test/database_get';
+
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
 });
 
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
 describe('Read document', () => {
-  const localDir = './test/database_get01';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('get(): Invalid _id', async () => {
-    const dbName = 'test_repos_1';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -48,7 +54,7 @@ describe('Read document', () => {
   });
 
   test('get(): Read an existing document', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -65,7 +71,7 @@ describe('Read document', () => {
   });
 
   test('get(): Read an existing document in subdirectory', async () => {
-    const dbName = 'test_repos_4';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -80,7 +86,7 @@ describe('Read document', () => {
   });
 
   test('get(): Read a document that does not exist.', async () => {
-    const dbName = 'test_repos_6';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -96,7 +102,7 @@ describe('Read document', () => {
   });
 
   test('get(): Get invalid JSON', async () => {
-    const dbName = 'test_repos_7';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -170,7 +176,7 @@ describe('Read document', () => {
   });
 
   test('get(): Use non-ASCII _id', async () => {
-    const dbName = 'test_repos_3';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

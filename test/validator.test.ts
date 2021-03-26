@@ -21,27 +21,28 @@ import {
   Validator,
 } from '../src/main';
 
+const localDir = './test/database_validate';
+
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.title}`);
 });
 
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
 describe('Validations', () => {
-  const localDir = './test/database_validate01';
   const dbName = 'test_repos_1';
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     db_name: dbName,
     local_dir: localDir,
   });
   const validator = new Validator(gitDDB.workingDir());
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
 
   test('normalizeCollectionPath', () => {
     expect(Validator.normalizeCollectionPath(undefined)).toBe('');

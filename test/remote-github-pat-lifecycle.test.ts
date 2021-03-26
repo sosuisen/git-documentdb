@@ -12,10 +12,7 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
-
-import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
-import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import { CannotPushBecauseUnfetchedCommitExistsError } from '../src/error';
@@ -23,12 +20,8 @@ import { defaultRetry } from '../src/remote/sync';
 import { sleep } from '../src/utils';
 import { removeRemoteRepositories } from './remote_utils';
 
-const ulid = monotonicFactory();
-const monoId = () => {
-  return ulid(Date.now());
-};
-
 const reposPrefix = 'test_pat_lifecycle___';
+const localDir = `./test/database_remote_github_pat_lifecycle`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -38,6 +31,14 @@ const serialId = () => {
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
 });
 
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
@@ -55,8 +56,6 @@ maybe(
       : process.env.GITDDB_GITHUB_USER_URL + '/';
     const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-    const localDir = `./test/database_remote_github_${reposPrefix}${monoId()}`;
-
     beforeAll(async () => {
       await removeRemoteRepositories(reposPrefix);
     });
@@ -70,15 +69,6 @@ maybe(
        * Basics: A is empty, creates remote, puts data; B is empty, clones the remote
        */
       describe('Basics: A puts data; B clones the remote: ', () => {
-        beforeAll(() => {
-          // Remove local repositories
-          fs.removeSync(path.resolve(localDir));
-        });
-
-        afterAll(() => {
-          // fs.removeSync(path.resolve(localDir));
-        });
-
         test('B checks cloned document', async () => {
           const remoteURL = remoteURLBase + serialId();
 

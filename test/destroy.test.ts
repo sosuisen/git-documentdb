@@ -8,27 +8,34 @@
 
 import path from 'path';
 import fs from 'fs-extra';
+import { monotonicFactory } from 'ulid';
 import { DatabaseCloseTimeoutError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
+
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
+
+const localDir = './test/database_destroy';
 
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
 });
 
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
 describe('Destroy database', () => {
-  const localDir = './test/database_destroy01';
-
-  beforeAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
-  afterAll(() => {
-    fs.removeSync(path.resolve(localDir));
-  });
-
   test('destroy()', async () => {
-    const dbName = 'test_repos_1';
+    const dbName = monoId();
+
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
@@ -44,7 +51,7 @@ describe('Destroy database', () => {
   });
 
   test('destroy(): close() throws Error', async () => {
-    const dbName = 'test_repos_2';
+    const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,

@@ -14,7 +14,6 @@
 import path from 'path';
 import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
-import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
@@ -29,12 +28,8 @@ import { minimumSyncInterval, Sync } from '../src/remote/sync';
 import { RemoteRepository } from '../src/remote/remote_repository';
 import { removeRemoteRepositories } from './remote_utils';
 
-const ulid = monotonicFactory();
-const monoId = () => {
-  return ulid(Date.now());
-};
-
 const reposPrefix = 'test_pat___';
+const localDir = `./test/database_remote_github_pat`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -44,6 +39,14 @@ const serialId = () => {
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  fs.removeSync(path.resolve(localDir));
 });
 
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
@@ -58,8 +61,6 @@ maybe('remote: use personal access token: constructor and basic network access: 
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
-
-  const localDir = `./test/database_remote_github_${reposPrefix}${monoId()}`;
 
   const createRemoteRepository = async (remoteURL: string) => {
     await new RemoteRepository(remoteURL, {
@@ -80,6 +81,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
   };
 
   beforeAll(async () => {
+    // Remove remote
     await removeRemoteRepositories(reposPrefix);
   });
 
@@ -87,15 +89,6 @@ maybe('remote: use personal access token: constructor and basic network access: 
    * Tests for constructor
    */
   describe('constructor: ', () => {
-    beforeAll(() => {
-      // Remove local repositories
-      fs.removeSync(path.resolve(localDir));
-    });
-
-    afterAll(() => {
-      fs.removeSync(path.resolve(localDir));
-    });
-
     test('Create and remove remote repository by personal access token', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
@@ -237,15 +230,6 @@ maybe('remote: use personal access token: constructor and basic network access: 
    * connectToRemote
    */
   describe('connect(): ', () => {
-    beforeAll(() => {
-      // Remove local repositories
-      fs.removeSync(path.resolve(localDir));
-    });
-
-    afterAll(() => {
-      fs.removeSync(path.resolve(localDir));
-    });
-
     test('Repository not open', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
@@ -332,15 +316,6 @@ maybe('remote: use personal access token: constructor and basic network access: 
    * Operate remote repository
    */
   describe('Operate remote repository: ', () => {
-    beforeAll(() => {
-      // Remove local repositories
-      fs.removeSync(path.resolve(localDir));
-    });
-
-    afterAll(() => {
-      fs.removeSync(path.resolve(localDir));
-    });
-
     test('Create remote repository', async () => {
       const remoteURL = remoteURLBase + serialId();
 
