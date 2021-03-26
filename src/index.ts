@@ -362,7 +362,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
           callbacks: createCredential(remoteOptions),
         },
       }).catch(err => {
-        this.logger.debug(err);
+        this.logger.debug(
+          `Error in _cloneRepository(): ${remoteOptions.remote_url}, ` + err
+        );
         return undefined;
       });
     }
