@@ -68,7 +68,10 @@ maybe('remote: use personal access token: constructor and basic network access: 
       personal_access_token: token,
     })
       .create()
-      .catch(() => {});
+      .catch(err => {
+        console.debug('Cannot create: ' + remoteURL);
+        console.debug(err);
+      });
   };
 
   const destroyRemoteRepository = async (remoteURL: string) => {
@@ -77,7 +80,10 @@ maybe('remote: use personal access token: constructor and basic network access: 
       personal_access_token: token,
     })
       .destroy()
-      .catch(() => {});
+      .catch(err => {
+        console.debug('Cannot delete: ' + remoteURL);
+        console.debug(err);
+      });
   };
 
   beforeAll(async () => {
