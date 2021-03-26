@@ -28,19 +28,11 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const idPool: string[] = [];
-const allIds: string[] = [];
-const MAX_ID = 60;
-for (let i = 0; i < MAX_ID; i++) {
-  idPool.push(`test_repos_${i}`);
-  allIds.push(`test_repos_${i}`);
-}
+const reposPrefix = 'test_pat_sync_worker___';
+
+let idCounter = 0;
 const serialId = () => {
-  const id = idPool.shift();
-  if (id === undefined) {
-    throw new Error('Id pool is empty. Increase MAX_ID.');
-  }
-  return id;
+  return `${reposPrefix}${idCounter++}`;
 };
 
 beforeEach(function () {
