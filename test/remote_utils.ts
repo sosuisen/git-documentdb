@@ -14,7 +14,7 @@ export async function removeRemoteRepositories (reposPrefix: string) {
     const reposArray = await octokit.repos.listForAuthenticatedUser({ per_page: 100 });
     len = reposArray.data.length;
     reposArray.data.forEach(repos => {
-      if (repos !== undefined) {
+      if (repos) {
         const urlArray = repos.full_name.split('/');
         const owner = urlArray[0];
         const repo = urlArray[1];
