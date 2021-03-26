@@ -133,8 +133,8 @@ maybe(
             Promise.all([remoteA.tryPush(), remoteB.tryPush()])
           ).rejects.toThrowError(CannotPushBecauseUnfetchedCommitExistsError);
 
-          await dbA.destroy();
-          await dbB.destroy();
+          await dbA.destroy().catch(err => console.debug(err));
+          await dbB.destroy().catch(err => console.debug(err));
         });
 
         test('Ordered condition of two tryPush() calls', async () => {
@@ -170,8 +170,8 @@ maybe(
             CannotPushBecauseUnfetchedCommitExistsError
           );
 
-          await dbA.destroy();
-          await dbB.destroy();
+          await dbA.destroy().catch(err => console.debug(err));
+          await dbB.destroy().catch(err => console.debug(err));
         });
 
         test('Race condition of two trySync() calls: trySync() again by hand before retrySync()', async () => {
@@ -224,8 +224,8 @@ maybe(
             });
           }
 
-          await dbA.destroy();
-          await dbB.destroy();
+          await dbA.destroy().catch(err => console.debug(err));
+          await dbB.destroy().catch(err => console.debug(err));
         });
 
         test('Race condition of two trySync() calls: retrySync() will occur (interval 0ms) before trySync by hand', async () => {
@@ -274,8 +274,8 @@ maybe(
             await expect(remoteB.trySync('1')).resolves.toMatchObject({ operation: 'nop' });
           }
 
-          await dbA.destroy();
-          await dbB.destroy();
+          await dbA.destroy().catch(err => console.debug(err));
+          await dbB.destroy().catch(err => console.debug(err));
         });
 
         test('Resolve conflict', async () => {
@@ -621,8 +621,8 @@ maybe(
           await sleep(5000);
           expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
 
-          await dbA.destroy();
-          await dbB.destroy();
+          await dbA.destroy().catch(err => console.debug(err));
+          await dbB.destroy().catch(err => console.debug(err));
         });
 
         test('Check retry interval', async () => {
@@ -681,8 +681,8 @@ maybe(
             currentSyncCount + 1
           );
 
-          await dbA.destroy();
-          await dbB.destroy();
+          await dbA.destroy().catch(err => console.debug(err));
+          await dbB.destroy().catch(err => console.debug(err));
         });
 
         test.skip('More retries', () => {
