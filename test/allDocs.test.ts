@@ -17,6 +17,11 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 describe('Fetch a batch of documents', () => {
   const localDir = `./test/database_allDocs${monoId()}`;
   const _id_a = 'apple';

@@ -17,7 +17,12 @@
 // auth is not used when options are undefined
 
 /**
-  test('Undefined options', async () => {
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
+ test('Undefined options', async () => {
     const dbName = serialId();
     const remoteURL = remoteURLBase + dbName;
     const gitDDB: GitDocumentDB = new GitDocumentDB({

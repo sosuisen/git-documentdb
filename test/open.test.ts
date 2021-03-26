@@ -56,6 +56,11 @@ const repositoryInitOptionFlags = {
   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
 };
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 describe('GitDocumentDB constructor: ', () => {
   const localDir = `./test/database_open_${monoId()}`;
 

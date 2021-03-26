@@ -11,6 +11,11 @@ import fs from 'fs-extra';
 import { DatabaseCloseTimeoutError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 describe('Destroy database', () => {
   const localDir = './test/database_destroy01';
 

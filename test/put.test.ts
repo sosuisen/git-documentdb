@@ -28,6 +28,11 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 describe('put(): validate: overload 1:', () => {
   const localDir = `./test/database_put${monoId()}`;
 

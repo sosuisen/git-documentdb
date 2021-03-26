@@ -12,6 +12,11 @@ import { DatabaseCloseTimeoutError, DatabaseClosingError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 import { DatabaseInfoError } from '../src/types';
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 describe('Close database', () => {
   const localDir = './test/database_close01';
 

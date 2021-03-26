@@ -18,6 +18,11 @@ import {
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 describe('Read document', () => {
   const localDir = './test/database_get01';
 

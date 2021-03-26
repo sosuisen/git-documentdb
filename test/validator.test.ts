@@ -21,6 +21,11 @@ import {
   Validator,
 } from '../src/main';
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.title}`);
+});
+
 describe('Validations', () => {
   const localDir = './test/database_validate01';
   const dbName = 'test_repos_1';

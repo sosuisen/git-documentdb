@@ -25,6 +25,11 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 const maybe =
   process.env.GITDDB_PRIVATE_KEY_PATH && process.env.GITDDB_PUBLIC_KEY_PATH
     ? describe

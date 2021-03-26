@@ -21,6 +21,7 @@ import { RemoteOptions } from '../src/types';
 import { CannotPushBecauseUnfetchedCommitExistsError } from '../src/error';
 import { defaultRetry } from '../src/remote/sync';
 import { sleep } from '../src/utils';
+import { removeRemoteRepositories } from './remote_utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -41,6 +42,11 @@ const serialId = () => {
   }
   return id;
 };
+
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
 
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/

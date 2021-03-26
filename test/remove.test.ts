@@ -24,6 +24,11 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.title}`);
+});
+
 describe('remove(): validate:', () => {
   const localDir = `./test/database_delete${monoId()}`;
 

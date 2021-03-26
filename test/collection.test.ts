@@ -17,6 +17,11 @@ import {
   UndefinedDocumentIdError,
 } from '../src/error';
 
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`=== ${this.currentTest.fullTitle()}`);
+});
+
 describe('Collection', () => {
   const localDir = './test/database_collection01';
 
