@@ -399,42 +399,40 @@ export async function push_worker (
   sync: ISync,
   taskId: string
 ): Promise<SyncResultPush> {
-  const remoteCommit = await gitDDB
+  const headCommit = await gitDDB.repository()!.getHeadCommit();
+
+  // Get the oldest commit that has not been pushed yet.
+  let oldestCommit = await gitDDB
     .repository()!
     .getReferenceCommit('refs/remotes/origin/main')
     .catch(() => undefined);
 
+  if (oldestCommit === undefined) {
+    // This is the first push in this repository.
+    // Get the first commit.
+    const revwalk = nodegit.Revwalk.create(gitDDB.repository()!);
+    revwalk.push(headCommit.id());
+    revwalk.sorting(nodegit.Revwalk.SORT.REVERSE);
+    const commitList: nodegit.Oid[] = await revwalk.fastWalk(1);
+    oldestCommit = await gitDDB.repository()!.getCommit(commitList[0]);
+  }
+
   // Get a list of commits which will be pushed to remote.
   let commitListRemote: CommitInfo[] | undefined;
-  if (sync.options().include_commits && remoteCommit) {
-    commitListRemote = await getCommitLogs(
-      remoteCommit,
-      await gitDDB.repository()!.getHeadCommit()
-    );
+  if (sync.options().include_commits) {
+    commitListRemote = await getCommitLogs(oldestCommit, headCommit);
   }
 
   // Push
-  const headCommit = await push(gitDDB, sync, taskId);
+  const headCommitAfterPush = await push(gitDDB, sync, taskId);
 
   // Get changes
-  let remoteChanges: FileChanges;
-  if (remoteCommit) {
-    const diff = await nodegit.Diff.treeToTree(
-      gitDDB.repository()!,
-      await remoteCommit.getTree(),
-      await headCommit!.getTree()
-    );
-    remoteChanges = await getChanges(gitDDB, diff);
-  }
-  else {
-    // Initial push that uploads only .gitddb/
-    remoteChanges = {
-      add: [],
-      remove: [],
-      modify: [],
-    };
-  }
-
+  const diff = await nodegit.Diff.treeToTree(
+    gitDDB.repository()!,
+    await oldestCommit.getTree(),
+    await headCommitAfterPush!.getTree()
+  );
+  const remoteChanges = await getChanges(gitDDB, diff);
   const syncResult: SyncResult = {
     operation: 'push',
     changes: {
