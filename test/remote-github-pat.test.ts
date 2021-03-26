@@ -375,7 +375,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
     });
 
     test.skip('Test _addRemoteRepository');
-    test.skip('Remote remote repository');
+    test.skip('Remove remote repository');
   });
 
   test.skip('Test network errors');
