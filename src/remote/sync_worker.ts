@@ -29,7 +29,6 @@ import {
   FileChanges,
   ISync,
   JsonDoc,
-  JsonDocWithMetadata,
   SyncResult,
   SyncResultMergeAndPush,
   SyncResultPush,
