@@ -57,7 +57,6 @@ export abstract class AbstractDocumentDB {
   };
 
   abstract defaultBranch: string;
-
   abstract dbName (): string;
   abstract workingDir (): string;
   abstract isClosing: boolean;
