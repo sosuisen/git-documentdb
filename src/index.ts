@@ -50,6 +50,9 @@ import { Sync, syncImpl } from './remote/sync';
 import { createCredential } from './remote/authentication';
 import { TaskQueue } from './task_queue';
 
+// let debugMinLevel = 'trace';
+const debugMinLevel = 'info';
+
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
 const gitddbVersion = `${databaseName}: ${databaseVersion}`;
@@ -174,7 +177,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
     this.logger = new Logger({
       name: this._dbName,
-      minLevel: 'trace',
+      minLevel: debugMinLevel,
       displayDateTime: false,
       displayFunctionName: false,
       displayFilePath: 'hidden',
