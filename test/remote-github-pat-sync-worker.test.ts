@@ -128,7 +128,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult2.changes.remote.add.length).toBe(0);
         expect(syncResult2.changes.remote.modify.length).toBe(0); // No file change
 
-        await dbA.destroy().catch(err => console.log(err));
+        await dbA.destroy().catch(err => console.debug(err));
       });
 
       test('Put an updated document', async () => {
@@ -159,6 +159,8 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult3.changes.remote.add.length).toBe(0);
         expect(syncResult3.changes.remote.modify.length).toBe(1);
         expect(syncResult3.changes.remote.modify[0].doc).toMatchObject(jsonA1dash);
+
+        await dbA.destroy().catch(err => console.debug(err));
       });
 
       test('Put another document', async () => {
@@ -190,7 +192,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult4.changes.remote.add[0].doc).toMatchObject(jsonA4);
         expect(syncResult4.changes.remote.modify.length).toBe(0);
 
-        await dbA.destroy().catch(err => console.log(err));
+        await dbA.destroy().catch(err => console.debug(err));
       });
     });
 
@@ -236,7 +238,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult2.changes.remote.modify.length).toBe(1);
       expect(syncResult2.changes.remote.modify[0].doc).toMatchObject(jsonA1dash);
 
-      await dbA.destroy().catch(err => console.log(err));
+      await dbA.destroy().catch(err => console.debug(err));
     });
 
     test('Put and remove followed by push', async () => {
@@ -282,7 +284,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult2.changes.remote.modify.length).toBe(0);
       expect(syncResult2.changes.remote.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
-      await dbA.destroy().catch(err => console.log(err));
+      await dbA.destroy().catch(err => console.debug(err));
     });
   });
 
