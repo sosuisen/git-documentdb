@@ -11,7 +11,6 @@
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
-import { Octokit } from '@octokit/rest';
 import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src';
 import {
