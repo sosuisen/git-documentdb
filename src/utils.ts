@@ -6,8 +6,6 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Logger } from 'tslog';
-
 export const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 /**
  * Returns JSON string which properties are sorted.
