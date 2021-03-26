@@ -16,6 +16,7 @@ import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions, SyncResultFastForwardMerge } from '../src/types';
 import { sleep } from '../src/utils';
+import { removeRemoteRepositories } from './remote_utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -50,26 +51,7 @@ maybe('remote: use personal access token: events: ', () => {
   const localDir = `./test/database_remote_by_pat_${monoId()}`;
 
   beforeAll(async () => {
-    console.log('deleting remote test repositories...');
-    // Remove test repositories on remote
-    const octokit = new Octokit({
-      auth: token,
-    });
-    const urlArray = remoteURLBase!.split('/');
-    const owner = urlArray[urlArray.length - 2];
-    const promises: Promise<any>[] = [];
-    allIds.forEach(id => {
-      // console.log('delete: ' + owner + '/' + id);
-      promises.push(
-        octokit.repos.delete({ owner, repo: id }).catch(err => {
-          if (err.status !== 404) {
-            console.log(err);
-          }
-        })
-      );
-    });
-    await Promise.all(promises);
-    console.log('done.');
+    await removeRemoteRepositories(reposPrefix);
   });
 
   /**

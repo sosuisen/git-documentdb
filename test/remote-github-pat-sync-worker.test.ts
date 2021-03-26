@@ -22,6 +22,7 @@ import {
   SyncResultResolveConflictsAndPush,
 } from '../src/types';
 import { NoMergeBaseFoundError } from '../src/error';
+import { removeRemoteRepositories } from './remote_utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -56,30 +57,12 @@ maybe('remote: use personal access token: sync_worker: ', () => {
   const localDir = `./test/database_remote_by_pat_${monoId()}`;
 
   beforeAll(async () => {
-    console.log('deleting remote test repositories...');
-    // Remove test repositories on remote
-    const octokit = new Octokit({
-      auth: token,
-    });
-    const urlArray = remoteURLBase!.split('/');
-    const owner = urlArray[urlArray.length - 2];
-    const promises: Promise<any>[] = [];
-    allIds.forEach(id => {
-      // console.log('delete: ' + owner + '/' + id);
-      promises.push(
-        octokit.repos.delete({ owner, repo: id }).catch(err => {
-          if (err.status !== 404) {
-            console.log(err);
-          }
-        })
-      );
-    });
-    await Promise.all(promises);
-    console.log('done.');
+    await removeRemoteRepositories(reposPrefix);
   });
+
   describe('Check push result: ', () => {
-    describe('Put once followed by push', () => {
-      test('Just put and push', async () => {
+    describe('Put once followed by push: ', () => {
+      test('Just put and push', async function () {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({

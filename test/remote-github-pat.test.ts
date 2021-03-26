@@ -27,6 +27,7 @@ import {
 } from '../src/error';
 import { minimumSyncInterval, Sync } from '../src/remote/sync';
 import { RemoteRepository } from '../src/remote/remote_repository';
+import { removeRemoteRepositories } from './remote_utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -79,26 +80,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
   };
 
   beforeAll(async () => {
-    console.log('deleting remote test repositories...');
-    // Remove test repositories on remote
-    const octokit = new Octokit({
-      auth: token,
-    });
-    const urlArray = remoteURLBase!.split('/');
-    const owner = urlArray[urlArray.length - 2];
-    const promises: Promise<any>[] = [];
-    allIds.forEach(id => {
-      // console.log('delete: ' + owner + '/' + id);
-      promises.push(
-        octokit.repos.delete({ owner, repo: id }).catch(err => {
-          if (err.status !== 404) {
-            console.log(err);
-          }
-        })
-      );
-    });
-    await Promise.all(promises);
-    console.log('done.');
+    await removeRemoteRepositories(reposPrefix);
   });
 
   /**
