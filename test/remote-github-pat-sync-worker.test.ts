@@ -54,7 +54,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  const localDir = `./test/database_remote_by_pat_${monoId()}`;
+  const localDir = `./test/database_remote_github_${reposPrefix}${monoId()}`;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);

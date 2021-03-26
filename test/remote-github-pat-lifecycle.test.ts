@@ -55,6 +55,8 @@ maybe(
       : process.env.GITDDB_GITHUB_USER_URL + '/';
     const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
+    const localDir = `./test/database_remote_github_${reposPrefix}${monoId()}`;
+
     beforeAll(async () => {
       await removeRemoteRepositories(reposPrefix);
     });
@@ -68,7 +70,6 @@ maybe(
        * Basics: A is empty, creates remote, puts data; B is empty, clones the remote
        */
       describe('Basics: A puts data; B clones the remote: ', () => {
-        const localDir = `./test/database_remote_by_pat_${monoId()}`;
         beforeAll(() => {
           // Remove local repositories
           fs.removeSync(path.resolve(localDir));
@@ -327,7 +328,6 @@ maybe(
        * Sync automatically (live)
        */
       describe('Sync automatically (live): ', () => {
-        const localDir = `./test/database_remote_by_pat_${monoId()}`;
         test('Live starts from create(): Check if live starts', async () => {
           const remoteURL = remoteURLBase + serialId();
 
@@ -578,7 +578,6 @@ maybe(
        * Retry sync
        */
       describe('Retry sync: ', () => {
-        const localDir = `./test/database_remote_by_pat_${monoId()}`;
         test('No retry', async () => {
           const remoteURL = remoteURLBase + serialId();
           const dbNameA = serialId();
@@ -704,8 +703,6 @@ maybe(
      * Initialize means creating local and remote repositories by using a remote_url
      */
     describe('Initialize synchronization by sync()', () => {
-      const localDir = `./test/database_remote_by_pat_${monoId()}`;
-
       test('Overload of sync()', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();

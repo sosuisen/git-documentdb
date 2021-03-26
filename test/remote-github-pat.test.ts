@@ -59,7 +59,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  const localDir = `./test/database_remote_by_pat_${monoId()}`;
+  const localDir = `./test/database_remote_github_${reposPrefix}${monoId()}`;
 
   const createRemoteRepository = async (remoteURL: string) => {
     await new RemoteRepository(remoteURL, {
