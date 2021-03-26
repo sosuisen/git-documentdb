@@ -83,10 +83,20 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult.operation).toBe('push');
         expect(syncResult.commits!.remote.length).toBe(1);
         expect(syncResult.commits!.remote[0].id).toBe(putResult.commit_sha);
-        expect(syncResult.changes.remote.add.length).toBe(1); // A file is added
-        expect(syncResult.changes.remote.add[0].doc).toMatchObject(jsonA1);
-
-        await dbA.destroy().catch(err => console.log(err));
+        expect(syncResult.changes).toMatchObject({
+          remote: {
+            add: [
+              {
+                id: jsonA1._id,
+                file_sha: putResult.file_sha,
+                doc: jsonA1,
+              },
+            ],
+            modify: [],
+            remove: [],
+          },
+        });
+        await dbA.destroy().catch(err => console.debug(err));
       });
 
       test('Put the same document again', async () => {
