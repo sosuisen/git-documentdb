@@ -96,12 +96,8 @@ maybe('remote: use personal access token: constructor and basic network access: 
    */
   describe('constructor: ', () => {
     test('Create and remove remote repository by personal access token', async () => {
-      const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
-      });
+
       // Check if the repository is deleted.
       const octokit = new Octokit({
         auth: token,
