@@ -98,7 +98,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
 
     test('Create and remove remote repository by personal access token', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + dbName;
+      const remoteURL = remoteURLBase + serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
         local_dir: localDir,
@@ -159,7 +159,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
 
     test('Undefined personal access token', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + dbName;
+      const remoteURL = remoteURLBase + serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
         local_dir: localDir,
@@ -248,7 +248,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
 
     test('Repository not open', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + dbName;
+      const remoteURL = remoteURLBase + serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
         local_dir: localDir,
@@ -264,7 +264,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
 
     test('Create Sync with a new remote repository', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + dbName;
+      const remoteURL = remoteURLBase + serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
         local_dir: localDir,
@@ -285,7 +285,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
 
     test('Create Sync with an existed remote repository', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + dbName;
+      const remoteURL = remoteURLBase + serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
         local_dir: localDir,
@@ -311,7 +311,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
 
     test('Get remote', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + dbName;
+      const remoteURL = remoteURLBase + serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
         local_dir: localDir,
