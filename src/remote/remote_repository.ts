@@ -158,7 +158,7 @@ export class RemoteRepository {
         .catch(err => err)
     );
     await remote.disconnect();
-    if (error !== 'undefined') console.debug('connect fetch error: ' + error);
+    // if (error !== 'undefined') console.warn('connect fetch error: ' + error);
     switch (true) {
       case error === 'undefined':
         break;
@@ -193,7 +193,7 @@ export class RemoteRepository {
         .catch(err => err)
     );
     await remote.disconnect();
-    if (error !== 'undefined') console.debug('connect push error: ' + error);
+    // if (error !== 'undefined') console.warn('connect push error: ' + error);
     switch (true) {
       case error === 'undefined':
         break;
