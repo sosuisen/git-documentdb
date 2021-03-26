@@ -184,9 +184,11 @@ maybe(
         });
 
         test('Race condition of two trySync() calls: trySync() again by hand before retrySync()', async () => {
+          /*
           console.log(
             '## Race condition of two trySync() calls: trySync() again by hand before retrySync()'
           );
+          */
           const remoteURL = remoteURLBase + serialId();
 
           const dbNameA = serialId();
@@ -679,9 +681,9 @@ maybe(
             CannotPushBecauseUnfetchedCommitExistsError
           );
           const currentSyncCount = dbB.taskQueue.statistics().sync;
-          console.log('sync count:' + dbB.taskQueue.statistics().sync);
+          // console.log('sync count:' + dbB.taskQueue.statistics().sync);
           expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
-          console.log('wait next sync');
+          // console.log('wait next sync');
           // Need to wait retry_interval(2sec) + sync processing time(about lesser than 5sec))
           await sleep(7000);
           expect(dbB.taskQueue.statistics().sync).toBeGreaterThanOrEqual(
