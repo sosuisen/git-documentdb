@@ -344,6 +344,8 @@ export type AcceptedConflicts = {
  * Options for Sync class
  *
  * @remarks
+ * - sync_direction: Default is 'both'
+ *
  * - include_commits: (Beta version: It will leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
  */
 export type RemoteOptions = {

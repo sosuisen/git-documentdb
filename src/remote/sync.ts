@@ -97,7 +97,7 @@ export class Sync implements ISync {
     }
 
     this._options.live ??= false;
-    this._options.sync_direction ??= 'pull';
+    this._options.sync_direction ??= 'both';
     this._options.interval ??= defaultSyncInterval;
 
     if (this._options.interval < minimumSyncInterval) {

@@ -17,6 +17,7 @@ import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
+  AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
   IntervalTooSmallError,
   InvalidRepositoryURLError,
@@ -189,6 +190,21 @@ maybe('remote: use personal access token: constructor and basic network access: 
         },
       };
       await expect(gitDDB.sync(options)).rejects.toThrowError(InvalidRepositoryURLError);
+      await gitDDB.destroy();
+    });
+
+    test('Undefined auth options', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = serialId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+      };
+      await expect(gitDDB.sync(options)).rejects.toThrowError(AuthNeededForPushOrSyncError);
       await gitDDB.destroy();
     });
 
