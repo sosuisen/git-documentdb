@@ -12,7 +12,7 @@ Synchronization
 <b>Signature:</b>
 
 ```typescript
-sync(remoteURL: string, options?: RemoteOptions): Promise<RemoteAccess>;
+sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
 ```
 
 ## Parameters
@@ -24,7 +24,7 @@ sync(remoteURL: string, options?: RemoteOptions): Promise<RemoteAccess>;
 
 <b>Returns:</b>
 
-Promise&lt;RemoteAccess&gt;
+Promise&lt;Sync&gt;
 
 ## Remarks
 

@@ -12,7 +12,7 @@ getRemote
 <b>Signature:</b>
 
 ```typescript
-getRemote(remoteURL: string): RemoteAccess;
+getRemote(remoteURL: string): Sync;
 ```
 
 ## Parameters
@@ -23,5 +23,5 @@ getRemote(remoteURL: string): RemoteAccess;
 
 <b>Returns:</b>
 
-RemoteAccess
+Sync
 

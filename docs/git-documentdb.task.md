@@ -13,7 +13,7 @@ export declare type Task = {
     label: TaskLabel;
     taskId: string;
     targetId?: string;
-    func: () => Promise<void>;
+    func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
 };
 ```
 <b>References:</b> [TaskLabel](./git-documentdb.tasklabel.md)

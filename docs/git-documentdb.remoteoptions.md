@@ -4,20 +4,29 @@
 
 ## RemoteOptions type
 
-Options for RemoteAccess class
+Options for Sync class
 
 <b>Signature:</b>
 
 ```typescript
 export declare type RemoteOptions = {
-    live: boolean;
+    remote_url?: string;
+    live?: boolean;
     sync_direction?: SyncDirection;
     interval?: number;
     retry?: number;
     retry_interval?: number;
     auth?: RemoteAuth;
     behavior_for_no_merge_base?: BehaviorForNoMergeBase;
+    include_commits?: boolean;
+    conflict_resolve_strategy?: ConflictResolveStrategies;
 };
 ```
-<b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md)<!-- -->, [RemoteAuth](./git-documentdb.remoteauth.md)<!-- -->, [BehaviorForNoMergeBase](./git-documentdb.behaviorfornomergebase.md)
+<b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md)<!-- -->, [RemoteAuth](./git-documentdb.remoteauth.md)<!-- -->, [BehaviorForNoMergeBase](./git-documentdb.behaviorfornomergebase.md)<!-- -->, [ConflictResolveStrategies](./git-documentdb.conflictresolvestrategies.md)
+
+## Remarks
+
+- sync\_direction: Default is 'both'
+
+- include\_commits: (Beta version: It will leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
 

@@ -8,6 +8,18 @@ import { Logger } from 'tslog';
 import nodegit from '@sosuisen/nodegit';
 
 // @public
+export type AcceptedConflicts = {
+    ours: {
+        put: string[];
+        remove: string[];
+    };
+    theirs: {
+        put: string[];
+        remove: string[];
+    };
+};
+
+// @public
 export type AllDocsOptions = {
     include_docs?: boolean;
     descending?: boolean;
@@ -33,6 +45,11 @@ export class AuthNeededForPushOrSyncError extends BaseError {
 export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
 
 // @public (undocumented)
+export class CannotCloneRepositoryError extends BaseError {
+    constructor(url: string);
+}
+
+// @public (undocumented)
 export class CannotCreateDirectoryError extends BaseError {
     constructor(e?: string);
 }
@@ -40,6 +57,11 @@ export class CannotCreateDirectoryError extends BaseError {
 // @public (undocumented)
 export class CannotDeleteDataError extends BaseError {
     constructor(e?: string);
+}
+
+// @public (undocumented)
+export class CannotOpenRepositoryError extends BaseError {
+    constructor(err: string);
 }
 
 // @public (undocumented)
@@ -76,6 +98,17 @@ export class Collection implements CRUDInterface {
 export type CollectionPath = string;
 
 // @public
+export type CommitInfo = {
+    id: string;
+    date: Date;
+    author: string;
+    message: string;
+};
+
+// @public
+export type ConflictResolveStrategies = 'ours' | 'theirs' | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
+
+// @public
 export type DatabaseCloseOption = {
     force?: boolean;
     timeout?: number;
@@ -91,8 +124,23 @@ export class DatabaseClosingError extends BaseError {
     constructor(e?: string);
 }
 
-// @beta
-export type DatabaseInfo = {
+// @public (undocumented)
+export class DatabaseExistsError extends BaseError {
+    constructor();
+}
+
+// @public
+export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
+
+// @public
+export type DatabaseInfoError = {
+    ok: false;
+    error: Error;
+};
+
+// @public
+export type DatabaseInfoSuccess = {
+    ok: true;
     is_new: boolean;
     is_clone: boolean;
     is_created_by_gitddb: boolean;
@@ -106,18 +154,26 @@ export type DatabaseOption = {
 };
 
 // @public
-export type DatabaseStatistics = {
-    taskCount: {
-        put: number;
-        remove: number;
-        push: number;
-        sync: number;
-    };
+export type DocMetadata = {
+    id: string;
+    file_sha: string;
 };
 
 // @public (undocumented)
 export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
+}
+
+// @public
+export type FileChanges = {
+    add: JsonDocWithMetadata[];
+    remove: DocMetadata[];
+    modify: JsonDocWithMetadata[];
+};
+
+// @public (undocumented)
+export class FileRemoveTimeoutError extends BaseError {
+    constructor();
 }
 
 // @beta
@@ -126,6 +182,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
     collection(collectionPath: CollectionPath): Collection;
+    create(remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
     dbName(): string;
     // (undocumented)
     readonly defaultBranch = "main";
@@ -146,11 +203,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     isClosing: boolean;
     isOpened(): boolean;
     logger: Logger;
-    // @internal
-    newTaskId: () => string;
-    open(remoteURL?: string, remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
-    // (undocumented)
-    _pushToTaskQueue(task: Task): void;
+    open(): Promise<DatabaseInfo>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(_id: string, document: {
         [key: string]: any;
@@ -159,12 +212,13 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     removeRemote(remoteURL: string): void;
     repository(): nodegit.Repository | undefined;
-    statistics(): DatabaseStatistics;
     sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
     // (undocumented)
-    _unshiftSyncTaskToTaskQueue(task: Task): void;
-    // @internal (undocumented)
-    _validator: Validator;
+    sync(options?: RemoteOptions): Promise<Sync>;
+    // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
+    taskQueue: TaskQueue;
+    // Warning: (ae-incompatible-release-tags) The symbol "validator" is marked as @beta, but its signature references "Validator" which is marked as @internal
+    validator: Validator;
     workingDir(): string;
     }
 
@@ -196,6 +250,11 @@ export class InvalidCollectionPathError extends BaseError {
 // @public (undocumented)
 export class InvalidCollectionPathLengthError extends BaseError {
     constructor(collectionPath: string, minLength: number, maxLength: number);
+}
+
+// @public (undocumented)
+export class InvalidConflictStateError extends BaseError {
+    constructor(mes: string);
 }
 
 // @public (undocumented)
@@ -258,11 +317,11 @@ export interface ISync {
     // (undocumented)
     author: nodegit.Signature;
     // (undocumented)
-    callbacks: {
+    committer: nodegit.Signature;
+    // (undocumented)
+    credential_callbacks: {
         [key: string]: any;
     };
-    // (undocumented)
-    committer: nodegit.Signature;
     // (undocumented)
     options(): RemoteOptions;
     // (undocumented)
@@ -277,9 +336,7 @@ export type JsonDoc = {
 };
 
 // @public
-export type JsonDocWithMetadata = {
-    id: string;
-    file_sha: string;
+export type JsonDocWithMetadata = DocMetadata & {
     doc?: JsonDoc;
 };
 
@@ -340,13 +397,16 @@ export type RemoteAuthSSH = {
 
 // @public
 export type RemoteOptions = {
-    live: boolean;
+    remote_url?: string;
+    live?: boolean;
     sync_direction?: SyncDirection;
     interval?: number;
     retry?: number;
     retry_interval?: number;
     auth?: RemoteAuth;
     behavior_for_no_merge_base?: BehaviorForNoMergeBase;
+    include_commits?: boolean;
+    conflict_resolve_strategy?: ConflictResolveStrategies;
 };
 
 // @public (undocumented)
@@ -368,15 +428,96 @@ export type RemoveResult = {
 };
 
 // @public (undocumented)
+export class RepositoryNotFoundError extends BaseError {
+    constructor(path: string);
+}
+
+// @public (undocumented)
 export class RepositoryNotOpenError extends BaseError {
     constructor(e?: string);
 }
 
 // @public (undocumented)
+export type SyncBaseType = {
+    operation: string;
+    changes?: {
+        local?: FileChanges;
+        remote?: FileChanges;
+    };
+    conflicts: AcceptedConflicts;
+    commits?: {
+        local?: CommitInfo[];
+        remote?: CommitInfo[];
+    };
+};
+
+// @public (undocumented)
 export type SyncDirection = 'pull' | 'push' | 'both';
 
 // @public
-export type SyncResult = 'nop' | 'push' | 'fast-forward merge' | 'merge and push' | 'resolve conflicts and push' | 'canceled';
+export type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' | 'error';
+
+// @public
+export type SyncResult = SyncBaseType | SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;
+
+// @public (undocumented)
+export type SyncResultCancel = {
+    operation: 'canceled';
+};
+
+// @public (undocumented)
+export type SyncResultFastForwardMerge = {
+    operation: 'fast-forward merge';
+    changes: {
+        local: FileChanges;
+    };
+    commits?: {
+        local: CommitInfo[];
+    };
+};
+
+// @public (undocumented)
+export type SyncResultMergeAndPush = {
+    operation: 'merge and push';
+    changes: {
+        local: FileChanges;
+        remote: FileChanges;
+    };
+    commits?: {
+        local: CommitInfo[];
+        remote: CommitInfo[];
+    };
+};
+
+// @public (undocumented)
+export type SyncResultNop = {
+    operation: 'nop';
+};
+
+// @public (undocumented)
+export type SyncResultPush = {
+    operation: 'push';
+    changes: {
+        remote: FileChanges;
+    };
+    commits?: {
+        remote: CommitInfo[];
+    };
+};
+
+// @public (undocumented)
+export type SyncResultResolveConflictsAndPush = {
+    operation: 'resolve conflicts and push';
+    changes: {
+        local: FileChanges;
+        remote: FileChanges;
+    };
+    conflicts: AcceptedConflicts;
+    commits?: {
+        local: CommitInfo[];
+        remote: CommitInfo[];
+    };
+};
 
 // @public (undocumented)
 export class SyncWorkerFetchError extends BaseError {
@@ -388,11 +529,19 @@ export type Task = {
     label: TaskLabel;
     taskId: string;
     targetId?: string;
-    func: () => Promise<void>;
+    func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
 };
 
 // @public
 export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
+
+// @public
+export type TaskStatistics = {
+    put: number;
+    remove: number;
+    push: number;
+    sync: number;
+};
 
 // @public (undocumented)
 export class UndefinedDatabaseNameError extends BaseError {
@@ -454,6 +603,11 @@ export class Validator {
     validateId(_id: string): void;
     validateLocalDir(localDir: string): void;
     }
+
+// @public (undocumented)
+export class WorkingDirectoryExistsError extends BaseError {
+    constructor();
+}
 
 
 ```

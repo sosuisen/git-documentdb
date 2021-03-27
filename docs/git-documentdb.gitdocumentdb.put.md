@@ -50,3 +50,5 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
 
 - Saved file path is `${workingDir()}/${document._id}.json`<!-- -->. [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) will be thrown if the path length exceeds the maximum length of a filepath on the device.
 
+- A put operation is not skipped when no change occurred on a specified document.
+

@@ -7,36 +7,20 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Create a repository or open an existing one.
+Open an existing repository
 
 <b>Signature:</b>
 
 ```typescript
-open(remoteURL?: string, remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
+open(): Promise<DatabaseInfo>;
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  remoteURL | string |  |
-|  remoteOptions | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
-
 <b>Returns:</b>
 
 Promise&lt;[DatabaseInfo](./git-documentdb.databaseinfo.md)<!-- -->&gt;
 
 Database information
 
-## Exceptions
-
-[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) You may not have write permission.
-
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
-
 ## Remarks
-
-- If localDir does not exist, it is created.
 
 - GitDocumentDB can load a git repository that is not created by git-documentdb module, however correct behavior is not guaranteed.
 

@@ -4,29 +4,12 @@
 
 ## DatabaseInfo type
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Database information
 
 <b>Signature:</b>
 
 ```typescript
-export declare type DatabaseInfo = {
-    is_new: boolean;
-    is_clone: boolean;
-    is_created_by_gitddb: boolean;
-    is_valid_version: boolean;
-};
+export declare type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
 ```
-
-## Remarks
-
-- is\_new: Whether a repository is newly created or existing.
-
-- is\_clone: Whether a repository is cloned from a remote repository or not.
-
-- is\_created\_by\_gitddb: Whether a repository is created by GitDocumentDB or other means.
-
-- is\_valid\_version: Whether a repository version equals to the current databaseVersion of GitDocumentDB. The version is described in .git/description.
+<b>References:</b> [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md)<!-- -->, [DatabaseInfoError](./git-documentdb.databaseinfoerror.md)
 

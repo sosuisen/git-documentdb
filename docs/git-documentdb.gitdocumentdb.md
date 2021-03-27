@@ -33,16 +33,17 @@ export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInt
 |  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { readonly name: "GitDocumentDB"; readonly email: "gitddb@example.com"; } | <b><i>(BETA)</i></b> Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | <b><i>(BETA)</i></b> DB is going to close |
 |  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | <b><i>(BETA)</i></b> Logger |
+|  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | TaskQueue | <b><i>(BETA)</i></b> Task queue |
+|  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | Validator | <b><i>(BETA)</i></b> Name validator |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_pushToTaskQueue(task)](./git-documentdb.gitdocumentdb._pushtotaskqueue.md) |  | <b><i>(BETA)</i></b> |
-|  [\_unshiftSyncTaskToTaskQueue(task)](./git-documentdb.gitdocumentdb._unshiftsynctasktotaskqueue.md) |  | <b><i>(BETA)</i></b> |
 |  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | <b><i>(BETA)</i></b> Get all the documents |
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | <b><i>(BETA)</i></b> Close a database |
 |  [collection(collectionPath)](./git-documentdb.gitdocumentdb.collection.md) |  | <b><i>(BETA)</i></b> Get a collection |
+|  [create(remoteOptions)](./git-documentdb.gitdocumentdb.create.md) |  | <b><i>(BETA)</i></b> Create and open a repository |
 |  [dbName()](./git-documentdb.gitdocumentdb.dbname.md) |  | <b><i>(BETA)</i></b> Get dbName |
 |  [delete(id, options)](./git-documentdb.gitdocumentdb.delete.md) |  | <b><i>(BETA)</i></b> This is an alias of remove() |
 |  [delete(jsonDoc, options)](./git-documentdb.gitdocumentdb.delete_1.md) |  | <b><i>(BETA)</i></b> This is an alias of remove() |
@@ -51,14 +52,14 @@ export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInt
 |  [getRemote(remoteURL)](./git-documentdb.gitdocumentdb.getremote.md) |  | <b><i>(BETA)</i></b> getRemote |
 |  [getRemoteURLs()](./git-documentdb.gitdocumentdb.getremoteurls.md) |  | <b><i>(BETA)</i></b> getRemoteURLs |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if a database is opened |
-|  [open(remoteURL, remoteOptions)](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Create a repository or open an existing one. |
+|  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Open an existing repository |
 |  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document |
 |  [put(\_id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | <b><i>(BETA)</i></b> Add a document |
 |  [remove(id, options)](./git-documentdb.gitdocumentdb.remove.md) |  | <b><i>(BETA)</i></b> Remove a document |
 |  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | <b><i>(BETA)</i></b> Remove a document |
 |  [removeRemote(remoteURL)](./git-documentdb.gitdocumentdb.removeremote.md) |  | <b><i>(BETA)</i></b> removeRemote |
 |  [repository()](./git-documentdb.gitdocumentdb.repository.md) |  | <b><i>(BETA)</i></b> Get a current repository |
-|  [statistics()](./git-documentdb.gitdocumentdb.statistics.md) |  | <b><i>(BETA)</i></b> DB Statistics |
 |  [sync(remoteURL, options)](./git-documentdb.gitdocumentdb.sync.md) |  | <b><i>(BETA)</i></b> Synchronization |
+|  [sync(options)](./git-documentdb.gitdocumentdb.sync_1.md) |  | <b><i>(BETA)</i></b> |
 |  [workingDir()](./git-documentdb.gitdocumentdb.workingdir.md) |  | <b><i>(BETA)</i></b> Get a full path of the current Git working directory |
 

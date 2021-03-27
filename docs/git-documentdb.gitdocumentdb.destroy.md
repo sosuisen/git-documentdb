@@ -33,6 +33,8 @@ Promise&lt;{ ok: true; }&gt;
 
 [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md)
 
+[FileRemoveTimeoutError](./git-documentdb.fileremovetimeouterror.md)
+
 ## Remarks
 
 - [GitDocumentDB.close()](./git-documentdb.gitdocumentdb.close.md) is called automatically before destroying.
@@ -42,4 +44,6 @@ Promise&lt;{ ok: true; }&gt;
 - The Git repository and the working directory are removed from the filesystem.
 
 - local\_dir (which is specified in constructor) is not removed.
+
+- destroy() can remove a database which has not been created yet if a working directory exists.
 

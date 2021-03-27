@@ -9,13 +9,11 @@ Type for a JSON document with metadata
 <b>Signature:</b>
 
 ```typescript
-export declare type JsonDocWithMetadata = {
-    id: string;
-    file_sha: string;
+export declare type JsonDocWithMetadata = DocMetadata & {
     doc?: JsonDoc;
 };
 ```
-<b>References:</b> [JsonDoc](./git-documentdb.jsondoc.md)
+<b>References:</b> [DocMetadata](./git-documentdb.docmetadata.md)<!-- -->, [JsonDoc](./git-documentdb.jsondoc.md)
 
 ## Remarks
 
