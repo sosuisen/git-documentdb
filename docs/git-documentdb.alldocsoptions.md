@@ -13,17 +13,17 @@ export declare type AllDocsOptions = {
     include_docs?: boolean;
     descending?: boolean;
     recursive?: boolean;
-    collection_path?: string;
+    prefix?: string;
 };
 ```
 
 ## Remarks
 
-- include\_docs: Include the document itself in each row in the doc property. Otherwise you only get the \_id and file\_sha properties. Default is false.
+- include\_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file\_sha' properties. Default is false.
 
 - descending: Sort results in rows by descendant. Default is false (ascendant).
 
-- recursive: Get documents recursively from all sub directories. Default is false.
+- recursive: Get documents recursively from all sub directories. Default is true.
 
-- collection\_path: Get the documents only under a specified sub directory. If set, the directory names are omitted from the a filepath in a document id. See [Collection](./git-documentdb.collection.md)<!-- -->.
+- prefix: Get documents whose IDs start with the prefix.
 
