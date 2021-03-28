@@ -29,6 +29,17 @@ export async function allDocsImpl (
     return Promise.reject(new RepositoryNotOpenError());
   }
 
+  options ??= {
+    include_docs: undefined,
+    descending: undefined,
+    recursive: undefined,
+    prefix: undefined,
+  };
+  options.include_docs ??= false;
+  options.descending ??= false;
+  options.recursive ??= true;
+  options.prefix ??= '';
+
   // Calling nameToId() for HEAD throws error when this is first commit.
   const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
     e => false
@@ -46,7 +57,7 @@ export async function allDocsImpl (
   const directories: nodegit.Tree[] = [];
   const tree = await commit.getTree();
 
-  let prefix = options?.prefix ?? '';
+  let prefix = options!.prefix;
   let targetDir = '';
   const prefixArray = prefix.split('/'); // returns number which is equal or larger than 1
   if (prefixArray.length === 1) {
@@ -105,7 +116,7 @@ export async function allDocsImpl (
     // let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) =>
     //  a.name().localeCompare(b.name());
     // Descendant alphabetical order
-    if (options?.descending) {
+    if (options.descending) {
       const sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) =>
         -a.name().localeCompare(b.name());
       filteredEntries.sort(sortFunc);
@@ -115,7 +126,7 @@ export async function allDocsImpl (
       const entry = filteredEntries.shift();
       if (entry === undefined) break;
       if (entry?.isDirectory()) {
-        if (options?.recursive) {
+        if (options.recursive) {
           // eslint-disable-next-line no-await-in-loop
           const subtree = await entry.getTree();
           directories.push(subtree);
@@ -130,7 +141,7 @@ export async function allDocsImpl (
           file_sha: entry.id().tostrS(),
         };
 
-        if (options?.include_docs) {
+        if (options.include_docs) {
           // eslint-disable-next-line no-await-in-loop
           const blob = await entry.getBlob();
           // eslint-disable-next-line max-depth
