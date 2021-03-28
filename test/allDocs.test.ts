@@ -21,6 +21,8 @@ describe('Fetch a batch of documents', () => {
   const name_a = 'Apple woman';
   const _id_b = 'banana';
   const name_b = 'Banana man';
+  const _id_c = 'cherry';
+  const name_c = 'Cherry cat';
 
   const _id_c01 = 'citrus/amanatsu';
   const name_c01 = 'Amanatsu boy';
@@ -39,7 +41,7 @@ describe('Fetch a batch of documents', () => {
     fs.removeSync(path.resolve(localDir));
   });
 
-  test('allDocs()', async () => {
+  test('allDocs(): alphabetic order', async () => {
     const dbName = 'test_repos_1';
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -57,9 +59,10 @@ describe('Fetch a batch of documents', () => {
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
+    await gitDDB.put({ _id: _id_c, name: name_c });
 
     await expect(gitDDB.allDocs()).resolves.toMatchObject({
-      total_rows: 2,
+      total_rows: 3,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
@@ -68,6 +71,10 @@ describe('Fetch a batch of documents', () => {
         },
         {
           id: expect.stringMatching('^' + _id_b + '$'),
+          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        },
+        {
+          id: expect.stringMatching('^' + _id_c + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
       ],
@@ -87,11 +94,16 @@ describe('Fetch a batch of documents', () => {
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
+    await gitDDB.put({ _id: _id_c, name: name_c });
 
     await expect(gitDDB.allDocs({ descending: true })).resolves.toMatchObject({
-      total_rows: 2,
+      total_rows: 3,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
+        {
+          id: expect.stringMatching('^' + _id_c + '$'),
+          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        },
         {
           id: expect.stringMatching('^' + _id_b + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
