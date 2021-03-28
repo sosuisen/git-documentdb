@@ -200,8 +200,8 @@ https://github.com/sosuisen/inventory-manager
 # Roadmap
 
 - v0.1 Basic CRUD
-- v0.2 Collections :feet:(Here now)
-  - v0.2.7 Prefix search
+- v0.2 Collections
+  - v0.2.8 Prefix search :feet:(Here now)
 - v0.3 Automated sync with GitHub or any other remote git repository
 - v0.4 Transaction
 - v0.5 Grep
