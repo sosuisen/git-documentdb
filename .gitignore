@@ -105,7 +105,7 @@ dist
 
 # test
 test_repos*
-gitddb/
+git-documentdb/
 
 # api-extractor
 temp/
