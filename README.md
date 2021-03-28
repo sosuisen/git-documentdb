@@ -209,6 +209,3 @@ https://github.com/sosuisen/inventory-manager
 - v0.7 Binary attachments
 - v0.8 Indexed search
 - v1.0 Official release
-
-## Not planned to be implemented
-- Map/reduce queries
