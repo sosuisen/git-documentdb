@@ -86,9 +86,7 @@ describe('allDocs(): ', () => {
       local_dir: localDir,
     });
 
-    await expect(gitDDB.allDocs({ recursive: true })).rejects.toThrowError(
-      RepositoryNotOpenError
-    );
+    await expect(gitDDB.allDocs()).rejects.toThrowError(RepositoryNotOpenError);
 
     await gitDDB.open();
 
@@ -214,9 +212,7 @@ describe('allDocs(): ', () => {
     await gitDDB.put({ _id: _id_c01, name: name_c01 });
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
-    await expect(
-      gitDDB.allDocs({ include_docs: true, recursive: true })
-    ).resolves.toMatchObject({
+    await expect(gitDDB.allDocs({ include_docs: true })).resolves.toMatchObject({
       total_rows: 5,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -281,7 +277,9 @@ describe('allDocs(): ', () => {
     await gitDDB.put({ _id: _id_c01, name: name_c01 });
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
-    await expect(gitDDB.allDocs({ include_docs: true })).resolves.toMatchObject({
+    await expect(
+      gitDDB.allDocs({ include_docs: true, recursive: false })
+    ).resolves.toMatchObject({
       total_rows: 2,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -308,7 +306,7 @@ describe('allDocs(): ', () => {
   });
 
   describe('Prefix search: ', () => {
-    test('get directory', async () => {
+    test('get from directory', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -370,7 +368,9 @@ describe('allDocs(): ', () => {
 
       const prefix = 'cit';
 
-      await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
+      await expect(
+        gitDDB.allDocs({ prefix, include_docs: true, recursive: false })
+      ).resolves.toMatchObject({
         total_rows: 2,
         commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
@@ -414,9 +414,7 @@ describe('allDocs(): ', () => {
 
       const prefix = 'citrus';
 
-      await expect(
-        gitDDB.allDocs({ prefix, recursive: true, include_docs: true })
-      ).resolves.toMatchObject({
+      await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
         total_rows: 4,
         commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
@@ -476,9 +474,7 @@ describe('allDocs(): ', () => {
 
       const prefix = 'citrus/y';
 
-      await expect(
-        gitDDB.allDocs({ prefix, recursive: true, include_docs: true })
-      ).resolves.toMatchObject({
+      await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
         total_rows: 1,
         commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
@@ -541,7 +537,7 @@ describe('allDocs(): ', () => {
       await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
       await expect(
-        gitDDB.allDocs({ prefix: 'pear/Japan', recursive: true, include_docs: true })
+        gitDDB.allDocs({ prefix: 'pear/Japan', include_docs: true })
       ).resolves.toMatchObject({
         total_rows: 1,
         commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -557,6 +553,22 @@ describe('allDocs(): ', () => {
         ],
       });
 
+      await expect(
+        gitDDB.allDocs({ prefix: 'pear', include_docs: true })
+      ).resolves.toMatchObject({
+        total_rows: 1,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        rows: [
+          {
+            id: expect.stringMatching('^' + _id_p + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_p + '$'),
+              name: name_p,
+            },
+          },
+        ],
+      });
       await gitDDB.destroy();
     });
   });

@@ -455,9 +455,7 @@ describe('Collection: allDocs()', () => {
       local_dir: localDir,
     });
 
-    await expect(gitDDB.allDocs({ recursive: true })).rejects.toThrowError(
-      RepositoryNotOpenError
-    );
+    await expect(gitDDB.allDocs()).rejects.toThrowError(RepositoryNotOpenError);
 
     await gitDDB.open();
     const users = gitDDB.collection('users');
@@ -502,16 +500,16 @@ describe('Collection: allDocs()', () => {
     await users.put({ _id: _id_c02, name: name_c02 });
 
     await expect(
-      users.allDocs({ collection_path: 'pear/Japan', include_docs: true })
+      users.allDocs({ prefix: 'pear/Japan', include_docs: true })
     ).resolves.toMatchObject({
       total_rows: 1,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
-          id: expect.stringMatching('^' + _id_p.replace('pear/Japan/', '') + '$'),
+          id: expect.stringMatching('^' + _id_p + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
-            _id: expect.stringMatching('^' + _id_p.replace('pear/Japan/', '') + '$'),
+            _id: expect.stringMatching('^' + _id_p + '$'),
             name: name_p,
           },
         },
