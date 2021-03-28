@@ -11,7 +11,7 @@ Use GitDocumentDB to ...
 
 :green_book: Store JSON documents into Git repository. 
 
-:art: Manage Git repository by PouchDB-like offline-first API. 
+:art: Manage Git repository by PouchDB-like API. 
 
 :rocket: Synchronize JSON documents with a remote Git repository.
 
@@ -59,88 +59,125 @@ const gitDDB = new GitDocumentDB({
 
 ## Basic CRUD
 ```typescript
-  // Open a database
+  // Open
   await gitDDB.open(); // Git creates a repository (/your/path/to/the/app/gitddb/db01/.git)
-  // Create a document
-  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '15' }); // Git adds 'profile01.json' under the working directory and commit it.
-  // Update it
-  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '16' }); // Git adds a updated file and commit it.
-  // Read it
+  // Create
+  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '15' }); // Git adds 'profile01.json' under the working directory and commits it.
+  // Update
+  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '16' }); // Git adds a updated file and commits it.
+  // Read
   const doc = await gitDDB.get('profile01');
   console.log(doc); // doc = { _id: 'profile01', name: 'Yuzuki', age: '16' }
-  // Delete it
-  await gitDDB.remove('profile01'); // Git removes a file and commit it.
+  // Delete
+  await gitDDB.remove('profile01'); // Git removes a file and commits it.
+  // destroy() closes db and removes both the Git repository and the working directory.
+  await gitDDB.destroy();
 ```
 
-## Collections
+## Prefix search
 ```typescript
   /**
-    Collect documents under sub-directories
+    Create documents under sub-directories
 
     gitddb
     └── db01
-        ├── Gunma
-        │   ├── 1.json
-        │   ├── 2.json
-        │   └── 3.json
-        └── Sapporo
-            └── 1.json
+        ├── tatebayashi
+        │   ├── tamaki_mari.json
+        │   ├── kobuchizawa_shirase.json
+        │   ├── miyake_hinata.json
+        │   └── tamaki_rin.json
+        └── sapporo
+            └── shiraishi_yuzuki.json
 
   */
-  const Gunma = gitDDB.collection('Gunma');
-  const Sapporo = gitDDB.collection('Sapporo');
-  await Gunma.put({ _id: '1', name: 'Kimari', age: '16' });
-  await Gunma.put({ _id: '2', name: 'Shirase', age: '17' });
-  await Gunma.put({ _id: '3', name: 'Hinata', age: '17' });
-  await Sapporo.put({ _id: '1', name: 'Yuzuki', age: '16' });
+  await gitDDB.open();
+  // Put documents by using filepath representation.
+  await gitDDB.put({ _id: 'tatebayashi/tamaki_mari', nickname: 'Kimari', age: '16' });
+  await gitDDB.put({ _id: 'tatebayashi/kobuchizawa_shirase', nickname: 'Shirase', age: '17' });
+  await gitDDB.put({ _id: 'tatebayashi/miyake_hinata', nickname: 'Hinata', age: '17' });
+  await gitDDB.put({ _id: 'tatebayashi/tamaki_rin', nickname: 'Rin' });
+  await gitDDB.put({ _id: 'sapporo/shiraishi_yuzuki', nickname: 'Yuzu', age: '16' });
 
-  // Read one
-  const docFromSapporoCollection = await Sapporo.get('1');
-  console.log(docFromSapporoCollection); // docFromSapporoCollection = { _id: '1', name: 'Yuzuki', age: '16' }
+  // Read
+  const fromSapporo = await gitDDB.get('sapporo/shiraishi_yuzuki');
+  console.log(fromSapporo); // fromSapporo = { _id: 'sapporo/shiraishi_yuzuki', nickname: 'Yuzu', age: '16' }
 
-  // Read all the documents in Gunma collection
-  const docsFromCollection = await Gunma.allDocs({ include_docs: true });
-  console.dir(docsFromCollection, { depth: 3 });
-  /* docsFromGunmaCollection = 
+  // Prefix search
+
+  // Read all the documents whose IDs start with the prefix.
+  const fromTatebayashi = await gitDDB.allDocs({ prefix: 'tatebayashi/tamaki', include_docs: true });
+  console.dir(fromTatebayashi, { depth: 3 });
+  /* fromTatebayashi = 
   {
-    total_rows: 3,
-    commit_sha: '39b82ee2458a39023fd9cd098ea6a5486593aceb',
+    total_rows: 2,
+    commit_sha: 'xxxxx_commit_sha_of_your_head_commit_xxxxx',
     rows: [
       {
-        id: '1',
-        file_sha: 'fae60a86958402b424102f16361a501c561be654',
-        doc: { _id: '1', name: 'Kimari', age: '16' }
+        id: 'tatebayashi/tamaki_mari',
+        file_sha: 'cfde86e9d46ff368c418d7d281cf51bcf62f12de',
+        doc: { age: '16', nickname: 'Kimari', _id: 'tatebayashi/tamaki_mari' }
       },
       {
-        id: '2',
-        file_sha: '1255eff6d316a73077468dbda2b026e96fdf00e6',
-        doc: { _id: '2', name: 'Shirase', age: '17' }
-      },
-      {
-        id: '3',
-        file_sha: '1f1c89b5253c4feab67a31f8bce1443e3d72512f',
-        doc: { _id: '3', name: 'Hinata', age: '17' }
+        id: 'tatebayashi/tamaki_rin',
+        file_sha: 'ed0e428c3b17b888a5c8ba40f2a2e1b0f3490531',
+        doc: { nickname: 'Rin', _id: 'tatebayashi/tamaki_rin' }
       }
     ]
   }
   */
+  await gitDDB.destroy();
+```
 
-  // Read one by using filepath representation
-  const docFromSapporoCollectionByUsingPath = await gitDDB.get('Sapporo/1');
-  console.log(docFromSapporoCollectionByUsingPath); // docFromSapporoCollectionByUsingPath = { _id: 'Sapporo/1', name: 'Yuzuki', age: '16' }
+## Collections
+```typescript
+  // Try it again by another way.
+  await gitDDB.open();
 
-  /*
-   * Actually, collection is a sugar syntax of filepath representation.
-   * Both filepath representation (like PouchDB) and collection put the same file on the same location in a Git repository.
-   * e.g) Both gitDDB.put({ _id: 'Sapporo/1', name: 'Yuzuki' }) and gitDDB.collection('Sapporo').put({ _id: '1', name: 'Yuzuki' }) put 'gitddb/db01/Sapporo/1.json' in which JSON document has { _id: '1', name: 'Yuzuki' }.
-   * 
-   * Notice that APIs return different _id values in spite of the same source file.
-   * gitDDB.get({ _id: 'Sapporo/1' }) returns { _id: 'Sapporo/1', name: 'Yuzuki' }.
-   * gitDDB.collection('Sapporo').get({ _id: '1' }) returns { _id: '1', name: 'Yuzuki' }.
-   */
+  // Use collections to make it easier
+  const tatebayashi = gitDDB.collection('tatebayashi');
+  const sapporo = gitDDB.collection('sapporo');
+  await tatebayashi.put({ _id: 'tamaki_mari', nickname: 'Kimari', age: '16' });
+  await tatebayashi.put({ _id: 'kobuchizawa_shirase', nickname: 'Shirase', age: '17' });
+  await tatebayashi.put({ _id: 'miyake_hinata', nickname: 'Hinata', age: '17' });
+  await tatebayashi.put({ _id: 'tamaki_rin', nickname: 'Rin' });  
+  await sapporo.put({ _id: 'shiraishi_yuzuki', nickname: 'Yuzu', age: '16' });
 
-  // Close database
-  await gitDDB.close();
+  // Read
+  const fromSapporoCollection = await sapporo.get('shiraishi_yuzuki');
+  console.log(fromSapporoCollection); // fromSapporoCollection = { _id: 'shiraishi_yuzuki', nickname: 'Yuzu', age: '16' }
+
+  // Read all the documents in tatebayashi collection
+  const fromCollection = await tatebayashi.allDocs({ include_docs: true });
+  console.dir(fromCollection, { depth: 3 });
+  /* fromCollection = 
+  {
+    total_rows: 4,
+    commit_sha: 'xxxxx_commit_sha_of_your_head_commit_xxxxx',
+    rows: [
+      {
+        id: 'kobuchizawa_shirase',
+        file_sha: 'c65985e6c0e29f8c51d7c36213336b76077bbcb4',
+        doc: { age: '17', nickname: 'Shirase', _id: 'kobuchizawa_shirase' }
+      },
+      {
+        id: 'miyake_hinata',
+        file_sha: 'efecfc5383ba0393dd22e3b856fc6b67951e924a',
+        doc: { age: '17', nickname: 'Hinata', _id: 'miyake_hinata' }
+      },
+      {
+        id: 'tamaki_mari',
+        file_sha: '6b1001f4e9ab07300a45d3d332e64c5e7dcfc297',
+        doc: { age: '16', nickname: 'Kimari', _id: 'tamaki_mari' }
+      },
+      {
+        id: 'tamaki_rin',
+        file_sha: 'ebadad3d8f15dc97f884f25eea74b4a19d4421f7',
+        doc: { nickname: 'Rin', _id: 'tamaki_rin' }
+      }
+    ]
+  }
+  */
+  await gitDDB.destroy();
 ```
 
 # Examples:
