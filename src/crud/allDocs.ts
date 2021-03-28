@@ -75,7 +75,7 @@ export async function allDocsImpl (
     const dir = directories.shift();
     if (dir === undefined) break;
     const entries = dir.entries();
-
+/*
     // Ascendant (alphabetical order)
     let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) =>
       a.name().localeCompare(b.name());
@@ -85,7 +85,7 @@ export async function allDocsImpl (
         -a.name().localeCompare(b.name());
     }
     entries.sort(sortFunc);
-
+*/
     while (entries.length > 0) {
       const entry = entries.shift();
       if (entry === undefined) break;

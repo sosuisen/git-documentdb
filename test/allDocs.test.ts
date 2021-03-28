@@ -49,7 +49,7 @@ describe('Fetch a batch of documents', () => {
   const _id_p = 'pear/Japan/21st';
   const name_p = '21st century pear';
 
-  test('allDocs(): alphabetic order', async () => {
+  test.only('allDocs(): alphabetic order', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
