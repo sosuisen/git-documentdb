@@ -32,11 +32,20 @@ afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('Fetch a batch of documents', () => {
+describe('allDocs(): ', () => {
+  const _id_1 = '1';
+  const name_1 = 'one';
   const _id_a = 'apple';
   const name_a = 'Apple woman';
   const _id_b = 'banana';
   const name_b = 'Banana man';
+  const _id_c = 'cherry';
+  const name_c = 'Cherry cat';
+
+  const _id_c000 = 'citrus_celery';
+  const name_c000 = 'Citrus and celery';
+  const _id_c001 = 'citrus_carrot';
+  const name_c001 = 'Citrus and carrot';
 
   const _id_c01 = 'citrus/amanatsu';
   const name_c01 = 'Amanatsu boy';
@@ -47,7 +56,7 @@ describe('Fetch a batch of documents', () => {
   const _id_p = 'pear/Japan/21st';
   const name_p = '21st century pear';
 
-  test('allDocs()', async () => {
+  test('db is not created by GitDocumentDB', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -55,25 +64,49 @@ describe('Fetch a batch of documents', () => {
       local_dir: localDir,
     });
 
-    await expect(gitDDB.allDocs({ recursive: true })).rejects.toThrowError(
-      RepositoryNotOpenError
-    );
+    await fs.ensureDir(gitDDB.workingDir());
+    // Create empty repository
+    await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
+      return Promise.reject(err);
+    });
+    await gitDDB.open();
+
+    await expect(gitDDB.allDocs()).resolves.toStrictEqual({
+      total_rows: 0,
+    });
+
+    await gitDDB.destroy();
+  });
+
+  test('alphabetic order', async () => {
+    const dbName = monoId();
+
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await expect(gitDDB.allDocs()).rejects.toThrowError(RepositoryNotOpenError);
 
     await gitDDB.create();
 
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       total_rows: 0,
-      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [],
     });
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
+    await gitDDB.put({ _id: _id_1, name: name_1 });
+    await gitDDB.put({ _id: _id_c, name: name_c });
 
     await expect(gitDDB.allDocs()).resolves.toMatchObject({
-      total_rows: 2,
+      total_rows: 4,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
+        {
+          id: expect.stringMatching('^' + _id_1 + '$'),
+          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        },
         {
           id: expect.stringMatching('^' + _id_a + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -82,13 +115,17 @@ describe('Fetch a batch of documents', () => {
           id: expect.stringMatching('^' + _id_b + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
         },
+        {
+          id: expect.stringMatching('^' + _id_c + '$'),
+          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        },
       ],
     });
 
     await gitDDB.destroy();
   });
 
-  test('allDocs(): db is not created by GitDocumentDB', async () => {
+  test('options.descendant', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -100,7 +137,7 @@ describe('Fetch a batch of documents', () => {
     await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
       return Promise.reject(err);
     });
-    await gitDDB.open();
+    await gitDDB.create();
 
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       total_rows: 0,
@@ -120,11 +157,16 @@ describe('Fetch a batch of documents', () => {
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
+    await gitDDB.put({ _id: _id_c, name: name_c });
 
     await expect(gitDDB.allDocs({ descending: true })).resolves.toMatchObject({
-      total_rows: 2,
+      total_rows: 3,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
+        {
+          id: expect.stringMatching('^' + _id_c + '$'),
+          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        },
         {
           id: expect.stringMatching('^' + _id_b + '$'),
           file_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -139,7 +181,7 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.destroy();
   });
 
-  test('allDocs(): options.include_docs', async () => {
+  test('options.include_docs', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -177,7 +219,7 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.destroy();
   });
 
-  test('allDocs(): breadth-first search (recursive)', async () => {
+  test('breadth-first search (recursive)', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -191,9 +233,7 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.put({ _id: _id_c01, name: name_c01 });
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
-    await expect(
-      gitDDB.allDocs({ include_docs: true, recursive: true })
-    ).resolves.toMatchObject({
+    await expect(gitDDB.allDocs({ include_docs: true })).resolves.toMatchObject({
       total_rows: 5,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -243,7 +283,7 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.destroy();
   });
 
-  test('allDocs(): breadth-first search (not recursive)', async () => {
+  test('breadth-first search (not recursive)', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -258,7 +298,9 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.put({ _id: _id_c01, name: name_c01 });
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
-    await expect(gitDDB.allDocs({ include_docs: true })).resolves.toMatchObject({
+    await expect(
+      gitDDB.allDocs({ include_docs: true, recursive: false })
+    ).resolves.toMatchObject({
       total_rows: 2,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -284,86 +326,272 @@ describe('Fetch a batch of documents', () => {
     await gitDDB.destroy();
   });
 
-  test('allDocs(): get from directory', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.create();
+  describe('Prefix search: ', () => {
+    test('get from directory', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
 
-    await gitDDB.put({ _id: _id_b, name: name_b });
-    await gitDDB.put({ _id: _id_a, name: name_a });
-    await gitDDB.put({ _id: _id_d, name: name_d });
-    await gitDDB.put({ _id: _id_c01, name: name_c01 });
-    await gitDDB.put({ _id: _id_c02, name: name_c02 });
+      await gitDDB.put({ _id: _id_b, name: name_b });
+      await gitDDB.put({ _id: _id_a, name: name_a });
+      await gitDDB.put({ _id: _id_d, name: name_d });
+      await gitDDB.put({ _id: _id_c000, name: name_c000 });
+      await gitDDB.put({ _id: _id_c001, name: name_c001 });
+      await gitDDB.put({ _id: _id_c01, name: name_c01 });
+      await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
-    await expect(
-      gitDDB.allDocs({ collection_path: 'citrus', include_docs: true })
-    ).resolves.toMatchObject({
-      total_rows: 2,
-      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          id: expect.stringMatching('^' + _id_c01.replace('citrus/', '') + '$'),
-          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_c01.replace('citrus/', '') + '$'),
-            name: name_c01,
+      const prefix = 'citrus/';
+
+      await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
+        total_rows: 2,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        rows: [
+          {
+            id: expect.stringMatching('^' + _id_c01 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c01 + '$'),
+              name: name_c01,
+            },
           },
-        },
-        {
-          id: expect.stringMatching('^' + _id_c02.replace('citrus/', '') + '$'),
-          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_c02.replace('citrus/', '') + '$'),
-            name: name_c02,
+          {
+            id: expect.stringMatching('^' + _id_c02 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c02 + '$'),
+              name: name_c02,
+            },
           },
-        },
-      ],
+        ],
+      });
+
+      await gitDDB.destroy();
     });
 
-    await expect(
-      gitDDB.allDocs({ recursive: true, collection_path: 'not_exist' })
-    ).resolves.toStrictEqual({ total_rows: 0 });
+    test('get only from top directory', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
 
-    await gitDDB.destroy();
-  });
+      await gitDDB.put({ _id: _id_b, name: name_b });
+      await gitDDB.put({ _id: _id_a, name: name_a });
+      await gitDDB.put({ _id: _id_d, name: name_d });
+      await gitDDB.put({ _id: _id_c000, name: name_c000 });
+      await gitDDB.put({ _id: _id_c001, name: name_c001 });
+      await gitDDB.put({ _id: _id_c01, name: name_c01 });
+      await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
-  test('allDocs(): get from deep directory', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.create();
+      const prefix = 'cit';
 
-    await gitDDB.put({ _id: _id_p, name: name_p });
-
-    await gitDDB.put({ _id: _id_b, name: name_b });
-    await gitDDB.put({ _id: _id_a, name: name_a });
-    await gitDDB.put({ _id: _id_d, name: name_d });
-    await gitDDB.put({ _id: _id_c01, name: name_c01 });
-    await gitDDB.put({ _id: _id_c02, name: name_c02 });
-
-    await expect(
-      gitDDB.allDocs({ collection_path: 'pear/Japan', include_docs: true })
-    ).resolves.toMatchObject({
-      total_rows: 1,
-      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          id: expect.stringMatching('^' + _id_p.replace('pear/Japan/', '') + '$'),
-          file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_p.replace('pear/Japan/', '') + '$'),
-            name: name_p,
+      await expect(
+        gitDDB.allDocs({ prefix, include_docs: true, recursive: false })
+      ).resolves.toMatchObject({
+        total_rows: 2,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        rows: [
+          {
+            id: expect.stringMatching('^' + _id_c001 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c001 + '$'),
+              name: name_c001,
+            },
           },
-        },
-      ],
+          {
+            id: expect.stringMatching('^' + _id_c000 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c000 + '$'),
+              name: name_c000,
+            },
+          },
+        ],
+      });
+
+      await gitDDB.destroy();
     });
 
-    await gitDDB.destroy();
+    test('use recursive option to get from parent directory and child directory', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      await gitDDB.put({ _id: _id_b, name: name_b });
+      await gitDDB.put({ _id: _id_a, name: name_a });
+      await gitDDB.put({ _id: _id_d, name: name_d });
+      await gitDDB.put({ _id: _id_c000, name: name_c000 });
+      await gitDDB.put({ _id: _id_c001, name: name_c001 });
+      await gitDDB.put({ _id: _id_c01, name: name_c01 });
+      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+
+      const prefix = 'citrus';
+
+      await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
+        total_rows: 4,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        rows: [
+          {
+            id: expect.stringMatching('^' + _id_c001 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c001 + '$'),
+              name: name_c001,
+            },
+          },
+          {
+            id: expect.stringMatching('^' + _id_c000 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c000 + '$'),
+              name: name_c000,
+            },
+          },
+          {
+            id: expect.stringMatching('^' + _id_c01 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c01 + '$'),
+              name: name_c01,
+            },
+          },
+          {
+            id: expect.stringMatching('^' + _id_c02 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c02 + '$'),
+              name: name_c02,
+            },
+          },
+        ],
+      });
+
+      await gitDDB.destroy();
+    });
+
+    test('get from a sub directory', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      await gitDDB.put({ _id: _id_b, name: name_b });
+      await gitDDB.put({ _id: _id_a, name: name_a });
+      await gitDDB.put({ _id: _id_d, name: name_d });
+      await gitDDB.put({ _id: _id_c000, name: name_c000 });
+      await gitDDB.put({ _id: _id_c001, name: name_c001 });
+      await gitDDB.put({ _id: _id_c01, name: name_c01 });
+      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+
+      const prefix = 'citrus/y';
+
+      await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
+        total_rows: 1,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        rows: [
+          {
+            id: expect.stringMatching('^' + _id_c02 + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_c02 + '$'),
+              name: name_c02,
+            },
+          },
+        ],
+      });
+
+      await gitDDB.destroy();
+    });
+
+    test('prefix which does not exist', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      await gitDDB.put({ _id: _id_b, name: name_b });
+      await gitDDB.put({ _id: _id_a, name: name_a });
+      await gitDDB.put({ _id: _id_d, name: name_d });
+      await gitDDB.put({ _id: _id_c000, name: name_c000 });
+      await gitDDB.put({ _id: _id_c001, name: name_c001 });
+      await gitDDB.put({ _id: _id_c01, name: name_c01 });
+      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+
+      const prefix = 'not_exist/';
+
+      await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
+        total_rows: 0,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}/),
+      });
+
+      await gitDDB.destroy();
+    });
+
+    test('get from deep directory', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      await gitDDB.put({ _id: _id_p, name: name_p });
+
+      await gitDDB.put({ _id: _id_b, name: name_b });
+      await gitDDB.put({ _id: _id_a, name: name_a });
+      await gitDDB.put({ _id: _id_d, name: name_d });
+      await gitDDB.put({ _id: _id_c000, name: name_c000 });
+      await gitDDB.put({ _id: _id_c001, name: name_c001 });
+      await gitDDB.put({ _id: _id_c01, name: name_c01 });
+      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+
+      await expect(
+        gitDDB.allDocs({ prefix: 'pear/Japan', include_docs: true })
+      ).resolves.toMatchObject({
+        total_rows: 1,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        rows: [
+          {
+            id: expect.stringMatching('^' + _id_p + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_p + '$'),
+              name: name_p,
+            },
+          },
+        ],
+      });
+
+      await expect(
+        gitDDB.allDocs({ prefix: 'pear', include_docs: true })
+      ).resolves.toMatchObject({
+        total_rows: 1,
+        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        rows: [
+          {
+            id: expect.stringMatching('^' + _id_p + '$'),
+            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            doc: {
+              _id: expect.stringMatching('^' + _id_p + '$'),
+              name: name_p,
+            },
+          },
+        ],
+      });
+      await gitDDB.destroy();
+    });
   });
 });
 

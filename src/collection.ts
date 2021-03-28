@@ -255,16 +255,25 @@ export class Collection implements CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
+  async allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
     options ??= {
       include_docs: undefined,
       descending: undefined,
       recursive: undefined,
-      collection_path: undefined,
+      prefix: undefined,
     };
-    options.collection_path ??= '';
-    options.collection_path = this._collectionPath + options.collection_path;
+    options.prefix ??= '';
+    options.prefix = this._collectionPath + options.prefix;
 
-    return this._gitDDB.allDocs(options);
+    const docs = await this._gitDDB.allDocs(options);
+    const reg = new RegExp('^' + this._collectionPath);
+    docs.rows?.forEach(docWithMetadata => {
+      docWithMetadata.id = docWithMetadata.id.replace(reg, '');
+      if (docWithMetadata.doc) {
+        docWithMetadata.doc._id = docWithMetadata.id;
+      }
+    });
+
+    return docs;
   }
 }

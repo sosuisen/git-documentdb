@@ -13,7 +13,6 @@ import {
   RepositoryNotOpenError,
 } from '../error';
 import { AllDocsOptions, AllDocsResult, JsonDocWithMetadata } from '../types';
-import { Validator } from '../validator';
 import { AbstractDocumentDB } from '../types_gitddb';
 
 // eslint-disable-next-line complexity
@@ -29,7 +28,18 @@ export async function allDocsImpl (
     return Promise.reject(new RepositoryNotOpenError());
   }
 
-  // Calling nameToId() for HEAD throws error when there is not a commit object yet.
+  options ??= {
+    include_docs: undefined,
+    descending: undefined,
+    recursive: undefined,
+    prefix: undefined,
+  };
+  options.include_docs ??= false;
+  options.descending ??= false;
+  options.recursive ??= true;
+  options.prefix ??= '';
+
+  // Calling nameToId() for HEAD throws error when this is first commit.
   const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
     e => false
   ); // get HEAD
@@ -46,26 +56,32 @@ export async function allDocsImpl (
   const directories: nodegit.Tree[] = [];
   const tree = await commit.getTree();
 
-  let collection_path = '';
-  if (options?.collection_path) {
-    collection_path = Validator.normalizeCollectionPath(options.collection_path);
-    try {
-      this.validator.validateCollectionPath(collection_path);
-    } catch (err) {
-      return Promise.reject(err);
-    }
+  let prefix = options!.prefix;
+  let targetDir = '';
+  const prefixArray = prefix.split('/'); // returns number which is equal or larger than 1
+  if (prefixArray.length === 1) {
+    // prefix equals '' or prefix includes no slash
+    // nop
+  }
+  else if (prefixArray[prefixArray.length - 1] === '') {
+    // prefix ends with slash
+    targetDir = prefix;
+    prefix = '';
+  }
+  else {
+    // prefix does not end with slash
+    prefix = prefixArray.pop()!;
+    targetDir = prefixArray.join('/');
   }
 
-  if (collection_path !== '') {
-    const specifiedTreeEntry = await tree
-      .getEntry(options!.collection_path!)
-      .catch(e => null);
+  if (targetDir !== '') {
+    const specifiedTreeEntry = await tree.getEntry(targetDir).catch(e => null);
     if (specifiedTreeEntry && specifiedTreeEntry.isTree()) {
       const specifiedTree = await specifiedTreeEntry.getTree();
       directories.push(specifiedTree);
     }
     else {
-      return { total_rows: 0 };
+      return { total_rows: 0, commit_sha };
     }
   }
   else {
@@ -74,38 +90,57 @@ export async function allDocsImpl (
   while (directories.length > 0) {
     const dir = directories.shift();
     if (dir === undefined) break;
-    const entries = dir.entries();
-
-    // Ascendant (alphabetical order)
-    let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) =>
-      a.name().localeCompare(b.name());
-    // Descendant (alphabetical order)
-    if (options?.descending) {
-      sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) =>
-        -a.name().localeCompare(b.name());
+    const entries = dir.entries(); // returns entry by alphabetical order
+    let filteredEntries: nodegit.TreeEntry[];
+    if (prefix === '') {
+      filteredEntries = entries;
     }
-    entries.sort(sortFunc);
+    else {
+      filteredEntries = [];
+      let matchPrefix = false;
+      for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        if (entry.name().startsWith(prefix)) {
+          filteredEntries.push(entry);
+          matchPrefix = true;
+        }
+        else if (matchPrefix) {
+          // can break because array is alphabetical order
+          break;
+        }
+      }
+    }
 
-    while (entries.length > 0) {
-      const entry = entries.shift();
+    // Ascendant alphabetical order (default)
+    // let sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) =>
+    //  a.name().localeCompare(b.name());
+    // Descendant alphabetical order
+    if (options.descending) {
+      const sortFunc = (a: nodegit.TreeEntry, b: nodegit.TreeEntry) =>
+        -a.name().localeCompare(b.name());
+      filteredEntries.sort(sortFunc);
+    }
+
+    while (filteredEntries.length > 0) {
+      const entry = filteredEntries.shift();
       if (entry === undefined) break;
       if (entry?.isDirectory()) {
-        if (options?.recursive && entry.name() !== '.gitddb') {
+        if (options.recursive) {
           // eslint-disable-next-line no-await-in-loop
           const subtree = await entry.getTree();
           directories.push(subtree);
+
+          prefix = '';
         }
       }
       else {
-        let _id = entry.path().replace(new RegExp(this.fileExt + '$'), '');
-        const reg = new RegExp('^' + collection_path);
-        _id = _id.replace(reg, '');
+        const _id = entry.path().replace(new RegExp(this.fileExt + '$'), '');
         const documentInBatch: JsonDocWithMetadata = {
           id: _id,
           file_sha: entry.id().tostrS(),
         };
 
-        if (options?.include_docs) {
+        if (options.include_docs) {
           // eslint-disable-next-line no-await-in-loop
           const blob = await entry.getBlob();
           // eslint-disable-next-line max-depth
@@ -122,9 +157,16 @@ export async function allDocsImpl (
     }
   }
 
+  if (rows.length > 0) {
+    return {
+      total_rows: rows.length,
+      commit_sha,
+      rows,
+    };
+  }
+
   return {
     total_rows: rows.length,
     commit_sha,
-    rows,
   };
 }

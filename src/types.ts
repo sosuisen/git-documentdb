@@ -162,13 +162,13 @@ export type RemoveOptions = {
  * Options for allDocs()
  *
  * @remarks
- * - include_docs: Include the document itself in each row in the doc property. Otherwise you only get the _id and file_sha properties. Default is false.
+ * - include_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file_sha' properties. Default is false.
  *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
- * - recursive: Get documents recursively from all sub directories. Default is false.
+ * - recursive: Get documents recursively from all sub directories. Default is true.
  *
- * - collection_path: Get the documents only under a specified sub directory. If set, the directory names are omitted from the a filepath in a document id. See {@link Collection}.
+ * - prefix: Get documents whose IDs start with the prefix.
  *
  * @public
  */
@@ -176,7 +176,7 @@ export type AllDocsOptions = {
   include_docs?: boolean;
   descending?: boolean;
   recursive?: boolean;
-  collection_path?: string;
+  prefix?: string;
 };
 
 /**
