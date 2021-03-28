@@ -94,7 +94,7 @@ export type AllDocsOptions = {
   include_docs?: boolean;
   descending?: boolean;
   recursive?: boolean;
-  collection_path?: string;
+  prefix?: string;
 };
 
 /**
