@@ -39,7 +39,7 @@ export async function allDocsImpl (
   options.recursive ??= true;
   options.prefix ??= '';
 
-  // Calling nameToId() for HEAD throws error when this is first commit.
+  // Calling nameToId() for HEAD throws error when there is not a commit object yet.
   const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
     e => false
   ); // get HEAD
@@ -125,7 +125,7 @@ export async function allDocsImpl (
       const entry = filteredEntries.shift();
       if (entry === undefined) break;
       if (entry?.isDirectory()) {
-        if (options.recursive) {
+        if (options.recursive && entry.name() !== '.gitddb') {
           // eslint-disable-next-line no-await-in-loop
           const subtree = await entry.getTree();
           directories.push(subtree);

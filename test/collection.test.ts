@@ -430,7 +430,10 @@ describe('Collection: allDocs()', () => {
 
     await gitDDB.create();
     const users = gitDDB.collection('users');
-    await expect(users.allDocs()).resolves.toStrictEqual({ total_rows: 0 });
+    await expect(users.allDocs()).resolves.toMatchObject({
+      total_rows: 0,
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+    });
 
     await users.put({ _id: _id_b, name: name_b });
     await users.put({ _id: _id_a, name: name_a });

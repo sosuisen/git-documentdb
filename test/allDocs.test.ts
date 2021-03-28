@@ -92,6 +92,7 @@ describe('allDocs(): ', () => {
 
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       total_rows: 0,
+      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
     await gitDDB.put({ _id: _id_b, name: name_b });
@@ -125,28 +126,7 @@ describe('allDocs(): ', () => {
     await gitDDB.destroy();
   });
 
-  test('options.descendant', async () => {
-    const dbName = monoId();
-
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    // Create empty repository
-    await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
-      return Promise.reject(err);
-    });
-    await gitDDB.create();
-
-    await expect(gitDDB.allDocs()).resolves.toStrictEqual({
-      total_rows: 0,
-    });
-
-    await gitDDB.destroy();
-  });
-
-  test('allDocs(): options.descendant', async () => {
+  test('options.descending', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -632,7 +612,7 @@ describe('validator', () => {
         const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
         const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
 
-        // Calling nameToId() for HEAD throws error when this is first commit.
+        // Calling nameToId() for HEAD throws error when there is not a commit object yet.
         const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
           e => false
         ); // get HEAD
