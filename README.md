@@ -164,6 +164,7 @@ https://github.com/sosuisen/inventory-manager
 
 - v0.1 Basic CRUD
 - v0.2 Collections
+  - v0.2.7 Prefix search
 - v0.3 Synchronization with GitHub :feet:(Here now)
   - v0.3.1 OAuth
   - v0.3.2 Replication
