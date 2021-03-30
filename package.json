@@ -49,7 +49,6 @@
     "coveralls": "^3.1.0",
     "crlf": "^1.1.1",
     "cross-env": "^7.0.3",
-    "crossenv": "0.0.2-security",
     "eslint": "^7.17.0",
     "eslint-config-standardize": "^0.7.1",
     "eslint-plugin-prettierx": "^0.14.0",
