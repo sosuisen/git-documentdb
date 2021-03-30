@@ -22,5 +22,5 @@ Database information
 
 ## Remarks
 
-- GitDocumentDB can load a git repository that is not created by git-documentdb module, however correct behavior is not guaranteed.
+- GitDocumentDB can load a git repository that is not created by the git-documentdb module. However, correct behavior is not guaranteed.
 

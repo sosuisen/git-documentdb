@@ -45,5 +45,5 @@ Promise&lt;{ ok: true; }&gt;
 
 - local\_dir (which is specified in constructor) is not removed.
 
-- destroy() can remove a database which has not been created yet if a working directory exists.
+- destroy() can remove a database that has not been created yet if a working directory exists.
 

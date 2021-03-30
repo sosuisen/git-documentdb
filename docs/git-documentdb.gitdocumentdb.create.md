@@ -41,7 +41,7 @@ Database information
 
 ## Remarks
 
-- If localDir does not exist, it is created.
+- If localDir does not exist, create it.
 
 - create() also opens the repository. create() followed by open() has no effect.
 

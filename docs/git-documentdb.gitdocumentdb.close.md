@@ -35,5 +35,5 @@ Promise&lt;void&gt;
 
 - New CRUD operations are not available while closing.
 
-- Queued operations are executed before database is closed.
+- Queued operations are executed before the database is closed.
 
