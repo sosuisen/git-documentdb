@@ -69,16 +69,16 @@ interface RepositoryInitOptions {
   workdirPath?: string;
 }
 /*
-const repositoryInitOptionFlags = {
-  GIT_REPOSITORY_INIT_BARE: 1,
-  GIT_REPOSITORY_INIT_NO_REINIT: 2,
-  GIT_REPOSITORY_INIT_NO_DOTGIT_DIR: 4,
-  GIT_REPOSITORY_INIT_MKDIR: 8,
-  GIT_REPOSITORY_INIT_MKPATH: 16,
-  GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE: 32,
-  GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
-};
-*/
+ const repositoryInitOptionFlags = {
+   GIT_REPOSITORY_INIT_BARE: 1,
+   GIT_REPOSITORY_INIT_NO_REINIT: 2,
+   GIT_REPOSITORY_INIT_NO_DOTGIT_DIR: 4,
+   GIT_REPOSITORY_INIT_MKDIR: 8,
+   GIT_REPOSITORY_INIT_MKPATH: 16,
+   GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE: 32,
+   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
+ };
+ */
 
 const defaultLocalDir = './git-documentdb';
 
@@ -190,7 +190,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * Create and open a repository
    *
    * @remarks
-   *  - If localDir does not exist, it is created.
+   *  - If localDir does not exist, create it.
    *
    *  - create() also opens the repository. create() followed by open() has no effect.
    *
@@ -268,8 +268,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * Open an existing repository
    *
    * @remarks
-   *  - GitDocumentDB can load a git repository that is not created by git-documentdb module,
-   *  however correct behavior is not guaranteed.
+   *  - GitDocumentDB can load a git repository that is not created by the git-documentdb module.
+   *  However, correct behavior is not guaranteed.
    *
    * @returns Database information
    */
@@ -449,7 +449,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @remarks
    * - New CRUD operations are not available while closing.
    *
-   * - Queued operations are executed before database is closed.
+   * - Queued operations are executed before the database is closed.
    *
    * @param options - The options specify how to close database.
    * @throws {@link DatabaseClosingError}
@@ -511,7 +511,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * - local_dir (which is specified in constructor) is not removed.
    *
-   * - destroy() can remove a database which has not been created yet if a working directory exists.
+   * - destroy() can remove a database that has not been created yet if a working directory exists.
    *
    * @param options - The options specify how to close database.
    * @throws {@link DatabaseClosingError}
@@ -557,7 +557,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * @privateRemarks
    *
-   * This is 'overload 1' referred in test/put.test.ts
+   * This is 'overload 1' referred to in test/put.test.ts
    *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).
@@ -579,31 +579,31 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-   * Add a document
-   *
-   * @privateRemarks
-   *
-   * This is 'overload 2' referred in test/put.test.ts
-   *
-   * @remarks
-   * - put() does not check a write permission of your file system (unlike open()).
-   *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
-   
-   * - A put operation is not skipped when no change occurred on a specified document.
-   *
-   * @param _id - _id property of a document
-   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   */
+    * Add a document
+    *
+    * @privateRemarks
+    *
+    * This is 'overload 2' referred to in test/put.test.ts
+    *
+    * @remarks
+    * - put() does not check a write permission of your file system (unlike open()).
+    *
+    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+    
+    * - A put operation is not skipped when no change occurred on a specified document.
+    *
+    * @param _id - _id property of a document
+    * @param document - This is a {@link JsonDoc}, but _id property is ignored.
+    *
+    * @throws {@link DatabaseClosingError}
+    * @throws {@link RepositoryNotOpenError}
+    * @throws {@link UndefinedDocumentIdError}
+    * @throws {@link InvalidJsonObjectError}
+    * @throws {@link CannotWriteDataError}
+    * @throws {@link CannotCreateDirectoryError}
+    * @throws {@link InvalidIdCharacterError}
+    * @throws {@link InvalidIdLengthError}
+    */
   put (
     _id: string,
     document: { [key: string]: any },
