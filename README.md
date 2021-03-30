@@ -210,6 +210,7 @@ https://github.com/sosuisen/inventory-manager
   - v0.8.3 Git server
   - v0.8.4 GitLab and Bitbucket
 - v0.9 Indexed Search
+
 **First official release**
 - v1.0 Push server
 
