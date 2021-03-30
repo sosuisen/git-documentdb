@@ -207,13 +207,14 @@ https://github.com/sosuisen/inventory-manager
 - v0.8 Authentication
   - v0.8.1 GitHub with OAuth
   - v0.8.2 GitHub with SSH key pair
-  - v0.8.3 Git server
-  - v0.8.4 GitLab and Bitbucket
 - v0.9 Indexed Search
 
 **First official release**
-- v1.0 Push server
+- v1.0
 
 **Future releases**
+- Git server
+- GitLab and Bitbucket
+- Push server
 - Migration
 - Plugins
