@@ -5,6 +5,9 @@
  [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](LICENSE)
  [![Coverage Status](https://coveralls.io/repos/github/sosuisen/git-documentdb/badge.svg?branch=main)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
+> NOTICE: This is a document for GitDocumentDB v0.3.0-alpha
+
+
 Offline-first DocumentDB using Git
 
 Use GitDocumentDB to ...
@@ -19,7 +22,7 @@ Use GitDocumentDB to ...
 
 :dromedary_camel: Travel history of database snapshots.
 
-You do not need knowledge of Git to start, however you make the most of GitDocumentDB if you understand Git.
+You do not need knowledge of Git to start. However, you make the most of GitDocumentDB if you understand Git.
 
 # API
 
@@ -35,15 +38,15 @@ npm i git-documentdb
 ```
 **NOTE:**<br>
 GitDocumentDB uses native addon (libgit2).<br>
-If you receive errors about install you probably miss build tools and libraries.<br>
+If you receive errors about installation, you probably miss building tools and libraries.<br>
 **In Ubuntu 18:**<br>
 ```
 sudo apt update
 sudo apt install build-essential libssl-dev libkrb5-dev libc++-dev 
 ```
 **In Windows 10:**<br>
-Typical environment is shown below.
-- Node.js 12, Python 2.7.x and Visual Studio 2017 Community (with Desktop development with C++).
+The list below shows typical environments.
+- Node.js 12, Python 2.7.x, and Visual Studio 2017 Community (with Desktop development with C++).
 - npm config set msvs_version 2017
 
 If you are still encountering install problems, documents about [NodeGit](https://github.com/nodegit/nodegit#getting-started) and [Building NodeGit from source](https://www.nodegit.org/guides/install/from-source/) may also help you.
@@ -60,124 +63,117 @@ const gitDDB = new GitDocumentDB({
 ## Basic CRUD
 ```typescript
   // Open
-  await gitDDB.open(); // Git creates a repository (/your/path/to/the/app/gitddb/db01/.git)
+  await gitDDB.create(); // Git creates and opens a repository (/your/path/to/the/example/git-documentdb/db01/.git)
   // Create
-  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '15' }); // Git adds 'profile01.json' under the working directory and commits it.
+  await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); // Git adds 'nara.json' under the working directory and commits it.
   // Update
-  await gitDDB.put({ _id: 'profile01', name: 'Yuzuki', age: '16' }); // Git adds a updated file and commits it.
+  await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' }); // Git adds an updated file and commits it.
   // Read
-  const doc = await gitDDB.get('profile01');
-  console.log(doc); // doc = { _id: 'profile01', name: 'Yuzuki', age: '16' }
+  const doc = await gitDDB.get('nara');
+  console.log(doc); // doc = { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
   // Delete
-  await gitDDB.remove('profile01'); // Git removes a file and commits it.
-  // destroy() closes db and removes both the Git repository and the working directory.
-  await gitDDB.destroy();
+  await gitDDB.remove('nara'); // Git removes a file and commits it.
+```
+
+## Synchronization
+```typescript
+  const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example.git'; // Please enter your GitHub account name.
+  const your_github_personal_access_token = 'Enter your personal access token with checked [repo]'; // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  await gitDDB.sync({
+    live: true,
+    remote_url: github_repository,
+    auth: { type: 'github', personal_access_token: your_github_personal_access_token },
+  });
 ```
 
 ## Prefix search
 ```typescript
-  /**
+ /**
     Create documents under sub-directories
 
-    gitddb
+    git-documentdb
     └── db01
-        ├── tatebayashi
-        │   ├── tamaki_mari.json
-        │   ├── kobuchizawa_shirase.json
-        │   ├── miyake_hinata.json
-        │   └── tamaki_rin.json
-        └── sapporo
-            └── shiraishi_yuzuki.json
+        ├── nara
+        │   ├── nara_park.json
+        │   └── tsukigase.json
+        └── yoshino
+            └── mt_yoshino.json
 
   */
-  await gitDDB.open();
-  // Put documents by using filepath representation.
-  await gitDDB.put({ _id: 'tatebayashi/tamaki_mari', nickname: 'Kimari', age: '16' });
-  await gitDDB.put({ _id: 'tatebayashi/kobuchizawa_shirase', nickname: 'Shirase', age: '17' });
-  await gitDDB.put({ _id: 'tatebayashi/miyake_hinata', nickname: 'Hinata', age: '17' });
-  await gitDDB.put({ _id: 'tatebayashi/tamaki_rin', nickname: 'Rin' });
-  await gitDDB.put({ _id: 'sapporo/shiraishi_yuzuki', nickname: 'Yuzu', age: '16' });
+  // Put documents by using filepath.
+  await gitDDB.put({ _id: 'nara/nara_park', flower: 'double cherry blossoms' });
+  await gitDDB.put({ _id: 'nara/tsukigase', flower: 'Japanese apricot' });
+  await gitDDB.put({ _id: 'yoshino/mt_yoshino', flower: 'cherry blossoms' });
 
   // Read
-  const fromSapporo = await gitDDB.get('sapporo/shiraishi_yuzuki');
-  console.log(fromSapporo); // fromSapporo = { _id: 'sapporo/shiraishi_yuzuki', nickname: 'Yuzu', age: '16' }
+  const flowerInYoshino = await gitDDB.get('yoshino/mt_yoshino');
+  console.log(flowerInYoshino); // flowerInYoshino = { flower: 'cherry blossoms', _id: 'yoshino/mt_yoshino' }
 
   // Prefix search
-
+  
   // Read all the documents whose IDs start with the prefix.
-  const fromTatebayashi = await gitDDB.allDocs({ prefix: 'tatebayashi/tamaki', include_docs: true });
-  console.dir(fromTatebayashi, { depth: 3 });
-  /* fromTatebayashi = 
+  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/', include_docs: true });
+  console.dir(flowersInNara, { depth: 3 });
+  /* flowersInNara = 
   {
     total_rows: 2,
     commit_sha: 'xxxxx_commit_sha_of_your_head_commit_xxxxx',
     rows: [
       {
-        id: 'tatebayashi/tamaki_mari',
-        file_sha: 'cfde86e9d46ff368c418d7d281cf51bcf62f12de',
-        doc: { age: '16', nickname: 'Kimari', _id: 'tatebayashi/tamaki_mari' }
+        id: 'nara/nara_park',
+        file_sha: '7448ca2f7f79d6bb585421c6c29446acb97e4a8c',
+        doc: { flower: 'double cherry blossoms', _id: 'nara/nara_park' }
       },
       {
-        id: 'tatebayashi/tamaki_rin',
-        file_sha: 'ed0e428c3b17b888a5c8ba40f2a2e1b0f3490531',
-        doc: { nickname: 'Rin', _id: 'tatebayashi/tamaki_rin' }
+        id: 'nara/tsukigase',
+        file_sha: '1241d69c4e9cd7a27f592affce94ec60d3b2207c',
+        doc: { flower: 'Japanese apricot', _id: 'nara/tsukigase' }
       }
     ]
   }
   */
+ 
+  // destroy() closes DB and removes both the Git repository and the working directory if they exist.
   await gitDDB.destroy();
 ```
 
 ## Collections
 ```typescript
   // Try it again by another way.
-  await gitDDB.open();
-
+  await gitDDB.create();
   // Use collections to make it easier
-  const tatebayashi = gitDDB.collection('tatebayashi');
-  const sapporo = gitDDB.collection('sapporo');
-  await tatebayashi.put({ _id: 'tamaki_mari', nickname: 'Kimari', age: '16' });
-  await tatebayashi.put({ _id: 'kobuchizawa_shirase', nickname: 'Shirase', age: '17' });
-  await tatebayashi.put({ _id: 'miyake_hinata', nickname: 'Hinata', age: '17' });
-  await tatebayashi.put({ _id: 'tamaki_rin', nickname: 'Rin' });  
-  await sapporo.put({ _id: 'shiraishi_yuzuki', nickname: 'Yuzu', age: '16' });
+  const nara = gitDDB.collection('nara');
+  const yoshino = gitDDB.collection('yoshino');
+  await nara.put({ _id: 'nara_park', flower: 'double cherry blossoms' });
+  await nara.put({ _id: 'tsukigase', flower: 'Japanese apricot' });
+  await yoshino.put({ _id: 'mt_yoshino', flower: 'cherry blossoms' });
 
   // Read
-  const fromSapporoCollection = await sapporo.get('shiraishi_yuzuki');
-  console.log(fromSapporoCollection); // fromSapporoCollection = { _id: 'shiraishi_yuzuki', nickname: 'Yuzu', age: '16' }
+  const flowerInYoshinoCollection = await yoshino.get('mt_yoshino');
+  console.log(flowerInYoshinoCollection); // flowerInYoshinoCollection = { flower: 'cherry blossoms', _id: 'mt_yoshino' }
 
-  // Read all the documents in tatebayashi collection
-  const fromCollection = await tatebayashi.allDocs({ include_docs: true });
-  console.dir(fromCollection, { depth: 3 });
-  /* fromCollection = 
+  // Read all the documents in nara collection
+  const flowersInNaraCollection = await nara.allDocs({ include_docs: true });
+  console.dir(flowersInNaraCollection, { depth: 3 });
+  /* flowersInNaraCollection = 
   {
-    total_rows: 4,
+    total_rows: 2,
     commit_sha: 'xxxxx_commit_sha_of_your_head_commit_xxxxx',
     rows: [
       {
-        id: 'kobuchizawa_shirase',
-        file_sha: 'c65985e6c0e29f8c51d7c36213336b76077bbcb4',
-        doc: { age: '17', nickname: 'Shirase', _id: 'kobuchizawa_shirase' }
+        id: 'nara_park',
+        file_sha: '7448ca2f7f79d6bb585421c6c29446acb97e4a8c',
+        doc: { flower: 'double cherry blossoms', _id: 'nara_park' }
       },
       {
-        id: 'miyake_hinata',
-        file_sha: 'efecfc5383ba0393dd22e3b856fc6b67951e924a',
-        doc: { age: '17', nickname: 'Hinata', _id: 'miyake_hinata' }
-      },
-      {
-        id: 'tamaki_mari',
-        file_sha: '6b1001f4e9ab07300a45d3d332e64c5e7dcfc297',
-        doc: { age: '16', nickname: 'Kimari', _id: 'tamaki_mari' }
-      },
-      {
-        id: 'tamaki_rin',
-        file_sha: 'ebadad3d8f15dc97f884f25eea74b4a19d4421f7',
-        doc: { nickname: 'Rin', _id: 'tamaki_rin' }
+        id: 'tsukigase',
+        file_sha: '1241d69c4e9cd7a27f592affce94ec60d3b2207c',
+        doc: { flower: 'Japanese apricot', _id: 'tsukigase' }
       }
     ]
   }
   */
-  await gitDDB.destroy();
+  await gitDDB.close();
 ```
 
 # Examples:
@@ -201,8 +197,8 @@ https://github.com/sosuisen/inventory-manager
 
 - v0.1 Basic CRUD
 - v0.2 Collections
-  - v0.2.8 Prefix search :feet:(Here now)
-- v0.3 Synchronization with GitHub
+  - v0.2.8 Prefix search
+- v0.3 Synchronization with GitHub :feet:(Here now)
   - v0.3.1 OAuth
   - v0.3.2 Replication
   - v0.3.3 SSH key pair

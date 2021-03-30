@@ -12,10 +12,10 @@ const foo = async () => {
   let gitDDB = new GitDocumentDB({
     db_name: 'db01', // Git working directory
   });
-  await gitDDB.destroy(); // (Remove db if exists)
 
   // Open
-  await gitDDB.create(); // Git creates and opens a repository (/your/path/to/the/example/git-documentdb/db01/.git)
+  const result = await gitDDB.open(); // Open a repository if exists. (/your/path/to/the/example/git-documentdb/db01/.git)
+  if (!result.ok) await gitDDB.create(); // Git creates and opens a repository if not exits.
   // Create
   await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); // Git adds 'nara.json' under the working directory and commits it.
   // Update
@@ -30,6 +30,26 @@ const foo = async () => {
   const workingDir = gitDDB.workingDir();
   console.log(workingDir); // workingDir = '/your/path/to/the/example/git-documentdb/db01'
   */
+
+  /**
+   * Synchronization
+   */
+  const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example.git'; // Please enter your GitHub account name.
+  const your_github_personal_access_token = 'Enter your personal access token with checked [repo]'; // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  // @ts-ignore
+  if (your_github_personal_access_token !== 'Enter your personal access token with checked [repo]') {
+    await gitDDB.sync({
+      live: true,
+      remote_url: github_repository,
+      auth: { type: 'github', personal_access_token: your_github_personal_access_token },
+    });
+    // git-documentdb-example.git is automatically created in your GitHub account.
+    // The data will be synchronized every 10 seconds.
+    // Check below if you fail:
+    // - It throws HttpError if [repo] is not checked in your personal access token settings.
+    // - It throws NoMergeBaseFoundError if the github_repository has already exist. Delete it before running this example.
+  }
+
 
   /**
     Create documents under sub-directories
@@ -134,6 +154,5 @@ const foo = async () => {
 
   // Close database
   await gitDDB.close();
-
 };
 foo();
