@@ -199,20 +199,20 @@ https://github.com/sosuisen/inventory-manager
 - v0.2 Collections
   - v0.2.8 Prefix search
 - v0.3 Synchronization with GitHub :feet:(Here now)
-  - v0.3.1 OAuth
-  - v0.3.2 Replication
-  - v0.3.3 SSH key pair
+  - v0.3.1 Replication
 - v0.4 Grep
-- v0.5 Revisions
+- v0.5 Revisions and Undo/Redo
 - v0.6 Transaction
-- v0.7 Undo/Redo (Move between snapshots)
-- v0.8 Binary attachments
-
+- v0.7 Binary attachments
+- v0.8 Authentication
+  - v0.8.1 GitHub with OAuth
+  - v0.8.2 GitHub with SSH key pair
+  - v0.8.3 Git server
+  - v0.8.4 GitLab and Bitbucket
+- v0.9 Indexed Search
 **First official release**
-- v1.0 Push server 
+- v1.0 Push server
 
 **Future releases**
-- Indexed search
 - Migration
 - Plugins
-- Incremental indexing
