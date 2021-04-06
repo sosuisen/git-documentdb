@@ -465,8 +465,9 @@ async function threeWayMerge (
     throw new RepositoryNotOpenError();
   }
 
-  // Try 3-way merge on the assumption that the is no conflict.
+  // Try 3-way merge on the assumption that their is no conflict.
   const baseCommit = await repos.getCommit(mergeBase);
+
   const ours = await oursCommit.getEntry(path).catch(() => undefined);
   const theirs = await theirsCommit.getEntry(path).catch(() => undefined);
   const base = await baseCommit.getEntry(path).catch(() => undefined);
@@ -513,13 +514,13 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add it to the index.
-        console.log('4 - Conflict. Accept ours (put): ' + path);
+        console.log('4 - Conflict. Accept ours (overwrite): ' + path);
         acceptedConflicts.ours.put.push(docId);
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
-        console.log('5 - Conflict. Accept theirs (put): ' + path);
+        console.log('5 - Conflict. Accept theirs (overwrite): ' + path);
         acceptedConflicts.theirs.put.push(docId);
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -554,7 +555,7 @@ async function threeWayMerge (
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
-        console.log('9 - Conflict. Accept theirs (put): ' + path);
+        console.log('9 - Conflict. Accept theirs (overwrite): ' + path);
         acceptedConflicts.theirs.put.push(docId);
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -581,7 +582,7 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add to the index.
-        console.log('11 - Conflict. Accept ours (put): ' + path);
+        console.log('11 - Conflict. Accept ours (overwrite): ' + path);
         acceptedConflicts.ours.put.push(docId);
         await resolvedIndex.addByPath(path);
       }
@@ -600,18 +601,18 @@ async function threeWayMerge (
     if (ours.id().equal(theirs.id())) {
       // The same filenames with exactly the same contents are created on both local and remote.
       // Jut add it to the index.
-      console.log('13 - Accept both (put): ' + path);
+      console.log('13 - Accept both: ' + path);
       await resolvedIndex.addByPath(path);
     }
     else if (base.id().equal(ours.id())) {
       // Write theirs to the file.
-      console.log('14 - Accept theirs (put): ' + path);
+      console.log('14 - Accept theirs (add): ' + path);
       await writeBlobToFile(gitDDB, theirs);
       await resolvedIndex.addByPath(path);
     }
     else if (base.id().equal(theirs.id())) {
       // Jut add it to the index.
-      console.log('15 - Accept both (put): ' + path);
+      console.log('15 - Accept ours (add): ' + path);
       await resolvedIndex.addByPath(path);
     }
     else {
@@ -625,13 +626,13 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add it to the index.
-        console.log('16 - Conflict. Accept ours (put): ' + path);
+        console.log('16 - Conflict. Accept ours (overwrite): ' + path);
         acceptedConflicts.ours.put.push(docId);
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
-        console.log('17 - Conflict. Accept theirs (put): ' + path);
+        console.log('17 - Conflict. Accept theirs (overwrite): ' + path);
         acceptedConflicts.theirs.put.push(docId);
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -857,7 +858,8 @@ export async function sync_worker (
       },
     };
 
-    console.log('Three way merge..');
+    // Try to check conflict for all files in conflicted index.
+    console.log('3-way merge..');
 
     const mergeBaseCommit = await repos.getCommit(mergeBase);
     const resolvers: Promise<void>[] = [];
