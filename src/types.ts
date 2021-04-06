@@ -274,9 +274,9 @@ export type DocMetadata = {
  * How to close database
  *
  * @remarks
- * - force: Clear queued operations immediately.
+ * - force: Clear queued tasks immediately.
  *
- * - timeout: Clear queued operation after timeout(msec). Default is 10000.
+ * - timeout: Clear queued tasks after timeout(msec). Default is 10000.
  *
  * @public
  */
@@ -427,7 +427,7 @@ export type SyncResult =
   | SyncResultResolveConflictsAndPush
   | SyncResultCancel;
 export type SyncBaseType = {
-  operation: string;
+  action: string;
   changes?: {
     local?: FileChanges;
     remote?: FileChanges;
@@ -439,10 +439,10 @@ export type SyncBaseType = {
   };
 };
 export type SyncResultNop = {
-  operation: 'nop';
+  action: 'nop';
 };
 export type SyncResultPush = {
-  operation: 'push';
+  action: 'push';
   changes: {
     remote: FileChanges;
   };
@@ -451,7 +451,7 @@ export type SyncResultPush = {
   };
 };
 export type SyncResultFastForwardMerge = {
-  operation: 'fast-forward merge';
+  action: 'fast-forward merge';
   changes: {
     local: FileChanges;
   };
@@ -460,7 +460,7 @@ export type SyncResultFastForwardMerge = {
   };
 };
 export type SyncResultMergeAndPush = {
-  operation: 'merge and push';
+  action: 'merge and push';
   changes: {
     local: FileChanges;
     remote: FileChanges;
@@ -471,7 +471,7 @@ export type SyncResultMergeAndPush = {
   };
 };
 export type SyncResultResolveConflictsAndPush = {
-  operation: 'resolve conflicts and push';
+  action: 'resolve conflicts and push';
   changes: {
     local: FileChanges;
     remote: FileChanges;
@@ -483,5 +483,5 @@ export type SyncResultResolveConflictsAndPush = {
   };
 };
 export type SyncResultCancel = {
-  operation: 'canceled';
+  action: 'canceled';
 };

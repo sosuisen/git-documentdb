@@ -287,7 +287,7 @@ export class Sync implements ISync {
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
-    return { operation: 'canceled' };
+    return { action: 'canceled' };
   }
 
   /**

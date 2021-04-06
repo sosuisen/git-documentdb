@@ -434,7 +434,7 @@ export async function push_worker (
   );
   const remoteChanges = await getChanges(gitDDB, diff);
   const syncResult: SyncResult = {
-    operation: 'push',
+    action: 'push',
     changes: {
       remote: remoteChanges!,
     },
@@ -706,7 +706,7 @@ export async function sync_worker (
   let conflictedIndex: nodegit.Index | undefined;
   let newCommitOid: nodegit.Oid | undefined;
   if (distance.ahead === 0 && distance.behind === 0) {
-    return { operation: 'nop' };
+    return { action: 'nop' };
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
     newCommitOid = await repos
@@ -766,7 +766,7 @@ export async function sync_worker (
       const localChanges = await getChanges(gitDDB, diff);
 
       const SyncResultFastForwardMerge: SyncResult = {
-        operation: 'fast-forward merge',
+        action: 'fast-forward merge',
         changes: {
           local: localChanges,
         },
@@ -827,7 +827,7 @@ export async function sync_worker (
       // Need push because it is merged normally.
       const syncResultPush = await push_worker(gitDDB, sync, taskId);
       const syncResultMergeAndPush: SyncResultMergeAndPush = {
-        operation: 'merge and push',
+        action: 'merge and push',
         changes: {
           local: localChanges,
           remote: syncResultPush.changes.remote,
@@ -966,7 +966,7 @@ export async function sync_worker (
     // Push
     const syncResultPush = await push_worker(gitDDB, sync, taskId);
     const syncResultResolveConflictsAndPush: SyncResultResolveConflictsAndPush = {
-      operation: 'resolve conflicts and push',
+      action: 'resolve conflicts and push',
       conflicts: acceptedConflicts,
       changes: {
         local: localChanges,

@@ -84,7 +84,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const putResult = await dbA.put(jsonA1);
         const remoteA = dbA.getRemote(remoteURL);
         const syncResult = await remoteA.tryPush();
-        expect(syncResult.operation).toBe('push');
+        expect(syncResult.action).toBe('push');
         expect(syncResult.commits!.remote.length).toBe(1);
         expect(syncResult.commits!.remote[0].id).toBe(putResult.commit_sha);
         expect(syncResult.changes).toMatchObject({
@@ -126,7 +126,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         // (This behavior aligns with put() API)
         const putResult2 = await dbA.put(jsonA1);
         const syncResult2 = await remoteA.tryPush();
-        expect(syncResult2.operation).toBe('push');
+        expect(syncResult2.action).toBe('push');
         expect(syncResult2.commits!.remote.length).toBe(1);
         expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
         expect(syncResult2.changes.remote.add.length).toBe(0);
@@ -157,7 +157,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const jsonA1dash = { _id: '1', name: 'updated' };
         const putResult3 = await dbA.put(jsonA1dash);
         const syncResult3 = await remoteA.tryPush();
-        expect(syncResult3.operation).toBe('push');
+        expect(syncResult3.action).toBe('push');
         expect(syncResult3.commits!.remote.length).toBe(1);
         expect(syncResult3.commits!.remote[0].id).toBe(putResult3.commit_sha);
         expect(syncResult3.changes.remote.add.length).toBe(0);
@@ -189,7 +189,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const jsonA4 = { _id: '2', name: 'fromA' };
         const putResult4 = await dbA.put(jsonA4);
         const syncResult4 = await remoteA.tryPush();
-        expect(syncResult4.operation).toBe('push');
+        expect(syncResult4.action).toBe('push');
         expect(syncResult4.commits!.remote.length).toBe(1);
         expect(syncResult4.commits!.remote[0].id).toBe(putResult4.commit_sha);
         expect(syncResult4.changes.remote.add.length).toBe(1);
@@ -221,7 +221,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       const putResult2 = await dbA.put(jsonA2);
       const remoteA = dbA.getRemote(remoteURL);
       const syncResult = await remoteA.tryPush();
-      expect(syncResult.operation).toBe('push');
+      expect(syncResult.action).toBe('push');
       expect(syncResult.commits!.remote.length).toBe(2);
       expect(syncResult.commits!.remote[0].id).toBe(putResult1.commit_sha);
       expect(syncResult.commits!.remote[1].id).toBe(putResult2.commit_sha);
@@ -233,7 +233,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       const jsonA4 = { _id: '4', name: 'fromA' };
       const putResult4 = await dbA.put(jsonA4);
       const syncResult2 = await remoteA.tryPush();
-      expect(syncResult2.operation).toBe('push');
+      expect(syncResult2.action).toBe('push');
       expect(syncResult2.commits!.remote.length).toBe(2);
       expect(syncResult2.commits!.remote[0].id).toBe(putResult3.commit_sha);
       expect(syncResult2.commits!.remote[1].id).toBe(putResult4.commit_sha);
@@ -268,7 +268,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       const removeResult1 = await dbA.remove(jsonA1);
 
       const syncResult1 = await remoteA.tryPush();
-      expect(syncResult1.operation).toBe('push');
+      expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
       expect(syncResult1.commits!.remote[0].id).toBe(removeResult1.commit_sha);
       expect(syncResult1.changes.remote.add.length).toBe(0);
@@ -280,7 +280,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       const putResult2 = await dbA.put(jsonA1);
       const removeResult2 = await dbA.remove(jsonA1);
       const syncResult2 = await remoteA.tryPush();
-      expect(syncResult2.operation).toBe('push');
+      expect(syncResult2.action).toBe('push');
       expect(syncResult2.commits!.remote.length).toBe(2);
       expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
       expect(syncResult2.commits!.remote[1].id).toBe(removeResult2.commit_sha);
@@ -311,7 +311,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       const remoteA = dbA.getRemote(remoteURL);
       const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
 
-      expect(syncResult1.operation).toBe('nop');
+      expect(syncResult1.action).toBe('nop');
 
       await dbA.destroy().catch(err => console.debug(err));
     });
@@ -337,7 +337,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       const remoteA = dbA.getRemote(remoteURL);
       const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
 
-      expect(syncResult1.operation).toBe('push');
+      expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
       expect(syncResult1.commits!.remote[0].id).toBe(putResultA1.commit_sha);
       expect(syncResult1.changes.remote.add.length).toBe(1);
@@ -379,7 +379,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         // B syncs
         const remoteB = dbB.getRemote(remoteURL);
         const syncResult1 = (await remoteB.trySync()) as SyncResultFastForwardMerge;
-        expect(syncResult1.operation).toBe('fast-forward merge');
+        expect(syncResult1.action).toBe('fast-forward merge');
         expect(syncResult1.commits!.local.length).toBe(1);
         expect(syncResult1.commits!.local[0].id).toBe(putResult1.commit_sha);
         expect(syncResult1.changes.local.add.length).toBe(1);
@@ -426,7 +426,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         // B syncs
         const remoteB = dbB.getRemote(remoteURL);
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
-        expect(syncResult1.operation).toBe('fast-forward merge');
+        expect(syncResult1.action).toBe('fast-forward merge');
         expect(syncResult1.commits!.local.length).toBe(2);
         expect(syncResult1.commits!.local[0].id).toBe(putResult1.commit_sha);
         expect(syncResult1.commits!.local[1].id).toBe(putResult2.commit_sha);
@@ -476,7 +476,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
-        expect(syncResult1.operation).toBe('merge and push');
+        expect(syncResult1.action).toBe('merge and push');
         expect(syncResult1.commits!.local.length).toBe(2); // put commit and merge commit
         expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
         expect(syncResult1.commits!.local[0].id).toBe(putResultA1.commit_sha);
@@ -537,7 +537,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
-        expect(syncResult1.operation).toBe('merge and push');
+        expect(syncResult1.action).toBe('merge and push');
         expect(syncResult1.commits!.local.length).toBe(3); // Two put commits and a merge commit
         expect(syncResult1.commits!.remote.length).toBe(3); // Two put commits and a merge commit
         expect(syncResult1.commits!.local[0].id).toBe(putResultA1.commit_sha);
@@ -601,7 +601,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
-        expect(syncResult1.operation).toBe('merge and push');
+        expect(syncResult1.action).toBe('merge and push');
         expect(syncResult1.commits!.local.length).toBe(2); // remove commit and merge commit
         expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
         expect(syncResult1.commits!.local[0].id).toBe(removeResultA1.commit_sha);
@@ -659,7 +659,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
-        expect(syncResult1.operation).toBe('merge and push');
+        expect(syncResult1.action).toBe('merge and push');
         expect(syncResult1.commits!.local.length).toBe(2); // remove commit and merge commit
         expect(syncResult1.commits!.remote.length).toBe(2); // remove commit and merge commit
         expect(syncResult1.commits!.local[0].id).toBe(removeResultA1.commit_sha);
@@ -679,7 +679,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
     });
 
     describe('3-way merge: ', () => {
-      test.only(`
+      test(`
 case 1: accept theirs (add)
 case 2: accept ours (add)
 case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
@@ -734,7 +734,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
         // 4 - Conflict. Accept ours (put): 1.json
         // 1 - Accept theirs (add): 2.json
         // 2 - Accept ours (add): 3.json
-        expect(syncResult1.operation).toBe('resolve conflicts and push');
+        expect(syncResult1.action).toBe('resolve conflicts and push');
         expect(syncResult1.commits).toMatchObject({
           // two put commits and a merge commit
           local: [
@@ -866,7 +866,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
         // overwrite theirs by ours
-        expect(syncResult1.operation).toBe('resolve conflicts and push');
+        expect(syncResult1.action).toBe('resolve conflicts and push');
         expect(syncResult1.commits).toMatchObject({
           // a remove commit, a put commit and a merge commit
           local: [
@@ -886,7 +886,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-accept-ours: 1',
+              message: '[resolve conflicts] put-ours: 1',
             },
           ],
           remote: [
@@ -901,7 +901,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-accept-ours: 1',
+              message: '[resolve conflicts] put-ours: 1',
             },
           ],
         });
@@ -929,16 +929,17 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
             remove: [],
           },
         });
-        expect(syncResult1.conflicts).toMatchObject({
-          ours: {
-            put: ['1'],
-            remove: [],
-          },
-          theirs: {
-            put: [],
-            remove: [],
-          },
-        }); // Conflicted document '1' is overwritten by jsonB1
+        expect(syncResult1.conflicts).toEqual(
+          expect.arrayContaining([
+            {
+              id: '1',
+              strategy: 'ours',
+              operation: 'put',
+            },
+          ])
+        );
+        expect(syncResult1.conflicts.length).toEqual(1);
+        // Conflict occurs on 1.json
 
         await dbA.destroy().catch(err => console.debug(err));
         await dbB.destroy().catch(err => console.debug(err));
