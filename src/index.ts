@@ -49,6 +49,7 @@ import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
 import { createCredential } from './remote/authentication';
 import { TaskQueue } from './task_queue';
+import { FILE_REMOVE_TIMEOUT } from './const';
 
 // let debugMinLevel = 'trace';
 const debugMinLevel = 'info';
@@ -538,7 +539,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       // Set timeout because rimraf sometimes does not catch EPERM error.
       setTimeout(() => {
         reject(new FileRemoveTimeoutError());
-      }, 7000);
+      }, FILE_REMOVE_TIMEOUT);
       rimraf(this._workingDirectory, error => {
         if (error) {
           reject(error);

@@ -13,6 +13,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import sinon from 'sinon';
 import { GitDocumentDB } from '../src';
 import {
   RemoteOptions,
@@ -23,6 +24,7 @@ import {
 } from '../src/types';
 import { NoMergeBaseFoundError } from '../src/error';
 import { removeRemoteRepositories } from './remote_utils';
+import { FILE_REMOVE_TIMEOUT } from '../src/const';
 
 const reposPrefix = 'test_pat_sync_worker___';
 const localDir = `./test/database_remote_github_pat_sync_worker`;
@@ -132,7 +134,10 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult2.changes.remote.add.length).toBe(0);
         expect(syncResult2.changes.remote.modify.length).toBe(0); // No file change
 
-        await dbA.destroy().catch(err => console.debug(err));
+        const clock = sinon.useFakeTimers();
+        dbA.destroy().catch(err => console.debug(err.toString()));
+        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
+        clock.restore();
       });
 
       test('Put an updated document', async () => {
@@ -387,8 +392,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.changes.local.remove.length).toBe(0);
         expect(syncResult1.changes.local.add[0].doc).toMatchObject(jsonA1);
 
-        await dbA.destroy().catch(e => console.debug(e));
-        await dbB.destroy().catch(e => console.debug(e));
+        const clock = sinon.useFakeTimers();
+        dbA.destroy().catch(err => console.debug(err.toString()));
+        dbB.destroy().catch(err => console.debug(err.toString()));
+        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
+        clock.restore();
       });
 
       test('add two files', async () => {
