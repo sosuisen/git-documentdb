@@ -326,6 +326,11 @@ export type ConflictResolveStrategies =
   | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
 
 /**
+ * Write operation
+ */
+export type WriteOperation = 'create' | 'update' | 'delete';
+
+/**
  * Accepted Conflict
  *
  * This shows which strategy is applied.
@@ -333,7 +338,7 @@ export type ConflictResolveStrategies =
 export type AcceptedConflict = {
   id: string;
   strategy: 'ours' | 'theirs';
-  operation: 'put' | 'remove';
+  operation: WriteOperation;
 };
 /**
  * Options for Sync class

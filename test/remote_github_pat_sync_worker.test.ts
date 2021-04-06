@@ -680,9 +680,9 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
     describe('3-way merge: ', () => {
       test(`
-case 1: accept theirs (add)
-case 2: accept ours (add)
-case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
+case 1: accept theirs (create)
+case 2: accept ours (create)
+case 4: Conflict. Accept ours (update): put with the same id`, async () => {
         /**
          * dbA   : jsonA1, jsonA2
          * dbB   : jsonB1,         jsonB3
@@ -754,7 +754,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-ours: 1',
+              message: '[resolve conflicts] update-ours: 1',
             },
           ],
           remote: [
@@ -775,7 +775,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-ours: 1',
+              message: '[resolve conflicts] update-ours: 1',
             },
           ],
         });
@@ -814,7 +814,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
             {
               id: '1',
               strategy: 'ours',
-              operation: 'put',
+              operation: 'update',
             },
           ])
         );
@@ -886,7 +886,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-ours: 1',
+              message: '[resolve conflicts] update-ours: 1',
             },
           ],
           remote: [
@@ -901,7 +901,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-ours: 1',
+              message: '[resolve conflicts] update-ours: 1',
             },
           ],
         });
@@ -934,7 +934,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
             {
               id: '1',
               strategy: 'ours',
-              operation: 'put',
+              operation: 'update',
             },
           ])
         );
