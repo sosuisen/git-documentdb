@@ -95,7 +95,10 @@ const foo = async () => {
     ]
   }
   */
-  
+  // Close database
+  await gitDDB.close();
+
+
   // Try them again by another way. 
   gitDDB = new GitDocumentDB({
     db_name: 'db02',
@@ -152,7 +155,6 @@ const foo = async () => {
    *      gitDDB.collection('yoshino').get({ _id: 'mt_yoshino' }) returns { _id: 'mt_yoshino', flower: 'cherry blossoms' }.
    */
 
-  // Close database
   await gitDDB.close();
 };
 foo();
