@@ -326,19 +326,14 @@ export type ConflictResolveStrategies =
   | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
 
 /**
- * Accepted Conflicts
+ * Accepted Conflict
  *
- * This shows which stage is accepted when a conflict occurs.
+ * This shows which strategy is applied.
  */
-export type AcceptedConflicts = {
-  ours: {
-    put: string[];
-    remove: string[];
-  };
-  theirs: {
-    put: string[];
-    remove: string[];
-  };
+export type AcceptedConflict = {
+  id: string;
+  strategy: 'ours' | 'theirs';
+  operation: 'put' | 'remove';
 };
 /**
  * Options for Sync class
@@ -437,7 +432,7 @@ export type SyncBaseType = {
     local?: FileChanges;
     remote?: FileChanges;
   };
-  conflicts: AcceptedConflicts;
+  conflicts: AcceptedConflict[];
   commits?: {
     local?: CommitInfo[];
     remote?: CommitInfo[]; // The list is sorted from old to new.
@@ -481,7 +476,7 @@ export type SyncResultResolveConflictsAndPush = {
     local: FileChanges;
     remote: FileChanges;
   };
-  conflicts: AcceptedConflicts;
+  conflicts: AcceptedConflict[];
   commits?: {
     local: CommitInfo[];
     remote: CommitInfo[];

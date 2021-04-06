@@ -22,7 +22,7 @@ import {
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import {
-  AcceptedConflicts,
+  AcceptedConflict,
   CommitInfo,
   ConflictResolveStrategies,
   DocMetadata,
@@ -458,7 +458,7 @@ async function threeWayMerge (
   mergeBase: nodegit.Commit,
   oursCommit: nodegit.Commit,
   theirsCommit: nodegit.Commit,
-  acceptedConflicts: AcceptedConflicts
+  acceptedConflicts: AcceptedConflict[]
 ): Promise<void> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
@@ -515,13 +515,21 @@ async function threeWayMerge (
       if (strategy === 'ours') {
         // Just add it to the index.
         console.log('4 - Conflict. Accept ours (overwrite): ' + path);
-        acceptedConflicts.ours.put.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'ours',
+          operation: 'put',
+        });
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
         console.log('5 - Conflict. Accept theirs (overwrite): ' + path);
-        acceptedConflicts.theirs.put.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'theirs',
+          operation: 'put',
+        });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
       }
@@ -550,13 +558,21 @@ async function threeWayMerge (
       if (strategy === 'ours') {
         // Just add it to the index.
         console.log('8 - Conflict. Accept ours (remove): ' + path);
-        acceptedConflicts.ours.remove.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'ours',
+          operation: 'remove',
+        });
         await resolvedIndex.removeByPath(path);
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
         console.log('9 - Conflict. Accept theirs (overwrite): ' + path);
-        acceptedConflicts.theirs.put.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'theirs',
+          operation: 'put',
+        });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
       }
@@ -583,13 +599,21 @@ async function threeWayMerge (
       if (strategy === 'ours') {
         // Just add to the index.
         console.log('11 - Conflict. Accept ours (overwrite): ' + path);
-        acceptedConflicts.ours.put.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'ours',
+          operation: 'put',
+        });
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs') {
         // Remove file
         console.log('12 - Conflict. Accept theirs (remove): ' + path);
-        acceptedConflicts.theirs.remove.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'theirs',
+          operation: 'remove',
+        });
         await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
           throw new CannotDeleteDataError();
         });
@@ -627,13 +651,21 @@ async function threeWayMerge (
       if (strategy === 'ours') {
         // Just add it to the index.
         console.log('16 - Conflict. Accept ours (overwrite): ' + path);
-        acceptedConflicts.ours.put.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'ours',
+          operation: 'put',
+        });
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
         console.log('17 - Conflict. Accept theirs (overwrite): ' + path);
-        acceptedConflicts.theirs.put.push(docId);
+        acceptedConflicts.push({
+          id: docId,
+          strategy: 'theirs',
+          operation: 'put',
+        });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
       }
@@ -847,16 +879,7 @@ export async function sync_worker (
      */
     const resolvedIndex = await repos.refreshIndex();
 
-    const acceptedConflicts: AcceptedConflicts = {
-      ours: {
-        put: [],
-        remove: [],
-      },
-      theirs: {
-        put: [],
-        remove: [],
-      },
-    };
+    const acceptedConflicts: AcceptedConflict[] = [];
 
     // Try to check conflict for all files in conflicted index.
     console.log('3-way merge..');
@@ -884,17 +907,9 @@ export async function sync_worker (
     console.log(acceptedConflicts);
 
     let commitMessage = '[resolve conflicts] ';
-    acceptedConflicts.ours.put.forEach(id => {
-      commitMessage += `put-accept-ours: ${id}, `;
-    });
-    acceptedConflicts.ours.remove.forEach(id => {
-      commitMessage += `remove-accept-ours: ${id}, `;
-    });
-    acceptedConflicts.theirs.put.forEach(id => {
-      commitMessage += `put-accept-theirs: ${id}, `;
-    });
-    acceptedConflicts.theirs.remove.forEach(id => {
-      commitMessage += `remove-accept-theirs: ${id}, `;
+    acceptedConflicts.forEach(conflict => {
+      // e.g.) put-ours: myID
+      commitMessage += `${conflict.operation}-${conflict.strategy}: ${conflict.id}, `;
     });
     if (commitMessage.endsWith(', ')) {
       commitMessage = commitMessage.slice(0, -2);

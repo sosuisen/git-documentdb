@@ -683,6 +683,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 case 1: accept theirs (add)
 case 2: accept ours (add)
 case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
+        /**
+         * dbA   : jsonA1, jsonA2
+         * dbB   : jsonB1,         jsonB3
+         * result: jsonB1, jsonA2, jsonB3
+         */
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -714,21 +719,21 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
         const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
-        // B updates and puts the same file
+        // B puts the same file
         const jsonB1 = { _id: '1', name: 'fromB' };
         const putResultB1 = await dbB.put(jsonB1);
 
-        // B puts new file
+        // B puts a new file
         const jsonB3 = { _id: '3', name: 'fromB' };
         const putResultB3 = await dbB.put(jsonB3);
         const remoteB = dbB.getRemote(remoteURL);
 
-        // It will occur conflict.
+        // It will occur conflict on id 1.json.
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
 
+        // 4 - Conflict. Accept ours (put): 1.json
         // 1 - Accept theirs (add): 2.json
         // 2 - Accept ours (add): 3.json
-        // 4 - Conflict. Accept ours (put): 1.json
         expect(syncResult1.operation).toBe('resolve conflicts and push');
         expect(syncResult1.commits).toMatchObject({
           // two put commits and a merge commit
@@ -749,11 +754,11 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-accept-ours: 1',
+              message: '[resolve conflicts] put-ours: 1',
             },
           ],
           remote: [
-            // put commit and merge commit
+            // two put commits and a merge commit
             {
               id: putResultB1.commit_sha,
               author: expect.stringMatching(/^.+$/),
@@ -770,7 +775,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
-              message: '[resolve conflicts] put-accept-ours: 1',
+              message: '[resolve conflicts] put-ours: 1',
             },
           ],
         });
@@ -793,7 +798,7 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
                 file_sha: putResultB3.file_sha,
                 doc: jsonB3,
               },
-            ],
+            ], // jsonB3 is merged normally
             modify: [
               {
                 id: jsonB1._id,
@@ -804,16 +809,17 @@ case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
             remove: [],
           },
         });
-        expect(syncResult1.conflicts).toMatchObject({
-          ours: {
-            put: ['1'],
-            remove: [],
-          },
-          theirs: {
-            put: [],
-            remove: [],
-          },
-        }); // Conflicted document '1' is overwritten by jsonB1
+        expect(syncResult1.conflicts).toEqual(
+          expect.arrayContaining([
+            {
+              id: '1',
+              strategy: 'ours',
+              operation: 'put',
+            },
+          ])
+        );
+        expect(syncResult1.conflicts.length).toEqual(1);
+        // Conflict occurs on 1.json
 
         await dbA.destroy().catch(err => console.debug(err));
         await dbB.destroy().catch(err => console.debug(err));
