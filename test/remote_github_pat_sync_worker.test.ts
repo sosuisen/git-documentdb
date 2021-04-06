@@ -678,8 +678,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       });
     });
 
-    describe('Resolve conflict: ', () => {
-      test('case (4): put with the same id', async () => {
+    describe('3-way merge: ', () => {
+      test.only(`
+case 1: accept theirs (add)
+case 2: accept ours (add)
+case 4: Conflict. Accept ours (overwrite): put with the same id`, async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -711,13 +714,21 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
-        // B updates and puts the same file and syncs
+        // B updates and puts the same file
         const jsonB1 = { _id: '1', name: 'fromB' };
         const putResultB1 = await dbB.put(jsonB1);
+
+        // B puts new file
+        const jsonB3 = { _id: '3', name: 'fromB' };
+        const putResultB3 = await dbB.put(jsonB3);
         const remoteB = dbB.getRemote(remoteURL);
 
+        // It will occur conflict.
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
-        // overwrite theirs by ours
+
+        // 1 - Accept theirs (add): 2.json
+        // 2 - Accept ours (add): 3.json
+        // 4 - Conflict. Accept ours (put): 1.json
         expect(syncResult1.operation).toBe('resolve conflicts and push');
         expect(syncResult1.commits).toMatchObject({
           // two put commits and a merge commit
@@ -750,6 +761,12 @@ maybe('remote: use personal access token: sync_worker: ', () => {
               message: expect.stringMatching(/^.+$/),
             },
             {
+              id: putResultB3.commit_sha,
+              author: expect.stringMatching(/^.+$/),
+              date: expect.any(Date),
+              message: expect.stringMatching(/^.+$/),
+            },
+            {
               id: expect.stringMatching(/^.+$/),
               author: expect.stringMatching(/^.+$/),
               date: expect.any(Date),
@@ -770,14 +787,20 @@ maybe('remote: use personal access token: sync_worker: ', () => {
             remove: [],
           },
           remote: {
-            add: [],
+            add: [
+              {
+                id: jsonB3._id,
+                file_sha: putResultB3.file_sha,
+                doc: jsonB3,
+              },
+            ],
             modify: [
               {
                 id: jsonB1._id,
                 file_sha: putResultB1.file_sha,
                 doc: jsonB1,
               },
-            ], // Must be 1, because jsonA1 is overwritten by jsonB1
+            ], // Must be 1. jsonA1 is overwritten by jsonB1.
             remove: [],
           },
         });
@@ -796,7 +819,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         await dbB.destroy().catch(err => console.debug(err));
       });
 
-      test('case (11): put and remove the same file', async () => {
+      test('case (11): Resolve conflict: put and remove the same file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
