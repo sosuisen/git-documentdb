@@ -4,6 +4,7 @@ const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
 export async function removeRemoteRepositories (reposPrefix: string) {
   // Remove test repositories on remote
+  console.log('Removing remote repositories..');
   const octokit = new Octokit({
     auth: token,
   });
