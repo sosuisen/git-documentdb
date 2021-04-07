@@ -89,19 +89,20 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult.action).toBe('push');
         expect(syncResult.commits!.remote.length).toBe(1);
         expect(syncResult.commits!.remote[0].id).toBe(putResult.commit_sha);
-        expect(syncResult.changes).toMatchObject({
-          remote: {
-            add: [
-              {
+        expect(syncResult.changes.remote.length).toBe(1);
+        expect(syncResult.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
                 id: jsonA1._id,
                 file_sha: putResult.file_sha,
                 doc: jsonA1,
               },
-            ],
-            modify: [],
-            remove: [],
-          },
-        });
+            },
+          ])
+        );
+
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
         await clock.tickAsync(FILE_REMOVE_TIMEOUT);
@@ -134,8 +135,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult2.action).toBe('push');
         expect(syncResult2.commits!.remote.length).toBe(1);
         expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
-        expect(syncResult2.changes.remote.add.length).toBe(0);
-        expect(syncResult2.changes.remote.modify.length).toBe(0); // No file change
+        expect(syncResult2.changes.remote.length).toBe(0);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -158,7 +158,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         const remoteA = dbA.getRemote(remoteURL);
-        await dbA.put(jsonA1);
+        const putResultA1 = await dbA.put(jsonA1);
         await remoteA.tryPush();
 
         // Put and push an updated document
@@ -168,9 +168,15 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult3.action).toBe('push');
         expect(syncResult3.commits!.remote.length).toBe(1);
         expect(syncResult3.commits!.remote[0].id).toBe(putResult3.commit_sha);
-        expect(syncResult3.changes.remote.add.length).toBe(0);
-        expect(syncResult3.changes.remote.modify.length).toBe(1);
-        expect(syncResult3.changes.remote.modify[0].doc).toMatchObject(jsonA1dash);
+        expect(syncResult3.changes.remote.length).toBe(1);
+        expect(syncResult3.changes.remote[0]).toMatchObject({
+          operation: 'update',
+          data: {
+            id: putResult3.id,
+            file_sha: putResult3.file_sha,
+            doc: jsonA1dash,
+          },
+        });
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -198,14 +204,20 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         // Put and push another document
         const jsonA4 = { _id: '2', name: 'fromA' };
-        const putResult4 = await dbA.put(jsonA4);
+        const putResultA4 = await dbA.put(jsonA4);
         const syncResult4 = await remoteA.tryPush();
         expect(syncResult4.action).toBe('push');
         expect(syncResult4.commits!.remote.length).toBe(1);
-        expect(syncResult4.commits!.remote[0].id).toBe(putResult4.commit_sha);
-        expect(syncResult4.changes.remote.add.length).toBe(1);
-        expect(syncResult4.changes.remote.add[0].doc).toMatchObject(jsonA4);
-        expect(syncResult4.changes.remote.modify.length).toBe(0);
+        expect(syncResult4.commits!.remote[0].id).toBe(putResultA4.commit_sha);
+        expect(syncResult4.changes.remote.length).toBe(1);
+        expect(syncResult4.changes.remote[0]).toMatchObject({
+          operation: 'create',
+          data: {
+            id: putResultA4.id,
+            file_sha: putResultA4.file_sha,
+            doc: jsonA4,
+          },
+        });
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -239,7 +251,27 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult.commits!.remote.length).toBe(2);
       expect(syncResult.commits!.remote[0].id).toBe(putResult1.commit_sha);
       expect(syncResult.commits!.remote[1].id).toBe(putResult2.commit_sha);
-      expect(syncResult.changes.remote.add.length).toBe(2);
+      expect(syncResult.changes.remote.length).toBe(2);
+      expect(syncResult.changes.remote).toEqual(
+        expect.arrayContaining([
+          {
+            operation: 'create',
+            data: {
+              id: putResult1.id,
+              file_sha: putResult1.file_sha,
+              doc: jsonA1,
+            },
+          },
+          {
+            operation: 'create',
+            data: {
+              id: putResult2.id,
+              file_sha: putResult2.file_sha,
+              doc: jsonA2,
+            },
+          },
+        ])
+      );
 
       // put an updated document and another document
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -251,10 +283,27 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult2.commits!.remote.length).toBe(2);
       expect(syncResult2.commits!.remote[0].id).toBe(putResult3.commit_sha);
       expect(syncResult2.commits!.remote[1].id).toBe(putResult4.commit_sha);
-      expect(syncResult2.changes.remote.add.length).toBe(1);
-      expect(syncResult2.changes.remote.add[0].doc).toMatchObject(jsonA4);
-      expect(syncResult2.changes.remote.modify.length).toBe(1);
-      expect(syncResult2.changes.remote.modify[0].doc).toMatchObject(jsonA1dash);
+      expect(syncResult2.changes.remote.length).toBe(2);
+      expect(syncResult2.changes.remote).toEqual(
+        expect.arrayContaining([
+          {
+            operation: 'create',
+            data: {
+              id: putResult4.id,
+              file_sha: putResult4.file_sha,
+              doc: jsonA4,
+            },
+          },
+          {
+            operation: 'update',
+            data: {
+              id: putResult3.id,
+              file_sha: putResult3.file_sha,
+              doc: jsonA1dash,
+            },
+          },
+        ])
+      );
 
       const clock = sinon.useFakeTimers();
       dbA.destroy().catch(err => console.debug(err.toString()));
@@ -288,10 +337,19 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
       expect(syncResult1.commits!.remote[0].id).toBe(removeResult1.commit_sha);
-      expect(syncResult1.changes.remote.add.length).toBe(0);
-      expect(syncResult1.changes.remote.modify.length).toBe(0);
-      expect(syncResult1.changes.remote.remove.length).toBe(1);
-      expect(syncResult1.changes.remote.remove[0].id).toBe('1');
+      expect(syncResult1.changes.remote.length).toBe(1);
+      expect(syncResult1.changes.remote).toEqual(
+        expect.arrayContaining([
+          {
+            operation: 'delete',
+            data: {
+              id: removeResult1.id,
+              file_sha: removeResult1.file_sha,
+              doc: jsonA1,
+            },
+          },
+        ])
+      );
 
       // Put and remove a document
       const putResult2 = await dbA.put(jsonA1);
@@ -301,9 +359,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult2.commits!.remote.length).toBe(2);
       expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
       expect(syncResult2.commits!.remote[1].id).toBe(removeResult2.commit_sha);
-      expect(syncResult2.changes.remote.add.length).toBe(0); // Must not be 1 but 0, because diff is empty.
-      expect(syncResult2.changes.remote.modify.length).toBe(0);
-      expect(syncResult2.changes.remote.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
+      expect(syncResult2.changes.remote.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
       const clock = sinon.useFakeTimers();
       dbA.destroy().catch(err => console.debug(err.toString()));
@@ -363,7 +419,19 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
       expect(syncResult1.commits!.remote[0].id).toBe(putResultA1.commit_sha);
-      expect(syncResult1.changes.remote.add.length).toBe(1);
+      expect(syncResult1.changes.remote.length).toBe(1);
+      expect(syncResult1.changes.remote).toEqual(
+        expect.arrayContaining([
+          {
+            operation: 'create',
+            data: {
+              id: putResultA1.id,
+              file_sha: putResultA1.file_sha,
+              doc: jsonA1,
+            },
+          },
+        ])
+      );
 
       const clock = sinon.useFakeTimers();
       dbA.destroy().catch(err => console.debug(err.toString()));
@@ -408,10 +476,19 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.action).toBe('fast-forward merge');
         expect(syncResult1.commits!.local.length).toBe(1);
         expect(syncResult1.commits!.local[0].id).toBe(putResult1.commit_sha);
-        expect(syncResult1.changes.local.add.length).toBe(1);
-        expect(syncResult1.changes.local.modify.length).toBe(0);
-        expect(syncResult1.changes.local.remove.length).toBe(0);
-        expect(syncResult1.changes.local.add[0].doc).toMatchObject(jsonA1);
+        expect(syncResult1.changes.local.length).toBe(1);
+        expect(syncResult1.changes.local).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResult1.id,
+                file_sha: putResult1.file_sha,
+                doc: jsonA1,
+              },
+            },
+          ])
+        );
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -459,9 +536,27 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.commits!.local.length).toBe(2);
         expect(syncResult1.commits!.local[0].id).toBe(putResult1.commit_sha);
         expect(syncResult1.commits!.local[1].id).toBe(putResult2.commit_sha);
-        expect(syncResult1.changes.local.add.length).toBe(2);
-        expect(syncResult1.changes.local.modify.length).toBe(0);
-        expect(syncResult1.changes.local.remove.length).toBe(0);
+        expect(syncResult1.changes.local.length).toBe(2);
+        expect(syncResult1.changes.local).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResult1.id,
+                file_sha: putResult1.file_sha,
+                doc: jsonA1,
+              },
+            },
+            {
+              operation: 'create',
+              data: {
+                id: putResult2.id,
+                file_sha: putResult2.file_sha,
+                doc: jsonA2,
+              },
+            },
+          ])
+        );
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -515,14 +610,34 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.commits!.local[1].message).toBe('merge');
         expect(syncResult1.commits!.remote[0].id).toBe(putResultB1.commit_sha);
         expect(syncResult1.commits!.remote[1].message).toBe('merge');
-        expect(syncResult1.changes.local.add.length).toBe(1);
-        expect(syncResult1.changes.local.modify.length).toBe(0);
-        expect(syncResult1.changes.local.remove.length).toBe(0);
-        expect(syncResult1.changes.local.add[0].doc).toMatchObject(jsonA1);
-        expect(syncResult1.changes.remote.add.length).toBe(1);
-        expect(syncResult1.changes.remote.modify.length).toBe(0);
-        expect(syncResult1.changes.remote.remove.length).toBe(0);
-        expect(syncResult1.changes.remote.add[0].doc).toMatchObject(jsonB1);
+
+        expect(syncResult1.changes.local.length).toBe(1);
+        expect(syncResult1.changes.local).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResultA1.id,
+                file_sha: putResultA1.file_sha,
+                doc: jsonA1,
+              },
+            },
+          ])
+        );
+
+        expect(syncResult1.changes.remote.length).toBe(1);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResultB1.id,
+                file_sha: putResultB1.file_sha,
+                doc: jsonB1,
+              },
+            },
+          ])
+        );
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -581,18 +696,51 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.commits!.remote[0].id).toBe(putResultB3.commit_sha);
         expect(syncResult1.commits!.remote[1].id).toBe(putResultB4.commit_sha);
         expect(syncResult1.commits!.remote[2].message).toBe('merge');
-        expect(syncResult1.changes.local.add.length).toBe(2);
-        expect(syncResult1.changes.local.modify.length).toBe(0);
-        expect(syncResult1.changes.local.remove.length).toBe(0);
-        expect(syncResult1.changes.local.add[0].doc).toMatchObject({
-          _id: expect.stringMatching(/(1|2)/),
-        });
-        expect(syncResult1.changes.remote.add.length).toBe(2);
-        expect(syncResult1.changes.remote.modify.length).toBe(0);
-        expect(syncResult1.changes.remote.remove.length).toBe(0);
-        expect(syncResult1.changes.remote.add[0].doc).toMatchObject({
-          _id: expect.stringMatching(/(3|4)/),
-        });
+
+        expect(syncResult1.changes.local.length).toBe(2);
+        expect(syncResult1.changes.local).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResultA1.id,
+                file_sha: putResultA1.file_sha,
+                doc: jsonA1,
+              },
+            },
+            {
+              operation: 'create',
+              data: {
+                id: putResultA2.id,
+                file_sha: putResultA2.file_sha,
+                doc: jsonA2,
+              },
+            },
+          ])
+        );
+
+        expect(syncResult1.changes.remote.length).toBe(2);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResultB3.id,
+                file_sha: putResultB3.file_sha,
+                doc: jsonB3,
+              },
+            },
+            {
+              operation: 'create',
+              data: {
+                id: putResultB4.id,
+                file_sha: putResultB4.file_sha,
+                doc: jsonB4,
+              },
+            },
+          ])
+        );
+
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
         dbB.destroy().catch(err => console.debug(err.toString()));
@@ -646,15 +794,34 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.commits!.local[1].message).toBe('merge');
         expect(syncResult1.commits!.remote[0].id).toBe(putResultB1.commit_sha);
         expect(syncResult1.commits!.remote[1].message).toBe('merge');
-        expect(syncResult1.changes.local.add.length).toBe(0);
-        expect(syncResult1.changes.local.modify.length).toBe(0);
-        expect(syncResult1.changes.local.remove.length).toBe(1);
-        expect(syncResult1.changes.local.remove![0].file_sha).toBe(removeResultA1.file_sha);
-        expect(syncResult1.changes.remote.add.length).toBe(1);
-        expect(syncResult1.changes.remote.modify.length).toBe(0);
-        expect(syncResult1.changes.remote.remove.length).toBe(0);
-        expect(syncResult1.changes.remote.add[0].doc).toMatchObject(jsonB1);
 
+        expect(syncResult1.changes.local.length).toBe(1);
+        expect(syncResult1.changes.local).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'delete',
+              data: {
+                id: removeResultA1.id,
+                file_sha: removeResultA1.file_sha,
+                doc: jsonA1,
+              },
+            },
+          ])
+        );
+
+        expect(syncResult1.changes.remote.length).toBe(1);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResultB1.id,
+                file_sha: putResultB1.file_sha,
+                doc: jsonB1,
+              },
+            },
+          ])
+        );
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
         dbB.destroy().catch(err => console.debug(err.toString()));
@@ -707,12 +874,9 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.commits!.local[1].message).toBe('merge');
         expect(syncResult1.commits!.remote[0].id).toBe(removeResultB1.commit_sha);
         expect(syncResult1.commits!.remote[1].message).toBe('merge');
-        expect(syncResult1.changes.local.add.length).toBe(0);
-        expect(syncResult1.changes.local.modify.length).toBe(0);
-        expect(syncResult1.changes.local.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
-        expect(syncResult1.changes.remote.add.length).toBe(0);
-        expect(syncResult1.changes.remote.modify.length).toBe(0);
-        expect(syncResult1.changes.remote.remove.length).toBe(0); // Must no be 1 but 0, because diff is empty.
+
+        expect(syncResult1.changes.local.length).toBe(0); // Must no be 1 but 0, because diff is empty.
+        expect(syncResult1.changes.remote.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -823,36 +987,43 @@ case 4: Conflict. Accept ours (update): put with the same id`, async () => {
             },
           ],
         });
-        expect(syncResult1.changes).toMatchObject({
-          local: {
-            add: [
-              {
+        expect(syncResult1.changes.local.length).toBe(1);
+        expect(syncResult1.changes.local).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
                 id: jsonA2._id,
                 file_sha: putResultA2.file_sha,
                 doc: jsonA2,
               },
-            ], // jsonA2 is merged normally
-            modify: [], // Must be 0, because diff is empty.
-            remove: [],
-          },
-          remote: {
-            add: [
-              {
+            },
+          ])
+        );
+
+        expect(syncResult1.changes.remote.length).toBe(2);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
                 id: jsonB3._id,
                 file_sha: putResultB3.file_sha,
                 doc: jsonB3,
               },
-            ], // jsonB3 is merged normally
-            modify: [
-              {
+            },
+            {
+              operation: 'update',
+              data: {
                 id: jsonB1._id,
                 file_sha: putResultB1.file_sha,
                 doc: jsonB1,
               },
-            ], // Must be 1. jsonA1 is overwritten by jsonB1.
-            remove: [],
-          },
-        });
+            },
+          ])
+        );
+
+        expect(syncResult1.conflicts.length).toEqual(1);
         expect(syncResult1.conflicts).toEqual(
           expect.arrayContaining([
             {
@@ -862,7 +1033,6 @@ case 4: Conflict. Accept ours (update): put with the same id`, async () => {
             },
           ])
         );
-        expect(syncResult1.conflicts.length).toEqual(1);
         // Conflict occurs on 1.json
 
         const clock = sinon.useFakeTimers();
@@ -952,30 +1122,35 @@ case 4: Conflict. Accept ours (update): put with the same id`, async () => {
             },
           ],
         });
-        expect(syncResult1.changes).toMatchObject({
-          local: {
-            add: [
-              {
+        expect(syncResult1.changes.local.length).toBe(1);
+        expect(syncResult1.changes.local).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
                 id: jsonA2._id,
                 file_sha: putResultA2.file_sha,
                 doc: jsonA2,
               },
-            ], // jsonA2 is merged normally
-            modify: [], // Must be 0, because diff is empty.
-            remove: [],
-          },
-          remote: {
-            add: [
-              {
+            },
+          ])
+        );
+
+        expect(syncResult1.changes.remote.length).toBe(1);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
                 id: jsonB1._id,
                 file_sha: putResultB1.file_sha,
                 doc: jsonB1,
               },
-            ],
-            modify: [], // Must be 1, because jsonA1 is overwritten by jsonB1
-            remove: [],
-          },
-        });
+            },
+          ])
+        );
+
+        expect(syncResult1.conflicts.length).toEqual(1);
         expect(syncResult1.conflicts).toEqual(
           expect.arrayContaining([
             {
@@ -985,7 +1160,6 @@ case 4: Conflict. Accept ours (update): put with the same id`, async () => {
             },
           ])
         );
-        expect(syncResult1.conflicts.length).toEqual(1);
         // Conflict occurs on 1.json
 
         const clock = sinon.useFakeTimers();

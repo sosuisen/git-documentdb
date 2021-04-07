@@ -212,11 +212,7 @@ async function getDocument (gitDDB: AbstractDocumentDB, id: string, fileOid: nod
  * Get changed files
  */
 async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
-  const changes: FileChanges = {
-    add: [],
-    remove: [],
-    modify: [],
-  };
+  const changes: FileChanges[] = [];
   for (let i = 0; i < diff.numDeltas(); i++) {
     const delta = diff.getDelta(i);
     // https://libgit2.org/libgit2/#HEAD/type/git_diff_delta
@@ -261,20 +257,33 @@ async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
     };
     if (oldExist && !newExist) {
       // Use oldFile. newFile is empty when removed.
-      changes.remove.push(oldDocMetadata);
+      changes.push({
+        operation: 'delete',
+        data: {
+          ...oldDocMetadata,
+          // eslint-disable-next-line no-await-in-loop
+          doc: await getDocument(gitDDB, docId, delta.oldFile().id()),
+        },
+      });
     }
     else if (!oldExist && newExist) {
-      changes.add.push({
-        ...newDocMetadata,
-        // eslint-disable-next-line no-await-in-loop
-        doc: await getDocument(gitDDB, docId, delta.newFile().id()),
+      changes.push({
+        operation: 'create',
+        data: {
+          ...newDocMetadata,
+          // eslint-disable-next-line no-await-in-loop
+          doc: await getDocument(gitDDB, docId, delta.newFile().id()),
+        },
       });
     }
     else if (oldExist && newExist) {
-      changes.modify.push({
-        ...newDocMetadata,
-        // eslint-disable-next-line no-await-in-loop
-        doc: await getDocument(gitDDB, docId, delta.newFile().id()),
+      changes.push({
+        operation: 'update',
+        data: {
+          ...newDocMetadata,
+          // eslint-disable-next-line no-await-in-loop
+          doc: await getDocument(gitDDB, docId, delta.newFile().id()),
+        },
       });
     }
   }
