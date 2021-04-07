@@ -48,8 +48,10 @@ afterAll(() => {
   // fs.removeSync(path.resolve(localDir));
 });
 
-// GITDDB_GITHUB_USER_URL: URL of your GitHub account
+// This test needs environment variables:
+//  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
+//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
 const maybe =
   process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
@@ -103,6 +105,9 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
+        /**
+         * ! NOTICE: sinon.useFakeTimers() is used in each test to skip FileRemoveTimeoutError.
+         */
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
         await clock.tickAsync(FILE_REMOVE_TIMEOUT);
@@ -129,13 +134,13 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         // This document is same as the previous document
         // while put() creates a new commit.
-        // (This behavior aligns with put() API)
+        // (This is valid behavior of put() API.)
         const putResult2 = await dbA.put(jsonA1);
         const syncResult2 = await remoteA.tryPush();
         expect(syncResult2.action).toBe('push');
         expect(syncResult2.commits!.remote.length).toBe(1);
         expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
-        expect(syncResult2.changes.remote.length).toBe(0);
+        expect(syncResult2.changes.remote.length).toBe(0); // no change
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -369,7 +374,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
   });
 
   describe('Check sync result: ', () => {
-    test('nop', async () => {
+    test('Action: nop', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -395,7 +400,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       clock.restore();
     });
 
-    test('Just push', async () => {
+    test('Action: push', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -439,7 +444,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       clock.restore();
     });
 
-    describe('Fast-forward merge: ', () => {
+    describe('Action: fast-forward merge: ', () => {
       test('add one file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
@@ -566,8 +571,8 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       });
     });
 
-    describe('Normal merge: ', () => {
-      test('add different two files', async () => {
+    describe('Action: merge and push: ', () => {
+      test('add a remote file and add a different local file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -646,7 +651,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
-      test('add different more files', async () => {
+      test('add two remote files and add two different local files', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -748,7 +753,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
-      test('remove a file', async () => {
+      test('remove a remote file and add a local file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -829,7 +834,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
-      test('remove the same file', async () => {
+      test('remove the same file on both sides', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -887,10 +892,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
     });
 
     describe('3-way merge: ', () => {
-      test(`
-case 1: accept theirs (create)
-case 2: accept ours (create)
-case 4: Conflict. Accept ours (update): put with the same id`, async () => {
+      test(`case 1: accept theirs (create), case 2: accept ours (create), case 4: Conflict. Accept ours (update): put with the same id`, async () => {
         /**
          * dbA   : jsonA1, jsonA2
          * dbB   : jsonB1,         jsonB3
