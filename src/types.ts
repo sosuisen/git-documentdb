@@ -395,9 +395,9 @@ export interface ISync {
 export type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' | 'error';
 
 /**
- * Changed files in merge
+ * Changed file in merge operation
  */
-export type FileChanges = {
+export type ChangedFile = {
   operation: WriteOperation;
   data: JsonDocWithMetadata;
 };
@@ -433,8 +433,8 @@ export type SyncResult =
 export type SyncBaseType = {
   action: string;
   changes?: {
-    local?: FileChanges[];
-    remote?: FileChanges[];
+    local?: ChangedFile[];
+    remote?: ChangedFile[];
   };
   conflicts: AcceptedConflict[];
   commits?: {
@@ -448,7 +448,7 @@ export type SyncResultNop = {
 export type SyncResultPush = {
   action: 'push';
   changes: {
-    remote: FileChanges[];
+    remote: ChangedFile[];
   };
   commits?: {
     remote: CommitInfo[]; // The list is sorted from old to new.
@@ -457,7 +457,7 @@ export type SyncResultPush = {
 export type SyncResultFastForwardMerge = {
   action: 'fast-forward merge';
   changes: {
-    local: FileChanges[];
+    local: ChangedFile[];
   };
   commits?: {
     local: CommitInfo[];
@@ -466,8 +466,8 @@ export type SyncResultFastForwardMerge = {
 export type SyncResultMergeAndPush = {
   action: 'merge and push';
   changes: {
-    local: FileChanges[];
-    remote: FileChanges[];
+    local: ChangedFile[];
+    remote: ChangedFile[];
   };
   commits?: {
     local: CommitInfo[];
@@ -477,8 +477,8 @@ export type SyncResultMergeAndPush = {
 export type SyncResultResolveConflictsAndPush = {
   action: 'resolve conflicts and push';
   changes: {
-    local: FileChanges[];
-    remote: FileChanges[];
+    local: ChangedFile[];
+    remote: ChangedFile[];
   };
   conflicts: AcceptedConflict[];
   commits?: {

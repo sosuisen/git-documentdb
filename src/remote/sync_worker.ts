@@ -26,7 +26,7 @@ import {
   CommitInfo,
   ConflictResolveStrategies,
   DocMetadata,
-  FileChanges,
+  ChangedFile,
   ISync,
   JsonDoc,
   SyncResult,
@@ -212,7 +212,7 @@ async function getDocument (gitDDB: AbstractDocumentDB, id: string, fileOid: nod
  * Get changed files
  */
 async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
-  const changes: FileChanges[] = [];
+  const changes: ChangedFile[] = [];
   for (let i = 0; i < diff.numDeltas(); i++) {
     const delta = diff.getDelta(i);
     // https://libgit2.org/libgit2/#HEAD/type/git_diff_delta
