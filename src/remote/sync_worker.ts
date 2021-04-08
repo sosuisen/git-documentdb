@@ -23,10 +23,10 @@ import {
 import { AbstractDocumentDB } from '../types_gitddb';
 import {
   AcceptedConflict,
+  ChangedFile,
   CommitInfo,
   ConflictResolveStrategies,
   DocMetadata,
-  ChangedFile,
   ISync,
   JsonDoc,
   SyncResult,
