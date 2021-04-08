@@ -688,10 +688,10 @@ export async function sync_worker (
   const oldCommit = await repos.getHeadCommit();
   const oldRemoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
   const distance = await calcDistance(gitDDB, oldCommit, oldRemoteCommit);
-  // ahead: 0, behind 0 => Nothing to do: If local does not commit and remote does not commit
-  // ahead: 0, behind 1 => Fast-forward merge : If local does not commit and remote pushed
-  // ahead: 1, behind 0 => Push : If local committed and remote does not commit
-  // ahead: 1, behind 1 => Resolve conflict and push: If local committed and remote pushed
+  // ahead: 0, behind 0 => Nothing to do: Local does not have new commits. Remote has not pushed new commits.
+  // ahead: 0, behind 1 => Fast-forward merge : Local does not have new commits. Remote has pushed new commits.
+  // ahead: 1, behind 0 => Push : Local has new commits. Remote has not pushed new commits.
+  // ahead: 1, behind 1 => Merge, may resolve conflict and push: Local has new commits. Remote has pushed new commits.
 
   let conflictedIndex: nodegit.Index | undefined;
   let newCommitOid: nodegit.Oid | undefined;
