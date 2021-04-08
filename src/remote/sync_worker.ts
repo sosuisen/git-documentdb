@@ -14,6 +14,7 @@ import {
   CannotCreateDirectoryError,
   CannotDeleteDataError,
   CannotPushBecauseUnfetchedCommitExistsError,
+  DatabaseExistsError,
   InvalidConflictStateError,
   InvalidJsonObjectError,
   NoMergeBaseFoundError,
@@ -791,9 +792,11 @@ export async function sync_worker (
       return SyncResultFastForwardMerge;
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
-      // This case is occurred when
+      // This case is occurred when not fast-forward.
       // - a local file is changed and another remote file is changed.
       // - a local file is removed and the same remote file is removed.
+      // - a local file is changed and another remote file is removed.
+      // - a local file is removed and another remote file is changed.
 
       // Compare trees before and after merge
       const diff = await nodegit.Diff.treeToTree(
@@ -802,6 +805,15 @@ export async function sync_worker (
         await newCommit.getTree()
       );
       const localChanges = await getChanges(gitDDB, diff);
+      localChanges.forEach(async change => {
+        if (change.operation === 'delete') {
+          await fs
+            .remove(nodePath.resolve(repos.workdir(), change.data.id + gitDDB.fileExt))
+            .catch(() => {
+              throw new CannotDeleteDataError();
+            });
+        }
+      });
 
       // Change commit message
       await commitAmendMessage(gitDDB, sync, newCommitOid!, 'merge');
