@@ -130,26 +130,6 @@ async function fetch (gitDDB: AbstractDocumentDB, sync: ISync) {
 }
 
 /**
- * git commit --amend -m <commitMessage>
- */
-async function commitAmendMessage (
-  gitDDB: AbstractDocumentDB,
-  sync: ISync,
-  commitOid: nodegit.Oid,
-  commitMessage: string
-) {
-  const commit = await gitDDB.repository()!.getCommit(commitOid!);
-  // Change commit message
-  await commit.amend(
-    'HEAD',
-    sync.author,
-    sync.committer,
-    commit.messageEncoding(),
-    commitMessage,
-    await commit.getTree()
-  );
-}
-/**
  * Calc distance
  */
 async function calcDistance (
@@ -804,19 +784,36 @@ export async function sync_worker (
         await oldCommit.getTree(),
         await newCommit.getTree()
       );
-      const localChanges = await getChanges(gitDDB, diff);
-      localChanges.forEach(async change => {
-        if (change.operation === 'delete') {
-          await fs
-            .remove(nodePath.resolve(repos.workdir(), change.data.id + gitDDB.fileExt))
-            .catch(() => {
-              throw new CannotDeleteDataError();
-            });
-        }
-      });
 
-      // Change commit message
-      await commitAmendMessage(gitDDB, sync, newCommitOid!, 'merge');
+      const currentIndex = await repos.refreshIndex();
+
+      const localChanges = await getChanges(gitDDB, diff);
+      /**
+       * Repository.mergeBranches does not handle deleting file.
+       * So a file deleted on remote side is not applied to
+       * on both local filesystem and local index.
+       * Change them by hand.
+       */
+      // Cannot use await in forEach. Use for-of.
+      for (const change of localChanges) {
+        const filename = change.data.id + gitDDB.fileExt;
+        const path = nodePath.resolve(repos.workdir(), filename);
+        if (change.operation === 'delete') {
+          // eslint-disable-next-line no-await-in-loop
+          await fs.remove(path).catch(() => {
+            throw new CannotDeleteDataError();
+          });
+          // eslint-disable-next-line no-await-in-loop
+          await currentIndex.removeByPath(filename);
+        }
+      }
+
+      await currentIndex.write();
+
+      const treeOid: nodegit.Oid | void = await currentIndex.writeTree();
+      const newTree = await nodegit.Tree.lookup(repos, treeOid);
+      // @ts-ignore
+      await newCommit.amend('HEAD', null, null, null, 'merge', newTree);
 
       // Get list of commits which has been added to local
       let localCommits: CommitInfo[] | undefined;
