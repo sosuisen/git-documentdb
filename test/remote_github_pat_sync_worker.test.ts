@@ -58,8 +58,10 @@ afterAll(() => {
   // fs.removeSync(path.resolve(localDir));
 });
 
-// GITDDB_GITHUB_USER_URL: URL of your GitHub account
+// This test needs environment variables:
+//  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
+//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
 const maybe =
   process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
@@ -77,6 +79,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
   describe('Check push result: ', () => {
     describe('Put once followed by push: ', () => {
+      /**
+       * before:
+       * dbA   :  jsonA1
+       * after :  jsonA1
+       */
       test('Just put and push', async function () {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
@@ -113,12 +120,20 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
+        /**
+         * ! NOTICE: sinon.useFakeTimers() is used in each test to skip FileRemoveTimeoutError.
+         */
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
         await clock.tickAsync(FILE_REMOVE_TIMEOUT);
         clock.restore();
       });
 
+      /**
+       * before:  jsonA1
+       * dbA   :  jsonA1
+       * after :  jsonA1
+       */
       test('Put the same document again', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
@@ -139,13 +154,13 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         // This document is same as the previous document
         // while put() creates a new commit.
-        // (This behavior aligns with put() API)
+        // (This is valid behavior of put() API.)
         const putResult2 = await dbA.put(jsonA1);
         const syncResult2 = await remoteA.tryPush();
         expect(syncResult2.action).toBe('push');
         expect(syncResult2.commits!.remote.length).toBe(1);
         expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
-        expect(syncResult2.changes.remote.length).toBe(0);
+        expect(syncResult2.changes.remote.length).toBe(0); // no change
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -153,6 +168,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
+      /**
+       * before:  jsonA1
+       * dbA   : +jsonA1
+       * after :  jsonA1
+       */
       test('Put an updated document', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
@@ -194,6 +214,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
+      /**
+       * before:  jsonA1
+       * dbA   :          jsonA2
+       * after :  jsonA1  jsonA2
+       */
       test('Put another document', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
@@ -236,6 +261,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       });
     });
 
+    /**
+     * before:
+     * dbA   :  jsonA1  jsonA2
+     * after :  jsonA1  jsonA2
+     */
     test('Put twice followed by push', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
@@ -321,7 +351,12 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       clock.restore();
     });
 
-    test('Put and remove followed by push', async () => {
+    /**
+     * before:  jsonA1
+     * dbA   : -jsonA1
+     * after :
+     */
+    test('Remove followed by push', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
@@ -361,15 +396,45 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         ])
       );
 
+      const clock = sinon.useFakeTimers();
+      dbA.destroy().catch(err => console.debug(err.toString()));
+      await clock.tickAsync(FILE_REMOVE_TIMEOUT);
+      clock.restore();
+    });
+
+    /**
+     * before:
+     * dbA   :  jsonA1
+     * dbA   : -jsonA1
+     * after :
+     */
+    test('Put and remove followed by push', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: { type: 'github', personal_access_token: token },
+        include_commits: true,
+      };
+      await dbA.create(options);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
       // Put and remove a document
-      const putResult2 = await dbA.put(jsonA1);
-      const removeResult2 = await dbA.remove(jsonA1);
-      const syncResult2 = await remoteA.tryPush();
-      expect(syncResult2.action).toBe('push');
-      expect(syncResult2.commits!.remote.length).toBe(2);
-      expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
-      expect(syncResult2.commits!.remote[1].id).toBe(removeResult2.commit_sha);
-      expect(syncResult2.changes.remote.length).toBe(0); // Must no be 1 but 0, because diff is empty.
+      const putResult1 = await dbA.put(jsonA1);
+      const removeResult1 = await dbA.remove(jsonA1);
+
+      const remoteA = dbA.getRemote(remoteURL);
+
+      const syncResult1 = await remoteA.tryPush();
+      expect(syncResult1.action).toBe('push');
+      expect(syncResult1.commits!.remote.length).toBe(2);
+      expect(syncResult1.commits!.remote[0].id).toBe(putResult1.commit_sha);
+      expect(syncResult1.commits!.remote[1].id).toBe(removeResult1.commit_sha);
+      expect(syncResult1.changes.remote.length).toBe(0); // no change
 
       const clock = sinon.useFakeTimers();
       dbA.destroy().catch(err => console.debug(err.toString()));
@@ -379,7 +444,12 @@ maybe('remote: use personal access token: sync_worker: ', () => {
   });
 
   describe('Check sync result: ', () => {
-    test('nop', async () => {
+    /**
+     * before:
+     * dbA   :
+     * after :
+     */
+    test('Action: nop', async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const dbNameA = serialId();
@@ -405,51 +475,169 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       clock.restore();
     });
 
-    test('Just push', async () => {
-      const remoteURL = remoteURLBase + serialId();
+    describe('Action: push: ', () => {
+      /**
+       * before:
+       * dbA   : +jsonA1
+       * after :  jsonA1
+       */
+      test('add', async () => {
+        const remoteURL = remoteURLBase + serialId();
 
-      const dbNameA = serialId();
+        const dbNameA = serialId();
 
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-        include_commits: true,
-      };
-      await dbA.create(options);
-      // A puts and pushes
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      const putResultA1 = await dbA.put(jsonA1);
-      const remoteA = dbA.getRemote(remoteURL);
-      const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          auth: { type: 'github', personal_access_token: token },
+          include_commits: true,
+        };
+        await dbA.create(options);
+        // A puts and pushes
+        const jsonA1 = { _id: '1', name: 'fromA' };
+        const putResultA1 = await dbA.put(jsonA1);
+        const remoteA = dbA.getRemote(remoteURL);
+        const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
 
-      expect(syncResult1.action).toBe('push');
-      expect(syncResult1.commits!.remote.length).toBe(1);
-      expect(syncResult1.commits!.remote[0].id).toBe(putResultA1.commit_sha);
-      expect(syncResult1.changes.remote.length).toBe(1);
-      expect(syncResult1.changes.remote).toEqual(
-        expect.arrayContaining([
-          {
-            operation: 'create',
-            data: {
-              id: putResultA1.id,
-              file_sha: putResultA1.file_sha,
-              doc: jsonA1,
+        expect(syncResult1.action).toBe('push');
+        expect(syncResult1.commits!.remote.length).toBe(1);
+        expect(syncResult1.commits!.remote[0].id).toBe(putResultA1.commit_sha);
+        expect(syncResult1.changes.remote.length).toBe(1);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'create',
+              data: {
+                id: putResultA1.id,
+                file_sha: putResultA1.file_sha,
+                doc: jsonA1,
+              },
             },
-          },
-        ])
-      );
+          ])
+        );
 
-      const clock = sinon.useFakeTimers();
-      dbA.destroy().catch(err => console.debug(err.toString()));
-      await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-      clock.restore();
+        const clock = sinon.useFakeTimers();
+        dbA.destroy().catch(err => console.debug(err.toString()));
+        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
+        clock.restore();
+      });
+
+      /**
+       * before:  jsonA1
+       * dbA   : -jsonA1
+       * after :
+       */
+      test('remove', async () => {
+        const remoteURL = remoteURLBase + serialId();
+
+        const dbNameA = serialId();
+
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          auth: { type: 'github', personal_access_token: token },
+          include_commits: true,
+        };
+        await dbA.create(options);
+        // A puts and pushes
+        const jsonA1 = { _id: '1', name: 'fromA' };
+        const putResultA1 = await dbA.put(jsonA1);
+        const remoteA = dbA.getRemote(remoteURL);
+        await remoteA.tryPush();
+
+        const removeResultA1 = await dbA.remove(jsonA1);
+        const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
+
+        expect(syncResult1.action).toBe('push');
+        expect(syncResult1.commits!.remote.length).toBe(1);
+        expect(syncResult1.commits!.remote[0].id).toBe(removeResultA1.commit_sha);
+        expect(syncResult1.changes.remote.length).toBe(1);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'delete',
+              data: {
+                id: removeResultA1.id,
+                file_sha: removeResultA1.file_sha,
+                doc: jsonA1,
+              },
+            },
+          ])
+        );
+
+        const clock = sinon.useFakeTimers();
+        dbA.destroy().catch(err => console.debug(err.toString()));
+        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
+        clock.restore();
+      });
+
+      /**
+       * before:  jsonA1
+       * dbA   : +jsonA1
+       * after :
+       */
+      test('update', async () => {
+        const remoteURL = remoteURLBase + serialId();
+
+        const dbNameA = serialId();
+
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          auth: { type: 'github', personal_access_token: token },
+          include_commits: true,
+        };
+        await dbA.create(options);
+        // A puts and pushes
+        const jsonA1 = { _id: '1', name: 'fromA' };
+        await dbA.put(jsonA1);
+        const remoteA = dbA.getRemote(remoteURL);
+        await remoteA.tryPush();
+
+        const jsonA1dash = { _id: '1', name: 'updated' };
+        const putResultA1dash = await dbA.put(jsonA1dash);
+        const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
+
+        expect(syncResult1.action).toBe('push');
+        expect(syncResult1.commits!.remote.length).toBe(1);
+        expect(syncResult1.commits!.remote[0].id).toBe(putResultA1dash.commit_sha);
+        expect(syncResult1.changes.remote.length).toBe(1);
+        expect(syncResult1.changes.remote).toEqual(
+          expect.arrayContaining([
+            {
+              operation: 'update',
+              data: {
+                id: putResultA1dash.id,
+                file_sha: putResultA1dash.file_sha,
+                doc: jsonA1dash,
+              },
+            },
+          ])
+        );
+
+        const clock = sinon.useFakeTimers();
+        dbA.destroy().catch(err => console.debug(err.toString()));
+        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
+        clock.restore();
+      });
     });
 
-    describe('Fast-forward merge: ', () => {
+    describe('Action: fast-forward merge: ', () => {
+      /**
+       * before:
+       * dbA   : +jsonA1
+       * dbB   :
+       * after :  jsonA1
+       */
       test('add one file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
@@ -507,6 +695,12 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
+      /**
+       * before:
+       * dbA   : +jsonA1 +jsonA2
+       * dbB   :
+       * after :  jsonA1  jsonA2
+       */
       test('add two files', async () => {
         const remoteURL = remoteURLBase + serialId();
 
@@ -576,8 +770,14 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       });
     });
 
-    describe('Normal merge: ', () => {
-      test('add different two files', async () => {
+    describe('Action: merge and push: ', () => {
+      /**
+       * before:
+       * dbA   : +jsonA1
+       * dbB   :         +jsonB2
+       * after :  jsonA1  jsonB2
+       */
+      test('add a remote file and add a different local file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -656,7 +856,13 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
-      test('add different more files', async () => {
+      /**
+       * before:
+       * dbA   : +jsonA1 +jsonA2
+       * dbB   :                 +jsonB3 +jsonB4
+       * after :  jsonA1  jsonA2  jsonB3  jsonB4
+       */
+      test('add two remote files and add two different local files', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -758,7 +964,13 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
-      test('remove a file', async () => {
+      /**
+       * before:  jsonA1
+       * dbA   : -jsonA1
+       * dbB   :         +jsonB2
+       * after :          jsonB2
+       */
+      test('remove a remote file and add a local file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -792,8 +1004,8 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         await remoteA.tryPush();
 
         // B put another file and syncs
-        const jsonB1 = { _id: '2', name: 'fromB' };
-        const putResultB1 = await dbB.put(jsonB1);
+        const jsonB2 = { _id: '2', name: 'fromB' };
+        const putResultB2 = await dbB.put(jsonB2);
         const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
@@ -802,7 +1014,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
         expect(syncResult1.commits!.local[0].id).toBe(removeResultA1.commit_sha);
         expect(syncResult1.commits!.local[1].message).toBe('merge');
-        expect(syncResult1.commits!.remote[0].id).toBe(putResultB1.commit_sha);
+        expect(syncResult1.commits!.remote[0].id).toBe(putResultB2.commit_sha);
         expect(syncResult1.commits!.remote[1].message).toBe('merge');
 
         expect(syncResult1.changes.local.length).toBe(1);
@@ -825,9 +1037,9 @@ maybe('remote: use personal access token: sync_worker: ', () => {
             {
               operation: 'create',
               data: {
-                id: putResultB1.id,
-                file_sha: putResultB1.file_sha,
-                doc: jsonB1,
+                id: putResultB2.id,
+                file_sha: putResultB2.file_sha,
+                doc: jsonB2,
               },
             },
           ])
@@ -839,7 +1051,13 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         clock.restore();
       });
 
-      test('remove the same file', async () => {
+      /**
+       * before:  jsonA1
+       * dbA   : -jsonA1
+       * dbB   : -jsonA1
+       * after :
+       */
+      test('remove the same file on both sides', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -896,16 +1114,19 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       });
     });
 
-    describe('3-way merge: ', () => {
-      test(`
-case 1: accept theirs (create)
-case 2: accept ours (create)
-case 4: Conflict. Accept ours (update): put with the same id`, async () => {
-        /**
-         * dbA   : jsonA1, jsonA2
-         * dbB   : jsonB1,         jsonB3
-         * result: jsonB1, jsonA2, jsonB3
-         */
+    describe('resolve conflicts and push (3-way merge): ', () => {
+      /**
+       * before:
+       * dbA   : +jsonA1 +jsonA2
+       * dbB   : +jsonB1         +jsonB3
+       * after :  jsonB1  jsonA2  jsonB3
+       *
+       * 3-way merge:
+       *   jsonB1: 4 - Conflict. Accept ours (put)
+       *   jsonA2: 1 - Accept theirs (add)
+       *   jsonB3: 2 - Accept ours (add)
+       */
+      test(`case 1: accept theirs (create), case 2: accept ours (create), case 4: Conflict. Accept ours (update): put with the same id`, async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -948,10 +1169,6 @@ case 4: Conflict. Accept ours (update): put with the same id`, async () => {
 
         // It will occur conflict on id 1.json.
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
-
-        // 4 - Conflict. Accept ours (put): 1.json
-        // 1 - Accept theirs (add): 2.json
-        // 2 - Accept ours (add): 3.json
         expect(syncResult1.action).toBe('resolve conflicts and push');
         expect(syncResult1.commits).toMatchObject({
           // two put commits and a merge commit
@@ -1052,7 +1269,17 @@ case 4: Conflict. Accept ours (update): put with the same id`, async () => {
         clock.restore();
       });
 
-      test('case (11): Resolve conflict: put and remove the same file', async () => {
+      /**
+       * before:  jsonA1
+       * dbA   : -jsonA1 +jsonA2
+       * dbB   : +jsonB1
+       * result:  jsonB1  jsonA2
+       *
+       * 3-way merge:
+       *  jsonB1: 11 - Conflict. Accept ours (update)
+       *  jsonA2:  1 - Accept theirs (create)
+       */
+      test('case 1: Accept theirs (create), case 11: accept ours', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -1081,18 +1308,18 @@ case 4: Conflict. Accept ours (update): put with the same id`, async () => {
         // Clone dbA
         await dbB.create(options);
 
+        // A removes the old file and puts a new file
         const removeResultA1 = await dbA.remove(jsonA1);
         const jsonA2 = { _id: '2', name: 'fromA' };
         const putResultA2 = await dbA.put(jsonA2);
         await remoteA.tryPush();
 
-        // B updates and puts the same file and syncs
+        // B updates the old file and syncs
         const jsonB1 = { _id: '1', name: 'fromB' };
         const putResultB1 = await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
-        // overwrite theirs by ours
         expect(syncResult1.action).toBe('resolve conflicts and push');
         expect(syncResult1.commits).toMatchObject({
           // a remove commit, a put commit and a merge commit
