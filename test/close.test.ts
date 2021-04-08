@@ -34,7 +34,7 @@ afterAll(() => {
 });
 
 describe('Close database', () => {
-  test.only('close(): wait queued operations', async () => {
+  test('close(): wait queued operations', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,

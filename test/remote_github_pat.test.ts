@@ -279,7 +279,12 @@ maybe('remote: use personal access token: constructor and basic network access: 
       };
       const repos = gitDDB.repository();
       const remote = new Sync(gitDDB, options);
-      await expect(remote.init(repos!)).resolves.toMatchObject({ operation: 'push' });
+      await expect(remote.init(repos!)).resolves.toMatchObject({
+        action: 'push',
+        changes: {
+          remote: [],
+        },
+      });
       expect(remote.upstream_branch).toBe(`origin/${gitDDB.defaultBranch}`);
 
       await gitDDB.destroy();
@@ -306,7 +311,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
       // Sync with an existed remote repository
       const repos = gitDDB.repository();
       const remote = new Sync(gitDDB, options);
-      await expect(remote.init(repos!)).resolves.toMatchObject({ operation: 'nop' });
+      await expect(remote.init(repos!)).resolves.toMatchObject({ action: 'nop' });
 
       await gitDDB.destroy();
     });

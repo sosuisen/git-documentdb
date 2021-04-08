@@ -34,16 +34,6 @@ const serialId = () => {
   return `${reposPrefix}${idCounter++}`;
 };
 
-const checkFileExists = (gitDDB: GitDocumentDB, fileNames: string[]) => {
-  const error: string[] = [];
-  fileNames.forEach(fileName => {
-    if (!fs.existsSync(gitDDB.workingDir() + '/' + fileName)) {
-      error.push(fileName);
-    }
-  });
-  return error;
-};
-
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);

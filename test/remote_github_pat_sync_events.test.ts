@@ -103,13 +103,23 @@ maybe('remote: use personal access token: events: ', () => {
       // Wait change event occurs
       await sleep(1000);
 
-      expect(result!.operation).toBe('fast-forward merge');
+      expect(result!.action).toBe('fast-forward merge');
       expect(result!.commits!.local.length).toBe(1);
       expect(result!.commits!.local[0].id).toBe(putResult1.commit_sha);
-      expect(result!.changes.local.add.length).toBe(1);
-      expect(result!.changes.local.modify.length).toBe(0);
-      expect(result!.changes.local.remove.length).toBe(0);
-      expect(result!.changes.local.add[0].doc).toMatchObject(jsonA1);
+      expect(result!.changes.local.length).toBe(1);
+
+      expect(result!.changes.local).toEqual(
+        expect.arrayContaining([
+          {
+            operation: 'create',
+            data: {
+              id: jsonA1._id,
+              file_sha: putResult1.file_sha,
+              doc: jsonA1,
+            },
+          },
+        ])
+      );
 
       await dbA.destroy().catch(e => console.debug(e));
       await dbB.destroy().catch(e => console.debug(e));

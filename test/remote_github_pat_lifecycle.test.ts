@@ -194,7 +194,7 @@ maybe(
           };
           await dbA.create(options);
           const jsonA1 = { _id: '1', name: 'fromA' };
-          await dbA.put(jsonA1);
+          const putResultA1 = await dbA.put(jsonA1);
           const remoteA = dbA.getRemote(remoteURL);
 
           const dbNameB = serialId();
@@ -204,7 +204,7 @@ maybe(
           });
           await dbB.create(options);
           const jsonB1 = { _id: '2', name: 'fromB' };
-          await dbB.put(jsonB1);
+          const putResultB1 = await dbB.put(jsonB1);
           const remoteB = dbB.getRemote(remoteURL);
 
           const [resultA, resultB] = await Promise.all([
@@ -215,12 +215,56 @@ maybe(
           expect(resultA === undefined || resultB === undefined).toBe(true);
           if (resultA === undefined) {
             await expect(remoteA.trySync('1')).resolves.toMatchObject({
-              operation: 'merge and push',
+              action: 'merge and push',
+              changes: {
+                local: [
+                  {
+                    data: {
+                      doc: jsonB1,
+                      file_sha: putResultB1.file_sha,
+                      id: jsonB1._id,
+                    },
+                    operation: 'create',
+                  },
+                ],
+                remote: [
+                  {
+                    data: {
+                      doc: jsonA1,
+                      file_sha: putResultA1,
+                      id: jsonA1._id,
+                    },
+                    operation: 'create',
+                  },
+                ],
+              },
             });
           }
           else {
             await expect(remoteB.trySync('1')).resolves.toMatchObject({
-              operation: 'merge and push',
+              action: 'merge and push',
+              changes: {
+                local: [
+                  {
+                    data: {
+                      doc: jsonA1,
+                      file_sha: putResultA1.file_sha,
+                      id: jsonA1._id,
+                    },
+                    operation: 'create',
+                  },
+                ],
+                remote: [
+                  {
+                    data: {
+                      doc: jsonB1,
+                      file_sha: putResultB1.file_sha,
+                      id: jsonB1._id,
+                    },
+                    operation: 'create',
+                  },
+                ],
+              },
             });
           }
 
@@ -268,10 +312,10 @@ maybe(
           // so next trySync do nothing.
           await sleep(3000);
           if (resultA === undefined) {
-            await expect(remoteA.trySync('1')).resolves.toMatchObject({ operation: 'nop' });
+            await expect(remoteA.trySync('1')).resolves.toMatchObject({ action: 'nop' });
           }
           else {
-            await expect(remoteB.trySync('1')).resolves.toMatchObject({ operation: 'nop' });
+            await expect(remoteB.trySync('1')).resolves.toMatchObject({ action: 'nop' });
           }
 
           await dbA.destroy().catch(err => console.debug(err));
@@ -304,12 +348,32 @@ maybe(
           await dbB.create(options);
           // The same id
           const jsonB1 = { _id: '1', name: 'fromB' };
-          await dbB.put(jsonB1);
+          const putResultB1 = await dbB.put(jsonB1);
           const remoteB = dbB.getRemote(remoteURL);
 
           await remoteA.tryPush();
           await expect(remoteB.trySync()).resolves.toMatchObject({
-            operation: 'resolve conflicts and push',
+            action: 'resolve conflicts and push',
+            changes: {
+              local: [],
+              remote: [
+                {
+                  data: {
+                    doc: jsonB1,
+                    file_sha: putResultB1.file_sha,
+                    id: jsonB1._id,
+                  },
+                  operation: 'update',
+                },
+              ],
+            },
+            conflicts: [
+              {
+                id: jsonB1._id,
+                operation: 'update',
+                strategy: 'ours',
+              },
+            ],
           });
 
           await dbA.destroy();
