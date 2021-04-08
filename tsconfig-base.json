@@ -10,10 +10,10 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "baseUrl": ".",
-    "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "baseUrl": ".",
+    "outDir": "dist",    
     "paths": {
       "@sosuisen/nodegit": [
         "types/sosuisen__nodegit"
@@ -27,11 +27,4 @@
       "node_modules/@types"
     ],
   },
-  "include": [
-    "src/**/*",
-  ],
-  "exclude": [
-    "test/**/*",
-    "examples/**/*"
-  ]
 }

@@ -1,21 +1,5 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "module": "commonjs",
-    "target": "ES2019",
-    "strict": true,
-    "noImplicitAny": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "baseUrl": ".",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "paths": {
-      "*": [
-        "node_modules/*"
-      ],
-    },
-  },
+  "extends": "./tsconfig-base",
   "include": [
     "src/**/*",
     "test/**/*",
