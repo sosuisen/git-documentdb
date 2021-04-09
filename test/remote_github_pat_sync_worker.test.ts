@@ -50,6 +50,15 @@ const getWorkingDirFiles = (gitDDB: GitDocumentDB) => {
   );
 };
 
+const destroyDBs = async (DBs: GitDocumentDB[]) => {
+  const clock = sinon.useFakeTimers();
+  Promise.all(
+    DBs.map(db => db.destroy().catch(err => console.debug(err.toString())))
+  ).catch(err => console.log(err));
+  await clock.tickAsync(FILE_REMOVE_TIMEOUT);
+  clock.restore();
+};
+
 beforeEach(function () {
   // @ts-ignore
   console.log(`=== ${this.currentTest.fullTitle()}`);
@@ -131,10 +140,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         /**
          * ! NOTICE: sinon.useFakeTimers() is used in each test to skip FileRemoveTimeoutError.
          */
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA]);
       });
 
       /**
@@ -172,10 +178,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA]);
       });
 
       /**
@@ -220,10 +223,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA]);
       });
 
       /**
@@ -268,10 +268,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA]);
       });
     });
 
@@ -365,10 +362,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash, jsonA2, jsonA3]);
 
-      const clock = sinon.useFakeTimers();
-      dbA.destroy().catch(err => console.debug(err.toString()));
-      await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-      clock.restore();
+      await destroyDBs([dbA]);
     });
 
     /**
@@ -418,10 +412,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
       expect(getWorkingDirFiles(dbA)).toEqual([]);
 
-      const clock = sinon.useFakeTimers();
-      dbA.destroy().catch(err => console.debug(err.toString()));
-      await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-      clock.restore();
+      await destroyDBs([dbA]);
     });
 
     /**
@@ -460,10 +451,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
       expect(getWorkingDirFiles(dbA)).toEqual([]);
 
-      const clock = sinon.useFakeTimers();
-      dbA.destroy().catch(err => console.debug(err.toString()));
-      await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-      clock.restore();
+      await destroyDBs([dbA]);
     });
   });
 
@@ -493,10 +481,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
       expect(syncResult1.action).toBe('nop');
 
-      const clock = sinon.useFakeTimers();
-      dbA.destroy().catch(err => console.debug(err.toString()));
-      await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-      clock.restore();
+      await destroyDBs([dbA]);
     });
 
     describe('Action: push: ', () => {
@@ -545,10 +530,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA]);
       });
 
       /**
@@ -599,10 +581,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
         expect(getWorkingDirFiles(dbA)).toEqual([]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA]);
       });
 
       /**
@@ -652,12 +631,9 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA]);
       });
     });
 
@@ -724,11 +700,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
 
       /**
@@ -804,11 +776,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
     });
 
@@ -898,11 +866,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonB2]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
 
       /**
@@ -1012,11 +976,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
 
       /**
@@ -1106,11 +1066,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonB2]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
 
       /**
@@ -1119,7 +1075,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
        * dbB   : -jsonA1
        * after :          jsonA2
        */
-      test.only('remove a local file and add a different remote file', async () => {
+      test('remove a local file and add a different remote file', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -1200,11 +1156,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonA2]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
 
       /**
@@ -1268,11 +1220,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
     });
 
@@ -1429,11 +1377,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonB1, jsonA2, jsonB3]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
 
       /**
@@ -1572,11 +1516,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
         expect(getWorkingDirFiles(dbA)).toEqual([jsonB1, jsonA2]);
 
-        const clock = sinon.useFakeTimers();
-        dbA.destroy().catch(err => console.debug(err.toString()));
-        dbB.destroy().catch(err => console.debug(err.toString()));
-        await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-        clock.restore();
+        await destroyDBs([dbA, dbB]);
       });
     });
   });
@@ -1613,11 +1553,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
 
       await expect(dbB.sync(options)).rejects.toThrowError(NoMergeBaseFoundError);
 
-      const clock = sinon.useFakeTimers();
-      dbA.destroy();
-      dbB.destroy();
-      await clock.tickAsync(FILE_REMOVE_TIMEOUT);
-      clock.restore();
+      await destroyDBs([dbA, dbB]);
     });
   });
 });
