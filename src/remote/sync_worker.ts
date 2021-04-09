@@ -14,7 +14,6 @@ import {
   CannotCreateDirectoryError,
   CannotDeleteDataError,
   CannotPushBecauseUnfetchedCommitExistsError,
-  DatabaseExistsError,
   InvalidConflictStateError,
   InvalidJsonObjectError,
   NoMergeBaseFoundError,
