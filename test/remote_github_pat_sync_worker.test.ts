@@ -34,7 +34,7 @@ const serialId = () => {
   return `${reposPrefix}${idCounter++}`;
 };
 
-const getFiles = (gitDDB: GitDocumentDB) => {
+const getWorkingDirFiles = (gitDDB: GitDocumentDB) => {
   const listFiles = (dir: string): string[] =>
     fs
       .readdirSync(dir, { withFileTypes: true })
@@ -126,7 +126,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbA)).toEqual([jsonA1]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
         /**
          * ! NOTICE: sinon.useFakeTimers() is used in each test to skip FileRemoveTimeoutError.
@@ -170,7 +170,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
         expect(syncResult2.changes.remote.length).toBe(0); // no change
 
-        expect(getFiles(dbA)).toEqual([jsonA1]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -218,7 +218,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           },
         });
 
-        expect(getFiles(dbA)).toEqual([jsonA1dash]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -266,7 +266,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           },
         });
 
-        expect(getFiles(dbA)).toEqual([jsonA1, jsonA2]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -329,7 +329,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         ])
       );
 
-      expect(getFiles(dbA)).toEqual([jsonA1, jsonA2]);
+      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
 
       // put an updated document and another document
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -363,7 +363,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         ])
       );
 
-      expect(getFiles(dbA)).toEqual([jsonA1dash, jsonA2, jsonA3]);
+      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash, jsonA2, jsonA3]);
 
       const clock = sinon.useFakeTimers();
       dbA.destroy().catch(err => console.debug(err.toString()));
@@ -416,7 +416,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         ])
       );
 
-      expect(getFiles(dbA)).toEqual([]);
+      expect(getWorkingDirFiles(dbA)).toEqual([]);
 
       const clock = sinon.useFakeTimers();
       dbA.destroy().catch(err => console.debug(err.toString()));
@@ -458,7 +458,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
       expect(syncResult1.commits!.remote[1].id).toBe(removeResult1.commit_sha);
       expect(syncResult1.changes.remote.length).toBe(0); // no change
 
-      expect(getFiles(dbA)).toEqual([]);
+      expect(getWorkingDirFiles(dbA)).toEqual([]);
 
       const clock = sinon.useFakeTimers();
       dbA.destroy().catch(err => console.debug(err.toString()));
@@ -543,7 +543,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbA)).toEqual([jsonA1]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -597,7 +597,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbA)).toEqual([]);
+        expect(getWorkingDirFiles(dbA)).toEqual([]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -652,7 +652,7 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbA)).toEqual([jsonA1]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -718,11 +718,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbB)).toEqual([jsonA1]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonA1]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonA1]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -798,11 +798,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbB)).toEqual([jsonA1, jsonA2]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonA2]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonA1, jsonA2]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -892,11 +892,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbB)).toEqual([jsonA1, jsonB2]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonB2]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonA1, jsonB2]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonB2]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -1006,11 +1006,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbB)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -1100,11 +1100,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbB)).toEqual([jsonB2]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonB2]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonB2]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonB2]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -1194,11 +1194,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
           ])
         );
 
-        expect(getFiles(dbB)).toEqual([jsonA2]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonA2]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonA2]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonA2]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -1262,11 +1262,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         expect(syncResult1.changes.local.length).toBe(0); // Must no be 1 but 0, because diff is empty.
         expect(syncResult1.changes.remote.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
-        expect(getFiles(dbB)).toEqual([]);
+        expect(getWorkingDirFiles(dbB)).toEqual([]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([]);
+        expect(getWorkingDirFiles(dbA)).toEqual([]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -1424,10 +1424,10 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         );
         // Conflict occurs on 1.json
 
-        expect(getFiles(dbB)).toEqual([jsonB1, jsonA2, jsonB3]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA2, jsonB3]);
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonB1, jsonA2, jsonB3]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonB1, jsonA2, jsonB3]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
@@ -1566,11 +1566,11 @@ maybe('remote: use personal access token: sync_worker: ', () => {
         );
         // Conflict occurs on 1.json
 
-        expect(getFiles(dbB)).toEqual([jsonB1, jsonA2]);
+        expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA2]);
 
         // Sync dbA
         const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-        expect(getFiles(dbA)).toEqual([jsonB1, jsonA2]);
+        expect(getWorkingDirFiles(dbA)).toEqual([jsonB1, jsonA2]);
 
         const clock = sinon.useFakeTimers();
         dbA.destroy().catch(err => console.debug(err.toString()));
