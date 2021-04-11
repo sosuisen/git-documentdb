@@ -53,16 +53,29 @@ export class Sync implements ISync {
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
   private _remoteRepository: RemoteRepository;
-  private _retrySyncCounter = 0;
+  private _retrySyncCounter = 0; // Decremental counter
 
-  private _eventHandlers: {
-    change: ((event: SyncResult) => void)[];
-    paused: ((res: any) => void)[];
-    active: ((res: any) => void)[];
-    denied: ((res: any) => void)[];
-    complete: ((res: any) => void)[];
-    error: ((res: any) => void)[];
-  } = { change: [], paused: [], active: [], denied: [], complete: [], error: [] };
+  currentRetries = 0; // Incremental counter
+
+  eventHandlers: {
+    change: ((syncResult: SyncResult) => void)[];
+    localChange: ((syncResult: SyncResult) => void)[];
+    remoteChange: ((syncResult: SyncResult) => void)[];
+    paused: (() => void)[];
+    active: (() => void)[];
+    start: ((taskId: string, currentRetries: number) => void)[];
+    complete: ((taskId: string) => void)[];
+    error: ((error: Error) => void)[];
+  } = {
+    change: [],
+    localChange: [],
+    remoteChange: [],
+    paused: [],
+    active: [],
+    start: [],
+    complete: [],
+    error: [],
+  };
 
   upstream_branch = '';
 
@@ -205,11 +218,17 @@ export class Sync implements ISync {
 
     // Cancel retrying
     this._retrySyncCounter = 0;
+    this.currentRetries = 0;
 
     if (this._syncTimer) {
       clearInterval(this._syncTimer);
     }
     this._options.live = false;
+
+    this.eventHandlers.paused.forEach(func => {
+      func();
+    });
+
     return true;
   }
 
@@ -248,6 +267,11 @@ export class Sync implements ISync {
         this.trySync().catch(() => undefined);
       }, this._options.interval!);
     }
+
+    this.eventHandlers.active.forEach(func => {
+      func();
+    });
+
     return true;
   }
 
@@ -257,6 +281,7 @@ export class Sync implements ISync {
   private async _retrySync (): Promise<SyncResult> {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry!;
+      this.currentRetries = 0;
     }
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
@@ -265,12 +290,9 @@ export class Sync implements ISync {
       if (this._retrySyncCounter === 0) {
         break;
       }
+      this.currentRetries = this._options.retry! - this._retrySyncCounter + 1;
       this._gitDDB.logger.debug(
-        ConsoleStyle.BgRed().tag()`...retrySync: ${(
-          this._options.retry! -
-          this._retrySyncCounter +
-          1
-        ).toString()}`
+        ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries.toString()}`
       );
       // eslint-disable-next-line no-await-in-loop
       const result = await this.trySync().catch((err: Error) => {
@@ -293,20 +315,31 @@ export class Sync implements ISync {
   /**
    * Try push to remote
    */
-  tryPush (taskId?: string) {
-    taskId ??= this._gitDDB.taskQueue.newTaskId();
+  tryPush () {
+    const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResultPush) => void,
       reject: (reason: any) => void
     ) => (beforeResolve: () => void, beforeReject: () => void) =>
-      push_worker(this._gitDDB, this, taskId!)
+      push_worker(this._gitDDB, this, taskId)
         .then((syncResultPush: SyncResultPush) => {
           this._gitDDB.logger.debug(
             ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
               syncResultPush
             )}`
           );
-          // Invoke success event
+
+          if ((syncResultPush as SyncBaseType).changes !== undefined) {
+            this.eventHandlers.change.forEach(func => func(syncResultPush));
+            if ((syncResultPush as SyncBaseType).changes?.local !== undefined) {
+              this.eventHandlers.localChange.forEach(func => func(syncResultPush));
+            }
+            if ((syncResultPush as SyncBaseType).changes?.remote !== undefined) {
+              this.eventHandlers.remoteChange.forEach(func => func(syncResultPush));
+            }
+          }
+          this.eventHandlers.complete.forEach(func => func(taskId!));
+
           beforeResolve();
           resolve(syncResultPush);
         })
@@ -327,6 +360,9 @@ export class Sync implements ISync {
             }
           }
           // TODO: Invoke fail event
+          this.eventHandlers.error.forEach(func => {
+            func(err);
+          });
 
           beforeReject();
           reject(err);
@@ -351,13 +387,13 @@ export class Sync implements ISync {
   /**
    * Try synchronization with remote
    */
-  trySync (taskId?: string) {
-    taskId ??= this._gitDDB.taskQueue.newTaskId();
+  trySync () {
+    const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResult) => void,
       reject: (reason: any) => void
     ) => (beforeResolve: () => void, beforeReject: () => void) =>
-      sync_worker(this._gitDDB, this, taskId!)
+      sync_worker(this._gitDDB, this, taskId)
         .then(syncResult => {
           this._gitDDB.logger.debug(
             ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
@@ -366,8 +402,15 @@ export class Sync implements ISync {
           );
 
           if ((syncResult as SyncBaseType).changes !== undefined) {
-            this._eventHandlers.change.forEach(func => func(syncResult));
+            this.eventHandlers.change.forEach(func => func(syncResult));
+            if ((syncResult as SyncBaseType).changes?.local !== undefined) {
+              this.eventHandlers.localChange.forEach(func => func(syncResult));
+            }
+            if ((syncResult as SyncBaseType).changes?.remote !== undefined) {
+              this.eventHandlers.remoteChange.forEach(func => func(syncResult));
+            }
           }
+          this.eventHandlers.complete.forEach(func => func(taskId!));
 
           beforeResolve();
           resolve(syncResult);
@@ -400,25 +443,28 @@ export class Sync implements ISync {
     });
   }
 
-  on (event: SyncEvent, callback: (res: SyncResult) => void) {
-    this._eventHandlers[event].push(callback);
+  on (event: SyncEvent, callback: (result?: any) => void) {
+    this.eventHandlers[event].push(callback);
     return this;
   }
 
-  off (event: SyncEvent, callback: (res: SyncResult) => void) {
-    this._eventHandlers[event] = this._eventHandlers[event].filter(
-      func => func !== callback
+  off (event: SyncEvent, callback: (result?: any) => void) {
+    // @ts-ignore
+    this.eventHandlers[event] = this.eventHandlers[event].filter(
+      (func: (res?: any) => void) => func !== callback
     );
     return this;
   }
 
   close () {
     this.cancel();
-    this._eventHandlers = {
+    this.eventHandlers = {
       change: [],
+      localChange: [],
+      remoteChange: [],
       paused: [],
       active: [],
-      denied: [],
+      start: [],
       complete: [],
       error: [],
     };

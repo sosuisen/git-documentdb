@@ -381,6 +381,17 @@ export type Task = {
  * Interface of Sync
  */
 export interface ISync {
+  currentRetries: number;
+  eventHandlers: {
+    change: ((syncResult: SyncResult) => void)[];
+    localChange: ((syncResult: SyncResult) => void)[];
+    remoteChange: ((syncResult: SyncResult) => void)[];
+    paused: (() => void)[];
+    active: (() => void)[];
+    start: ((taskId: string, currentRetries: number) => void)[];
+    complete: ((taskId: string) => void)[];
+    error: ((error: Error) => void)[];
+  };
   upstream_branch: string;
   credential_callbacks: { [key: string]: any };
   author: nodegit.Signature;
@@ -392,7 +403,15 @@ export interface ISync {
 /**
  * SyncEvent
  */
-export type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' | 'error';
+export type SyncEvent =
+  | 'change'
+  | 'localChange'
+  | 'remoteChange'
+  | 'paused'
+  | 'active'
+  | 'start'
+  | 'complete'
+  | 'error';
 
 /**
  * Changed file in merge operation

@@ -214,7 +214,7 @@ maybe(
           // CannotPushBecauseUnfetchedCommitExistsError
           expect(resultA === undefined || resultB === undefined).toBe(true);
           if (resultA === undefined) {
-            await expect(remoteA.trySync('1')).resolves.toMatchObject({
+            await expect(remoteA.trySync()).resolves.toMatchObject({
               action: 'merge and push',
               changes: {
                 local: [
@@ -241,7 +241,7 @@ maybe(
             });
           }
           else {
-            await expect(remoteB.trySync('1')).resolves.toMatchObject({
+            await expect(remoteB.trySync()).resolves.toMatchObject({
               action: 'merge and push',
               changes: {
                 local: [
@@ -312,10 +312,10 @@ maybe(
           // so next trySync do nothing.
           await sleep(3000);
           if (resultA === undefined) {
-            await expect(remoteA.trySync('1')).resolves.toMatchObject({ action: 'nop' });
+            await expect(remoteA.trySync()).resolves.toMatchObject({ action: 'nop' });
           }
           else {
-            await expect(remoteB.trySync('1')).resolves.toMatchObject({ action: 'nop' });
+            await expect(remoteB.trySync()).resolves.toMatchObject({ action: 'nop' });
           }
 
           await dbA.destroy().catch(err => console.debug(err));

@@ -388,6 +388,14 @@ export async function push_worker (
   sync: ISync,
   taskId: string
 ): Promise<SyncResultPush> {
+  const repos = gitDDB.repository();
+  if (repos === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+  sync.eventHandlers.start.forEach(func => {
+    func(taskId, sync.currentRetries);
+  });
+
   const headCommit = await gitDDB.repository()!.getHeadCommit();
 
   // Get the oldest commit that has not been pushed yet.
@@ -675,6 +683,9 @@ export async function sync_worker (
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
+  sync.eventHandlers.start.forEach(func => {
+    func(taskId, sync.currentRetries);
+  });
 
   /**
    * Fetch
