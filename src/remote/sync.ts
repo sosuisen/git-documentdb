@@ -245,7 +245,7 @@ export class Sync implements ISync {
     if (this._gitDDB.repository() !== undefined) {
       this._options.live = true;
       this._syncTimer = setInterval(() => {
-        this.trySync();
+        this.trySync().catch(() => undefined);
       }, this._options.interval!);
     }
     return true;
@@ -316,9 +316,8 @@ export class Sync implements ISync {
           // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
           if (this._retrySyncCounter === 0) {
             if (this._options.sync_direction === 'both') {
-              const promise = this._retrySync();
-              // Invoke fail event
-              // Give promise to the event.
+              // eslint-disable-next-line promise/no-nesting
+              this._retrySync().catch(() => undefined);
             }
             else if (this._options.sync_direction === 'pull') {
               // TODO:
@@ -327,9 +326,8 @@ export class Sync implements ISync {
               // TODO:
             }
           }
-          else {
-            // Invoke fail event
-          }
+          // TODO: Invoke fail event
+
           beforeReject();
           reject(err);
         });
@@ -377,13 +375,11 @@ export class Sync implements ISync {
         .catch(err => {
           // console.log(`Error in sync_worker: ${err}`);
           if (this._retrySyncCounter === 0) {
-            const promise = this._retrySync();
-            // Invoke fail event
-            // Give promise to the event.
+            // eslint-disable-next-line promise/no-nesting
+            this._retrySync().catch(() => undefined);
           }
-          else {
-            // Invoke fail event
-          }
+          // TODO: Invoke fail event
+
           beforeReject();
           reject(err);
         });
