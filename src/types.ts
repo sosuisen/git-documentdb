@@ -381,7 +381,7 @@ export type Task = {
  * Interface of Sync
  */
 export interface ISync {
-  currentRetries: number;
+  currentRetries: () => number;
   eventHandlers: {
     change: ((syncResult: SyncResult) => void)[];
     localChange: ((syncResult: SyncResult) => void)[];

@@ -53,9 +53,14 @@ export class Sync implements ISync {
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
   private _remoteRepository: RemoteRepository;
-  private _retrySyncCounter = 0; // Decremental counter
+  private _retrySyncCounter = 0; // Decremental count
 
-  currentRetries = 0; // Incremental counter
+  // Return incremental count
+  currentRetries (): number {
+    let retries = this._options.retry! - this._retrySyncCounter + 1;
+    if (this._retrySyncCounter === 0) retries = 0;
+    return retries;
+  }
 
   eventHandlers: {
     change: ((syncResult: SyncResult) => void)[];
@@ -218,7 +223,6 @@ export class Sync implements ISync {
 
     // Cancel retrying
     this._retrySyncCounter = 0;
-    this.currentRetries = 0;
 
     if (this._syncTimer) {
       clearInterval(this._syncTimer);
@@ -281,7 +285,6 @@ export class Sync implements ISync {
   private async _retrySync (): Promise<SyncResult> {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry!;
-      this.currentRetries = 0;
     }
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
@@ -290,9 +293,9 @@ export class Sync implements ISync {
       if (this._retrySyncCounter === 0) {
         break;
       }
-      this.currentRetries = this._options.retry! - this._retrySyncCounter + 1;
+
       this._gitDDB.logger.debug(
-        ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries.toString()}`
+        ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
       );
       // eslint-disable-next-line no-await-in-loop
       const result = await this.trySync().catch((err: Error) => {

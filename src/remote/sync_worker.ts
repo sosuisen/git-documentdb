@@ -393,7 +393,7 @@ export async function push_worker (
     throw new RepositoryNotOpenError();
   }
   sync.eventHandlers.start.forEach(func => {
-    func(taskId, sync.currentRetries);
+    func(taskId, sync.currentRetries());
   });
 
   const headCommit = await gitDDB.repository()!.getHeadCommit();
@@ -684,7 +684,7 @@ export async function sync_worker (
     throw new RepositoryNotOpenError();
   }
   sync.eventHandlers.start.forEach(func => {
-    func(taskId, sync.currentRetries);
+    func(taskId, sync.currentRetries());
   });
 
   /**
