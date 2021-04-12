@@ -481,7 +481,7 @@ async function threeWayMerge (
   else if (!base && !ours && theirs) {
     // A new file has been created on theirs.
     // Write it to the file.
-    console.log('1 - Accept theirs (create): ' + path);
+    console.log('case 1 - Accept theirs (create): ' + path);
     await writeBlobToFile(gitDDB, theirs);
     console.log('try to add ' + path);
     await resolvedIndex.addByPath(path);
@@ -490,14 +490,14 @@ async function threeWayMerge (
   else if (!base && ours && !theirs) {
     // A new file has been created on ours.
     // Just add it to the index.
-    console.log('2 - Accept ours (create): ' + path);
+    console.log('case 2 - Accept ours (create): ' + path);
     await resolvedIndex.addByPath(path);
   }
   else if (!base && ours && theirs) {
     if (ours.id().equal(theirs.id())) {
       // The same filenames with exactly the same contents are created on both local and remote.
       // Jut add it to the index.
-      console.log('3 - Accept both (create): ' + path);
+      console.log('case 3 - Accept both (create): ' + path);
       await resolvedIndex.addByPath(path);
     }
     else {
@@ -511,7 +511,7 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add it to the index.
-        console.log('4 - Conflict. Accept ours (update): ' + path);
+        console.log('case 4 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'ours',
@@ -521,7 +521,7 @@ async function threeWayMerge (
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
-        console.log('5 - Conflict. Accept theirs (update): ' + path);
+        console.log('case 5 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'theirs',
@@ -534,13 +534,13 @@ async function threeWayMerge (
   }
   else if (base && !ours && !theirs) {
     // The same files are removed.
-    console.log('6 - Accept both (delete): ' + path);
+    console.log('case 6 - Accept both (delete): ' + path);
     await resolvedIndex.removeByPath(path);
   }
   else if (base && !ours && theirs) {
     if (base.id().equal(theirs.id())) {
       // A file has been removed on ours.
-      console.log('7 - Accept ours (delete): ' + path);
+      console.log('case 7 - Accept ours (delete): ' + path);
       await resolvedIndex.removeByPath(path);
     }
     else {
@@ -554,7 +554,7 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add it to the index.
-        console.log('8 - Conflict. Accept ours (delete): ' + path);
+        console.log('case 8 - Conflict. Accept ours (delete): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'ours',
@@ -564,7 +564,7 @@ async function threeWayMerge (
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
-        console.log('9 - Conflict. Accept theirs (update): ' + path);
+        console.log('case 9 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'theirs',
@@ -578,7 +578,7 @@ async function threeWayMerge (
   else if (base && ours && !theirs) {
     if (base.id().equal(ours.id())) {
       // A file has been removed on theirs.
-      console.log('10 - Accept theirs (delete): ' + path);
+      console.log('case 10 - Accept theirs (delete): ' + path);
       await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
         throw new CannotDeleteDataError();
       });
@@ -595,7 +595,7 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add to the index.
-        console.log('11 - Conflict. Accept ours (update): ' + path);
+        console.log('case 11 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'ours',
@@ -622,18 +622,18 @@ async function threeWayMerge (
     if (ours.id().equal(theirs.id())) {
       // The same filenames with exactly the same contents are created on both local and remote.
       // Jut add it to the index.
-      console.log('13 - Accept both: ' + path);
+      console.log('case 13 - Accept both: ' + path);
       await resolvedIndex.addByPath(path);
     }
     else if (base.id().equal(ours.id())) {
       // Write theirs to the file.
-      console.log('14 - Accept theirs (create): ' + path);
+      console.log('case 14 - Accept theirs (create): ' + path);
       await writeBlobToFile(gitDDB, theirs);
       await resolvedIndex.addByPath(path);
     }
     else if (base.id().equal(theirs.id())) {
       // Jut add it to the index.
-      console.log('15 - Accept ours (create): ' + path);
+      console.log('case 15 - Accept ours (create): ' + path);
       await resolvedIndex.addByPath(path);
     }
     else {
@@ -647,7 +647,7 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add it to the index.
-        console.log('16 - Conflict. Accept ours (update): ' + path);
+        console.log('case 16 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'ours',
@@ -657,7 +657,7 @@ async function threeWayMerge (
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
-        console.log('17 - Conflict. Accept theirs (update): ' + path);
+        console.log('case 17 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'theirs',
