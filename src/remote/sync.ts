@@ -194,6 +194,10 @@ export class Sync implements ISync {
     }
 
     if (this._options.live) {
+      this.eventHandlers.active.forEach(func => {
+        func();
+      });
+
       this._syncTimer = setInterval(() => {
         this.trySync().catch(() => undefined);
       }, this._options.interval!);
@@ -362,7 +366,6 @@ export class Sync implements ISync {
               // TODO:
             }
           }
-          // TODO: Invoke fail event
           this.eventHandlers.error.forEach(func => {
             func(err);
           });
@@ -428,7 +431,9 @@ export class Sync implements ISync {
             // eslint-disable-next-line promise/no-nesting
             this._retrySync().catch(() => undefined);
           }
-          // TODO: Invoke fail event
+          this.eventHandlers.error.forEach(func => {
+            func(err);
+          });
 
           beforeReject();
           reject(err);
