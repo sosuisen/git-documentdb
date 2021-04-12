@@ -16,6 +16,7 @@ import fs from 'fs-extra';
 import { SyncResultFastForwardMerge } from '../src/types';
 import { sleep } from '../src/utils';
 import { createClonedDatabases, removeRemoteRepositories } from './remote_utils';
+import sinon from 'sinon';
 
 const reposPrefix = 'test_pat_sync_events___';
 const localDir = `./test/database_remote_events`;
@@ -77,10 +78,17 @@ maybe('remote: events: ', () => {
       remoteB.on('change', syncResult => {
         result = syncResult as SyncResultFastForwardMerge;
       });
+      let complete = false;
+      remoteB.on('complete', () => {
+        complete = true;
+      });
       await remoteB.trySync();
 
-      // Wait change event occurs
-      await sleep(1000);
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!complete) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
 
       expect(result!.action).toBe('fast-forward merge');
       expect(result!.commits!.local.length).toBe(1);
@@ -104,9 +112,11 @@ maybe('remote: events: ', () => {
       await dbB.destroy().catch(e => console.debug(e));
     });
 
+    test.skip('localChange');
+    test.skip('remoteChange');
     test.skip('paused');
     test.skip('active');
-    test.skip('denied');
+    test.skip('start');
     test.skip('complete');
     test.skip('error');
   });
