@@ -40,15 +40,15 @@ export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOption
   return remote;
 }
 
-export const defaultSyncInterval = 10000;
-export const minimumSyncInterval = 1000;
-export const defaultRetryInterval = 3000;
-export const defaultRetry = 2;
-
 /**
  * Sync class
  */
 export class Sync implements ISync {
+  static defaultSyncInterval = 10000;
+  static minimumSyncInterval = 1000;
+  static defaultRetryInterval = 3000;
+  static defaultRetry = 2;
+
   private _gitDDB: AbstractDocumentDB;
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
@@ -117,13 +117,13 @@ export class Sync implements ISync {
 
     this._options.live ??= false;
     this._options.sync_direction ??= 'both';
-    this._options.interval ??= defaultSyncInterval;
+    this._options.interval ??= Sync.defaultSyncInterval;
 
-    if (this._options.interval < minimumSyncInterval) {
-      throw new IntervalTooSmallError(minimumSyncInterval, this._options.interval);
+    if (this._options.interval < Sync.minimumSyncInterval) {
+      throw new IntervalTooSmallError(Sync.minimumSyncInterval, this._options.interval);
     }
-    this._options.retry_interval ??= defaultRetryInterval;
-    this._options.retry ??= defaultRetry;
+    this._options.retry_interval ??= Sync.defaultRetryInterval;
+    this._options.retry ??= Sync.defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
     this._options.include_commits ??= false;
     this._options.conflict_resolve_strategy ??= 'ours';
@@ -255,11 +255,11 @@ export class Sync implements ISync {
       retry: undefined,
     };
     if (options.interval !== undefined) {
-      if (options.interval >= minimumSyncInterval) {
+      if (options.interval >= Sync.minimumSyncInterval) {
         this._options.interval = options.interval;
       }
       else {
-        throw new IntervalTooSmallError(minimumSyncInterval, options.interval);
+        throw new IntervalTooSmallError(Sync.minimumSyncInterval, options.interval);
       }
     }
     if (options.retry !== undefined) {

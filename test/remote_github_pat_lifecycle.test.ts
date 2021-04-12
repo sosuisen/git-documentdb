@@ -13,10 +13,10 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import { Sync } from '../src/remote/sync';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import { CannotPushBecauseUnfetchedCommitExistsError } from '../src/error';
-import { defaultRetry } from '../src/remote/sync';
 import { sleep } from '../src/utils';
 import { removeRemoteRepositories } from './remote_utils';
 
@@ -653,7 +653,7 @@ maybe(
           await dbA.create(optionsA);
 
           const remoteA = dbA.getRemote(remoteURL);
-          expect(remoteA.options().retry).toBe(defaultRetry);
+          expect(remoteA.options().retry).toBe(Sync.defaultRetry);
 
           const dbNameB = serialId();
           const dbB: GitDocumentDB = new GitDocumentDB({
@@ -707,7 +707,7 @@ maybe(
           await dbA.create(optionsA);
 
           const remoteA = dbA.getRemote(remoteURL);
-          expect(remoteA.options().retry).toBe(defaultRetry);
+          expect(remoteA.options().retry).toBe(Sync.defaultRetry);
 
           const dbNameB = serialId();
           const dbB: GitDocumentDB = new GitDocumentDB({

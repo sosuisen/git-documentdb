@@ -25,9 +25,9 @@ import {
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
 } from '../src/error';
-import { minimumSyncInterval, Sync } from '../src/remote/sync';
 import { RemoteRepository } from '../src/remote/remote_repository';
 import { removeRemoteRepositories } from './remote_utils';
+import { Sync } from '../src/remote/sync';
 
 const reposPrefix = 'test_pat___';
 const localDir = `./test/database_remote_github_pat`;
@@ -218,7 +218,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
       await gitDDB.create();
       const invalid_options: RemoteOptions = {
         remote_url: remoteURL,
-        interval: minimumSyncInterval - 1,
+        interval: Sync.minimumSyncInterval - 1,
         auth: {
           type: 'github',
           personal_access_token: '',
@@ -232,7 +232,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
       await gitDDB.create();
       const valid_options: RemoteOptions = {
         remote_url: remoteURL,
-        interval: minimumSyncInterval,
+        interval: Sync.minimumSyncInterval,
         auth: {
           type: 'github',
           personal_access_token: token,
