@@ -1,0 +1,15 @@
+{
+  "version":"2.0.0",
+  "type": "shell",
+  "options": {
+      "shell": {
+          "executable": "powershell.exe"
+      }
+  },
+  "tasks": [
+    {
+      "label": "Compile tests",
+      "command": "npm run compile-tests"
+    }
+  ]
+}
