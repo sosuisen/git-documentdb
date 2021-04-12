@@ -29,6 +29,8 @@ export async function createDatabase (
     include_commits: true,
   };
   options.remote_url ??= remoteURL;
+  options.auth ??= { type: 'github', personal_access_token: token };
+  options.include_commits ??= true;
 
   await dbA.create(options);
   const remoteA = dbA.getRemote(remoteURL);
@@ -56,6 +58,8 @@ export async function createClonedDatabases (
     include_commits: true,
   };
   options.remote_url ??= remoteURL;
+  options.auth ??= { type: 'github', personal_access_token: token };
+  options.include_commits ??= true;
 
   await dbA.create(options);
 
