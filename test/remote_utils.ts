@@ -12,7 +12,8 @@ const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 export async function createDatabase (
   remoteURLBase: string,
   localDir: string,
-  serialId: () => string
+  serialId: () => string,
+  options?: RemoteOptions
 ): Promise<[GitDocumentDB, ISync]> {
   const remoteURL = remoteURLBase + serialId();
 
@@ -22,11 +23,13 @@ export async function createDatabase (
     db_name: dbNameA,
     local_dir: localDir,
   });
-  const options: RemoteOptions = {
+  options ??= {
     remote_url: remoteURL,
     auth: { type: 'github', personal_access_token: token },
     include_commits: true,
   };
+  options.remote_url ??= remoteURL;
+
   await dbA.create(options);
   const remoteA = dbA.getRemote(remoteURL);
 
@@ -36,7 +39,8 @@ export async function createDatabase (
 export async function createClonedDatabases (
   remoteURLBase: string,
   localDir: string,
-  serialId: () => string
+  serialId: () => string,
+  options?: RemoteOptions
 ): Promise<[GitDocumentDB, GitDocumentDB, ISync, ISync]> {
   const remoteURL = remoteURLBase + serialId();
 
@@ -46,11 +50,13 @@ export async function createClonedDatabases (
     db_name: dbNameA,
     local_dir: localDir,
   });
-  const options: RemoteOptions = {
+  options ??= {
     remote_url: remoteURL,
     auth: { type: 'github', personal_access_token: token },
     include_commits: true,
   };
+  options.remote_url ??= remoteURL;
+
   await dbA.create(options);
 
   const dbNameB = serialId();
