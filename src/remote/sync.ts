@@ -15,6 +15,7 @@ import {
   UndefinedRemoteURLError,
 } from '../error';
 import {
+  ChangedFile,
   ISync,
   RemoteOptions,
   SyncBaseType,
@@ -64,8 +65,8 @@ export class Sync implements ISync {
 
   eventHandlers: {
     change: ((syncResult: SyncResult) => void)[];
-    localChange: ((syncResult: SyncResult) => void)[];
-    remoteChange: ((syncResult: SyncResult) => void)[];
+    localChange: ((changedFiles: ChangedFile[]) => void)[];
+    remoteChange: ((changedFiles: ChangedFile[]) => void)[];
     paused: (() => void)[];
     active: (() => void)[];
     start: ((taskId: string, currentRetries: number) => void)[];
@@ -334,11 +335,10 @@ export class Sync implements ISync {
 
           if ((syncResultPush as SyncBaseType).changes !== undefined) {
             this.eventHandlers.change.forEach(func => func(syncResultPush));
-            if ((syncResultPush as SyncBaseType).changes?.local !== undefined) {
-              this.eventHandlers.localChange.forEach(func => func(syncResultPush));
-            }
             if ((syncResultPush as SyncBaseType).changes?.remote !== undefined) {
-              this.eventHandlers.remoteChange.forEach(func => func(syncResultPush));
+              this.eventHandlers.remoteChange.forEach(func =>
+                func(syncResultPush.changes.remote)
+              );
             }
           }
           this.eventHandlers.complete.forEach(func => func(taskId!));
@@ -407,10 +407,14 @@ export class Sync implements ISync {
           if ((syncResult as SyncBaseType).changes !== undefined) {
             this.eventHandlers.change.forEach(func => func(syncResult));
             if ((syncResult as SyncBaseType).changes?.local !== undefined) {
-              this.eventHandlers.localChange.forEach(func => func(syncResult));
+              this.eventHandlers.localChange.forEach(func =>
+                func((syncResult as SyncBaseType).changes!.local!)
+              );
             }
             if ((syncResult as SyncBaseType).changes?.remote !== undefined) {
-              this.eventHandlers.remoteChange.forEach(func => func(syncResult));
+              this.eventHandlers.remoteChange.forEach(func =>
+                func((syncResult as SyncBaseType).changes!.remote!)
+              );
             }
           }
           this.eventHandlers.complete.forEach(func => func(taskId!));

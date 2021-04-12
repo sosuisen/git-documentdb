@@ -384,8 +384,8 @@ export interface ISync {
   currentRetries: () => number;
   eventHandlers: {
     change: ((syncResult: SyncResult) => void)[];
-    localChange: ((syncResult: SyncResult) => void)[];
-    remoteChange: ((syncResult: SyncResult) => void)[];
+    localChange: ((changedFiles: ChangedFile[]) => void)[];
+    remoteChange: ((changedFiles: ChangedFile[]) => void)[];
     paused: (() => void)[];
     active: (() => void)[];
     start: ((taskId: string, currentRetries: number) => void)[];
