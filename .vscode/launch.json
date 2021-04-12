@@ -4,8 +4,8 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["remote_events.test.js"],
-    "default": "remote_events.test.js"
+    "options": ["remote_3way_merge.test.js", "remote_events.test.js"],
+    "default": "remote_3way_merge.test.js"
   }],
   "configurations": [
       {
