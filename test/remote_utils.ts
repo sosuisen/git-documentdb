@@ -5,6 +5,7 @@ import nodegit from '@sosuisen/nodegit';
 import { ISync, RemoteOptions } from '../src/types';
 import { GitDocumentDB } from '../src/index';
 import { FILE_REMOVE_TIMEOUT } from '../src/const';
+import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
@@ -65,6 +66,30 @@ export async function createClonedDatabases (
 
   return [dbA, dbB, remoteA, remoteB];
 }
+
+export const createRemoteRepository = async (remoteURL: string) => {
+  await new RemoteRepository(remoteURL, {
+    type: 'github',
+    personal_access_token: token,
+  })
+    .create()
+    .catch(err => {
+      console.debug('Cannot create: ' + remoteURL);
+      console.debug(err);
+    });
+};
+
+export const destroyRemoteRepository = async (remoteURL: string) => {
+  await new RemoteRepository(remoteURL, {
+    type: 'github',
+    personal_access_token: token,
+  })
+    .destroy()
+    .catch(err => {
+      console.debug('Cannot delete: ' + remoteURL);
+      console.debug(err);
+    });
+};
 
 export async function removeRemoteRepositories (reposPrefix: string) {
   // Remove test repositories on remote

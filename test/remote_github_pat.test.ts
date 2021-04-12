@@ -25,9 +25,12 @@ import {
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
 } from '../src/error';
-import { RemoteRepository } from '../src/remote/remote_repository';
-import { removeRemoteRepositories } from './remote_utils';
 import { Sync } from '../src/remote/sync';
+import {
+  createRemoteRepository,
+  destroyRemoteRepository,
+  removeRemoteRepositories,
+} from './remote_utils';
 
 const reposPrefix = 'test_pat___';
 const localDir = `./test/database_remote_github_pat`;
@@ -62,30 +65,6 @@ maybe('remote: use personal access token: constructor and basic network access: 
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
-
-  const createRemoteRepository = async (remoteURL: string) => {
-    await new RemoteRepository(remoteURL, {
-      type: 'github',
-      personal_access_token: token,
-    })
-      .create()
-      .catch(err => {
-        console.debug('Cannot create: ' + remoteURL);
-        console.debug(err);
-      });
-  };
-
-  const destroyRemoteRepository = async (remoteURL: string) => {
-    await new RemoteRepository(remoteURL, {
-      type: 'github',
-      personal_access_token: token,
-    })
-      .destroy()
-      .catch(err => {
-        console.debug('Cannot delete: ' + remoteURL);
-        console.debug(err);
-      });
-  };
 
   beforeAll(async () => {
     // Remove remote
