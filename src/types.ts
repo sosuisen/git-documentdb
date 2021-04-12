@@ -299,7 +299,6 @@ export type RemoteAuthSSH = {
 export type RemoteAuthNone = {
   type: 'none';
 };
-
 export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
 
 /**
@@ -402,6 +401,9 @@ export interface ISync {
   trySync(): Promise<SyncResult>;
   on(event: SyncEvent, callback: (result?: any) => void): void;
   off(event: SyncEvent, callback: (result?: any) => void): void;
+  pause(): void;
+  cancel(): void;
+  resume(options?: { interval?: number; retry?: number }): void;
 }
 
 /**
