@@ -496,9 +496,12 @@ async function threeWayMerge (
   else if (!base && ours && theirs) {
     if (ours.id().equal(theirs.id())) {
       // The same filenames with exactly the same contents are created on both local and remote.
-      // Jut add it to the index.
+      // This block is not reached
+      // because conflict is not occurred in such case.
       console.log('case 3 - Accept both (create): ' + path);
-      await resolvedIndex.addByPath(path);
+
+      // Jut add it to the index.
+      // await resolvedIndex.addByPath(path);
     }
     else {
       // ! Conflict
@@ -783,10 +786,11 @@ export async function sync_worker (
     }
     else if (distance_again.ahead > 0 && distance_again.behind === 0) {
       // This case is occurred when not fast-forward.
-      // - a local file is changed and another remote file is changed.
-      // - a local file is removed and the same remote file is removed.
-      // - a local file is changed and another remote file is removed.
-      // - a local file is removed and another remote file is changed.
+      // - create/update a remote file, and create/update another local file
+      // - create/update a remote file, and create/update the same local file with the same contents
+      // - create/update a remote file, and remove another local file
+      // - remove a remote file, and create/update another local file
+      // - remove a remote file, and remove the same local file
 
       // Compare trees before and after merge
       const diff = await nodegit.Diff.treeToTree(
