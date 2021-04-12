@@ -13,8 +13,6 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src';
-import { RemoteOptions } from '../src/types';
 import {
   compareWorkingDirAndBlobs,
   createDatabase,
@@ -23,7 +21,7 @@ import {
   removeRemoteRepositories,
 } from './remote_utils';
 
-const reposPrefix = 'test_push___';
+const reposPrefix = 'test_push_worker___';
 const localDir = `./test/database_remote_push_worker`;
 
 let idCounter = 0;

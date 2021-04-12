@@ -15,7 +15,6 @@ import path from 'path';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import {
-  RemoteOptions,
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
   SyncResultPush,
@@ -31,7 +30,7 @@ import {
   removeRemoteRepositories,
 } from './remote_utils';
 
-const reposPrefix = 'test_pat_sync_worker___';
+const reposPrefix = 'test_sync_worker___';
 const localDir = `./test/database_remote_sync_worker`;
 
 let idCounter = 0;
