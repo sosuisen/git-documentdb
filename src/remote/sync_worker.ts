@@ -496,12 +496,9 @@ async function threeWayMerge (
   else if (!base && ours && theirs) {
     if (ours.id().equal(theirs.id())) {
       // The same filenames with exactly the same contents are created on both local and remote.
-      // This block is not reached
-      // because conflict is not occurred in such case.
       console.log('case 3 - Accept both (create): ' + path);
-
       // Jut add it to the index.
-      // await resolvedIndex.addByPath(path);
+      await resolvedIndex.addByPath(path);
     }
     else {
       // ! Conflict
