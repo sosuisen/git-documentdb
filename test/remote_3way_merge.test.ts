@@ -80,11 +80,11 @@ maybe('remote: sync: ', () => {
      * after :  jsonB1  jsonA2  jsonB3
      *
      * 3-way merge:
-     *   jsonB1: 4 - Conflict. Accept ours (put)
-     *   jsonA2: 1 - Accept theirs (add)
-     *   jsonB3: 2 - Accept ours (add)
+     *   jsonB1: 4 - Conflict. Accept ours (update)
+     *   jsonA2: 1 - Accept theirs (create)
+     *   jsonB3: 2 - Accept ours (create)
      */
-    test(`case 1: accept theirs (create), case 2: accept ours (create), case 4: Conflict. Accept ours (update): put with the same id`, async () => {
+    test('case 1 - accept theirs (create), case 2 - accept ours (create), case 4 - Conflict. Accept ours (update): put with the same id', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -213,6 +213,149 @@ maybe('remote: sync: ', () => {
     });
 
     /**
+     * before:
+     * dbA   : +jsonA1
+     * dbB   : +jsonA1
+     * after :  jsonA1
+     *
+     * 3-way merge:
+     *   jsonA1: 3 - Accept both (create)
+     */
+    test('case 3: Accept both (create)', async () => {
+      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResultA1 = await dbA.put(jsonA1);
+      await remoteA.tryPush();
+
+      // B puts the same file with exactly the same contents
+      const putResultB1 = await dbB.put(jsonA1);
+
+      // It will occur conflict on id 1.json.
+      const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+      expect(syncResult1.action).toBe('resolve conflicts and push');
+      expect(syncResult1.commits).toMatchObject({
+        // two put commits and a merge commit
+        local: [
+          {
+            id: putResultA1.commit_sha,
+            author: expect.stringMatching(/^.+$/),
+            date: expect.any(Date),
+            message: expect.stringMatching(/^.+$/),
+          },
+          {
+            id: putResultA2.commit_sha,
+            author: expect.stringMatching(/^.+$/),
+            date: expect.any(Date),
+            message: expect.stringMatching(/^.+$/),
+          },
+          {
+            id: expect.stringMatching(/^.+$/),
+            author: expect.stringMatching(/^.+$/),
+            date: expect.any(Date),
+            message: '[resolve conflicts] update-ours: 1',
+          },
+        ],
+        remote: [
+          // two put commits and a merge commit
+          {
+            id: putResultB1.commit_sha,
+            author: expect.stringMatching(/^.+$/),
+            date: expect.any(Date),
+            message: expect.stringMatching(/^.+$/),
+          },
+          {
+            id: putResultB3.commit_sha,
+            author: expect.stringMatching(/^.+$/),
+            date: expect.any(Date),
+            message: expect.stringMatching(/^.+$/),
+          },
+          {
+            id: expect.stringMatching(/^.+$/),
+            author: expect.stringMatching(/^.+$/),
+            date: expect.any(Date),
+            message: '[resolve conflicts] update-ours: 1',
+          },
+        ],
+      });
+      expect(syncResult1.changes.local.length).toBe(1);
+      expect(syncResult1.changes.local).toEqual(
+        expect.arrayContaining([
+          {
+            operation: 'create',
+            data: {
+              id: jsonA2._id,
+              file_sha: putResultA2.file_sha,
+              doc: jsonA2,
+            },
+          },
+        ])
+      );
+
+      expect(syncResult1.changes.remote.length).toBe(2);
+      expect(syncResult1.changes.remote).toEqual(
+        expect.arrayContaining([
+          {
+            operation: 'create',
+            data: {
+              id: jsonB3._id,
+              file_sha: putResultB3.file_sha,
+              doc: jsonB3,
+            },
+          },
+          {
+            operation: 'update',
+            data: {
+              id: jsonB1._id,
+              file_sha: putResultB1.file_sha,
+              doc: jsonB1,
+            },
+          },
+        ])
+      );
+
+      expect(syncResult1.conflicts.length).toEqual(1);
+      expect(syncResult1.conflicts).toEqual(
+        expect.arrayContaining([
+          {
+            id: '1',
+            strategy: 'ours',
+            operation: 'update',
+          },
+        ])
+      );
+      // Conflict occurs on 1.json
+
+      expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA2, jsonB3]);
+      // Sync dbA
+      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      expect(getWorkingDirFiles(dbA)).toEqual([jsonB1, jsonA2, jsonB3]);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    // case 5
+    // case 6
+    // case 7
+    // case 8
+    // case 9
+    // case 10
+    // case 12
+    // case 13
+    // case 14
+    // case 15
+    // case 16
+    // case 17
+
+    /**
      * before:  jsonA1
      * dbA   : -jsonA1 +jsonA2
      * dbB   : +jsonB1
@@ -222,7 +365,7 @@ maybe('remote: sync: ', () => {
      *  jsonB1: 11 - Conflict. Accept ours (update)
      *  jsonA2:  1 - Accept theirs (create)
      */
-    test('case 1: Accept theirs (create), case 11: accept ours', async () => {
+    test('case 1 - Accept theirs (create), case 11 - accept ours', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
