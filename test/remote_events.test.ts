@@ -13,14 +13,12 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-
-import { GitDocumentDB } from '../src';
-import { RemoteOptions, SyncResultFastForwardMerge } from '../src/types';
+import { SyncResultFastForwardMerge } from '../src/types';
 import { sleep } from '../src/utils';
-import { removeRemoteRepositories } from './remote_utils';
+import { createClonedDatabases, removeRemoteRepositories } from './remote_utils';
 
 const reposPrefix = 'test_pat_sync_events___';
-const localDir = `./test/database_remote_github_pat_sync_events`;
+const localDir = `./test/database_remote_events`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -63,37 +61,18 @@ maybe('remote: events: ', () => {
    */
   describe('change: ', () => {
     test('change once', async () => {
-      const remoteURL = remoteURLBase + serialId();
-
-      const dbNameA = serialId();
-
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-        include_commits: true,
-      };
-      await dbA.create(options);
-
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
-      });
-      // Clone dbA
-      await dbB.create(options);
+      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResult1 = await dbA.put(jsonA1);
-      const remoteA = dbA.getRemote(remoteURL);
       await remoteA.tryPush();
 
       // B syncs
-      const remoteB = dbB.getRemote(remoteURL);
       let result: SyncResultFastForwardMerge | undefined;
       remoteB.on('change', syncResult => {
         result = syncResult as SyncResultFastForwardMerge;

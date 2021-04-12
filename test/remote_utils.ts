@@ -8,6 +8,30 @@ import { FILE_REMOVE_TIMEOUT } from '../src/const';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
+export async function createDatabase (
+  remoteURLBase: string,
+  localDir: string,
+  serialId: () => string
+): Promise<[GitDocumentDB, ISync]> {
+  const remoteURL = remoteURLBase + serialId();
+
+  const dbNameA = serialId();
+
+  const dbA: GitDocumentDB = new GitDocumentDB({
+    db_name: dbNameA,
+    local_dir: localDir,
+  });
+  const options: RemoteOptions = {
+    remote_url: remoteURL,
+    auth: { type: 'github', personal_access_token: token },
+    include_commits: true,
+  };
+  await dbA.create(options);
+  const remoteA = dbA.getRemote(remoteURL);
+
+  return [dbA, remoteA];
+}
+
 export async function createClonedDatabases (
   remoteURLBase: string,
   localDir: string,
