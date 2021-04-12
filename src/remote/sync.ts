@@ -195,7 +195,7 @@ export class Sync implements ISync {
 
     if (this._options.live) {
       this._syncTimer = setInterval(() => {
-        this.trySync();
+        this.trySync().catch(() => undefined);
       }, this._options.interval!);
     }
     return syncResult;
