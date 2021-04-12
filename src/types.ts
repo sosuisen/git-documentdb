@@ -398,6 +398,10 @@ export interface ISync {
   committer: nodegit.Signature;
   remoteURL(): string;
   options(): RemoteOptions;
+  tryPush(): Promise<SyncResultPush>;
+  trySync(): Promise<SyncResult>;
+  on(event: SyncEvent, callback: (result?: any) => void): void;
+  off(event: SyncEvent, callback: (result?: any) => void): void;
 }
 
 /**
