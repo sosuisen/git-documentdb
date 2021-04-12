@@ -24,13 +24,15 @@ import {
 import { NoMergeBaseFoundError } from '../src/error';
 import {
   compareWorkingDirAndBlobs,
+  createClonedDatabases,
+  createDatabase,
   destroyDBs,
   getWorkingDirFiles,
   removeRemoteRepositories,
 } from './remote_utils';
 
 const reposPrefix = 'test_pat_sync_worker___';
-const localDir = `./test/database_remote_github_pat_sync_worker`;
+const localDir = `./test/database_remote_sync_worker`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -77,21 +79,8 @@ maybe('remote: sync: ', () => {
      * after :
      */
     test('Action: nop', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
-      const dbNameA = serialId();
-
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-        include_commits: true,
-      };
-      await dbA.create(options);
-      const remoteA = dbA.getRemote(remoteURL);
       const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
 
       expect(syncResult1.action).toBe('nop');
@@ -108,24 +97,11 @@ maybe('remote: sync: ', () => {
        * after :  jsonA1
        */
       test('add', async () => {
-        const remoteURL = remoteURLBase + serialId();
+        const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
 
         expect(syncResult1.action).toBe('push');
@@ -158,24 +134,11 @@ maybe('remote: sync: ', () => {
        * after :
        */
       test('remove', async () => {
-        const remoteURL = remoteURLBase + serialId();
+        const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         const removeResultA1 = await dbA.remove(jsonA1);
@@ -211,24 +174,10 @@ maybe('remote: sync: ', () => {
        * after :  jsonA1
        */
       test('update', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
+        const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         const jsonA1dash = { _id: '1', name: 'updated' };
@@ -268,37 +217,18 @@ maybe('remote: sync: ', () => {
        * after :  jsonA1
        */
       test('add one file', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        // Clone dbA
-        await dbB.create(options);
-
+        const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+          remoteURLBase,
+          localDir,
+          serialId
+        );
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResult1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
+
         await remoteA.tryPush();
 
         // B syncs
-        const remoteB = dbB.getRemote(remoteURL);
         const syncResult1 = (await remoteB.trySync()) as SyncResultFastForwardMerge;
         expect(syncResult1.action).toBe('fast-forward merge');
         expect(syncResult1.commits!.local.length).toBe(1);
@@ -336,39 +266,20 @@ maybe('remote: sync: ', () => {
        * after :  jsonA1  jsonA2
        */
       test('add two files', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        // Clone dbA
-        await dbB.create(options);
+        const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+          remoteURLBase,
+          localDir,
+          serialId
+        );
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const jsonA2 = { _id: '2', name: 'fromA' };
         const putResult1 = await dbA.put(jsonA1);
         const putResult2 = await dbA.put(jsonA2);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         // B syncs
-        const remoteB = dbB.getRemote(remoteURL);
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
         expect(syncResult1.action).toBe('fast-forward merge');
         expect(syncResult1.commits!.local.length).toBe(2);
@@ -417,39 +328,19 @@ maybe('remote: sync: ', () => {
        * after :  jsonA1  jsonB2
        */
       test('add a remote file and add a different local file', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        // Clone dbA
-        await dbB.create(options);
-
+        const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+          remoteURLBase,
+          localDir,
+          serialId
+        );
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         // B syncs
         const jsonB2 = { _id: '2', name: 'fromB' };
         const putResultB2 = await dbB.put(jsonB2);
-        const remoteB = dbB.getRemote(remoteURL);
 
         // Sync dbB
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
@@ -508,33 +399,15 @@ maybe('remote: sync: ', () => {
        * after :  jsonA1  jsonA2  jsonB3  jsonB4
        */
       test('add two remote files and add two different local files', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        // Clone dbA
-        await dbB.create(options);
+        const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+          remoteURLBase,
+          localDir,
+          serialId
+        );
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         const jsonA2 = { _id: '2', name: 'fromA' };
         const putResultA2 = await dbA.put(jsonA2);
         await remoteA.tryPush();
@@ -544,8 +417,6 @@ maybe('remote: sync: ', () => {
         const putResultB3 = await dbB.put(jsonB3);
         const jsonB4 = { _id: '4', name: 'fromB' };
         const putResultB4 = await dbB.put(jsonB4);
-
-        const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
         expect(syncResult1.action).toBe('merge and push');
@@ -621,24 +492,11 @@ maybe('remote: sync: ', () => {
        * after :          jsonB2
        */
       test('remove a remote file and add a local file', async () => {
-        const remoteURL = remoteURLBase + serialId();
+        const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         const dbNameB = serialId();
@@ -647,7 +505,8 @@ maybe('remote: sync: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.create(options);
+        await dbB.create(remoteA.options());
+        const remoteB = dbB.getRemote(remoteA.remoteURL());
 
         // A removes and pushes
         const removeResultA1 = await dbA.remove(jsonA1);
@@ -656,7 +515,6 @@ maybe('remote: sync: ', () => {
         // B put another file and syncs
         const jsonB2 = { _id: '2', name: 'fromB' };
         const putResultB2 = await dbB.put(jsonB2);
-        const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
         expect(syncResult1.action).toBe('merge and push');
@@ -714,24 +572,10 @@ maybe('remote: sync: ', () => {
        * after :          jsonA2
        */
       test('remove a local file and add a different remote file', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
+        const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         const dbNameB = serialId();
@@ -740,7 +584,8 @@ maybe('remote: sync: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.create(options);
+        await dbB.create(remoteA.options());
+        const remoteB = dbB.getRemote(remoteA.remoteURL());
 
         // A puts and pushes
         const jsonA2 = { _id: '2', name: 'fromA' };
@@ -749,7 +594,6 @@ maybe('remote: sync: ', () => {
 
         // B removes and syncs
         const removeResultB1 = await dbB.remove(jsonA1);
-        const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
         expect(syncResult1.action).toBe('merge and push');
@@ -807,24 +651,10 @@ maybe('remote: sync: ', () => {
        * after :
        */
       test('remove the same file on both sides', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
+        const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         const dbNameB = serialId();
@@ -833,7 +663,8 @@ maybe('remote: sync: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.create(options);
+        await dbB.create(remoteA.options());
+        const remoteB = dbB.getRemote(remoteA.remoteURL());
 
         // A removes and pushes
         const removeResultA1 = await dbA.remove(jsonA1);
@@ -841,7 +672,6 @@ maybe('remote: sync: ', () => {
 
         // B remove the same file and syncs
         const removeResultB1 = await dbB.remove(jsonA1);
-        const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
         expect(syncResult1.action).toBe('merge and push');
@@ -881,35 +711,17 @@ maybe('remote: sync: ', () => {
        *   jsonB3: 2 - Accept ours (add)
        */
       test(`case 1: accept theirs (create), case 2: accept ours (create), case 4: Conflict. Accept ours (update): put with the same id`, async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        // Clone dbA
-        await dbB.create(options);
+        const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+          remoteURLBase,
+          localDir,
+          serialId
+        );
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
         const jsonA2 = { _id: '2', name: 'fromA' };
         const putResultA2 = await dbA.put(jsonA2);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         // B puts the same file
@@ -919,7 +731,6 @@ maybe('remote: sync: ', () => {
         // B puts a new file
         const jsonB3 = { _id: '3', name: 'fromB' };
         const putResultB3 = await dbB.put(jsonB3);
-        const remoteB = dbB.getRemote(remoteURL);
 
         // It will occur conflict on id 1.json.
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
@@ -1038,24 +849,10 @@ maybe('remote: sync: ', () => {
        *  jsonA2:  1 - Accept theirs (create)
        */
       test('case 1: Accept theirs (create), case 11: accept ours', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
-          include_commits: true,
-        };
-        await dbA.create(options);
+        const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
 
         const dbNameB = serialId();
@@ -1064,18 +861,18 @@ maybe('remote: sync: ', () => {
           local_dir: localDir,
         });
         // Clone dbA
-        await dbB.create(options);
+        await dbB.create(remoteA.options());
 
         // A removes the old file and puts a new file
         const removeResultA1 = await dbA.remove(jsonA1);
         const jsonA2 = { _id: '2', name: 'fromA' };
         const putResultA2 = await dbA.put(jsonA2);
         await remoteA.tryPush();
+        const remoteB = dbB.getRemote(remoteA.remoteURL());
 
         // B updates the old file and syncs
         const jsonB1 = { _id: '1', name: 'fromB' };
         const putResultB1 = await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
         expect(syncResult1.action).toBe('resolve conflicts and push');
@@ -1177,20 +974,8 @@ maybe('remote: sync: ', () => {
   describe.skip('No merge base: ', () => {
     // behavior_for_no_merge_base が nop のときリトライしないこと。
     test.skip('Test ours option for behavior_for_no_merge_base', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
-      const dbNameA = serialId();
-
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-      };
-
-      await dbA.create(options);
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
 
@@ -1201,7 +986,7 @@ maybe('remote: sync: ', () => {
       });
       await dbB.create();
 
-      await expect(dbB.sync(options)).rejects.toThrowError(NoMergeBaseFoundError);
+      await expect(dbB.sync(remoteA.options())).rejects.toThrowError(NoMergeBaseFoundError);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

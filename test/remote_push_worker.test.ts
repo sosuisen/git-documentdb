@@ -17,13 +17,14 @@ import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
   compareWorkingDirAndBlobs,
+  createDatabase,
   destroyDBs,
   getWorkingDirFiles,
   removeRemoteRepositories,
 } from './remote_utils';
 
 const reposPrefix = 'test_push___';
-const localDir = `./test/database_remote_push`;
+const localDir = `./test/database_remote_push_worker`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -70,23 +71,11 @@ maybe('remote: push: ', () => {
      * after :  jsonA1
      */
     test('Just put and push', async function () {
-      const remoteURL = remoteURLBase + serialId();
-      const dbNameA = serialId();
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-        include_commits: true,
-      };
-      await dbA.create(options);
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
       // Put and push
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResult = await dbA.put(jsonA1);
-      const remoteA = dbA.getRemote(remoteURL);
       const syncResult = await remoteA.tryPush();
       expect(syncResult.action).toBe('push');
       expect(syncResult.commits!.remote.length).toBe(1);
@@ -118,20 +107,8 @@ maybe('remote: push: ', () => {
      * after :  jsonA1
      */
     test('Put the same document again', async () => {
-      const remoteURL = remoteURLBase + serialId();
-      const dbNameA = serialId();
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-        include_commits: true,
-      };
-      await dbA.create(options);
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
       const jsonA1 = { _id: '1', name: 'fromA' };
-      const remoteA = dbA.getRemote(remoteURL);
       await dbA.put(jsonA1);
       await remoteA.tryPush();
 
@@ -158,20 +135,8 @@ maybe('remote: push: ', () => {
      * after :  jsonA1
      */
     test('Put an updated document', async () => {
-      const remoteURL = remoteURLBase + serialId();
-      const dbNameA = serialId();
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-        include_commits: true,
-      };
-      await dbA.create(options);
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
       const jsonA1 = { _id: '1', name: 'fromA' };
-      const remoteA = dbA.getRemote(remoteURL);
       const putResultA1 = await dbA.put(jsonA1);
       await remoteA.tryPush();
 
@@ -205,20 +170,8 @@ maybe('remote: push: ', () => {
      * after :  jsonA1  jsonA2
      */
     test('Put another document', async () => {
-      const remoteURL = remoteURLBase + serialId();
-      const dbNameA = serialId();
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-        include_commits: true,
-      };
-      await dbA.create(options);
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
       const jsonA1 = { _id: '1', name: 'fromA' };
-      const remoteA = dbA.getRemote(remoteURL);
       await dbA.put(jsonA1);
       await remoteA.tryPush();
 
@@ -255,25 +208,13 @@ maybe('remote: push: ', () => {
    * after2:  jsonA1  jsonA2  jsonA3
    */
   test('Put twice followed by push', async () => {
-    const remoteURL = remoteURLBase + serialId();
-    const dbNameA = serialId();
-    const dbA: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameA,
-      local_dir: localDir,
-    });
-    const options: RemoteOptions = {
-      remote_url: remoteURL,
-      auth: { type: 'github', personal_access_token: token },
-      include_commits: true,
-    };
-    await dbA.create(options);
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     // Two put commands and push
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResult1 = await dbA.put(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResult2 = await dbA.put(jsonA2);
-    const remoteA = dbA.getRemote(remoteURL);
     const syncResult = await remoteA.tryPush();
     expect(syncResult.action).toBe('push');
     expect(syncResult.commits!.remote.length).toBe(2);
@@ -348,22 +289,10 @@ maybe('remote: push: ', () => {
    * after :
    */
   test('Remove followed by push', async () => {
-    const remoteURL = remoteURLBase + serialId();
-    const dbNameA = serialId();
-    const dbA: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameA,
-      local_dir: localDir,
-    });
-    const options: RemoteOptions = {
-      remote_url: remoteURL,
-      auth: { type: 'github', personal_access_token: token },
-      include_commits: true,
-    };
-    await dbA.create(options);
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
-    const remoteA = dbA.getRemote(remoteURL);
     await remoteA.tryPush();
 
     // Remove the previous put document
@@ -401,25 +330,12 @@ maybe('remote: push: ', () => {
    * after :
    */
   test('Put and remove followed by push', async () => {
-    const remoteURL = remoteURLBase + serialId();
-    const dbNameA = serialId();
-    const dbA: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameA,
-      local_dir: localDir,
-    });
-    const options: RemoteOptions = {
-      remote_url: remoteURL,
-      auth: { type: 'github', personal_access_token: token },
-      include_commits: true,
-    };
-    await dbA.create(options);
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     // Put and remove a document
     const putResult1 = await dbA.put(jsonA1);
     const removeResult1 = await dbA.remove(jsonA1);
-
-    const remoteA = dbA.getRemote(remoteURL);
 
     const syncResult1 = await remoteA.tryPush();
     expect(syncResult1.action).toBe('push');
