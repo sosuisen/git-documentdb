@@ -133,15 +133,15 @@ maybe('remote: sync: ', () => {
         const putResultA1 = await dbA.put(jsonA1);
         await remoteA.tryPush();
 
-        const removeResultA1 = await dbA.remove(jsonA1);
+        const deleteResultA1 = await dbA.remove(jsonA1);
         const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
 
         expect(syncResult1.action).toBe('push');
         expect(syncResult1.commits!.remote.length).toBe(1);
-        expect(syncResult1.commits!.remote[0].id).toBe(removeResultA1.commit_sha);
+        expect(syncResult1.commits!.remote[0].id).toBe(deleteResultA1.commit_sha);
         expect(syncResult1.changes.remote.length).toBe(1);
         expect(syncResult1.changes.remote).toEqual(
-          expect.arrayContaining([getChangedFile('delete', jsonA1, removeResultA1)])
+          expect.arrayContaining([getChangedFile('delete', jsonA1, deleteResultA1)])
         );
 
         expect(getWorkingDirFiles(dbA)).toEqual([]);
@@ -507,14 +507,14 @@ maybe('remote: sync: ', () => {
         await remoteA.tryPush();
 
         // B removes and syncs
-        const removeResultB1 = await dbB.remove(jsonA1);
+        const deleteResultB1 = await dbB.remove(jsonA1);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
         expect(syncResult1.action).toBe('merge and push');
 
         expect(syncResult1.commits).toMatchObject({
           local: getCommitInfo([putResultA2, 'merge']),
-          remote: getCommitInfo([removeResultB1, 'merge']),
+          remote: getCommitInfo([deleteResultB1, 'merge']),
         });
 
         expect(syncResult1.changes.local.length).toBe(1);
@@ -524,7 +524,7 @@ maybe('remote: sync: ', () => {
 
         expect(syncResult1.changes.remote.length).toBe(1);
         expect(syncResult1.changes.remote).toEqual(
-          expect.arrayContaining([getChangedFile('delete', jsonA1, removeResultB1)])
+          expect.arrayContaining([getChangedFile('delete', jsonA1, deleteResultB1)])
         );
 
         expect(getWorkingDirFiles(dbB)).toEqual([jsonA2]);
@@ -563,7 +563,7 @@ maybe('remote: sync: ', () => {
         const remoteB = dbB.getRemote(remoteA.remoteURL());
 
         // A removes and pushes
-        const removeResultA1 = await dbA.remove(jsonA1);
+        const deleteResultA1 = await dbA.remove(jsonA1);
         await remoteA.tryPush();
 
         // B put another file and syncs
@@ -574,13 +574,13 @@ maybe('remote: sync: ', () => {
         expect(syncResult1.action).toBe('merge and push');
 
         expect(syncResult1.commits).toMatchObject({
-          local: getCommitInfo([removeResultA1, 'merge']),
+          local: getCommitInfo([deleteResultA1, 'merge']),
           remote: getCommitInfo([putResultB2, 'merge']),
         });
 
         expect(syncResult1.changes.local.length).toBe(1);
         expect(syncResult1.changes.local).toEqual(
-          expect.arrayContaining([getChangedFile('delete', jsonA1, removeResultA1)])
+          expect.arrayContaining([getChangedFile('delete', jsonA1, deleteResultA1)])
         );
 
         expect(syncResult1.changes.remote.length).toBe(1);
@@ -623,18 +623,18 @@ maybe('remote: sync: ', () => {
         const remoteB = dbB.getRemote(remoteA.remoteURL());
 
         // A removes and pushes
-        const removeResultA1 = await dbA.remove(jsonA1);
+        const deleteResultA1 = await dbA.remove(jsonA1);
         await remoteA.tryPush();
 
         // B remove the same file and syncs
-        const removeResultB1 = await dbB.remove(jsonA1);
+        const deleteResultB1 = await dbB.remove(jsonA1);
 
         const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
         expect(syncResult1.action).toBe('merge and push');
 
         expect(syncResult1.commits).toMatchObject({
-          local: getCommitInfo([removeResultA1, 'merge']),
-          remote: getCommitInfo([removeResultB1, 'merge']),
+          local: getCommitInfo([deleteResultA1, 'merge']),
+          remote: getCommitInfo([deleteResultB1, 'merge']),
         });
 
         expect(syncResult1.changes.local.length).toBe(0); // Must no be 1 but 0, because diff is empty.

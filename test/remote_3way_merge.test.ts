@@ -318,7 +318,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
 
-    const removeResultA2 = await dbA.remove(jsonA2);
+    const deleteResultA2 = await dbA.remove(jsonA2);
     await remoteA.tryPush();
 
     // B puts the same file
@@ -326,7 +326,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const putResultB1 = await dbB.put(jsonB1);
 
     // B remove the same file
-    const removeResultB2 = await dbB.remove(jsonA2);
+    const deleteResultB2 = await dbB.remove(jsonA2);
 
     // It will occur conflict on id 1.json.
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
@@ -334,12 +334,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        removeResultA2,
+        deleteResultA2,
         '[resolve conflicts] update-ours: 1',
       ]),
       remote: getCommitInfo([
         putResultB1,
-        removeResultB2,
+        deleteResultB2,
         '[resolve conflicts] update-ours: 1',
       ]),
     });
@@ -409,7 +409,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const putResultB1 = await dbB.put(jsonB1);
 
     // B remove the same file
-    const removeResultB2 = await dbB.remove(jsonA2);
+    const deleteResultB2 = await dbB.remove(jsonA2);
 
     // It will occur conflict on id 1.json.
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
@@ -418,7 +418,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([putResultA1, '[resolve conflicts] update-ours: 1']),
       remote: getCommitInfo([
         putResultB1,
-        removeResultB2,
+        deleteResultB2,
         '[resolve conflicts] update-ours: 1',
       ]),
     });
@@ -428,7 +428,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
         getChangedFile('update', jsonB1, putResultB1),
-        getChangedFile('delete', jsonA2, removeResultB2),
+        getChangedFile('delete', jsonA2, deleteResultB2),
       ])
     );
 
@@ -492,7 +492,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     await dbB.create(remoteA.options());
 
     // A removes the old file and puts a new file
-    const removeResultA1 = await dbA.remove(jsonA1);
+    const deleteResultA1 = await dbA.remove(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
     await remoteA.tryPush();
@@ -506,7 +506,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
-        removeResultA1,
+        deleteResultA1,
         putResultA2,
         '[resolve conflicts] update-ours: 1',
       ]),

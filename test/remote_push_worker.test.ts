@@ -255,17 +255,17 @@ maybe('remote: push: ', () => {
     await remoteA.tryPush();
 
     // Remove the previous put document
-    const removeResult1 = await dbA.remove(jsonA1);
+    const deleteResult1 = await dbA.remove(jsonA1);
 
     const syncResult1 = await remoteA.tryPush();
     expect(syncResult1.action).toBe('push');
 
     expect(syncResult1.commits).toMatchObject({
-      remote: getCommitInfo([removeResult1]),
+      remote: getCommitInfo([deleteResult1]),
     });
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([getChangedFile('delete', jsonA1, removeResult1)])
+      expect.arrayContaining([getChangedFile('delete', jsonA1, deleteResult1)])
     );
 
     expect(getWorkingDirFiles(dbA)).toEqual([]);
@@ -287,12 +287,12 @@ maybe('remote: push: ', () => {
     const jsonA1 = { _id: '1', name: 'fromA' };
     // Put and remove a document
     const putResult1 = await dbA.put(jsonA1);
-    const removeResult1 = await dbA.remove(jsonA1);
+    const deleteResult1 = await dbA.remove(jsonA1);
 
     const syncResult1 = await remoteA.tryPush();
     expect(syncResult1.action).toBe('push');
     expect(syncResult1.commits).toMatchObject({
-      remote: getCommitInfo([putResult1, removeResult1]),
+      remote: getCommitInfo([putResult1, deleteResult1]),
     });
     expect(syncResult1.changes.remote.length).toBe(0); // no change
 
