@@ -74,11 +74,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * after :  jsonB1  jsonA2  jsonB3
    *
    * 3-way merge:
-   *   jsonB1: 4 - Conflict. Accept ours (update)
+   *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 1 - Accept theirs (create)
    *   jsonB3: 2 - Accept ours (create)
    */
-  test('case 1 - accept theirs (create), case 2 - accept ours (create), case 4 - Conflict. Accept ours (update): put with the same id', async () => {
+  test('case 1 - accept theirs (create), case 2 - accept ours (create), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -107,12 +107,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -134,7 +134,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
         {
           id: '1',
           strategy: 'ours',
-          operation: 'update',
+          operation: 'create',
+          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -158,10 +159,10 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * after :  jsonB1  jsonA2
    *
    * 3-way merge:
-   *   jsonB1: 4 - Conflict. Accept ours (update)
+   *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 3 - Accept both (create)
    */
-  test('case 3 - accept both (create), case 4 - Conflict. Accept ours (update): put with the same id', async () => {
+  test('case 3 - accept both (create), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -189,12 +190,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -210,7 +211,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
         {
           id: '1',
           strategy: 'ours',
-          operation: 'update',
+          operation: 'create',
+          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -234,9 +236,9 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * after :  jsonA1
    *
    * 3-way merge:
-   *   jsonA1: 5 - Conflict. Accept theirs (update)
+   *   jsonA1: 5 - Conflict. Accept theirs (create)
    */
-  test('case 5 - Conflict. Accept theirs (update)', async () => {
+  test('case 5 - Conflict. Accept theirs (create)', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -259,8 +261,14 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: getCommitInfo([putResultA1, '[resolve conflicts] update-theirs: 1']),
-      remote: getCommitInfo([putResultB1, '[resolve conflicts] update-theirs: 1']),
+      local: getCommitInfo([
+        putResultA1,
+        `[resolve conflicts] theirs-create: 1(${putResultA1.file_sha})`,
+      ]),
+      remote: getCommitInfo([
+        putResultB1,
+        `[resolve conflicts] theirs-create: 1(${putResultA1.file_sha})`,
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
@@ -275,7 +283,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
         {
           id: '1',
           strategy: 'theirs',
-          operation: 'update',
+          operation: 'create',
+          file_sha: putResultA1.file_sha,
         },
       ])
     );
@@ -295,10 +304,10 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * after :  jsonB1
    *
    * 3-way merge:
-   *   jsonB1: 4 - Conflict. Accept ours (update)
+   *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 6 - Accept both (delete)
    */
-  test('case 6 - accept both (delete), case 4 - Conflict. Accept ours (update): put with the same id', async () => {
+  test('case 6 - accept both (delete), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -335,12 +344,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         deleteResultA2,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -356,7 +365,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
         {
           id: '1',
           strategy: 'ours',
-          operation: 'update',
+          operation: 'create',
+          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -380,10 +390,10 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * after :  jsonB1
    *
    * 3-way merge:
-   *   jsonB1: 4 - Conflict. Accept ours (update)
+   *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 7 - Accept ours (delete)
    */
-  test('case 7 - accept ours (delete), case 4 - Conflict. Accept ours (update): put with the same id', async () => {
+  test('case 7 - accept ours (delete), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -415,11 +425,14 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: getCommitInfo([putResultA1, '[resolve conflicts] update-ours: 1']),
+      local: getCommitInfo([
+        putResultA1,
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+      ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -438,7 +451,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
         {
           id: '1',
           strategy: 'ours',
-          operation: 'update',
+          operation: 'create',
+          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -491,8 +505,14 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: getCommitInfo([putResultA1dash, '[resolve conflicts] delete-ours: 1']),
-      remote: getCommitInfo([deleteResultB1, '[resolve conflicts] delete-ours: 1']),
+      local: getCommitInfo([
+        putResultA1dash,
+        `[resolve conflicts] ours-delete: 1(${deleteResultB1.file_sha})`,
+      ]),
+      remote: getCommitInfo([
+        deleteResultB1,
+        `[resolve conflicts] ours-delete: 1(${deleteResultB1.file_sha})`,
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
 
@@ -508,6 +528,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
           id: '1',
           strategy: 'ours',
           operation: 'delete',
+          file_sha: deleteResultB1.file_sha,
         },
       ])
     );
@@ -534,7 +555,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * 3-way merge:
    *  jsonA1: 9 - Conflict. Accept theirs (update)
    */
-  test.only('case 9 - Conflict. Accept theirs (update)', async () => {
+  test('case 9 - Conflict. Accept theirs (update)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -561,8 +582,14 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: getCommitInfo([putResultA1dash, '[resolve conflicts] update-theirs: 1']),
-      remote: getCommitInfo([deleteResultB1, '[resolve conflicts] update-theirs: 1']),
+      local: getCommitInfo([
+        putResultA1dash,
+        `[resolve conflicts] theirs-update: 1(${putResultA1dash.file_sha})`,
+      ]),
+      remote: getCommitInfo([
+        deleteResultB1,
+        `[resolve conflicts] theirs-update: 1(${putResultA1dash.file_sha})`,
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
@@ -578,6 +605,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
           id: '1',
           strategy: 'theirs',
           operation: 'update',
+          file_sha: putResultA1dash.file_sha,
         },
       ])
     );
@@ -591,7 +619,6 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
 
     await destroyDBs([dbA, dbB]);
   });
-
 
   // case 10
 
@@ -644,9 +671,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        '[resolve conflicts] update-ours: 1',
+        `[resolve conflicts] ours-update: 1(${putResultB1.file_sha})`,
       ]),
-      remote: getCommitInfo([putResultB1, '[resolve conflicts] update-ours: 1']),
+      remote: getCommitInfo([
+        putResultB1,
+        `[resolve conflicts] ours-update: 1(${putResultB1.file_sha})`,
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
@@ -665,6 +695,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
           id: '1',
           strategy: 'ours',
           operation: 'update',
+          file_sha: putResultB1.file_sha,
         },
       ])
     );

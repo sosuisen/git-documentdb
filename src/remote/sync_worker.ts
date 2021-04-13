@@ -511,21 +511,23 @@ async function threeWayMerge (
       );
       if (strategy === 'ours') {
         // Just add it to the index.
-        console.log('case 4 - Conflict. Accept ours (update): ' + path);
+        console.log('case 4 - Conflict. Accept ours (create): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'ours',
-          operation: 'update',
+          operation: 'create',
+          file_sha: ours.sha(),
         });
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs') {
         // Write theirs to the file.
-        console.log('case 5 - Conflict. Accept theirs (update): ' + path);
+        console.log('case 5 - Conflict. Accept theirs (create): ' + path);
         acceptedConflicts.push({
           id: docId,
           strategy: 'theirs',
-          operation: 'update',
+          operation: 'create',
+          file_sha: theirs.sha(),
         });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -559,6 +561,7 @@ async function threeWayMerge (
           id: docId,
           strategy: 'ours',
           operation: 'delete',
+          file_sha: base.sha(),
         });
         await resolvedIndex.removeByPath(path);
       }
@@ -569,6 +572,7 @@ async function threeWayMerge (
           id: docId,
           strategy: 'theirs',
           operation: 'update',
+          file_sha: theirs.sha(),
         });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -600,6 +604,7 @@ async function threeWayMerge (
           id: docId,
           strategy: 'ours',
           operation: 'update',
+          file_sha: ours.sha(),
         });
         await resolvedIndex.addByPath(path);
       }
@@ -610,6 +615,7 @@ async function threeWayMerge (
           id: docId,
           strategy: 'theirs',
           operation: 'delete',
+          file_sha: base.sha(),
         });
         await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
           throw new CannotDeleteDataError();
@@ -652,6 +658,7 @@ async function threeWayMerge (
           id: docId,
           strategy: 'ours',
           operation: 'update',
+          file_sha: ours.sha(),
         });
         await resolvedIndex.addByPath(path);
       }
@@ -662,6 +669,7 @@ async function threeWayMerge (
           id: docId,
           strategy: 'theirs',
           operation: 'update',
+          file_sha: theirs.sha(),
         });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -938,7 +946,7 @@ export async function sync_worker (
     let commitMessage = '[resolve conflicts] ';
     acceptedConflicts.forEach(conflict => {
       // e.g.) put-ours: myID
-      commitMessage += `${conflict.operation}-${conflict.strategy}: ${conflict.id}, `;
+      commitMessage += `${conflict.strategy}-${conflict.operation}: ${conflict.id}(${conflict.file_sha}), `;
     });
     if (commitMessage.endsWith(', ')) {
       commitMessage = commitMessage.slice(0, -2);

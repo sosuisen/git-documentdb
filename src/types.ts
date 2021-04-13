@@ -332,12 +332,20 @@ export type WriteOperation = 'create' | 'update' | 'delete';
 /**
  * Accepted Conflict
  *
- * This shows which strategy is applied.
+ * @remarks
+ * - id: id of target document
+ *
+ * - strategy: applied strategy
+ *
+ * - operation: applied operation on an applied strategy side (ours or theirs)
+ *
+ * - file_sha: SHA-1 hash of applied document
  */
 export type AcceptedConflict = {
   id: string;
   strategy: 'ours' | 'theirs';
   operation: WriteOperation;
+  file_sha: string;
 };
 /**
  * Options for Sync class
