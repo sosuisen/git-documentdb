@@ -7,7 +7,7 @@
  */
 
 /**
- * Test synchronization (pull & push)
+ * Test sync
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
