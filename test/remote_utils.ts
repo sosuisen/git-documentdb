@@ -2,12 +2,52 @@ import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
 import sinon from 'sinon';
 import nodegit from '@sosuisen/nodegit';
-import { ISync, RemoteOptions } from '../src/types';
+import {
+  ISync,
+  JsonDoc,
+  PutResult,
+  RemoteOptions,
+  RemoveResult,
+  WriteOperation,
+} from '../src/types';
 import { GitDocumentDB } from '../src/index';
 import { FILE_REMOVE_TIMEOUT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+
+export function CommitResult (resultOrMessage: PutResult | RemoveResult | string) {
+  if (typeof resultOrMessage === 'string') {
+    return {
+      id: expect.stringMatching(/^.+$/),
+      author: expect.stringMatching(/^.+$/),
+      date: expect.any(Date),
+      message: resultOrMessage,
+    };
+  }
+
+  return {
+    id: resultOrMessage.commit_sha,
+    author: expect.stringMatching(/^.+$/),
+    date: expect.any(Date),
+    message: expect.stringMatching(/^.+$/),
+  };
+}
+
+export function ChangeResult (
+  operation: WriteOperation,
+  doc: JsonDoc,
+  result: PutResult | RemoveResult
+) {
+  return {
+    operation,
+    data: {
+      id: doc._id,
+      file_sha: result.file_sha,
+      doc,
+    },
+  };
+}
 
 export async function createDatabase (
   remoteURLBase: string,
