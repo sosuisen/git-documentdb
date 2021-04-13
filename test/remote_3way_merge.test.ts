@@ -740,7 +740,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    *  jsonB2: 4 - Conflict. Accept ours (create)
    *  jsonB3:11 - Conflict. Accept ours (update)
    */
-  test.only('Many conflicts', async () => {
+  test('Many conflicts', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -860,6 +860,6 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
-    // await destroyDBs([dbA, dbB]);
+    await destroyDBs([dbA, dbB]);
   });
 });
