@@ -104,7 +104,6 @@ maybe('remote: events: ', () => {
 
       expect(result!.commits).toMatchObject({
         local: getCommitInfo([putResult1]),
-        remote: [],
       });
 
       expect(result!.changes.local).toEqual(
