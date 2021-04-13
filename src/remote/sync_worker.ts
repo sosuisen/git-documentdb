@@ -962,14 +962,17 @@ export async function sync_worker (
     });
     console.log(acceptedConflicts);
 
-    let commitMessage = '[resolve] ';
+    let commitMessage = 'resolve: ';
     acceptedConflicts.forEach(conflict => {
       // e.g.) put-ours: myID
       const fileName =
         conflict.target.type === undefined || conflict.target.type === 'json'
           ? conflict.target.id + gitDDB.fileExt
           : conflict.target.id;
-      commitMessage += `${fileName}(${conflict.operation},${conflict.target.file_sha},${conflict.strategy}), `;
+      commitMessage += `${fileName}(${conflict.operation},${conflict.target.file_sha.substr(
+        0,
+        7
+      )},${conflict.strategy}), `;
     });
     if (commitMessage.endsWith(', ')) {
       commitMessage = commitMessage.slice(0, -2);

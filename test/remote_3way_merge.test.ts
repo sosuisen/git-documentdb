@@ -107,12 +107,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -192,12 +192,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -267,11 +267,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `[resolve] 1${dbA.fileExt}(create,${putResultA1.file_sha},theirs)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultA1.file_sha.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `[resolve] 1${dbA.fileExt}(create,${putResultA1.file_sha},theirs)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultA1.file_sha.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -350,12 +350,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         deleteResultA2,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -435,12 +435,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -517,11 +517,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `[resolve] 1${dbA.fileExt}(delete,${deleteResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `[resolve] 1${dbA.fileExt}(delete,${deleteResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -596,11 +596,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `[resolve] 1${dbA.fileExt}(update,${putResultA1dash.file_sha},theirs)`,
+        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `[resolve] 1${dbA.fileExt}(update,${putResultA1dash.file_sha},theirs)`,
+        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -685,11 +685,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `[resolve] 1${dbA.fileExt}(update,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `[resolve] 1${dbA.fileExt}(update,${putResultB1.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -793,13 +793,21 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
         putResultA3dash,
         putResultA1dash,
         deleteResultA2,
-        `[resolve] 1${dbA.fileExt}(delete,${deleteResultB1.file_sha},ours), 2${dbA.fileExt}(update,${putResultB2.file_sha},ours), 3${dbA.fileExt}(update,${putResultB3.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours), 2${
+          dbA.fileExt
+        }(update,${putResultB2.file_sha.substr(0, 7)},ours), 3${
+          dbA.fileExt
+        }(update,${putResultB3.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB3,
         deleteResultB1,
         putResultB2,
-        `[resolve] 1${dbA.fileExt}(delete,${deleteResultB1.file_sha},ours), 2${dbA.fileExt}(update,${putResultB2.file_sha},ours), 3${dbA.fileExt}(update,${putResultB3.file_sha},ours)`,
+        `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours), 2${
+          dbA.fileExt
+        }(update,${putResultB2.file_sha.substr(0, 7)},ours), 3${
+          dbA.fileExt
+        }(update,${putResultB3.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -852,6 +860,6 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
-    await destroyDBs([dbA, dbB]);
+    // await destroyDBs([dbA, dbB]);
   });
 });
