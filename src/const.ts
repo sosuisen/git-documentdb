@@ -8,3 +8,4 @@
 
 export const MAX_FILE_PATH_LENGTH = 255;
 export const FILE_REMOVE_TIMEOUT = 7000;
+export const SHORT_SHA_LENGTH = 7;

@@ -9,6 +9,7 @@
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import { SHORT_SHA_LENGTH } from '../const';
 import { ConsoleStyle } from '../utils';
 import {
   CannotCreateDirectoryError,
@@ -971,7 +972,7 @@ export async function sync_worker (
           : conflict.target.id;
       commitMessage += `${fileName}(${conflict.operation},${conflict.target.file_sha.substr(
         0,
-        7
+        SHORT_SHA_LENGTH
       )},${conflict.strategy}), `;
     });
     if (commitMessage.endsWith(', ')) {

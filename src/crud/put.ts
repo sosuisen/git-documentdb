@@ -9,6 +9,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import nodegit from '@sosuisen/nodegit';
+import { SHORT_SHA_LENGTH } from '../const';
 import { JsonDoc, PutOptions, PutResult } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import {
@@ -27,6 +28,7 @@ import { toSortedJSONString } from '../utils';
  *
  * @internal
  */
+// eslint-disable-next-line complexity
 export function putImpl (
   this: AbstractDocumentDB,
   idOrDoc: string | JsonDoc,
@@ -96,7 +98,7 @@ export function putImpl (
     commit_message: undefined,
   };
 
-  options.commit_message ??= `put: ${_id}`;
+  const commit_message = options.commit_message ?? `put: ${_id}(<%file_sha%>)`;
 
   // put() must be serial.
   return new Promise((resolve, reject) => {
@@ -105,7 +107,7 @@ export function putImpl (
       taskId: this.taskQueue.newTaskId(),
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        put_worker(this, _id, this.fileExt, data, options!.commit_message!)
+        put_worker(this, _id, this.fileExt, data, commit_message!)
           .then(result => {
             beforeResolve();
             resolve(result);
@@ -183,6 +185,11 @@ export async function put_worker (
     // Get SHA of blob if needed.
     const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
     file_sha = entry.id.tostrS();
+
+    commitMessage = commitMessage.replace(
+      /<%file_sha%>/,
+      file_sha.substr(0, SHORT_SHA_LENGTH)
+    );
 
     const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
     const committer = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);

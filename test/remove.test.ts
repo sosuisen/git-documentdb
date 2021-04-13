@@ -10,6 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
+import { SHORT_SHA_LENGTH } from '../src/const';
 import {
   DocumentNotFoundError,
   InvalidIdCharacterError,
@@ -90,19 +91,21 @@ describe('delete(): delete document:', () => {
     await gitDDB.put(doc);
 
     // Delete
-    await expect(gitDDB.delete(_id)).resolves.toMatchObject({
+    const deleteResult = await gitDDB.delete(_id);
+    expect(deleteResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = deleteResult.file_sha.substr(0, SHORT_SHA_LENGTH);
 
     // Check commit message
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: ${_id}`);
+      expect(commit.message()).toEqual(`remove: ${_id}(${short_sha})`);
     }
 
     await gitDDB.destroy();
@@ -144,19 +147,21 @@ describe('delete(): delete document:', () => {
     await gitDDB.put(doc);
 
     // Delete
-    await expect(gitDDB.delete(_id)).resolves.toMatchObject({
+    const deleteResult = await gitDDB.delete(_id);
+    expect(deleteResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = deleteResult.file_sha.substr(0, SHORT_SHA_LENGTH);
 
     // Check commit message
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: ${_id}`);
+      expect(commit.message()).toEqual(`remove: ${_id}(${short_sha})`);
     }
 
     await gitDDB.destroy();
@@ -209,18 +214,21 @@ describe('remove(): remove document:', () => {
     ).resolves.toBeUndefined();
 
     // Delete document#1
-    await expect(gitDDB.remove(_id1)).resolves.toMatchObject({
+    const deleteResult = await gitDDB.remove(_id1);
+    expect(deleteResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id1 + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = deleteResult.file_sha.substr(0, SHORT_SHA_LENGTH);
+
     // Check commit message
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: ${_id1}`);
+      expect(commit.message()).toEqual(`remove: ${_id1}(${short_sha})`);
     }
 
     /**

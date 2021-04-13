@@ -22,6 +22,7 @@ import {
 import { GitDocumentDB } from '../src/index';
 import { Validator } from '../src/validator';
 import { put_worker } from '../src/crud/put';
+import { SHORT_SHA_LENGTH } from '../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -243,19 +244,21 @@ describe('put(): validate: overload 1:', () => {
     });
     await gitDDB.create();
     const _id = '春はあけぼの';
-    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
+    const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
+    expect(putResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = putResult.file_sha.substr(0, SHORT_SHA_LENGTH);
 
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}`);
+      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
     }
 
     // Check filename
@@ -324,19 +327,21 @@ describe('put(): create document: overload 1:', () => {
     await gitDDB.create();
     const _id = 'prof01';
     // Check put operation
-    await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
+    const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
+    expect(putResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = putResult.file_sha.substr(0, SHORT_SHA_LENGTH);
 
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}`);
+      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
     }
 
     // Check filename
@@ -358,19 +363,21 @@ describe('put(): create document: overload 1:', () => {
     await gitDDB.create();
     const _id = 'dir01/prof01';
     // Check put operation
-    await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
+    const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
+    expect(putResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = putResult.file_sha.substr(0, SHORT_SHA_LENGTH);
 
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}`);
+      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
     }
 
     // Check filename
@@ -485,18 +492,20 @@ describe('put(): create document: overload 2:', () => {
     });
     await gitDDB.create();
     const _id = 'prof01';
-    await expect(gitDDB.put(_id, { name: 'Shirase' })).resolves.toMatchObject({
+    const putResult = await gitDDB.put(_id, { name: 'Shirase' });
+    expect(putResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = putResult.file_sha.substr(0, SHORT_SHA_LENGTH);
 
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`put: ${_id}`);
+      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
     }
 
     // Check filename
@@ -519,19 +528,22 @@ describe('put(): create document: overload 2:', () => {
     await gitDDB.create();
     const _id = 'id-in-the-first-argument';
     const doc = { _id: 'id-in-doc', name: 'Shirase' };
-    await expect(gitDDB.put(_id, doc)).resolves.toMatchObject({
+    const putResult = await gitDDB.put(_id, doc);
+    expect(putResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^' + _id + '$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
+    const short_sha = putResult.file_sha.substr(0, SHORT_SHA_LENGTH);
+
     expect(doc._id).toBe('id-in-doc');
 
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`put: ${_id}`);
+      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
     }
 
     // Check filename

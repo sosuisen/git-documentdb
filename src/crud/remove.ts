@@ -9,6 +9,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import nodegit from '@sosuisen/nodegit';
+import { SHORT_SHA_LENGTH } from '../const';
 import { AbstractDocumentDB } from '../types_gitddb';
 import {
   CannotDeleteDataError,
@@ -58,7 +59,7 @@ export function removeImpl (
   options ??= {
     commit_message: undefined,
   };
-  options.commit_message ??= `remove: ${_id}`;
+  const commit_message = options.commit_message ?? `remove: ${_id}(<%file_sha%>)`;
 
   // delete() must be serial.
   return new Promise((resolve, reject) => {
@@ -67,7 +68,7 @@ export function removeImpl (
       taskId: this.taskQueue.newTaskId(),
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        remove_worker(this, _id, this.fileExt, options!.commit_message!)
+        remove_worker(this, _id, this.fileExt, commit_message!)
           .then((result: RemoveResult) => {
             beforeResolve();
             resolve(result);
@@ -127,6 +128,11 @@ export async function remove_worker (
   }
 
   try {
+    commitMessage = commitMessage.replace(
+      /<%file_sha%>/,
+      file_sha.substr(0, SHORT_SHA_LENGTH)
+    );
+
     const changes = await index.writeTree(); // get reference to a set of changes
 
     const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
