@@ -3,6 +3,7 @@ import { Octokit } from '@octokit/rest';
 import sinon from 'sinon';
 import nodegit from '@sosuisen/nodegit';
 import {
+  CommitInfo,
   ISync,
   JsonDoc,
   PutResult,
@@ -16,22 +17,28 @@ import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-export function CommitResult (resultOrMessage: PutResult | RemoveResult | string) {
-  if (typeof resultOrMessage === 'string') {
-    return {
-      id: expect.stringMatching(/^.+$/),
-      author: expect.stringMatching(/^.+$/),
-      date: expect.any(Date),
-      message: resultOrMessage,
-    };
-  }
-
-  return {
-    id: resultOrMessage.commit_sha,
-    author: expect.stringMatching(/^.+$/),
-    date: expect.any(Date),
-    message: expect.stringMatching(/^.+$/),
-  };
+export function CommitResult (
+  resultOrMessage: (PutResult | RemoveResult | string)[]
+): CommitInfo[] {
+  return resultOrMessage.reduce((acc, current) => {
+    if (typeof current === 'string') {
+      acc.push({
+        id: expect.stringMatching(/^.+$/),
+        author: expect.stringMatching(/^.+$/),
+        date: expect.any(Date),
+        message: current,
+      });
+    }
+    else {
+      acc.push({
+        id: current.commit_sha,
+        author: expect.stringMatching(/^.+$/),
+        date: expect.any(Date),
+        message: expect.stringMatching(/^.+$/),
+      });
+    }
+    return acc;
+  }, [] as CommitInfo[]);
 }
 
 export function ChangeResult (

@@ -104,18 +104,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      // two put commits and a merge commit
-      local: [
-        CommitResult(putResultA1),
-        CommitResult(putResultA2),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
-      remote: [
-        // two put commits and a merge commit
-        CommitResult(putResultB1),
-        CommitResult(putResultB3),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
+      local: CommitResult([putResultA1, putResultA2, '[resolve conflicts] update-ours: 1']),
+      remote: CommitResult([
+        putResultB1,
+        putResultB3,
+        '[resolve conflicts] update-ours: 1',
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
@@ -188,16 +182,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: [
-        CommitResult(putResultA1),
-        CommitResult(putResultA2),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
-      remote: [
-        CommitResult(putResultB1),
-        CommitResult(putResultB2),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
+      local: CommitResult([putResultA1, putResultA2, '[resolve conflicts] update-ours: 1']),
+      remote: CommitResult([
+        putResultB1,
+        putResultB2,
+        '[resolve conflicts] update-ours: 1',
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
 
@@ -261,14 +251,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: [
-        CommitResult(putResultA1),
-        CommitResult('[resolve conflicts] update-theirs: 1'),
-      ],
-      remote: [
-        CommitResult(putResultB1),
-        CommitResult('[resolve conflicts] update-theirs: 1'),
-      ],
+      local: CommitResult([putResultA1, '[resolve conflicts] update-theirs: 1']),
+      remote: CommitResult([putResultB1, '[resolve conflicts] update-theirs: 1']),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
@@ -340,16 +324,16 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: [
-        CommitResult(putResultA1),
-        CommitResult(removeResultA2),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
-      remote: [
-        CommitResult(putResultB1),
-        CommitResult(removeResultB2),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
+      local: CommitResult([
+        putResultA1,
+        removeResultA2,
+        '[resolve conflicts] update-ours: 1',
+      ]),
+      remote: CommitResult([
+        putResultB1,
+        removeResultB2,
+        '[resolve conflicts] update-ours: 1',
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
 
@@ -423,15 +407,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: [
-        CommitResult(putResultA1),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
-      remote: [
-        CommitResult(putResultB1),
-        CommitResult(removeResultB2),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
+      local: CommitResult([putResultA1, '[resolve conflicts] update-ours: 1']),
+      remote: CommitResult([
+        putResultB1,
+        removeResultB2,
+        '[resolve conflicts] update-ours: 1',
+      ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
 
@@ -516,15 +497,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: [
-        CommitResult(removeResultA1),
-        CommitResult(putResultA2),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
-      remote: [
-        CommitResult(putResultB1),
-        CommitResult('[resolve conflicts] update-ours: 1'),
-      ],
+      local: CommitResult([
+        removeResultA1,
+        putResultA2,
+        '[resolve conflicts] update-ours: 1',
+      ]),
+      remote: CommitResult([putResultB1, '[resolve conflicts] update-ours: 1']),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
