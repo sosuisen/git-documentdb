@@ -640,18 +640,18 @@ async function threeWayMerge (
     if (ours.id().equal(theirs.id())) {
       // The same filenames with exactly the same contents are created on both local and remote.
       // Jut add it to the index.
-      console.log('case 13 - Accept both: ' + path);
+      console.log('case 13 - Accept both (update): ' + path);
       await resolvedIndex.addByPath(path);
     }
     else if (base.id().equal(ours.id())) {
       // Write theirs to the file.
-      console.log('case 14 - Accept theirs (create): ' + path);
+      console.log('case 14 - Accept theirs (update): ' + path);
       await writeBlobToFile(gitDDB, theirs);
       await resolvedIndex.addByPath(path);
     }
     else if (base.id().equal(theirs.id())) {
       // Jut add it to the index.
-      console.log('case 15 - Accept ours (create): ' + path);
+      console.log('case 15 - Accept ours (update): ' + path);
       await resolvedIndex.addByPath(path);
     }
     else {
