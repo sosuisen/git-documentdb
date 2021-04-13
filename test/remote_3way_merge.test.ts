@@ -7,7 +7,7 @@
  */
 
 /**
- * Test synchronization (pull & push)
+ * Test 3-way merge
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
@@ -309,6 +309,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * dbB   :  jsonB1 -jsonA2
    * after :  jsonB1
    *
+   * '-' means delete
+   *
    * 3-way merge:
    *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 6 - Accept both (delete)
@@ -484,6 +486,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    * dbA   : +jsonA1
    * dbB   : -jsonA1
    * result:
+   *
+   * '+' means update
    *
    * 3-way merge:
    *  jsonA1: 8 - Conflict. Accept ours (delete)
@@ -991,21 +995,256 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
 
     await destroyDBs([dbA, dbB]);
   });
-  // case 15
 
   /**
    * before:          jsonA2
    * dbA   :  jsonA1  jsonA2
-   * dbB   :  jsonB1 +jsonA2
-   * after :  jsonB1 +jsonA2
+   * dbB   :  jsonB1  jsonB2
+   * after :  jsonB1  jsonB2
    *
    * 3-way merge:
    *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2:15 - Accept ours (update)
    */
+  test('case 15 - Accept ours (update), case 4 - Conflict. Accept ours (create)', async () => {
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    // A puts and pushes
+    const jsonA2 = { _id: '2', name: 'fromA' };
+    const putResultA2 = await dbA.put(jsonA2);
+    await remoteA.tryPush();
 
-  // case 16
-  // case 17
+    const dbNameB = serialId();
+    const dbB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbNameB,
+      local_dir: localDir,
+    });
+    // Clone dbA
+    await dbB.create(remoteA.options());
+    const remoteB = dbB.getRemote(remoteA.remoteURL());
+
+    // A puts
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    const putResultA1 = await dbA.put(jsonA1);
+    // A puts the previous file and pushes
+    const putResultA2dash = await dbA.put(jsonA2);
+    await remoteA.tryPush();
+
+    // B puts the same file
+    const jsonB1 = { _id: '1', name: 'fromB' };
+    const putResultB1 = await dbB.put(jsonB1);
+
+    // B puts
+    const jsonB2 = { _id: '2', name: 'fromB' };
+    const putResultB2 = await dbB.put(jsonB2);
+
+    // It will occur conflict on id 1.json.
+    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    expect(syncResult1.action).toBe('resolve conflicts and push');
+    expect(syncResult1.commits).toMatchObject({
+      local: getCommitInfo([
+        putResultA1,
+        putResultA2dash,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
+      ]),
+      remote: getCommitInfo([
+        putResultB1,
+        putResultB2,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
+      ]),
+    });
+    expect(syncResult1.changes.local.length).toBe(0);
+
+    expect(syncResult1.changes.remote.length).toBe(2);
+    expect(syncResult1.changes.remote).toEqual(
+      expect.arrayContaining([
+        getChangedFile('update', jsonB1, putResultB1),
+        getChangedFile('update', jsonB2, putResultB2),
+      ])
+    );
+
+    expect(syncResult1.conflicts.length).toEqual(1);
+    expect(syncResult1.conflicts).toEqual(
+      expect.arrayContaining([
+        {
+          target: {
+            id: '1',
+            file_sha: putResultB1.file_sha,
+          },
+          strategy: 'ours',
+          operation: 'create',
+        },
+      ])
+    );
+    // Conflict occurs on 1.json
+
+    expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonB2]);
+    // Sync dbA
+    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    expect(getWorkingDirFiles(dbA)).toEqual([jsonB1, jsonB2]);
+
+    await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+    await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
+
+  /**
+   * before:  jsonA1
+   * dbA   : +jsonA1
+   * dbB   :  jsonB1
+   * after :  jsonB1
+   *
+   * 3-way merge:
+   *   jsonB1:16 - Conflict. Accept ours (update)
+   */
+  test('case 16 - Conflict. Accept ours (update)', async () => {
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    // A puts and pushes
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    const putResultA1 = await dbA.put(jsonA1);
+    await remoteA.tryPush();
+
+    const dbNameB = serialId();
+    const dbB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbNameB,
+      local_dir: localDir,
+    });
+    // Clone dbA
+    await dbB.create(remoteA.options());
+    const remoteB = dbB.getRemote(remoteA.remoteURL());
+
+    // A puts and pushes
+    const jsonA1dash = { _id: '1', name: 'updated' };
+    const putResultA1dash = await dbA.put(jsonA1dash);
+    await remoteA.tryPush();
+
+    // B puts
+    const jsonB1 = { _id: '1', name: 'fromB' };
+    const putResultB1 = await dbB.put(jsonB1);
+
+    // It will occur conflict on id 1.json.
+    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    expect(syncResult1.action).toBe('resolve conflicts and push');
+    expect(syncResult1.commits).toMatchObject({
+      local: getCommitInfo([
+        putResultA1dash,
+        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+      ]),
+      remote: getCommitInfo([
+        putResultB1,
+        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+      ]),
+    });
+    expect(syncResult1.changes.local.length).toBe(0);
+
+    expect(syncResult1.changes.remote.length).toBe(1);
+    expect(syncResult1.changes.remote).toEqual(
+      expect.arrayContaining([getChangedFile('update', jsonB1, putResultB1)])
+    );
+
+    expect(syncResult1.conflicts.length).toEqual(1);
+    expect(syncResult1.conflicts).toEqual(
+      expect.arrayContaining([
+        {
+          target: {
+            id: '1',
+            file_sha: putResultB1.file_sha,
+          },
+          strategy: 'ours',
+          operation: 'update',
+        },
+      ])
+    );
+    // Conflict occurs on 1.json
+
+    expect(getWorkingDirFiles(dbB)).toEqual([jsonB1]);
+    // Sync dbA
+    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    expect(getWorkingDirFiles(dbA)).toEqual([jsonB1]);
+
+    await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+    await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
+
+  /**
+   * before:  jsonA1
+   * dbA   : +jsonA1
+   * dbB   :  jsonB1
+   * after : +jsonA1
+   *
+   * 3-way merge:
+   *   jsonA1:17 - Conflict. Accept theirs (update)
+   */
+  test('case 17 - Conflict. Accept ours (update)', async () => {
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    // A puts and pushes
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    const putResultA1 = await dbA.put(jsonA1);
+    await remoteA.tryPush();
+
+    const dbNameB = serialId();
+    const dbB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbNameB,
+      local_dir: localDir,
+    });
+    // Clone dbA
+    await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
+    const remoteB = dbB.getRemote(remoteA.remoteURL());
+
+    // A puts and pushes
+    const jsonA1dash = { _id: '1', name: 'updated' };
+    const putResultA1dash = await dbA.put(jsonA1dash);
+    await remoteA.tryPush();
+
+    // B puts
+    const jsonB1 = { _id: '1', name: 'fromB' };
+    const putResultB1 = await dbB.put(jsonB1);
+
+    // It will occur conflict on id 1.json.
+    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    expect(syncResult1.action).toBe('resolve conflicts and push');
+    expect(syncResult1.commits).toMatchObject({
+      local: getCommitInfo([
+        putResultA1dash,
+        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+      ]),
+      remote: getCommitInfo([
+        putResultB1,
+        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+      ]),
+    });
+    expect(syncResult1.changes.local.length).toBe(1);
+    expect(syncResult1.changes.local).toEqual(
+      expect.arrayContaining([getChangedFile('update', jsonA1dash, putResultA1dash)])
+    );
+
+    expect(syncResult1.changes.remote.length).toBe(0);
+
+    expect(syncResult1.conflicts.length).toEqual(1);
+    expect(syncResult1.conflicts).toEqual(
+      expect.arrayContaining([
+        {
+          target: {
+            id: '1',
+            file_sha: putResultA1dash.file_sha,
+          },
+          strategy: 'theirs',
+          operation: 'update',
+        },
+      ])
+    );
+    // Conflict occurs on 1.json
+
+    expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
+    expect(getWorkingDirFiles(dbB)).toEqual([jsonA1dash]);
+
+    await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+    await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
 
   /**
    * before:  jsonA1  jsonA2  jsonA3
