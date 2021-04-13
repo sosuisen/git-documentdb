@@ -263,11 +263,13 @@ export type JsonDocWithMetadata = DocMetadata & {
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
+ * - type: Default is 'json'.
  * @public
  */
 export type DocMetadata = {
   id: string;
   file_sha: string;
+  type?: 'json' | 'raw';
 };
 
 /**
@@ -333,7 +335,7 @@ export type WriteOperation = 'create' | 'update' | 'delete';
  * Accepted Conflict
  *
  * @remarks
- * - id: id of target document
+ * - target: conflicted target
  *
  * - strategy: applied strategy
  *
@@ -342,10 +344,9 @@ export type WriteOperation = 'create' | 'update' | 'delete';
  * - file_sha: SHA-1 hash of applied document
  */
 export type AcceptedConflict = {
-  id: string;
+  target: DocMetadata;
   strategy: 'ours' | 'theirs';
   operation: WriteOperation;
-  file_sha: string;
 };
 /**
  * Options for Sync class

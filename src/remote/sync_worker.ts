@@ -513,10 +513,12 @@ async function threeWayMerge (
         // Just add it to the index.
         console.log('case 4 - Conflict. Accept ours (create): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: ours.sha(),
+          },
           strategy: 'ours',
           operation: 'create',
-          file_sha: ours.sha(),
         });
         await resolvedIndex.addByPath(path);
       }
@@ -524,10 +526,12 @@ async function threeWayMerge (
         // Write theirs to the file.
         console.log('case 5 - Conflict. Accept theirs (create): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: theirs.sha(),
+          },
           strategy: 'theirs',
           operation: 'create',
-          file_sha: theirs.sha(),
         });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -558,10 +562,12 @@ async function threeWayMerge (
         // Just add it to the index.
         console.log('case 8 - Conflict. Accept ours (delete): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: base.sha(),
+          },
           strategy: 'ours',
           operation: 'delete',
-          file_sha: base.sha(),
         });
         await resolvedIndex.removeByPath(path);
       }
@@ -569,10 +575,12 @@ async function threeWayMerge (
         // Write theirs to the file.
         console.log('case 9 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: theirs.sha(),
+          },
           strategy: 'theirs',
           operation: 'update',
-          file_sha: theirs.sha(),
         });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -601,10 +609,12 @@ async function threeWayMerge (
         // Just add to the index.
         console.log('case 11 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: ours.sha(),
+          },
           strategy: 'ours',
           operation: 'update',
-          file_sha: ours.sha(),
         });
         await resolvedIndex.addByPath(path);
       }
@@ -612,10 +622,12 @@ async function threeWayMerge (
         // Remove file
         console.log('12 - Conflict. Accept theirs (delete): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: base.sha(),
+          },
           strategy: 'theirs',
           operation: 'delete',
-          file_sha: base.sha(),
         });
         await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
           throw new CannotDeleteDataError();
@@ -655,10 +667,12 @@ async function threeWayMerge (
         // Just add it to the index.
         console.log('case 16 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: ours.sha(),
+          },
           strategy: 'ours',
           operation: 'update',
-          file_sha: ours.sha(),
         });
         await resolvedIndex.addByPath(path);
       }
@@ -666,10 +680,12 @@ async function threeWayMerge (
         // Write theirs to the file.
         console.log('case 17 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
-          id: docId,
+          target: {
+            id: docId,
+            file_sha: theirs.sha(),
+          },
           strategy: 'theirs',
           operation: 'update',
-          file_sha: theirs.sha(),
         });
         await writeBlobToFile(gitDDB, theirs);
         await resolvedIndex.addByPath(path);
@@ -943,10 +959,14 @@ export async function sync_worker (
     resolvedIndex.conflictCleanup();
     console.log(acceptedConflicts);
 
-    let commitMessage = '[resolve conflicts] ';
+    let commitMessage = '[resolve] ';
     acceptedConflicts.forEach(conflict => {
       // e.g.) put-ours: myID
-      commitMessage += `${conflict.strategy}-${conflict.operation}: ${conflict.id}(${conflict.file_sha}), `;
+      const fileName =
+        conflict.target.type === undefined || conflict.target.type === 'json'
+          ? conflict.target.id + gitDDB.fileExt
+          : conflict.target.id;
+      commitMessage += `${fileName}(${conflict.operation},${conflict.target.file_sha},${conflict.strategy}), `;
     });
     if (commitMessage.endsWith(', ')) {
       commitMessage = commitMessage.slice(0, -2);

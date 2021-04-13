@@ -107,12 +107,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -132,10 +132,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: putResultB1.file_sha,
+          },
           strategy: 'ours',
           operation: 'create',
-          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -190,12 +192,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -209,10 +211,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: putResultB1.file_sha,
+          },
           strategy: 'ours',
           operation: 'create',
-          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -263,11 +267,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `[resolve conflicts] theirs-create: 1(${putResultA1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultA1.file_sha},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `[resolve conflicts] theirs-create: 1(${putResultA1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultA1.file_sha},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -281,10 +285,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: putResultA1.file_sha,
+          },
           strategy: 'theirs',
           operation: 'create',
-          file_sha: putResultA1.file_sha,
         },
       ])
     );
@@ -344,12 +350,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         putResultA1,
         deleteResultA2,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -363,10 +369,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: putResultB1.file_sha,
+          },
           strategy: 'ours',
           operation: 'create',
-          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -427,12 +435,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `[resolve conflicts] ours-create: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(create,${putResultB1.file_sha},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -449,10 +457,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: putResultB1.file_sha,
+          },
           strategy: 'ours',
           operation: 'create',
-          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -507,11 +517,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `[resolve conflicts] ours-delete: 1(${deleteResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(delete,${deleteResultB1.file_sha},ours)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `[resolve conflicts] ours-delete: 1(${deleteResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(delete,${deleteResultB1.file_sha},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -525,10 +535,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: deleteResultB1.file_sha,
+          },
           strategy: 'ours',
           operation: 'delete',
-          file_sha: deleteResultB1.file_sha,
         },
       ])
     );
@@ -584,11 +596,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `[resolve conflicts] theirs-update: 1(${putResultA1dash.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(update,${putResultA1dash.file_sha},theirs)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `[resolve conflicts] theirs-update: 1(${putResultA1dash.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(update,${putResultA1dash.file_sha},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -602,10 +614,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: putResultA1dash.file_sha,
+          },
           strategy: 'theirs',
           operation: 'update',
-          file_sha: putResultA1dash.file_sha,
         },
       ])
     );
@@ -671,11 +685,11 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `[resolve conflicts] ours-update: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(update,${putResultB1.file_sha},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `[resolve conflicts] ours-update: 1(${putResultB1.file_sha})`,
+        `[resolve] 1${dbA.fileExt}(update,${putResultB1.file_sha},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -692,10 +706,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          id: '1',
+          target: {
+            id: '1',
+            file_sha: putResultB1.file_sha,
+          },
           strategy: 'ours',
           operation: 'update',
-          file_sha: putResultB1.file_sha,
         },
       ])
     );
@@ -710,6 +726,6 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
-    await destroyDBs([dbA, dbB]);
+//    await destroyDBs([dbA, dbB]);
   });
 });
