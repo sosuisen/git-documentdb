@@ -461,7 +461,6 @@ async function threeWayMerge (
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-
   // Try 3-way merge on the assumption that their is no conflict.
   const baseCommit = await repos.getCommit(mergeBase);
 
@@ -957,6 +956,10 @@ export async function sync_worker (
     });
     await Promise.all(resolvers);
     resolvedIndex.conflictCleanup();
+
+    acceptedConflicts.sort((a, b) => {
+      return a.target.id === b.target.id ? 0 : a.target.id > b.target.id ? 1 : -1;
+    });
     console.log(acceptedConflicts);
 
     let commitMessage = '[resolve] ';

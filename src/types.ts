@@ -514,7 +514,7 @@ export type SyncResultResolveConflictsAndPush = {
     local: ChangedFile[];
     remote: ChangedFile[];
   };
-  conflicts: AcceptedConflict[];
+  conflicts: AcceptedConflict[]; // sorted by filename
   commits?: {
     local: CommitInfo[];
     remote: CommitInfo[];
