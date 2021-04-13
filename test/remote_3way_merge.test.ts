@@ -78,7 +78,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    *   jsonA2: 1 - Accept theirs (create)
    *   jsonB3: 2 - Accept ours (create)
    */
-  test('case 1 - accept theirs (create), case 2 - accept ours (create), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
+  test('case 1 - Accept theirs (create), case 2 - Accept ours (create), case 4 - Conflict. Accept ours (create)', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -164,7 +164,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 3 - Accept both (create)
    */
-  test('case 3 - accept both (create), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
+  test('case 3 - Accept both (create), case 4 - Conflict. Accept ours (create)', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -313,7 +313,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 6 - Accept both (delete)
    */
-  test('case 6 - accept both (delete), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
+  test('case 6 - Accept both (delete), case 4 - Conflict. Accept ours (create)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -401,7 +401,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
    *   jsonB1: 4 - Conflict. Accept ours (create)
    *   jsonA2: 7 - Accept ours (delete)
    */
-  test('case 7 - accept ours (delete), case 4 - Conflict. Accept ours (create): put with the same id', async () => {
+  test('case 7 - Accept ours (delete), case 4 - Conflict. Accept ours (create)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -559,19 +559,20 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
   });
 
   /**
-   * before:  jsonA1
-   * dbA   : +jsonA1
-   * dbB   : -jsonA1
-   * result:  jsonA1
+   * before:          jsonA2
+   * dbA   : +jsonA1 -jsonA2
+   * dbB   : +jsonB1
+   * after :  jsonB1
    *
    * 3-way merge:
-   *  jsonA1: 9 - Conflict. Accept theirs (update)
+   *   jsonB1: 4 - Conflict. Accept ours (create)
+   *   jsonA2:10 - Accept theirs (delete)
    */
-  test('case 9 - Conflict. Accept theirs (update)', async () => {
+  test('case 10 - Accept theirs (delete), case 4 - Conflict. Accept ours (create)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
     // A puts and pushes
-    const jsonA1 = { _id: '1', name: 'fromA' };
-    const putResultA1 = await dbA.put(jsonA1);
+    const jsonA2 = { _id: '2', name: 'fromA' };
+    await dbA.put(jsonA2);
     await remoteA.tryPush();
 
     const dbNameB = serialId();
@@ -580,35 +581,42 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
+    await dbB.create(remoteA.options());
     const remoteB = dbB.getRemote(remoteA.remoteURL());
 
-    // A updates and pushes
-    const jsonA1dash = { _id: '1', name: 'updated' };
-    const putResultA1dash = await dbA.put(jsonA1dash);
+    // A puts, removes, and pushes
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    const putResultA1 = await dbA.put(jsonA1);
+    const deleteResultA2 = await dbA.remove(jsonA2);
     await remoteA.tryPush();
 
-    // B removes and syncs
-    const deleteResultB1 = await dbB.remove(jsonA1);
+    // B puts the same file
+    const jsonB1 = { _id: '1', name: 'fromB' };
+    const putResultB1 = await dbB.put(jsonB1);
 
+    // It will occur conflict on id 1.json.
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
-        putResultA1dash,
-        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        putResultA1,
+        deleteResultA2,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
-        deleteResultB1,
-        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        putResultB1,
+        `resolve: 1${dbA.fileExt}(create,${putResultB1.file_sha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
-      expect.arrayContaining([getChangedFile('create', jsonA1dash, putResultA1dash)])
+      expect.arrayContaining([getChangedFile('delete', jsonA2, deleteResultA2)])
     );
 
-    expect(syncResult1.changes.remote.length).toBe(0);
+    expect(syncResult1.changes.remote.length).toBe(1);
+    expect(syncResult1.changes.remote).toEqual(
+      expect.arrayContaining([getChangedFile('update', jsonB1, putResultB1)])
+    );
 
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual(
@@ -616,25 +624,25 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
         {
           target: {
             id: '1',
-            file_sha: putResultA1dash.file_sha,
+            file_sha: putResultB1.file_sha,
           },
-          strategy: 'theirs',
-          operation: 'update',
+          strategy: 'ours',
+          operation: 'create',
         },
       ])
     );
     // Conflict occurs on 1.json
 
-    expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
-    expect(getWorkingDirFiles(dbB)).toEqual([jsonA1dash]);
+    expect(getWorkingDirFiles(dbB)).toEqual([jsonB1]);
+    // Sync dbA
+    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    expect(getWorkingDirFiles(dbA)).toEqual([jsonB1]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
     await destroyDBs([dbA, dbB]);
   });
-
-  // case 10
 
   // case 12
   // case 13
