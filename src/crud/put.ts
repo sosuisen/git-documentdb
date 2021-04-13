@@ -98,7 +98,8 @@ export function putImpl (
     commit_message: undefined,
   };
 
-  const commit_message = options.commit_message ?? `put: ${_id}(<%file_sha%>)`;
+  const commit_message =
+    options.commit_message ?? `put: ${_id}${this.fileExt}(<%file_sha%>)`;
 
   // put() must be serial.
   return new Promise((resolve, reject) => {

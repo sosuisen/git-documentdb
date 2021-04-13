@@ -59,7 +59,8 @@ export function removeImpl (
   options ??= {
     commit_message: undefined,
   };
-  const commit_message = options.commit_message ?? `remove: ${_id}(<%file_sha%>)`;
+  const commit_message =
+    options.commit_message ?? `remove: ${_id}${this.fileExt}(<%file_sha%>)`;
 
   // delete() must be serial.
   return new Promise((resolve, reject) => {

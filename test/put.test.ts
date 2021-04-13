@@ -258,7 +258,7 @@ describe('put(): validate: overload 1:', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
+      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     // Check filename
@@ -341,7 +341,7 @@ describe('put(): create document: overload 1:', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
+      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     // Check filename
@@ -377,7 +377,7 @@ describe('put(): create document: overload 1:', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
+      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     // Check filename
@@ -505,7 +505,7 @@ describe('put(): create document: overload 2:', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
+      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     // Check filename
@@ -543,7 +543,7 @@ describe('put(): create document: overload 2:', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`put: ${_id}(${short_sha})`);
+      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     // Check filename
@@ -570,6 +570,24 @@ describe('put(): create document: overload 2:', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       expect(commit.message()).toEqual(`my commit message`);
+    }
+    await gitDDB.destroy();
+  });
+
+  test('Set empty commit message.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    const _id = 'dir01/prof01';
+    await gitDDB.put(_id, { name: 'Shirase' }, { commit_message: '' });
+    const repository = gitDDB.repository();
+    if (repository !== undefined) {
+      const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual('');
     }
     await gitDDB.destroy();
   });

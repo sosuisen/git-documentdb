@@ -105,7 +105,7 @@ describe('delete(): delete document:', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: ${_id}(${short_sha})`);
+      expect(commit.message()).toEqual(`remove: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     await gitDDB.destroy();
@@ -161,7 +161,7 @@ describe('delete(): delete document:', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: ${_id}(${short_sha})`);
+      expect(commit.message()).toEqual(`remove: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     await gitDDB.destroy();
@@ -228,7 +228,7 @@ describe('remove(): remove document:', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: ${_id1}(${short_sha})`);
+      expect(commit.message()).toEqual(`remove: ${_id1}${gitDDB.fileExt}(${short_sha})`);
     }
 
     /**
