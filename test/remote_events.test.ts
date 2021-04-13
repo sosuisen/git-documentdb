@@ -16,6 +16,8 @@ import fs from 'fs-extra';
 import { ChangedFile, RemoteOptions, SyncResultFastForwardMerge } from '../src/types';
 import { sleep } from '../src/utils';
 import {
+  ChangeResult,
+  CommitResult,
   createClonedDatabases,
   createDatabase,
   createRemoteRepository,
@@ -100,21 +102,14 @@ maybe('remote: events: ', () => {
       }
 
       expect(result!.action).toBe('fast-forward merge');
-      expect(result!.commits!.local.length).toBe(1);
-      expect(result!.commits!.local[0].id).toBe(putResult1.commit_sha);
-      expect(result!.changes.local.length).toBe(1);
+
+      expect(result!.commits).toMatchObject({
+        local: CommitResult([putResult1]),
+        remote: [],
+      });
 
       expect(result!.changes.local).toEqual(
-        expect.arrayContaining([
-          {
-            operation: 'create',
-            data: {
-              id: jsonA1._id,
-              file_sha: putResult1.file_sha,
-              doc: jsonA1,
-            },
-          },
-        ])
+        expect.arrayContaining([ChangeResult('create', jsonA1, putResult1)])
       );
 
       await destroyDBs([dbA, dbB]);
@@ -150,18 +145,8 @@ maybe('remote: events: ', () => {
       }
 
       expect(changes.length).toBe(1);
-
       expect(changes).toEqual(
-        expect.arrayContaining([
-          {
-            operation: 'create',
-            data: {
-              id: jsonA1._id,
-              file_sha: putResult1.file_sha,
-              doc: jsonA1,
-            },
-          },
-        ])
+        expect.arrayContaining([ChangeResult('create', jsonA1, putResult1)])
       );
 
       await destroyDBs([dbA, dbB]);
@@ -197,16 +182,7 @@ maybe('remote: events: ', () => {
       expect(changes.length).toBe(1);
 
       expect(changes).toEqual(
-        expect.arrayContaining([
-          {
-            operation: 'create',
-            data: {
-              id: jsonB1._id,
-              file_sha: putResult1.file_sha,
-              doc: jsonB1,
-            },
-          },
-        ])
+        expect.arrayContaining([ChangeResult('create', jsonB1, putResult1)])
       );
 
       await destroyDBs([dbA, dbB]);
