@@ -17,6 +17,8 @@ import {
   compareWorkingDirAndBlobs,
   createDatabase,
   destroyDBs,
+  getChangedFile,
+  getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
 } from './remote_utils';
@@ -76,20 +78,12 @@ maybe('remote: push: ', () => {
       const putResult = await dbA.put(jsonA1);
       const syncResult = await remoteA.tryPush();
       expect(syncResult.action).toBe('push');
-      expect(syncResult.commits!.remote.length).toBe(1);
-      expect(syncResult.commits!.remote[0].id).toBe(putResult.commit_sha);
+      expect(syncResult.commits).toMatchObject({
+        remote: getCommitInfo([putResult]),
+      });
       expect(syncResult.changes.remote.length).toBe(1);
       expect(syncResult.changes.remote).toEqual(
-        expect.arrayContaining([
-          {
-            operation: 'create',
-            data: {
-              id: jsonA1._id,
-              file_sha: putResult.file_sha,
-              doc: jsonA1,
-            },
-          },
-        ])
+        expect.arrayContaining([getChangedFile('create', jsonA1, putResult)])
       );
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
@@ -116,8 +110,9 @@ maybe('remote: push: ', () => {
       const putResult2 = await dbA.put(jsonA1);
       const syncResult2 = await remoteA.tryPush();
       expect(syncResult2.action).toBe('push');
-      expect(syncResult2.commits!.remote.length).toBe(1);
-      expect(syncResult2.commits!.remote[0].id).toBe(putResult2.commit_sha);
+      expect(syncResult2.commits).toMatchObject({
+        remote: getCommitInfo([putResult2]),
+      });
       expect(syncResult2.changes.remote.length).toBe(0); // no change
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
@@ -143,17 +138,13 @@ maybe('remote: push: ', () => {
       const putResult3 = await dbA.put(jsonA1dash);
       const syncResult3 = await remoteA.tryPush();
       expect(syncResult3.action).toBe('push');
-      expect(syncResult3.commits!.remote.length).toBe(1);
-      expect(syncResult3.commits!.remote[0].id).toBe(putResult3.commit_sha);
-      expect(syncResult3.changes.remote.length).toBe(1);
-      expect(syncResult3.changes.remote[0]).toMatchObject({
-        operation: 'update',
-        data: {
-          id: putResult3.id,
-          file_sha: putResult3.file_sha,
-          doc: jsonA1dash,
-        },
+      expect(syncResult3.commits).toMatchObject({
+        remote: getCommitInfo([putResult3]),
       });
+      expect(syncResult3.changes.remote.length).toBe(1);
+      expect(syncResult3.changes.remote[0]).toMatchObject(
+        getChangedFile('update', jsonA1dash, putResult3)
+      );
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
 
@@ -178,17 +169,13 @@ maybe('remote: push: ', () => {
       const putResultA2 = await dbA.put(jsonA2);
       const syncResult = await remoteA.tryPush();
       expect(syncResult.action).toBe('push');
-      expect(syncResult.commits!.remote.length).toBe(1);
-      expect(syncResult.commits!.remote[0].id).toBe(putResultA2.commit_sha);
-      expect(syncResult.changes.remote.length).toBe(1);
-      expect(syncResult.changes.remote[0]).toMatchObject({
-        operation: 'create',
-        data: {
-          id: putResultA2.id,
-          file_sha: putResultA2.file_sha,
-          doc: jsonA2,
-        },
+      expect(syncResult.commits).toMatchObject({
+        remote: getCommitInfo([putResultA2]),
       });
+      expect(syncResult.changes.remote.length).toBe(1);
+      expect(syncResult.changes.remote[0]).toMatchObject(
+        getChangedFile('create', jsonA2, putResultA2)
+      );
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
 
@@ -215,28 +202,15 @@ maybe('remote: push: ', () => {
     const putResult2 = await dbA.put(jsonA2);
     const syncResult = await remoteA.tryPush();
     expect(syncResult.action).toBe('push');
-    expect(syncResult.commits!.remote.length).toBe(2);
-    expect(syncResult.commits!.remote[0].id).toBe(putResult1.commit_sha);
-    expect(syncResult.commits!.remote[1].id).toBe(putResult2.commit_sha);
+
+    expect(syncResult.commits).toMatchObject({
+      remote: getCommitInfo([putResult1, putResult2]),
+    });
     expect(syncResult.changes.remote.length).toBe(2);
     expect(syncResult.changes.remote).toEqual(
       expect.arrayContaining([
-        {
-          operation: 'create',
-          data: {
-            id: putResult1.id,
-            file_sha: putResult1.file_sha,
-            doc: jsonA1,
-          },
-        },
-        {
-          operation: 'create',
-          data: {
-            id: putResult2.id,
-            file_sha: putResult2.file_sha,
-            doc: jsonA2,
-          },
-        },
+        getChangedFile('create', jsonA1, putResult1),
+        getChangedFile('create', jsonA2, putResult2),
       ])
     );
 
@@ -249,28 +223,15 @@ maybe('remote: push: ', () => {
     const putResult3 = await dbA.put(jsonA3);
     const syncResult2 = await remoteA.tryPush();
     expect(syncResult2.action).toBe('push');
-    expect(syncResult2.commits!.remote.length).toBe(2);
-    expect(syncResult2.commits!.remote[0].id).toBe(putResult1dash.commit_sha);
-    expect(syncResult2.commits!.remote[1].id).toBe(putResult3.commit_sha);
+
+    expect(syncResult2.commits).toMatchObject({
+      remote: getCommitInfo([putResult1dash, putResult3]),
+    });
     expect(syncResult2.changes.remote.length).toBe(2);
     expect(syncResult2.changes.remote).toEqual(
       expect.arrayContaining([
-        {
-          operation: 'create',
-          data: {
-            id: putResult3.id,
-            file_sha: putResult3.file_sha,
-            doc: jsonA3,
-          },
-        },
-        {
-          operation: 'update',
-          data: {
-            id: putResult1dash.id,
-            file_sha: putResult1dash.file_sha,
-            doc: jsonA1dash,
-          },
-        },
+        getChangedFile('create', jsonA3, putResult3),
+        getChangedFile('update', jsonA1dash, putResult1dash),
       ])
     );
 
@@ -298,20 +259,13 @@ maybe('remote: push: ', () => {
 
     const syncResult1 = await remoteA.tryPush();
     expect(syncResult1.action).toBe('push');
-    expect(syncResult1.commits!.remote.length).toBe(1);
-    expect(syncResult1.commits!.remote[0].id).toBe(removeResult1.commit_sha);
+
+    expect(syncResult1.commits).toMatchObject({
+      remote: getCommitInfo([removeResult1]),
+    });
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([
-        {
-          operation: 'delete',
-          data: {
-            id: removeResult1.id,
-            file_sha: removeResult1.file_sha,
-            doc: jsonA1,
-          },
-        },
-      ])
+      expect.arrayContaining([getChangedFile('delete', jsonA1, removeResult1)])
     );
 
     expect(getWorkingDirFiles(dbA)).toEqual([]);
@@ -337,9 +291,9 @@ maybe('remote: push: ', () => {
 
     const syncResult1 = await remoteA.tryPush();
     expect(syncResult1.action).toBe('push');
-    expect(syncResult1.commits!.remote.length).toBe(2);
-    expect(syncResult1.commits!.remote[0].id).toBe(putResult1.commit_sha);
-    expect(syncResult1.commits!.remote[1].id).toBe(removeResult1.commit_sha);
+    expect(syncResult1.commits).toMatchObject({
+      remote: getCommitInfo([putResult1, removeResult1]),
+    });
     expect(syncResult1.changes.remote.length).toBe(0); // no change
 
     expect(getWorkingDirFiles(dbA)).toEqual([]);
