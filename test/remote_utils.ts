@@ -3,6 +3,7 @@ import { Octokit } from '@octokit/rest';
 import sinon from 'sinon';
 import nodegit from '@sosuisen/nodegit';
 import {
+  ChangedFile,
   CommitInfo,
   ISync,
   JsonDoc,
@@ -17,7 +18,10 @@ import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-export function CommitResult (
+/**
+ * Get CommitInfo Object Array from args
+ */
+export function getCommitInfo (
   resultOrMessage: (PutResult | RemoveResult | string)[]
 ): CommitInfo[] {
   return resultOrMessage.reduce((acc, current) => {
@@ -41,11 +45,15 @@ export function CommitResult (
   }, [] as CommitInfo[]);
 }
 
-export function ChangeResult (
+/**
+ * Get ChangedFile Object from args
+ * @remarks 'result' must includes file_sha of 'doc'
+ */
+export function getChangedFile (
   operation: WriteOperation,
   doc: JsonDoc,
   result: PutResult | RemoveResult
-) {
+): ChangedFile {
   return {
     operation,
     data: {

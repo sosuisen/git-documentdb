@@ -16,12 +16,12 @@ import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import { SyncResultMergeAndPush, SyncResultResolveConflictsAndPush } from '../src/types';
 import {
-  ChangeResult,
-  CommitResult,
   compareWorkingDirAndBlobs,
   createClonedDatabases,
   createDatabase,
   destroyDBs,
+  getChangedFile,
+  getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
 } from './remote_utils';
@@ -104,8 +104,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: CommitResult([putResultA1, putResultA2, '[resolve conflicts] update-ours: 1']),
-      remote: CommitResult([
+      local: getCommitInfo([
+        putResultA1,
+        putResultA2,
+        '[resolve conflicts] update-ours: 1',
+      ]),
+      remote: getCommitInfo([
         putResultB1,
         putResultB3,
         '[resolve conflicts] update-ours: 1',
@@ -113,14 +117,14 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
-      expect.arrayContaining([ChangeResult('create', jsonA2, putResultA2)])
+      expect.arrayContaining([getChangedFile('create', jsonA2, putResultA2)])
     );
 
     expect(syncResult1.changes.remote.length).toBe(2);
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
-        ChangeResult('create', jsonB3, putResultB3),
-        ChangeResult('update', jsonB1, putResultB1),
+        getChangedFile('create', jsonB3, putResultB3),
+        getChangedFile('update', jsonB1, putResultB1),
       ])
     );
 
@@ -182,8 +186,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: CommitResult([putResultA1, putResultA2, '[resolve conflicts] update-ours: 1']),
-      remote: CommitResult([
+      local: getCommitInfo([
+        putResultA1,
+        putResultA2,
+        '[resolve conflicts] update-ours: 1',
+      ]),
+      remote: getCommitInfo([
         putResultB1,
         putResultB2,
         '[resolve conflicts] update-ours: 1',
@@ -193,7 +201,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([ChangeResult('update', jsonB1, putResultB1)])
+      expect.arrayContaining([getChangedFile('update', jsonB1, putResultB1)])
     );
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -251,12 +259,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: CommitResult([putResultA1, '[resolve conflicts] update-theirs: 1']),
-      remote: CommitResult([putResultB1, '[resolve conflicts] update-theirs: 1']),
+      local: getCommitInfo([putResultA1, '[resolve conflicts] update-theirs: 1']),
+      remote: getCommitInfo([putResultB1, '[resolve conflicts] update-theirs: 1']),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
-      expect.arrayContaining([ChangeResult('update', jsonA1, putResultA1)])
+      expect.arrayContaining([getChangedFile('update', jsonA1, putResultA1)])
     );
 
     expect(syncResult1.changes.remote.length).toBe(0);
@@ -324,12 +332,12 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: CommitResult([
+      local: getCommitInfo([
         putResultA1,
         removeResultA2,
         '[resolve conflicts] update-ours: 1',
       ]),
-      remote: CommitResult([
+      remote: getCommitInfo([
         putResultB1,
         removeResultB2,
         '[resolve conflicts] update-ours: 1',
@@ -339,7 +347,7 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([ChangeResult('update', jsonB1, putResultB1)])
+      expect.arrayContaining([getChangedFile('update', jsonB1, putResultB1)])
     );
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -407,8 +415,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: CommitResult([putResultA1, '[resolve conflicts] update-ours: 1']),
-      remote: CommitResult([
+      local: getCommitInfo([putResultA1, '[resolve conflicts] update-ours: 1']),
+      remote: getCommitInfo([
         putResultB1,
         removeResultB2,
         '[resolve conflicts] update-ours: 1',
@@ -419,8 +427,8 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     expect(syncResult1.changes.remote.length).toBe(2);
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
-        ChangeResult('update', jsonB1, putResultB1),
-        ChangeResult('delete', jsonA2, removeResultB2),
+        getChangedFile('update', jsonB1, putResultB1),
+        getChangedFile('delete', jsonA2, removeResultB2),
       ])
     );
 
@@ -497,21 +505,21 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
-      local: CommitResult([
+      local: getCommitInfo([
         removeResultA1,
         putResultA2,
         '[resolve conflicts] update-ours: 1',
       ]),
-      remote: CommitResult([putResultB1, '[resolve conflicts] update-ours: 1']),
+      remote: getCommitInfo([putResultB1, '[resolve conflicts] update-ours: 1']),
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual(
-      expect.arrayContaining([ChangeResult('create', jsonA2, putResultA2)])
+      expect.arrayContaining([getChangedFile('create', jsonA2, putResultA2)])
     );
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([ChangeResult('create', jsonB1, putResultB1)])
+      expect.arrayContaining([getChangedFile('create', jsonB1, putResultB1)])
     );
 
     expect(syncResult1.conflicts.length).toEqual(1);

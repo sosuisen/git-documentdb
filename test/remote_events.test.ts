@@ -16,18 +16,17 @@ import fs from 'fs-extra';
 import { ChangedFile, RemoteOptions, SyncResultFastForwardMerge } from '../src/types';
 import { sleep } from '../src/utils';
 import {
-  ChangeResult,
-  CommitResult,
   createClonedDatabases,
   createDatabase,
-  createRemoteRepository,
   destroyDBs,
   destroyRemoteRepository,
+  getChangedFile,
+  getCommitInfo,
   removeRemoteRepositories,
 } from './remote_utils';
 import { GitDocumentDB } from '../src';
 import { Sync } from '../src/remote/sync';
-import { NoMergeBaseFoundError, SyncWorkerFetchError } from '../src/error';
+import { SyncWorkerFetchError } from '../src/error';
 
 const reposPrefix = 'test_pat_sync_events___';
 const localDir = `./test/database_remote_events`;
@@ -104,12 +103,12 @@ maybe('remote: events: ', () => {
       expect(result!.action).toBe('fast-forward merge');
 
       expect(result!.commits).toMatchObject({
-        local: CommitResult([putResult1]),
+        local: getCommitInfo([putResult1]),
         remote: [],
       });
 
       expect(result!.changes.local).toEqual(
-        expect.arrayContaining([ChangeResult('create', jsonA1, putResult1)])
+        expect.arrayContaining([getChangedFile('create', jsonA1, putResult1)])
       );
 
       await destroyDBs([dbA, dbB]);
@@ -146,7 +145,7 @@ maybe('remote: events: ', () => {
 
       expect(changes.length).toBe(1);
       expect(changes).toEqual(
-        expect.arrayContaining([ChangeResult('create', jsonA1, putResult1)])
+        expect.arrayContaining([getChangedFile('create', jsonA1, putResult1)])
       );
 
       await destroyDBs([dbA, dbB]);
@@ -182,7 +181,7 @@ maybe('remote: events: ', () => {
       expect(changes.length).toBe(1);
 
       expect(changes).toEqual(
-        expect.arrayContaining([ChangeResult('create', jsonB1, putResult1)])
+        expect.arrayContaining([getChangedFile('create', jsonB1, putResult1)])
       );
 
       await destroyDBs([dbA, dbB]);
