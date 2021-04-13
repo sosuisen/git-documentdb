@@ -525,7 +525,74 @@ maybe('remote: sync: resolve conflicts and push (3-way merge): ', () => {
     await destroyDBs([dbA, dbB]);
   });
 
-  // case 9
+  /**
+   * before:  jsonA1
+   * dbA   : +jsonA1
+   * dbB   : -jsonA1
+   * result:  jsonA1
+   *
+   * 3-way merge:
+   *  jsonA1: 9 - Conflict. Accept theirs (update)
+   */
+  test.only('case 9 - Conflict. Accept theirs (update)', async () => {
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    // A puts and pushes
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    const putResultA1 = await dbA.put(jsonA1);
+    await remoteA.tryPush();
+
+    const dbNameB = serialId();
+    const dbB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbNameB,
+      local_dir: localDir,
+    });
+    // Clone dbA
+    await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
+    const remoteB = dbB.getRemote(remoteA.remoteURL());
+
+    // A updates and pushes
+    const jsonA1dash = { _id: '1', name: 'updated' };
+    const putResultA1dash = await dbA.put(jsonA1dash);
+    await remoteA.tryPush();
+
+    // B removes and syncs
+    const deleteResultB1 = await dbB.remove(jsonA1);
+
+    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    expect(syncResult1.action).toBe('resolve conflicts and push');
+    expect(syncResult1.commits).toMatchObject({
+      local: getCommitInfo([putResultA1dash, '[resolve conflicts] update-theirs: 1']),
+      remote: getCommitInfo([deleteResultB1, '[resolve conflicts] update-theirs: 1']),
+    });
+    expect(syncResult1.changes.local.length).toBe(1);
+    expect(syncResult1.changes.local).toEqual(
+      expect.arrayContaining([getChangedFile('create', jsonA1dash, putResultA1dash)])
+    );
+
+    expect(syncResult1.changes.remote.length).toBe(0);
+
+    expect(syncResult1.conflicts.length).toEqual(1);
+    expect(syncResult1.conflicts).toEqual(
+      expect.arrayContaining([
+        {
+          id: '1',
+          strategy: 'theirs',
+          operation: 'update',
+        },
+      ])
+    );
+    // Conflict occurs on 1.json
+
+    expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
+    expect(getWorkingDirFiles(dbB)).toEqual([jsonA1dash]);
+
+    await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+    await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
+
+
   // case 10
 
   // case 12
