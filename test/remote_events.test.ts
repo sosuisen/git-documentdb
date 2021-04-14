@@ -16,12 +16,14 @@ import fs from 'fs-extra';
 import { ChangedFile, RemoteOptions, SyncResultFastForwardMerge } from '../src/types';
 import { sleep } from '../src/utils';
 import {
+  compareWorkingDirAndBlobs,
   createClonedDatabases,
   createDatabase,
   destroyDBs,
   destroyRemoteRepository,
   getChangedFile,
   getCommitInfo,
+  getWorkingDirFiles,
   removeRemoteRepositories,
 } from './remote_utils';
 import { GitDocumentDB } from '../src';
@@ -109,6 +111,70 @@ maybe('remote: events: ', () => {
       expect(result!.changes.local).toEqual(
         expect.arrayContaining([getChangedFile('create', jsonA1, putResult1)])
       );
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    test('propagate changes between local and remote sites', async () => {
+      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResultA1 = await dbA.put(jsonA1);
+      await remoteA.trySync();
+
+      // B puts and pushes
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      const putResultB1 = await dbB.put(jsonB1);
+
+      let resultA: SyncResultFastForwardMerge | undefined;
+      let completeA = false;
+      remoteA.on('change', syncResult => {
+        resultA = syncResult as SyncResultFastForwardMerge;
+        console.log('A: ' + resultA.action);
+        if (resultA.action === 'fast-forward merge') {
+          completeA = true;
+        }
+      });
+
+      let resultB: SyncResultFastForwardMerge | undefined;
+      remoteB.on('change', syncResult => {
+        resultB = syncResult as SyncResultFastForwardMerge;
+        console.log('B: ' + resultB.action);
+      });
+      let completeB = false;
+      remoteB.on('complete', () => {
+        completeB = true;
+      });
+
+      remoteA.resume({ ...remoteA.options(), interval: 3000 });
+      remoteB.resume({ ...remoteA.options(), interval: 3000 });
+
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!completeA || !completeB) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
+
+      expect(resultA!.action).toBe('fast-forward merge');
+
+      expect(resultA!.changes.local).toEqual(
+        expect.arrayContaining([getChangedFile('update', jsonB1, putResultB1)])
+      );
+
+      expect(resultB!.action).toBe('resolve conflicts and push');
+
+      expect(resultB!.changes.local).toEqual([]);
+
+      expect(getWorkingDirFiles(dbA)).toEqual([jsonB1]);
+      expect(getWorkingDirFiles(dbB)).toEqual([jsonB1]);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
       await destroyDBs([dbA, dbB]);
     });
