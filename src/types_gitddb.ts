@@ -17,7 +17,6 @@ import {
   PutResult,
   RemoveOptions,
   RemoveResult,
-  Task,
 } from './types';
 import { Validator } from './validator';
 
