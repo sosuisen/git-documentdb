@@ -358,7 +358,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
   });
 
   describe('Network errors: ', () => {
-    test('Check CannotConnectError and retries in cloning (HTTPS)', async () => {
+    test('Check CannotConnectError and retries in cloning', async () => {
       const remoteURL = 'https://xyz.invalid/xyz/https_repos';
       const options: RemoteOptions = {
         remote_url: remoteURL,
@@ -380,22 +380,6 @@ maybe('remote: use personal access token: constructor and basic network access: 
       await dbA.destroy();
     });
 
-    test('Check CannotConnectError in cloning (HTTP)', async () => {
-      const remoteURL = 'http://xyz.invalid/xyz/http_repos';
-      const options: RemoteOptions = {
-        remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
-      };
-      const dbNameA = serialId();
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-      await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
-      await dbA.destroy();
-    });
-
-    test('Check ?', async () => {
-    });
+    test('Check ?', async () => {});
   });
 });
