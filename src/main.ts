@@ -15,3 +15,5 @@ export * from './error';
 export * from './index';
 export * from './types';
 export * from './validator';
+export * from './remote/sync';
+export * from './remote/remote_repository';
