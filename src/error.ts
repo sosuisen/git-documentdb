@@ -464,8 +464,8 @@ export class RepositoryNotFoundError extends BaseError {
 /**
  * @public
  */
-export class CannotCloneRepositoryError extends BaseError {
-  constructor (url: string) {
-    super(`Cannot clone repository: ${url}`);
+export class CannotConnectError extends BaseError {
+  constructor (public retry: number, url: string, mes: string) {
+    super(`Cannot connect to ${url}: ${mes}`);
   }
 }

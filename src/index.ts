@@ -12,6 +12,7 @@ import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger } from 'tslog';
 import {
+  CannotConnectError,
   CannotCreateDirectoryError,
   CannotOpenRepositoryError,
   DatabaseCloseTimeoutError,
@@ -49,9 +50,16 @@ import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
 import { createCredential } from './remote/authentication';
 import { TaskQueue } from './task_queue';
-import { FILE_REMOVE_TIMEOUT } from './const';
+import {
+  FILE_REMOVE_TIMEOUT,
+  NETWORK_RETRY,
+  NETWORK_RETRY_INTERVAL,
+  NETWORK_TIMEOUT,
+} from './const';
+import { checkHTTP } from './remote/net';
+import { sleep } from './utils';
 
-// let debugMinLevel = 'trace';
+// const debugMinLevel = 'trace';
 const debugMinLevel = 'info';
 
 const databaseName = 'GitDocumentDB';
@@ -201,7 +209,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link DatabaseExistsError}
    * @throws {@link WorkingDirectoryExistsError}
    * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link CannotCloneRepositoryError}
+   * @throws {@link CannotConnectError}
    */
   async create (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
     if (this.isClosing) {
@@ -228,10 +236,15 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
 
     // Clone repository if remoteURL exists
-    this._currentRepository = await this._cloneRepository(remoteOptions);
+    this._currentRepository = await this._cloneRepository(remoteOptions).catch(
+      (err: Error) => {
+        throw err;
+      }
+    );
 
     if (this._currentRepository === undefined) {
-      // Clone failed. Create remote repository..
+      // Clone failed. Try to create remote repository in sync().
+      // Please check is_clone flag if you would like to know whether clone is succeeded or not.
       this._dbInfo = await this._createRepository();
     }
     else {
@@ -351,21 +364,55 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   private async _cloneRepository (remoteOptions?: RemoteOptions) {
-    /**
-     * TODO: Handle exceptions
-     * If repository exists and cannot clone, you have not permission.
-     * Only 'pull' is allowed.
-     */
-    if (remoteOptions !== undefined && remoteOptions.remote_url !== undefined) {
+    if (
+      remoteOptions !== undefined &&
+      remoteOptions.remote_url !== undefined &&
+      remoteOptions.remote_url !== ''
+    ) {
       const remote = new Sync(this, remoteOptions);
-      return await nodegit.Clone.clone(remoteOptions?.remote_url, this.workingDir(), {
+
+      /**
+       * Retry if network errors.
+       */
+      let result: {
+        ok: boolean;
+        code?: number;
+        error?: Error;
+      } = {
+        ok: false,
+      };
+      let retry = 0;
+      for (; retry < NETWORK_RETRY; retry++) {
+        // eslint-disable-next-line no-await-in-loop
+        result = await checkHTTP(remoteOptions.remote_url!, NETWORK_TIMEOUT);
+        if (result.ok) {
+          break;
+        }
+        else {
+          this.logger.debug(
+            `NetworkError in cloning: ${remoteOptions.remote_url}, ` + result.error
+          );
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(NETWORK_RETRY_INTERVAL);
+      }
+      if (!result.ok) {
+        // Set retry number for code test
+        throw new CannotConnectError(
+          retry,
+          remoteOptions.remote_url,
+          result.error!.toString()
+        );
+      }
+
+      return await nodegit.Clone.clone(remoteOptions.remote_url, this.workingDir(), {
         fetchOpts: {
           callbacks: createCredential(remoteOptions),
         },
       }).catch(err => {
-        this.logger.debug(
-          `Error in _cloneRepository(): ${remoteOptions.remote_url}, ` + err
-        );
+        // Errors except CannotConnectError are handled in sync().
+        this.logger.debug(`Error in cloning: ${remoteOptions.remote_url}, ` + err);
+        // The db will try to create remote repository in sync() if 'undefined' is returned.
         return undefined;
       });
     }

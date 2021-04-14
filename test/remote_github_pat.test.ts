@@ -18,6 +18,7 @@ import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import {
   AuthNeededForPushOrSyncError,
+  CannotConnectError,
   HttpProtocolRequiredError,
   IntervalTooSmallError,
   InvalidRepositoryURLError,
@@ -31,6 +32,7 @@ import {
   destroyRemoteRepository,
   removeRemoteRepositories,
 } from './remote_utils';
+import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../src/const';
 
 const reposPrefix = 'test_pat___';
 const localDir = `./test/database_remote_github_pat`;
@@ -355,5 +357,49 @@ maybe('remote: use personal access token: constructor and basic network access: 
     test.skip('Remove remote repository');
   });
 
-  test.skip('Test network errors');
+  describe('Network errors: ', () => {
+    test('Check CannotConnectError and retries in cloning', async () => {
+      const remoteURL = 'https://xyz.invalid/xyz/testrepos';
+
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
+      await dbA.destroy();
+      const retry = await dbA.create(options).catch((err: CannotConnectError) => {
+        return err.retry;
+      });
+      expect(retry).toBe(NETWORK_RETRY);
+
+      await dbA.destroy();
+    });
+
+    test('Check ?', async () => {
+      const remoteURL = 'https://xyz.invalid/xyz/testrepos';
+
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: { type: 'github', personal_access_token: token },
+      };
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
+      await dbA.destroy();
+      const retry = await dbA.create(options).catch((err: CannotConnectError) => {
+        return err.retry;
+      });
+      expect(retry).toBe(NETWORK_RETRY);
+
+      await dbA.destroy();
+    });
+  });
 });

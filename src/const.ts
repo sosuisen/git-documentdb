@@ -9,3 +9,6 @@
 export const MAX_FILE_PATH_LENGTH = 255;
 export const FILE_REMOVE_TIMEOUT = 7000;
 export const SHORT_SHA_LENGTH = 7;
+export const NETWORK_TIMEOUT = 7000;
+export const NETWORK_RETRY = 3;
+export const NETWORK_RETRY_INTERVAL = 1000;
