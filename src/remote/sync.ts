@@ -323,7 +323,7 @@ export class Sync implements ISync {
   /**
    * Try push to remote
    */
-  tryPush () {
+  tryPush (): Promise<SyncResultPush> {
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResultPush) => void,
@@ -393,7 +393,7 @@ export class Sync implements ISync {
   /**
    * Try synchronization with remote
    */
-  trySync () {
+  trySync (): Promise<SyncResult> {
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResult) => void,
