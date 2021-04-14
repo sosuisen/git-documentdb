@@ -190,6 +190,7 @@ maybe('remote: use personal access token: lifecycle', () => {
         const options: RemoteOptions = {
           remote_url: remoteURL,
           auth: { type: 'github', personal_access_token: token },
+          retry_interval: Sync.defaultRetryInterval + 10000,
         };
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
