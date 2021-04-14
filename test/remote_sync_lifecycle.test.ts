@@ -231,7 +231,7 @@ maybe('remote: use personal access token: lifecycle', () => {
                 {
                   data: {
                     doc: jsonA1,
-                    file_sha: putResultA1,
+                    file_sha: putResultA1.file_sha,
                     id: jsonA1._id,
                   },
                   operation: 'create',
