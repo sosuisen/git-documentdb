@@ -331,7 +331,7 @@ async function getCommitLogs (
   // The list is sorted from old to new.
   const commitInfoList = commitList.map(commit => {
     return {
-      id: commit.id().tostrS(),
+      sha: commit.id().tostrS(),
       date: commit.date(),
       author: commit.author().toString(),
       message: commit.message(),
@@ -869,7 +869,7 @@ export async function sync_worker (
         localCommits = [
           ...commitsFromRemote,
           {
-            id: amendedNewCommit.id().tostrS(),
+            sha: amendedNewCommit.id().tostrS(),
             date: amendedNewCommit.date(),
             author: amendedNewCommit.author().toString(),
             message: amendedNewCommit.message(),
@@ -1015,7 +1015,7 @@ export async function sync_worker (
       localCommits = [
         ...commitsFromRemote,
         {
-          id: overwriteCommit.id().tostrS(),
+          sha: overwriteCommit.id().tostrS(),
           date: overwriteCommit.date(),
           author: overwriteCommit.author().toString(),
           message: overwriteCommit.message(),

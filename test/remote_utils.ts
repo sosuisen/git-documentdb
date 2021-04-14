@@ -27,7 +27,7 @@ export function getCommitInfo (
   return resultOrMessage.reduce((acc, current) => {
     if (typeof current === 'string') {
       acc.push({
-        id: expect.stringMatching(/^.+$/),
+        sha: expect.stringMatching(/^.+$/),
         author: expect.stringMatching(/^.+$/),
         date: expect.any(Date),
         message: current,
@@ -35,7 +35,7 @@ export function getCommitInfo (
     }
     else {
       acc.push({
-        id: current.commit_sha,
+        sha: current.commit_sha,
         author: expect.stringMatching(/^.+$/),
         date: expect.any(Date),
         message: expect.stringMatching(/^.+$/),

@@ -440,7 +440,7 @@ export type ChangedFile = {
  * Commit information
  */
 export type CommitInfo = {
-  id: string;
+  sha: string;
   date: Date;
   author: string;
   message: string;

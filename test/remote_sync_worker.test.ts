@@ -107,7 +107,7 @@ maybe('remote: sync: ', () => {
 
         expect(syncResult1.action).toBe('push');
         expect(syncResult1.commits!.remote.length).toBe(1);
-        expect(syncResult1.commits!.remote[0].id).toBe(putResultA1.commit_sha);
+        expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1.commit_sha);
         expect(syncResult1.changes.remote.length).toBe(1);
         expect(syncResult1.changes.remote).toEqual(
           expect.arrayContaining([getChangedFile('create', jsonA1, putResultA1)])
@@ -138,7 +138,7 @@ maybe('remote: sync: ', () => {
 
         expect(syncResult1.action).toBe('push');
         expect(syncResult1.commits!.remote.length).toBe(1);
-        expect(syncResult1.commits!.remote[0].id).toBe(deleteResultA1.commit_sha);
+        expect(syncResult1.commits!.remote[0].sha).toBe(deleteResultA1.commit_sha);
         expect(syncResult1.changes.remote.length).toBe(1);
         expect(syncResult1.changes.remote).toEqual(
           expect.arrayContaining([getChangedFile('delete', jsonA1, deleteResultA1)])
@@ -169,7 +169,7 @@ maybe('remote: sync: ', () => {
 
         expect(syncResult1.action).toBe('push');
         expect(syncResult1.commits!.remote.length).toBe(1);
-        expect(syncResult1.commits!.remote[0].id).toBe(putResultA1dash.commit_sha);
+        expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1dash.commit_sha);
         expect(syncResult1.changes.remote.length).toBe(1);
         expect(syncResult1.changes.remote).toEqual(
           expect.arrayContaining([getChangedFile('update', jsonA1dash, putResultA1dash)])
@@ -206,7 +206,7 @@ maybe('remote: sync: ', () => {
         const syncResult1 = (await remoteB.trySync()) as SyncResultFastForwardMerge;
         expect(syncResult1.action).toBe('fast-forward merge');
         expect(syncResult1.commits!.local.length).toBe(1);
-        expect(syncResult1.commits!.local[0].id).toBe(putResult1.commit_sha);
+        expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commit_sha);
         expect(syncResult1.changes.local.length).toBe(1);
         expect(syncResult1.changes.local).toEqual(
           expect.arrayContaining([getChangedFile('create', jsonA1, putResult1)])
@@ -248,8 +248,8 @@ maybe('remote: sync: ', () => {
         const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
         expect(syncResult1.action).toBe('fast-forward merge');
         expect(syncResult1.commits!.local.length).toBe(2);
-        expect(syncResult1.commits!.local[0].id).toBe(putResult1.commit_sha);
-        expect(syncResult1.commits!.local[1].id).toBe(putResult2.commit_sha);
+        expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commit_sha);
+        expect(syncResult1.commits!.local[1].sha).toBe(putResult2.commit_sha);
         expect(syncResult1.changes.local.length).toBe(2);
         expect(syncResult1.changes.local).toEqual(
           expect.arrayContaining([
@@ -298,9 +298,9 @@ maybe('remote: sync: ', () => {
         expect(syncResult1.action).toBe('merge and push');
         expect(syncResult1.commits!.local.length).toBe(2); // put commit and merge commit
         expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
-        expect(syncResult1.commits!.local[0].id).toBe(putResultA1.commit_sha);
+        expect(syncResult1.commits!.local[0].sha).toBe(putResultA1.commit_sha);
         expect(syncResult1.commits!.local[1].message).toBe('merge');
-        expect(syncResult1.commits!.remote[0].id).toBe(putResultB2.commit_sha);
+        expect(syncResult1.commits!.remote[0].sha).toBe(putResultB2.commit_sha);
         expect(syncResult1.commits!.remote[1].message).toBe('merge');
 
         expect(syncResult1.changes.local.length).toBe(1);
