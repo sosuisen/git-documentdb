@@ -358,9 +358,8 @@ maybe('remote: use personal access token: constructor and basic network access: 
   });
 
   describe('Network errors: ', () => {
-    test('Check CannotConnectError and retries in cloning', async () => {
-      const remoteURL = 'https://xyz.invalid/xyz/testrepos';
-
+    test('Check CannotConnectError and retries in cloning (HTTPS)', async () => {
+      const remoteURL = 'https://xyz.invalid/xyz/https_repos';
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
@@ -372,6 +371,7 @@ maybe('remote: use personal access token: constructor and basic network access: 
       });
       await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
       await dbA.destroy();
+
       const retry = await dbA.create(options).catch((err: CannotConnectError) => {
         return err.retry;
       });
@@ -380,9 +380,8 @@ maybe('remote: use personal access token: constructor and basic network access: 
       await dbA.destroy();
     });
 
-    test('Check ?', async () => {
-      const remoteURL = 'https://xyz.invalid/xyz/testrepos';
-
+    test('Check CannotConnectError in cloning (HTTP)', async () => {
+      const remoteURL = 'http://xyz.invalid/xyz/http_repos';
       const options: RemoteOptions = {
         remote_url: remoteURL,
         auth: { type: 'github', personal_access_token: token },
@@ -394,12 +393,9 @@ maybe('remote: use personal access token: constructor and basic network access: 
       });
       await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
       await dbA.destroy();
-      const retry = await dbA.create(options).catch((err: CannotConnectError) => {
-        return err.retry;
-      });
-      expect(retry).toBe(NETWORK_RETRY);
+    });
 
-      await dbA.destroy();
+    test('Check ?', async () => {
     });
   });
 });
