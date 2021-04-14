@@ -24,7 +24,8 @@ import {
   Task,
 } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
-import { push_worker, sync_worker } from './sync_worker';
+import { sync_worker } from './sync_worker';
+import { push_worker } from './push_worker';
 import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 
