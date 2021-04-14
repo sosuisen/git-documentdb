@@ -8,14 +8,14 @@
 
 ```typescript
 export declare type SyncResultFastForwardMerge = {
-    operation: 'fast-forward merge';
+    action: 'fast-forward merge';
     changes: {
-        local: FileChanges;
+        local: ChangedFile[];
     };
     commits?: {
         local: CommitInfo[];
     };
 };
 ```
-<b>References:</b> [FileChanges](./git-documentdb.filechanges.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
 

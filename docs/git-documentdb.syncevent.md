@@ -9,5 +9,5 @@ SyncEvent
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' | 'error';
+export declare type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | 'active' | 'start' | 'complete' | 'error';
 ```

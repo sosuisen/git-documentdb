@@ -8,10 +8,10 @@
 
 ```typescript
 export declare type SyncResultMergeAndPush = {
-    operation: 'merge and push';
+    action: 'merge and push';
     changes: {
-        local: FileChanges;
-        remote: FileChanges;
+        local: ChangedFile[];
+        remote: ChangedFile[];
     };
     commits?: {
         local: CommitInfo[];
@@ -19,5 +19,5 @@ export declare type SyncResultMergeAndPush = {
     };
 };
 ```
-<b>References:</b> [FileChanges](./git-documentdb.filechanges.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
 

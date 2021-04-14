@@ -15,8 +15,9 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  Class | Description |
 |  --- | --- |
 |  [AuthNeededForPushOrSyncError](./git-documentdb.authneededforpushorsyncerror.md) |  |
-|  [CannotCloneRepositoryError](./git-documentdb.cannotclonerepositoryerror.md) |  |
+|  [CannotConnectError](./git-documentdb.cannotconnecterror.md) |  |
 |  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
+|  [CannotCreateRemoteRepository](./git-documentdb.cannotcreateremoterepository.md) |  |
 |  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
 |  [CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md) |  |
 |  [CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md) |  |
@@ -28,6 +29,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
 |  [FileRemoveTimeoutError](./git-documentdb.fileremovetimeouterror.md) |  |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | <b><i>(BETA)</i></b> Main class of GitDocumentDB |
+|  [HTTPNetworkError](./git-documentdb.httpnetworkerror.md) |  |
 |  [HttpProtocolRequiredError](./git-documentdb.httpprotocolrequirederror.md) |  |
 |  [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) |  |
 |  [InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md) |  |
@@ -50,9 +52,13 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [PushAuthenticationError](./git-documentdb.pushauthenticationerror.md) |  |
 |  [PushPermissionDeniedError](./git-documentdb.pushpermissiondeniederror.md) |  |
 |  [RemoteAlreadyRegisteredError](./git-documentdb.remotealreadyregisterederror.md) |  |
+|  [RemoteRepository](./git-documentdb.remoterepository.md) |  |
 |  [RemoteRepositoryNotFoundError](./git-documentdb.remoterepositorynotfounderror.md) |  |
 |  [RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) |  |
 |  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
+|  [RequestTimeoutError](./git-documentdb.requesttimeouterror.md) |  |
+|  [SocketTimeoutError](./git-documentdb.sockettimeouterror.md) |  |
+|  [Sync](./git-documentdb.sync.md) | Sync class |
 |  [SyncWorkerFetchError](./git-documentdb.syncworkerfetcherror.md) |  |
 |  [UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md) |  |
 |  [UndefinedDBError](./git-documentdb.undefineddberror.md) |  |
@@ -62,6 +68,12 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) |  |
 |  [UnresolvedHostError](./git-documentdb.unresolvedhosterror.md) |  |
 |  [WorkingDirectoryExistsError](./git-documentdb.workingdirectoryexistserror.md) |  |
+
+## Functions
+
+|  Function | Description |
+|  --- | --- |
+|  [syncImpl(this, options)](./git-documentdb.syncimpl.md) |  |
 
 ## Interfaces
 
@@ -73,10 +85,11 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [AcceptedConflicts](./git-documentdb.acceptedconflicts.md) | Accepted Conflicts<!-- -->This shows which stage is accepted when a conflict occurs. |
+|  [AcceptedConflict](./git-documentdb.acceptedconflict.md) | Accepted Conflict |
 |  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | Options for allDocs() |
 |  [AllDocsResult](./git-documentdb.alldocsresult.md) | Result of allDocs() |
 |  [BehaviorForNoMergeBase](./git-documentdb.behaviorfornomergebase.md) | Behavior when no merge base nop: (default) theirs: remove local repository and git clone &lt;<!-- -->remote repository<!-- -->&gt; ours: git merge -s ours &lt;<!-- -->remote branch<!-- -->&gt; |
+|  [ChangedFile](./git-documentdb.changedfile.md) | Changed file in merge operation |
 |  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
 |  [CommitInfo](./git-documentdb.commitinfo.md) | Commit information |
 |  [ConflictResolveStrategies](./git-documentdb.conflictresolvestrategies.md) | Strategy for resolving conflicts |
@@ -86,7 +99,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md) | Database information (success) |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
 |  [DocMetadata](./git-documentdb.docmetadata.md) | Type for a document metadata |
-|  [FileChanges](./git-documentdb.filechanges.md) | Changed files in merge |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
@@ -111,4 +123,5 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [Task](./git-documentdb.task.md) | Task for taskQueue |
 |  [TaskLabel](./git-documentdb.tasklabel.md) | TaskLabel DatabaseStatistics.taskCount must have the same members. |
 |  [TaskStatistics](./git-documentdb.taskstatistics.md) | Task Statistics |
+|  [WriteOperation](./git-documentdb.writeoperation.md) | Write operation |
 

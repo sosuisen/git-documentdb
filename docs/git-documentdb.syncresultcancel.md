@@ -8,6 +8,6 @@
 
 ```typescript
 export declare type SyncResultCancel = {
-    operation: 'canceled';
+    action: 'canceled';
 };
 ```

@@ -37,7 +37,7 @@ Database information
 
 [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md)
 
-[CannotCloneRepositoryError](./git-documentdb.cannotclonerepositoryerror.md)
+[CannotConnectError](./git-documentdb.cannotconnecterror.md)
 
 ## Remarks
 

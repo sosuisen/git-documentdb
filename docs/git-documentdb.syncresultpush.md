@@ -8,14 +8,14 @@
 
 ```typescript
 export declare type SyncResultPush = {
-    operation: 'push';
+    action: 'push';
     changes: {
-        remote: FileChanges;
+        remote: ChangedFile[];
     };
     commits?: {
         remote: CommitInfo[];
     };
 };
 ```
-<b>References:</b> [FileChanges](./git-documentdb.filechanges.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
 

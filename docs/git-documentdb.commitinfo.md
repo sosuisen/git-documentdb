@@ -10,7 +10,7 @@ Commit information
 
 ```typescript
 export declare type CommitInfo = {
-    id: string;
+    sha: string;
     date: Date;
     author: string;
     message: string;

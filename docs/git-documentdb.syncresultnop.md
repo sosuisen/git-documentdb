@@ -8,6 +8,6 @@
 
 ```typescript
 export declare type SyncResultNop = {
-    operation: 'nop';
+    action: 'nop';
 };
 ```

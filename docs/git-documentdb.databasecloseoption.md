@@ -17,7 +17,7 @@ export declare type DatabaseCloseOption = {
 
 ## Remarks
 
-- force: Clear queued operations immediately.
+- force: Clear queued tasks immediately.
 
-- timeout: Clear queued operation after timeout(msec). Default is 10000.
+- timeout: Clear queued tasks after timeout(msec). Default is 10000.
 

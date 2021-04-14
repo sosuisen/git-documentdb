@@ -8,17 +8,17 @@
 
 ```typescript
 export declare type SyncBaseType = {
-    operation: string;
+    action: string;
     changes?: {
-        local?: FileChanges;
-        remote?: FileChanges;
+        local?: ChangedFile[];
+        remote?: ChangedFile[];
     };
-    conflicts: AcceptedConflicts;
+    conflicts: AcceptedConflict[];
     commits?: {
         local?: CommitInfo[];
         remote?: CommitInfo[];
     };
 };
 ```
-<b>References:</b> [FileChanges](./git-documentdb.filechanges.md)<!-- -->, [AcceptedConflicts](./git-documentdb.acceptedconflicts.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [AcceptedConflict](./git-documentdb.acceptedconflict.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
 

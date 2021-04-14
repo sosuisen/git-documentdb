@@ -12,6 +12,7 @@ Type for a document metadata
 export declare type DocMetadata = {
     id: string;
     file_sha: string;
+    type?: 'json' | 'raw';
 };
 ```
 
@@ -20,4 +21,6 @@ export declare type DocMetadata = {
 - id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
 
 - file\_sha: SHA-1 hash of Git object (40 characters)
+
+- type: Default is 'json'.
 

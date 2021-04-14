@@ -23,5 +23,5 @@ getRemote(remoteURL: string): Sync;
 
 <b>Returns:</b>
 
-Sync
+[Sync](./git-documentdb.sync.md)
 

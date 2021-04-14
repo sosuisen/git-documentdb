@@ -8,15 +8,10 @@ import { Logger } from 'tslog';
 import nodegit from '@sosuisen/nodegit';
 
 // @public
-export type AcceptedConflicts = {
-    ours: {
-        put: string[];
-        remove: string[];
-    };
-    theirs: {
-        put: string[];
-        remove: string[];
-    };
+export type AcceptedConflict = {
+    target: DocMetadata;
+    strategy: 'ours' | 'theirs';
+    operation: WriteOperation;
 };
 
 // @public
@@ -45,13 +40,20 @@ export class AuthNeededForPushOrSyncError extends BaseError {
 export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
 
 // @public (undocumented)
-export class CannotCloneRepositoryError extends BaseError {
-    constructor(url: string);
+export class CannotConnectError extends BaseError {
+    constructor(retry: number, url: string, mes: string);
+    // (undocumented)
+    retry: number;
 }
 
 // @public (undocumented)
 export class CannotCreateDirectoryError extends BaseError {
     constructor(e?: string);
+}
+
+// @public (undocumented)
+export class CannotCreateRemoteRepository extends BaseError {
+    constructor(reason: string);
 }
 
 // @public (undocumented)
@@ -73,6 +75,12 @@ export class CannotPushBecauseUnfetchedCommitExistsError extends BaseError {
 export class CannotWriteDataError extends BaseError {
     constructor(e?: string);
 }
+
+// @public
+export type ChangedFile = {
+    operation: WriteOperation;
+    data: JsonDocWithMetadata;
+};
 
 // Warning: (ae-forgotten-export) The symbol "CRUDInterface" needs to be exported by the entry point main.d.ts
 //
@@ -99,7 +107,7 @@ export type CollectionPath = string;
 
 // @public
 export type CommitInfo = {
-    id: string;
+    sha: string;
     date: Date;
     author: string;
     message: string;
@@ -157,19 +165,13 @@ export type DatabaseOption = {
 export type DocMetadata = {
     id: string;
     file_sha: string;
+    type?: 'json' | 'raw';
 };
 
 // @public (undocumented)
 export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
 }
-
-// @public
-export type FileChanges = {
-    add: JsonDocWithMetadata[];
-    remove: DocMetadata[];
-    modify: JsonDocWithMetadata[];
-};
 
 // @public (undocumented)
 export class FileRemoveTimeoutError extends BaseError {
@@ -193,7 +195,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }>;
     readonly fileExt = ".json";
     get(docId: string): Promise<JsonDoc>;
-    // Warning: (ae-forgotten-export) The symbol "Sync" needs to be exported by the entry point main.d.ts
     getRemote(remoteURL: string): Sync;
     getRemoteURLs(): string[];
     readonly gitAuthor: {
@@ -221,6 +222,11 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     validator: Validator;
     workingDir(): string;
     }
+
+// @public (undocumented)
+export class HTTPNetworkError extends BaseError {
+    constructor(mes: string);
+}
 
 // @public (undocumented)
 export class HttpProtocolRequiredError extends BaseError {
@@ -317,15 +323,45 @@ export interface ISync {
     // (undocumented)
     author: nodegit.Signature;
     // (undocumented)
+    cancel(): void;
+    // (undocumented)
     committer: nodegit.Signature;
     // (undocumented)
     credential_callbacks: {
         [key: string]: any;
     };
     // (undocumented)
+    currentRetries: () => number;
+    // (undocumented)
+    eventHandlers: {
+        change: ((syncResult: SyncResult) => void)[];
+        localChange: ((changedFiles: ChangedFile[]) => void)[];
+        remoteChange: ((changedFiles: ChangedFile[]) => void)[];
+        paused: (() => void)[];
+        active: (() => void)[];
+        start: ((taskId: string, currentRetries: number) => void)[];
+        complete: ((taskId: string) => void)[];
+        error: ((error: Error) => void)[];
+    };
+    // (undocumented)
+    off(event: SyncEvent, callback: (result?: any) => void): void;
+    // (undocumented)
+    on(event: SyncEvent, callback: (result?: any) => void): void;
+    // (undocumented)
     options(): RemoteOptions;
     // (undocumented)
+    pause(): void;
+    // (undocumented)
     remoteURL(): string;
+    // (undocumented)
+    resume(options?: {
+        interval?: number;
+        retry?: number;
+    }): void;
+    // (undocumented)
+    tryPush(): Promise<SyncResultPush>;
+    // (undocumented)
+    trySync(): Promise<SyncResult>;
     // (undocumented)
     upstream_branch: string;
 }
@@ -410,6 +446,16 @@ export type RemoteOptions = {
 };
 
 // @public (undocumented)
+export class RemoteRepository {
+    constructor(remoteURL: string, auth?: RemoteAuth);
+    connect(repos: nodegit.Repository, credential_callbacks: {
+        [key: string]: any;
+    }, onlyFetch?: boolean): Promise<string[]>;
+    create(): Promise<void>;
+    destroy(): Promise<void>;
+    }
+
+// @public (undocumented)
 export class RemoteRepositoryNotFoundError extends BaseError {
     constructor(url: string);
 }
@@ -438,13 +484,76 @@ export class RepositoryNotOpenError extends BaseError {
 }
 
 // @public (undocumented)
-export type SyncBaseType = {
-    operation: string;
-    changes?: {
-        local?: FileChanges;
-        remote?: FileChanges;
+export class RequestTimeoutError extends BaseError {
+    constructor(url: string);
+}
+
+// @public (undocumented)
+export class SocketTimeoutError extends BaseError {
+    constructor(url: string);
+}
+
+// @public
+export class Sync implements ISync {
+    constructor(_gitDDB: AbstractDocumentDB, _options?: RemoteOptions);
+    // (undocumented)
+    author: nodegit.Signature;
+    cancel(): boolean;
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    committer: nodegit.Signature;
+    // (undocumented)
+    credential_callbacks: {
+        [key: string]: any;
     };
-    conflicts: AcceptedConflicts;
+    // (undocumented)
+    currentRetries(): number;
+    // (undocumented)
+    static defaultRetry: number;
+    // (undocumented)
+    static defaultRetryInterval: number;
+    // (undocumented)
+    static defaultSyncInterval: number;
+    // (undocumented)
+    eventHandlers: {
+        change: ((syncResult: SyncResult) => void)[];
+        localChange: ((changedFiles: ChangedFile[]) => void)[];
+        remoteChange: ((changedFiles: ChangedFile[]) => void)[];
+        paused: (() => void)[];
+        active: (() => void)[];
+        start: ((taskId: string, currentRetries: number) => void)[];
+        complete: ((taskId: string) => void)[];
+        error: ((error: Error) => void)[];
+    };
+    init(repos: nodegit.Repository): Promise<SyncResult>;
+    // (undocumented)
+    static minimumSyncInterval: number;
+    // (undocumented)
+    off(event: SyncEvent, callback: (result?: any) => void): this;
+    // (undocumented)
+    on(event: SyncEvent, callback: (result?: any) => void): this;
+    options(): any;
+    pause(): boolean;
+    remoteURL(): string;
+    resume(options?: {
+        interval?: number;
+        retry?: number;
+    }): boolean;
+    tryPush(): Promise<SyncResultPush>;
+    trySync(): Promise<SyncBaseType | SyncResultNop| SyncResultPush | SyncResultFastForwardMerge| SyncResultMergeAndPush| SyncResultResolveConflictsAndPush| SyncResultCancel>;
+    // (undocumented)
+    upstream_branch: string;
+}
+
+// @public (undocumented)
+export type SyncBaseType = {
+    action: string;
+    changes?: {
+        local?: ChangedFile[];
+        remote?: ChangedFile[];
+    };
+    conflicts: AcceptedConflict[];
     commits?: {
         local?: CommitInfo[];
         remote?: CommitInfo[];
@@ -455,21 +564,24 @@ export type SyncBaseType = {
 export type SyncDirection = 'pull' | 'push' | 'both';
 
 // @public
-export type SyncEvent = 'change' | 'paused' | 'active' | 'denied' | 'complete' | 'error';
+export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | 'active' | 'start' | 'complete' | 'error';
+
+// @public (undocumented)
+export function syncImpl(this: AbstractDocumentDB, options?: RemoteOptions): Promise<Sync>;
 
 // @public
 export type SyncResult = SyncBaseType | SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;
 
 // @public (undocumented)
 export type SyncResultCancel = {
-    operation: 'canceled';
+    action: 'canceled';
 };
 
 // @public (undocumented)
 export type SyncResultFastForwardMerge = {
-    operation: 'fast-forward merge';
+    action: 'fast-forward merge';
     changes: {
-        local: FileChanges;
+        local: ChangedFile[];
     };
     commits?: {
         local: CommitInfo[];
@@ -478,10 +590,10 @@ export type SyncResultFastForwardMerge = {
 
 // @public (undocumented)
 export type SyncResultMergeAndPush = {
-    operation: 'merge and push';
+    action: 'merge and push';
     changes: {
-        local: FileChanges;
-        remote: FileChanges;
+        local: ChangedFile[];
+        remote: ChangedFile[];
     };
     commits?: {
         local: CommitInfo[];
@@ -491,14 +603,14 @@ export type SyncResultMergeAndPush = {
 
 // @public (undocumented)
 export type SyncResultNop = {
-    operation: 'nop';
+    action: 'nop';
 };
 
 // @public (undocumented)
 export type SyncResultPush = {
-    operation: 'push';
+    action: 'push';
     changes: {
-        remote: FileChanges;
+        remote: ChangedFile[];
     };
     commits?: {
         remote: CommitInfo[];
@@ -507,12 +619,12 @@ export type SyncResultPush = {
 
 // @public (undocumented)
 export type SyncResultResolveConflictsAndPush = {
-    operation: 'resolve conflicts and push';
+    action: 'resolve conflicts and push';
     changes: {
-        local: FileChanges;
-        remote: FileChanges;
+        local: ChangedFile[];
+        remote: ChangedFile[];
     };
-    conflicts: AcceptedConflicts;
+    conflicts: AcceptedConflict[];
     commits?: {
         local: CommitInfo[];
         remote: CommitInfo[];
@@ -608,6 +720,9 @@ export class Validator {
 export class WorkingDirectoryExistsError extends BaseError {
     constructor();
 }
+
+// @public
+export type WriteOperation = 'create' | 'update' | 'delete';
 
 
 ```

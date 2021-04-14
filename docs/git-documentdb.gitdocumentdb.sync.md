@@ -24,7 +24,7 @@ sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
 
 <b>Returns:</b>
 
-Promise&lt;Sync&gt;
+Promise&lt;[Sync](./git-documentdb.sync.md)<!-- -->&gt;
 
 ## Remarks
 
