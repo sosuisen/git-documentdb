@@ -9,6 +9,7 @@
 import nodegit from '@sosuisen/nodegit';
 import { Octokit } from '@octokit/rest';
 import {
+  CannotCreateRemoteRepository,
   InvalidSSHKeyFormatError,
   InvalidURLFormatError,
   PushAuthenticationError,
@@ -39,6 +40,16 @@ export class RemoteRepository {
    * Create repository on remote site
    * @remarks
    * auth.type must be 'github'
+   * @throws {@link UndefinedPersonalAccessTokenError}
+   * @throws May throw following errors:
+   *
+   *  - HttpError
+   *
+   *  - Authentication error
+   *
+   *  - Permission error
+   *
+   *  - Other network errors
    */
   async create () {
     if (this._auth?.type === 'github') {
@@ -50,14 +61,15 @@ export class RemoteRepository {
       const repo = urlArray[urlArray.length - 1];
       await this._octokit!.repos.createForAuthenticatedUser({
         name: repo,
+      }).catch(err => {
+        // May throw HttpError if the repository which has the same name already exists.
+        // HttpError: Repository creation failed.:
+        // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
+        throw err;
       });
-      // May throw HttpError
-      // HttpError: Repository creation failed.:
-      // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
     }
     else {
-      // TODO:
-      throw new Error('Cannot create remote repository because auth type is not github');
+      throw new Error('Auth type must be github.');
     }
   }
 
@@ -128,11 +140,8 @@ export class RemoteRepository {
     if (remoteResult === 'create') {
       // Try to create repository by octokit
       await this.create().catch(err => {
-        // Expected errors:
-        //  - The private repository which has the same name exists.
-        //  - Authentication error
-        //  - Permission error
-        throw err;
+        // App may check permission or
+        throw new CannotCreateRemoteRepository(err.message);
       });
     }
     else {

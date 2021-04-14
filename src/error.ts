@@ -496,3 +496,12 @@ export class HTTPNetworkError extends BaseError {
     super(`HTTPNetworkError: ${mes}`);
   }
 }
+
+/**
+ * @public
+ */
+export class CannotCreateRemoteRepository extends BaseError {
+  constructor (reason: string) {
+    super(`Cannot create remote repository: ${reason}`);
+  }
+}
