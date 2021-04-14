@@ -14,9 +14,7 @@ import { ConsoleStyle } from '../utils';
 import {
   CannotCreateDirectoryError,
   CannotDeleteDataError,
-  CannotPushBecauseUnfetchedCommitExistsError,
   InvalidConflictStateError,
-  InvalidJsonObjectError,
   NoMergeBaseFoundError,
   RepositoryNotOpenError,
   SyncWorkerFetchError,
@@ -24,93 +22,15 @@ import {
 import { AbstractDocumentDB } from '../types_gitddb';
 import {
   AcceptedConflict,
-  ChangedFile,
   CommitInfo,
   ConflictResolveStrategies,
-  DocMetadata,
   ISync,
-  JsonDoc,
   SyncResult,
   SyncResultMergeAndPush,
-  SyncResultPush,
   SyncResultResolveConflictsAndPush,
 } from '../types';
-
-/**
- * git push
- */
-async function push (
-  gitDDB: AbstractDocumentDB,
-  sync: ISync,
-  taskId: string
-): Promise<nodegit.Commit | undefined> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) return;
-  const remote: nodegit.Remote = await repos.getRemote('origin');
-  await remote
-    .push(['refs/heads/main:refs/heads/main'], {
-      callbacks: sync.credential_callbacks,
-    })
-    .catch((err: Error) => {
-      if (
-        err.message.startsWith(
-          'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
-        )
-      ) {
-        throw new CannotPushBecauseUnfetchedCommitExistsError();
-      }
-      throw err;
-    });
-  // gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
-  const headCommit = await validatePushResult(gitDDB, sync, taskId);
-  return headCommit;
-}
-
-/**
- * Remote.push does not return valid error in race condition,
- * so check is needed.
- */
-async function validatePushResult (
-  gitDDB: AbstractDocumentDB,
-  sync: ISync,
-  taskId: string
-): Promise<nodegit.Commit | undefined> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) return undefined;
-  /*
-  gitDDB.logger.debug(
-    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: Check if pushed.`
-  );
-  */
-  await repos
-    .fetch('origin', {
-      callbacks: sync.credential_callbacks,
-    })
-    .catch(err => {
-      throw new SyncWorkerFetchError(err.message);
-    });
-
-  const localCommit = await repos.getHeadCommit();
-  const remoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
-  // @types/nodegit is wrong
-  const distance = ((await nodegit.Graph.aheadBehind(
-    repos,
-    localCommit.id(),
-    remoteCommit.id()
-  )) as unknown) as { ahead: number; behind: number };
-
-  if (distance.ahead !== 0 || distance.behind !== 0) {
-    gitDDB.logger.debug(
-      ConsoleStyle.BgWhite()
-        .FgBlack()
-        .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
-    );
-
-    throw new CannotPushBecauseUnfetchedCommitExistsError();
-  }
-
-  return localCommit;
-}
+import { push_worker } from './push_worker';
+import { getChanges, getCommitLogs, getDocument } from './worker_utils';
 
 /**
  * git fetch
@@ -170,177 +90,6 @@ function resolveNoMergeBase (sync: ISync) {
 }
 
 /**
- * Get document
- */
-async function getDocument (gitDDB: AbstractDocumentDB, id: string, fileOid: nodegit.Oid) {
-  const blob = await gitDDB.repository()?.getBlob(fileOid);
-  let document: JsonDoc | undefined;
-  if (blob) {
-    try {
-      document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
-      // _id in a document may differ from _id in a filename by mistake.
-      // _id in a file is SSOT.
-      // Overwrite _id in a document by _id in arguments
-      document._id = id;
-    } catch (e) {
-      throw new InvalidJsonObjectError();
-    }
-  }
-  return document;
-}
-
-/**
- * Get changed files
- */
-async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
-  const changes: ChangedFile[] = [];
-  for (let i = 0; i < diff.numDeltas(); i++) {
-    const delta = diff.getDelta(i);
-    // https://libgit2.org/libgit2/#HEAD/type/git_diff_delta
-    // Both oldFile() and newFile() will return the same file to show diffs.
-    /*
-    console.log(
-      `changed old: ${delta.oldFile().path()}, ${delta.oldFile().flags().toString(2)}`
-    );
-    console.log(
-      `        new: ${delta.newFile().path()}, ${delta.newFile().flags().toString(2)}`
-    );
-    */
-    /**
-     * flags:
-     * https://libgit2.org/libgit2/#HEAD/type/git_diff_flag_t
-     * The fourth bit represents whether file exists at this side of the delta or not.
-     * [a file is removed]
-     * changed old: test.txt, 1100
-     *         new: test.txt,  100
-     * [a file is added]
-     * changed old: test.txt,  100
-     *         new: test.txt, 1100
-     * [a file is modified]
-     * changed old: test.txt, 1100
-     *         new: test.txt, 1100
-     */
-
-    const oldExist = delta.oldFile().flags() >> 3;
-    const newExist = delta.newFile().flags() >> 3;
-
-    const docId = delta
-      .newFile()
-      .path()
-      .replace(new RegExp(gitDDB.fileExt + '$'), '');
-    const oldDocMetadata: DocMetadata = {
-      id: docId,
-      file_sha: delta.oldFile().id().tostrS(),
-    };
-    const newDocMetadata: DocMetadata = {
-      id: docId,
-      file_sha: delta.newFile().id().tostrS(),
-    };
-    if (oldExist && !newExist) {
-      // Use oldFile. newFile is empty when removed.
-      changes.push({
-        operation: 'delete',
-        data: {
-          ...oldDocMetadata,
-          // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(gitDDB, docId, delta.oldFile().id()),
-        },
-      });
-    }
-    else if (!oldExist && newExist) {
-      changes.push({
-        operation: 'create',
-        data: {
-          ...newDocMetadata,
-          // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(gitDDB, docId, delta.newFile().id()),
-        },
-      });
-    }
-    else if (oldExist && newExist) {
-      changes.push({
-        operation: 'update',
-        data: {
-          ...newDocMetadata,
-          // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(gitDDB, docId, delta.newFile().id()),
-        },
-      });
-    }
-  }
-
-  return changes;
-}
-
-/**
- * Get commit logs newer than an oldCommit, until a newCommit
- *
- * @remarks
- * - This will leak memory. It may be a bug in NodeGit 0.27.
- *
- * - Logs are sorted from old to new.
- *
- * - oldCommit is not included to return value.
- *
- * @beta
- */
-async function getCommitLogs (
-  oldCommit: nodegit.Commit,
-  newCommit: nodegit.Commit
-): Promise<CommitInfo[]> {
-  const endId = oldCommit.id().tostrS();
-
-  /**
-   * TODO: Use RevWalk instead of Commit.history()
-   * Using history() is inefficient.
-   */
-
-  // Walk the history from this commit backwards.
-  const history = newCommit.history();
-  const commitList = await new Promise<nodegit.Commit[]>((resolve, reject) => {
-    const list: nodegit.Commit[] = [];
-    const onCommit = (commit: nodegit.Commit) => {
-      if (commit.id().tostrS() === endId) {
-        history.removeAllListeners();
-        resolve(list);
-      }
-      else {
-        list.unshift(commit);
-      }
-    };
-    const onEnd = (commits: nodegit.Commit[]) => {
-      console.log(
-        JSON.stringify(
-          commits.map(commit => {
-            return { id: commit.id, message: commit.message };
-          })
-        )
-      );
-      history.removeAllListeners();
-      reject(new Error('Unexpected end of walking commit history'));
-    };
-    const onError = (error: Error) => {
-      history.removeAllListeners();
-      reject(error);
-    };
-    history.on('commit', onCommit);
-    history.on('end', onEnd);
-    history.on('error', onError);
-    history.start();
-  });
-  // The list is sorted from old to new.
-  const commitInfoList = commitList.map(commit => {
-    return {
-      sha: commit.id().tostrS(),
-      date: commit.date(),
-      author: commit.author().toString(),
-      message: commit.message(),
-    };
-  });
-  return commitInfoList;
-}
-
-/**
  * Write blob to file system
  */
 async function writeBlobToFile (gitDDB: AbstractDocumentDB, entry: nodegit.TreeEntry) {
@@ -380,71 +129,6 @@ async function getStrategy (
     }
   }
   return strategy;
-}
-/**
- * Push and get changes
- */
-export async function push_worker (
-  gitDDB: AbstractDocumentDB,
-  sync: ISync,
-  taskId: string
-): Promise<SyncResultPush> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) {
-    throw new RepositoryNotOpenError();
-  }
-  sync.eventHandlers.start.forEach(func => {
-    func(taskId, sync.currentRetries());
-  });
-
-  const headCommit = await gitDDB.repository()!.getHeadCommit();
-
-  // Get the oldest commit that has not been pushed yet.
-  let oldestCommit = await gitDDB
-    .repository()!
-    .getReferenceCommit('refs/remotes/origin/main')
-    .catch(() => undefined);
-
-  if (oldestCommit === undefined) {
-    // This is the first push in this repository.
-    // Get the first commit.
-    const revwalk = nodegit.Revwalk.create(gitDDB.repository()!);
-    revwalk.push(headCommit.id());
-    revwalk.sorting(nodegit.Revwalk.SORT.REVERSE);
-    const commitList: nodegit.Oid[] = await revwalk.fastWalk(1);
-    oldestCommit = await gitDDB.repository()!.getCommit(commitList[0]);
-  }
-
-  // Get a list of commits which will be pushed to remote.
-  let commitListRemote: CommitInfo[] | undefined;
-  if (sync.options().include_commits) {
-    commitListRemote = await getCommitLogs(oldestCommit, headCommit);
-  }
-
-  // Push
-  const headCommitAfterPush = await push(gitDDB, sync, taskId);
-
-  // Get changes
-  const diff = await nodegit.Diff.treeToTree(
-    gitDDB.repository()!,
-    await oldestCommit.getTree(),
-    await headCommitAfterPush!.getTree()
-  );
-  const remoteChanges = await getChanges(gitDDB, diff);
-  const syncResult: SyncResult = {
-    action: 'push',
-    changes: {
-      remote: remoteChanges!,
-    },
-  };
-
-  if (commitListRemote) {
-    syncResult.commits = {
-      remote: commitListRemote,
-    };
-  }
-
-  return syncResult;
 }
 
 // eslint-disable-next-line complexity
