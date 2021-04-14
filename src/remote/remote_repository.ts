@@ -9,6 +9,7 @@
 import nodegit from '@sosuisen/nodegit';
 import { Octokit } from '@octokit/rest';
 import {
+  CannotConnectError,
   CannotCreateRemoteRepository,
   InvalidSSHKeyFormatError,
   InvalidURLFormatError,
@@ -19,6 +20,8 @@ import {
   UnresolvedHostError,
 } from '../error';
 import { RemoteAuth } from '../types';
+import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../const';
+import { sleep } from '../utils';
 
 export class RemoteRepository {
   private _remoteURL: string;
@@ -61,14 +64,31 @@ export class RemoteRepository {
       const urlArray = this._remoteURL.split('/');
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
-      await this._octokit!.repos.createForAuthenticatedUser({
-        name: repo,
-      }).catch(err => {
-        // May throw HttpError if the repository which has the same name already exists.
-        // HttpError: Repository creation failed.:
-        // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
-        throw err;
-      });
+
+      let result;
+      let retry = 0;
+      for (; retry < NETWORK_RETRY; retry++) {
+        // eslint-disable-next-line no-await-in-loop
+        result = await this._octokit!.repos.createForAuthenticatedUser({
+          name: repo,
+        }).catch(err => {
+          // May throw HttpError if the repository which has the same name already exists.
+          // HttpError: Repository creation failed.:
+          // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
+          return err;
+        });
+        if (result instanceof Error) {
+          // console.log(`NetworkError in creating remote repository: ${this._remoteURL}, ` + result);
+        }
+        else {
+          break;
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(NETWORK_RETRY_INTERVAL);
+      }
+      if (result instanceof Error) {
+        throw new CannotConnectError(retry, this._remoteURL, result.message);
+      }
     }
     else {
       throw new Error('Auth type must be github.');
