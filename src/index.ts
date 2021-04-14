@@ -205,7 +205,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    */
   async create (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
     if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
+      throw new DatabaseClosingError();
     }
     if (this.isOpened()) {
       throw new DatabaseExistsError();
@@ -219,7 +219,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
      * Create directory
      */
     await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
-      return Promise.reject(new CannotCreateDirectoryError(err.message));
+      throw new CannotCreateDirectoryError(err.message);
     });
 
     if (remoteOptions?.remote_url === undefined) {
