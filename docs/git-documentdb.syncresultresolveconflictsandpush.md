@@ -2,23 +2,20 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md)
 
-## SyncResultResolveConflictsAndPush type
+## SyncResultResolveConflictsAndPush interface
 
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncResultResolveConflictsAndPush = {
-    action: 'resolve conflicts and push';
-    changes: {
-        local: ChangedFile[];
-        remote: ChangedFile[];
-    };
-    conflicts: AcceptedConflict[];
-    commits?: {
-        local: CommitInfo[];
-        remote: CommitInfo[];
-    };
-};
+export interface SyncResultResolveConflictsAndPush 
 ```
-<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [AcceptedConflict](./git-documentdb.acceptedconflict.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [action](./git-documentdb.syncresultresolveconflictsandpush.action.md) | 'resolve conflicts and push' |  |
+|  [changes](./git-documentdb.syncresultresolveconflictsandpush.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
+|  [commits?](./git-documentdb.syncresultresolveconflictsandpush.commits.md) | { local: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; remote: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
+|  [conflicts](./git-documentdb.syncresultresolveconflictsandpush.conflicts.md) | [AcceptedConflict](./git-documentdb.acceptedconflict.md)<!-- -->\[\] |  |
 

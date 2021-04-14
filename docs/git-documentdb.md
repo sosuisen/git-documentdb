@@ -80,6 +80,12 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  Interface | Description |
 |  --- | --- |
 |  [ISync](./git-documentdb.isync.md) | Interface of Sync |
+|  [SyncResultCancel](./git-documentdb.syncresultcancel.md) |  |
+|  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) |  |
+|  [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) |  |
+|  [SyncResultNop](./git-documentdb.syncresultnop.md) |  |
+|  [SyncResultPush](./git-documentdb.syncresultpush.md) |  |
+|  [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md) |  |
 
 ## Type Aliases
 
@@ -110,16 +116,9 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for Sync class |
 |  [RemoveOptions](./git-documentdb.removeoptions.md) | Options for remove() |
 |  [RemoveResult](./git-documentdb.removeresult.md) | Result of remove() |
-|  [SyncBaseType](./git-documentdb.syncbasetype.md) |  |
 |  [SyncDirection](./git-documentdb.syncdirection.md) |  |
 |  [SyncEvent](./git-documentdb.syncevent.md) | SyncEvent |
 |  [SyncResult](./git-documentdb.syncresult.md) | Result from sync\_worker() |
-|  [SyncResultCancel](./git-documentdb.syncresultcancel.md) |  |
-|  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) |  |
-|  [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) |  |
-|  [SyncResultNop](./git-documentdb.syncresultnop.md) |  |
-|  [SyncResultPush](./git-documentdb.syncresultpush.md) |  |
-|  [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md) |  |
 |  [Task](./git-documentdb.task.md) | Task for taskQueue |
 |  [TaskLabel](./git-documentdb.tasklabel.md) | TaskLabel DatabaseStatistics.taskCount must have the same members. |
 |  [TaskStatistics](./git-documentdb.taskstatistics.md) | Task Statistics |

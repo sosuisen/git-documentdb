@@ -2,20 +2,19 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md)
 
-## SyncResultFastForwardMerge type
+## SyncResultFastForwardMerge interface
 
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncResultFastForwardMerge = {
-    action: 'fast-forward merge';
-    changes: {
-        local: ChangedFile[];
-    };
-    commits?: {
-        local: CommitInfo[];
-    };
-};
+export interface SyncResultFastForwardMerge 
 ```
-<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [action](./git-documentdb.syncresultfastforwardmerge.action.md) | 'fast-forward merge' |  |
+|  [changes](./git-documentdb.syncresultfastforwardmerge.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
+|  [commits?](./git-documentdb.syncresultfastforwardmerge.commits.md) | { local: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

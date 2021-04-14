@@ -2,12 +2,17 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultCancel](./git-documentdb.syncresultcancel.md)
 
-## SyncResultCancel type
+## SyncResultCancel interface
 
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncResultCancel = {
-    action: 'canceled';
-};
+export interface SyncResultCancel 
 ```
+
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [action](./git-documentdb.syncresultcancel.action.md) | 'canceled' |  |
+

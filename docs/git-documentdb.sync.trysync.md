@@ -9,9 +9,9 @@ Try synchronization with remote
 <b>Signature:</b>
 
 ```typescript
-trySync(): Promise<SyncBaseType | import("../types").SyncResultNop | SyncResultPush | import("../types").SyncResultFastForwardMerge | import("../types").SyncResultMergeAndPush | import("../types").SyncResultResolveConflictsAndPush | import("../types").SyncResultCancel>;
+trySync(): Promise<SyncResult>;
 ```
 <b>Returns:</b>
 
-Promise&lt;[SyncBaseType](./git-documentdb.syncbasetype.md) \| import("../types").[SyncResultNop](./git-documentdb.syncresultnop.md) \| [SyncResultPush](./git-documentdb.syncresultpush.md) \| import("../types").[SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) \| import("../types").[SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) \| import("../types").[SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md) \| import("../types").[SyncResultCancel](./git-documentdb.syncresultcancel.md)<!-- -->&gt;
+Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 

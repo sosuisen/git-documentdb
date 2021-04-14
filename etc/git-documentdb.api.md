@@ -541,24 +541,10 @@ export class Sync implements ISync {
         retry?: number;
     }): boolean;
     tryPush(): Promise<SyncResultPush>;
-    trySync(): Promise<SyncBaseType | SyncResultNop| SyncResultPush | SyncResultFastForwardMerge| SyncResultMergeAndPush| SyncResultResolveConflictsAndPush| SyncResultCancel>;
+    trySync(): Promise<SyncResult>;
     // (undocumented)
     upstream_branch: string;
 }
-
-// @public (undocumented)
-export type SyncBaseType = {
-    action: string;
-    changes?: {
-        local?: ChangedFile[];
-        remote?: ChangedFile[];
-    };
-    conflicts: AcceptedConflict[];
-    commits?: {
-        local?: CommitInfo[];
-        remote?: CommitInfo[];
-    };
-};
 
 // @public (undocumented)
 export type SyncDirection = 'pull' | 'push' | 'both';
@@ -570,66 +556,81 @@ export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | '
 export function syncImpl(this: AbstractDocumentDB, options?: RemoteOptions): Promise<Sync>;
 
 // @public
-export type SyncResult = SyncBaseType | SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;
+export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;
 
 // @public (undocumented)
-export type SyncResultCancel = {
+export interface SyncResultCancel {
+    // (undocumented)
     action: 'canceled';
-};
+}
 
 // @public (undocumented)
-export type SyncResultFastForwardMerge = {
+export interface SyncResultFastForwardMerge {
+    // (undocumented)
     action: 'fast-forward merge';
+    // (undocumented)
     changes: {
         local: ChangedFile[];
     };
+    // (undocumented)
     commits?: {
         local: CommitInfo[];
     };
-};
+}
 
 // @public (undocumented)
-export type SyncResultMergeAndPush = {
+export interface SyncResultMergeAndPush {
+    // (undocumented)
     action: 'merge and push';
+    // (undocumented)
     changes: {
         local: ChangedFile[];
         remote: ChangedFile[];
     };
+    // (undocumented)
     commits?: {
         local: CommitInfo[];
         remote: CommitInfo[];
     };
-};
+}
 
 // @public (undocumented)
-export type SyncResultNop = {
+export interface SyncResultNop {
+    // (undocumented)
     action: 'nop';
-};
+}
 
 // @public (undocumented)
-export type SyncResultPush = {
+export interface SyncResultPush {
+    // (undocumented)
     action: 'push';
+    // (undocumented)
     changes: {
         remote: ChangedFile[];
     };
+    // (undocumented)
     commits?: {
         remote: CommitInfo[];
     };
-};
+}
 
 // @public (undocumented)
-export type SyncResultResolveConflictsAndPush = {
+export interface SyncResultResolveConflictsAndPush {
+    // (undocumented)
     action: 'resolve conflicts and push';
+    // (undocumented)
     changes: {
         local: ChangedFile[];
         remote: ChangedFile[];
     };
-    conflicts: AcceptedConflict[];
+    // (undocumented)
     commits?: {
         local: CommitInfo[];
         remote: CommitInfo[];
     };
-};
+    // (undocumented)
+    conflicts: AcceptedConflict[];
+}
 
 // @public (undocumented)
 export class SyncWorkerFetchError extends BaseError {

@@ -2,20 +2,19 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultPush](./git-documentdb.syncresultpush.md)
 
-## SyncResultPush type
+## SyncResultPush interface
 
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncResultPush = {
-    action: 'push';
-    changes: {
-        remote: ChangedFile[];
-    };
-    commits?: {
-        remote: CommitInfo[];
-    };
-};
+export interface SyncResultPush 
 ```
-<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [action](./git-documentdb.syncresultpush.action.md) | 'push' |  |
+|  [changes](./git-documentdb.syncresultpush.changes.md) | { remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
+|  [commits?](./git-documentdb.syncresultpush.commits.md) | { remote: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

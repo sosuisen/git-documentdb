@@ -19,15 +19,15 @@ Promise&lt;void&gt;
 
 [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md)
 
-Following errors:
+May throw following errors:
 
-- The repository which has the same name exists.
+- HttpError
 
 - Authentication error
 
 - Permission error
 
-- Network error
+- Other network errors
 
 ## Remarks
 

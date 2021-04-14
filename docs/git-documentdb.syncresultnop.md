@@ -2,12 +2,17 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultNop](./git-documentdb.syncresultnop.md)
 
-## SyncResultNop type
+## SyncResultNop interface
 
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncResultNop = {
-    action: 'nop';
-};
+export interface SyncResultNop 
 ```
+
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [action](./git-documentdb.syncresultnop.action.md) | 'nop' |  |
+

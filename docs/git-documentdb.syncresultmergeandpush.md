@@ -2,22 +2,19 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md)
 
-## SyncResultMergeAndPush type
+## SyncResultMergeAndPush interface
 
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncResultMergeAndPush = {
-    action: 'merge and push';
-    changes: {
-        local: ChangedFile[];
-        remote: ChangedFile[];
-    };
-    commits?: {
-        local: CommitInfo[];
-        remote: CommitInfo[];
-    };
-};
+export interface SyncResultMergeAndPush 
 ```
-<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [CommitInfo](./git-documentdb.commitinfo.md)
+
+## Properties
+
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [action](./git-documentdb.syncresultmergeandpush.action.md) | 'merge and push' |  |
+|  [changes](./git-documentdb.syncresultmergeandpush.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
+|  [commits?](./git-documentdb.syncresultmergeandpush.commits.md) | { local: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; remote: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 
