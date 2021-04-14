@@ -18,7 +18,6 @@ import {
   ChangedFile,
   ISync,
   RemoteOptions,
-  SyncBaseType,
   SyncEvent,
   SyncResult,
   SyncResultPush,
@@ -337,13 +336,11 @@ export class Sync implements ISync {
             )}`
           );
 
-          if ((syncResultPush as SyncBaseType).changes !== undefined) {
-            this.eventHandlers.change.forEach(func => func(syncResultPush));
-            if ((syncResultPush as SyncBaseType).changes?.remote !== undefined) {
-              this.eventHandlers.remoteChange.forEach(func =>
-                func(syncResultPush.changes.remote)
-              );
-            }
+          this.eventHandlers.change.forEach(func => func(syncResultPush));
+          if (syncResultPush.changes?.remote !== undefined) {
+            this.eventHandlers.remoteChange.forEach(func =>
+              func(syncResultPush.changes.remote)
+            );
           }
           this.eventHandlers.complete.forEach(func => func(taskId!));
 
@@ -400,23 +397,36 @@ export class Sync implements ISync {
       reject: (reason: any) => void
     ) => (beforeResolve: () => void, beforeReject: () => void) =>
       sync_worker(this._gitDDB, this, taskId)
+        // eslint-disable-next-line complexity
         .then(syncResult => {
           this._gitDDB.logger.debug(
             ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
               syncResult
             )}`
           );
-
-          if ((syncResult as SyncBaseType).changes !== undefined) {
+          if (
+            syncResult.action === 'resolve conflicts and push' ||
+            syncResult.action === 'merge and push' ||
+            syncResult.action === 'fast-forward merge' ||
+            syncResult.action === 'push'
+          ) {
             this.eventHandlers.change.forEach(func => func(syncResult));
-            if ((syncResult as SyncBaseType).changes?.local !== undefined) {
+            if (
+              syncResult.action === 'resolve conflicts and push' ||
+              syncResult.action === 'merge and push' ||
+              syncResult.action === 'fast-forward merge'
+            ) {
               this.eventHandlers.localChange.forEach(func =>
-                func((syncResult as SyncBaseType).changes!.local!)
+                func(syncResult.changes.local)
               );
             }
-            if ((syncResult as SyncBaseType).changes?.remote !== undefined) {
+            if (
+              syncResult.action === 'resolve conflicts and push' ||
+              syncResult.action === 'merge and push' ||
+              syncResult.action === 'push'
+            ) {
               this.eventHandlers.remoteChange.forEach(func =>
-                func((syncResult as SyncBaseType).changes!.remote!)
+                func(syncResult.changes.remote)
               );
             }
           }

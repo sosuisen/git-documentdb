@@ -386,36 +386,6 @@ export type Task = {
 };
 
 /**
- * Interface of Sync
- */
-export interface ISync {
-  currentRetries: () => number;
-  eventHandlers: {
-    change: ((syncResult: SyncResult) => void)[];
-    localChange: ((changedFiles: ChangedFile[]) => void)[];
-    remoteChange: ((changedFiles: ChangedFile[]) => void)[];
-    paused: (() => void)[];
-    active: (() => void)[];
-    start: ((taskId: string, currentRetries: number) => void)[];
-    complete: ((taskId: string) => void)[];
-    error: ((error: Error) => void)[];
-  };
-  upstream_branch: string;
-  credential_callbacks: { [key: string]: any };
-  author: nodegit.Signature;
-  committer: nodegit.Signature;
-  remoteURL(): string;
-  options(): RemoteOptions;
-  tryPush(): Promise<SyncResultPush>;
-  trySync(): Promise<SyncResult>;
-  on(event: SyncEvent, callback: (result?: any) => void): void;
-  off(event: SyncEvent, callback: (result?: any) => void): void;
-  pause(): void;
-  cancel(): void;
-  resume(options?: { interval?: number; retry?: number }): void;
-}
-
-/**
  * SyncEvent
  */
 export type SyncEvent =
@@ -457,29 +427,17 @@ export type CommitInfo = {
  * - commits.remote: List of commits which has been pushed to remote
  */
 export type SyncResult =
-  | SyncBaseType
   | SyncResultNop
   | SyncResultPush
   | SyncResultFastForwardMerge
   | SyncResultMergeAndPush
   | SyncResultResolveConflictsAndPush
   | SyncResultCancel;
-export type SyncBaseType = {
-  action: string;
-  changes?: {
-    local?: ChangedFile[];
-    remote?: ChangedFile[];
-  };
-  conflicts: AcceptedConflict[];
-  commits?: {
-    local?: CommitInfo[];
-    remote?: CommitInfo[]; // The list is sorted from old to new.
-  };
-};
-export type SyncResultNop = {
+
+export interface SyncResultNop {
   action: 'nop';
-};
-export type SyncResultPush = {
+}
+export interface SyncResultPush {
   action: 'push';
   changes: {
     remote: ChangedFile[];
@@ -487,8 +445,8 @@ export type SyncResultPush = {
   commits?: {
     remote: CommitInfo[]; // The list is sorted from old to new.
   };
-};
-export type SyncResultFastForwardMerge = {
+}
+export interface SyncResultFastForwardMerge {
   action: 'fast-forward merge';
   changes: {
     local: ChangedFile[];
@@ -496,8 +454,8 @@ export type SyncResultFastForwardMerge = {
   commits?: {
     local: CommitInfo[];
   };
-};
-export type SyncResultMergeAndPush = {
+}
+export interface SyncResultMergeAndPush {
   action: 'merge and push';
   changes: {
     local: ChangedFile[];
@@ -507,8 +465,8 @@ export type SyncResultMergeAndPush = {
     local: CommitInfo[];
     remote: CommitInfo[]; // The list is sorted from old to new.
   };
-};
-export type SyncResultResolveConflictsAndPush = {
+}
+export interface SyncResultResolveConflictsAndPush {
   action: 'resolve conflicts and push';
   changes: {
     local: ChangedFile[];
@@ -519,7 +477,37 @@ export type SyncResultResolveConflictsAndPush = {
     local: CommitInfo[];
     remote: CommitInfo[];
   };
-};
-export type SyncResultCancel = {
+}
+export interface SyncResultCancel {
   action: 'canceled';
-};
+}
+
+/**
+ * Interface of Sync
+ */
+export interface ISync {
+  currentRetries: () => number;
+  eventHandlers: {
+    change: ((syncResult: SyncResult) => void)[];
+    localChange: ((changedFiles: ChangedFile[]) => void)[];
+    remoteChange: ((changedFiles: ChangedFile[]) => void)[];
+    paused: (() => void)[];
+    active: (() => void)[];
+    start: ((taskId: string, currentRetries: number) => void)[];
+    complete: ((taskId: string) => void)[];
+    error: ((error: Error) => void)[];
+  };
+  upstream_branch: string;
+  credential_callbacks: { [key: string]: any };
+  author: nodegit.Signature;
+  committer: nodegit.Signature;
+  remoteURL(): string;
+  options(): RemoteOptions;
+  tryPush(): Promise<SyncResultPush>;
+  trySync(): Promise<SyncResult>;
+  on(event: SyncEvent, callback: (result?: any) => void): void;
+  off(event: SyncEvent, callback: (result?: any) => void): void;
+  pause(): void;
+  cancel(): void;
+  resume(options?: { interval?: number; retry?: number }): void;
+}
