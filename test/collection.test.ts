@@ -10,6 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import { SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/index';
 import {
   DocumentNotFoundError,
@@ -93,7 +94,8 @@ describe('Collection: put()', () => {
     await gitDDB.create();
     const users = gitDDB.collection('users/Gunma');
     const doc = { _id: 'prof01/page01', name: 'Kimari' };
-    await expect(users.put(doc)).resolves.toMatchObject({
+    const putResult = await users.put(doc);
+    expect(putResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^prof01/page01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -114,7 +116,12 @@ describe('Collection: put()', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`put: users/Gunma/prof01/page01`);
+      expect(commit.message()).toEqual(
+        `put: users/Gunma/prof01/page01${gitDDB.fileExt}(${putResult.file_sha.substr(
+          0,
+          SHORT_SHA_LENGTH
+        )})`
+      );
     }
 
     gitDDB.destroy();
@@ -245,7 +252,8 @@ describe('Collection: remove()', () => {
     await users.put({ _id: _id2, name: 'kimari' });
 
     // Delete
-    await expect(users.delete(_id)).resolves.toMatchObject({
+    const deleteResult = await users.delete(_id);
+    expect(deleteResult).toMatchObject({
       ok: true,
       id: expect.stringMatching('^test/prof01$'),
       file_sha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -257,7 +265,12 @@ describe('Collection: remove()', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`remove: users/${_id}`);
+      expect(commit.message()).toEqual(
+        `remove: users/${_id}${gitDDB.fileExt}(${deleteResult.file_sha.substr(
+          0,
+          SHORT_SHA_LENGTH
+        )})`
+      );
     }
 
     await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);

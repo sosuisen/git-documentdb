@@ -935,7 +935,7 @@ export async function sync_worker (
     const acceptedConflicts: AcceptedConflict[] = [];
 
     // Try to check conflict for all files in conflicted index.
-    console.log('3-way merge..');
+    // console.log('3-way merge..');
 
     const mergeBaseCommit = await repos.getCommit(mergeBase);
     const resolvers: Promise<void>[] = [];
@@ -961,7 +961,7 @@ export async function sync_worker (
     acceptedConflicts.sort((a, b) => {
       return a.target.id === b.target.id ? 0 : a.target.id > b.target.id ? 1 : -1;
     });
-    console.log(acceptedConflicts);
+    // console.log(acceptedConflicts);
 
     let commitMessage = 'resolve: ';
     acceptedConflicts.forEach(conflict => {
