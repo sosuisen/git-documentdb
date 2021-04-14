@@ -20,7 +20,7 @@ export declare class RemoteRepository
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [connect(repos, credential\_callbacks, onlyFetch)](./git-documentdb.remoterepository.connect.md) |  | Set a remote repository to a local repository, and the connect to a remote repository. A remote repository will be created if not exists. |
-|  [create()](./git-documentdb.remoterepository.create.md) |  | Create repository on remote site |
-|  [destroy()](./git-documentdb.remoterepository.destroy.md) |  | Delete repository on remote site |
+|  [connect(repos, credential\_callbacks, onlyFetch)](./git-documentdb.remoterepository.connect.md) |  | Set a remote repository and connect to the remote repository. A remote repository will be created if not exists. |
+|  [create()](./git-documentdb.remoterepository.create.md) |  | Create a repository on a remote site |
+|  [destroy()](./git-documentdb.remoterepository.destroy.md) |  | Delete a repository on a remote site |
 

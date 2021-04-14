@@ -4,7 +4,7 @@
 
 ## RemoteRepository.destroy() method
 
-Delete repository on remote site
+Delete a repository on a remote site
 
 <b>Signature:</b>
 

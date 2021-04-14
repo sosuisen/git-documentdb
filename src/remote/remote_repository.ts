@@ -37,11 +37,13 @@ export class RemoteRepository {
   }
 
   /**
-   * Create repository on remote site
+   * Create a repository on a remote site
    * @remarks
    * auth.type must be 'github'
    * @throws {@link UndefinedPersonalAccessTokenError}
-   * @throws May throw following errors:
+   * @throws Error
+   *
+   *  may include the following errors:
    *
    *  - HttpError
    *
@@ -74,7 +76,7 @@ export class RemoteRepository {
   }
 
   /**
-   * Delete repository on remote site
+   * Delete a repository on a remote site
    * @remarks
    * auth.type must be 'github'
    */
@@ -118,8 +120,10 @@ export class RemoteRepository {
   }
 
   /**
-   * Set a remote repository to a local repository, and the connect to a remote repository.
+   * Set a remote repository and connect to the remote repository.
    * A remote repository will be created if not exists.
+   *
+   * @throws {@link CannotCreateRemoteRepository}
    */
   async connect (
     repos: nodegit.Repository,

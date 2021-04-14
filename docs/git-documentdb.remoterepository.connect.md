@@ -4,7 +4,7 @@
 
 ## RemoteRepository.connect() method
 
-Set a remote repository to a local repository, and the connect to a remote repository. A remote repository will be created if not exists.
+Set a remote repository and connect to the remote repository. A remote repository will be created if not exists.
 
 <b>Signature:</b>
 
@@ -25,4 +25,8 @@ connect(repos: nodegit.Repository, credential_callbacks: {
 <b>Returns:</b>
 
 Promise&lt;string\[\]&gt;
+
+## Exceptions
+
+[CannotCreateRemoteRepository](./git-documentdb.cannotcreateremoterepository.md)
 

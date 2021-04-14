@@ -4,7 +4,7 @@
 
 ## RemoteRepository.create() method
 
-Create repository on remote site
+Create a repository on a remote site
 
 <b>Signature:</b>
 
@@ -19,7 +19,9 @@ Promise&lt;void&gt;
 
 [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md)
 
-May throw following errors:
+Error
+
+may include the following errors:
 
 - HttpError
 
