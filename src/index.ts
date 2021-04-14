@@ -384,13 +384,15 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       let retry = 0;
       for (; retry < NETWORK_RETRY; retry++) {
         // eslint-disable-next-line no-await-in-loop
-        result = await checkHTTP(remoteOptions.remote_url!, NETWORK_TIMEOUT);
+        result = await checkHTTP(remoteOptions.remote_url!, NETWORK_TIMEOUT).catch(
+          err => err
+        );
         if (result.ok) {
           break;
         }
         else {
           this.logger.debug(
-            `NetworkError in cloning: ${remoteOptions.remote_url}, ` + result.error
+            `NetworkError in cloning: ${remoteOptions.remote_url}, ` + result
           );
         }
         // eslint-disable-next-line no-await-in-loop
@@ -398,11 +400,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       }
       if (!result.ok) {
         // Set retry number for code test
-        throw new CannotConnectError(
-          retry,
-          remoteOptions.remote_url,
-          result.error!.toString()
-        );
+        throw new CannotConnectError(retry, remoteOptions.remote_url, result.toString());
       }
 
       return await nodegit.Clone.clone(remoteOptions.remote_url, this.workingDir(), {

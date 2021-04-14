@@ -469,3 +469,30 @@ export class CannotConnectError extends BaseError {
     super(`Cannot connect to ${url}: ${mes}`);
   }
 }
+
+/**
+ * @public
+ */
+export class RequestTimeoutError extends BaseError {
+  constructor (url: string) {
+    super(`Request timeout: ${url}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class SocketTimeoutError extends BaseError {
+  constructor (url: string) {
+    super(`Socket timeout: ${url}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class HTTPNetworkError extends BaseError {
+  constructor (mes: string) {
+    super(`HTTPNetworkError: ${mes}`);
+  }
+}
