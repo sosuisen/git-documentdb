@@ -33,7 +33,7 @@ import {
 } from './remote_utils';
 
 const reposPrefix = 'test_sync_worker___';
-const localDir = `./test/database_remote_sync_worker`;
+const localDir = `./test/database_sync_worker`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -63,7 +63,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('remote: sync: ', () => {
+maybe('remote: sync_worker: ', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';

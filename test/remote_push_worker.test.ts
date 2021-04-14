@@ -24,7 +24,7 @@ import {
 } from './remote_utils';
 
 const reposPrefix = 'test_push_worker___';
-const localDir = `./test/database_remote_push_worker`;
+const localDir = `./test/database_push_worker`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -54,7 +54,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('remote: push: ', () => {
+maybe('remote: push_worker: ', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';

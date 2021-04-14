@@ -30,8 +30,8 @@ import { GitDocumentDB } from '../src';
 import { Sync } from '../src/remote/sync';
 import { SyncWorkerFetchError } from '../src/error';
 
-const reposPrefix = 'test_pat_sync_events___';
-const localDir = `./test/database_remote_events`;
+const reposPrefix = 'test_sync_events___';
+const localDir = `./test/database_sync_events`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -59,7 +59,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('remote: events: ', () => {
+maybe('remote: sync: events: ', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
