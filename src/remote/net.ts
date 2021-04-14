@@ -75,17 +75,32 @@ export const checkHTTP = (
     else {
       reject(new HttpProtocolRequiredError(url));
     }
+
+    let socket: Socket;
     const req = request!(url, res => {
+      req.removeAllListeners();
+      if (socket) {
+        socket.removeAllListeners();
+      }
+      req.destroy();
       resolve({ ok: true, code: res.statusCode });
     });
     req.on('error', error => {
       // network error
+      req.removeAllListeners();
+      if (socket) {
+        socket.removeAllListeners();
+      }
       req.destroy();
       reject(new HTTPNetworkError(error.message));
     });
 
     if (requestTimeout > 0) {
       req.setTimeout(requestTimeout, () => {
+        req.removeAllListeners();
+        if (socket) {
+          socket.removeAllListeners();
+        }
         req.destroy();
         console.log('request timeout error: ' + requestTimeout);
         reject(new RequestTimeoutError(url));
@@ -93,11 +108,16 @@ export const checkHTTP = (
     }
 
     if (socketTimeout! > 0) {
-      req.on('socket', function (socket: Socket) {
+      req.on('socket', function (_socket: Socket) {
+        socket = _socket;
         socket.setTimeout(socketTimeout!);
-        socket.on('timeout', function () {
-          console.log('socket timeout error: ' + socketTimeout);
+        socket.on('timeout', () => {
+          req.removeAllListeners();
+          if (socket) {
+            socket.removeAllListeners();
+          }
           req.destroy();
+          console.log('socket timeout error: ' + socketTimeout);
           reject(new SocketTimeoutError(url));
         });
       });
