@@ -18,10 +18,10 @@ import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import { CannotPushBecauseUnfetchedCommitExistsError } from '../src/error';
 import { sleep } from '../src/utils';
-import { getChangedFile, removeRemoteRepositories } from './remote_utils';
+import { destroyDBs, getChangedFile, removeRemoteRepositories } from './remote_utils';
 
-const reposPrefix = 'test_pat_lifecycle___';
-const localDir = `./test/database_remote_github_pat_lifecycle`;
+const reposPrefix = 'test_sync_lifecycle___';
+const localDir = `./test/database_sync_lifecycle`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -50,7 +50,7 @@ const maybe =
     : describe.skip;
 
 // Test lifecycle (open, sync, tryPush, trySync, retrySync)
-maybe('remote: use personal access token: lifecycle', () => {
+maybe('remote: sync: lifecycle', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -82,22 +82,36 @@ maybe('remote: use personal access token: lifecycle', () => {
           remote_url: remoteURL,
           auth: { type: 'github', personal_access_token: token },
         };
+        // console.time('create dbA');
         await dbA.create(options);
+        // console.timeEnd('create dbA');
+
+        // console.time('put jsonA1');
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
+        // console.timeEnd('put jsonA1');
+
+        // console.time('push dbA');
         const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
+        // console.timeEnd('push dbA');
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           db_name: dbNameB,
           local_dir: localDir,
         });
+        // console.time('create dbB');
         await dbB.create(options);
-        await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
+        // console.timeEnd('create dbB');
 
-        await dbA.destroy();
-        await dbB.destroy();
+        // console.time('get jsonA1');
+        await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
+        // console.timeEnd('get jsonA1');
+
+        // console.time('destroy');
+        await destroyDBs([dbA, dbB]);
+        // console.timeEnd('destroy');
       });
 
       test('Race condition of two tryPush() calls', async () => {
@@ -132,8 +146,7 @@ maybe('remote: use personal access token: lifecycle', () => {
           Promise.all([remoteA.tryPush(), remoteB.tryPush()])
         ).rejects.toThrowError(CannotPushBecauseUnfetchedCommitExistsError);
 
-        await dbA.destroy().catch(err => console.debug(err));
-        await dbB.destroy().catch(err => console.debug(err));
+        await destroyDBs([dbA, dbB]);
       });
 
       test('Ordered condition of two tryPush() calls', async () => {
@@ -169,16 +182,10 @@ maybe('remote: use personal access token: lifecycle', () => {
           CannotPushBecauseUnfetchedCommitExistsError
         );
 
-        await dbA.destroy().catch(err => console.debug(err));
-        await dbB.destroy().catch(err => console.debug(err));
+        await destroyDBs([dbA, dbB]);
       });
 
       test('Race condition of two trySync() calls: trySync() again by hand before retrySync()', async () => {
-        /*
-          console.log(
-            '## Race condition of two trySync() calls: trySync() again by hand before retrySync()'
-          );
-          */
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -193,9 +200,6 @@ maybe('remote: use personal access token: lifecycle', () => {
           retry_interval: Sync.defaultRetryInterval + 10000,
         };
         await dbA.create(options);
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -203,6 +207,11 @@ maybe('remote: use personal access token: lifecycle', () => {
           local_dir: localDir,
         });
         await dbB.create(options);
+
+        const jsonA1 = { _id: '1', name: 'fromA' };
+        const putResultA1 = await dbA.put(jsonA1);
+        const remoteA = dbA.getRemote(remoteURL);
+
         const jsonB1 = { _id: '2', name: 'fromB' };
         const putResultB1 = await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
@@ -268,8 +277,7 @@ maybe('remote: use personal access token: lifecycle', () => {
           });
         }
 
-        await dbA.destroy().catch(err => console.debug(err));
-        await dbB.destroy().catch(err => console.debug(err));
+        await destroyDBs([dbA, dbB]);
       });
 
       test('Race condition of two trySync() calls: retrySync() will occur (interval 0ms) before trySync by hand', async () => {
@@ -318,8 +326,7 @@ maybe('remote: use personal access token: lifecycle', () => {
           await expect(remoteB.trySync()).resolves.toMatchObject({ action: 'nop' });
         }
 
-        await dbA.destroy().catch(err => console.debug(err));
-        await dbB.destroy().catch(err => console.debug(err));
+        await destroyDBs([dbA, dbB]);
       });
 
       test('Resolve conflict', async () => {
@@ -372,8 +379,7 @@ maybe('remote: use personal access token: lifecycle', () => {
           ],
         });
 
-        await dbA.destroy();
-        await dbB.destroy();
+        await destroyDBs([dbA, dbB]);
       });
     });
 
@@ -420,8 +426,8 @@ maybe('remote: use personal access token: lifecycle', () => {
         });
         await dbB.create(options);
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-        await dbA.destroy();
-        await dbB.destroy();
+
+        await destroyDBs([dbA, dbB]);
       });
 
       test('cancel()', async () => {
@@ -450,7 +456,7 @@ maybe('remote: use personal access token: lifecycle', () => {
         expect(remoteA.options().live).toBeFalsy();
         expect(dbA.taskQueue.statistics().sync).toBe(count);
 
-        await dbA.destroy();
+        await destroyDBs([dbA]);
       });
 
       test('pause() and resume()', async () => {
@@ -487,7 +493,7 @@ maybe('remote: use personal access token: lifecycle', () => {
         expect(remoteA.options().live).toBeTruthy();
         expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(count);
 
-        await dbA.destroy();
+        await destroyDBs([dbA]);
       });
 
       test('Cancel when gitDDB.close()', async () => {
@@ -519,7 +525,7 @@ maybe('remote: use personal access token: lifecycle', () => {
         expect(remoteA.options().live).toBeFalsy();
         expect(dbA.taskQueue.statistics().sync).toBe(count);
 
-        await dbA.destroy();
+        await destroyDBs([dbA]);
       });
 
       test('Check intervals', async () => {
@@ -565,7 +571,7 @@ maybe('remote: use personal access token: lifecycle', () => {
         // Check count before next sync()
         expect(dbA.taskQueue.statistics().sync).toBe(currentCount);
 
-        await dbA.destroy();
+        await destroyDBs([dbA]);
       });
 
       test('Repeat trySync() automatically', async () => {
@@ -591,39 +597,7 @@ maybe('remote: use personal access token: lifecycle', () => {
         await sleep(10000);
         expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(5);
 
-        await dbA.destroy();
-      });
-
-      test('Check skip of consecutive sync tasks', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const interval = 30000;
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          sync_direction: 'both',
-          interval,
-          auth: { type: 'github', personal_access_token: token },
-        };
-        await dbA.create(options);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-
-        const remoteA = dbA.getRemote(remoteURL);
-
-        for (let i = 0; i < 10; i++) {
-          remoteA.trySync();
-        }
-        await sleep(5000);
-        expect(dbA.taskQueue.statistics().sync).toBe(1);
-
-        await dbA.destroy();
+        await destroyDBs([dbA]);
       });
     });
 
@@ -681,8 +655,7 @@ maybe('remote: use personal access token: lifecycle', () => {
         await sleep(5000);
         expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
 
-        await dbA.destroy().catch(err => console.debug(err));
-        await dbB.destroy().catch(err => console.debug(err));
+        await destroyDBs([dbA, dbB]);
       });
 
       test('Check retry interval', async () => {
@@ -741,8 +714,7 @@ maybe('remote: use personal access token: lifecycle', () => {
           currentSyncCount + 1
         );
 
-        await dbA.destroy().catch(err => console.debug(err));
-        await dbB.destroy().catch(err => console.debug(err));
+        await destroyDBs([dbA, dbB]);
       });
 
       test.skip('More retries', () => {
@@ -755,7 +727,7 @@ maybe('remote: use personal access token: lifecycle', () => {
    * Initialize synchronization by sync() with remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe('Init syn by sync()', () => {
+  describe('Init sync by sync()', () => {
     test('Overload of sync()', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
@@ -766,16 +738,25 @@ maybe('remote: use personal access token: lifecycle', () => {
       });
 
       await dbA.create();
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
       const options: RemoteOptions = {
         live: true,
         interval: 1000,
         sync_direction: 'both',
         auth: { type: 'github', personal_access_token: token },
       };
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-
       const remoteA = await dbA.sync(remoteURL, options);
+      let complete = false;
+      remoteA.on('complete', () => {
+        complete = true;
+      });
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!complete) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -785,8 +766,7 @@ maybe('remote: use personal access token: lifecycle', () => {
       await dbB.create(options);
       await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
-      await dbA.destroy();
-      await dbB.destroy();
+      await destroyDBs([dbA, dbB]);
     });
 
     test('A initializes synchronization by sync(); B initializes synchronization by create(), clones the remote: ', async () => {
@@ -819,8 +799,7 @@ maybe('remote: use personal access token: lifecycle', () => {
       await dbB.create(options);
       await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
-      await dbA.destroy();
-      await dbB.destroy();
+      await destroyDBs([dbA, dbB]);
     });
 
     test('A initializes synchronization by sync(); B initialize synchronization by create(), close(), open() again with no remote, following sync(): ', async () => {
@@ -868,8 +847,7 @@ maybe('remote: use personal access token: lifecycle', () => {
       }
       await expect(dbA.get(jsonA1._id)).resolves.toMatchObject(jsonB1);
 
-      await dbA.destroy();
-      await dbB.destroy();
+      await destroyDBs([dbA, dbB]);
     });
   });
 
