@@ -172,9 +172,11 @@ export async function removeRemoteRepositories (reposPrefix: string) {
     { per_page: 100 },
     response =>
       response.data.filter(repos => {
-        const urlArray = repos.full_name.split('/');
-        const repo = urlArray[1];
-        return repo.startsWith(reposPrefix);
+        if (repos) {
+          const urlArray = repos.full_name.split('/');
+          const repo = urlArray[1];
+          return repo.startsWith(reposPrefix);
+        }
       })
   );
   console.log(` - Got ${reposArray.length} repositories`);
