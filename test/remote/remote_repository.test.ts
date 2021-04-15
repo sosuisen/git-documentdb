@@ -18,6 +18,7 @@ import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
 import {
   createRemoteRepository,
+  destroyDBs,
   destroyRemoteRepository,
   removeRemoteRepositories,
 } from '../remote_utils';
@@ -112,7 +113,7 @@ maybe('remote: sync: remote_repository: ', () => {
     const repo = urlArray[urlArray.length - 1];
     await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
 
-    await dbA.destroy();
+    destroyDBs([dbA]);
   });
 
   test.skip('Remove remote repository');
