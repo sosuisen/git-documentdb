@@ -16,7 +16,7 @@ import { cloneRepository } from '../../src/remote/clone';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
 import { CannotConnectError } from '../../src/error';
-import { removeRemoteRepositories } from './remote_utils';
+import { removeRemoteRepositories } from '../remote_utils';
 import { NETWORK_RETRY } from '../../src/const';
 
 const reposPrefix = 'test_clone___';
