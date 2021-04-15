@@ -162,31 +162,38 @@ export async function removeRemoteRepositories (reposPrefix: string) {
   const octokit = new Octokit({
     auth: token,
   });
+
+  const len = 0;
   const promises: Promise<any>[] = [];
-  let len = 0;
-  do {
-    // eslint-disable-next-line no-await-in-loop
-    const reposArray = await octokit.repos.listForAuthenticatedUser({ per_page: 100 });
-    len = reposArray.data.length;
-    reposArray.data.forEach(repos => {
-      if (repos) {
+
+  // eslint-disable-next-line no-await-in-loop
+  const reposArray = await octokit.paginate(
+    octokit.repos.listForAuthenticatedUser,
+    { per_page: 100 },
+    response =>
+      response.data.filter(repos => {
         const urlArray = repos.full_name.split('/');
-        const owner = urlArray[0];
         const repo = urlArray[1];
-        if (repo.startsWith(reposPrefix)) {
-          console.log('removing remote: ' + repos.full_name);
-          promises.push(
-            octokit.repos.delete({ owner, repo }).catch(err => {
-              if (err.status !== 404) {
-                console.debug(err);
-              }
-            })
-          );
+        return repo.startsWith(reposPrefix);
+      })
+  );
+  console.log(` - Got ${reposArray.length} repositories`);
+  reposArray.forEach(repos => {
+    const urlArray = repos.full_name.split('/');
+    const owner = urlArray[0];
+    const repo = urlArray[1];
+    promises.push(
+      octokit.repos.delete({ owner, repo }).catch(err => {
+        if (err.status !== 404) {
+          console.debug(err);
         }
-      }
-    });
-  } while (len === 100);
+      })
+    );
+  });
+  console.log(` - Start to remove repositories..`);
+  // eslint-disable-next-line no-await-in-loop
   await Promise.all(promises);
+  console.log(` - Completed`);
 }
 
 export const listFiles = (gitDDB: GitDocumentDB, dir: string): string[] => {
