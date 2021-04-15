@@ -25,7 +25,7 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const localDir = `./test/database_remote_github_nopat-nooauth-sshkey`;
+const localDir = `./test_intg/database_remote_github_nopat-nooauth-sshkey`;
 
 beforeEach(function () {
   // @ts-ignore

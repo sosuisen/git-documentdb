@@ -24,7 +24,7 @@ import {
 } from '../../test/remote_utils';
 
 const reposPrefix = 'test_push_worker___';
-const localDir = `./test/database_push_worker`;
+const localDir = `./test_intg/database_push_worker`;
 
 let idCounter = 0;
 const serialId = () => {

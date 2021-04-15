@@ -28,7 +28,7 @@ import { Sync } from '../../src/remote/sync';
 import { removeRemoteRepositories } from '../../test/remote_utils';
 
 const reposPrefix = 'test_sync_constructor___';
-const localDir = `./test/database_sync_constructor`;
+const localDir = `./test_intg/database_sync`;
 
 let idCounter = 0;
 const serialId = () => {

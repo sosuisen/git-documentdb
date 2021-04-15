@@ -33,7 +33,7 @@ import {
 } from '../../test/remote_utils';
 
 const reposPrefix = 'test_sync_worker___';
-const localDir = `./test/database_sync_worker`;
+const localDir = `./test_intg/database_sync_worker`;
 
 let idCounter = 0;
 const serialId = () => {

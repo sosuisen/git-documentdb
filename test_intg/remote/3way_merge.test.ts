@@ -27,7 +27,7 @@ import {
 } from '../../test/remote_utils';
 
 const reposPrefix = 'test_3way_merge___';
-const localDir = `./test/database_3way_merge`;
+const localDir = `./test_intg/database_3way_merge`;
 
 let idCounter = 0;
 const serialId = () => {
