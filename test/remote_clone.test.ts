@@ -12,6 +12,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import { cloneRepository } from '../src/remote/clone';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import { CannotConnectError } from '../src/error';
@@ -55,6 +56,14 @@ maybe('remote: clone in GitDocumentDB#create(): ', () => {
   beforeAll(async () => {
     // Remove remote
     await removeRemoteRepositories(reposPrefix);
+  });
+
+  test('Invalid RemoteOptions', async () => {
+    // @ts-ignore
+    await expect(cloneRepository('tmp')).resolves.toBeUndefined();
+    await expect(
+      cloneRepository('tmp', { remote_url: undefined })
+    ).resolves.toBeUndefined();
   });
 
   test('Check CannotConnectError and retries in cloning', async () => {
