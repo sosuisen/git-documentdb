@@ -12,7 +12,6 @@ import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger } from 'tslog';
 import {
-  CannotConnectError,
   CannotCreateDirectoryError,
   CannotOpenRepositoryError,
   DatabaseCloseTimeoutError,
@@ -48,16 +47,9 @@ import { getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
-import { createCredential } from './remote/authentication';
 import { TaskQueue } from './task_queue';
-import {
-  FILE_REMOVE_TIMEOUT,
-  NETWORK_RETRY,
-  NETWORK_RETRY_INTERVAL,
-  NETWORK_TIMEOUT,
-} from './const';
-import { checkHTTP } from './remote/net';
-import { sleep } from './utils';
+import { FILE_REMOVE_TIMEOUT } from './const';
+import { cloneRepository } from './remote/clone';
 
 // const debugMinLevel = 'trace';
 const debugMinLevel = 'info';
@@ -190,7 +182,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       displayDateTime: false,
       displayFunctionName: false,
       displayFilePath: 'hidden',
-      requestId: () => this.taskQueue.currentTaskId() ?? '',
     });
     this.taskQueue = new TaskQueue(this.logger);
   }
@@ -236,11 +227,13 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
 
     // Clone repository if remoteURL exists
-    this._currentRepository = await this._cloneRepository(remoteOptions).catch(
-      (err: Error) => {
-        throw err;
-      }
-    );
+    this._currentRepository = await cloneRepository(
+      this.workingDir(),
+      remoteOptions,
+      this.logger
+    ).catch((err: Error) => {
+      throw err;
+    });
 
     if (this._currentRepository === undefined) {
       // Clone failed. Try to create remote repository in sync().
@@ -361,61 +354,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       this._firstCommitMessage
     );
     return this._dbInfo;
-  }
-
-  private async _cloneRepository (remoteOptions?: RemoteOptions) {
-    if (
-      remoteOptions !== undefined &&
-      remoteOptions.remote_url !== undefined &&
-      remoteOptions.remote_url !== ''
-    ) {
-      const remote = new Sync(this, remoteOptions);
-
-      /**
-       * Retry if network errors.
-       */
-      let result: {
-        ok: boolean;
-        code?: number;
-        error?: Error;
-      } = {
-        ok: false,
-      };
-      let retry = 0;
-      for (; retry < NETWORK_RETRY; retry++) {
-        // eslint-disable-next-line no-await-in-loop
-        result = await checkHTTP(remoteOptions.remote_url!, NETWORK_TIMEOUT).catch(
-          err => err
-        );
-        if (result.ok) {
-          break;
-        }
-        else {
-          this.logger.debug(
-            `NetworkError in cloning: ${remoteOptions.remote_url}, ` + result
-          );
-        }
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(NETWORK_RETRY_INTERVAL);
-      }
-      if (!result.ok) {
-        // Set retry number for code test
-        throw new CannotConnectError(retry, remoteOptions.remote_url, result.toString());
-      }
-
-      return await nodegit.Clone.clone(remoteOptions.remote_url, this.workingDir(), {
-        fetchOpts: {
-          callbacks: createCredential(remoteOptions),
-        },
-      }).catch(err => {
-        // Errors except CannotConnectError are handled in sync().
-        this.logger.debug(`Error in cloning: ${remoteOptions.remote_url}, ` + err);
-        // The db will try to create remote repository in sync() if 'undefined' is returned.
-        return undefined;
-      });
-    }
-
-    return undefined;
   }
 
   private async _setDbInfo () {
