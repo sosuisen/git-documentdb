@@ -325,6 +325,17 @@ Current value is '${type}'`);
 /**
  * @public
  */
+export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
+  constructor (type: string | undefined) {
+    super(
+      `This authentication type does not allow to create repository. Current value is '${type}'`
+    );
+  }
+}
+
+/**
+ * @public
+ */
 export class UndefinedPersonalAccessTokenError extends BaseError {
   constructor () {
     super(`Personal Access Token of your GitHub account is needed.`);

@@ -9,6 +9,7 @@
 import nodegit from '@sosuisen/nodegit';
 import { Octokit } from '@octokit/rest';
 import {
+  AuthenticationTypeNotAllowCreateRepositoryError,
   CannotConnectError,
   CannotCreateRemoteRepository,
   InvalidSSHKeyFormatError,
@@ -43,6 +44,7 @@ export class RemoteRepository {
    * Create a repository on a remote site
    * @remarks
    * auth.type must be 'github'
+   *
    * @throws {@link UndefinedPersonalAccessTokenError}
    * @throws Error
    *
@@ -91,7 +93,7 @@ export class RemoteRepository {
       }
     }
     else {
-      throw new Error('Auth type must be github.');
+      throw new AuthenticationTypeNotAllowCreateRepositoryError(this._auth?.type);
     }
   }
 
@@ -108,7 +110,34 @@ export class RemoteRepository {
       const urlArray = this._remoteURL.split('/');
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
-      await this._octokit!.repos.delete({ owner, repo });
+      let result;
+      let retry = 0;
+      for (; retry < NETWORK_RETRY; retry++) {
+        // eslint-disable-next-line no-await-in-loop
+        result = await this._octokit!.repos.delete({
+          owner,
+          repo,
+        }).catch(err => {
+          // May throw HttpError if the repository which has the same name already exists.
+          // HttpError: Repository creation failed.:
+          // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
+          return err;
+        });
+        if (result instanceof Error) {
+          // console.log(`NetworkError in creating remote repository: ${this._remoteURL}, ` + result);
+        }
+        else {
+          break;
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(NETWORK_RETRY_INTERVAL);
+      }
+      if (result instanceof Error) {
+        throw new CannotConnectError(retry, this._remoteURL, result.message);
+      }
+    }
+    else {
+      throw new AuthenticationTypeNotAllowCreateRepositoryError(this._auth?.type);
     }
   }
 
