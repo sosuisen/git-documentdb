@@ -10,16 +10,16 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
-import { SHORT_SHA_LENGTH } from '../src/const';
+import { SHORT_SHA_LENGTH } from '../../src/const';
 import {
   DocumentNotFoundError,
   InvalidIdCharacterError,
   RepositoryNotOpenError,
   UndefinedDBError,
   UndefinedDocumentIdError,
-} from '../src/error';
-import { GitDocumentDB } from '../src/index';
-import { remove_worker } from '../src/crud/remove';
+} from '../../src/error';
+import { GitDocumentDB } from '../../src/index';
+import { remove_worker } from '../../src/crud/remove';
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());

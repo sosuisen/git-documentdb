@@ -18,11 +18,11 @@ import {
   RepositoryNotOpenError,
   UndefinedDBError,
   UndefinedDocumentIdError,
-} from '../src/error';
-import { GitDocumentDB } from '../src/index';
-import { Validator } from '../src/validator';
-import { put_worker } from '../src/crud/put';
-import { SHORT_SHA_LENGTH } from '../src/const';
+} from '../../src/error';
+import { GitDocumentDB } from '../../src/index';
+import { Validator } from '../../src/validator';
+import { put_worker } from '../../src/crud/put';
+import { SHORT_SHA_LENGTH } from '../../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {

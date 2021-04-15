@@ -16,8 +16,8 @@ import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
-} from '../src/error';
-import { GitDocumentDB } from '../src/index';
+} from '../../src/error';
+import { GitDocumentDB } from '../../src/index';
 
 const ulid = monotonicFactory();
 const monoId = () => {

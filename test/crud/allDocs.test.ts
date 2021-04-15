@@ -9,8 +9,8 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
-import { InvalidJsonObjectError, RepositoryNotOpenError } from '../src/error';
-import { GitDocumentDB } from '../src/index';
+import { InvalidJsonObjectError, RepositoryNotOpenError } from '../../src/error';
+import { GitDocumentDB } from '../../src/index';
 
 const ulid = monotonicFactory();
 const monoId = () => {
