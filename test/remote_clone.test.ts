@@ -19,7 +19,7 @@ import { removeRemoteRepositories } from './remote_utils';
 import { NETWORK_RETRY } from '../src/const';
 
 const reposPrefix = 'test_clone___';
-const localDir = `./test/database_remote_github_pat_remote_repository`;
+const localDir = `./test/database_clone`;
 
 let idCounter = 0;
 const serialId = () => {
