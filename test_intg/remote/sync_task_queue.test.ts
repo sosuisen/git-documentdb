@@ -19,7 +19,7 @@ import { sleep } from '../../src/utils';
 import { destroyDBs, removeRemoteRepositories } from '../../test/remote_utils';
 
 const reposPrefix = 'test_remote_task_queue___';
-const localDir = `./test/database_remote_task_queue`;
+const localDir = `./test_intg/database_sync_task_queue`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -36,8 +36,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  // It may throw error due to memory leak with CannotPushBecauseUnfetchedCommitExistsErro
-  // fs.removeSync(path.resolve(localDir));
+  fs.removeSync(path.resolve(localDir));
 });
 
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
