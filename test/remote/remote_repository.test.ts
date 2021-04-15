@@ -14,14 +14,9 @@
 import path from 'path';
 import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../../src';
-import { RemoteOptions } from '../../src/types';
-import {
-  createRemoteRepository,
-  destroyDBs,
-  destroyRemoteRepository,
-  removeRemoteRepositories,
-} from '../remote_utils';
+import { NETWORK_RETRY_INTERVAL } from '../../src/const';
+import { destroyRemoteRepository, removeRemoteRepositories } from '../remote_utils';
+import { RemoteRepository } from '../../src/remote/remote_repository';
 
 const reposPrefix = 'test_remote_repository___';
 const localDir = `./test/database_remote_repository`;
@@ -33,7 +28,7 @@ const serialId = () => {
 
 beforeEach(function () {
   // @ts-ignore
-  console.log(`=== ${this.currentTest.fullTitle()}`);
+  console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
 beforeAll(() => {
@@ -51,7 +46,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('remote: sync: remote_repository: ', () => {
+maybe('<remote/remote_repository> RemoteRepository:', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -62,63 +57,71 @@ maybe('remote: sync: remote_repository: ', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  test('Create and remove remote repository by personal access token', async () => {
-    const remoteURL = remoteURLBase + serialId();
+  describe('create()', () => {
+    it('creates a remote repository on GitHub by personal access token', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const octokit = new Octokit({
+        auth: token,
+      });
+      const urlArray = remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
 
-    // Check if the repository is deleted.
-    const octokit = new Octokit({
-      auth: token,
+      await new RemoteRepository(remoteURL, {
+        type: 'github',
+        personal_access_token: token,
+      })
+        .create()
+        .catch((err: Error) => {
+          console.debug('Cannot create: ' + remoteURL);
+          console.debug(err);
+        });
+
+      await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
     });
 
-    const urlArray = remoteURL.split('/');
-    const owner = urlArray[urlArray.length - 2];
-    const repo = urlArray[urlArray.length - 1];
+    it('throws UndefinedPersonalAccessTokenError()', async () => {});
 
-    await createRemoteRepository(remoteURL);
+    it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {});
 
-    await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
-
-    await destroyRemoteRepository(remoteURL);
-
-    await expect(octokit.repos.listBranches({ owner, repo })).rejects.toThrowError();
+    it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {});
   });
 
-  test('Create remote repository in GitDocumentDB#create()', async () => {
-    const remoteURL = remoteURLBase + serialId();
+  describe('destroy()', () => {
+    it('removes a remote repository on GitHub by personal access token', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const octokit = new Octokit({
+        auth: token,
+      });
+      const urlArray = remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
 
-    const dbNameA = serialId();
+      await destroyRemoteRepository(remoteURL);
 
-    const dbA: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameA,
-      local_dir: localDir,
-    });
-    const options: RemoteOptions = {
-      remote_url: remoteURL,
-      auth: { type: 'github', personal_access_token: token },
-    };
-    // Check dbInfo
-    await expect(dbA.create(options)).resolves.toMatchObject({
-      is_new: true,
-      is_clone: false,
-      is_created_by_gitddb: true,
-      is_valid_version: true,
+      await expect(octokit.repos.listBranches({ owner, repo })).rejects.toThrowError();
     });
 
-    // Check remote
-    const octokit = new Octokit({
-      auth: token,
-    });
-    const urlArray = remoteURL.split('/');
-    const owner = urlArray[urlArray.length - 2];
-    const repo = urlArray[urlArray.length - 1];
-    await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
+    it('throws UndefinedPersonalAccessTokenError()', async () => {});
 
-    destroyDBs([dbA]);
+    it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {});
+
+    it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {});
   });
 
-  test.skip('Remove remote repository');
+  describe('_getOrCreateGitRemote()', () => {
+    it.skip('');
+  });
 
-  describe('Network errors: ', () => {
-    test.skip('Check CannotCreateRemoteRepository and retries in creating remote repository', async () => {});
+  describe('connect()', () => {
+    it.skip('');
+  });
+
+  describe('_checkFetch()', () => {
+    it.skip('');
+  });
+
+  describe('_checkPush()', () => {
+    it.skip('');
   });
 });
