@@ -107,6 +107,7 @@ dist
 test_repos*
 git-documentdb/
 test/database_*
+test_intg/database_*
 
 # api-extractor
 temp/

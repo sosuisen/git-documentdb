@@ -4,8 +4,8 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["remote_3way_merge.test.js", "remote_events.test.js"],
-    "default": "remote_3way_merge.test.js"
+    "options": ["test_intg/remote/3way_merge.test.js", "test_intg/remote/sync_events.test.js"],
+    "default": "test_intg/remote/3way_merge.test.js"
   }],
   "configurations": [
       {
@@ -27,7 +27,7 @@
             "3",
             "--timeout",
             "30000",
-            "${workspaceFolder}/dist/test/${input:choice}"
+            "${workspaceFolder}/dist/${input:choice}"
           ],
           "cwd": "${workspaceRoot}",
       }

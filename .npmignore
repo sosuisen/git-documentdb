@@ -25,6 +25,7 @@ node_modules/
 # test
 coverage/
 test/
+test_intg/
 dist/test/
 
 # api-extractor
