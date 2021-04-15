@@ -60,7 +60,7 @@ const localDir = `./test/database_open`;
 
 beforeEach(function () {
   // @ts-ignore
-  console.log(`=== ${this.currentTest.fullTitle()}`);
+  console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
 beforeAll(() => {

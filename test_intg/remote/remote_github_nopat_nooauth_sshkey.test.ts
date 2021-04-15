@@ -29,7 +29,7 @@ const localDir = `./test_intg/database_remote_github_nopat-nooauth-sshkey`;
 
 beforeEach(function () {
   // @ts-ignore
-  console.log(`=== ${this.currentTest.fullTitle()}`);
+  console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
 beforeAll(() => {

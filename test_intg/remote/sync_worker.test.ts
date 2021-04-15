@@ -42,7 +42,7 @@ const serialId = () => {
 
 beforeEach(function () {
   // @ts-ignore
-  console.log(`=== ${this.currentTest.fullTitle()}`);
+  console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
 beforeAll(() => {

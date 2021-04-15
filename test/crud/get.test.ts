@@ -28,7 +28,7 @@ const localDir = './test/database_get';
 
 beforeEach(function () {
   // @ts-ignore
-  console.log(`=== ${this.currentTest.fullTitle()}`);
+  console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
 beforeAll(() => {

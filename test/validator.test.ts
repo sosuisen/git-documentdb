@@ -25,7 +25,7 @@ const localDir = './test/database_validate';
 
 beforeEach(function () {
   // @ts-ignore
-  console.log(`=== ${this.currentTest.title}`);
+  console.log(`... ${this.currentTest.title}`);
 });
 
 beforeAll(() => {
