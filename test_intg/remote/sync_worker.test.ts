@@ -13,14 +13,14 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src';
+import { GitDocumentDB } from '../../src';
 import {
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
   SyncResultPush,
   SyncResultResolveConflictsAndPush,
-} from '../src/types';
-import { NoMergeBaseFoundError } from '../src/error';
+} from '../../src/types';
+import { NoMergeBaseFoundError } from '../../src/error';
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -30,7 +30,7 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from './remote_utils';
+} from '../../test/remote_utils';
 
 const reposPrefix = 'test_sync_worker___';
 const localDir = `./test/database_sync_worker`;

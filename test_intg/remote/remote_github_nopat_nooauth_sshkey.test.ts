@@ -17,9 +17,9 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
-import { GitDocumentDB } from '../src';
-import { RemoteOptions } from '../src/types';
-import { UndefinedRemoteURLError } from '../src/error';
+import { GitDocumentDB } from '../../src';
+import { RemoteOptions } from '../../src/types';
+import { UndefinedRemoteURLError } from '../../src/error';
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());

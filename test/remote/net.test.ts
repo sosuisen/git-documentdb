@@ -3,8 +3,8 @@ import {
   HttpProtocolRequiredError,
   RequestTimeoutError,
   SocketTimeoutError,
-} from '../src/error';
-import { checkHTTP } from '../src/remote/net';
+} from '../../src/error';
+import { checkHTTP } from '../../src/remote/net';
 
 describe('remote: net: ', () => {
   test('check HTTPS connection', async () => {

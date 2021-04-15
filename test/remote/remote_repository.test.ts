@@ -14,15 +14,13 @@
 import path from 'path';
 import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src';
-import { RemoteOptions } from '../src/types';
-import { CannotConnectError } from '../src/error';
+import { GitDocumentDB } from '../../src';
+import { RemoteOptions } from '../../src/types';
 import {
   createRemoteRepository,
   destroyRemoteRepository,
   removeRemoteRepositories,
-} from './remote_utils';
-import { NETWORK_RETRY } from '../src/const';
+} from '../remote_utils';
 
 const reposPrefix = 'test_remote_repository___';
 const localDir = `./test/database_remote_repository`;

@@ -21,7 +21,7 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from './remote_utils';
+} from '../../test/remote_utils';
 
 const reposPrefix = 'test_push_worker___';
 const localDir = `./test/database_push_worker`;

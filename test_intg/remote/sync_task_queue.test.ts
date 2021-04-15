@@ -13,10 +13,10 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src';
-import { RemoteOptions } from '../src/types';
-import { sleep } from '../src/utils';
-import { destroyDBs, removeRemoteRepositories } from './remote_utils';
+import { GitDocumentDB } from '../../src';
+import { RemoteOptions } from '../../src/types';
+import { sleep } from '../../src/utils';
+import { destroyDBs, removeRemoteRepositories } from '../../test/remote_utils';
 
 const reposPrefix = 'test_remote_task_queue___';
 const localDir = `./test/database_remote_task_queue`;

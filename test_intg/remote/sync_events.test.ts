@@ -13,8 +13,8 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { ChangedFile, RemoteOptions, SyncResultFastForwardMerge } from '../src/types';
-import { sleep } from '../src/utils';
+import { ChangedFile, RemoteOptions, SyncResultFastForwardMerge } from '../../src/types';
+import { sleep } from '../../src/utils';
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -25,10 +25,10 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from './remote_utils';
-import { GitDocumentDB } from '../src';
-import { Sync } from '../src/remote/sync';
-import { SyncWorkerFetchError } from '../src/error';
+} from '../../test/remote_utils';
+import { GitDocumentDB } from '../../src';
+import { Sync } from '../../src/remote/sync';
+import { SyncWorkerFetchError } from '../../src/error';
 
 const reposPrefix = 'test_sync_events___';
 const localDir = `./test/database_sync_events`;

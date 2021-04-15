@@ -13,12 +13,12 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { Sync } from '../src/remote/sync';
-import { GitDocumentDB } from '../src';
-import { RemoteOptions } from '../src/types';
-import { CannotPushBecauseUnfetchedCommitExistsError } from '../src/error';
-import { sleep } from '../src/utils';
-import { destroyDBs, getChangedFile, removeRemoteRepositories } from './remote_utils';
+import { Sync } from '../../src/remote/sync';
+import { GitDocumentDB } from '../../src';
+import { RemoteOptions } from '../../src/types';
+import { CannotPushBecauseUnfetchedCommitExistsError } from '../../src/error';
+import { sleep } from '../../src/utils';
+import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../../test/remote_utils';
 
 const reposPrefix = 'test_sync_lifecycle___';
 const localDir = `./test/database_sync_lifecycle`;

@@ -13,8 +13,8 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src';
-import { RemoteOptions } from '../src/types';
+import { GitDocumentDB } from '../../src';
+import { RemoteOptions } from '../../src/types';
 import {
   AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
@@ -23,9 +23,9 @@ import {
   RepositoryNotOpenError,
   UndefinedPersonalAccessTokenError,
   UndefinedRemoteURLError,
-} from '../src/error';
-import { Sync } from '../src/remote/sync';
-import { removeRemoteRepositories } from './remote_utils';
+} from '../../src/error';
+import { Sync } from '../../src/remote/sync';
+import { removeRemoteRepositories } from '../../test/remote_utils';
 
 const reposPrefix = 'test_sync_constructor___';
 const localDir = `./test/database_sync_constructor`;

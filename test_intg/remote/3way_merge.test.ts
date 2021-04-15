@@ -13,8 +13,8 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src';
-import { SyncResultMergeAndPush, SyncResultResolveConflictsAndPush } from '../src/types';
+import { GitDocumentDB } from '../../src';
+import { SyncResultMergeAndPush, SyncResultResolveConflictsAndPush } from '../../src/types';
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -24,7 +24,7 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from './remote_utils';
+} from '../../test/remote_utils';
 
 const reposPrefix = 'test_3way_merge___';
 const localDir = `./test/database_3way_merge`;
