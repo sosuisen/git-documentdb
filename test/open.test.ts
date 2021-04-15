@@ -134,7 +134,7 @@ describe('GitDocumentDB constructor: ', () => {
 });
 
 describe('Create repository: ', () => {
-  const readonlyDir = './test/readonly/';
+  const readonlyDir = './test/_readonly/';
 
   test('Try to create a new repository on a readonly filesystem.', async () => {
     const dbName = monoId();
