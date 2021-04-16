@@ -229,18 +229,9 @@ export class InvalidSSHKeyPathError extends BaseError {
 /**
  * @public
  */
-export class InvalidURLFormatError extends BaseError {
+export class InvalidURLError extends BaseError {
   constructor (url: string) {
-    super(`Invalid url format: ${url}'`);
-  }
-}
-
-/**
- * @public
- */
-export class UnresolvedHostError extends BaseError {
-  constructor (url: string) {
-    super(`Failed to resolve address for ${url}'`);
+    super(`Invalid url: ${url}'`);
   }
 }
 
@@ -267,9 +258,9 @@ export class RemoteRepositoryNotFoundError extends BaseError {
 /**
  * @public
  */
-export class InvalidSSHKeyFormatError extends BaseError {
+export class InvalidSSHKeyError extends BaseError {
   constructor () {
-    super(`Format of SSH key pair is invalid.`);
+    super(`SSH key pair is invalid.`);
   }
 }
 
@@ -285,9 +276,18 @@ export class PushPermissionDeniedError extends BaseError {
 /**
  * @public
  */
-export class PushAuthenticationError extends BaseError {
-  constructor () {
-    super(`401 Unauthorized to push to the repository.`);
+export class FetchConnectionFailedError extends BaseError {
+  constructor (mes: string) {
+    super(`Fetch connection failed: ${mes}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class PushConnectionFailedError extends BaseError {
+  constructor (mes: string) {
+    super(`Push connection failed: ${mes}`);
   }
 }
 
@@ -511,7 +511,7 @@ export class HTTPNetworkError extends BaseError {
 /**
  * @public
  */
-export class CannotCreateRemoteRepository extends BaseError {
+export class CannotCreateRemoteRepositoryError extends BaseError {
   constructor (reason: string) {
     super(`Cannot create remote repository: ${reason}`);
   }
@@ -523,5 +523,14 @@ export class CannotCreateRemoteRepository extends BaseError {
 export class TaskCancelError extends BaseError {
   constructor (taskId: string) {
     super(`Task is canceled: ${taskId}`);
+  }
+}
+
+/**
+ * @public
+ */
+export class PersonalAccessTokenForAnotherAccountError extends BaseError {
+  constructor () {
+    super('This is a personal access token for another account.');
   }
 }

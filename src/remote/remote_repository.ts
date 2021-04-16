@@ -11,15 +11,15 @@ import { Octokit } from '@octokit/rest';
 import {
   AuthenticationTypeNotAllowCreateRepositoryError,
   CannotConnectError,
-  CannotCreateRemoteRepository,
-  InvalidSSHKeyFormatError,
-  InvalidURLFormatError,
-  PushAuthenticationError,
+  CannotCreateRemoteRepositoryError,
+  FetchConnectionFailedError,
+  InvalidSSHKeyError,
+  InvalidURLError,
   PersonalAccessTokenForAnotherAccountError,
+  PushConnectionFailedError,
   PushPermissionDeniedError,
   RemoteRepositoryNotFoundError,
   UndefinedPersonalAccessTokenError,
-  UnresolvedHostError,
 } from '../error';
 import { RemoteAuth } from '../types';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../const';
@@ -63,8 +63,8 @@ export class RemoteRepository {
    * auth.type must be 'github'
    *
    * @throws {@link UndefinedPersonalAccessTokenError}
-   * @throws Error
    * @throws {@link PersonalAccessTokenForAnotherAccountError}
+   * @throws {@link CannotConnectError}
    *
    *  may include the following errors:
    *
@@ -75,6 +75,10 @@ export class RemoteRepository {
    *  - Permission error
    *
    *  - Other network errors
+   *
+   * @throws {@AuthenticationTypeNotAllowCreateRepositoryError}
+   *
+   * @public
    */
   async create () {
     if (this._options.auth?.type === 'github') {
@@ -125,6 +129,23 @@ export class RemoteRepository {
    * Delete a repository on a remote site
    * @remarks
    * auth.type must be 'github'
+   *
+   * @throws {@link UndefinedPersonalAccessTokenError}
+   * @throws {@link CannotConnectError}
+   *
+   *  may include the following errors:
+   *
+   *  - HttpError
+   *
+   *  - Authentication error
+   *
+   *  - Permission error
+   *
+   *  - Other network errors
+   *
+   * @throws {@AuthenticationTypeNotAllowCreateRepositoryError}
+   *
+   * @public
    */
   async destroy () {
     if (this._options.auth?.type === 'github') {
@@ -143,9 +164,6 @@ export class RemoteRepository {
           owner,
           repo,
         }).catch(err => {
-          // May throw HttpError if the repository which has the same name already exists.
-          // HttpError: Repository creation failed.:
-          // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
           return err;
         });
         if (result instanceof Error) {
@@ -198,6 +216,13 @@ export class RemoteRepository {
 
   /**
    * Check connection by FETCH
+   *
+   * @throws {@link InvalidURLError}
+   * @throws {@link RemoteRepositoryNotFoundError}
+   * @throws {@link InvalidSSHKeyError}
+   * @throws Error
+   *
+   * @internal
    */
   private async _checkFetch (
     remote: nodegit.Remote,
@@ -215,17 +240,17 @@ export class RemoteRepository {
       case error === 'undefined':
         break;
       case error.startsWith('Error: unsupported URL protocol'):
-        throw new InvalidURLFormatError(remoteURL);
       case error.startsWith('Error: failed to resolve address'):
-        throw new UnresolvedHostError(remoteURL);
-      case error.startsWith('Error: request failed with status code: 401'):
-      case error.startsWith('Error: request failed with status code: 404'):
+      case error.startsWith('Error: failed to send request'):
+        throw new InvalidURLError(remoteURL);
+      case error.startsWith('Error: request failed with status code: 4'): // 401, 404
       case error.startsWith('Error: Method connect has thrown an error'):
       case error.startsWith('Error: ERROR: Repository not found'):
         // Remote repository does not exist, or you do not have permission to the private repository
         throw new RemoteRepositoryNotFoundError(remoteURL);
       case error.startsWith('Failed to retrieve list of SSH authentication methods'):
-        throw new InvalidSSHKeyFormatError();
+      case error.startsWith('Error: too many redirects or authentication replays'):
+        throw new InvalidSSHKeyError();
       default:
         throw new Error(error);
     }
@@ -234,6 +259,10 @@ export class RemoteRepository {
 
   /**
    * Check connection by PUSH
+   *
+   * @throws {@link PushAuthenticationError}
+   * @throws {@link PushPermissionDeniedError}
+   * @throes Error
    */
   private async _checkPush (
     remote: nodegit.Remote,
@@ -249,10 +278,11 @@ export class RemoteRepository {
     switch (true) {
       case error === 'undefined':
         break;
-      case error.startsWith('Error: request failed with status code: 401'):
-        throw new PushAuthenticationError();
+      // Invalid personal access token
+      // Personal access token is read only
+      case error.startsWith('Error: request failed with status code: 4'):
+      case error.startsWith('Error: too many redirects or authentication replays'):
       case error.startsWith('Error: ERROR: Permission to'): {
-        // Remote repository is read only
         throw new PushPermissionDeniedError();
       }
       default:
@@ -265,7 +295,9 @@ export class RemoteRepository {
    * Set a remote repository and connect to the remote repository.
    * A remote repository will be created if not exists.
    *
-   * @throws {@link CannotCreateRemoteRepository}
+   * @throws {@link FetchConnectionFailedError}
+   * @throws {@link CannotCreateRemoteRepositoryError}
+   * @throws {@link PushConnectionFailedError}
    */
   async connect (
     repos: nodegit.Repository,
@@ -290,18 +322,20 @@ export class RemoteRepository {
         return 'create';
       }
 
-      throw err;
+      throw new FetchConnectionFailedError(err.message);
     });
     if (remoteResult === 'create') {
       // Try to create repository by octokit
       await this.create().catch(err => {
         // App may check permission or
-        throw new CannotCreateRemoteRepository(err.message);
+        throw new CannotCreateRemoteRepositoryError(err.message);
       });
     }
 
     if (!onlyFetch) {
-      await this._checkPush(remote, credential_callbacks);
+      await this._checkPush(remote, credential_callbacks).catch(err => {
+        throw new PushConnectionFailedError(err.message);
+      });
     }
     return [gitResult, remoteResult];
   }
