@@ -133,9 +133,12 @@ export async function createClonedDatabases (
 }
 
 export const createRemoteRepository = async (remoteURL: string) => {
-  await new RemoteRepository(remoteURL, {
-    type: 'github',
-    personal_access_token: token,
+  await new RemoteRepository({
+    remote_url: remoteURL,
+    auth: {
+      type: 'github',
+      personal_access_token: token,
+    },
   })
     .create()
     .catch(err => {
@@ -145,9 +148,12 @@ export const createRemoteRepository = async (remoteURL: string) => {
 };
 
 export const destroyRemoteRepository = async (remoteURL: string) => {
-  await new RemoteRepository(remoteURL, {
-    type: 'github',
-    personal_access_token: token,
+  await new RemoteRepository({
+    remote_url: remoteURL,
+    auth: {
+      type: 'github',
+      personal_access_token: token,
+    },
   })
     .destroy()
     .catch(err => {
