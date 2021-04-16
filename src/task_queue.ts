@@ -64,8 +64,12 @@ export class TaskQueue {
    * Unshift task to TaskQueue
    */
   unshiftSyncTaskToTaskQueue (task: Task) {
-    if (this._taskQueue.length > 0 && this._taskQueue[0].label === 'sync') {
-      console.log('## sync skipped');
+    if (
+      this._taskQueue.length > 0 &&
+      (this._taskQueue[0].label === 'sync' || this._taskQueue[0].label === 'push')
+    ) {
+      // console.log('## task skipped');
+      task.cancel();
       return;
     }
     this._taskQueue.unshift(task);

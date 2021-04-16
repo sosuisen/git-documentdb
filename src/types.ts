@@ -383,6 +383,7 @@ export type Task = {
   taskId: string;
   targetId?: string;
   func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
+  cancel: () => void;
 };
 
 /**
@@ -503,7 +504,7 @@ export interface ISync {
   committer: nodegit.Signature;
   remoteURL(): string;
   options(): RemoteOptions;
-  tryPush(): Promise<SyncResultPush>;
+  tryPush(): Promise<SyncResultPush | SyncResultCancel>;
   trySync(): Promise<SyncResult>;
   on(event: SyncEvent, callback: (result?: any) => void): void;
   off(event: SyncEvent, callback: (result?: any) => void): void;

@@ -20,6 +20,7 @@ import {
   RemoteOptions,
   SyncEvent,
   SyncResult,
+  SyncResultCancel,
   SyncResultPush,
   Task,
 } from '../types';
@@ -317,13 +318,14 @@ export class Sync implements ISync {
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
-    return { action: 'canceled' };
+    const result: SyncResultCancel = { action: 'canceled' };
+    return result;
   }
 
   /**
    * Try push to remote
    */
-  tryPush (): Promise<SyncResultPush> {
+  tryPush (): Promise<SyncResultPush | SyncResultCancel> {
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResultPush) => void,
@@ -372,20 +374,28 @@ export class Sync implements ISync {
           reject(err);
         });
 
+    const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
+      const result: SyncResultCancel = { action: 'canceled' };
+      resolve(result);
+    };
+
     const task = (
-      resolve: (value: SyncResultPush) => void,
+      resolve: (value: SyncResultPush | SyncResultCancel) => void,
       reject: (reason: any) => void
     ): Task => {
       return {
         label: 'push',
         taskId: taskId!,
         func: callback(resolve, reject),
+        cancel: cancel(resolve),
       };
     };
 
-    return new Promise((resolve: (value: SyncResultPush) => void, reject) => {
-      this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
-    });
+    return new Promise(
+      (resolve: (value: SyncResultPush | SyncResultCancel) => void, reject) => {
+        this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
+      }
+    );
   }
 
   /**
@@ -450,6 +460,11 @@ export class Sync implements ISync {
           reject(err);
         });
 
+    const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
+      const result: SyncResultCancel = { action: 'canceled' };
+      resolve(result);
+    };
+
     const task = (
       resolve: (value: SyncResult) => void,
       reject: (reason: any) => void
@@ -458,6 +473,7 @@ export class Sync implements ISync {
         label: 'sync',
         taskId: taskId!,
         func: callback(resolve, reject),
+        cancel: cancel(resolve),
       };
     };
 
