@@ -15,6 +15,7 @@ import {
   InvalidSSHKeyFormatError,
   InvalidURLFormatError,
   PushAuthenticationError,
+  PersonalAccessTokenForAnotherAccountError,
   PushPermissionDeniedError,
   RemoteRepositoryNotFoundError,
   UndefinedPersonalAccessTokenError,
@@ -63,6 +64,7 @@ export class RemoteRepository {
    *
    * @throws {@link UndefinedPersonalAccessTokenError}
    * @throws Error
+   * @throws {@link PersonalAccessTokenForAnotherAccountError}
    *
    *  may include the following errors:
    *
@@ -101,7 +103,11 @@ export class RemoteRepository {
           // console.log(`NetworkError in creating remote repository: ${this._options.remote_url}, ` + result);
         }
         else {
-          break;
+          // Check owner name because personal access token does not check owner
+          if (result.data.full_name === `${owner}/${repo}`) {
+            break;
+          }
+          throw new PersonalAccessTokenForAnotherAccountError();
         }
         // eslint-disable-next-line no-await-in-loop
         await sleep(NETWORK_RETRY_INTERVAL);
