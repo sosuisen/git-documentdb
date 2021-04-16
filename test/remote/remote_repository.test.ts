@@ -14,6 +14,7 @@
 import path from 'path';
 import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
+import { GitDocumentDB } from '../../src';
 import {
   AuthenticationTypeNotAllowCreateRepositoryError,
   CannotConnectError,
@@ -22,10 +23,16 @@ import {
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
 import {
   createRemoteRepository,
+  destroyDBs,
   destroyRemoteRepository,
   removeRemoteRepositories,
 } from '../remote_utils';
 import { RemoteRepository } from '../../src/remote/remote_repository';
+
+const ulid = monotonicFactory();
+const monoId = () => {
+  return ulid(Date.now());
+};
 
 const reposPrefix = 'test_remote_repository___';
 const localDir = `./test/database_remote_repository`;
@@ -172,11 +179,73 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
   });
 
   describe(': _getOrCreateGitRemote()', () => {
-    it.skip('');
-  });
+    it('returns "add" when origin is undefined', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository(remoteURL);
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+      expect(result).toBe('add');
 
-  describe(': connect()', () => {
-    it.skip('');
+      destroyDBs([gitDDB]);
+    });
+
+    it('returns "change" when another origin exists', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository(remoteURL);
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      await remoteRepos['_getOrCreateGitRemote'](gitDDB.repository()!, remoteURL);
+
+      const remoteURL2 = remoteURLBase + serialId();
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL2
+      );
+      expect(result).toBe('change');
+
+      destroyDBs([gitDDB]);
+    });
+
+    it('returns "exist" when the same origin exists', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository(remoteURL);
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      await remoteRepos['_getOrCreateGitRemote'](gitDDB.repository()!, remoteURL);
+
+      const remoteURL2 = remoteURLBase + serialId();
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+      expect(result).toBe('exist');
+
+      destroyDBs([gitDDB]);
+    });
   });
 
   describe(': _checkFetch()', () => {
