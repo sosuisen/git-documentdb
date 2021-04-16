@@ -18,7 +18,11 @@ import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
 import { CannotPushBecauseUnfetchedCommitExistsError } from '../../src/error';
 import { sleep } from '../../src/utils';
-import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../../test/remote_utils';
+import {
+  destroyDBs,
+  getChangedFile,
+  removeRemoteRepositories,
+} from '../../test/remote_utils';
 
 const reposPrefix = 'test_sync_lifecycle___';
 const localDir = `./test_intg/database_sync_lifecycle`;
