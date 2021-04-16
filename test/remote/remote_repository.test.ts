@@ -14,8 +14,17 @@
 import path from 'path';
 import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
-import { NETWORK_RETRY_INTERVAL } from '../../src/const';
-import { destroyRemoteRepository, removeRemoteRepositories } from '../remote_utils';
+import {
+  AuthenticationTypeNotAllowCreateRepositoryError,
+  CannotConnectError,
+  UndefinedPersonalAccessTokenError,
+} from '../../src/error';
+import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
+import {
+  createRemoteRepository,
+  destroyRemoteRepository,
+  removeRemoteRepositories,
+} from '../remote_utils';
 import { RemoteRepository } from '../../src/remote/remote_repository';
 
 const reposPrefix = 'test_remote_repository___';
@@ -70,26 +79,51 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await new RemoteRepository(remoteURL, {
         type: 'github',
         personal_access_token: token,
-      })
-        .create()
-        .catch((err: Error) => {
-          console.debug('Cannot create: ' + remoteURL);
-          console.debug(err);
-        });
-
+      }).create();
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
     });
 
-    it('throws UndefinedPersonalAccessTokenError()', async () => {});
+    it('throws UndefinedPersonalAccessTokenError()', async () => {
+      const remoteURL = remoteURLBase + serialId();
 
-    it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {});
+      await expect(
+        new RemoteRepository(remoteURL, {
+          type: 'github',
+          personal_access_token: undefined,
+        }).create()
+      ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
+    });
 
-    it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {});
+    it(`throws CannotConnectError() with ${NETWORK_RETRY} retries`, async () => {
+      const remoteURL = remoteURLBase + serialId();
+      await createRemoteRepository(remoteURL);
+
+      const error = await new RemoteRepository(remoteURL, {
+        type: 'github',
+        personal_access_token: token,
+      })
+        .create()
+        .catch(err => err);
+      expect(error).toBeInstanceOf(CannotConnectError);
+      expect((error as CannotConnectError).retry).toBe(NETWORK_RETRY);
+    });
+
+    it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      await expect(
+        new RemoteRepository(remoteURL, {
+          type: 'none',
+        }).create()
+      ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
+    });
   });
 
   describe(': destroy()', () => {
     it('removes a remote repository on GitHub by personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
+
+      await createRemoteRepository(remoteURL);
       const octokit = new Octokit({
         auth: token,
       });
@@ -102,11 +136,39 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await expect(octokit.repos.listBranches({ owner, repo })).rejects.toThrowError();
     });
 
-    it('throws UndefinedPersonalAccessTokenError()', async () => {});
+    it('throws UndefinedPersonalAccessTokenError()', async () => {
+      const remoteURL = remoteURLBase + serialId();
 
-    it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {});
+      await expect(
+        new RemoteRepository(remoteURL, {
+          type: 'github',
+          personal_access_token: undefined,
+        }).destroy()
+      ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
+    });
 
-    it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {});
+    it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const error = await new RemoteRepository(remoteURL, {
+        type: 'github',
+        personal_access_token: token,
+      })
+        .destroy()
+        .catch(err => err);
+      expect(error).toBeInstanceOf(CannotConnectError);
+      expect((error as CannotConnectError).retry).toBe(NETWORK_RETRY);
+    });
+
+    it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      await expect(
+        new RemoteRepository(remoteURL, {
+          type: 'none',
+        }).destroy()
+      ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
+    });
   });
 
   describe(': _getOrCreateGitRemote()', () => {
