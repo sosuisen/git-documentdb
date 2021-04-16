@@ -66,7 +66,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('intg <remote/sync_trysync>: Sync#trySync():', () => {
+maybe('intg <remote/sync_trysync>: Sync#trySync()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -693,7 +693,7 @@ maybe('intg <remote/sync_trysync>: Sync#trySync():', () => {
   /**
    * No merge base
    */
-  describe.skip('No merge base: ', () => {
+  describe.skip('No merge base', () => {
     // behavior_for_no_merge_base が nop のときリトライしないこと。
     it.skip('Test ours option for behavior_for_no_merge_base', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);

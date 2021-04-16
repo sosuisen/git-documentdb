@@ -56,7 +56,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('intg <remote/sync_trypush>: Sync#tryPush():', () => {
+maybe('intg <remote/sync_trypush>: Sync#tryPush()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';

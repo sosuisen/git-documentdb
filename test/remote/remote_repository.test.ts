@@ -46,7 +46,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('<remote/remote_repository> RemoteRepository:', () => {
+maybe('<remote/remote_repository> RemoteRepository', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -57,7 +57,7 @@ maybe('<remote/remote_repository> RemoteRepository:', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  describe('create()', () => {
+  describe(': create()', () => {
     it('creates a remote repository on GitHub by personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
       const octokit = new Octokit({
@@ -87,7 +87,7 @@ maybe('<remote/remote_repository> RemoteRepository:', () => {
     it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {});
   });
 
-  describe('destroy()', () => {
+  describe(': destroy()', () => {
     it('removes a remote repository on GitHub by personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
       const octokit = new Octokit({
@@ -109,19 +109,19 @@ maybe('<remote/remote_repository> RemoteRepository:', () => {
     it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {});
   });
 
-  describe('_getOrCreateGitRemote()', () => {
+  describe(': _getOrCreateGitRemote()', () => {
     it.skip('');
   });
 
-  describe('connect()', () => {
+  describe(': connect()', () => {
     it.skip('');
   });
 
-  describe('_checkFetch()', () => {
+  describe(': _checkFetch()', () => {
     it.skip('');
   });
 
-  describe('_checkPush()', () => {
+  describe(': _checkPush()', () => {
     it.skip('');
   });
 });
