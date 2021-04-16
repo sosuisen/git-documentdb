@@ -9,7 +9,11 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
-import { DatabaseCloseTimeoutError, DatabaseClosingError } from '../src/error';
+import {
+  DatabaseCloseTimeoutError,
+  DatabaseClosingError,
+  TaskCancelError,
+} from '../src/error';
 import { GitDocumentDB } from '../src/index';
 import { DatabaseInfoError } from '../src/types';
 
@@ -33,8 +37,8 @@ afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('Close database', () => {
-  test('close(): wait queued operations', async () => {
+describe('<close> GitDocumentDB#close()', () => {
+  it('waits queued operations', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -43,9 +47,7 @@ describe('Close database', () => {
     await gitDDB.create();
 
     for (let i = 0; i < 100; i++) {
-      gitDDB
-        .put({ _id: i.toString(), name: i.toString() })
-        .catch(err => console.error(err));
+      gitDDB.put({ _id: i.toString(), name: i.toString() });
     }
 
     await gitDDB.close();
@@ -60,7 +62,7 @@ describe('Close database', () => {
     await gitDDB.destroy();
   });
 
-  test('close(): queued operations are timeout', async () => {
+  it('throws DatabaseCloseTimeoutError when timeout is 1', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -69,10 +71,7 @@ describe('Close database', () => {
     await gitDDB.create();
 
     for (let i = 0; i < 100; i++) {
-      // put() will throw Error after the database is closed by timeout.
-      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => {
-        console.log(err);
-      });
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
     }
 
     await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(
@@ -80,7 +79,6 @@ describe('Close database', () => {
     );
 
     await gitDDB.open();
-
     // total_rows is less than 100
     await expect(gitDDB.allDocs({ recursive: true })).resolves.not.toMatchObject({
       total_rows: 100,
@@ -89,7 +87,62 @@ describe('Close database', () => {
     await gitDDB.destroy();
   });
 
-  test('close(): close database by force', async () => {
+  it('catches TaskCancelError from put() when timeout is 1', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    const errors: any[] = [];
+    for (let i = 0; i < 100; i++) {
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(err => {
+        errors.push(err);
+      });
+    }
+
+    await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(
+      DatabaseCloseTimeoutError
+    );
+
+    const taskCancelErrors = errors.filter(err => err instanceof TaskCancelError);
+    expect(taskCancelErrors.length).toBeGreaterThan(50); // Set number less than 100
+
+    await gitDDB.destroy();
+  });
+
+  it('catches TaskCancelError from delete() when timeout is 1', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    for (let i = 0; i < 100; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      await gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
+    }
+
+    const errors: any[] = [];
+    for (let i = 0; i < 100; i++) {
+      gitDDB.delete({ _id: i.toString(), name: i.toString() }).catch(err => {
+        errors.push(err);
+      });
+    }
+
+    await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(
+      DatabaseCloseTimeoutError
+    );
+
+    const taskCancelErrors = errors.filter(err => err instanceof TaskCancelError);
+    expect(taskCancelErrors.length).toBeGreaterThan(50); // Set number less than 100
+
+    await gitDDB.destroy();
+  });
+
+  it('closes database by force', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -102,7 +155,7 @@ describe('Close database', () => {
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
     }
 
-    await gitDDB.close({ force: true });
+    await gitDDB.close({ force: true, timeout: 1000000 });
 
     await gitDDB.open();
 
@@ -114,7 +167,7 @@ describe('Close database', () => {
     await gitDDB.destroy();
   });
 
-  test('Check isClosing flag', async () => {
+  it('causes DatabaseClosingError in CRUD methods by isClosing flag', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
       db_name: dbName,

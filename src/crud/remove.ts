@@ -16,6 +16,7 @@ import {
   DatabaseClosingError,
   DocumentNotFoundError,
   RepositoryNotOpenError,
+  TaskCancelError,
   UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
@@ -62,11 +63,12 @@ export function removeImpl (
   const commit_message =
     options.commit_message ?? `remove: ${_id}${this.fileExt}(<%file_sha%>)`;
 
+  const taskId = this.taskQueue.newTaskId();
   // delete() must be serial.
   return new Promise((resolve, reject) => {
     this.taskQueue.pushToTaskQueue({
       label: 'remove',
-      taskId: this.taskQueue.newTaskId(),
+      taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
         remove_worker(this, _id, this.fileExt, commit_message!)
@@ -78,6 +80,9 @@ export function removeImpl (
             beforeReject();
             reject(err);
           }),
+      cancel: () => {
+        reject(new TaskCancelError(taskId));
+      },
     });
   });
 }

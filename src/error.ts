@@ -516,3 +516,12 @@ export class CannotCreateRemoteRepository extends BaseError {
     super(`Cannot create remote repository: ${reason}`);
   }
 }
+
+/**
+ * @public
+ */
+export class TaskCancelError extends BaseError {
+  constructor (taskId: string) {
+    super(`Task is canceled: ${taskId}`);
+  }
+}

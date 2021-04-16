@@ -77,6 +77,7 @@ export class TaskQueue {
   }
 
   clear () {
+    this._taskQueue.forEach(task => task.cancel());
     this._taskQueue.length = 0;
     this._isTaskQueueWorking = false;
     this._currentTask = undefined;
@@ -88,6 +89,10 @@ export class TaskQueue {
     };
   }
 
+  length () {
+    return this._taskQueue.length;
+  }
+
   statistics (): TaskStatistics {
     return JSON.parse(JSON.stringify(this._statistics));
   }
@@ -95,9 +100,8 @@ export class TaskQueue {
   async waitCompletion (timeoutMsec: number) {
     const startMsec = Date.now();
     let isTimeout = false;
-    while (this._taskQueue.length > 0 || this._isTaskQueueWorking) {
+    while ((this._taskQueue.length > 0 || this._isTaskQueueWorking) && !isTimeout) {
       if (Date.now() - startMsec > timeoutMsec) {
-        this._taskQueue.length = 0;
         isTimeout = true;
       }
       // eslint-disable-next-line no-await-in-loop

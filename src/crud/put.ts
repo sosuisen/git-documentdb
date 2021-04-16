@@ -18,6 +18,7 @@ import {
   DatabaseClosingError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
+  TaskCancelError,
   UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
@@ -101,11 +102,12 @@ export function putImpl (
   const commit_message =
     options.commit_message ?? `put: ${_id}${this.fileExt}(<%file_sha%>)`;
 
+  const taskId = this.taskQueue.newTaskId();
   // put() must be serial.
   return new Promise((resolve, reject) => {
     this.taskQueue.pushToTaskQueue({
       label: 'put',
-      taskId: this.taskQueue.newTaskId(),
+      taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
         put_worker(this, _id, this.fileExt, data, commit_message!)
@@ -117,6 +119,9 @@ export function putImpl (
             beforeReject();
             reject(err);
           }),
+      cancel: () => {
+        reject(new TaskCancelError(taskId));
+      },
     });
   });
 }
