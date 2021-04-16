@@ -14,6 +14,8 @@
 import path from 'path';
 import { Octokit } from '@octokit/rest';
 import fs from 'fs-extra';
+import { monotonicFactory } from 'ulid';
+import { createCredential } from '../../src/remote/authentication';
 import { GitDocumentDB } from '../../src';
 import {
   AuthenticationTypeNotAllowCreateRepositoryError,
@@ -249,10 +251,41 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
   });
 
   describe(': _checkFetch()', () => {
-    it.skip('');
+    it.only('returns exist', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository(remoteURL);
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+      const cred = createCredential({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      });
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkFetch'](remote, cred)).resolves.toBe('exist');
+
+      destroyDBs([gitDDB]);
+    });
   });
 
   describe(': _checkPush()', () => {
     it.skip('');
+  });
+
+  describe(': connect()', () => {
+    it.skip('returns..');
+    it.skip('throws error when fails _checkFetch');
   });
 });
