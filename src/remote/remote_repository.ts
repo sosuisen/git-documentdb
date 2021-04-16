@@ -24,6 +24,11 @@ import { RemoteAuth } from '../types';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../const';
 import { sleep } from '../utils';
 
+/**
+ * GitOrigin
+ */
+type GitRemoteAction = 'add' | 'change' | 'exist';
+
 export class RemoteRepository {
   private _remoteURL: string;
   private _auth?: RemoteAuth;
@@ -142,15 +147,18 @@ export class RemoteRepository {
   }
 
   /**
-   * Get or create Git remote (git remote add)
+   * Get or create Git remote named 'origin'
+   *
+   * (git remote add)
+   *
    * @internal
    */
   // eslint-disable-next-line complexity
   private async _getOrCreateGitRemote (
     repos: nodegit.Repository,
     remoteURL: string
-  ): Promise<['add' | 'change' | 'exist', nodegit.Remote]> {
-    let result: 'add' | 'change' | 'exist';
+  ): Promise<[GitRemoteAction, nodegit.Remote]> {
+    let result: GitRemoteAction;
     // Check if remote repository already exists
     let remote = await nodegit.Remote.lookup(repos, 'origin').catch(() => {});
     if (remote === undefined) {
@@ -169,50 +177,12 @@ export class RemoteRepository {
   }
 
   /**
-   * Set a remote repository and connect to the remote repository.
-   * A remote repository will be created if not exists.
-   *
-   * @throws {@link CannotCreateRemoteRepository}
-   */
-  async connect (
-    repos: nodegit.Repository,
-    credential_callbacks: { [key: string]: any },
-    onlyFetch?: boolean
-  ) {
-    // Get NodeGit.Remote
-    const [gitResult, remote] = await this._getOrCreateGitRemote(repos, this._remoteURL);
-
-    // Check fetch and push by NodeGit.Remote
-    let remoteResult = await this._checkFetch(remote, credential_callbacks).catch(err => {
-      if (err instanceof RemoteRepositoryNotFoundError && this._auth?.type === 'github') {
-        return 'create';
-      }
-
-      throw err;
-    });
-    if (remoteResult === 'create') {
-      // Try to create repository by octokit
-      await this.create().catch(err => {
-        // App may check permission or
-        throw new CannotCreateRemoteRepository(err.message);
-      });
-    }
-    else {
-      remoteResult = 'exist';
-    }
-    if (!onlyFetch) {
-      await this._checkPush(remote, credential_callbacks);
-    }
-    return [gitResult, remoteResult];
-  }
-
-  /**
    * Check connection by FETCH
    */
   private async _checkFetch (
     remote: nodegit.Remote,
     credential_callbacks: { [key: string]: any }
-  ) {
+  ): Promise<'exist'> {
     const remoteURL = remote.url();
     const error = String(
       await remote
@@ -239,7 +209,7 @@ export class RemoteRepository {
       default:
         throw new Error(error);
     }
-    return 'ok';
+    return 'exist';
   }
 
   /**
@@ -269,5 +239,44 @@ export class RemoteRepository {
         throw new Error(error);
     }
     return 'ok';
+  }
+
+  /**
+   * Set a remote repository and connect to the remote repository.
+   * A remote repository will be created if not exists.
+   *
+   * @throws {@link CannotCreateRemoteRepository}
+   */
+  async connect (
+    repos: nodegit.Repository,
+    credential_callbacks: { [key: string]: any },
+    onlyFetch?: boolean
+  ): Promise<[GitRemoteAction, 'exist' | 'create']> {
+    // Get NodeGit.Remote
+    const [gitResult, remote] = await this._getOrCreateGitRemote(repos, this._remoteURL);
+
+    // Check fetch and push by NodeGit.Remote
+    const remoteResult: 'exist' | 'create' = await this._checkFetch(
+      remote,
+      credential_callbacks
+    ).catch(err => {
+      if (err instanceof RemoteRepositoryNotFoundError && this._auth?.type === 'github') {
+        return 'create';
+      }
+
+      throw err;
+    });
+    if (remoteResult === 'create') {
+      // Try to create repository by octokit
+      await this.create().catch(err => {
+        // App may check permission or
+        throw new CannotCreateRemoteRepository(err.message);
+      });
+    }
+
+    if (!onlyFetch) {
+      await this._checkPush(remote, credential_callbacks);
+    }
+    return [gitResult, remoteResult];
   }
 }
