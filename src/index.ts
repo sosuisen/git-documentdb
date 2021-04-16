@@ -576,7 +576,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     
     * - A put operation is not skipped when no change occurred on a specified document.
     *
-    * @param _id - _id property of a document
+    * @param id - _id property of a document
     * @param document - This is a {@link JsonDoc}, but _id property is ignored.
     *
     * @throws {@link DatabaseClosingError}
@@ -589,7 +589,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     * @throws {@link InvalidIdLengthError}
     */
   put (
-    _id: string,
+    id: string,
     document: { [key: string]: any },
     options?: PutOptions
   ): Promise<PutResult>;
