@@ -25,8 +25,8 @@ import {
 import { SyncResultCancel, SyncResultPush } from '../../src/types';
 import { sleep } from '../../src/utils';
 
-const reposPrefix = 'test_push_worker___';
-const localDir = `./test_intg/database_push_worker`;
+const reposPrefix = 'test_sync_trypush___';
+const localDir = `./test_intg/database_sync_trypush`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -347,7 +347,7 @@ maybe('intg <remote/sync_trypush>: Sync#tryPush():', () => {
     const jsonA1 = { _id: '1', name: 'fromA' };
     // Put and delete the same document
     const putResult1 = await dbA.put(jsonA1);
-    const deleteResult1 = await dbA.remove(jsonA1);
+    const deleteResult1 = await dbA.delete(jsonA1);
 
     const syncResult1 = await remoteA.tryPush();
     expect(syncResult1.action).toBe('push');
