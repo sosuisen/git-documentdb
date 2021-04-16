@@ -655,6 +655,41 @@ maybe('intg <remote/sync_trysync>: Sync#trySync():', () => {
     });
   });
 
+  it('skips consecutive sync tasks', async () => {
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    await dbA.put(jsonA1);
+    const results: SyncResult[] = [];
+    for (let i = 0; i < 10; i++) {
+      // eslint-disable-next-line promise/catch-or-return
+      remoteA.trySync().then(result => results.push(result));
+    }
+    await sleep(5000);
+
+    const syncResultCancel: SyncResultCancel = {
+      action: 'canceled',
+    };
+    // results will be include 9 cancels
+    expect(results).toEqual(
+      expect.arrayContaining([
+        syncResultCancel,
+        syncResultCancel,
+        syncResultCancel,
+        syncResultCancel,
+        syncResultCancel,
+        syncResultCancel,
+        syncResultCancel,
+        syncResultCancel,
+        syncResultCancel,
+      ])
+    );
+    // Only one trySync() will be executed
+    expect(dbA.taskQueue.statistics().sync).toBe(1);
+
+    await destroyDBs([dbA]);
+  });
+
   /**
    * No merge base
    */
