@@ -20,6 +20,14 @@ import { GitDocumentDB } from '../../src';
 import {
   AuthenticationTypeNotAllowCreateRepositoryError,
   CannotConnectError,
+  CannotCreateRemoteRepositoryError,
+  FetchConnectionFailedError,
+  InvalidSSHKeyError,
+  InvalidURLError,
+  PersonalAccessTokenForAnotherAccountError,
+  PushConnectionFailedError,
+  PushPermissionDeniedError,
+  RemoteRepositoryNotFoundError,
   UndefinedPersonalAccessTokenError,
 } from '../../src/error';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
@@ -30,6 +38,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { RemoteRepository } from '../../src/remote/remote_repository';
+import { RemoteOptions } from '../../src/types';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -85,9 +94,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
 
-      await new RemoteRepository(remoteURL, {
-        type: 'github',
-        personal_access_token: token,
+      await new RemoteRepository({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
       }).create();
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
     });
@@ -96,20 +108,40 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
 
       await expect(
-        new RemoteRepository(remoteURL, {
-          type: 'github',
-          personal_access_token: undefined,
+        new RemoteRepository({
+          remote_url: remoteURL,
+          auth: {
+            type: 'github',
+            personal_access_token: undefined,
+          },
         }).create()
       ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
+    });
+
+    it('throws PersonalAccessTokenForAnotherAccountError()', async () => {
+      const readonlyURL = 'https://github.com/sosuisen/' + serialId();
+
+      await expect(
+        new RemoteRepository({
+          remote_url: readonlyURL,
+          auth: {
+            type: 'github',
+            personal_access_token: token, // This is valid but for another account.
+          },
+        }).create()
+      ).rejects.toThrowError(PersonalAccessTokenForAnotherAccountError);
     });
 
     it(`throws CannotConnectError() with ${NETWORK_RETRY} retries`, async () => {
       const remoteURL = remoteURLBase + serialId();
       await createRemoteRepository(remoteURL);
 
-      const error = await new RemoteRepository(remoteURL, {
-        type: 'github',
-        personal_access_token: token,
+      const error = await new RemoteRepository({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
       })
         .create()
         .catch(err => err);
@@ -121,8 +153,11 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
 
       await expect(
-        new RemoteRepository(remoteURL, {
-          type: 'none',
+        new RemoteRepository({
+          remote_url: remoteURL,
+          auth: {
+            type: 'none',
+          },
         }).create()
       ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
     });
@@ -149,9 +184,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
 
       await expect(
-        new RemoteRepository(remoteURL, {
-          type: 'github',
-          personal_access_token: undefined,
+        new RemoteRepository({
+          remote_url: remoteURL,
+          auth: {
+            type: 'github',
+            personal_access_token: undefined,
+          },
         }).destroy()
       ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
     });
@@ -159,9 +197,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
     it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {
       const remoteURL = remoteURLBase + serialId();
 
-      const error = await new RemoteRepository(remoteURL, {
-        type: 'github',
-        personal_access_token: token,
+      const error = await new RemoteRepository({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
       })
         .destroy()
         .catch(err => err);
@@ -173,8 +214,11 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
 
       await expect(
-        new RemoteRepository(remoteURL, {
-          type: 'none',
+        new RemoteRepository({
+          remote_url: remoteURL,
+          auth: {
+            type: 'none',
+          },
         }).destroy()
       ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
     });
@@ -189,7 +233,9 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         local_dir: localDir,
       });
       await gitDDB.create();
-      const remoteRepos = new RemoteRepository(remoteURL);
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
       const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
@@ -209,7 +255,9 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         local_dir: localDir,
       });
       await gitDDB.create();
-      const remoteRepos = new RemoteRepository(remoteURL);
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
       await remoteRepos['_getOrCreateGitRemote'](gitDDB.repository()!, remoteURL);
@@ -233,7 +281,9 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         local_dir: localDir,
       });
       await gitDDB.create();
-      const remoteRepos = new RemoteRepository(remoteURL);
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
       await remoteRepos['_getOrCreateGitRemote'](gitDDB.repository()!, remoteURL);
@@ -251,7 +301,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
   });
 
   describe(': _checkFetch()', () => {
-    it.only('returns exist', async () => {
+    it('returns exist', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
@@ -259,13 +309,16 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         local_dir: localDir,
       });
       await gitDDB.create();
-      const remoteRepos = new RemoteRepository(remoteURL);
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
       const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
         gitDDB.repository()!,
         remoteURL
       );
+      await createRemoteRepository(remoteURL);
       const cred = createCredential({
         remote_url: remoteURL,
         auth: {
@@ -278,14 +331,416 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       destroyDBs([gitDDB]);
     });
+
+    it('throws InvalidURLError when a url starts with git@', async () => {
+      const remoteURL = 'git@github.com/xyz/' + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+
+      const cred = createCredential({
+        remote_url: remoteURLBase + serialId(),
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      });
+
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
+        InvalidURLError
+      );
+
+      destroyDBs([gitDDB]);
+    });
+
+    it('throws InvalidURLError when a url starts invalid scheme', async () => {
+      const remoteURL = 'xttp://github.com/xyz/' + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+
+      const cred = createCredential({
+        remote_url: remoteURLBase + serialId(),
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      });
+
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
+        InvalidURLError
+      );
+
+      destroyDBs([gitDDB]);
+    });
+
+    it('throws InvalidURLError when a host name is invalid', async () => {
+      const remoteURL = 'http://github.test/xyz/' + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+
+      const cred = createCredential({
+        remote_url: remoteURLBase + serialId(),
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      });
+
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
+        InvalidURLError
+      );
+
+      destroyDBs([gitDDB]);
+    });
+
+    it('throws RepositoryNotFoundError when a remote repository does not exist', async () => {
+      const remoteURL = 'http://github.com/xyz/' + monoId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+
+      const cred = createCredential({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      });
+
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
+        RemoteRepositoryNotFoundError
+      );
+
+      destroyDBs([gitDDB]);
+    });
+
+    it('throws InvalidSSHKeyFormatError when ssh key pair does not exist', async () => {
+      const remoteURL = 'http://github.com/xyz/' + monoId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+
+      const cred = createCredential({
+        remote_url: remoteURL,
+        auth: {
+          type: 'ssh',
+          private_key_path: '/not/exist',
+          public_key_path: '/not/exist',
+        },
+      });
+
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
+        InvalidSSHKeyError
+      );
+
+      destroyDBs([gitDDB]);
+    });
+
+    it.skip('throws Error when private repository');
+
+    it.skip('throws InvalidSSHKeyFormatError when invalid ssh key pair exists');
   });
 
   describe(': _checkPush()', () => {
-    it.skip('');
+    it('returns ok', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+      await createRemoteRepository(remoteURL);
+      const cred = createCredential({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      });
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkPush'](remote, cred)).resolves.toBe('ok');
+
+      destroyDBs([gitDDB]);
+    });
+
+    it('throws PushPermissionDeniedError when personal_access_token is invalid', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+      await createRemoteRepository(remoteURL);
+      const cred = createCredential({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token + '_invalid',
+        },
+      });
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkPush'](remote, cred)).rejects.toThrowError(
+        PushPermissionDeniedError
+      );
+
+      destroyDBs([gitDDB]);
+    });
+
+    it("throws PushPermissionDeniedError when try to push to others' repository", async () => {
+      const remoteURL = 'https://github.com/sosuisen/git-documentdb';
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+      const remoteRepos = new RemoteRepository({
+        remote_url: remoteURL,
+      });
+      // You can test private members by array access.
+      // eslint-disable-next-line dot-notation
+      const [result, remote] = await remoteRepos['_getOrCreateGitRemote'](
+        gitDDB.repository()!,
+        remoteURL
+      );
+      await createRemoteRepository(remoteURL);
+      const cred = createCredential({
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      });
+      // eslint-disable-next-line dot-notation
+      await expect(remoteRepos['_checkPush'](remote, cred)).rejects.toThrowError(
+        PushPermissionDeniedError
+      );
+
+      destroyDBs([gitDDB]);
+    });
   });
 
   describe(': connect()', () => {
-    it.skip('returns..');
-    it.skip('throws error when fails _checkFetch');
+    it(`returns ['add', 'create'] when both local and GitHub repository do not exist`, async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      const remoteOptions: RemoteOptions = {
+        remote_url: remoteURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      };
+      // @ts-ignore
+      const remoteRepos = new RemoteRepository(remoteOptions);
+      const cred = createCredential(remoteOptions);
+      const onlyFetch = true;
+      await expect(
+        remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
+      ).resolves.toEqual(['add', 'create']);
+
+      destroyDBs([gitDDB]);
+    });
+
+    it(`returns ['add', 'exist'] when a local repository does not exist and a GitHub repository exists`, async () => {
+      const readonlyURL = 'https://github.com/sosuisen/git-documentdb';
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      const remoteOptions: RemoteOptions = {
+        remote_url: readonlyURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      };
+      // @ts-ignore
+      const remoteRepos = new RemoteRepository(remoteOptions);
+      const cred = createCredential(remoteOptions);
+      const onlyFetch = true;
+      await expect(
+        remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
+      ).resolves.toEqual(['add', 'exist']);
+
+      destroyDBs([gitDDB]);
+    });
+
+    it(`throws FetchConnectionFailedError when remote url is invalid`, async () => {
+      const readonlyURL = 'https://github.test/invalid/host';
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      const remoteOptions: RemoteOptions = {
+        remote_url: readonlyURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      };
+      // @ts-ignore
+      const remoteRepos = new RemoteRepository(remoteOptions);
+      const cred = createCredential(remoteOptions);
+      const onlyFetch = true;
+      await expect(
+        remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
+      ).rejects.toThrowError(FetchConnectionFailedError);
+
+      destroyDBs([gitDDB]);
+    });
+
+    it(`throws CannotCreateRemoteRepositoryError when a personal access token is for another account`, async () => {
+      const readonlyURL = 'https://github.com/sosuisen/' + serialId();
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      const remoteOptions: RemoteOptions = {
+        remote_url: readonlyURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token, // It is valid but for another account
+        },
+      };
+      // @ts-ignore
+      const remoteRepos = new RemoteRepository(remoteOptions);
+      const cred = createCredential(remoteOptions);
+      const onlyFetch = true;
+      await expect(
+        remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
+      ).rejects.toThrowError(CannotCreateRemoteRepositoryError);
+
+      destroyDBs([gitDDB]);
+    });
+
+    it(`to a read only repository throws PushConnectionFailedError when onlyFetch is false`, async () => {
+      const readonlyURL = 'https://github.com/sosuisen/git-documentdb';
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.create();
+
+      const remoteOptions: RemoteOptions = {
+        remote_url: readonlyURL,
+        auth: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      };
+      // @ts-ignore
+      const remoteRepos = new RemoteRepository(remoteOptions);
+      const cred = createCredential(remoteOptions);
+      const onlyFetch = false;
+      await expect(
+        remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
+      ).rejects.toThrowError(PushConnectionFailedError);
+
+      destroyDBs([gitDDB]);
+    });
   });
 });
