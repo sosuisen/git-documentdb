@@ -439,27 +439,26 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
    */
-  async close (
-    options: DatabaseCloseOption = { force: false, timeout: 10000 }
-  ): Promise<void> {
+  async close (options?: DatabaseCloseOption): Promise<void> {
     if (this.isClosing) {
       return Promise.reject(new DatabaseClosingError());
     }
     // Stop remote
     Object.values(this._synchronizers).forEach(_sync => _sync.close());
 
+    options ??= { force: undefined, timeout: undefined };
+    options.force ??= false;
+    options.timeout ??= 10000;
+
     // Wait taskQueue
     if (this._currentRepository instanceof nodegit.Repository) {
       try {
         this.isClosing = true;
-        if (options.force) {
-          this.taskQueue.clear();
-        }
-        const timeoutMsec = options.timeout || 10000;
-        const isTimeout = await this.taskQueue.waitCompletion(timeoutMsec);
-
-        if (isTimeout) {
-          return Promise.reject(new DatabaseCloseTimeoutError());
+        if (!options.force) {
+          const isTimeout = await this.taskQueue.waitCompletion(options.timeout);
+          if (isTimeout) {
+            return Promise.reject(new DatabaseCloseTimeoutError());
+          }
         }
       } finally {
         this.isClosing = false;
