@@ -147,10 +147,10 @@ export class Sync implements ISync {
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
-    this._remoteRepository = new RemoteRepository(
-      this._options.remote_url,
-      this._options.auth
-    );
+    this._remoteRepository = new RemoteRepository({
+      remote_url: this._options.remote_url,
+      auth: this._options.auth,
+    });
   }
 
   /**
