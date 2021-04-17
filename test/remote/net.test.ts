@@ -6,8 +6,8 @@ import {
 } from '../../src/error';
 import { checkHTTP } from '../../src/remote/net';
 
-describe('remote: net: ', () => {
-  test('check HTTPS connection', async () => {
+describe('<remote/net> checkHTTP', () => {
+  it('checks HTTPS connection', async () => {
     await expect(checkHTTP('xyz', 3000)).rejects.toThrowError(HttpProtocolRequiredError);
     const httpUrl = 'http://xyz.invalid/xyz/http_repos';
     await expect(checkHTTP(httpUrl, 3000)).rejects.toThrowError(HTTPNetworkError);

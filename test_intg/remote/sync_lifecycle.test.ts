@@ -54,7 +54,7 @@ const maybe =
     : describe.skip;
 
 // Test lifecycle (open, sync, tryPush, trySync, retrySync)
-maybe('remote: sync: lifecycle', () => {
+maybe('intg <remote/sync_lifecycle> Sync', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -68,12 +68,12 @@ maybe('remote: sync: lifecycle', () => {
    * Initialize synchronization by create() with remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe('Init sync by create(): ', () => {
+  describe('initialized by create():', () => {
     /**
      * Basics: A is empty, creates remote, puts data; B is empty, clones the remote
      */
-    describe('Basics: A puts data; B clones the remote: ', () => {
-      test('B checks cloned document', async () => {
+    describe('After dbA created remote repository, dbB clones it.', () => {
+      it('dbA and dbB have the same document.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -86,39 +86,25 @@ maybe('remote: sync: lifecycle', () => {
           remote_url: remoteURL,
           connection: { type: 'github', personal_access_token: token },
         };
-        // console.time('create dbA');
         await dbA.create(options);
-        // console.timeEnd('create dbA');
-
-        // console.time('put jsonA1');
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        // console.timeEnd('put jsonA1');
-
-        // console.time('push dbA');
         const remoteA = dbA.getRemote(remoteURL);
         await remoteA.tryPush();
-        // console.timeEnd('push dbA');
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           db_name: dbNameB,
           local_dir: localDir,
         });
-        // console.time('create dbB');
         await dbB.create(options);
-        // console.timeEnd('create dbB');
 
-        // console.time('get jsonA1');
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-        // console.timeEnd('get jsonA1');
 
-        // console.time('destroy');
         await destroyDBs([dbA, dbB]);
-        // console.timeEnd('destroy');
       });
 
-      test('Race condition of two tryPush() calls', async () => {
+      it('Race condition of two tryPush() calls throws PushWorkerError.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -153,7 +139,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      test('Ordered condition of two tryPush() calls', async () => {
+      it('Ordered condition of two tryPush() calls throws PushWorkerError.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -187,7 +173,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      test('Race condition of two trySync() calls: trySync() again by hand before retrySync()', async () => {
+      it('After race condition throws Error, trySync() again (before retrySync() is called) results [merge and push] action.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -218,11 +204,12 @@ maybe('remote: sync: lifecycle', () => {
         const putResultB1 = await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
 
+        // Race condition
         const [resultA, resultB] = await Promise.all([
           remoteA.trySync().catch(() => undefined),
           remoteB.trySync().catch(() => undefined),
         ]);
-        // CannotPushBecauseUnfetchedCommitExistsError
+        // PushWorkerError (CannotPushBecauseUnfetchedCommitExistsError)
         expect(resultA === undefined || resultB === undefined).toBe(true);
         if (resultA === undefined) {
           await expect(remoteA.trySync()).resolves.toMatchObject({
@@ -282,7 +269,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      test('Race condition of two trySync() calls: retrySync() will occur (interval 0ms) before trySync by hand', async () => {
+      it('After race condition throws Error, retrySync() will occur (interval 0ms) before trySync by hand.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -331,7 +318,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      test('Resolve conflict', async () => {
+      it('Updating the same document results [resolve conflict and push] action.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -388,8 +375,8 @@ maybe('remote: sync: lifecycle', () => {
     /**
      * Sync automatically (live)
      */
-    describe('Sync automatically (live): ', () => {
-      test('Live starts from create(): Check if live starts', async () => {
+    describe('Automated Sync (live)', () => {
+      it('starts and pushes after interval when called from create() with live option.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -432,7 +419,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      test('cancel()', async () => {
+      it('stops by cancel()', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -461,7 +448,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA]);
       });
 
-      test('pause() and resume()', async () => {
+      it('pause() and resume()', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -498,7 +485,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA]);
       });
 
-      test('Cancel when gitDDB.close()', async () => {
+      it('stops by gitDDB.close()', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -530,7 +517,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA]);
       });
 
-      test('Check intervals', async () => {
+      it('changes interval when resume() is called with new interval.', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -576,7 +563,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA]);
       });
 
-      test('Repeat trySync() automatically', async () => {
+      it('repeats trySync() automatically.', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -606,8 +593,8 @@ maybe('remote: sync: lifecycle', () => {
     /**
      * Retry sync
      */
-    describe('Retry sync: ', () => {
-      test('No retry', async () => {
+    describe('Retry sync', () => {
+      it('does not occur when retry option is 0', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -658,7 +645,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      test('Check retry interval', async () => {
+      it('occurs every retry interval', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -715,7 +702,7 @@ maybe('remote: sync: lifecycle', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      test.skip('More retries', () => {
+      it.skip('More retries', () => {
         // Test this using behavior_for_no_merge_base option
       });
     });
@@ -725,8 +712,8 @@ maybe('remote: sync: lifecycle', () => {
    * Initialize synchronization by sync() with remoteURL
    * Initialize means creating local and remote repositories by using a remote_url
    */
-  describe('Init sync by sync()', () => {
-    test('Overload of sync()', async () => {
+  describe('initialized by sync():', () => {
+    it('can be called with remoteURL and RemoteOption (overload).', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
 
@@ -767,7 +754,7 @@ maybe('remote: sync: lifecycle', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    test('A initializes synchronization by sync(); B initializes synchronization by create(), clones the remote: ', async () => {
+    it('After dbA#sync() created remote repository, dbB#create() clones it.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
 
@@ -800,7 +787,7 @@ maybe('remote: sync: lifecycle', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    test('A initializes synchronization by sync(); B initialize synchronization by create(), close(), open() again with no remote, following sync(): ', async () => {
+    it('After dbA#sync() created remote repository, dbB#create() clones it, close(), open() again with no remote, following sync().', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
 
@@ -854,8 +841,8 @@ maybe('remote: sync: lifecycle', () => {
    * Initialize means creating local and remote repositories by using a remote_url
    */
   describe('Init sync by create() with remote_url, close(), open() again with another remote_url: ', () => {
-    test.skip('Open() again with the same repository with another remote_url');
-    test.skip('Open() again with a different repository with another remote_url', () => {
+    it.skip('Open() again with the same repository with another remote_url');
+    it.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base
     });
   });
@@ -864,11 +851,11 @@ maybe('remote: sync: lifecycle', () => {
    * Initialize means creating local and remote repositories by using a remote_url
    */
   describe('Init sync by create() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
-    test.skip('Open() again with the same repository with another remote_url');
-    test.skip('Open() again with a different repository with another remote_url', () => {
+    it.skip('Open() again with the same repository with another remote_url');
+    it.skip('Open() again with a different repository with another remote_url', () => {
       // no merge base
     });
   });
 
-  test.skip('Multiple Sync');
+  it.skip('Multiple Sync object');
 });
