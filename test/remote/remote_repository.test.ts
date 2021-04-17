@@ -104,6 +104,68 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
     });
 
+    it('creates a private remote repository', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const octokit = new Octokit({
+        auth: token,
+      });
+      const urlArray = remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
+
+      await new RemoteRepository({
+        remote_url: remoteURL,
+        connection: {
+          type: 'github',
+          personal_access_token: token,
+          private: true,
+        },
+      }).create();
+      const repos = await octokit.repos.get({ owner, repo });
+      expect(repos.data.private).toBeTruthy();
+    });
+
+    it('creates a private remote repository by default', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const octokit = new Octokit({
+        auth: token,
+      });
+      const urlArray = remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
+
+      await new RemoteRepository({
+        remote_url: remoteURL,
+        connection: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      }).create();
+      const repos = await octokit.repos.get({ owner, repo });
+      expect(repos.data.private).toBeTruthy();
+    });
+
+    it('creates a public remote repository', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const octokit = new Octokit({
+        auth: token,
+      });
+      const urlArray = remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
+
+      await new RemoteRepository({
+        remote_url: remoteURL,
+        connection: {
+          type: 'github',
+          personal_access_token: token,
+          private: false,
+        },
+      }).create();
+      const repos = await octokit.repos.get({ owner, repo });
+      expect(repos.data.private).toBeFalsy();
+    });
+
     it('throws UndefinedPersonalAccessTokenError()', async () => {
       const remoteURL = remoteURLBase + serialId();
 
