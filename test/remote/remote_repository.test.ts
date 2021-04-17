@@ -208,6 +208,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         .create()
         .catch(err => err);
       expect(error).toBeInstanceOf(CannotConnectError);
+      // This may be tested by using sinon.spy
       expect((error as CannotConnectError).retry).toBe(NETWORK_RETRY);
     });
 
