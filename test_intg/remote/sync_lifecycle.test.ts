@@ -16,10 +16,7 @@ import fs from 'fs-extra';
 import { Sync } from '../../src/remote/sync';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
-import {
-  CannotPushBecauseUnfetchedCommitExistsError,
-  PushWorkerError,
-} from '../../src/error';
+import { PushWorkerError } from '../../src/error';
 import { sleep } from '../../src/utils';
 import {
   destroyDBs,
