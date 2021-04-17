@@ -60,7 +60,7 @@ export const checkHTTP = (
   url: string,
   requestTimeout: number,
   socketTimeout?: number
-): Promise<{ ok: boolean; code?: number; error?: Error }> => {
+): Promise<{ ok: boolean; code?: number }> => {
   // timeout must be greater than 0
   socketTimeout ??= requestTimeout;
   if (requestTimeout === 0) {
