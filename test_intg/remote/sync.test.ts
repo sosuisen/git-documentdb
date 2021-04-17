@@ -77,7 +77,7 @@ maybe('remote: sync: constructor: ', () => {
     });
     await gitDDB.create();
     const options: RemoteOptions = {
-      auth: {
+      connection: {
         type: 'github',
         personal_access_token: '',
       },
@@ -96,7 +96,7 @@ maybe('remote: sync: constructor: ', () => {
     await gitDDB.create();
     const options: RemoteOptions = {
       remote_url: remoteURL,
-      auth: {
+      connection: {
         type: 'github',
         personal_access_token: 'foobar',
       },
@@ -115,7 +115,7 @@ maybe('remote: sync: constructor: ', () => {
     await gitDDB.create();
     const options: RemoteOptions = {
       remote_url: remoteURL,
-      auth: {
+      connection: {
         type: 'github',
         personal_access_token: '',
       },
@@ -136,7 +136,7 @@ maybe('remote: sync: constructor: ', () => {
     await gitDDB.create();
     const options: RemoteOptions = {
       remote_url: remoteURL,
-      auth: {
+      connection: {
         type: 'github',
         personal_access_token: 'foobar',
       },
@@ -145,7 +145,7 @@ maybe('remote: sync: constructor: ', () => {
     await gitDDB.destroy();
   });
 
-  test('Undefined auth options', async () => {
+  test('Undefined connection options', async () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -171,7 +171,7 @@ maybe('remote: sync: constructor: ', () => {
     const invalid_options: RemoteOptions = {
       remote_url: remoteURL,
       interval: Sync.minimumSyncInterval - 1,
-      auth: {
+      connection: {
         type: 'github',
         personal_access_token: '',
       },
@@ -183,7 +183,7 @@ maybe('remote: sync: constructor: ', () => {
     const valid_options: RemoteOptions = {
       remote_url: remoteURL,
       interval: Sync.minimumSyncInterval,
-      auth: {
+      connection: {
         type: 'github',
         personal_access_token: token,
       },
@@ -203,7 +203,7 @@ maybe('remote: sync: constructor: ', () => {
     await expect(
       gitDDB.sync({
         remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
       })
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();

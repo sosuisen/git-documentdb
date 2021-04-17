@@ -54,7 +54,7 @@ maybe('sync(): Sync Class:', () => {
     });
     const options: RemoteOptions = {
       live: false,
-      auth: {
+      connection: {
         type: 'ssh',
         private_key_path: '',
         public_key_path: '',

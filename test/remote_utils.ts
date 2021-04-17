@@ -80,11 +80,11 @@ export async function createDatabase (
   });
   options ??= {
     remote_url: remoteURL,
-    auth: { type: 'github', personal_access_token: token },
+    connection: { type: 'github', personal_access_token: token },
     include_commits: true,
   };
   options.remote_url ??= remoteURL;
-  options.auth ??= { type: 'github', personal_access_token: token };
+  options.connection ??= { type: 'github', personal_access_token: token };
   options.include_commits ??= true;
 
   await dbA.create(options);
@@ -109,11 +109,11 @@ export async function createClonedDatabases (
   });
   options ??= {
     remote_url: remoteURL,
-    auth: { type: 'github', personal_access_token: token },
+    connection: { type: 'github', personal_access_token: token },
     include_commits: true,
   };
   options.remote_url ??= remoteURL;
-  options.auth ??= { type: 'github', personal_access_token: token };
+  options.connection ??= { type: 'github', personal_access_token: token };
   options.include_commits ??= true;
 
   await dbA.create(options);
@@ -135,7 +135,7 @@ export async function createClonedDatabases (
 export const createRemoteRepository = async (remoteURL: string) => {
   await new RemoteRepository({
     remote_url: remoteURL,
-    auth: {
+    connection: {
       type: 'github',
       personal_access_token: token,
     },
@@ -150,7 +150,7 @@ export const createRemoteRepository = async (remoteURL: string) => {
 export const destroyRemoteRepository = async (remoteURL: string) => {
   await new RemoteRepository({
     remote_url: remoteURL,
-    auth: {
+    connection: {
       type: 'github',
       personal_access_token: token,
     },

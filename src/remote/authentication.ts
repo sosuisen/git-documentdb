@@ -14,7 +14,7 @@ import {
   InvalidSSHKeyPathError,
   UndefinedPersonalAccessTokenError,
 } from '../error';
-import { RemoteAuthGitHub, RemoteAuthSSH, RemoteOptions } from '../types';
+import { ConnectionSettingsGitHub, ConnectionSettingsSSH, RemoteOptions } from '../types';
 
 /**
  * Create credential options for GitHub
@@ -23,8 +23,8 @@ const createCredentialForGitHub = (options: RemoteOptions) => {
   if (!options.remote_url!.match(/^https?:\/\//)) {
     throw new HttpProtocolRequiredError(options.remote_url!);
   }
-  const auth = options.auth as RemoteAuthGitHub;
-  if (!auth.personal_access_token) {
+  const connection = options.connection as ConnectionSettingsGitHub;
+  if (!connection.personal_access_token) {
     throw new UndefinedPersonalAccessTokenError();
   }
   const urlArray = options.remote_url!.replace(/^https?:\/\//, '').split('/');
@@ -34,7 +34,7 @@ const createCredentialForGitHub = (options: RemoteOptions) => {
   }
   const owner = urlArray[urlArray.length - 2];
   const credentials = () => {
-    return nodegit.Cred.userpassPlaintextNew(owner, auth.personal_access_token!);
+    return nodegit.Cred.userpassPlaintextNew(owner, connection.personal_access_token!);
   };
   return credentials;
 };
@@ -43,21 +43,21 @@ const createCredentialForGitHub = (options: RemoteOptions) => {
  * Create credential options for SSH
  */
 const createCredentialForSSH = (options: RemoteOptions) => {
-  const auth = options.auth as RemoteAuthSSH;
-  if (auth.private_key_path === undefined || auth.private_key_path === '') {
+  const connection = options.connection as ConnectionSettingsSSH;
+  if (connection.private_key_path === undefined || connection.private_key_path === '') {
     throw new InvalidSSHKeyPathError();
   }
-  if (auth.public_key_path === undefined || auth.public_key_path === '') {
+  if (connection.public_key_path === undefined || connection.public_key_path === '') {
     throw new InvalidSSHKeyPathError();
   }
-  auth.pass_phrase ??= '';
+  connection.pass_phrase ??= '';
 
   const credentials = (url: string, userName: string) => {
     return nodegit.Cred.sshKeyNew(
       userName,
-      auth.public_key_path,
-      auth.private_key_path,
-      auth.pass_phrase!
+      connection.public_key_path,
+      connection.private_key_path,
+      connection.pass_phrase!
     );
   };
   return credentials;
@@ -67,22 +67,22 @@ const createCredentialForSSH = (options: RemoteOptions) => {
  * Create credential options
  */
 export const createCredential = (options: RemoteOptions) => {
-  options.auth ??= { type: 'none' };
+  options.connection ??= { type: 'none' };
   let cred: any;
-  if (options.auth.type === 'github') {
+  if (options.connection.type === 'github') {
     cred = createCredentialForGitHub(options);
   }
-  else if (options.auth.type === 'ssh') {
+  else if (options.connection.type === 'ssh') {
     cred = createCredentialForSSH(options);
   }
-  else if (options.auth.type === 'none') {
+  else if (options.connection.type === 'none') {
     if (options.sync_direction !== 'pull') {
       throw new AuthNeededForPushOrSyncError(options.sync_direction!);
     }
   }
   else {
     // @ts-ignore
-    throw new InvalidAuthenticationTypeError(this._options.auth.type);
+    throw new InvalidAuthenticationTypeError(this._options.connection.type);
   }
 
   const callbacks = {

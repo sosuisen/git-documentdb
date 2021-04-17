@@ -20,8 +20,9 @@ import {
   PushPermissionDeniedError,
   RemoteRepositoryNotFoundError,
   UndefinedPersonalAccessTokenError,
+  UndefinedRemoteURLError,
 } from '../error';
-import { RemoteAuth } from '../types';
+import { RemoteOptions } from '../types';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../const';
 import { sleep } from '../utils';
 
@@ -30,29 +31,24 @@ import { sleep } from '../utils';
  */
 type GitRemoteAction = 'add' | 'change' | 'exist';
 
-type RemoteRepositoryOptions = {
-  remote_url: string;
-  auth?: RemoteAuth;
-  private?: boolean;
-};
-
 export class RemoteRepository {
-  private _options: RemoteRepositoryOptions;
+  private _options: RemoteOptions;
 
   private _octokit: Octokit | undefined;
 
-  constructor (options: RemoteRepositoryOptions) {
-    this._options = (JSON.parse(
-      JSON.stringify(options)
-    ) as unknown) as RemoteRepositoryOptions;
-    this._options.auth ??= {
+  constructor (options: RemoteOptions) {
+    if (options.remote_url === undefined || options.remote_url === '') {
+      throw new UndefinedRemoteURLError();
+    }
+    this._options = (JSON.parse(JSON.stringify(options)) as unknown) as RemoteOptions;
+    this._options.connection ??= {
       type: 'none',
     };
-    this._options.private ??= false;
 
-    if (this._options.auth.type === 'github') {
+    if (this._options.connection.type === 'github') {
+      this._options.connection.private ??= true;
       this._octokit = new Octokit({
-        auth: this._options.auth.personal_access_token,
+        auth: this._options.connection.personal_access_token,
       });
     }
   }
@@ -60,7 +56,7 @@ export class RemoteRepository {
   /**
    * Create a repository on a remote site
    * @remarks
-   * auth.type must be 'github'
+   * connection.type must be 'github'
    *
    * @throws {@link UndefinedPersonalAccessTokenError}
    * @throws {@link PersonalAccessTokenForAnotherAccountError}
@@ -81,12 +77,12 @@ export class RemoteRepository {
    * @public
    */
   async create () {
-    if (this._options.auth?.type === 'github') {
+    if (this._options.connection?.type === 'github') {
       // @ts-ignore
-      if (this._options.auth.personal_access_token === undefined) {
+      if (this._options.connection.personal_access_token === undefined) {
         throw new UndefinedPersonalAccessTokenError();
       }
-      const urlArray = this._options.remote_url.split('/');
+      const urlArray = this._options.remote_url!.split('/');
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
 
@@ -96,7 +92,7 @@ export class RemoteRepository {
         // eslint-disable-next-line no-await-in-loop
         result = await this._octokit!.repos.createForAuthenticatedUser({
           name: repo,
-          private: this._options.private,
+          private: this._options.connection.private,
         }).catch(err => {
           // May throw HttpError if the repository which has the same name already exists.
           // HttpError: Repository creation failed.:
@@ -117,18 +113,20 @@ export class RemoteRepository {
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new CannotConnectError(retry, this._options.remote_url, result.message);
+        throw new CannotConnectError(retry, this._options.remote_url!, result.message);
       }
     }
     else {
-      throw new AuthenticationTypeNotAllowCreateRepositoryError(this._options.auth?.type);
+      throw new AuthenticationTypeNotAllowCreateRepositoryError(
+        this._options.connection?.type
+      );
     }
   }
 
   /**
    * Delete a repository on a remote site
    * @remarks
-   * auth.type must be 'github'
+   * connection.type must be 'github'
    *
    * @throws {@link UndefinedPersonalAccessTokenError}
    * @throws {@link CannotConnectError}
@@ -148,12 +146,12 @@ export class RemoteRepository {
    * @public
    */
   async destroy () {
-    if (this._options.auth?.type === 'github') {
+    if (this._options.connection?.type === 'github') {
       // @ts-ignore
-      if (this._options.auth?.personal_access_token === undefined) {
+      if (this._options.connection?.personal_access_token === undefined) {
         throw new UndefinedPersonalAccessTokenError();
       }
-      const urlArray = this._options.remote_url.split('/');
+      const urlArray = this._options.remote_url!.split('/');
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
       let result;
@@ -176,11 +174,13 @@ export class RemoteRepository {
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new CannotConnectError(retry, this._options.remote_url, result.message);
+        throw new CannotConnectError(retry, this._options.remote_url!, result.message);
       }
     }
     else {
-      throw new AuthenticationTypeNotAllowCreateRepositoryError(this._options.auth?.type);
+      throw new AuthenticationTypeNotAllowCreateRepositoryError(
+        this._options.connection?.type
+      );
     }
   }
 
@@ -307,7 +307,7 @@ export class RemoteRepository {
     // Get NodeGit.Remote
     const [gitResult, remote] = await this._getOrCreateGitRemote(
       repos,
-      this._options.remote_url
+      this._options.remote_url!
     );
 
     // Check fetch and push by NodeGit.Remote
@@ -317,7 +317,7 @@ export class RemoteRepository {
     ).catch(err => {
       if (
         err instanceof RemoteRepositoryNotFoundError &&
-        this._options.auth?.type === 'github'
+        this._options.connection?.type === 'github'
       ) {
         return 'create';
       }

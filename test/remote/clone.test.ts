@@ -70,7 +70,7 @@ maybe('remote: clone in GitDocumentDB#create(): ', () => {
     const remoteURL = 'https://xyz.invalid/xyz/https_repos';
     const options: RemoteOptions = {
       remote_url: remoteURL,
-      auth: { type: 'github', personal_access_token: token },
+      connection: { type: 'github', personal_access_token: token },
     };
     const dbNameA = serialId();
     const dbA: GitDocumentDB = new GitDocumentDB({

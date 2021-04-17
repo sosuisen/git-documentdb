@@ -287,24 +287,61 @@ export type DatabaseCloseOption = {
   timeout?: number;
 };
 
+/**
+ * Synchronization direction
+ *
+ * @remarks
+ *
+ * - pull: Only download from remote to local
+ *
+ * - push: Only upload from local to remote
+ *
+ * - both: Both download and upload between remote and local
+ */
 export type SyncDirection = 'pull' | 'push' | 'both';
-export type RemoteAuthGitHub = {
+
+/**
+ * Connection settings for GitHub
+ *
+ * @remarks
+ * - personal_access_token: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+ *
+ * - private: Whether automatically created repository is private or not. Default is true.
+ */
+export type ConnectionSettingsGitHub = {
   type: 'github';
   personal_access_token?: string;
+  private?: boolean;
 };
-export type RemoteAuthSSH = {
+
+/**
+ * Connection settings for SSH
+ */
+export type ConnectionSettingsSSH = {
   type: 'ssh';
   private_key_path: string;
   public_key_path: string;
   pass_phrase?: string;
 };
-export type RemoteAuthNone = {
+
+/**
+ * Connection settings do not exist.
+ */
+export type ConnectionSettingsNone = {
   type: 'none';
 };
-export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
+
+/**
+ * Connection settings for RemoteOptions
+ */
+export type ConnectionSettings =
+  | ConnectionSettingsNone
+  | ConnectionSettingsGitHub
+  | ConnectionSettingsSSH;
 
 /**
  * Behavior when no merge base
+ *
  * nop: (default)
  * theirs: remove local repository and git clone <remote repository>
  * ours: git merge -s ours <remote branch>
@@ -315,9 +352,9 @@ export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
  * Strategy for resolving conflicts
  *
  * @remarks
- * - 'ours': Accept ours (Default). When remote changes are conflicted with local changes, the local changes are accepted.
+ * - 'ours': Accept ours (Default). When a remote change is conflicted with a local change, the local change is accepted.
  *
- * - 'theirs': Accept theirs. When remote changes are conflicted with local changes, the remote changes are accepted.
+ * - 'theirs': Accept theirs. When a remote change is conflicted with a local change, the remote change is accepted.
  *
  * - Compare function that returns 'ours' or 'theirs' can be given. Each parameter will be undefined when a document is removed.
  */
@@ -335,38 +372,68 @@ export type WriteOperation = 'create' | 'update' | 'delete';
  * Accepted Conflict
  *
  * @remarks
- * - target: conflicted target
+ * - target: Conflicted target
  *
- * - strategy: applied strategy
+ * - strategy: Applied strategy
  *
- * - operation: applied operation on an applied strategy side (ours or theirs)
- *
- * - file_sha: SHA-1 hash of applied document
+ * - operation: Applied operation on an applied strategy side (ours or theirs)
  */
 export type AcceptedConflict = {
   target: DocMetadata;
   strategy: 'ours' | 'theirs';
   operation: WriteOperation;
 };
+
 /**
  * Options for Sync class
  *
  * @remarks
- * - sync_direction: Default is 'both'
+ * [network]
+ *
+ * - remote_url: Connection destination
+ *
+ * - sync_direction: Default is 'both'.
+ *
+ * - connection: Authentication and other settings on remote site
+ *
+ * [automation]
+ *
+ * - live: Synchronization repeats automatically if true.
+ *
+ * - interval: Synchronization interval (milliseconds)
+ *
+ * - retry: Number of network retries
+ *
+ * - retry_interval: Retry interval  (milliseconds)
+ *
+ * [merge]
+ *
+ * - conflict_resolve_strategy: Default is 'ours'.
+ *
+ * - behavior_for_no_merge_base:
+ *
+ * [result]
  *
  * - include_commits: (Beta version: It will leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
  */
 export type RemoteOptions = {
+  /* network */
   remote_url?: string;
-  live?: boolean;
   sync_direction?: SyncDirection;
+  connection?: ConnectionSettings;
+
+  /* automation */
+  live?: boolean;
   interval?: number; // msec
   retry?: number; // Retry does not occurred if retry is 0.
   retry_interval?: number; // msec
-  auth?: RemoteAuth;
-  behavior_for_no_merge_base?: BehaviorForNoMergeBase;
-  include_commits?: boolean;
+
+  /* merge */
   conflict_resolve_strategy?: ConflictResolveStrategies;
+  behavior_for_no_merge_base?: BehaviorForNoMergeBase;
+
+  /* results */
+  include_commits?: boolean;
 };
 
 /**

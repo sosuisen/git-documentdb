@@ -258,7 +258,7 @@ maybe('remote: sync: events: ', () => {
         localDir,
         serialId,
         {
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
           include_commits: true,
           live: true,
           interval: 3000,
@@ -323,7 +323,7 @@ maybe('remote: sync: events: ', () => {
       });
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
       };
@@ -343,7 +343,7 @@ maybe('remote: sync: events: ', () => {
 
     test('start once', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
         interval: 3000,
@@ -372,7 +372,7 @@ maybe('remote: sync: events: ', () => {
 
     test('start repeatedly', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
         interval: 1000,
@@ -392,7 +392,7 @@ maybe('remote: sync: events: ', () => {
 
     test('complete once', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
         interval: 1000,
@@ -421,7 +421,7 @@ maybe('remote: sync: events: ', () => {
 
     test('complete repeatedly', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
         interval: 1000,
@@ -469,7 +469,7 @@ maybe('remote: sync: events: ', () => {
 
   test('on and off', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      auth: { type: 'github', personal_access_token: token },
+      connection: { type: 'github', personal_access_token: token },
       include_commits: true,
       live: true,
       interval: 1000,

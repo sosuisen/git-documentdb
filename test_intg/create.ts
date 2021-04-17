@@ -69,7 +69,7 @@ maybe('intg: create: GitDocumentDB: ', () => {
       });
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
       };
       // Check dbInfo
       await expect(dbA.create(options)).resolves.toMatchObject({

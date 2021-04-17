@@ -347,7 +347,9 @@ export class UndefinedPersonalAccessTokenError extends BaseError {
  */
 export class AuthNeededForPushOrSyncError extends BaseError {
   constructor (direction: SyncDirection) {
-    super(`Authentication data is needed for this sync direction: ${direction}`);
+    super(
+      `Connection authentication settings are needed for this sync direction: ${direction}`
+    );
   }
 }
 

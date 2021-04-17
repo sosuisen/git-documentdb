@@ -84,7 +84,7 @@ maybe('remote: sync: lifecycle', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         // console.time('create dbA');
         await dbA.create(options);
@@ -129,7 +129,7 @@ maybe('remote: sync: lifecycle', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -164,7 +164,7 @@ maybe('remote: sync: lifecycle', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -200,7 +200,7 @@ maybe('remote: sync: lifecycle', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
           retry_interval: Sync.defaultRetryInterval + 10000,
         };
         await dbA.create(options);
@@ -296,7 +296,7 @@ maybe('remote: sync: lifecycle', () => {
         // Set retry interval to 0ms
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
           retry_interval: 0,
         };
         await dbA.create(options);
@@ -344,7 +344,7 @@ maybe('remote: sync: lifecycle', () => {
         });
         const options: RemoteOptions = {
           remote_url: remoteURL,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
 
@@ -406,7 +406,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           sync_direction: 'both',
           interval,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
 
@@ -448,7 +448,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           sync_direction: 'both',
           interval,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
 
@@ -477,7 +477,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           sync_direction: 'both',
           interval,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
 
@@ -514,7 +514,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           sync_direction: 'both',
           interval,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
 
@@ -546,7 +546,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           sync_direction: 'both',
           interval,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
 
@@ -592,7 +592,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           sync_direction: 'both',
           interval,
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(options);
 
@@ -622,7 +622,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           interval: 1000,
           sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(optionsA);
 
@@ -639,7 +639,7 @@ maybe('remote: sync: lifecycle', () => {
           retry: 0, // no retry
           retry_interval: 0,
           sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
 
         await dbB.create(optionsB);
@@ -675,7 +675,7 @@ maybe('remote: sync: lifecycle', () => {
           live: true,
           interval: 1000,
           sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
         await dbA.create(optionsA);
 
@@ -691,7 +691,7 @@ maybe('remote: sync: lifecycle', () => {
           remote_url: remoteURL,
           retry_interval: 2000,
           sync_direction: 'both',
-          auth: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personal_access_token: token },
         };
 
         await dbB.create(optionsB);
@@ -749,7 +749,7 @@ maybe('remote: sync: lifecycle', () => {
         live: true,
         interval: 1000,
         sync_direction: 'both',
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
       };
       const remoteA = await dbA.sync(remoteURL, options);
       let complete = false;
@@ -788,7 +788,7 @@ maybe('remote: sync: lifecycle', () => {
         live: true,
         interval: 1000,
         sync_direction: 'both',
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
       };
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -821,7 +821,7 @@ maybe('remote: sync: lifecycle', () => {
         live: true,
         interval: 1000,
         sync_direction: 'both',
-        auth: { type: 'github', personal_access_token: token },
+        connection: { type: 'github', personal_access_token: token },
       };
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);

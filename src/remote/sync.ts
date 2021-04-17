@@ -100,7 +100,7 @@ export class Sync implements ISync {
       interval: undefined,
       retry: undefined,
       retry_interval: undefined,
-      auth: undefined,
+      connection: undefined,
       behavior_for_no_merge_base: undefined,
       include_commits: undefined,
       conflict_resolve_strategy: undefined,
@@ -149,7 +149,7 @@ export class Sync implements ISync {
 
     this._remoteRepository = new RemoteRepository({
       remote_url: this._options.remote_url,
-      auth: this._options.auth,
+      connection: this._options.connection,
     });
   }
 

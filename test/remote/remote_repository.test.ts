@@ -96,7 +96,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       await new RemoteRepository({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -110,7 +110,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await expect(
         new RemoteRepository({
           remote_url: remoteURL,
-          auth: {
+          connection: {
             type: 'github',
             personal_access_token: undefined,
           },
@@ -124,7 +124,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await expect(
         new RemoteRepository({
           remote_url: readonlyURL,
-          auth: {
+          connection: {
             type: 'github',
             personal_access_token: token, // This is valid but for another account.
           },
@@ -138,7 +138,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const error = await new RemoteRepository({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -155,7 +155,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await expect(
         new RemoteRepository({
           remote_url: remoteURL,
-          auth: {
+          connection: {
             type: 'none',
           },
         }).create()
@@ -186,7 +186,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await expect(
         new RemoteRepository({
           remote_url: remoteURL,
-          auth: {
+          connection: {
             type: 'github',
             personal_access_token: undefined,
           },
@@ -199,7 +199,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const error = await new RemoteRepository({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -216,7 +216,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await expect(
         new RemoteRepository({
           remote_url: remoteURL,
-          auth: {
+          connection: {
             type: 'none',
           },
         }).destroy()
@@ -321,7 +321,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await createRemoteRepository(remoteURL);
       const cred = createCredential({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -352,7 +352,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const cred = createCredential({
         remote_url: remoteURLBase + serialId(),
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -386,7 +386,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const cred = createCredential({
         remote_url: remoteURLBase + serialId(),
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -420,7 +420,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const cred = createCredential({
         remote_url: remoteURLBase + serialId(),
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -454,7 +454,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const cred = createCredential({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -488,7 +488,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const cred = createCredential({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'ssh',
           private_key_path: '/not/exist',
           public_key_path: '/not/exist',
@@ -529,7 +529,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await createRemoteRepository(remoteURL);
       const cred = createCredential({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -560,7 +560,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await createRemoteRepository(remoteURL);
       const cred = createCredential({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token + '_invalid',
         },
@@ -593,7 +593,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await createRemoteRepository(remoteURL);
       const cred = createCredential({
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -619,7 +619,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const remoteOptions: RemoteOptions = {
         remote_url: remoteURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -646,7 +646,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -673,7 +673,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
@@ -700,7 +700,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token, // It is valid but for another account
         },
@@ -727,7 +727,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,
-        auth: {
+        connection: {
           type: 'github',
           personal_access_token: token,
         },
