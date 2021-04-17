@@ -8,7 +8,7 @@ Offline-first DocumentDB using Git
 
 ## Remarks
 
-GitDocumentDB stores a document into Git repository. It is managed by PouchDB-like offline-first API. A database can be synchronized with remote Git repository.
+GitDocumentDB stores a document into Git repository. It is managed by PouchDB-like offline-first API. A database can be synchronized with a remote Git repository.
 
 ## Classes
 
@@ -30,7 +30,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
 |  [FetchConnectionFailedError](./git-documentdb.fetchconnectionfailederror.md) |  |
 |  [FileRemoveTimeoutError](./git-documentdb.fileremovetimeouterror.md) |  |
-|  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | <b><i>(BETA)</i></b> Main class of GitDocumentDB |
+|  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | Main class of GitDocumentDB |
 |  [HTTPNetworkError](./git-documentdb.httpnetworkerror.md) |  |
 |  [HttpProtocolRequiredError](./git-documentdb.httpprotocolrequirederror.md) |  |
 |  [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) |  |
@@ -54,29 +54,35 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [PersonalAccessTokenForAnotherAccountError](./git-documentdb.personalaccesstokenforanotheraccounterror.md) |  |
 |  [PushConnectionFailedError](./git-documentdb.pushconnectionfailederror.md) |  |
 |  [PushPermissionDeniedError](./git-documentdb.pushpermissiondeniederror.md) |  |
+|  [PushWorkerError](./git-documentdb.pushworkererror.md) |  |
 |  [RemoteAlreadyRegisteredError](./git-documentdb.remotealreadyregisterederror.md) |  |
+|  [RemoteIsAdvancedWhileMergingError](./git-documentdb.remoteisadvancedwhilemergingerror.md) |  |
 |  [RemoteRepository](./git-documentdb.remoterepository.md) |  |
+|  [RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md) |  |
 |  [RemoteRepositoryNotFoundError](./git-documentdb.remoterepositorynotfounderror.md) |  |
 |  [RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) |  |
 |  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
 |  [RequestTimeoutError](./git-documentdb.requesttimeouterror.md) |  |
 |  [SocketTimeoutError](./git-documentdb.sockettimeouterror.md) |  |
 |  [Sync](./git-documentdb.sync.md) | Sync class |
+|  [SyncWorkerError](./git-documentdb.syncworkererror.md) |  |
 |  [SyncWorkerFetchError](./git-documentdb.syncworkerfetcherror.md) |  |
 |  [TaskCancelError](./git-documentdb.taskcancelerror.md) |  |
+|  [ThreeWayMergeError](./git-documentdb.threewaymergeerror.md) |  |
 |  [UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md) |  |
 |  [UndefinedDBError](./git-documentdb.undefineddberror.md) |  |
 |  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) |  |
 |  [UndefinedGitHubAuthenticationError](./git-documentdb.undefinedgithubauthenticationerror.md) |  |
 |  [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md) |  |
 |  [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) |  |
+|  [Validator](./git-documentdb.validator.md) | Validator Class |
 |  [WorkingDirectoryExistsError](./git-documentdb.workingdirectoryexistserror.md) |  |
 
 ## Functions
 
 |  Function | Description |
 |  --- | --- |
-|  [syncImpl(this, options)](./git-documentdb.syncimpl.md) |  |
+|  [cloneRepository(workingDir, remoteOptions, logger)](./git-documentdb.clonerepository.md) | Clone repository from remote |
 
 ## Interfaces
 

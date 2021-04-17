@@ -25,3 +25,11 @@ resume(options?: {
 
 boolean
 
+## Exceptions
+
+[IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md)
+
+## Remarks
+
+Give new settings if needed.
+

@@ -27,7 +27,7 @@ may include the following errors:
 
 - Authentication error
 
-- Permission error
+- Permission for private repository error
 
 - Other network errors
 

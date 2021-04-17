@@ -85,8 +85,6 @@ const defaultLocalDir = './git-documentdb';
 
 /**
  * Main class of GitDocumentDB
- *
- * @beta
  */
 export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
@@ -148,6 +146,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * @throws {@link InvalidWorkingDirectoryPathLengthError}
    * @throws {@link UndefinedDatabaseNameError}
+   *
    */
   constructor (options: DatabaseOption) {
     super();
@@ -201,6 +200,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link WorkingDirectoryExistsError}
    * @throws {@link CannotCreateDirectoryError}
    * @throws {@link CannotConnectError}
+   *
    */
   async create (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
     if (this.isClosing) {
@@ -279,6 +279,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *  However, correct behavior is not guaranteed.
    *
    * @returns Database information
+   *
    */
   async open (): Promise<DatabaseInfo> {
     const dbInfoError = (err: Error) => {
@@ -386,6 +387,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   /**
    * Get dbName
+   *
    */
   dbName () {
     return this._dbName;
@@ -395,6 +397,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * Get a full path of the current Git working directory
    *
    * @returns Full path of the directory (trailing slash is omitted)
+   *
    */
   workingDir () {
     return this._workingDirectory;
@@ -403,6 +406,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * Get a current repository
    * @remarks Be aware that direct operation of the current repository can corrupt the database.
+   *
    */
   repository (): nodegit.Repository | undefined {
     return this._currentRepository;
@@ -415,6 +419,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * - Notice that this function does not make a sub-directory under the working directory.
    *
    * @param collectionPath - path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
+   *
    */
   collection (collectionPath: CollectionPath) {
     return new Collection(this, collectionPath);
@@ -422,6 +427,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   /**
    * Test if a database is opened
+   *
    */
   isOpened () {
     return this._currentRepository !== undefined;
@@ -438,6 +444,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @param options - The options specify how to close database.
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
+   *
    */
   async close (options?: DatabaseCloseOption): Promise<void> {
     if (this.isClosing) {
@@ -500,6 +507,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
    * @throws {@link FileRemoveTimeoutError}
+   *
    */
   async destroy (options: DatabaseCloseOption = {}): Promise<{ ok: true }> {
     if (this.isClosing) {
@@ -559,6 +567,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link CannotCreateDirectoryError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
+   *
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
@@ -586,7 +595,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     * @throws {@link CannotCreateDirectoryError}
     * @throws {@link InvalidIdCharacterError}
     * @throws {@link InvalidIdLengthError}
-    */
+    * 
+       */
   put (
     id: string,
     document: { [key: string]: any },
@@ -612,6 +622,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
+   *
    */
   get (docId: string): Promise<JsonDoc> {
     // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
@@ -642,6 +653,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
+   *
    */
   remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
   /**
@@ -656,6 +668,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
+   *
    */
   remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
   remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
@@ -674,6 +687,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
+   *
    */
   allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
     // Do not use 'allDocs = allDocsImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
@@ -682,33 +696,56 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   /**
    * getRemoteURLs
+   *
    */
   getRemoteURLs (): string[] {
     return Object.keys(this._synchronizers);
   }
 
   /**
-   * getRemote
+   * Get remote synchronization
+   *
    */
   getRemote (remoteURL: string) {
     return this._synchronizers[remoteURL];
   }
 
   /**
-   * removeRemote
+   * Stop and unregister remote synchronization
+   *
    */
-  removeRemote (remoteURL: string) {
+  unregisterRemote (remoteURL: string) {
     this._synchronizers[remoteURL].cancel();
     delete this._synchronizers[remoteURL];
   }
 
   /**
-   * Synchronization
+   * Synchronize with a remote repository
+   *
+   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+   *
+   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+   * @throws {@link PushWorkerError} (from Sync#init())
+   * @throws {@link SyncWorkerError} (from Sync#init())
    *
    * @remarks
-   * Do not register the same remote repository again. Call removeRemote() before register it again.
+   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call removeRemote() before register it again.
    */
   async sync (remoteURL: string, options?: RemoteOptions): Promise<Sync>;
+  /**
+   * Synchronize with a remote repository
+   *
+   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+   *
+   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+   * @throws {@link PushWorkerError} (from Sync#init())
+   * @throws {@link SyncWorkerError} (from Sync#init())
+   *
+   * @remarks
+   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call removeRemote() before register it again.
+   */
   async sync (options?: RemoteOptions): Promise<Sync>;
   async sync (
     remoteUrlOrOption?: string | RemoteOptions,

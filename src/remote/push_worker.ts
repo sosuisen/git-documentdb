@@ -19,6 +19,10 @@ import { getChanges, getCommitLogs } from './worker_utils';
 
 /**
  * git push
+ *
+ * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from this and validatePushResult())
+ * @throws {@link SyncWorkerFetchError} (from validatePushResult())
+ * @throws Error (Other errors from NodeGit.Remote.push())
  */
 async function push (
   gitDDB: AbstractDocumentDB,
@@ -48,8 +52,11 @@ async function push (
 }
 
 /**
- * Remote.push does not return valid error in race condition,
+ * NodeGit.Remote.push does not return valid error in race condition,
  * so check is needed.
+ *
+ * @throws {@link SyncWorkerFetchError}
+ * @throws {@link CannotPushBecauseUnfetchedCommitExistsError}
  */
 async function validatePushResult (
   gitDDB: AbstractDocumentDB,
@@ -95,6 +102,12 @@ async function validatePushResult (
 
 /**
  * Push and get changes
+ *
+ * @throws {@link RepositoryNotOpenError}
+ * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from push() and validatePushResult())
+ * @throws {@link SyncWorkerFetchError} (from validatePushResult())
+ * @throws {@link InvalidJsonObjectError} (from getChanges())
+ * @throws Error (Other errors from NodeGit.Remote.push())
  */
 export async function push_worker (
   gitDDB: AbstractDocumentDB,

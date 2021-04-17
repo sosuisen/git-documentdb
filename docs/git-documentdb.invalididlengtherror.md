@@ -4,7 +4,6 @@
 
 ## InvalidIdLengthError class
 
-
 <b>Signature:</b>
 
 ```typescript

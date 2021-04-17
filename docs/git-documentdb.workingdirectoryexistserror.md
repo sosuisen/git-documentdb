@@ -4,7 +4,6 @@
 
 ## WorkingDirectoryExistsError class
 
-
 <b>Signature:</b>
 
 ```typescript

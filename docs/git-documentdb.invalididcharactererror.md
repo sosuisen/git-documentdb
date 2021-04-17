@@ -4,7 +4,6 @@
 
 ## InvalidIdCharacterError class
 
-
 <b>Signature:</b>
 
 ```typescript

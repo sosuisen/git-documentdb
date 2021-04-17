@@ -4,7 +4,6 @@
 
 ## IntervalTooSmallError class
 
-
 <b>Signature:</b>
 
 ```typescript

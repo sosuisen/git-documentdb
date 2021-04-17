@@ -42,7 +42,6 @@ import { Validator } from './validator';
  * gitDDB.get({ _id: 'Sapporo/1' }); // returns { _id: 'Sapporo/1', name: 'Yuzuki' }.
  * gitDDB.collection('Sapporo').get({ _id: '1' }); // returns { _id: '1', name: 'Yuzuki' }.
  * ```
- * @public
  */
 export class Collection implements CRUDInterface {
   private _collectionPath: CollectionPath = '';

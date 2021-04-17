@@ -53,6 +53,8 @@ export const ping = (
  * @remarks
  * requestTimeout and socketTimeout must be greater than 0.
  * Timeout is not set if timeout is less than 0.
+ *
+ * @internal
  */
 export const checkHTTP = (
   url: string,

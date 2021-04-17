@@ -87,6 +87,9 @@ export type ChangedFile = {
     data: JsonDocWithMetadata;
 };
 
+// @public
+export function cloneRepository(workingDir: string, remoteOptions: RemoteOptions, logger?: Logger): Promise<nodegit.Repository | undefined>;
+
 // Warning: (ae-forgotten-export) The symbol "CRUDInterface" needs to be exported by the entry point main.d.ts
 //
 // @public
@@ -211,8 +214,9 @@ export class FileRemoveTimeoutError extends BaseError {
     constructor();
 }
 
-// @beta
+// @public
 export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "DatabaseOption" which is marked as @beta
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
@@ -244,14 +248,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }, options?: PutOptions): Promise<PutResult>;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-    removeRemote(remoteURL: string): void;
     repository(): nodegit.Repository | undefined;
     sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
-    // (undocumented)
     sync(options?: RemoteOptions): Promise<Sync>;
     // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
     taskQueue: TaskQueue;
-    // Warning: (ae-incompatible-release-tags) The symbol "validator" is marked as @beta, but its signature references "Validator" which is marked as @internal
+    unregisterRemote(remoteURL: string): void;
     validator: Validator;
     workingDir(): string;
     }
@@ -429,6 +431,11 @@ export class PushPermissionDeniedError extends BaseError {
     constructor();
 }
 
+// @public (undocumented)
+export class PushWorkerError extends BaseError {
+    constructor(mes: string);
+}
+
 // @public
 export type PutOptions = {
     commit_message?: string;
@@ -445,6 +452,11 @@ export type PutResult = {
 // @public (undocumented)
 export class RemoteAlreadyRegisteredError extends BaseError {
     constructor(url: string);
+}
+
+// @public (undocumented)
+export class RemoteIsAdvancedWhileMergingError extends BaseError {
+    constructor();
 }
 
 // @public
@@ -471,6 +483,11 @@ export class RemoteRepository {
     create(): Promise<void>;
     destroy(): Promise<void>;
     }
+
+// @public (undocumented)
+export class RemoteRepositoryConnectError extends BaseError {
+    constructor(mes: string);
+}
 
 // @public (undocumented)
 export class RemoteRepositoryNotFoundError extends BaseError {
@@ -516,7 +533,6 @@ export class Sync implements ISync {
     // (undocumented)
     author: nodegit.Signature;
     cancel(): boolean;
-    // (undocumented)
     close(): void;
     // (undocumented)
     committer: nodegit.Signature;
@@ -524,7 +540,6 @@ export class Sync implements ISync {
     credential_callbacks: {
         [key: string]: any;
     };
-    // (undocumented)
     currentRetries(): number;
     // (undocumented)
     static defaultRetry: number;
@@ -532,7 +547,7 @@ export class Sync implements ISync {
     static defaultRetryInterval: number;
     // (undocumented)
     static defaultSyncInterval: number;
-    // (undocumented)
+    // @internal
     eventHandlers: {
         change: ((syncResult: SyncResult) => void)[];
         localChange: ((changedFiles: ChangedFile[]) => void)[];
@@ -546,9 +561,7 @@ export class Sync implements ISync {
     init(repos: nodegit.Repository): Promise<SyncResult>;
     // (undocumented)
     static minimumSyncInterval: number;
-    // (undocumented)
     off(event: SyncEvent, callback: (result?: any) => void): this;
-    // (undocumented)
     on(event: SyncEvent, callback: (result?: any) => void): this;
     options(): any;
     pause(): boolean;
@@ -569,7 +582,9 @@ export type SyncDirection = 'pull' | 'push' | 'both';
 // @public
 export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | 'active' | 'start' | 'complete' | 'error';
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "syncImpl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function syncImpl(this: AbstractDocumentDB, options?: RemoteOptions): Promise<Sync>;
 
 // @public
@@ -650,6 +665,11 @@ export interface SyncResultResolveConflictsAndPush {
 }
 
 // @public (undocumented)
+export class SyncWorkerError extends BaseError {
+    constructor(mes: string);
+}
+
+// @public (undocumented)
 export class SyncWorkerFetchError extends BaseError {
     constructor(mes: string);
 }
@@ -678,6 +698,11 @@ export type TaskStatistics = {
     push: number;
     sync: number;
 };
+
+// @public (undocumented)
+export class ThreeWayMergeError extends BaseError {
+    constructor(mes: string);
+}
 
 // @public (undocumented)
 export class UndefinedDatabaseNameError extends BaseError {
@@ -709,9 +734,7 @@ export class UndefinedRemoteURLError extends BaseError {
     constructor();
 }
 
-// Warning: (ae-internal-missing-underscore) The name "Validator" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
+// @public
 export class Validator {
     constructor(_workingDir: string);
     // (undocumented)

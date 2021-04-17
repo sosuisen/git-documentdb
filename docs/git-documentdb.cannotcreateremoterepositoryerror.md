@@ -4,7 +4,6 @@
 
 ## CannotCreateRemoteRepositoryError class
 
-
 <b>Signature:</b>
 
 ```typescript

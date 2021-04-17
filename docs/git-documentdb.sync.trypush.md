@@ -4,7 +4,7 @@
 
 ## Sync.tryPush() method
 
-Try push to remote
+Try to push to remote
 
 <b>Signature:</b>
 
@@ -14,4 +14,8 @@ tryPush(): Promise<SyncResultPush | SyncResultCancel>;
 <b>Returns:</b>
 
 Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCancel](./git-documentdb.syncresultcancel.md)<!-- -->&gt;
+
+## Exceptions
+
+[PushWorkerError](./git-documentdb.pushworkererror.md)
 

@@ -6,13 +6,18 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+/**
+ * @internal
+ */
 export const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
+
 /**
  * Returns JSON string which properties are sorted.
  * The sorting follows the UTF-16 (Number < Uppercase < Lowercase), except that heading underscore _ is the last.
  * Its indent is 2.
  *
  * NOTE: Heading underscore cannot be the first because replacing '\uffff' with '\u0000' does not effect to sorting order.
+ *
  */
 export const toSortedJSONString = (obj: Record<string, any>) => {
   return JSON.stringify(
@@ -38,6 +43,8 @@ export const toSortedJSONString = (obj: Record<string, any>) => {
 /**
  * Template literal tag for console style
  * https://bluesock.org/~willkg/dev/ansi.html#ansicodes
+ *
+ * @internal
  */
 class ConsoleStyleClass {
   private _style = '';

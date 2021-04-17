@@ -4,7 +4,6 @@
 
 ## InvalidJsonObjectError class
 
-
 <b>Signature:</b>
 
 ```typescript

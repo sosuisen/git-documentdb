@@ -4,7 +4,6 @@
 
 ## UndefinedPersonalAccessTokenError class
 
-
 <b>Signature:</b>
 
 ```typescript

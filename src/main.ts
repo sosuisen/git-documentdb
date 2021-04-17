@@ -5,7 +5,7 @@
  *
  * @remarks GitDocumentDB stores a document into Git repository.
  * It is managed by PouchDB-like offline-first API.
- * A database can be synchronized with remote Git repository.
+ * A database can be synchronized with a remote Git repository.
  *
  * @packageDocumentation
  */
@@ -15,5 +15,6 @@ export * from './error';
 export * from './index';
 export * from './types';
 export * from './validator';
-export * from './remote/sync';
+export * from './remote/clone';
 export * from './remote/remote_repository';
+export * from './remote/sync';

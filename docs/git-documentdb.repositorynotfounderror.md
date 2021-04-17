@@ -4,7 +4,6 @@
 
 ## RepositoryNotFoundError class
 
-
 <b>Signature:</b>
 
 ```typescript

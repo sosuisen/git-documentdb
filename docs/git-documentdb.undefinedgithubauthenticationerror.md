@@ -4,7 +4,6 @@
 
 ## UndefinedGitHubAuthenticationError class
 
-
 <b>Signature:</b>
 
 ```typescript

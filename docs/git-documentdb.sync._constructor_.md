@@ -4,7 +4,7 @@
 
 ## Sync.(constructor)
 
-Constructs a new instance of the `Sync` class
+constructor
 
 <b>Signature:</b>
 
@@ -18,4 +18,10 @@ constructor(_gitDDB: AbstractDocumentDB, _options?: RemoteOptions);
 |  --- | --- | --- |
 |  \_gitDDB | AbstractDocumentDB |  |
 |  \_options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
+
+## Exceptions
+
+[UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md)
+
+[IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md)
 

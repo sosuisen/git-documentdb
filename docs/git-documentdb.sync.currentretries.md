@@ -4,6 +4,8 @@
 
 ## Sync.currentRetries() method
 
+Return current retry count (incremental)
+
 <b>Signature:</b>
 
 ```typescript

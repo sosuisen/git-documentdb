@@ -4,6 +4,8 @@
 
 ## Sync.off() method
 
+Remove SyncEvent handler
+
 <b>Signature:</b>
 
 ```typescript

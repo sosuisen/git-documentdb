@@ -4,7 +4,6 @@
 
 ## PushConnectionFailedError class
 
-
 <b>Signature:</b>
 
 ```typescript

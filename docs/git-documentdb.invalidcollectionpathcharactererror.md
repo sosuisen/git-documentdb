@@ -4,7 +4,6 @@
 
 ## InvalidCollectionPathCharacterError class
 
-
 <b>Signature:</b>
 
 ```typescript

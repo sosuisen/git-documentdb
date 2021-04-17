@@ -33,6 +33,7 @@ may include the following errors:
 
 - Other network errors
 
+[AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.authenticationtypenotallowcreaterepositoryerror.md)
 
 ## Remarks
 

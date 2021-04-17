@@ -4,7 +4,6 @@
 
 ## AuthNeededForPushOrSyncError class
 
-
 <b>Signature:</b>
 
 ```typescript

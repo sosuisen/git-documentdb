@@ -72,9 +72,8 @@ export class RemoteRepository {
    *
    *  - Other network errors
    *
-   * @throws {@AuthenticationTypeNotAllowCreateRepositoryError}
+   * @throws {@link AuthenticationTypeNotAllowCreateRepositoryError}
    *
-   * @public
    */
   async create () {
     if (this._options.connection?.type === 'github') {
@@ -137,13 +136,12 @@ export class RemoteRepository {
    *
    *  - Authentication error
    *
-   *  - Permission error
+   *  - Permission for private repository error
    *
    *  - Other network errors
    *
    * @throws {@AuthenticationTypeNotAllowCreateRepositoryError}
    *
-   * @public
    */
   async destroy () {
     if (this._options.connection?.type === 'github') {
@@ -220,7 +218,7 @@ export class RemoteRepository {
    * @throws {@link InvalidURLError}
    * @throws {@link RemoteRepositoryNotFoundError}
    * @throws {@link InvalidSSHKeyError}
-   * @throws Error
+   * @throws Error (Other errors from NodeGit.Remote#connect())
    *
    * @internal
    */
@@ -260,9 +258,8 @@ export class RemoteRepository {
   /**
    * Check connection by PUSH
    *
-   * @throws {@link PushAuthenticationError}
    * @throws {@link PushPermissionDeniedError}
-   * @throes Error
+   * @throws Error (Other errors from NodeGit.Remote#connect())
    */
   private async _checkPush (
     remote: nodegit.Remote,
@@ -295,6 +292,10 @@ export class RemoteRepository {
    * Set a remote repository and connect to the remote repository.
    * A remote repository will be created if not exists.
    *
+   * @throws {@link UndefinedPersonalAccessTokenError} (from RemoteRepository#create())
+   * @throws {@link PersonalAccessTokenForAnotherAccountError} (from RemoteRepository#create())
+   * @throws {@link CannotConnectError} (from RemoteRepository#create())
+   * @throws {@link AuthenticationTypeNotAllowCreateRepositoryError} (from RemoteRepository#create())
    * @throws {@link FetchConnectionFailedError}
    * @throws {@link CannotCreateRemoteRepositoryError}
    * @throws {@link PushConnectionFailedError}

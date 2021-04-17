@@ -16,8 +16,11 @@ import {
   CannotDeleteDataError,
   InvalidConflictStateError,
   NoMergeBaseFoundError,
+  PushWorkerError,
+  RemoteIsAdvancedWhileMergingError,
   RepositoryNotOpenError,
   SyncWorkerFetchError,
+  ThreeWayMergeError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import {
@@ -34,6 +37,8 @@ import { getChanges, getCommitLogs, getDocument } from './worker_utils';
 
 /**
  * git fetch
+ *
+ * @throws {@link SyncWorkerFetchError}
  */
 async function fetch (gitDDB: AbstractDocumentDB, sync: ISync) {
   gitDDB.logger.debug(
@@ -72,6 +77,8 @@ async function calcDistance (
 
 /**
  * Resolve no merge base
+ *
+ * @throws {@link NoMergeBaseFoundError}
  */
 function resolveNoMergeBase (sync: ISync) {
   if (sync.options().behavior_for_no_merge_base === 'nop') {
@@ -91,6 +98,8 @@ function resolveNoMergeBase (sync: ISync) {
 
 /**
  * Write blob to file system
+ *
+ * @throws {@link CannotCreateDirectoryError}
  */
 async function writeBlobToFile (gitDDB: AbstractDocumentDB, entry: nodegit.TreeEntry) {
   const data = (await entry.getBlob()).toString();
@@ -131,6 +140,14 @@ async function getStrategy (
   return strategy;
 }
 
+/**
+ * 3-way merge
+ *
+ * @throws {@link RepositoryNotOpenError}
+ * @throws {@link InvalidConflictStateError}
+ * @throws {@link CannotDeleteDataError}
+ * @throws {@link CannotCreateDirectoryError} (from writeBlobToFile())
+ */
 // eslint-disable-next-line complexity
 async function threeWayMerge (
   gitDDB: AbstractDocumentDB,
@@ -380,6 +397,18 @@ async function threeWayMerge (
 
 /**
  * sync_worker
+ *
+ * @throws {@link RepositoryNotOpenError}
+ * @throws {@link SyncWorkerFetchError} (from fetch())
+ * @throws {@link NoMergeBaseFoundError} (from resolveNoMergeBase())
+ * @throws {@link ThreeWayMergeError}
+ * @throws {@link PushWorkerError}
+ * @throws {@link CannotDeleteDataError}
+ * @throws {@link RemoteIsAdvancedWhileMergingError}
+ * @throws {@link InvalidJsonObjectError} (from getChanges())
+ * @throws Error (Other errors from NodeGit.repos.mergeBranches())
+ *
+ * @internal
  */
 // eslint-disable-next-line complexity
 export async function sync_worker (
@@ -447,7 +476,9 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    return await push_worker(gitDDB, sync, taskId);
+    return await push_worker(gitDDB, sync, taskId).catch(err => {
+      throw new PushWorkerError(err.message);
+    });
   }
 
   if (conflictedIndex === undefined) {
@@ -562,7 +593,9 @@ export async function sync_worker (
       }
 
       // Need push because it is merged normally.
-      const syncResultPush = await push_worker(gitDDB, sync, taskId);
+      const syncResultPush = await push_worker(gitDDB, sync, taskId).catch(err => {
+        throw new PushWorkerError(err.message);
+      });
       const syncResultMergeAndPush: SyncResultMergeAndPush = {
         action: 'merge and push',
         changes: {
@@ -583,7 +616,7 @@ export async function sync_worker (
     /**
      * Remote is advanced while merging
      */
-    throw new Error('Remote is advanced while merging.');
+    throw new RemoteIsAdvancedWhileMergingError();
   }
   else {
     /**
@@ -636,7 +669,9 @@ export async function sync_worker (
           oldCommit,
           oldRemoteCommit,
           acceptedConflicts
-        )
+        ).catch(err => {
+          throw new ThreeWayMergeError(err.message);
+        })
       );
     });
     await Promise.all(resolvers);
@@ -712,7 +747,9 @@ export async function sync_worker (
     await nodegit.Checkout.head(repos, opt);
 
     // Push
-    const syncResultPush = await push_worker(gitDDB, sync, taskId);
+    const syncResultPush = await push_worker(gitDDB, sync, taskId).catch(err => {
+      throw new PushWorkerError(err.message);
+    });
     const syncResultResolveConflictsAndPush: SyncResultResolveConflictsAndPush = {
       action: 'resolve conflicts and push',
       conflicts: acceptedConflicts,

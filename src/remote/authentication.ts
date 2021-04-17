@@ -18,6 +18,8 @@ import { ConnectionSettingsGitHub, ConnectionSettingsSSH, RemoteOptions } from '
 
 /**
  * Create credential options for GitHub
+ *
+ * @internal
  */
 const createCredentialForGitHub = (options: RemoteOptions) => {
   if (!options.remote_url!.match(/^https?:\/\//)) {
@@ -41,6 +43,8 @@ const createCredentialForGitHub = (options: RemoteOptions) => {
 
 /**
  * Create credential options for SSH
+ *
+ * @internal
  */
 const createCredentialForSSH = (options: RemoteOptions) => {
   const connection = options.connection as ConnectionSettingsSSH;
@@ -65,6 +69,8 @@ const createCredentialForSSH = (options: RemoteOptions) => {
 
 /**
  * Create credential options
+ *
+ * @internal
  */
 export const createCredential = (options: RemoteOptions) => {
   options.connection ??= { type: 'none' };

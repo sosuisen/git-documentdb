@@ -4,6 +4,8 @@
 
 ## Sync.close() method
 
+Stop and clear remote connection
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,7 +4,6 @@
 
 ## FetchConnectionFailedError class
 
-
 <b>Signature:</b>
 
 ```typescript

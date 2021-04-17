@@ -4,7 +4,6 @@
 
 ## SyncWorkerFetchError class
 
-
 <b>Signature:</b>
 
 ```typescript

@@ -4,7 +4,7 @@
 
 ## Sync.trySync() method
 
-Try synchronization with remote
+Try to synchronize with remote
 
 <b>Signature:</b>
 
@@ -14,4 +14,8 @@ trySync(): Promise<SyncResult>;
 <b>Returns:</b>
 
 Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
+
+## Exceptions
+
+[SyncWorkerError](./git-documentdb.syncworkererror.md)
 

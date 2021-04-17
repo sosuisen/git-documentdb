@@ -4,7 +4,6 @@
 
 ## AuthenticationTypeNotAllowCreateRepositoryError class
 
-
 <b>Signature:</b>
 
 ```typescript

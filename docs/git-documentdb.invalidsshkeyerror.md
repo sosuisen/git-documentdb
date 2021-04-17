@@ -4,7 +4,6 @@
 
 ## InvalidSSHKeyError class
 
-
 <b>Signature:</b>
 
 ```typescript

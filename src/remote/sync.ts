@@ -11,7 +11,10 @@ import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
   IntervalTooSmallError,
+  PushWorkerError,
+  RemoteRepositoryConnectError,
   RepositoryNotOpenError,
+  SyncWorkerError,
   UndefinedRemoteURLError,
 } from '../error';
 import {
@@ -30,6 +33,18 @@ import { push_worker } from './push_worker';
 import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 
+/**
+ * Implementation of GitDocumentDB#sync()
+ *
+ * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+ * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+ *
+ * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+ * @throws {@link PushWorkerError} (from Sync#init())
+ * @throws {@link SyncWorkerError} (from Sync#init())
+ *
+ * @internal
+ */
 export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOptions) {
   const repos = this.repository();
   if (repos === undefined) {
@@ -57,13 +72,20 @@ export class Sync implements ISync {
   private _remoteRepository: RemoteRepository;
   private _retrySyncCounter = 0; // Decremental count
 
-  // Return incremental count
+  /**
+   * Return current retry count (incremental)
+   */
   currentRetries (): number {
     let retries = this._options.retry! - this._retrySyncCounter + 1;
     if (this._retrySyncCounter === 0) retries = 0;
     return retries;
   }
 
+  /**
+   * SyncEvent handlers
+   *
+   * @internal
+   */
   eventHandlers: {
     change: ((syncResult: SyncResult) => void)[];
     localChange: ((changedFiles: ChangedFile[]) => void)[];
@@ -90,6 +112,12 @@ export class Sync implements ISync {
   author: nodegit.Signature;
   committer: nodegit.Signature;
 
+  /**
+   * constructor
+   *
+   * @throws {@link UndefinedRemoteURLError}
+   * @throws {@link IntervalTooSmallError}
+   */
   constructor (_gitDDB: AbstractDocumentDB, _options?: RemoteOptions) {
     this._gitDDB = _gitDDB;
 
@@ -156,15 +184,21 @@ export class Sync implements ISync {
   /**
    * Create remote connection
    *
-   * Call this just after creating instance.
+   * @remarks
+   * Call init() just after creating instance.
+   *
+   * @throws {@link RemoteRepositoryConnectError}
+   * @throws {@link PushWorkerError}
+   * @throws {@link SyncWorkerError}
+   *
    */
   async init (repos: nodegit.Repository): Promise<SyncResult> {
     const onlyFetch = this._options.sync_direction === 'pull';
-    const [gitResult, remoteResult] = await this._remoteRepository.connect(
-      this._gitDDB.repository()!,
-      this.credential_callbacks,
-      onlyFetch
-    );
+    const [gitResult, remoteResult] = await this._remoteRepository
+      .connect(this._gitDDB.repository()!, this.credential_callbacks, onlyFetch)
+      .catch(err => {
+        throw new RemoteRepositoryConnectError(err.message);
+      });
     this._gitDDB.logger.debug('git remote: ' + gitResult);
     this._gitDDB.logger.debug('remote repository: ' + remoteResult);
     if (remoteResult === 'create') {
@@ -191,7 +225,9 @@ export class Sync implements ISync {
     }
     else {
       this._gitDDB.logger.debug('upstream_branch exists. trySync..');
-      syncResult = await this.trySync();
+      syncResult = await this.trySync().catch(err => {
+        throw err;
+      });
     }
 
     if (this._options.live) {
@@ -208,6 +244,7 @@ export class Sync implements ISync {
 
   /**
    * Get remoteURL
+   *
    */
   remoteURL () {
     return this._options.remote_url!;
@@ -216,6 +253,7 @@ export class Sync implements ISync {
   /**
    * Get remote options
    * (options are read only)
+   *
    */
   options () {
     return JSON.parse(JSON.stringify(this._options));
@@ -223,6 +261,7 @@ export class Sync implements ISync {
 
   /**
    * Stop synchronization
+   *
    */
   cancel () {
     if (!this._options.live) return false;
@@ -244,6 +283,7 @@ export class Sync implements ISync {
 
   /**
    * Alias of cancel()
+   *
    */
   pause () {
     return this.cancel();
@@ -251,6 +291,12 @@ export class Sync implements ISync {
 
   /**
    * Resume synchronization
+   *
+   * @remarks
+   * Give new settings if needed.
+   *
+   * @throws {@link IntervalTooSmallError}
+   *
    */
   resume (options?: { interval?: number; retry?: number }) {
     if (this._options.live) return false;
@@ -287,6 +333,10 @@ export class Sync implements ISync {
 
   /**
    * Retry failed synchronization
+   *
+   * @throw {@link SyncWorkerError}
+   *
+   * @internal
    */
   private async _retrySync (): Promise<SyncResult> {
     if (this._retrySyncCounter === 0) {
@@ -309,7 +359,7 @@ export class Sync implements ISync {
         this._gitDDB.logger.debug('retrySync failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw err;
+          throw new SyncWorkerError(err.message);
         }
         return undefined;
       });
@@ -323,7 +373,10 @@ export class Sync implements ISync {
   }
 
   /**
-   * Try push to remote
+   * Try to push to remote
+   *
+   * @throws {@link PushWorkerError}
+   *
    */
   tryPush (): Promise<SyncResultPush | SyncResultCancel> {
     const taskId = this._gitDDB.taskQueue.newTaskId();
@@ -366,12 +419,14 @@ export class Sync implements ISync {
               // TODO:
             }
           }
+
+          const pushWorkerError = new PushWorkerError(err.message);
           this.eventHandlers.error.forEach(func => {
-            func(err);
+            func(pushWorkerError);
           });
 
           beforeReject();
-          reject(err);
+          reject(pushWorkerError);
         });
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
@@ -399,7 +454,10 @@ export class Sync implements ISync {
   }
 
   /**
-   * Try synchronization with remote
+   * Try to synchronize with remote
+   *
+   * @throws {@link SyncWorkerError}
+   *
    */
   trySync (): Promise<SyncResult> {
     const taskId = this._gitDDB.taskQueue.newTaskId();
@@ -452,12 +510,14 @@ export class Sync implements ISync {
             // eslint-disable-next-line promise/no-nesting
             this._retrySync().catch(() => undefined);
           }
+
+          const syncWorkerError = new SyncWorkerError(err.message);
           this.eventHandlers.error.forEach(func => {
-            func(err);
+            func(syncWorkerError);
           });
 
           beforeReject();
-          reject(err);
+          reject(syncWorkerError);
         });
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
@@ -482,11 +542,19 @@ export class Sync implements ISync {
     });
   }
 
+  /**
+   * Add SyncEvent handler
+   *
+   */
   on (event: SyncEvent, callback: (result?: any) => void) {
     this.eventHandlers[event].push(callback);
     return this;
   }
 
+  /**
+   * Remove SyncEvent handler
+   *
+   */
   off (event: SyncEvent, callback: (result?: any) => void) {
     // @ts-ignore
     this.eventHandlers[event] = this.eventHandlers[event].filter(
@@ -495,6 +563,10 @@ export class Sync implements ISync {
     return this;
   }
 
+  /**
+   * Stop and clear remote connection
+   *
+   */
   close () {
     this.cancel();
     this.eventHandlers = {

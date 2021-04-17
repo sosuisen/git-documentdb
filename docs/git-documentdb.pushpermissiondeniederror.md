@@ -4,7 +4,6 @@
 
 ## PushPermissionDeniedError class
 
-
 <b>Signature:</b>
 
 ```typescript

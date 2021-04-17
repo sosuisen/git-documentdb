@@ -13,6 +13,10 @@ import { AbstractDocumentDB } from '../types_gitddb';
 
 /**
  * Get document
+ *
+ * @throws {@link InvalidJsonObjectError}
+ *
+ * @internal
  */
 export async function getDocument (
   gitDDB: AbstractDocumentDB,
@@ -37,6 +41,10 @@ export async function getDocument (
 
 /**
  * Get changed files
+ *
+ * @throws {@link InvalidJsonObjectError} (from getDocument())
+ *
+ * @internal
  */
 export async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
   const changes: ChangedFile[] = [];
@@ -128,6 +136,7 @@ export async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff
  *
  * - oldCommit is not included to return value.
  *
+ * @internal
  * @beta
  */
 export async function getCommitLogs (

@@ -36,7 +36,6 @@ export type DatabaseOption = {
 /**
  * Database information
  *
- * @public
  */
 export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
 /**
@@ -54,7 +53,6 @@ export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
  * - is_valid_version: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
  *   The version is described in .git/description.
  *
- * @public
  */
 export type DatabaseInfoSuccess = {
   ok: true;
@@ -71,7 +69,6 @@ export type DatabaseInfoSuccess = {
  *
  * - error: Error object is assigned if a database cannot be opened.
  *
- * @public
  */
 export type DatabaseInfoError = {
   ok: false;
@@ -111,7 +108,6 @@ export type TaskStatistics = {
  *   age: '16'
  * }
  * ```
- * @public
  */
 export type JsonDoc = {
   [key: string]: any;
@@ -132,7 +128,6 @@ export type JsonDoc = {
  *
  * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection.
  *
- * @public
  */
 export type CollectionPath = string;
 
@@ -141,7 +136,6 @@ export type CollectionPath = string;
  *
  * @remarks
  * - commit_message: internal commit message. default is 'put: path/to/the/file'
- * @public
  */
 export type PutOptions = {
   commit_message?: string;
@@ -152,7 +146,6 @@ export type PutOptions = {
  *
  * @remarks
  * - commit_message: internal commit message. default is 'remove: path/to/the/file'
- * @public
  */
 export type RemoveOptions = {
   commit_message?: string;
@@ -170,7 +163,6 @@ export type RemoveOptions = {
  *
  * - prefix: Get documents whose IDs start with the prefix.
  *
- * @public
  */
 export type AllDocsOptions = {
   include_docs?: boolean;
@@ -191,7 +183,6 @@ export type AllDocsOptions = {
  *
  * - commit_sha: SHA-1 hash of Git commit (40 characters)
  *
- * @public
  */
 export type PutResult = {
   ok: true;
@@ -212,7 +203,6 @@ export type PutResult = {
  *
  * - commit_sha: SHA-1 hash of Git commit (40 characters)
  *
- * @public
  */
 export type RemoveResult = {
   ok: true;
@@ -231,7 +221,6 @@ export type RemoveResult = {
  *
  * - rows: Array of documents. 'rows' is undefined if total_rows equals 0.
  *
- * @public
  */
 export type AllDocsResult = {
   total_rows: number;
@@ -249,7 +238,6 @@ export type AllDocsResult = {
  *
  * - doc: JsonDoc which has a '_id' value. The value of 'id' and 'doc._id' are the same.
  *
- * @public
  */
 export type JsonDocWithMetadata = DocMetadata & {
   doc?: JsonDoc;
@@ -264,7 +252,6 @@ export type JsonDocWithMetadata = DocMetadata & {
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
  * - type: Default is 'json'.
- * @public
  */
 export type DocMetadata = {
   id: string;
@@ -280,7 +267,6 @@ export type DocMetadata = {
  *
  * - timeout: Clear queued tasks after timeout(msec). Default is 10000.
  *
- * @public
  */
 export type DatabaseCloseOption = {
   force?: boolean;

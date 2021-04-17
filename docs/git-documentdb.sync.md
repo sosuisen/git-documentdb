@@ -17,7 +17,7 @@ export declare class Sync implements ISync
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(\_gitDDB, \_options)](./git-documentdb.sync._constructor_.md) |  | Constructs a new instance of the <code>Sync</code> class |
+|  [(constructor)(\_gitDDB, \_options)](./git-documentdb.sync._constructor_.md) |  | constructor |
 
 ## Properties
 
@@ -29,7 +29,6 @@ export declare class Sync implements ISync
 |  [defaultRetry](./git-documentdb.sync.defaultretry.md) | <code>static</code> | number |  |
 |  [defaultRetryInterval](./git-documentdb.sync.defaultretryinterval.md) | <code>static</code> | number |  |
 |  [defaultSyncInterval](./git-documentdb.sync.defaultsyncinterval.md) | <code>static</code> | number |  |
-|  [eventHandlers](./git-documentdb.sync.eventhandlers.md) |  | { change: ((syncResult: [SyncResult](./git-documentdb.syncresult.md)<!-- -->) =&gt; void)\[\]; localChange: ((changedFiles: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]) =&gt; void)\[\]; remoteChange: ((changedFiles: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]) =&gt; void)\[\]; paused: (() =&gt; void)\[\]; active: (() =&gt; void)\[\]; start: ((taskId: string, currentRetries: number) =&gt; void)\[\]; complete: ((taskId: string) =&gt; void)\[\]; error: ((error: Error) =&gt; void)\[\]; } |  |
 |  [minimumSyncInterval](./git-documentdb.sync.minimumsyncinterval.md) | <code>static</code> | number |  |
 |  [upstream\_branch](./git-documentdb.sync.upstream_branch.md) |  | string |  |
 
@@ -38,15 +37,15 @@ export declare class Sync implements ISync
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [cancel()](./git-documentdb.sync.cancel.md) |  | Stop synchronization |
-|  [close()](./git-documentdb.sync.close.md) |  |  |
-|  [currentRetries()](./git-documentdb.sync.currentretries.md) |  |  |
-|  [init(repos)](./git-documentdb.sync.init.md) |  | Create remote connection<!-- -->Call this just after creating instance. |
-|  [off(event, callback)](./git-documentdb.sync.off.md) |  |  |
-|  [on(event, callback)](./git-documentdb.sync.on.md) |  |  |
+|  [close()](./git-documentdb.sync.close.md) |  | Stop and clear remote connection |
+|  [currentRetries()](./git-documentdb.sync.currentretries.md) |  | Return current retry count (incremental) |
+|  [init(repos)](./git-documentdb.sync.init.md) |  | Create remote connection |
+|  [off(event, callback)](./git-documentdb.sync.off.md) |  | Remove SyncEvent handler |
+|  [on(event, callback)](./git-documentdb.sync.on.md) |  | Add SyncEvent handler |
 |  [options()](./git-documentdb.sync.options.md) |  | Get remote options (options are read only) |
 |  [pause()](./git-documentdb.sync.pause.md) |  | Alias of cancel() |
 |  [remoteURL()](./git-documentdb.sync.remoteurl.md) |  | Get remoteURL |
 |  [resume(options)](./git-documentdb.sync.resume.md) |  | Resume synchronization |
-|  [tryPush()](./git-documentdb.sync.trypush.md) |  | Try push to remote |
-|  [trySync()](./git-documentdb.sync.trysync.md) |  | Try synchronization with remote |
+|  [tryPush()](./git-documentdb.sync.trypush.md) |  | Try to push to remote |
+|  [trySync()](./git-documentdb.sync.trysync.md) |  | Try to synchronize with remote |
 

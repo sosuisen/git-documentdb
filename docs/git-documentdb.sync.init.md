@@ -6,8 +6,6 @@
 
 Create remote connection
 
-Call this just after creating instance.
-
 <b>Signature:</b>
 
 ```typescript
@@ -23,4 +21,16 @@ init(repos: nodegit.Repository): Promise<SyncResult>;
 <b>Returns:</b>
 
 Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
+
+## Exceptions
+
+[RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md)
+
+[PushWorkerError](./git-documentdb.pushworkererror.md)
+
+[SyncWorkerError](./git-documentdb.syncworkererror.md)
+
+## Remarks
+
+Call init() just after creating instance.
 

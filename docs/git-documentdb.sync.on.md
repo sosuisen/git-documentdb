@@ -4,6 +4,8 @@
 
 ## Sync.on() method
 
+Add SyncEvent handler
+
 <b>Signature:</b>
 
 ```typescript

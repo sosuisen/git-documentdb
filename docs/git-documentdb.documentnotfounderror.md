@@ -4,7 +4,6 @@
 
 ## DocumentNotFoundError class
 
-
 <b>Signature:</b>
 
 ```typescript

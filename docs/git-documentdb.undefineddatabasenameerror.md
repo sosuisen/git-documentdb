@@ -4,7 +4,6 @@
 
 ## UndefinedDatabaseNameError class
 
-
 <b>Signature:</b>
 
 ```typescript

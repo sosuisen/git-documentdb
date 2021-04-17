@@ -4,7 +4,6 @@
 
 ## DatabaseExistsError class
 
-
 <b>Signature:</b>
 
 ```typescript

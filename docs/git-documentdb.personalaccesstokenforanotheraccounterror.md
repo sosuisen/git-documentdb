@@ -4,7 +4,6 @@
 
 ## PersonalAccessTokenForAnotherAccountError class
 
-
 <b>Signature:</b>
 
 ```typescript

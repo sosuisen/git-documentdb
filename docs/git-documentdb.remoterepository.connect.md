@@ -28,6 +28,14 @@ Promise&lt;\[GitRemoteAction, 'exist' \| 'create'\]&gt;
 
 ## Exceptions
 
+[UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md) (from RemoteRepository\#create())
+
+[PersonalAccessTokenForAnotherAccountError](./git-documentdb.personalaccesstokenforanotheraccounterror.md) (from RemoteRepository\#create())
+
+[CannotConnectError](./git-documentdb.cannotconnecterror.md) (from RemoteRepository\#create())
+
+[AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.authenticationtypenotallowcreaterepositoryerror.md) (from RemoteRepository\#create())
+
 [FetchConnectionFailedError](./git-documentdb.fetchconnectionfailederror.md)
 
 [CannotCreateRemoteRepositoryError](./git-documentdb.cannotcreateremoterepositoryerror.md)

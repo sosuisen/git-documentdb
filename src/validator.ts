@@ -22,7 +22,7 @@ import {
 import { CollectionPath, JsonDoc } from './types';
 
 /**
- * @internal
+ * Validator Class
  */
 export class Validator {
   private _workingDirectory: string;

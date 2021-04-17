@@ -4,7 +4,6 @@
 
 ## UndefinedDocumentIdError class
 
-
 <b>Signature:</b>
 
 ```typescript

@@ -13,6 +13,11 @@ import { ConsoleStyle, sleep } from './utils';
 
 const ulid = monotonicFactory();
 
+/**
+ * TaskQueue
+ *
+ * @internal
+ */
 export class TaskQueue {
   private _logger: Logger;
 

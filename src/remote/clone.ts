@@ -15,6 +15,12 @@ import { RemoteOptions } from '../types';
 import { createCredential } from './authentication';
 import { checkHTTP } from './net';
 
+/**
+ * Clone repository from remote
+ *
+ * @throws {@link CannotConnectError}
+ *
+ */
 export async function cloneRepository (
   workingDir: string,
   remoteOptions: RemoteOptions,

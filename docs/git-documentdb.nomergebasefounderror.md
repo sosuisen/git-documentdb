@@ -4,7 +4,6 @@
 
 ## NoMergeBaseFoundError class
 
-
 <b>Signature:</b>
 
 ```typescript

@@ -4,7 +4,6 @@
 
 ## UndefinedDBError class
 
-
 <b>Signature:</b>
 
 ```typescript
