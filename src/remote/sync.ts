@@ -32,6 +32,8 @@ import { sync_worker } from './sync_worker';
 import { push_worker } from './push_worker';
 import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
+import { checkHTTP } from './net';
+import { NETWORK_TIMEOUT } from '../const';
 
 /**
  * Implementation of GitDocumentDB#sync()
@@ -204,16 +206,30 @@ export class Sync implements ISync {
     if (remoteResult === 'create') {
       this.upstream_branch = '';
     }
+    let syncResultOrError: SyncResult | Error;
     let syncResult: SyncResult;
     if (this.upstream_branch === '') {
       this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
-      syncResult = await this.tryPush().catch(err => {
-        // Push fails if the remote repository has already changed by another client.
-        // It's rare. Throw exception.
-        throw err;
-      });
+      syncResultOrError = await this.tryPush().catch(err => err);
+      if (syncResultOrError instanceof Error) {
+        // Check network
+        const result = await checkHTTP(this._options.remote_url!, NETWORK_TIMEOUT).catch(
+          (err: Error) => err
+        );
+        if (result instanceof Error) {
+          syncResult = await this._retrySync().catch(err => {
+            throw err;
+          });
+        }
+        else {
+          throw syncResultOrError;
+        }
+      }
+      else {
+        syncResult = syncResultOrError;
+      }
 
       // An upstream branch must be set to a local branch after the first push
       // because refs/remotes/origin/main is not created until the first push.
@@ -225,9 +241,24 @@ export class Sync implements ISync {
     }
     else {
       this._gitDDB.logger.debug('upstream_branch exists. trySync..');
-      syncResult = await this.trySync().catch(err => {
-        throw err;
-      });
+      syncResultOrError = await this.trySync().catch(err => err);
+      if (syncResultOrError instanceof Error) {
+        // Check network
+        const result = await checkHTTP(this._options.remote_url!, NETWORK_TIMEOUT).catch(
+          (err: Error) => err
+        );
+        if (result instanceof Error) {
+          syncResult = await this._retrySync().catch(err => {
+            throw err;
+          });
+        }
+        else {
+          throw syncResultOrError;
+        }
+      }
+      else {
+        syncResult = syncResultOrError;
+      }
     }
 
     if (this._options.live) {
