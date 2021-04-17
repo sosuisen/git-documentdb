@@ -112,7 +112,7 @@ export const checkHTTP = (
           socket.removeAllListeners();
         }
         req.destroy();
-        console.log('request timeout error: ' + requestTimeout);
+        console.log(' - request timeout error: ' + requestTimeout);
         reject(new RequestTimeoutError(url));
       });
     }
@@ -127,7 +127,7 @@ export const checkHTTP = (
             socket.removeAllListeners();
           }
           req.destroy();
-          console.log('socket timeout error: ' + socketTimeout);
+          console.log(' - socket timeout error: ' + socketTimeout);
           reject(new SocketTimeoutError(url));
         });
       });

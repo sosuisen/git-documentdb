@@ -28,7 +28,7 @@ import {
 } from '../../test/remote_utils';
 import { GitDocumentDB } from '../../src';
 import { Sync } from '../../src/remote/sync';
-import { SyncWorkerFetchError } from '../../src/error';
+import { SyncWorkerError, SyncWorkerFetchError } from '../../src/error';
 
 const reposPrefix = 'test_sync_events___';
 const localDir = `./test_intg/database_sync_events`;
@@ -454,7 +454,7 @@ maybe('remote: sync: events: ', () => {
       remoteA.on('error', () => {
         error = true;
       });
-      await expect(remoteA.trySync()).rejects.toThrowError(SyncWorkerFetchError);
+      await expect(remoteA.trySync()).rejects.toThrowError(SyncWorkerError);
 
       expect(error).toBe(true);
 

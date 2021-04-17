@@ -16,7 +16,10 @@ import fs from 'fs-extra';
 import { Sync } from '../../src/remote/sync';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
-import { CannotPushBecauseUnfetchedCommitExistsError } from '../../src/error';
+import {
+  CannotPushBecauseUnfetchedCommitExistsError,
+  PushWorkerError,
+} from '../../src/error';
 import { sleep } from '../../src/utils';
 import {
   destroyDBs,
@@ -148,7 +151,7 @@ maybe('remote: sync: lifecycle', () => {
 
         await expect(
           Promise.all([remoteA.tryPush(), remoteB.tryPush()])
-        ).rejects.toThrowError(CannotPushBecauseUnfetchedCommitExistsError);
+        ).rejects.toThrowError(PushWorkerError);
 
         await destroyDBs([dbA, dbB]);
       });
@@ -182,9 +185,7 @@ maybe('remote: sync: lifecycle', () => {
         const remoteB = dbB.getRemote(remoteURL);
 
         await remoteA.tryPush();
-        await expect(remoteB.tryPush()).rejects.toThrowError(
-          CannotPushBecauseUnfetchedCommitExistsError
-        );
+        await expect(remoteB.tryPush()).rejects.toThrowError(PushWorkerError);
 
         await destroyDBs([dbA, dbB]);
       });
@@ -652,9 +653,7 @@ maybe('remote: sync: lifecycle', () => {
         await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
 
-        await expect(remoteB.tryPush()).rejects.toThrowError(
-          CannotPushBecauseUnfetchedCommitExistsError
-        );
+        await expect(remoteB.tryPush()).rejects.toThrowError(PushWorkerError);
         const currentSyncCount = dbB.taskQueue.statistics().sync;
         await sleep(5000);
         expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
@@ -705,9 +704,7 @@ maybe('remote: sync: lifecycle', () => {
         await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
 
-        await expect(remoteB.tryPush()).rejects.toThrowError(
-          CannotPushBecauseUnfetchedCommitExistsError
-        );
+        await expect(remoteB.tryPush()).rejects.toThrowError(PushWorkerError);
         const currentSyncCount = dbB.taskQueue.statistics().sync;
         // console.log('sync count:' + dbB.taskQueue.statistics().sync);
         expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);

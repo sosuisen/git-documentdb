@@ -164,7 +164,7 @@ export const destroyRemoteRepository = async (remoteURL: string) => {
 
 export async function removeRemoteRepositories (reposPrefix: string) {
   // Remove test repositories on remote
-  console.log('Removing remote repositories..');
+  // console.log(' Removing remote repositories..');
   const octokit = new Octokit({
     auth: token,
   });
@@ -185,7 +185,7 @@ export async function removeRemoteRepositories (reposPrefix: string) {
         }
       })
   );
-  console.log(` - Got ${reposArray.length} repositories`);
+  // console.log(` - Got ${reposArray.length} repositories`);
   reposArray.forEach(repos => {
     const urlArray = repos.full_name.split('/');
     const owner = urlArray[0];
@@ -198,10 +198,10 @@ export async function removeRemoteRepositories (reposPrefix: string) {
       })
     );
   });
-  console.log(` - Start to remove repositories..`);
+  // console.log(` - Start to remove repositories..`);
   // eslint-disable-next-line no-await-in-loop
   await Promise.all(promises);
-  console.log(` - Completed`);
+  // console.log(` - Completed`);
 }
 
 export const listFiles = (gitDDB: GitDocumentDB, dir: string): string[] => {
@@ -283,8 +283,12 @@ export const destroyDBs = async (DBs: GitDocumentDB[]) => {
    */
   const clock = sinon.useFakeTimers();
   Promise.all(
-    DBs.map(db => db.destroy().catch(err => console.debug(err.toString())))
-  ).catch(err => console.log(err));
+    DBs.map(db =>
+      db.destroy().catch(() => {
+        /* throws FileRemoveTimeoutError */
+      })
+    )
+  ).catch(() => {});
   await clock.tickAsync(FILE_REMOVE_TIMEOUT);
   clock.restore();
 };
