@@ -4,7 +4,9 @@
 
 ## BehaviorForNoMergeBase type
 
-Behavior when no merge base nop: (default) theirs: remove local repository and git clone &lt;<!-- -->remote repository<!-- -->&gt; ours: git merge -s ours &lt;<!-- -->remote branch<!-- -->&gt;
+Behavior when no merge base
+
+nop: (default) theirs: remove local repository and git clone &lt;<!-- -->remote repository<!-- -->&gt; ours: git merge -s ours &lt;<!-- -->remote branch<!-- -->&gt;
 
 <b>Signature:</b>
 

@@ -19,11 +19,9 @@ export declare type AcceptedConflict = {
 
 ## Remarks
 
-- target: conflicted target
+- target: Conflicted target
 
-- strategy: applied strategy
+- strategy: Applied strategy
 
-- operation: applied operation on an applied strategy side (ours or theirs)
-
-- file\_sha: SHA-1 hash of applied document
+- operation: Applied operation on an applied strategy side (ours or theirs)
 

@@ -9,13 +9,12 @@ Constructs a new instance of the `RemoteRepository` class
 <b>Signature:</b>
 
 ```typescript
-constructor(remoteURL: string, auth?: RemoteAuth);
+constructor(options: RemoteOptions);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteURL | string |  |
-|  auth | [RemoteAuth](./git-documentdb.remoteauth.md) |  |
+|  options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
 

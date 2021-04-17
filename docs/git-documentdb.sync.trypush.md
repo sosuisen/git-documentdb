@@ -9,9 +9,9 @@ Try push to remote
 <b>Signature:</b>
 
 ```typescript
-tryPush(): Promise<SyncResultPush>;
+tryPush(): Promise<SyncResultPush | SyncResultCancel>;
 ```
 <b>Returns:</b>
 
-Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md)<!-- -->&gt;
+Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCancel](./git-documentdb.syncresultcancel.md)<!-- -->&gt;
 

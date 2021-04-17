@@ -4,8 +4,19 @@
 
 ## SyncDirection type
 
+Synchronization direction
+
 <b>Signature:</b>
 
 ```typescript
 export declare type SyncDirection = 'pull' | 'push' | 'both';
 ```
+
+## Remarks
+
+- pull: Only download from remote to local
+
+- push: Only upload from local to remote
+
+- both: Both download and upload between remote and local
+

@@ -15,7 +15,24 @@ destroy(): Promise<void>;
 
 Promise&lt;void&gt;
 
+## Exceptions
+
+[UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md)
+
+[CannotConnectError](./git-documentdb.cannotconnecterror.md)
+
+may include the following errors:
+
+- HttpError
+
+- Authentication error
+
+- Permission error
+
+- Other network errors
+
+
 ## Remarks
 
-auth.type must be 'github'
+connection.type must be 'github'
 

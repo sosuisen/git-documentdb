@@ -12,7 +12,7 @@ Add a document
 <b>Signature:</b>
 
 ```typescript
-put(_id: string, document: {
+put(id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
 ```
@@ -21,7 +21,7 @@ put(_id: string, document: {
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string | \_id property of a document |
+|  id | string | \_id property of a document |
 |  document | { \[key: string\]: any; } | This is a [JsonDoc](./git-documentdb.jsondoc.md)<!-- -->, but \_id property is ignored. |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 

@@ -15,9 +15,9 @@ export declare type ConflictResolveStrategies = 'ours' | 'theirs' | ((ours?: Jso
 
 ## Remarks
 
-- 'ours': Accept ours (Default). When remote changes are conflicted with local changes, the local changes are accepted.
+- 'ours': Accept ours (Default). When a remote change is conflicted with a local change, the local change is accepted.
 
-- 'theirs': Accept theirs. When remote changes are conflicted with local changes, the remote changes are accepted.
+- 'theirs': Accept theirs. When a remote change is conflicted with a local change, the remote change is accepted.
 
 - Compare function that returns 'ours' or 'theirs' can be given. Each parameter will be undefined when a document is removed.
 

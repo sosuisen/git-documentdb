@@ -19,7 +19,9 @@ Promise&lt;void&gt;
 
 [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md)
 
-Error
+[PersonalAccessTokenForAnotherAccountError](./git-documentdb.personalaccesstokenforanotheraccounterror.md)
+
+[CannotConnectError](./git-documentdb.cannotconnecterror.md)
 
 may include the following errors:
 
@@ -31,7 +33,8 @@ may include the following errors:
 
 - Other network errors
 
+
 ## Remarks
 
-auth.type must be 'github'
+connection.type must be 'github'
 

@@ -54,7 +54,7 @@ export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInt
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | <b><i>(BETA)</i></b> Test if a database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | <b><i>(BETA)</i></b> Open an existing repository |
 |  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | <b><i>(BETA)</i></b> Add a document |
-|  [put(\_id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | <b><i>(BETA)</i></b> Add a document |
+|  [put(id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | <b><i>(BETA)</i></b> Add a document |
 |  [remove(id, options)](./git-documentdb.gitdocumentdb.remove.md) |  | <b><i>(BETA)</i></b> Remove a document |
 |  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | <b><i>(BETA)</i></b> Remove a document |
 |  [removeRemote(remoteURL)](./git-documentdb.gitdocumentdb.removeremote.md) |  | <b><i>(BETA)</i></b> removeRemote |

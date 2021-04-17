@@ -32,6 +32,11 @@ export type AllDocsResult = {
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
 //
 // @public (undocumented)
+export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
+    constructor(type: string | undefined);
+}
+
+// @public (undocumented)
 export class AuthNeededForPushOrSyncError extends BaseError {
     constructor(direction: SyncDirection);
 }
@@ -52,7 +57,7 @@ export class CannotCreateDirectoryError extends BaseError {
 }
 
 // @public (undocumented)
-export class CannotCreateRemoteRepository extends BaseError {
+export class CannotCreateRemoteRepositoryError extends BaseError {
     constructor(reason: string);
 }
 
@@ -117,6 +122,29 @@ export type CommitInfo = {
 export type ConflictResolveStrategies = 'ours' | 'theirs' | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
 
 // @public
+export type ConnectionSettings = ConnectionSettingsNone | ConnectionSettingsGitHub | ConnectionSettingsSSH;
+
+// @public
+export type ConnectionSettingsGitHub = {
+    type: 'github';
+    personal_access_token?: string;
+    private?: boolean;
+};
+
+// @public
+export type ConnectionSettingsNone = {
+    type: 'none';
+};
+
+// @public
+export type ConnectionSettingsSSH = {
+    type: 'ssh';
+    private_key_path: string;
+    public_key_path: string;
+    pass_phrase?: string;
+};
+
+// @public
 export type DatabaseCloseOption = {
     force?: boolean;
     timeout?: number;
@@ -174,6 +202,11 @@ export class DocumentNotFoundError extends BaseError {
 }
 
 // @public (undocumented)
+export class FetchConnectionFailedError extends BaseError {
+    constructor(mes: string);
+}
+
+// @public (undocumented)
 export class FileRemoveTimeoutError extends BaseError {
     constructor();
 }
@@ -206,7 +239,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     logger: Logger;
     open(): Promise<DatabaseInfo>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    put(_id: string, document: {
+    put(id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
@@ -299,7 +332,7 @@ export class InvalidRepositoryURLError extends BaseError {
 }
 
 // @public (undocumented)
-export class InvalidSSHKeyFormatError extends BaseError {
+export class InvalidSSHKeyError extends BaseError {
     constructor();
 }
 
@@ -309,7 +342,7 @@ export class InvalidSSHKeyPathError extends BaseError {
 }
 
 // @public (undocumented)
-export class InvalidURLFormatError extends BaseError {
+export class InvalidURLError extends BaseError {
     constructor(url: string);
 }
 
@@ -359,7 +392,7 @@ export interface ISync {
         retry?: number;
     }): void;
     // (undocumented)
-    tryPush(): Promise<SyncResultPush>;
+    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
     // (undocumented)
     trySync(): Promise<SyncResult>;
     // (undocumented)
@@ -382,8 +415,13 @@ export class NoMergeBaseFoundError extends BaseError {
 }
 
 // @public (undocumented)
-export class PushAuthenticationError extends BaseError {
+export class PersonalAccessTokenForAnotherAccountError extends BaseError {
     constructor();
+}
+
+// @public (undocumented)
+export class PushConnectionFailedError extends BaseError {
+    constructor(mes: string);
 }
 
 // @public (undocumented)
@@ -409,48 +447,27 @@ export class RemoteAlreadyRegisteredError extends BaseError {
     constructor(url: string);
 }
 
-// @public (undocumented)
-export type RemoteAuth = RemoteAuthNone | RemoteAuthGitHub | RemoteAuthSSH;
-
-// @public (undocumented)
-export type RemoteAuthGitHub = {
-    type: 'github';
-    personal_access_token?: string;
-};
-
-// @public (undocumented)
-export type RemoteAuthNone = {
-    type: 'none';
-};
-
-// @public (undocumented)
-export type RemoteAuthSSH = {
-    type: 'ssh';
-    private_key_path: string;
-    public_key_path: string;
-    pass_phrase?: string;
-};
-
 // @public
 export type RemoteOptions = {
     remote_url?: string;
-    live?: boolean;
     sync_direction?: SyncDirection;
+    connection?: ConnectionSettings;
+    live?: boolean;
     interval?: number;
     retry?: number;
     retry_interval?: number;
-    auth?: RemoteAuth;
+    conflict_resolve_strategy?: ConflictResolveStrategies;
     behavior_for_no_merge_base?: BehaviorForNoMergeBase;
     include_commits?: boolean;
-    conflict_resolve_strategy?: ConflictResolveStrategies;
 };
 
 // @public (undocumented)
 export class RemoteRepository {
-    constructor(remoteURL: string, auth?: RemoteAuth);
+    constructor(options: RemoteOptions);
+    // Warning: (ae-forgotten-export) The symbol "GitRemoteAction" needs to be exported by the entry point main.d.ts
     connect(repos: nodegit.Repository, credential_callbacks: {
         [key: string]: any;
-    }, onlyFetch?: boolean): Promise<string[]>;
+    }, onlyFetch?: boolean): Promise<[GitRemoteAction, 'exist' | 'create']>;
     create(): Promise<void>;
     destroy(): Promise<void>;
     }
@@ -540,13 +557,13 @@ export class Sync implements ISync {
         interval?: number;
         retry?: number;
     }): boolean;
-    tryPush(): Promise<SyncResultPush>;
+    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
     trySync(): Promise<SyncResult>;
     // (undocumented)
     upstream_branch: string;
 }
 
-// @public (undocumented)
+// @public
 export type SyncDirection = 'pull' | 'push' | 'both';
 
 // @public
@@ -643,7 +660,13 @@ export type Task = {
     taskId: string;
     targetId?: string;
     func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
+    cancel: () => void;
 };
+
+// @public (undocumented)
+export class TaskCancelError extends BaseError {
+    constructor(taskId: string);
+}
 
 // @public
 export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
@@ -684,11 +707,6 @@ export class UndefinedPersonalAccessTokenError extends BaseError {
 // @public (undocumented)
 export class UndefinedRemoteURLError extends BaseError {
     constructor();
-}
-
-// @public (undocumented)
-export class UnresolvedHostError extends BaseError {
-    constructor(url: string);
 }
 
 // Warning: (ae-internal-missing-underscore) The name "Validator" should be prefixed with an underscore because the declaration is marked as @internal

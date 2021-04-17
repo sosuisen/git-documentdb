@@ -14,7 +14,7 @@ export declare class RemoteRepository
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(remoteURL, auth)](./git-documentdb.remoterepository._constructor_.md) |  | Constructs a new instance of the <code>RemoteRepository</code> class |
+|  [(constructor)(options)](./git-documentdb.remoterepository._constructor_.md) |  | Constructs a new instance of the <code>RemoteRepository</code> class |
 
 ## Methods
 

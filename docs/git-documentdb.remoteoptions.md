@@ -11,22 +11,46 @@ Options for Sync class
 ```typescript
 export declare type RemoteOptions = {
     remote_url?: string;
-    live?: boolean;
     sync_direction?: SyncDirection;
+    connection?: ConnectionSettings;
+    live?: boolean;
     interval?: number;
     retry?: number;
     retry_interval?: number;
-    auth?: RemoteAuth;
+    conflict_resolve_strategy?: ConflictResolveStrategies;
     behavior_for_no_merge_base?: BehaviorForNoMergeBase;
     include_commits?: boolean;
-    conflict_resolve_strategy?: ConflictResolveStrategies;
 };
 ```
-<b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md)<!-- -->, [RemoteAuth](./git-documentdb.remoteauth.md)<!-- -->, [BehaviorForNoMergeBase](./git-documentdb.behaviorfornomergebase.md)<!-- -->, [ConflictResolveStrategies](./git-documentdb.conflictresolvestrategies.md)
+<b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md)<!-- -->, [ConnectionSettings](./git-documentdb.connectionsettings.md)<!-- -->, [ConflictResolveStrategies](./git-documentdb.conflictresolvestrategies.md)<!-- -->, [BehaviorForNoMergeBase](./git-documentdb.behaviorfornomergebase.md)
 
 ## Remarks
 
-- sync\_direction: Default is 'both'
+\[network\]
+
+- remote\_url: Connection destination
+
+- sync\_direction: Default is 'both'.
+
+- connection: Authentication and other settings on remote site
+
+\[automation\]
+
+- live: Synchronization repeats automatically if true.
+
+- interval: Synchronization interval (milliseconds)
+
+- retry: Number of network retries
+
+- retry\_interval: Retry interval (milliseconds)
+
+\[merge\]
+
+- conflict\_resolve\_strategy: Default is 'ours'.
+
+- behavior\_for\_no\_merge\_base:
+
+\[result\]
 
 - include\_commits: (Beta version: It will leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
 

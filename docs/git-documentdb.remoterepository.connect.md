@@ -11,7 +11,7 @@ Set a remote repository and connect to the remote repository. A remote repositor
 ```typescript
 connect(repos: nodegit.Repository, credential_callbacks: {
         [key: string]: any;
-    }, onlyFetch?: boolean): Promise<string[]>;
+    }, onlyFetch?: boolean): Promise<[GitRemoteAction, 'exist' | 'create']>;
 ```
 
 ## Parameters
@@ -24,9 +24,13 @@ connect(repos: nodegit.Repository, credential_callbacks: {
 
 <b>Returns:</b>
 
-Promise&lt;string\[\]&gt;
+Promise&lt;\[GitRemoteAction, 'exist' \| 'create'\]&gt;
 
 ## Exceptions
 
-[CannotCreateRemoteRepository](./git-documentdb.cannotcreateremoterepository.md)
+[FetchConnectionFailedError](./git-documentdb.fetchconnectionfailederror.md)
+
+[CannotCreateRemoteRepositoryError](./git-documentdb.cannotcreateremoterepositoryerror.md)
+
+[PushConnectionFailedError](./git-documentdb.pushconnectionfailederror.md)
 
