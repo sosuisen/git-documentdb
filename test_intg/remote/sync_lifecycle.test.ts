@@ -16,7 +16,7 @@ import fs from 'fs-extra';
 import sinon from 'sinon';
 import { Sync } from '../../src/remote/sync';
 import { GitDocumentDB } from '../../src';
-import { RemoteOptions } from '../../src/types';
+import { RemoteOptions, SyncResultPush } from '../../src/types';
 import { PushWorkerError } from '../../src/error';
 import { sleep } from '../../src/utils';
 import {
@@ -25,6 +25,7 @@ import {
   removeRemoteRepositories,
 } from '../../test/remote_utils';
 import { NETWORK_RETRY } from '../../src/const';
+import { RemoteRepository } from '../../src/remote/remote_repository';
 
 const reposPrefix = 'test_sync_lifecycle___';
 const localDir = `./test_intg/database_sync_lifecycle`;
@@ -632,9 +633,52 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await destroyDBs([dbA]);
       });
 
-      it('retries tryPush() in init() after connection failed, and succeeds it.', async () => {
+      it.only('retries tryPush() in init() after connection failed, and succeeds it.', async () => {
+        const remoteURL = remoteURLBase + serialId();
+        const dbNameA = serialId();
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        await dbA.create();
 
-      it('does not retry tryPush() in init() after error except connection error.', async () => {
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          live: true,
+          interval: 1000,
+          sync_direction: 'push',
+          connection: { type: 'github', personal_access_token: token },
+        };
+
+        const sync = new Sync(dbA, options);
+        const stubNet = sinon.stub(sync, 'checkNetworkConnection');
+        stubNet.rejects();
+
+        const stubPush = sinon.stub(sync, 'tryPush');
+        stubPush.onFirstCall().rejects();
+        const syncResultPush: SyncResultPush = {
+          action: 'push',
+          changes: {
+            remote: [],
+          },
+        };
+
+        // Call sync2.tryPush which is not spied by Sinon
+        const sync2 = new Sync(dbA, options);
+        stubPush.onSecondCall().callsFake(async () => {
+          return await sync2.tryPush();
+        });
+
+        await expect(sync.init(dbA.repository()!)).resolves.toMatchObject(syncResultPush);
+
+        expect(stubPush.callCount).toBe(2);
+
+        stubNet.restore();
+        stubPush.restore();
+        await destroyDBs([dbA]);
+      });
+
+      it('does not retry tryPush() in init() after error except connection error.', async () => {});
 
       it('retries trySync() in init() after connection fails, and fails it.', () => {});
 
@@ -907,3 +951,6 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
 
   it.skip('Multiple Sync object');
 });
+function SyncResult (SyncResult: any) {
+  throw new Error('Function not implemented.');
+}
