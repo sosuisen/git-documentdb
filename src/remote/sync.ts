@@ -33,7 +33,7 @@ import { push_worker } from './push_worker';
 import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
-import { NETWORK_TIMEOUT } from '../const';
+import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL, NETWORK_TIMEOUT } from '../const';
 
 /**
  * Implementation of GitDocumentDB#sync()
@@ -64,8 +64,8 @@ export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOption
 export class Sync implements ISync {
   static defaultSyncInterval = 10000;
   static minimumSyncInterval = 1000;
-  static defaultRetryInterval = 3000;
-  static defaultRetry = 2;
+  static defaultRetryInterval = NETWORK_RETRY_INTERVAL;
+  static defaultRetry = NETWORK_RETRY;
 
   private _gitDDB: AbstractDocumentDB;
   private _options: RemoteOptions;
