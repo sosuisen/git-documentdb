@@ -13,6 +13,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import sinon from 'sinon';
 import { Sync } from '../../src/remote/sync';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
@@ -23,6 +24,7 @@ import {
   getChangedFile,
   removeRemoteRepositories,
 } from '../../test/remote_utils';
+import { NETWORK_RETRY } from '../../src/const';
 
 const reposPrefix = 'test_sync_lifecycle___';
 const localDir = `./test_intg/database_sync_lifecycle`;
@@ -594,6 +596,44 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
      * Retry sync
      */
     describe('Retry sync', () => {
+      it('retries tryPush() in init() after connection failed.', async () => {
+        const remoteURL = remoteURLBase + serialId();
+        const dbNameA = serialId();
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        await dbA.create();
+
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          live: true,
+          interval: 1000,
+          sync_direction: 'push',
+          connection: { type: 'github', personal_access_token: token },
+        };
+
+        const sync = new Sync(dbA, options);
+        const stubNet = sinon.stub(sync, 'checkNetworkConnection');
+        stubNet.rejects();
+
+        const stubPush = sinon.stub(sync, 'tryPush');
+        stubPush.rejects();
+
+        const stubSync = sinon.stub(sync, 'trySync');
+        stubSync.rejects();
+
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
+
+        expect(stubSync.callCount).toBe(NETWORK_RETRY);
+
+        stubNet.restore();
+        stubPush.restore();
+        await destroyDBs([dbA]);
+      });
+
+      it('occurs at trySync() in init()', () => {});
+
       it('does not occur when retry option is 0', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
