@@ -14,9 +14,9 @@ import { ConsoleStyle } from '../utils';
 import {
   CannotCreateDirectoryError,
   CannotDeleteDataError,
+  GitMergeBranchError,
   InvalidConflictStateError,
   NoMergeBaseFoundError,
-  PushWorkerError,
   RemoteIsAdvancedWhileMergingError,
   RepositoryNotOpenError,
   SyncWorkerFetchError,
@@ -396,15 +396,17 @@ async function threeWayMerge (
 /**
  * sync_worker
  *
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link SyncWorkerFetchError} (from fetch())
+ * @throws {@link RepositoryNotOpenError} (from this and push_worker())
+ * @throws {@link SyncWorkerFetchError} (from fetch() and push_worker())
  * @throws {@link NoMergeBaseFoundError} (from resolveNoMergeBase())
  * @throws {@link ThreeWayMergeError}
- * @throws {@link PushWorkerError}
  * @throws {@link CannotDeleteDataError}
  * @throws {@link RemoteIsAdvancedWhileMergingError}
  * @throws {@link InvalidJsonObjectError} (from getChanges())
- * @throws Error (Other errors from NodeGit.repos.mergeBranches())
+ * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from push_worker())
+ * @throws {@link InvalidJsonObjectError} (from push_worker())
+ * @throws {@link GitPushError} (from push_worker())
+ * @throws {@link GitMergeBranchError} (from NodeGit.repos.mergeBranches())
  *
  * @internal
  */
@@ -466,7 +468,7 @@ export async function sync_worker (
           if (res.message.startsWith('no merge base found')) {
             resolveNoMergeBase(sync);
           }
-          throw res;
+          throw new GitMergeBranchError(res.message);
         }
         /* returns conflicted index */ conflictedIndex = res;
         return undefined;
@@ -475,7 +477,7 @@ export async function sync_worker (
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
     return await push_worker(gitDDB, sync, taskId).catch(err => {
-      throw new PushWorkerError(err.message);
+      throw err;
     });
   }
 
@@ -592,7 +594,7 @@ export async function sync_worker (
 
       // Need push because it is merged normally.
       const syncResultPush = await push_worker(gitDDB, sync, taskId).catch(err => {
-        throw new PushWorkerError(err.message);
+        throw err;
       });
       const syncResultMergeAndPush: SyncResultMergeAndPush = {
         action: 'merge and push',
@@ -746,7 +748,7 @@ export async function sync_worker (
 
     // Push
     const syncResultPush = await push_worker(gitDDB, sync, taskId).catch(err => {
-      throw new PushWorkerError(err.message);
+      throw err;
     });
     const syncResultResolveConflictsAndPush: SyncResultResolveConflictsAndPush = {
       action: 'resolve conflicts and push',

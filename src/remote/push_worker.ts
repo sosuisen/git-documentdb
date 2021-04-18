@@ -10,6 +10,7 @@ import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle } from '../utils';
 import {
   CannotPushBecauseUnfetchedCommitExistsError,
+  GitPushError,
   RepositoryNotOpenError,
   SyncWorkerFetchError,
 } from '../error';
@@ -22,7 +23,7 @@ import { getChanges, getCommitLogs } from './worker_utils';
  *
  * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from this and validatePushResult())
  * @throws {@link SyncWorkerFetchError} (from validatePushResult())
- * @throws Error (Other errors from NodeGit.Remote.push())
+ * @throws {@link GitPushError} (from NodeGit.Remote.push())
  */
 async function push (
   gitDDB: AbstractDocumentDB,
@@ -44,7 +45,7 @@ async function push (
       ) {
         throw new CannotPushBecauseUnfetchedCommitExistsError();
       }
-      throw err;
+      throw new GitPushError(err.message);
     });
   // gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
   const headCommit = await validatePushResult(gitDDB, sync, taskId);
