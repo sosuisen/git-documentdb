@@ -596,7 +596,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
      * Retry sync
      */
     describe('Retry sync', () => {
-      it('retries tryPush() in init() after connection failed.', async () => {
+      it('retries tryPush() in init() after connection failed, and fails it.', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
@@ -632,7 +632,15 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await destroyDBs([dbA]);
       });
 
-      it('occurs at trySync() in init()', () => {});
+      it('retries tryPush() in init() after connection failed, and succeeds it.', async () => {
+
+      it('does not retry tryPush() in init() after error except connection error.', async () => {
+
+      it('retries trySync() in init() after connection fails, and fails it.', () => {});
+
+      it('retries trySync() in init() after connection fails, and succeeds it.', () => {});
+
+      it('does not retry trySync() in init() after error except connection error', () => {});
 
       it('does not occur when retry option is 0', async () => {
         const remoteURL = remoteURLBase + serialId();
