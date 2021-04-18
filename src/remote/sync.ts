@@ -184,6 +184,15 @@ export class Sync implements ISync {
   }
 
   /**
+   * Check network connection
+   *
+   * @internal
+   */
+  async checkNetworkConnection () {
+    await checkHTTP(this._options.remote_url!, NETWORK_TIMEOUT);
+  }
+
+  /**
    * Create remote connection
    *
    * @remarks
@@ -215,9 +224,7 @@ export class Sync implements ISync {
       syncResultOrError = await this.tryPush().catch(err => err);
       if (syncResultOrError instanceof Error) {
         // Check network
-        const result = await checkHTTP(this._options.remote_url!, NETWORK_TIMEOUT).catch(
-          (err: Error) => err
-        );
+        const result = await this.checkNetworkConnection().catch((err: Error) => err);
         if (result instanceof Error) {
           syncResult = await this._retrySync().catch(err => {
             throw err;
@@ -244,9 +251,7 @@ export class Sync implements ISync {
       syncResultOrError = await this.trySync().catch(err => err);
       if (syncResultOrError instanceof Error) {
         // Check network
-        const result = await checkHTTP(this._options.remote_url!, NETWORK_TIMEOUT).catch(
-          (err: Error) => err
-        );
+        const result = await this.checkNetworkConnection().catch((err: Error) => err);
         if (result instanceof Error) {
           syncResult = await this._retrySync().catch(err => {
             throw err;
