@@ -523,3 +523,27 @@ export class RemoteRepositoryConnectError extends BaseError {
     super(`Error in RemoteRepository#connect(): ${mes}`);
   }
 }
+
+/**
+ */
+export class PushNotAllowedError extends BaseError {
+  constructor (direction: string) {
+    super(`Push is not allowed. Current sync direction setting is : ${direction}`);
+  }
+}
+
+/**
+ */
+export class GitPushError extends BaseError {
+  constructor (mes: string) {
+    super(`Push error in Git : ${mes}`);
+  }
+}
+
+/**
+ */
+export class GitMergeBranchError extends BaseError {
+  constructor (mes: string) {
+    super(`Merge branch error in Git : ${mes}`);
+  }
+}

@@ -7,7 +7,7 @@
  */
 
 /**
- * Test lifecycle of synchronization (open, sync, tryPush, trySync, retrySync)
+ * Test lifecycle of synchronization (open, sync, tryPush, trySync)
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
@@ -24,8 +24,10 @@ import {
   getChangedFile,
   removeRemoteRepositories,
 } from '../../test/remote_utils';
-import { NETWORK_RETRY } from '../../src/const';
-import { RemoteRepository } from '../../src/remote/remote_repository';
+import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
+import { push_worker } from '../../src/remote/push_worker';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const push_worker_module = require('../../src/remote/push_worker');
 
 const reposPrefix = 'test_sync_lifecycle___';
 const localDir = `./test_intg/database_sync_lifecycle`;
@@ -56,7 +58,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-// Test lifecycle (open, sync, tryPush, trySync, retrySync)
+// Test lifecycle (open, sync, tryPush, trySync)
 maybe('intg <remote/sync_lifecycle> Sync', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
@@ -176,103 +178,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      it('After race condition throws Error, trySync() again (before retrySync() is called) results [merge and push] action.', async () => {
-        const remoteURL = remoteURLBase + serialId();
-
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const options: RemoteOptions = {
-          remote_url: remoteURL,
-          connection: { type: 'github', personal_access_token: token },
-          retry_interval: Sync.defaultRetryInterval + 10000,
-        };
-        await dbA.create(options);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        await dbB.create(options);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
-
-        const jsonB1 = { _id: '2', name: 'fromB' };
-        const putResultB1 = await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        // Race condition
-        const [resultA, resultB] = await Promise.all([
-          remoteA.trySync().catch(() => undefined),
-          remoteB.trySync().catch(() => undefined),
-        ]);
-        // PushWorkerError (CannotPushBecauseUnfetchedCommitExistsError)
-        expect(resultA === undefined || resultB === undefined).toBe(true);
-        if (resultA === undefined) {
-          await expect(remoteA.trySync()).resolves.toMatchObject({
-            action: 'merge and push',
-            changes: {
-              local: [
-                {
-                  data: {
-                    doc: jsonB1,
-                    file_sha: putResultB1.file_sha,
-                    id: jsonB1._id,
-                  },
-                  operation: 'create',
-                },
-              ],
-              remote: [
-                {
-                  data: {
-                    doc: jsonA1,
-                    file_sha: putResultA1.file_sha,
-                    id: jsonA1._id,
-                  },
-                  operation: 'create',
-                },
-              ],
-            },
-          });
-        }
-        else {
-          await expect(remoteB.trySync()).resolves.toMatchObject({
-            action: 'merge and push',
-            changes: {
-              local: [
-                {
-                  data: {
-                    doc: jsonA1,
-                    file_sha: putResultA1.file_sha,
-                    id: jsonA1._id,
-                  },
-                  operation: 'create',
-                },
-              ],
-              remote: [
-                {
-                  data: {
-                    doc: jsonB1,
-                    file_sha: putResultB1.file_sha,
-                    id: jsonB1._id,
-                  },
-                  operation: 'create',
-                },
-              ],
-            },
-          });
-        }
-
-        await destroyDBs([dbA, dbB]);
-      });
-
-      it('After race condition throws Error, retrySync() will occur (interval 0ms) before trySync by hand.', async () => {
+      it('After race condition of trySync() throws Error, db retries trySync() and resolves the problems automatically.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -302,20 +208,34 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbB.put(jsonB1);
         const remoteB = dbB.getRemote(remoteURL);
 
+        let errorOnA = false;
+        let errorOnB = false;
+        remoteA.on('error', () => {
+          errorOnA = true;
+        });
+        remoteB.on('error', () => {
+          errorOnB = true;
+        });
+        // Either dbA or dbB will get CannotPushBecauseUnfetchedCommitExistsError and retry automatically.
         const [resultA, resultB] = await Promise.all([
-          remoteA.trySync().catch(() => undefined),
-          remoteB.trySync().catch(() => undefined),
+          remoteA.trySync(),
+          remoteB.trySync(),
         ]);
-        // CannotPushBecauseUnfetchedCommitExistsError
 
-        // Problem has been solved automatically by retrySync(),
-        // so next trySync do nothing.
-        await sleep(3000);
-        if (resultA === undefined) {
-          await expect(remoteA.trySync()).resolves.toMatchObject({ action: 'nop' });
+        const nextResultA = await remoteA.trySync();
+        const nextResultB = await remoteB.trySync();
+
+        if (errorOnA) {
+          expect(resultA.action).toBe('merge and push');
+          expect(nextResultA.action).toBe('nop');
+          expect(resultB.action).toBe('push');
+          expect(nextResultB.action).toBe('fast-forward merge');
         }
         else {
-          await expect(remoteB.trySync()).resolves.toMatchObject({ action: 'nop' });
+          expect(resultA.action).toBe('push');
+          expect(nextResultA.action).toBe('fast-forward merge');
+          expect(resultB.action).toBe('merge and push');
+          expect(nextResultB.action).toBe('nop');
         }
 
         await destroyDBs([dbA, dbB]);
@@ -376,9 +296,9 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
     });
 
     /**
-     * Sync automatically (live)
+     * Repetitive Sync (live)
      */
-    describe('Automated Sync (live)', () => {
+    describe('Repetitive Sync (live)', () => {
       it('starts and pushes after interval when called from create() with live option.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
@@ -596,8 +516,8 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
     /**
      * Retry sync
      */
-    describe('Retry sync', () => {
-      it('retries tryPush() in init() after connection failed, and fails it.', async () => {
+    describe('Failed sync', () => {
+      it('retries tryPush() in init() after connection errors, and fails.', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
@@ -615,25 +535,22 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
 
         const sync = new Sync(dbA, options);
-        const stubNet = sinon.stub(sync, 'checkNetworkConnection');
-        stubNet.rejects();
+        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        stubNet.resolves(false);
 
-        const stubPush = sinon.stub(sync, 'tryPush');
+        const stubPush = sinon.stub(push_worker_module, 'push_worker');
         stubPush.rejects();
-
-        const stubSync = sinon.stub(sync, 'trySync');
-        stubSync.rejects();
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
 
-        expect(stubSync.callCount).toBe(NETWORK_RETRY);
+        expect(stubPush.callCount).toBe(NETWORK_RETRY + 1);
 
         stubNet.restore();
         stubPush.restore();
         await destroyDBs([dbA]);
       });
 
-      it.only('retries tryPush() in init() after connection failed, and succeeds it.', async () => {
+      it('retries tryPush() in init() after connection errors, and succeeds.', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
@@ -651,10 +568,10 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
 
         const sync = new Sync(dbA, options);
-        const stubNet = sinon.stub(sync, 'checkNetworkConnection');
-        stubNet.rejects();
+        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        stubNet.resolves(false);
 
-        const stubPush = sinon.stub(sync, 'tryPush');
+        const stubPush = sinon.stub(push_worker_module, 'push_worker');
         stubPush.onFirstCall().rejects();
         const syncResultPush: SyncResultPush = {
           action: 'push',
@@ -663,10 +580,10 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
           },
         };
 
-        // Call sync2.tryPush which is not spied by Sinon
-        const sync2 = new Sync(dbA, options);
+        // Call push_worker which is not spied by Sinon
         stubPush.onSecondCall().callsFake(async () => {
-          return await sync2.tryPush();
+          stubPush.restore();
+          return await push_worker(dbA, sync, 'myTaskId');
         });
 
         await expect(sync.init(dbA.repository()!)).resolves.toMatchObject(syncResultPush);
@@ -678,125 +595,59 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await destroyDBs([dbA]);
       });
 
-      it('does not retry tryPush() in init() after error except connection error.', async () => {});
+      it.skip('retries tryPush() in init() after resolvable errors, and succeeds.', async () => {});
 
-      it('retries trySync() in init() after connection fails, and fails it.', () => {});
+      it('does not retry tryPush() in init() after error except connection errors and resolvable errors.', async () => {
+        const remoteURL = remoteURLBase + serialId();
+        const dbNameA = serialId();
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        await dbA.create();
 
-      it('retries trySync() in init() after connection fails, and succeeds it.', () => {});
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          live: true,
+          interval: 1000,
+          sync_direction: 'push',
+          connection: { type: 'github', personal_access_token: token },
+        };
 
-      it('does not retry trySync() in init() after error except connection error', () => {});
+        const sync = new Sync(dbA, options);
+
+        const stubPush = sinon.stub(push_worker_module, 'push_worker');
+        stubPush.rejects();
+
+        // Call push_worker which is not spied by Sinon
+        stubPush.onSecondCall().callsFake(async () => {
+          stubPush.restore();
+          return await push_worker(dbA, sync, 'myTaskId');
+        });
+
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(PushWorkerError);
+
+        expect(stubPush.callCount).toBe(1);
+
+        stubPush.restore();
+        await destroyDBs([dbA]);
+      });
+
+      it('retries trySync() in init() after connection errors, and fails.', () => {});
+
+      it('retries trySync() in init() after connection errors, and succeeds.', () => {});
+
+      it('retries trySync() in init() after resolvable errors, and succeeds.', () => {});
+
+      it('does not retry trySync() in init() after error except connection errors and resolvable errors', () => {});
 
       it('does not occur when retry option is 0', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
-
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const optionsA: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          interval: 1000,
-          sync_direction: 'both',
-          connection: { type: 'github', personal_access_token: token },
-        };
-        await dbA.create(optionsA);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().retry).toBe(Sync.defaultRetry);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        const optionsB: RemoteOptions = {
-          remote_url: remoteURL,
-          retry: 0, // no retry
-          retry_interval: 0,
-          sync_direction: 'both',
-          connection: { type: 'github', personal_access_token: token },
-        };
-
-        await dbB.create(optionsB);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        await sleep(3000);
-
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        await expect(remoteB.tryPush()).rejects.toThrowError(PushWorkerError);
-        const currentSyncCount = dbB.taskQueue.statistics().sync;
-        await sleep(5000);
-        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
-
-        await destroyDBs([dbA, dbB]);
+        // Use sinon
       });
 
-      it('occurs every retry interval', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
+      it('retries every retry interval', async () => {});
 
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
-        });
-        const optionsA: RemoteOptions = {
-          remote_url: remoteURL,
-          live: true,
-          interval: 1000,
-          sync_direction: 'both',
-          connection: { type: 'github', personal_access_token: token },
-        };
-        await dbA.create(optionsA);
-
-        const remoteA = dbA.getRemote(remoteURL);
-        expect(remoteA.options().retry).toBe(Sync.defaultRetry);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
-        });
-        const optionsB: RemoteOptions = {
-          remote_url: remoteURL,
-          retry_interval: 2000,
-          sync_direction: 'both',
-          connection: { type: 'github', personal_access_token: token },
-        };
-
-        await dbB.create(optionsB);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        // Wait sync
-        await sleep(3000);
-
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
-
-        await expect(remoteB.tryPush()).rejects.toThrowError(PushWorkerError);
-        const currentSyncCount = dbB.taskQueue.statistics().sync;
-        // console.log('sync count:' + dbB.taskQueue.statistics().sync);
-        expect(dbB.taskQueue.statistics().sync).toBe(currentSyncCount);
-        // console.log('wait next sync');
-        // Need to wait retry_interval(2sec) + sync processing time(about lesser than 5sec))
-        await sleep(7000);
-        expect(dbB.taskQueue.statistics().sync).toBeGreaterThanOrEqual(
-          currentSyncCount + 1
-        );
-
-        await destroyDBs([dbA, dbB]);
-      });
-
-      it.skip('More retries', () => {
-        // Test this using behavior_for_no_merge_base option
-      });
+      it('More retries', () => {});
     });
   });
 
@@ -951,6 +802,3 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
 
   it.skip('Multiple Sync object');
 });
-function SyncResult (SyncResult: any) {
-  throw new Error('Function not implemented.');
-}

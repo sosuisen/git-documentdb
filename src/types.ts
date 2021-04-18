@@ -278,7 +278,7 @@ export type DatabaseCloseOption = {
  *
  * @remarks
  *
- * - pull: Only download from remote to local
+ * - pull: Only download from remote to local (currently not implemented)
  *
  * - push: Only upload from local to remote
  *
@@ -559,6 +559,8 @@ export interface ISync {
   options(): RemoteOptions;
   tryPush(): Promise<SyncResultPush | SyncResultCancel>;
   trySync(): Promise<SyncResult>;
+  enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
+  enqueueSyncTask(): Promise<SyncResult>;
   on(event: SyncEvent, callback: (result?: any) => void): void;
   off(event: SyncEvent, callback: (result?: any) => void): void;
   pause(): void;

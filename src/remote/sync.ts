@@ -10,11 +10,15 @@ import { setInterval } from 'timers';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
+  CannotPushBecauseUnfetchedCommitExistsError,
   IntervalTooSmallError,
+  PushNotAllowedError,
   PushWorkerError,
+  RemoteIsAdvancedWhileMergingError,
   RemoteRepositoryConnectError,
   RepositoryNotOpenError,
   SyncWorkerError,
+  SyncWorkerFetchError,
   UndefinedRemoteURLError,
 } from '../error';
 import {
@@ -44,6 +48,7 @@ import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL, NETWORK_TIMEOUT } from '../const
  * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
  * @throws {@link PushWorkerError} (from Sync#init())
  * @throws {@link SyncWorkerError} (from Sync#init())
+ * @throws {@link PushNotAllowedError}  (from Sync#init())
  *
  * @internal
  */
@@ -188,8 +193,14 @@ export class Sync implements ISync {
    *
    * @internal
    */
-  async checkNetworkConnection () {
-    await checkHTTP(this._options.remote_url!, NETWORK_TIMEOUT);
+  async canNetworkConnection (): Promise<boolean> {
+    const okOrNetworkError = await checkHTTP(
+      this._options.remote_url!,
+      NETWORK_TIMEOUT
+    ).catch(() => {
+      return { ok: false };
+    });
+    return okOrNetworkError.ok;
   }
 
   /**
@@ -215,28 +226,21 @@ export class Sync implements ISync {
     if (remoteResult === 'create') {
       this.upstream_branch = '';
     }
-    let syncResultOrError: SyncResult | Error;
     let syncResult: SyncResult;
-    if (this.upstream_branch === '') {
+
+    if (this._options === 'pull') {
+      /**
+       * TODO: Implement case when sync_direction is 'pull'.
+       */
+      syncResult = {
+        action: 'nop',
+      };
+    }
+    else if (this.upstream_branch === '') {
       this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
-      syncResultOrError = await this.tryPush().catch(err => err);
-      if (syncResultOrError instanceof Error) {
-        // Check network
-        const result = await this.checkNetworkConnection().catch((err: Error) => err);
-        if (result instanceof Error) {
-          syncResult = await this._retrySync({ onlyPush: true }).catch(err => {
-            throw err;
-          });
-        }
-        else {
-          throw syncResultOrError;
-        }
-      }
-      else {
-        syncResult = syncResultOrError;
-      }
+      syncResult = await this.tryPush();
 
       // An upstream branch must be set to a local branch after the first push
       // because refs/remotes/origin/main is not created until the first push.
@@ -248,22 +252,7 @@ export class Sync implements ISync {
     }
     else {
       this._gitDDB.logger.debug('upstream_branch exists. trySync..');
-      syncResultOrError = await this.trySync().catch(err => err);
-      if (syncResultOrError instanceof Error) {
-        // Check network
-        const result = await this.checkNetworkConnection().catch((err: Error) => err);
-        if (result instanceof Error) {
-          syncResult = await this._retrySync().catch(err => {
-            throw err;
-          });
-        }
-        else {
-          throw syncResultOrError;
-        }
-      }
-      else {
-        syncResult = syncResultOrError;
-      }
+      syncResult = await this.trySync();
     }
 
     if (this._options.live) {
@@ -368,60 +357,134 @@ export class Sync implements ISync {
   }
 
   /**
-   * Retry failed synchronization
+   * Try to push with retries
    *
    * @throw {@link SyncWorkerError}
-   *
-   * @internal
+   * @throws {@link PushNotAllowedError}
    */
-  private async _retrySync (options?: { onlyPush: boolean }): Promise<SyncResult> {
-    let syncOrPush = this.trySync;
-    if (options && options.onlyPush) {
-      syncOrPush = this.tryPush;
+  async tryPush (options?: {
+    onlyPush: boolean;
+  }): Promise<SyncResultPush | SyncResultCancel> {
+    if (this._options.sync_direction === 'pull') {
+      throw new PushNotAllowedError(this._options.sync_direction);
     }
     if (this._retrySyncCounter === 0) {
-      this._retrySyncCounter = this._options.retry!;
+      this._retrySyncCounter = this._options.retry! + 1;
     }
+    else {
+      const result: SyncResultCancel = { action: 'canceled' };
+      this._retrySyncCounter = 0;
+      return result;
+    }
+
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
-      await sleep(this._options.retry_interval!);
-
-      if (this._retrySyncCounter === 0) {
-        break;
-      }
-
-      this._gitDDB.logger.debug(
-        ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
-      );
-      // eslint-disable-next-line no-await-in-loop
-      const result = await syncOrPush().catch((err: Error) => {
+      const resultOrError = await this.enqueuePushTask().catch((err: Error) => {
         // Invoke retry fail event
-        this._gitDDB.logger.debug('retrySync failed: ' + err.message);
+        this._gitDDB.logger.debug('Push failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw new SyncWorkerError(err.message);
+          throw new PushWorkerError(err.message);
         }
-        return undefined;
+        return err;
       });
-      if (result !== undefined) {
-        return result;
+      if (!(resultOrError instanceof Error)) {
+        this._retrySyncCounter = 0;
+        return resultOrError;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      if (!(await this.canNetworkConnection())) {
+        // Retry to connect due to network error.
+        this._gitDDB.logger.debug(
+          ConsoleStyle.BgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
+        );
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(this._options.retry_interval!);
+      }
+      else {
+        this._retrySyncCounter = 0;
+        throw new PushWorkerError(resultOrError.message);
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
     const result: SyncResultCancel = { action: 'canceled' };
+    this._retrySyncCounter = 0;
     return result;
   }
 
   /**
-   * Try to push to remote
+   * Try to sync with retries
+   *
+   * @throw {@link SyncWorkerError}
+   * @throws {@link PushNotAllowedError}
+   */
+  async trySync (): Promise<SyncResult> {
+    if (this._options.sync_direction === 'pull') {
+      throw new PushNotAllowedError(this._options.sync_direction);
+    }
+    if (this._retrySyncCounter === 0) {
+      this._retrySyncCounter = this._options.retry! + 1;
+    }
+    else {
+      const result: SyncResultCancel = { action: 'canceled' };
+      this._retrySyncCounter = 0;
+      return result;
+    }
+
+    while (this._retrySyncCounter > 0) {
+      // eslint-disable-next-line no-await-in-loop
+      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => {
+        // Invoke retry fail event
+        this._gitDDB.logger.debug('Sync failed: ' + err.message);
+        this._retrySyncCounter--;
+        if (this._retrySyncCounter === 0) {
+          throw new SyncWorkerError(err.message);
+        }
+        return err;
+      });
+      if (!(resultOrError instanceof Error)) {
+        this._retrySyncCounter = 0;
+        return resultOrError;
+      }
+      if (
+        // eslint-disable-next-line no-await-in-loop
+        !(await this.canNetworkConnection()) ||
+        resultOrError instanceof CannotPushBecauseUnfetchedCommitExistsError ||
+        resultOrError instanceof RemoteIsAdvancedWhileMergingError
+      ) {
+        // Retry for the following reasons:
+        // - Network connection may be improved next time.
+        // - Problem will be resolved by sync again.
+        this._gitDDB.logger.debug(
+          ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
+        );
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(this._options.retry_interval!);
+      }
+      else {
+        this._retrySyncCounter = 0;
+        throw new SyncWorkerError(resultOrError.message);
+      }
+    }
+    // This line is reached when cancel() set _retrySyncCounter to 0;
+    const result: SyncResultCancel = { action: 'canceled' };
+    this._retrySyncCounter = 0;
+    return result;
+  }
+
+  /**
+   * Enqueue push task to TaskQueue
    *
    * @throws {@link PushWorkerError}
-   *
+   * @throws {@link PushNotAllowedError}
    */
-  tryPush (): Promise<SyncResultPush | SyncResultCancel> {
+  enqueuePushTask (): Promise<SyncResultPush | SyncResultCancel> {
+    if (this._options.sync_direction === 'pull') {
+      throw new PushNotAllowedError(this._options.sync_direction);
+    }
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
-      resolve: (value: SyncResultPush) => void,
+      resolve: (value: SyncResultPush | SyncResultCancel) => void,
       reject: (reason: any) => void
     ) => (beforeResolve: () => void, beforeReject: () => void) =>
       push_worker(this._gitDDB, this, taskId)
@@ -445,28 +508,13 @@ export class Sync implements ISync {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-
-          // Call sync_worker() to resolve CannotPushBecauseUnfetchedCommitExistsError
-          if (this._retrySyncCounter === 0) {
-            if (this._options.sync_direction === 'both') {
-              // eslint-disable-next-line promise/no-nesting
-              this._retrySync().catch(() => undefined);
-            }
-            else if (this._options.sync_direction === 'pull') {
-              // TODO:
-            }
-            else if (this._options.sync_direction === 'push') {
-              // TODO:
-            }
-          }
-
           const pushWorkerError = new PushWorkerError(err.message);
           this.eventHandlers.error.forEach(func => {
             func(pushWorkerError);
           });
 
           beforeReject();
-          reject(pushWorkerError);
+          reject(err);
         });
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
@@ -494,12 +542,15 @@ export class Sync implements ISync {
   }
 
   /**
-   * Try to synchronize with remote
+   * Enqueue sync task to TaskQueue
    *
    * @throws {@link SyncWorkerError}
-   *
+   * @throws {@link PushNotAllowedError}
    */
-  trySync (): Promise<SyncResult> {
+  enqueueSyncTask (): Promise<SyncResult> {
+    if (this._options.sync_direction === 'pull') {
+      throw new PushNotAllowedError(this._options.sync_direction);
+    }
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResult) => void,
@@ -546,10 +597,6 @@ export class Sync implements ISync {
         })
         .catch(err => {
           // console.log(`Error in sync_worker: ${err}`);
-          if (this._retrySyncCounter === 0) {
-            // eslint-disable-next-line promise/no-nesting
-            this._retrySync().catch(() => undefined);
-          }
 
           const syncWorkerError = new SyncWorkerError(err.message);
           this.eventHandlers.error.forEach(func => {
@@ -557,7 +604,7 @@ export class Sync implements ISync {
           });
 
           beforeReject();
-          reject(syncWorkerError);
+          reject(err);
         });
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
