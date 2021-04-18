@@ -226,7 +226,7 @@ export class Sync implements ISync {
         // Check network
         const result = await this.checkNetworkConnection().catch((err: Error) => err);
         if (result instanceof Error) {
-          syncResult = await this._retrySync().catch(err => {
+          syncResult = await this._retrySync({ onlyPush: true }).catch(err => {
             throw err;
           });
         }
@@ -374,7 +374,11 @@ export class Sync implements ISync {
    *
    * @internal
    */
-  private async _retrySync (): Promise<SyncResult> {
+  private async _retrySync (options?: { onlyPush: boolean }): Promise<SyncResult> {
+    let syncOrPush = this.trySync;
+    if (options && options.onlyPush) {
+      syncOrPush = this.tryPush;
+    }
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry!;
     }
@@ -390,7 +394,7 @@ export class Sync implements ISync {
         ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
       );
       // eslint-disable-next-line no-await-in-loop
-      const result = await this.trySync().catch((err: Error) => {
+      const result = await syncOrPush().catch((err: Error) => {
         // Invoke retry fail event
         this._gitDDB.logger.debug('retrySync failed: ' + err.message);
         this._retrySyncCounter--;
