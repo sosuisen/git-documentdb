@@ -54,6 +54,11 @@ export const ping = (
  * requestTimeout and socketTimeout must be greater than 0.
  * Timeout is not set if timeout is less than 0.
  *
+ * @throws {@link HttpProtocolRequiredError}
+ * @throws {@link HTTPNetworkError}
+ * @throws {@link RequestTimeoutError}
+ * @throws {@link SocketTimeoutError}
+ *
  * @internal
  */
 export const checkHTTP = (
