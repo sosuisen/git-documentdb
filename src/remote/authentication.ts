@@ -25,7 +25,7 @@ const createCredentialForGitHub = (options: RemoteOptions) => {
     throw new HttpProtocolRequiredError(options.remote_url!);
   }
   const connection = options.connection as ConnectionSettingsGitHub;
-  if (!connection.personal_access_token) {
+  if (options.sync_direction !== 'pull' && !connection.personal_access_token) {
     throw new UndefinedPersonalAccessTokenError();
   }
   const urlArray = options.remote_url!.replace(/^https?:\/\//, '').split('/');
