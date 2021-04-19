@@ -66,7 +66,7 @@ export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOption
 }
 
 /**
- * Sync class
+ * Synchronizer class
  */
 export class Sync implements ISync {
   static defaultSyncInterval = 10000;

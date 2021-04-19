@@ -763,7 +763,36 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
       });
 
       it('does not occur when retry option is 0', async () => {
-        // Use sinon
+        const remoteURL = remoteURLBase + serialId();
+        const dbNameA = serialId();
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          db_name: dbNameA,
+          local_dir: localDir,
+        });
+        await dbA.create();
+
+        const options: RemoteOptions = {
+          remote_url: remoteURL,
+          sync_direction: 'push',
+          retry_interval: 0,
+          retry: 0,
+          connection: { type: 'github', personal_access_token: token },
+        };
+
+        const sync = new Sync(dbA, options);
+        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        stubNet.resolves(false);
+
+        const stubPush = sinon.stub(push_worker_module, 'push_worker');
+        stubPush.rejects();
+
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
+
+        expect(stubPush.callCount).toBe(1);
+
+        stubNet.restore();
+        stubPush.restore();
+        await destroyDBs([dbA]);
       });
 
       it('retries every retry interval', async () => {});
