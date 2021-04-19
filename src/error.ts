@@ -547,3 +547,11 @@ export class GitMergeBranchError extends BaseError {
     super(`Merge branch error in Git : ${mes}`);
   }
 }
+
+export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
+  constructor (syncInterval: number, retryInterval: number) {
+    super(
+      `Sync interval is less than or equal to retry interval : ${syncInterval} < ${retryInterval}`
+    );
+  }
+}

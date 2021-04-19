@@ -20,6 +20,7 @@ import {
   RemoteIsAdvancedWhileMergingError,
   RemoteRepositoryConnectError,
   RepositoryNotOpenError,
+  SyncIntervalLessThanOrEqualToRetryIntervalError,
   SyncWorkerError,
   UndefinedRemoteURLError,
 } from '../error';
@@ -70,7 +71,7 @@ export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOption
  */
 export class Sync implements ISync {
   static defaultSyncInterval = 10000;
-  static minimumSyncInterval = 1000;
+  static minimumSyncInterval = 3000;
   static defaultRetryInterval = NETWORK_RETRY_INTERVAL;
   static defaultRetry = NETWORK_RETRY;
 
@@ -156,11 +157,18 @@ export class Sync implements ISync {
     this._options.live ??= false;
     this._options.sync_direction ??= 'both';
     this._options.interval ??= Sync.defaultSyncInterval;
+    this._options.retry_interval ??= Sync.defaultRetryInterval;
 
     if (this._options.interval < Sync.minimumSyncInterval) {
       throw new IntervalTooSmallError(Sync.minimumSyncInterval, this._options.interval);
     }
-    this._options.retry_interval ??= Sync.defaultRetryInterval;
+    if (this._options.interval <= this._options.retry_interval) {
+      throw new SyncIntervalLessThanOrEqualToRetryIntervalError(
+        this._options.interval,
+        this._options.retry_interval
+      );
+    }
+
     this._options.retry ??= Sync.defaultRetry;
     this._options.behavior_for_no_merge_base ??= 'nop';
     this._options.include_commits ??= false;
