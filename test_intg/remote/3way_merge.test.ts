@@ -329,7 +329,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts, removes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -417,7 +417,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -506,7 +506,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A updates and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
@@ -586,7 +586,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts, removes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -678,7 +678,7 @@ maybe('remote: 3-way merge: ', () => {
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
     await remoteA.tryPush();
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // B updates the old file and syncs
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -764,7 +764,7 @@ maybe('remote: 3-way merge: ', () => {
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
     await remoteA.tryPush();
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // B updates the old file and syncs
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -840,7 +840,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -929,7 +929,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1020,7 +1020,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1111,7 +1111,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
@@ -1191,7 +1191,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
@@ -1275,7 +1275,7 @@ maybe('remote: 3-way merge: ', () => {
     });
     // Clone dbA
     await dbB.create(remoteA.options());
-    const remoteB = dbB.getRemote(remoteA.remoteURL());
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A updates, deletes, updates, and pushes
 

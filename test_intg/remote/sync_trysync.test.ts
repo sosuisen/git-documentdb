@@ -451,7 +451,7 @@ maybe('intg <remote/sync_trysync>: Sync#trySync()', () => {
       });
       // Clone dbA
       await dbB.create(remoteA.options());
-      const remoteB = dbB.getRemote(remoteA.remoteURL());
+      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A updates and pushes
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -501,7 +501,7 @@ maybe('intg <remote/sync_trysync>: Sync#trySync()', () => {
       });
       // Clone dbA
       await dbB.create(remoteA.options());
-      const remoteB = dbB.getRemote(remoteA.remoteURL());
+      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes
       const jsonA2 = { _id: '2', name: 'fromA' };
@@ -562,7 +562,7 @@ maybe('intg <remote/sync_trysync>: Sync#trySync()', () => {
       });
       // Clone dbA
       await dbB.create(remoteA.options());
-      const remoteB = dbB.getRemote(remoteA.remoteURL());
+      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A removes and pushes
       const deleteResultA1 = await dbA.remove(jsonA1);
@@ -622,7 +622,7 @@ maybe('intg <remote/sync_trysync>: Sync#trySync()', () => {
       });
       // Clone dbA
       await dbB.create(remoteA.options());
-      const remoteB = dbB.getRemote(remoteA.remoteURL());
+      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A removes and pushes
       const deleteResultA1 = await dbA.remove(jsonA1);

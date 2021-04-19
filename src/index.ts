@@ -703,10 +703,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   }
 
   /**
-   * Get remote synchronization
+   * Get synchronizer
    *
    */
-  getRemote (remoteURL: string) {
+  getSynchronizer (remoteURL: string): Sync {
     return this._synchronizers[remoteURL];
   }
 

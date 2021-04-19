@@ -88,7 +88,7 @@ export async function createDatabase (
   options.include_commits ??= true;
 
   await dbA.create(options);
-  const remoteA = dbA.getRemote(remoteURL);
+  const remoteA = dbA.getSynchronizer(remoteURL);
 
   return [dbA, remoteA];
 }
@@ -126,8 +126,8 @@ export async function createClonedDatabases (
   // Clone dbA
   await dbB.create(options);
 
-  const remoteA = dbA.getRemote(remoteURL);
-  const remoteB = dbB.getRemote(remoteURL);
+  const remoteA = dbA.getSynchronizer(remoteURL);
+  const remoteB = dbB.getSynchronizer(remoteURL);
 
   return [dbA, dbB, remoteA, remoteB];
 }

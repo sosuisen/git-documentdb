@@ -97,7 +97,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
         await remoteA.tryPush();
 
         const dbNameB = serialId();
@@ -128,7 +128,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -138,7 +138,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbB.create(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
+        const remoteB = dbB.getSynchronizer(remoteURL);
 
         await expect(
           Promise.all([remoteA.tryPush(), remoteB.tryPush()])
@@ -163,7 +163,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -173,7 +173,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbB.create(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
+        const remoteB = dbB.getSynchronizer(remoteURL);
 
         await remoteA.tryPush();
         await expect(remoteB.tryPush()).rejects.toThrowError(PushWorkerError);
@@ -205,13 +205,13 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
         await remoteA.tryPush();
 
         // The same id
         const jsonB1 = { _id: '1', name: 'fromB' };
         const putResultB1 = await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
+        const remoteB = dbB.getSynchronizer(remoteURL);
 
         await expect(remoteB.trySync()).resolves.toMatchObject({
           action: 'resolve conflicts and push',
@@ -261,7 +261,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
 
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
         expect(remoteA.options().interval).toBe(interval);
 
@@ -300,7 +300,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
         await dbA.create(options);
 
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
         const count = dbA.taskQueue.statistics().sync;
         remoteA.cancel();
@@ -329,7 +329,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
         await dbA.create(options);
 
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
         const count = dbA.taskQueue.statistics().sync;
         expect(remoteA.pause()).toBeTruthy();
@@ -366,7 +366,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
         await dbA.create(options);
 
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
         const count = dbA.taskQueue.statistics().sync;
         await dbA.close();
@@ -398,7 +398,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
         await dbA.create(options);
 
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().interval).toBe(interval);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -444,7 +444,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
         await dbA.create(options);
 
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
 
         await sleep(interval * 5);
         expect(dbA.taskQueue.statistics().sync).toBeGreaterThanOrEqual(3);
@@ -581,7 +581,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
 
         await dbA.sync(options);
-        const sync = dbA.getRemote(remoteURL);
+        const sync = dbA.getSynchronizer(remoteURL);
 
         const stubNet = sinon.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
@@ -616,7 +616,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
 
         await dbA.sync(options);
-        const sync = dbA.getRemote(remoteURL);
+        const sync = dbA.getSynchronizer(remoteURL);
 
         const stubNet = sinon.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
@@ -679,7 +679,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbA.create(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getRemote(remoteURL);
+        const remoteA = dbA.getSynchronizer(remoteURL);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -689,7 +689,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await dbB.create(options);
         const jsonB1 = { _id: '2', name: 'fromB' };
         await dbB.put(jsonB1);
-        const remoteB = dbB.getRemote(remoteURL);
+        const remoteB = dbB.getSynchronizer(remoteURL);
 
         let errorOnA = false;
         let errorOnB = false;
@@ -747,7 +747,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         };
 
         await dbA.sync(options);
-        const sync = dbA.getRemote(remoteURL);
+        const sync = dbA.getSynchronizer(remoteURL);
 
         const stubSync = sinon.stub(sync_worker_module, 'sync_worker');
         stubSync.rejects();
