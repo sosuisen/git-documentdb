@@ -248,7 +248,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = 3000;
+        const interval = Sync.minimumSyncInterval;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -280,8 +280,6 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
         await destroyDBs([dbA, dbB]);
-
-        await sleep(10000);
       });
 
       it('stops by cancel()', async () => {
@@ -292,7 +290,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = 1000;
+        const interval = Sync.minimumSyncInterval;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -306,7 +304,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         expect(remoteA.options().live).toBeTruthy();
         const count = dbA.taskQueue.statistics().sync;
         remoteA.cancel();
-        await sleep(3000);
+        await sleep(interval * 2);
         expect(remoteA.options().live).toBeFalsy();
         expect(dbA.taskQueue.statistics().sync).toBe(count);
 
@@ -321,7 +319,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = 1000;
+        const interval = Sync.minimumSyncInterval;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -337,13 +335,13 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         expect(remoteA.pause()).toBeTruthy();
         expect(remoteA.pause()).toBeFalsy(); // ignored
 
-        await sleep(3000);
+        await sleep(interval * 2);
         expect(remoteA.options().live).toBeFalsy();
         expect(dbA.taskQueue.statistics().sync).toBe(count);
 
         expect(remoteA.resume()).toBeTruthy();
         expect(remoteA.resume()).toBeFalsy(); // ignored
-        await sleep(3000);
+        await sleep(interval * 2);
         expect(remoteA.options().live).toBeTruthy();
         expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(count);
 
@@ -358,7 +356,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = 1000;
+        const interval = Sync.minimumSyncInterval;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -375,7 +373,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
 
         remoteA.resume(); // resume() must be ignored after close();
 
-        await sleep(3000);
+        await sleep(interval * 2);
         expect(remoteA.options().live).toBeFalsy();
         expect(dbA.taskQueue.statistics().sync).toBe(count);
 
@@ -390,7 +388,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = 1000;
+        const interval = Sync.minimumSyncInterval;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -418,10 +416,10 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         const currentCount = dbA.taskQueue.statistics().sync;
         // Change interval
         remoteA.resume({
-          interval: 5000,
+          interval: interval * 3,
         });
-        expect(remoteA.options().interval).toBe(5000);
-        await sleep(3000);
+        expect(remoteA.options().interval).toBe(interval * 3);
+        await sleep(interval);
         // Check count before next sync()
         expect(dbA.taskQueue.statistics().sync).toBe(currentCount);
 
@@ -436,7 +434,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = 1000;
+        const interval = Sync.minimumSyncInterval;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -448,8 +446,8 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
 
         const remoteA = dbA.getRemote(remoteURL);
 
-        await sleep(10000);
-        expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(5);
+        await sleep(interval * 5);
+        expect(dbA.taskQueue.statistics().sync).toBeGreaterThanOrEqual(3);
 
         await destroyDBs([dbA]);
       });
@@ -804,10 +802,14 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         });
         await dbA.create();
 
+        const interval = 100000;
+        const retry_interval = 5000;
+
         const options: RemoteOptions = {
           remote_url: remoteURL,
           sync_direction: 'push',
-          retry_interval: 5000,
+          interval,
+          retry_interval,
           retry: 2,
           connection: { type: 'github', personal_access_token: token },
         };
@@ -821,13 +823,13 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
 
         sync.init(dbA.repository()!).catch(() => {});
 
-        await sleep(3000);
+        await sleep(retry_interval / 2);
         expect(stubPush.callCount).toBe(1);
-        await sleep(5000);
+        await sleep(retry_interval);
         expect(stubPush.callCount).toBe(2);
-        await sleep(5000);
+        await sleep(retry_interval);
         expect(stubPush.callCount).toBe(3);
-        await sleep(5000);
+        await sleep(retry_interval);
 
         stubNet.restore();
         stubPush.restore();
@@ -856,7 +858,6 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
 
       const options: RemoteOptions = {
         live: true,
-        interval: 1000,
         sync_direction: 'both',
         connection: { type: 'github', personal_access_token: token },
       };
@@ -894,8 +895,6 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
       await dbA.create();
       const options: RemoteOptions = {
         remote_url: remoteURL,
-        live: true,
-        interval: 1000,
         sync_direction: 'both',
         connection: { type: 'github', personal_access_token: token },
       };
@@ -928,7 +927,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         live: true,
-        interval: 1000,
+        interval: Sync.minimumSyncInterval,
         sync_direction: 'both',
         connection: { type: 'github', personal_access_token: token },
       };

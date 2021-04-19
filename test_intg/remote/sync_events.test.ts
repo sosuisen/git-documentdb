@@ -371,11 +371,12 @@ maybe('remote: sync: events: ', () => {
     });
 
     test('start repeatedly', async () => {
+      const interval = Sync.minimumSyncInterval;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
-        interval: 1000,
+        interval,
       });
 
       let counter = 0;
@@ -383,7 +384,7 @@ maybe('remote: sync: events: ', () => {
         counter++;
       });
 
-      await sleep(15000);
+      await sleep(interval * 5);
 
       expect(counter).toBeGreaterThanOrEqual(3);
 
@@ -391,11 +392,12 @@ maybe('remote: sync: events: ', () => {
     });
 
     test('complete once', async () => {
+      const interval = Sync.minimumSyncInterval;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
-        interval: 1000,
+        interval,
       });
 
       let complete = false;
@@ -414,17 +416,18 @@ maybe('remote: sync: events: ', () => {
       }
 
       expect(complete).toBe(true);
-      expect(sleepTime).toBeLessThan(5000);
+      expect(sleepTime).toBeLessThan(interval * 2);
 
       await destroyDBs([dbA]);
     });
 
     test('complete repeatedly', async () => {
+      const interval = Sync.minimumSyncInterval;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
         live: true,
-        interval: 1000,
+        interval,
       });
 
       let counter = 0;
@@ -432,7 +435,7 @@ maybe('remote: sync: events: ', () => {
         counter++;
       });
 
-      await sleep(15000);
+      await sleep(interval * 5);
 
       expect(counter).toBeGreaterThanOrEqual(3);
 
@@ -468,11 +471,12 @@ maybe('remote: sync: events: ', () => {
   });
 
   test('on and off', async () => {
+    const interval = Sync.minimumSyncInterval;
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
       connection: { type: 'github', personal_access_token: token },
       include_commits: true,
       live: true,
-      interval: 1000,
+      interval,
     });
 
     let counter = 0;
@@ -481,16 +485,16 @@ maybe('remote: sync: events: ', () => {
     };
     remoteA.on('start', increment);
 
-    await sleep(3000);
+    await sleep(interval * 3);
 
     expect(counter).toBeGreaterThanOrEqual(1);
-    expect(counter).toBeLessThanOrEqual(4);
+    expect(counter).toBeLessThanOrEqual(3);
 
     remoteA.off('start', increment);
 
-    await sleep(10000);
+    await sleep(interval * 3);
 
-    expect(counter).toBeLessThanOrEqual(4);
+    expect(counter).toBeLessThanOrEqual(3);
 
     await destroyDBs([dbA]);
   });

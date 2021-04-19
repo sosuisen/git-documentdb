@@ -636,7 +636,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       destroyDBs([gitDDB]);
     });
 
-    it("throws PushPermissionDeniedError when try to push to others' repository", async () => {
+    it("throws RemoteRepositoryNotFoundError when try to push to others' repository", async () => {
       const remoteURL = 'https://github.com/sosuisen/git-documentdb';
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
@@ -662,7 +662,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       });
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkPush'](remote, cred)).rejects.toThrowError(
-        PushPermissionDeniedError
+        RemoteRepositoryNotFoundError
       );
 
       destroyDBs([gitDDB]);
