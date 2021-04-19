@@ -636,7 +636,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       destroyDBs([gitDDB]);
     });
 
-    it.only("throws PushPermissionDeniedError when try to push to others' repository", async () => {
+    it("throws PushPermissionDeniedError when try to push to others' repository", async () => {
       const remoteURL = 'https://github.com/sosuisen/git-documentdb';
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({

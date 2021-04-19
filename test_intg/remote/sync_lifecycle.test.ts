@@ -795,7 +795,7 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         await destroyDBs([dbA]);
       });
 
-      it.only('retries every retry interval', async () => {
+      it('retries every retry interval', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
