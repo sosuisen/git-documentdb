@@ -833,8 +833,6 @@ maybe('intg <remote/sync_lifecycle> Sync', () => {
         stubPush.restore();
         await destroyDBs([dbA]);
       });
-
-      it('More retries', () => {});
     });
   });
 
