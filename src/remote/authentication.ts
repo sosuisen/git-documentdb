@@ -8,7 +8,6 @@
 
 import nodegit from '@sosuisen/nodegit';
 import {
-  AuthNeededForPushOrSyncError,
   HttpProtocolRequiredError,
   InvalidRepositoryURLError,
   InvalidSSHKeyPathError,
@@ -82,9 +81,7 @@ export const createCredential = (options: RemoteOptions) => {
     cred = createCredentialForSSH(options);
   }
   else if (options.connection.type === 'none') {
-    if (options.sync_direction !== 'pull') {
-      throw new AuthNeededForPushOrSyncError(options.sync_direction!);
-    }
+    // nop
   }
   else {
     // @ts-ignore

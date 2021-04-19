@@ -312,16 +312,6 @@ export class UndefinedPersonalAccessTokenError extends BaseError {
 
 /**
  */
-export class AuthNeededForPushOrSyncError extends BaseError {
-  constructor (direction: SyncDirection) {
-    super(
-      `Connection authentication settings are needed for this sync direction: ${direction}`
-    );
-  }
-}
-
-/**
- */
 export class SyncWorkerFetchError extends BaseError {
   constructor (mes: string) {
     super(`Fetch error in sync worker: ${mes}`);
