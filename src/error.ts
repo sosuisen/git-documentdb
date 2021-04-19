@@ -227,7 +227,7 @@ export class UndefinedRemoteURLError extends BaseError {
 export class RemoteRepositoryNotFoundError extends BaseError {
   constructor (url: string) {
     super(
-      `Repository does not exist, or you do not have permission to access the private repository: ${url}`
+      `Repository does not exist, or you do not have permission to access the repository: ${url}`
     );
   }
 }

@@ -258,13 +258,17 @@ export class RemoteRepository {
   /**
    * Check connection by PUSH
    *
+   * @throws {@link InvalidURLError}
+   * @throws {@link RemoteRepositoryNotFoundError}
    * @throws {@link PushPermissionDeniedError}
    * @throws Error (Other errors from NodeGit.Remote#connect())
    */
+  // eslint-disable-next-line complexity
   private async _checkPush (
     remote: nodegit.Remote,
     credential_callbacks: { [key: string]: any }
   ) {
+    const remoteURL = remote.url();
     const error = String(
       await remote
         .connect(nodegit.Enums.DIRECTION.PUSH, credential_callbacks)
@@ -275,9 +279,18 @@ export class RemoteRepository {
     switch (true) {
       case error === 'undefined':
         break;
+      case error.startsWith('Error: unsupported URL protocol'):
+      case error.startsWith('Error: failed to resolve address'):
+      case error.startsWith('Error: failed to send request'):
+        throw new InvalidURLError(remoteURL);
+      case error.startsWith('Error: request failed with status code: 4'): // 401, 404
+      case error.startsWith('Error: Method connect has thrown an error'):
+      case error.startsWith('Error: ERROR: Repository not found'): {
+        // Remote repository does not exist, or you do not have permission to the private repository
+        throw new RemoteRepositoryNotFoundError(remoteURL);
+      }
       // Invalid personal access token
       // Personal access token is read only
-      case error.startsWith('Error: request failed with status code: 4'):
       case error.startsWith('Error: too many redirects or authentication replays'):
       case error.startsWith('Error: ERROR: Permission to'): {
         throw new PushPermissionDeniedError();
