@@ -36,11 +36,6 @@ export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
     constructor(type: string | undefined);
 }
 
-// @public (undocumented)
-export class AuthNeededForPushOrSyncError extends BaseError {
-    constructor(direction: SyncDirection);
-}
-
 // @public
 export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
 
@@ -232,8 +227,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }>;
     readonly fileExt = ".json";
     get(docId: string): Promise<JsonDoc>;
-    getRemote(remoteURL: string): Sync;
     getRemoteURLs(): string[];
+    getSynchronizer(remoteURL: string): Sync;
     readonly gitAuthor: {
         readonly name: "GitDocumentDB";
         readonly email: "gitddb@example.com";
@@ -257,6 +252,16 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     validator: Validator;
     workingDir(): string;
     }
+
+// @public (undocumented)
+export class GitMergeBranchError extends BaseError {
+    constructor(mes: string);
+}
+
+// @public (undocumented)
+export class GitPushError extends BaseError {
+    constructor(mes: string);
+}
 
 // @public (undocumented)
 export class HTTPNetworkError extends BaseError {
@@ -368,6 +373,10 @@ export interface ISync {
     // (undocumented)
     currentRetries: () => number;
     // (undocumented)
+    enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
+    // (undocumented)
+    enqueueSyncTask(): Promise<SyncResult>;
+    // (undocumented)
     eventHandlers: {
         change: ((syncResult: SyncResult) => void)[];
         localChange: ((changedFiles: ChangedFile[]) => void)[];
@@ -424,6 +433,11 @@ export class PersonalAccessTokenForAnotherAccountError extends BaseError {
 // @public (undocumented)
 export class PushConnectionFailedError extends BaseError {
     constructor(mes: string);
+}
+
+// @public (undocumented)
+export class PushNotAllowedError extends BaseError {
+    constructor(direction: string);
 }
 
 // @public (undocumented)
@@ -533,6 +547,8 @@ export class Sync implements ISync {
     // (undocumented)
     author: nodegit.Signature;
     cancel(): boolean;
+    // @internal
+    canNetworkConnection(): Promise<boolean>;
     close(): void;
     // (undocumented)
     committer: nodegit.Signature;
@@ -547,6 +563,8 @@ export class Sync implements ISync {
     static defaultRetryInterval: number;
     // (undocumented)
     static defaultSyncInterval: number;
+    enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
+    enqueueSyncTask(): Promise<SyncResult>;
     // @internal
     eventHandlers: {
         change: ((syncResult: SyncResult) => void)[];
@@ -570,7 +588,9 @@ export class Sync implements ISync {
         interval?: number;
         retry?: number;
     }): boolean;
-    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
+    tryPush(options?: {
+        onlyPush: boolean;
+    }): Promise<SyncResultPush | SyncResultCancel>;
     trySync(): Promise<SyncResult>;
     // (undocumented)
     upstream_branch: string;
@@ -586,6 +606,11 @@ export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | '
 //
 // @internal
 export function syncImpl(this: AbstractDocumentDB, options?: RemoteOptions): Promise<Sync>;
+
+// @public (undocumented)
+export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
+    constructor(syncInterval: number, retryInterval: number);
+}
 
 // @public
 export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;

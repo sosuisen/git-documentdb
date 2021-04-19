@@ -46,8 +46,8 @@ export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInt
 |  [delete(jsonDoc, options)](./git-documentdb.gitdocumentdb.delete_1.md) |  | This is an alias of remove() |
 |  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | Destroy a database |
 |  [get(docId)](./git-documentdb.gitdocumentdb.get.md) |  | Get a document |
-|  [getRemote(remoteURL)](./git-documentdb.gitdocumentdb.getremote.md) |  | Get remote synchronization |
 |  [getRemoteURLs()](./git-documentdb.gitdocumentdb.getremoteurls.md) |  | getRemoteURLs |
+|  [getSynchronizer(remoteURL)](./git-documentdb.gitdocumentdb.getsynchronizer.md) |  | Get synchronizer |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | Test if a database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | Open an existing repository |
 |  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | Add a document |

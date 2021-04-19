@@ -28,6 +28,8 @@ export interface ISync
 |  Method | Description |
 |  --- | --- |
 |  [cancel()](./git-documentdb.isync.cancel.md) |  |
+|  [enqueuePushTask()](./git-documentdb.isync.enqueuepushtask.md) |  |
+|  [enqueueSyncTask()](./git-documentdb.isync.enqueuesynctask.md) |  |
 |  [off(event, callback)](./git-documentdb.isync.off.md) |  |
 |  [on(event, callback)](./git-documentdb.isync.on.md) |  |
 |  [options()](./git-documentdb.isync.options.md) |  |

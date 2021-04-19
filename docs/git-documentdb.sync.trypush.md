@@ -4,18 +4,29 @@
 
 ## Sync.tryPush() method
 
-Try to push to remote
+Try to push with retries
+
+ [SyncWorkerError](./git-documentdb.syncworkererror.md)
 
 <b>Signature:</b>
 
 ```typescript
-tryPush(): Promise<SyncResultPush | SyncResultCancel>;
+tryPush(options?: {
+        onlyPush: boolean;
+    }): Promise<SyncResultPush | SyncResultCancel>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | { onlyPush: boolean; } |  |
+
 <b>Returns:</b>
 
 Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCancel](./git-documentdb.syncresultcancel.md)<!-- -->&gt;
 
 ## Exceptions
 
-[PushWorkerError](./git-documentdb.pushworkererror.md)
+[PushNotAllowedError](./git-documentdb.pushnotallowederror.md)
 

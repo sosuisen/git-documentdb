@@ -15,7 +15,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  Class | Description |
 |  --- | --- |
 |  [AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.authenticationtypenotallowcreaterepositoryerror.md) |  |
-|  [AuthNeededForPushOrSyncError](./git-documentdb.authneededforpushorsyncerror.md) |  |
 |  [CannotConnectError](./git-documentdb.cannotconnecterror.md) |  |
 |  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
 |  [CannotCreateRemoteRepositoryError](./git-documentdb.cannotcreateremoterepositoryerror.md) |  |
@@ -31,6 +30,8 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [FetchConnectionFailedError](./git-documentdb.fetchconnectionfailederror.md) |  |
 |  [FileRemoveTimeoutError](./git-documentdb.fileremovetimeouterror.md) |  |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | Main class of GitDocumentDB |
+|  [GitMergeBranchError](./git-documentdb.gitmergebrancherror.md) |  |
+|  [GitPushError](./git-documentdb.gitpusherror.md) |  |
 |  [HTTPNetworkError](./git-documentdb.httpnetworkerror.md) |  |
 |  [HttpProtocolRequiredError](./git-documentdb.httpprotocolrequirederror.md) |  |
 |  [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) |  |
@@ -53,6 +54,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md) |  |
 |  [PersonalAccessTokenForAnotherAccountError](./git-documentdb.personalaccesstokenforanotheraccounterror.md) |  |
 |  [PushConnectionFailedError](./git-documentdb.pushconnectionfailederror.md) |  |
+|  [PushNotAllowedError](./git-documentdb.pushnotallowederror.md) |  |
 |  [PushPermissionDeniedError](./git-documentdb.pushpermissiondeniederror.md) |  |
 |  [PushWorkerError](./git-documentdb.pushworkererror.md) |  |
 |  [RemoteAlreadyRegisteredError](./git-documentdb.remotealreadyregisterederror.md) |  |
@@ -64,7 +66,8 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
 |  [RequestTimeoutError](./git-documentdb.requesttimeouterror.md) |  |
 |  [SocketTimeoutError](./git-documentdb.sockettimeouterror.md) |  |
-|  [Sync](./git-documentdb.sync.md) | Sync class |
+|  [Sync](./git-documentdb.sync.md) | Synchronizer class |
+|  [SyncIntervalLessThanOrEqualToRetryIntervalError](./git-documentdb.syncintervallessthanorequaltoretryintervalerror.md) |  |
 |  [SyncWorkerError](./git-documentdb.syncworkererror.md) |  |
 |  [SyncWorkerFetchError](./git-documentdb.syncworkerfetcherror.md) |  |
 |  [TaskCancelError](./git-documentdb.taskcancelerror.md) |  |

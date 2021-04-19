@@ -14,7 +14,7 @@ export declare type SyncDirection = 'pull' | 'push' | 'both';
 
 ## Remarks
 
-- pull: Only download from remote to local
+- pull: Only download from remote to local (currently not implemented)
 
 - push: Only upload from local to remote
 

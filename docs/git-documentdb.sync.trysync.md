@@ -4,7 +4,9 @@
 
 ## Sync.trySync() method
 
-Try to synchronize with remote
+Try to sync with retries
+
+ [SyncWorkerError](./git-documentdb.syncworkererror.md)
 
 <b>Signature:</b>
 
@@ -17,5 +19,5 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 ## Exceptions
 
-[SyncWorkerError](./git-documentdb.syncworkererror.md)
+[PushNotAllowedError](./git-documentdb.pushnotallowederror.md)
 
