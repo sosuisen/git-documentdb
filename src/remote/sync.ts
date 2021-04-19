@@ -6,7 +6,10 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { setInterval } from 'timers';
+/**
+ * ! Must import both clearInterval and setInterval from 'timers'
+ */
+import { clearInterval, setInterval } from 'timers';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
@@ -18,7 +21,6 @@ import {
   RemoteRepositoryConnectError,
   RepositoryNotOpenError,
   SyncWorkerError,
-  SyncWorkerFetchError,
   UndefinedRemoteURLError,
 } from '../error';
 import {
@@ -207,7 +209,7 @@ export class Sync implements ISync {
    * Create remote connection
    *
    * @remarks
-   * Call init() just after creating instance.
+   * Call init() once just after creating instance.
    *
    * @throws {@link RemoteRepositoryConnectError}
    * @throws {@link PushWorkerError}
@@ -256,13 +258,14 @@ export class Sync implements ISync {
     }
 
     if (this._options.live) {
-      this.eventHandlers.active.forEach(func => {
-        func();
-      });
-
-      this._syncTimer = setInterval(() => {
-        this.trySync().catch(() => undefined);
-      }, this._options.interval!);
+      if (this._syncTimer === undefined) {
+        this.eventHandlers.active.forEach(func => {
+          func();
+        });
+        this._syncTimer = setInterval(() => {
+          this.trySync().catch(() => undefined);
+        }, this._options.interval!);
+      }
     }
     return syncResult;
   }
@@ -293,7 +296,6 @@ export class Sync implements ISync {
 
     // Cancel retrying
     this._retrySyncCounter = 0;
-
     if (this._syncTimer) {
       clearInterval(this._syncTimer);
     }
@@ -302,7 +304,6 @@ export class Sync implements ISync {
     this.eventHandlers.paused.forEach(func => {
       func();
     });
-
     return true;
   }
 
