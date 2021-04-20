@@ -17,7 +17,7 @@ import sinon from 'sinon';
 import { Sync } from '../src/remote/sync';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions, SyncResultPush } from '../src/types';
-import { PushWorkerError } from '../src/error';
+import { CannotPushBecauseUnfetchedCommitExistsError, PushWorkerError } from '../src/error';
 import { sleep } from '../src/utils';
 import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../test/remote_utils';
 import { NETWORK_RETRY } from '../src/const';
@@ -138,7 +138,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         await expect(
           Promise.all([remoteA.tryPush(), remoteB.tryPush()])
-        ).rejects.toThrowError(PushWorkerError);
+        ).rejects.toThrowError(CannotPushBecauseUnfetchedCommitExistsError);
 
         await destroyDBs([dbA, dbB]);
       });
@@ -172,7 +172,9 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteB = dbB.getSynchronizer(remoteURL);
 
         await remoteA.tryPush();
-        await expect(remoteB.tryPush()).rejects.toThrowError(PushWorkerError);
+        await expect(remoteB.tryPush()).rejects.toThrowError(
+          CannotPushBecauseUnfetchedCommitExistsError
+        );
 
         await destroyDBs([dbA, dbB]);
       });

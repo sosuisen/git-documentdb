@@ -22,7 +22,10 @@ import {
   SyncResultPush,
   SyncResultResolveConflictsAndPush,
 } from '../../src/types';
-import { NoMergeBaseFoundError } from '../../src/error';
+import {
+  CannotPushBecauseUnfetchedCommitExistsError,
+  NoMergeBaseFoundError,
+} from '../../src/error';
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -694,7 +697,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
    * No merge base
    */
   describe('throws NoMergeBaseError', () => {
-    it.only('when behavior_for_no_merge_base is nop in [push] direction', async () => {
+    it('when behavior_for_no_merge_base is nop in [push] direction', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         behavior_for_no_merge_base: 'nop',
         sync_direction: 'push',
@@ -710,8 +713,10 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       });
       await dbB.create();
 
-      // tryPush throws NoMergeBaseFoundError
-      await expect(dbB.sync(remoteA.options())).rejects.toThrowError(NoMergeBaseFoundError);
+      // tryPush throws CannotPushBecauseUnfetchedCommitExistsError
+      await expect(dbB.sync(remoteA.options())).rejects.toThrowError(
+        CannotPushBecauseUnfetchedCommitExistsError
+      );
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
