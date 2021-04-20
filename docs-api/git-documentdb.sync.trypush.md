@@ -6,8 +6,6 @@
 
 Try to push with retries
 
- [SyncWorkerError](./git-documentdb.syncworkererror.md)
-
 <b>Signature:</b>
 
 ```typescript
@@ -28,5 +26,9 @@ Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCa
 
 ## Exceptions
 
-[PushNotAllowedError](./git-documentdb.pushnotallowederror.md)
+[PushNotAllowedError](./git-documentdb.pushnotallowederror.md) (from this and enqueuePushTask)
+
+[PushWorkerError](./git-documentdb.pushworkererror.md) (from this and enqueuePushTask)
+
+[CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md) (from this and enqueuePushTask)
 

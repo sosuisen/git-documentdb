@@ -28,6 +28,8 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 [PushWorkerError](./git-documentdb.pushworkererror.md)
 
+[NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md)
+
 [SyncWorkerError](./git-documentdb.syncworkererror.md)
 
 ## Remarks
