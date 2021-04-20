@@ -90,9 +90,7 @@ function resolveNoMergeBase (sync: ISync) {
   else if (sync.options().combine_db_strategy === 'ours') {
     // git merge -s ours
     // TODO:
-    throw new Error(
-      'ours option for combine_db_strategy is not implemented currently.'
-    );
+    throw new Error('ours option for combine_db_strategy is not implemented currently.');
   }
 }
 
