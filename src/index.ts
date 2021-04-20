@@ -514,11 +514,12 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
       return Promise.reject(new DatabaseClosingError());
     }
 
+    let closeError: Error | undefined;
     if (this._currentRepository !== undefined) {
       // NOTICE: options.force is true by default.
       options.force = options.force ?? true;
       await this.close(options).catch(err => {
-        throw err;
+        closeError = err;
       });
     }
     // If the path does not exist, remove() silently does nothing.
@@ -537,6 +538,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         resolve();
       });
     });
+
+    if (closeError instanceof Error) {
+      throw closeError;
+    }
 
     return {
       ok: true,
