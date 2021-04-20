@@ -693,10 +693,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   /**
    * No merge base
    */
-  describe.skip('No merge base', () => {
-    // behavior_for_no_merge_base が nop のときリトライしないこと。
-    it.skip('Test ours option for behavior_for_no_merge_base', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+  describe('throws NoMergeBaseError', () => {
+    it.only('when behavior_for_no_merge_base is nop in [push] direction', async () => {
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        behavior_for_no_merge_base: 'nop',
+        sync_direction: 'push',
+      });
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -708,6 +710,32 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       });
       await dbB.create();
 
+      // tryPush throws NoMergeBaseFoundError
+      await expect(dbB.sync(remoteA.options())).rejects.toThrowError(NoMergeBaseFoundError);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it('when behavior_for_no_merge_base is nop in [both] direction', async () => {
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        behavior_for_no_merge_base: 'nop',
+        sync_direction: 'both',
+      });
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.create();
+
+      // trySync throws NoMergeBaseFoundError
       await expect(dbB.sync(remoteA.options())).rejects.toThrowError(NoMergeBaseFoundError);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
