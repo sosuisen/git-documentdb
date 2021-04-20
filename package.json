@@ -13,7 +13,7 @@
     "rm-test-db": "rm -rf test/database* test_intg/database*",
     "test": "npm run rm-test-db && npx nyc npm run mocha \"test/**/*.test.ts\" \"test_intg/**/*.test.ts\" && npm run rm-test-db",
     "test-noretry": "npm run rm-test-db && npx nyc npm run mocha-noretry \"test/**/*.test.ts\" \"test_intg/**/*.test.ts\" && npm run rm-test-db",
-    "test-serial": "npm run rm-test-db && npx nyc npm run mocha -- --no-parallel  \"test/**/*.test.ts\" \"test_intg/**/*.test.ts\" || ECHO. && npm run rm-test-db",
+    "test-serial": "npm run rm-test-db && npx nyc npm run mocha -- --no-parallel  \"test/**/*.test.ts\" \"test_intg/**/*.test.ts\" && npm run rm-test-db",
     "upload-coverage": "npx coveralls < coverage/lcov.info",
     "prepare": "",
     "prepublishOnly": "npm run build && npm run test",
