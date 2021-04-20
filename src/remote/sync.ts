@@ -15,6 +15,7 @@ import { ConsoleStyle, sleep } from '../utils';
 import {
   CannotPushBecauseUnfetchedCommitExistsError,
   IntervalTooSmallError,
+  NoMergeBaseFoundError,
   PushNotAllowedError,
   PushWorkerError,
   RemoteIsAdvancedWhileMergingError,
@@ -51,6 +52,7 @@ import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL, NETWORK_TIMEOUT } from '../const
  * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
  * @throws {@link PushWorkerError} (from Sync#init())
  * @throws {@link SyncWorkerError} (from Sync#init())
+ * @throws {@link NoMergeBaseFoundError}
  * @throws {@link PushNotAllowedError}  (from Sync#init())
  *
  * @internal
@@ -221,6 +223,7 @@ export class Sync implements ISync {
    *
    * @throws {@link RemoteRepositoryConnectError}
    * @throws {@link PushWorkerError}
+   * @throws {@link NoMergeBaseFoundError}
    * @throws {@link SyncWorkerError}
    *
    */
@@ -370,8 +373,9 @@ export class Sync implements ISync {
   /**
    * Try to push with retries
    *
-   * @throw {@link SyncWorkerError}
-   * @throws {@link PushNotAllowedError}
+   * @throws {@link PushNotAllowedError} (from this and enqueuePushTask)
+   * @throws {@link PushWorkerError} (from this and enqueuePushTask)
+   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from this and enqueuePushTask)
    */
   async tryPush (options?: {
     onlyPush: boolean;
@@ -395,7 +399,7 @@ export class Sync implements ISync {
         this._gitDDB.logger.debug('Push failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw new PushWorkerError(err.message);
+          throw err;
         }
         return err;
       });
@@ -414,7 +418,7 @@ export class Sync implements ISync {
       }
       else {
         this._retrySyncCounter = 0;
-        throw new PushWorkerError(resultOrError.message);
+        throw resultOrError;
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
@@ -426,8 +430,11 @@ export class Sync implements ISync {
   /**
    * Try to sync with retries
    *
-   * @throw {@link SyncWorkerError}
-   * @throws {@link PushNotAllowedError}
+   * @throws {@link PushNotAllowedError} (from this and enqueueSyncTask)
+   * @throws {@link SyncWorkerError} (from enqueueSyncTask)
+   * @throws {@link NoMergeBaseFoundError} (from enqueueSyncTask)
+   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from enqueueSyncTask)
+   * @throws {@link RemoteIsAdvancedWhileMergingError} (from enqueueSyncTask)
    */
   async trySync (): Promise<SyncResult> {
     if (this._options.sync_direction === 'pull') {
@@ -449,7 +456,7 @@ export class Sync implements ISync {
         this._gitDDB.logger.debug('Sync failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw new SyncWorkerError(err.message);
+          throw err;
         }
         return err;
       });
@@ -474,7 +481,7 @@ export class Sync implements ISync {
       }
       else {
         this._retrySyncCounter = 0;
-        throw new SyncWorkerError(resultOrError.message);
+        throw resultOrError;
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
@@ -487,6 +494,7 @@ export class Sync implements ISync {
    * Enqueue push task to TaskQueue
    *
    * @throws {@link PushWorkerError}
+   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError}
    * @throws {@link PushNotAllowedError}
    */
   enqueuePushTask (): Promise<SyncResultPush | SyncResultCancel> {
@@ -519,9 +527,11 @@ export class Sync implements ISync {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-          const pushWorkerError = new PushWorkerError(err.message);
+          if (!(err instanceof CannotPushBecauseUnfetchedCommitExistsError)) {
+            err = new PushWorkerError(err.message);
+          }
           this.eventHandlers.error.forEach(func => {
-            func(pushWorkerError);
+            func(err);
           });
 
           beforeReject();
@@ -556,6 +566,9 @@ export class Sync implements ISync {
    * Enqueue sync task to TaskQueue
    *
    * @throws {@link SyncWorkerError}
+   * @throws {@link NoMergeBaseFoundError}
+   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError}
+   * @throws {@link RemoteIsAdvancedWhileMergingError}
    * @throws {@link PushNotAllowedError}
    */
   enqueueSyncTask (): Promise<SyncResult> {
@@ -608,10 +621,17 @@ export class Sync implements ISync {
         })
         .catch(err => {
           // console.log(`Error in sync_worker: ${err}`);
-
-          const syncWorkerError = new SyncWorkerError(err.message);
+          if (
+            !(
+              err instanceof NoMergeBaseFoundError ||
+              err instanceof RemoteIsAdvancedWhileMergingError ||
+              err instanceof CannotPushBecauseUnfetchedCommitExistsError
+            )
+          ) {
+            err = new SyncWorkerError(err.message);
+          }
           this.eventHandlers.error.forEach(func => {
-            func(syncWorkerError);
+            func(err);
           });
 
           beforeReject();
