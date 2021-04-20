@@ -396,7 +396,7 @@ export type AcceptedConflict = {
  *
  * - conflict_resolve_strategy: Default is 'ours'.
  *
- * - behavior_for_no_merge_base:
+ * - combine_db_strategy:
  *
  * [result]
  *
@@ -416,7 +416,7 @@ export type RemoteOptions = {
 
   /* merge */
   conflict_resolve_strategy?: ConflictResolveStrategies;
-  behavior_for_no_merge_base?: BehaviorForNoMergeBase;
+  combine_db_strategy?: BehaviorForNoMergeBase;
 
   /* results */
   include_commits?: boolean;

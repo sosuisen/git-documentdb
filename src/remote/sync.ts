@@ -141,7 +141,7 @@ export class Sync implements ISync {
       retry: undefined,
       retry_interval: undefined,
       connection: undefined,
-      behavior_for_no_merge_base: undefined,
+      combine_db_strategy: undefined,
       include_commits: undefined,
       conflict_resolve_strategy: undefined,
     };
@@ -172,7 +172,7 @@ export class Sync implements ISync {
     }
 
     this._options.retry ??= Sync.defaultRetry;
-    this._options.behavior_for_no_merge_base ??= 'nop';
+    this._options.combine_db_strategy ??= 'nop';
     this._options.include_commits ??= false;
     this._options.conflict_resolve_strategy ??= 'ours';
 

@@ -262,7 +262,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         // Can synchronize
         /**
          * TODO:
-         * Handle behavior_for_no_merge_base in sync()
+         * Handle combine_db_strategy in sync()
          */
         await this.sync(remoteOptions);
       }
