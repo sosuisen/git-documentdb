@@ -236,15 +236,13 @@ export class Sync implements ISync {
     if (remoteResult === 'create') {
       this.upstream_branch = '';
     }
-    let syncResult: SyncResult;
-
+    let syncResult: SyncResult = {
+      action: 'nop',
+    };
     if (this._options === 'pull') {
       /**
        * TODO: Implement case when sync_direction is 'pull'.
        */
-      syncResult = {
-        action: 'nop',
-      };
     }
     else if (this.upstream_branch === '') {
       this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
@@ -260,7 +258,11 @@ export class Sync implements ISync {
       );
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
-    else {
+    else if (this._options.sync_direction === 'push') {
+      this._gitDDB.logger.debug('upstream_branch exists. tryPush..');
+      syncResult = await this.tryPush();
+    }
+    else if (this._options.sync_direction === 'both') {
       this._gitDDB.logger.debug('upstream_branch exists. trySync..');
       syncResult = await this.trySync();
     }
