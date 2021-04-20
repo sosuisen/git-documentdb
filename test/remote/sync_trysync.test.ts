@@ -32,7 +32,7 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from '../../test/remote_utils';
+} from '../remote_utils';
 import { sleep } from '../../src/utils';
 
 const reposPrefix = 'test_sync_trysync___';
@@ -66,7 +66,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('intg <remote/sync_trysync>: Sync#trySync()', () => {
+maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';

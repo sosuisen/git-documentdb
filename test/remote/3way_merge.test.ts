@@ -24,7 +24,7 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from '../../test/remote_utils';
+} from '../remote_utils';
 
 const reposPrefix = 'test_3way_merge___';
 const localDir = `./test_intg/database_3way_merge`;

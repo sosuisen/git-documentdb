@@ -21,7 +21,7 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from '../../test/remote_utils';
+} from '../remote_utils';
 import { SyncResultCancel, SyncResultPush } from '../../src/types';
 import { sleep } from '../../src/utils';
 
@@ -56,7 +56,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('intg <remote/sync_trypush>: Sync#tryPush()', () => {
+maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';

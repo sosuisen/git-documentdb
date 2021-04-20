@@ -25,10 +25,10 @@ import {
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
-} from '../../test/remote_utils';
+} from '../remote_utils';
 import { GitDocumentDB } from '../../src';
 import { Sync } from '../../src/remote/sync';
-import { SyncWorkerError, SyncWorkerFetchError } from '../../src/error';
+import { SyncWorkerError } from '../../src/error';
 
 const reposPrefix = 'test_sync_events___';
 const localDir = `./test_intg/database_sync_events`;

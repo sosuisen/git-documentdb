@@ -14,23 +14,19 @@
 import path from 'path';
 import fs from 'fs-extra';
 import sinon from 'sinon';
-import { Sync } from '../../src/remote/sync';
-import { GitDocumentDB } from '../../src';
-import { RemoteOptions, SyncResultPush } from '../../src/types';
-import { PushWorkerError } from '../../src/error';
-import { sleep } from '../../src/utils';
-import {
-  destroyDBs,
-  getChangedFile,
-  removeRemoteRepositories,
-} from '../../test/remote_utils';
-import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
-import { push_worker } from '../../src/remote/push_worker';
-import { sync_worker } from '../../src/remote/sync_worker';
+import { Sync } from '../src/remote/sync';
+import { GitDocumentDB } from '../src';
+import { RemoteOptions, SyncResultPush } from '../src/types';
+import { PushWorkerError } from '../src/error';
+import { sleep } from '../src/utils';
+import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../test/remote_utils';
+import { NETWORK_RETRY } from '../src/const';
+import { push_worker } from '../src/remote/push_worker';
+import { sync_worker } from '../src/remote/sync_worker';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const push_worker_module = require('../../src/remote/push_worker');
+const push_worker_module = require('../src/remote/push_worker');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const sync_worker_module = require('../../src/remote/sync_worker');
+const sync_worker_module = require('../src/remote/sync_worker');
 
 const reposPrefix = 'test_sync_lifecycle___';
 const localDir = `./test_intg/database_sync_lifecycle`;
@@ -61,8 +57,8 @@ const maybe =
     ? describe
     : describe.skip;
 
-// Test lifecycle (open, sync, tryPush, trySync)
-maybe('intg <remote/sync_lifecycle> Sync', () => {
+// Test lifecycle of Sync (open, sync, tryPush, trySync)
+maybe('intg <sync_lifecycle> Sync', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';

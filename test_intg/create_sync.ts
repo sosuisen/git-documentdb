@@ -46,7 +46,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('intg: create: GitDocumentDB: ', () => {
+maybe('intg: <create_sync>: create DB with Sync: ', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -57,7 +57,7 @@ maybe('intg: create: GitDocumentDB: ', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  describe('create(): ', () => {
+  describe('create()', () => {
     it('creates a remote repository on GitHub by using personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
 
