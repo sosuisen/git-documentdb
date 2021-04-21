@@ -195,10 +195,13 @@ https://github.com/sosuisen/inventory-manager
 # Roadmap
 
 - v0.1 Basic CRUD
-- v0.2 Collections
-  - v0.2.8 Prefix search
-- v0.3 Synchronization with GitHub :feet:(Here now)
-- v0.4 Revisions
+- v0.2
+  - Collections
+  - Prefix search
+- v0.3
+  - Synchronization with GitHub
+  - Revisions :feet:(Here now)
+- v0.4 Work on both Node.js and browser
 - v0.5 Grep
 - v0.6 Miscellaneous
   - Replication
