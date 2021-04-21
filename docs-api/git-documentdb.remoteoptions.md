@@ -18,7 +18,7 @@ export declare type RemoteOptions = {
     retry?: number;
     retry_interval?: number;
     conflict_resolve_strategy?: ConflictResolveStrategies;
-    behavior_for_no_merge_base?: BehaviorForNoMergeBase;
+    combine_db_strategy?: BehaviorForNoMergeBase;
     include_commits?: boolean;
 };
 ```
@@ -48,7 +48,7 @@ export declare type RemoteOptions = {
 
 - conflict\_resolve\_strategy: Default is 'ours'.
 
-- behavior\_for\_no\_merge\_base:
+- combine\_db\_strategy:
 
 \[result\]
 

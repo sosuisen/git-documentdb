@@ -1,0 +1,38 @@
+@startuml resolve_inconsistent_remote_repository
+title Resolve inconsistent remote repository
+skinparam activity {
+  BackgroundColor<< Succeeded >> lightgreen
+  BackgroundColor<< Failed >> pink
+}
+(*) --> "Start sync"
+-left-> if "Remote repository is consistent?"
+  -->[yes] "Can synchronize normally" << Succeeded >>
+else
+  -->[no] if "Which method?"
+    -down->[tryPush()] "(A)CannotPushBecause\nUnfetchedCommitExistsError"
+    if "Check combine_db_strategy" then
+      -->[other strategies] "(C)Resolve manually\nafter catching CannotPushBecause\nUnfetchedCommitExistsError" << Failed >>
+          --> "(D)Call RemoteRepository#destroy()\nor remove the remote repository\nby hand"
+          --> "(E)Call tryPush() again\nby hand"
+          -up-> "Start sync"
+
+          "(C)Resolve manually\nafter catching CannotPushBecause\nUnfetchedCommitExistsError" --> "(F)Call trySync()\nby hand"
+          -up-> "Start sync"
+    else
+      -->[replace-with-ours] "(B)Call combineDB()\nautomatically"
+    endif
+  else 
+    -down->[trySync()] if "" then
+      -->[push_worker] "(A)CannotPushBecause\nUnfetchedCommitExistsError"
+    else
+      -->[sync_worker] "(G)NoMergeBaseFoundError"
+      if "Check combine_db_strategy" then
+        -->[nop] "(H)Resolve manually\nafter catchig NoBaseMergeFoundError" << Failed >>
+        --> "(D)Call RemoteRepository#destroy()\nor remove the remote repository\nby hand"
+      else
+        -->[other strategies] "(B)Call combineDB()\nautomatically" << Succeeded >>
+      endif
+    endif
+  endif
+endif
+@enduml

@@ -36,9 +36,16 @@ const serialId = () => {
   return `${reposPrefix}${idCounter++}`;
 };
 
+// Use sandbox to restore stub and spy in parallel mocha tests
+let sandbox: sinon.SinonSandbox;
 beforeEach(function () {
   // @ts-ignore
   console.log(`... ${this.currentTest.fullTitle()}`);
+  sandbox = sinon.createSandbox();
+});
+
+afterEach(function () {
+  sandbox.restore();
 });
 
 beforeAll(() => {
@@ -471,18 +478,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         };
 
         const sync = new Sync(dbA, options);
-        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sinon.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
         stubPush.rejects();
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
 
         expect(stubPush.callCount).toBe(NETWORK_RETRY + 1);
 
-        stubNet.restore();
-        stubPush.restore();
         await destroyDBs([dbA]);
       });
 
@@ -502,10 +507,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         };
 
         const sync = new Sync(dbA, options);
-        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sinon.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
         stubPush.onFirstCall().rejects();
         const syncResultPush: SyncResultPush = {
           action: 'push',
@@ -524,8 +529,6 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         expect(stubPush.callCount).toBe(2);
 
-        stubNet.restore();
-        stubPush.restore();
         await destroyDBs([dbA]);
       });
 
@@ -546,7 +549,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const sync = new Sync(dbA, options);
 
-        const stubPush = sinon.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
         stubPush.rejects();
 
         // Call push_worker which is not spied by Sinon
@@ -559,7 +562,6 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         expect(stubPush.callCount).toBe(1);
 
-        stubPush.restore();
         await destroyDBs([dbA]);
       });
 
@@ -581,19 +583,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbA.sync(options);
         const sync = dbA.getSynchronizer(remoteURL);
 
-        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubSync = sinon.stub(sync_worker_module, 'sync_worker');
+        const stubSync = sandbox.stub(sync_worker_module, 'sync_worker');
         stubSync.rejects();
 
         // sync has already been initialized, so will run trySync()
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
 
         expect(stubSync.callCount).toBe(NETWORK_RETRY + 1);
-
-        stubNet.restore();
-        stubSync.restore();
 
         await destroyDBs([dbA]);
       });
@@ -616,10 +615,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbA.sync(options);
         const sync = dbA.getSynchronizer(remoteURL);
 
-        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubSync = sinon.stub(sync_worker_module, 'sync_worker');
+        const stubSync = sandbox.stub(sync_worker_module, 'sync_worker');
         stubSync.onFirstCall().rejects();
 
         // Call push_worker which is not spied by Sinon
@@ -650,8 +649,6 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         expect(stubSync.callCount).toBe(2);
 
-        stubNet.restore();
-        stubSync.restore();
         await destroyDBs([dbA]);
       });
 
@@ -698,7 +695,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           errorOnB = true;
         });
 
-        const spySync = sinon.spy(sync_worker_module, 'sync_worker');
+        const spySync = sandbox.spy(sync_worker_module, 'sync_worker');
 
         // Either dbA or dbB will get CannotPushBecauseUnfetchedCommitExistsError
         // and retry automatically.
@@ -724,8 +721,6 @@ maybe('intg <sync_lifecycle> Sync', () => {
         }
         expect(spySync.callCount).toBe(5);
 
-        spySync.restore();
-
         await destroyDBs([dbA, dbB]);
       });
 
@@ -747,14 +742,13 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbA.sync(options);
         const sync = dbA.getSynchronizer(remoteURL);
 
-        const stubSync = sinon.stub(sync_worker_module, 'sync_worker');
+        const stubSync = sandbox.stub(sync_worker_module, 'sync_worker');
         stubSync.rejects();
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
 
         expect(stubSync.callCount).toBe(1);
 
-        stubSync.restore();
         await destroyDBs([dbA]);
       });
 
@@ -776,18 +770,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         };
 
         const sync = new Sync(dbA, options);
-        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sinon.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
         stubPush.rejects();
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
 
         expect(stubPush.callCount).toBe(1);
 
-        stubNet.restore();
-        stubPush.restore();
         await destroyDBs([dbA]);
       });
 
@@ -813,15 +805,15 @@ maybe('intg <sync_lifecycle> Sync', () => {
         };
 
         const sync = new Sync(dbA, options);
-        const stubNet = sinon.stub(sync, 'canNetworkConnection');
+        const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sinon.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
         stubPush.rejects();
 
         sync.init(dbA.repository()!).catch(() => {});
 
-        await sleep(retry_interval / 2);
+        await sleep(retry_interval - 500);
         expect(stubPush.callCount).toBe(1);
         await sleep(retry_interval);
         expect(stubPush.callCount).toBe(2);
@@ -829,8 +821,6 @@ maybe('intg <sync_lifecycle> Sync', () => {
         expect(stubPush.callCount).toBe(3);
         await sleep(retry_interval);
 
-        stubNet.restore();
-        stubPush.restore();
         await destroyDBs([dbA]);
       });
     });

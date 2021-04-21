@@ -693,40 +693,40 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await destroyDBs([dbA]);
   });
 
+  it('throws CannotPushBecauseUnfetchedCommitExistError when combine_db_strategy is nop in [push] direction', async () => {
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      combine_db_strategy: 'nop',
+      sync_direction: 'push',
+    });
+
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    await dbA.put(jsonA1);
+
+    const dbNameB = serialId();
+    const dbB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbNameB,
+      local_dir: localDir,
+    });
+    await dbB.create();
+
+    // tryPush throws CannotPushBecauseUnfetchedCommitExistsError
+    await expect(dbB.sync(remoteA.options())).rejects.toThrowError(
+      CannotPushBecauseUnfetchedCommitExistsError
+    );
+
+    await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+    await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
+
   /**
    * No merge base
    */
-  describe('throws NoMergeBaseError', () => {
-    it('when behavior_for_no_merge_base is nop in [push] direction', async () => {
+  describe.skip('throws NoMergeBaseError', () => {
+    it('when combine_db_strategy is nop in [both] direction', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        behavior_for_no_merge_base: 'nop',
-        sync_direction: 'push',
-      });
-
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
-      });
-      await dbB.create();
-
-      // tryPush throws CannotPushBecauseUnfetchedCommitExistsError
-      await expect(dbB.sync(remoteA.options())).rejects.toThrowError(
-        CannotPushBecauseUnfetchedCommitExistsError
-      );
-
-      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
-      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
-
-      await destroyDBs([dbA, dbB]);
-    });
-
-    it('when behavior_for_no_merge_base is nop in [both] direction', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        behavior_for_no_merge_base: 'nop',
+        combine_db_strategy: 'nop',
         sync_direction: 'both',
       });
 

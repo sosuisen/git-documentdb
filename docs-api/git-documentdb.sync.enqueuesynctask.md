@@ -19,5 +19,11 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 [SyncWorkerError](./git-documentdb.syncworkererror.md)
 
+[NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md)
+
+[CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md)
+
+[RemoteIsAdvancedWhileMergingError](./git-documentdb.remoteisadvancedwhilemergingerror.md)
+
 [PushNotAllowedError](./git-documentdb.pushnotallowederror.md)
 

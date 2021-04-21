@@ -19,5 +19,7 @@ Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCa
 
 [PushWorkerError](./git-documentdb.pushworkererror.md)
 
+[CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md)
+
 [PushNotAllowedError](./git-documentdb.pushnotallowederror.md)
 
