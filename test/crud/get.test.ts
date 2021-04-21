@@ -10,6 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import { destroyDBs } from '../remote_utils';
 import {
   DocumentNotFoundError,
   InvalidIdCharacterError,
@@ -187,6 +188,109 @@ describe('Read document', () => {
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
     await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
+    await gitDDB.destroy();
+  });
+
+  describe('<crud/get> get() back number', () => {
+    it('throws DocumentNotFoundError when get deleted document with backNumber #0.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.create();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+      await gitDDB.delete(_idA);
+      // Get
+      await expect(gitDDB.get(_idA, 0)).rejects.toThrowError(DocumentNotFoundError);
+      await expect(gitDDB.get(_idA)).rejects.toThrowError(DocumentNotFoundError);
+
+      await destroyDBs([gitDDB]);
+    });
+
+    it('returns the last revision when get deleted document with backNumber #1.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.create();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+      await gitDDB.delete(_idA);
+      // Get
+      await expect(gitDDB.get(_idA, 1)).resolves.toMatchObject(jsonA02);
+
+      await destroyDBs([gitDDB]);
+    });
+
+    it('returns the second new revision when get deleted document with backNumber #2.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.create();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+      await gitDDB.delete(_idA);
+      // Get
+      await expect(gitDDB.get(_idA, 2)).resolves.toMatchObject(jsonA01);
+
+      await destroyDBs([gitDDB]);
+    });
+
+    it('throws DocumentNotFoundError when get document with backNumber that does not exist.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.create();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+      await gitDDB.delete(_idA);
+      // Get
+      await expect(gitDDB.get(_idA, 3)).rejects.toThrowError(DocumentNotFoundError);
+
+      await destroyDBs([gitDDB]);
+    });
+  });
+});
+
+describe('<crud/get> getByRevision()', () => {
+  it('returns the specified document', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.create();
+    const _id = 'prof01';
+    const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
+    // Get by revision
+    await expect(gitDDB.getByRevision(putResult.file_sha)).resolves.toEqual({
+      _id: _id,
+      name: 'shirase',
+    });
     await gitDDB.destroy();
   });
 });

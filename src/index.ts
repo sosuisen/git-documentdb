@@ -43,13 +43,14 @@ import {
 } from './types';
 import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
-import { getImpl } from './crud/get';
+import { getByRevisionImpl, getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
 import { TaskQueue } from './task_queue';
 import { FILE_REMOVE_TIMEOUT } from './const';
 import { cloneRepository } from './remote/clone';
+import { getDocHistoryImpl } from './crud/history';
 
 // const debugMinLevel = 'trace';
 const debugMinLevel = 'info';
@@ -620,6 +621,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * Get a document
    *
    * @param docId - id of a target document
+   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned.
+   * When backNumber is 0 and a document has been deleted in the current DB, it throws DocumentNotFoundError.
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
@@ -629,9 +633,40 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
-  get (docId: string): Promise<JsonDoc> {
+  get (docId: string, backNumber?: number): Promise<JsonDoc> {
     // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
-    return getImpl.call(this, docId);
+    return getImpl.call(this, docId, backNumber);
+  }
+
+  /**
+   * Get a specific revision of a document
+   *
+   * @param - fileSHA SHA-1 hash of Git object (40 characters)
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedFileSHAError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getByRevision (fileSHA: string): Promise<JsonDoc> {
+    return getByRevisionImpl.call(this, fileSHA);
+  }
+
+  /**
+   * Get revision history of a file from new to old
+   *
+   * @param - docId - id of a target document
+   * @returns Array of fileSHA (NOTE: getDocHistory returns empty array if document does not exist in history.)
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedFileSHAError}
+   * @throws {@link DocumentNotFoundError}
+   * @throws {@link CannotGetEntryError}
+   */
+  getDocHistory (docID: string): Promise<string[]> {
+    return getDocHistoryImpl.call(this, docID);
   }
 
   /**

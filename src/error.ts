@@ -134,6 +134,30 @@ export class UndefinedDocumentIdError extends BaseError {
 
 /**
  */
+export class UndefinedFileSHAError extends BaseError {
+  constructor (e = `File SHA is undefined.`) {
+    super(e);
+  }
+}
+
+/**
+ */
+export class InvalidBackNumberError extends BaseError {
+  constructor (e = `Back number must be greater than or equal to 0.`) {
+    super(e);
+  }
+}
+
+/**
+ */
+export class CannotGetEntryError extends BaseError {
+  constructor (e = `Cannot get blob entry.`) {
+    super(e);
+  }
+}
+
+/**
+ */
 export class RepositoryNotOpenError extends BaseError {
   constructor (e = 'Repository not opened') {
     super(e);
