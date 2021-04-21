@@ -19,6 +19,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
 |  [CannotCreateRemoteRepositoryError](./git-documentdb.cannotcreateremoterepositoryerror.md) |  |
 |  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
+|  [CannotGetEntryError](./git-documentdb.cannotgetentryerror.md) |  |
 |  [CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md) |  |
 |  [CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md) |  |
 |  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
@@ -36,6 +37,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [HttpProtocolRequiredError](./git-documentdb.httpprotocolrequirederror.md) |  |
 |  [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) |  |
 |  [InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md) |  |
+|  [InvalidBackNumberError](./git-documentdb.invalidbacknumbererror.md) |  |
 |  [InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md) |  |
 |  [InvalidCollectionPathError](./git-documentdb.invalidcollectionpatherror.md) |  |
 |  [InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md) |  |
@@ -75,6 +77,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md) |  |
 |  [UndefinedDBError](./git-documentdb.undefineddberror.md) |  |
 |  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) |  |
+|  [UndefinedFileSHAError](./git-documentdb.undefinedfileshaerror.md) |  |
 |  [UndefinedGitHubAuthenticationError](./git-documentdb.undefinedgithubauthenticationerror.md) |  |
 |  [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md) |  |
 |  [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) |  |

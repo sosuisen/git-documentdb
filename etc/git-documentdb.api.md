@@ -62,6 +62,11 @@ export class CannotDeleteDataError extends BaseError {
 }
 
 // @public (undocumented)
+export class CannotGetEntryError extends BaseError {
+    constructor(e?: string);
+}
+
+// @public (undocumented)
 export class CannotOpenRepositoryError extends BaseError {
     constructor(err: string);
 }
@@ -226,7 +231,9 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         ok: true;
     }>;
     readonly fileExt = ".json";
-    get(docId: string): Promise<JsonDoc>;
+    get(docId: string, backNumber?: number): Promise<JsonDoc>;
+    getByRevision(fileSHA: string): Promise<JsonDoc>;
+    getDocHistory(docID: string): Promise<string[]>;
     getRemoteURLs(): string[];
     getSynchronizer(remoteURL: string): Sync;
     readonly gitAuthor: {
@@ -281,6 +288,11 @@ export class IntervalTooSmallError extends BaseError {
 // @public (undocumented)
 export class InvalidAuthenticationTypeError extends BaseError {
     constructor(type: string);
+}
+
+// @public (undocumented)
+export class InvalidBackNumberError extends BaseError {
+    constructor(e?: string);
 }
 
 // @public (undocumented)
@@ -741,6 +753,11 @@ export class UndefinedDBError extends BaseError {
 
 // @public (undocumented)
 export class UndefinedDocumentIdError extends BaseError {
+    constructor(e?: string);
+}
+
+// @public (undocumented)
+export class UndefinedFileSHAError extends BaseError {
     constructor(e?: string);
 }
 
