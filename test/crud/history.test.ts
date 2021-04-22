@@ -7,10 +7,20 @@
  */
 
 import path from 'path';
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import sinon from 'sinon';
 import { destroyDBs } from '../remote_utils';
 import { GitDocumentDB } from '../../src/index';
+import {
+  CannotGetEntryError,
+  DatabaseClosingError,
+  DocumentNotFoundError,
+  RepositoryNotOpenError,
+  UndefinedDocumentIdError,
+} from '../../src/error';
+import { sleep } from '../../src/utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -19,9 +29,16 @@ const monoId = () => {
 
 const localDir = './test/database_history';
 
+// Use sandbox to restore stub and spy in parallel mocha tests
+let sandbox: sinon.SinonSandbox;
 beforeEach(function () {
   // @ts-ignore
   console.log(`... ${this.currentTest.fullTitle()}`);
+  sandbox = sinon.createSandbox();
+});
+
+afterEach(function () {
+  sandbox.restore();
 });
 
 beforeAll(() => {
@@ -84,4 +101,89 @@ describe('<crud/history> getDocHistory()', () => {
 
     await destroyDBs([gitDDB]);
   });
+
+  it('throws DatabaseClosingError', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    for (let i = 0; i < 100; i++) {
+      // put() will throw Error after the database is closed by force.
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
+    }
+    // Call close() without await
+    gitDDB.close().catch(() => {});
+    await expect(gitDDB.getDocHistory('0')).rejects.toThrowError(DatabaseClosingError);
+
+    while (gitDDB.isClosing) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(100);
+    }
+    await destroyDBs([gitDDB]);
+  });
+
+  it('throws RepositoryNotOpenError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    await gitDDB.close();
+    await expect(gitDDB.getDocHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
+  });
+
+  it('throws UndefinedDocumentIdError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    // @ts-ignore
+    await expect(gitDDB.getDocHistory(undefined)).rejects.toThrowError(
+      UndefinedDocumentIdError
+    );
+  });
+
+  it('throws DocumentNotFoundError if db does not have commits.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    // Create db without the first commit
+    await fs.ensureDir(gitDDB.workingDir());
+    // eslint-disable-next-line dot-notation
+    gitDDB['_currentRepository'] = await nodegit.Repository.initExt(
+      gitDDB.workingDir(),
+      // @ts-ignore
+      {
+        initialHead: gitDDB.defaultBranch,
+      }
+    );
+
+    await expect(gitDDB.getDocHistory('tmp')).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.destroy();
+  });
+
+  it('throws CannotGetEntryError if error occurs while reading a document.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
+    stub.rejects(new Error());
+    await expect(gitDDB.getDocHistory('prof01')).rejects.toThrowError(CannotGetEntryError);
+    await gitDDB.destroy();
+  });
 });
+
+describe('<crud/history> getBackNumber()', () => {});
