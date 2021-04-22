@@ -770,7 +770,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link SyncWorkerError} (from Sync#init())
    *
    * @remarks
-   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call removeRemote() before register it again.
+   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
    */
   async sync (remoteURL: string, options?: RemoteOptions): Promise<Sync>;
   /**
