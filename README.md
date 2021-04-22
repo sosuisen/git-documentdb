@@ -81,7 +81,7 @@ const gitDDB = new GitDocumentDB({
   await gitDDB.sync({
     live: true,
     remote_url: github_repository,
-    auth: { type: 'github', personal_access_token: your_github_personal_access_token },
+    connection: { type: 'github', personal_access_token: your_github_personal_access_token },
   });
 ```
 
@@ -181,6 +181,7 @@ See examples directory.
 $ cd examples
 $ npm i
 $ npm start
+$ npm start-sync
 ```
 
 # Continuous Deployment (CD) using GitDocumentDB
