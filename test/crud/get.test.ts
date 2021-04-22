@@ -17,10 +17,12 @@ import {
   CannotGetEntryError,
   DatabaseClosingError,
   DocumentNotFoundError,
+  InvalidFileSHAFormatError,
   InvalidIdCharacterError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
+  UndefinedFileSHAError,
 } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
 
@@ -211,7 +213,7 @@ describe('<crud/get> get()', () => {
     const index = await _currentRepository!.refreshIndex(); // read latest index
     await index.addByPath(filename); // stage
     await index.write(); // flush changes to index
-    const changes = await index.writeTree(); // get reference to a set of changes
+    const treeOid = await index.writeTree(); // get reference to a set of changes
     const gitAuthor = {
       name: 'GitDocumentDB',
       email: 'system@gdd.localhost',
@@ -228,7 +230,7 @@ describe('<crud/get> get()', () => {
       author,
       committer,
       'message',
-      changes,
+      treeOid,
       parentCommits
     );
 
@@ -389,7 +391,9 @@ describe('<crud/get> getByRevision()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(gitDDB.getByRevision('tmp')).rejects.toThrowError(DatabaseClosingError);
+    await expect(
+      gitDDB.getByRevision('0000000000111111111122222222223333333333')
+    ).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -397,9 +401,134 @@ describe('<crud/get> getByRevision()', () => {
     }
     await destroyDBs([gitDDB]);
   });
-  it('throws RepositoryNotOpenError');
-  it('throws UndefinedFileSHAError');
-  it('throws DocumentNotFoundError');
-  it('throws CannotGetEntryError');
-  it('throws InvalidJsonObjectError');
+
+  it('throws RepositoryNotOpenError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    await gitDDB.close();
+    await expect(
+      gitDDB.getByRevision('0000000000111111111122222222223333333333')
+    ).rejects.toThrowError(RepositoryNotOpenError);
+  });
+
+  it('throws UndefinedFileSHAError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    // @ts-ignore
+    await expect(gitDDB.getByRevision(undefined)).rejects.toThrowError(
+      UndefinedFileSHAError
+    );
+    await gitDDB.destroy();
+  });
+
+  it('throws InvalidFileSHAFormatError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    // @ts-ignore
+    await expect(gitDDB.getByRevision('invalid format')).rejects.toThrowError(
+      InvalidFileSHAFormatError
+    );
+    await gitDDB.destroy();
+  });
+
+  it('throws DocumentNotFoundError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.create();
+    const _id = 'prof01';
+    const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
+    // Get by revision
+    await expect(
+      gitDDB.getByRevision('0000000000111111111122222222223333333333')
+    ).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.destroy();
+  });
+
+  it('throws CannotGetEntryError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    const stub = sandbox.stub(nodegit.Repository.prototype, 'getBlob');
+    stub.rejects(new Error());
+    await expect(
+      gitDDB.getByRevision('0000000000111111111122222222223333333333')
+    ).rejects.toThrowError(CannotGetEntryError);
+    await gitDDB.destroy();
+  });
+
+  it('throws InvalidJsonObjectError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    const _id = 'invalidJSON';
+    let file_sha: string;
+    const data = 'invalid data'; // JSON.parse() will throw error
+
+    // Put data
+    const _currentRepository = gitDDB.repository();
+    const fileExt = '.json';
+    const filename = _id + fileExt;
+    const filePath = path.resolve(gitDDB.workingDir(), filename);
+    const dir = path.dirname(filePath);
+    await fs.ensureDir(dir).catch((err: Error) => console.error(err));
+    await fs.writeFile(filePath, data);
+    const index = await _currentRepository!.refreshIndex(); // read latest index
+    await index.addByPath(filename); // stage
+    await index.write(); // flush changes to index
+    const treeOid = await index.writeTree(); // get reference to a set of changes
+
+    // Get SHA of blob if needed.
+    const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
+    const fileSHA = entry.id.tostrS();
+
+    const gitAuthor = {
+      name: 'GitDocumentDB',
+      email: 'system@gdd.localhost',
+    };
+    const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+    const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+    const head = await _currentRepository!.getHeadCommit();
+    const parentCommits: nodegit.Commit[] = [];
+    if (head !== null) {
+      parentCommits.push(head);
+    }
+    await _currentRepository!.createCommit(
+      'HEAD',
+      author,
+      committer,
+      'message',
+      treeOid,
+      parentCommits
+    );
+
+    await expect(gitDDB.getByRevision(fileSHA)).rejects.toThrowError(
+      InvalidJsonObjectError
+    );
+
+    await gitDDB.destroy();
+  });
 });
