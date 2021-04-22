@@ -9,6 +9,7 @@
     "doc": "npm run build && npm run api-extractor && npm run crlf",
     "mocha": "rm -rf test/database* && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha",
     "mocha-noretry": "rm -rf test/database* && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha --retries 0",
+    "mocha-n": "npm run mocha-noretry",
     "compile-tests": "tsc --project test/tsconfig.json && tsc --project test_intg/tsconfig.json",
     "rm-test-db": "rm -rf test/database* test_intg/database*",
     "test": "npm run rm-test-db && npx nyc npm run mocha \"test/**/*.test.ts\" \"test_intg/**/*.test.ts\" && npm run rm-test-db",
