@@ -13,6 +13,7 @@ import {
   DatabaseClosingError,
   DocumentNotFoundError,
   InvalidBackNumberError,
+  InvalidFileSHAFormatError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
@@ -106,6 +107,10 @@ export async function getByRevisionImpl (
     throw new UndefinedFileSHAError();
   }
 
+  if (!fileSHA.match(/^[\da-z]{40}$/)) {
+    throw new InvalidFileSHAFormatError();
+  }
+
   const blob = await _currentRepository.getBlob(fileSHA).catch(err => {
     if (err.errno === -3) {
       // -3 shows requested object could not be found error.
@@ -116,6 +121,8 @@ export async function getByRevisionImpl (
       throw new DocumentNotFoundError(err.message);
     }
     else {
+      // Other errors
+      // e.g.) "unable to parse OID - contains invalid characters"
       throw new CannotGetEntryError(err.message);
     }
   });

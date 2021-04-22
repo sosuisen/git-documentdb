@@ -7,8 +7,6 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { SyncDirection } from './types';
-
 class BaseError extends Error {
   constructor (e?: string) {
     super(e);
@@ -567,5 +565,11 @@ export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
     super(
       `Sync interval is less than or equal to retry interval : ${syncInterval} < ${retryInterval}`
     );
+  }
+}
+
+export class InvalidFileSHAFormatError extends BaseError {
+  constructor () {
+    super(`File SHA format is invalid.`);
   }
 }
