@@ -32,6 +32,7 @@ import nodegit from '@sosuisen/nodegit';
 export type DatabaseOption = {
   local_dir?: string;
   db_name: string;
+  log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 };
 /**
  * Database information

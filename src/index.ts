@@ -10,7 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
-import { Logger } from 'tslog';
+import { Logger, TLogLevelName } from 'tslog';
 import {
   CannotCreateDirectoryError,
   CannotOpenRepositoryError,
@@ -52,8 +52,7 @@ import { FILE_REMOVE_TIMEOUT } from './const';
 import { cloneRepository } from './remote/clone';
 import { getDocHistoryImpl } from './crud/history';
 
-// const debugMinLevel = 'trace';
-const debugMinLevel = 'info';
+const defaultLogLevel = 'info';
 
 const databaseName = 'GitDocumentDB';
 const databaseVersion = '1.0';
@@ -106,6 +105,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
   private _localDir: string;
   private _dbName: string;
+  private _logLevel: string;
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
 
@@ -157,6 +157,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
 
     this._dbName = options.db_name;
     this._localDir = options.local_dir ?? defaultLocalDir;
+    this._logLevel = options.log_level ?? defaultLogLevel;
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
@@ -178,7 +179,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     }
     this.logger = new Logger({
       name: this._dbName,
-      minLevel: debugMinLevel,
+      minLevel: this._logLevel as TLogLevelName,
       displayDateTime: false,
       displayFunctionName: false,
       displayFilePath: 'hidden',
