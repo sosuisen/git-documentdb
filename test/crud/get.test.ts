@@ -10,8 +10,12 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import sinon from 'sinon';
+import { sleep } from '../../src/utils';
 import { destroyDBs } from '../remote_utils';
 import {
+  CannotGetEntryError,
+  DatabaseClosingError,
   DocumentNotFoundError,
   InvalidIdCharacterError,
   InvalidJsonObjectError,
@@ -27,9 +31,16 @@ const monoId = () => {
 
 const localDir = './test/database_get';
 
+// Use sandbox to restore stub and spy in parallel mocha tests
+let sandbox: sinon.SinonSandbox;
 beforeEach(function () {
   // @ts-ignore
   console.log(`... ${this.currentTest.fullTitle()}`);
+  sandbox = sinon.createSandbox();
+});
+
+afterEach(function () {
+  sandbox.restore();
 });
 
 beforeAll(() => {
@@ -40,21 +51,8 @@ afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('Read document', () => {
-  test('get(): Invalid _id', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-
-    await gitDDB.create();
-    const _id = 'prof01';
-    await expect(gitDDB.get('_prof01')).rejects.toThrowError(InvalidIdCharacterError);
-    await gitDDB.destroy();
-  });
-
-  test('get(): Read an existing document', async () => {
+describe('<crud/get> get()', () => {
+  it('returns JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -67,11 +65,9 @@ describe('Read document', () => {
     // Get
     await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
     await gitDDB.destroy();
-    // Check error
-    await expect(gitDDB.get(_id)).rejects.toThrowError(RepositoryNotOpenError);
   });
 
-  test('get(): Read an existing document in subdirectory', async () => {
+  it('returns JsonDoc in subdirectory', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -86,7 +82,40 @@ describe('Read document', () => {
     await gitDDB.destroy();
   });
 
-  test('get(): Read a document that does not exist.', async () => {
+  it('throws DatabaseClosingError', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    for (let i = 0; i < 100; i++) {
+      // put() will throw Error after the database is closed by force.
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
+    }
+    // Call close() without await
+    gitDDB.close().catch(() => {});
+    await expect(gitDDB.get('tmp')).rejects.toThrowError(DatabaseClosingError);
+    while (gitDDB.isClosing) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(100);
+    }
+    await destroyDBs([gitDDB]);
+  });
+
+  it('throws RepositoryNotOpenError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    await gitDDB.close();
+    await expect(gitDDB.get('tmp')).rejects.toThrowError(RepositoryNotOpenError);
+  });
+
+  it('throws UndefinedDocumentIdError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -94,15 +123,72 @@ describe('Read document', () => {
     });
     await gitDDB.create();
     const _id = 'prof01';
-    await expect(gitDDB.get('prof01')).rejects.toThrowError(DocumentNotFoundError);
-    await gitDDB.put({ _id: _id, name: 'shirase' });
     // @ts-ignore
     await expect(gitDDB.get(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
-    await expect(gitDDB.get('prof02')).rejects.toThrowError(DocumentNotFoundError);
     await gitDDB.destroy();
   });
 
-  test('get(): Get invalid JSON', async () => {
+  it('throws InvalidIdCharacterError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.create();
+    const _id = 'prof01';
+    await expect(gitDDB.get('_prof01')).rejects.toThrowError(InvalidIdCharacterError);
+    await gitDDB.destroy();
+  });
+
+  it('throws DocumentNotFoundError if db does not have commits.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    // Create db without the first commit
+    await fs.ensureDir(gitDDB.workingDir());
+    // eslint-disable-next-line dot-notation
+    gitDDB['_currentRepository'] = await nodegit.Repository.initExt(
+      gitDDB.workingDir(),
+      // @ts-ignore
+      {
+        initialHead: gitDDB.defaultBranch,
+      }
+    );
+
+    await expect(gitDDB.get('prof01')).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.destroy();
+  });
+
+  it('throws DocumentNotFoundError if a document is not put.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    await expect(gitDDB.get('prof01')).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.destroy();
+  });
+
+  it('throws CannotGetEntryError if error occurs while reading a document.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
+    stub.rejects(new Error());
+    await expect(gitDDB.get('prof01')).rejects.toThrowError(CannotGetEntryError);
+    await gitDDB.destroy();
+  });
+
+  it('throws InvalidJsonObjectError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -113,70 +199,45 @@ describe('Read document', () => {
     const _id = 'invalidJSON';
     let file_sha: string;
     const data = 'invalid data'; // JSON.parse() will throw error
+
+    // Put data
     const _currentRepository = gitDDB.repository();
-    if (_currentRepository) {
-      try {
-        const fileExt = '.json';
-        const filename = _id + fileExt;
-        const filePath = path.resolve(gitDDB.workingDir(), filename);
-        const dir = path.dirname(filePath);
-        await fs.ensureDir(dir).catch((err: Error) => console.error(err));
-        await fs.writeFile(filePath, data);
-
-        const index = await _currentRepository.refreshIndex(); // read latest index
-
-        await index.addByPath(filename); // stage
-        await index.write(); // flush changes to index
-        const changes = await index.writeTree(); // get reference to a set of changes
-
-        const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
-        file_sha = entry.id.tostrS();
-
-        const gitAuthor = {
-          name: 'GitDocumentDB',
-          email: 'system@gdd.localhost',
-        };
-
-        const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-        const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-        // Calling nameToId() for HEAD throws error when this is first commit.
-        const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
-          e => false
-        ); // get HEAD
-        let commit;
-        if (!head) {
-          // First commit
-          commit = await _currentRepository.createCommit(
-            'HEAD',
-            author,
-            committer,
-            'message',
-            changes,
-            []
-          );
-        }
-        else {
-          const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-          commit = await _currentRepository.createCommit(
-            'HEAD',
-            author,
-            committer,
-            'message',
-            changes,
-            [parent]
-          );
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
-      await expect(gitDDB.get(_id)).rejects.toThrowError(InvalidJsonObjectError);
+    const fileExt = '.json';
+    const filename = _id + fileExt;
+    const filePath = path.resolve(gitDDB.workingDir(), filename);
+    const dir = path.dirname(filePath);
+    await fs.ensureDir(dir).catch((err: Error) => console.error(err));
+    await fs.writeFile(filePath, data);
+    const index = await _currentRepository!.refreshIndex(); // read latest index
+    await index.addByPath(filename); // stage
+    await index.write(); // flush changes to index
+    const changes = await index.writeTree(); // get reference to a set of changes
+    const gitAuthor = {
+      name: 'GitDocumentDB',
+      email: 'system@gdd.localhost',
+    };
+    const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+    const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
+    const head = await _currentRepository!.getHeadCommit();
+    const parentCommits: nodegit.Commit[] = [];
+    if (head !== null) {
+      parentCommits.push(head);
     }
+    await _currentRepository!.createCommit(
+      'HEAD',
+      author,
+      committer,
+      'message',
+      changes,
+      parentCommits
+    );
+
+    await expect(gitDDB.get(_id)).rejects.toThrowError(InvalidJsonObjectError);
+
     await gitDDB.destroy();
   });
 
-  test('get(): Use non-ASCII _id', async () => {
+  it('returns a document by non-ASCII _id', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -293,4 +354,32 @@ describe('<crud/get> getByRevision()', () => {
     });
     await gitDDB.destroy();
   });
+
+  it('throws DatabaseClosingError', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    for (let i = 0; i < 100; i++) {
+      // put() will throw Error after the database is closed by force.
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
+    }
+    // Call close() without await
+    gitDDB.close().catch(() => {});
+    await expect(gitDDB.getByRevision('tmp')).rejects.toThrowError(DatabaseClosingError);
+
+    while (gitDDB.isClosing) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(100);
+    }
+    await destroyDBs([gitDDB]);
+  });
+  it('throws RepositoryNotOpenError');
+  it('throws UndefinedFileSHAError');
+  it('throws DocumentNotFoundError');
+  it('throws CannotGetEntryError');
+  it('throws InvalidJsonObjectError');
 });
