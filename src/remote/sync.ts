@@ -29,6 +29,7 @@ import {
   ISync,
   RemoteOptions,
   SyncActiveCallback,
+  SyncCallback,
   SyncChangeCallback,
   SyncCompleteCallback,
   SyncErrorCallback,
@@ -671,8 +672,19 @@ export class Sync implements ISync {
    * Add SyncEvent handler
    *
    */
-  on (event: SyncEvent, callback: (result?: any) => void) {
-    this.eventHandlers[event].push(callback);
+  on (event: SyncEvent, callback: SyncCallback) {
+    if (event === 'change') this.eventHandlers[event].push(callback as SyncChangeCallback);
+    if (event === 'localChange')
+      this.eventHandlers[event].push(callback as SyncLocalChangeCallback);
+    if (event === 'remoteChange')
+      this.eventHandlers[event].push(callback as SyncRemoteChangeCallback);
+    if (event === 'paused') this.eventHandlers[event].push(callback as SyncPausedCallback);
+    if (event === 'active') this.eventHandlers[event].push(callback as SyncActiveCallback);
+    if (event === 'start') this.eventHandlers[event].push(callback as SyncStartCallback);
+    if (event === 'complete')
+      this.eventHandlers[event].push(callback as SyncCompleteCallback);
+    if (event === 'error') this.eventHandlers[event].push(callback as SyncErrorCallback);
+
     return this;
   }
 
@@ -680,7 +692,7 @@ export class Sync implements ISync {
    * Remove SyncEvent handler
    *
    */
-  off (event: SyncEvent, callback: (result?: any) => void) {
+  off (event: SyncEvent, callback: SyncCallback) {
     // @ts-ignore
     this.eventHandlers[event] = this.eventHandlers[event].filter(
       (func: (res?: any) => void) => func !== callback
