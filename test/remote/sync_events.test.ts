@@ -13,7 +13,12 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { ChangedFile, RemoteOptions, SyncResultFastForwardMerge } from '../../src/types';
+import {
+  ChangedFile,
+  RemoteOptions,
+  SyncResult,
+  SyncResultFastForwardMerge,
+} from '../../src/types';
 import { sleep } from '../../src/utils';
 import {
   compareWorkingDirAndBlobs,
@@ -87,7 +92,7 @@ maybe('remote: sync: events: ', () => {
 
       // B syncs
       let result: SyncResultFastForwardMerge | undefined;
-      remoteB.on('change', syncResult => {
+      remoteB.on('change', (syncResult: SyncResult) => {
         result = syncResult as SyncResultFastForwardMerge;
       });
       let complete = false;
@@ -133,7 +138,7 @@ maybe('remote: sync: events: ', () => {
 
       let resultA: SyncResultFastForwardMerge | undefined;
       let completeA = false;
-      remoteA.on('change', syncResult => {
+      remoteA.on('change', (syncResult: SyncResult) => {
         resultA = syncResult as SyncResultFastForwardMerge;
         console.log('A: ' + resultA.action);
         if (resultA.action === 'fast-forward merge') {
@@ -142,7 +147,7 @@ maybe('remote: sync: events: ', () => {
       });
 
       let resultB: SyncResultFastForwardMerge | undefined;
-      remoteB.on('change', syncResult => {
+      remoteB.on('change', (syncResult: SyncResult) => {
         resultB = syncResult as SyncResultFastForwardMerge;
         console.log('B: ' + resultB.action);
       });
@@ -193,7 +198,7 @@ maybe('remote: sync: events: ', () => {
 
       // B syncs
       let changes: ChangedFile[] = [];
-      remoteB.on('localChange', localChanges => {
+      remoteB.on('localChange', (localChanges: ChangedFile[]) => {
         changes = localChanges;
       });
       let complete = false;
@@ -224,7 +229,7 @@ maybe('remote: sync: events: ', () => {
       );
 
       let changes: ChangedFile[] = [];
-      remoteB.on('remoteChange', remoteChanges => {
+      remoteB.on('remoteChange', (remoteChanges: ChangedFile[]) => {
         changes = remoteChanges;
       });
       let complete = false;
@@ -387,6 +392,33 @@ maybe('remote: sync: events: ', () => {
       await sleep(interval * 5);
 
       expect(counter).toBeGreaterThanOrEqual(3);
+
+      await destroyDBs([dbA]);
+    });
+
+    test('start event returns taskId and current retries', async () => {
+      const interval = Sync.minimumSyncInterval;
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        connection: { type: 'github', personal_access_token: token },
+        include_commits: true,
+        live: true,
+        interval,
+      });
+
+      let counter = 0;
+      let taskId = '';
+      let currentRetries = -1;
+      remoteA.on('start', (_taskId: string, _currentRetries: number) => {
+        counter++;
+        taskId = _taskId;
+        currentRetries = _currentRetries;
+      });
+
+      await sleep(interval * 5);
+
+      expect(counter).toBeGreaterThanOrEqual(3);
+      expect(taskId).not.toBe('');
+      expect(currentRetries).toBe(0);
 
       await destroyDBs([dbA]);
     });
