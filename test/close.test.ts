@@ -9,6 +9,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import { sleep } from '../src/utils';
 import {
   DatabaseCloseTimeoutError,
   DatabaseClosingError,
@@ -16,6 +17,7 @@ import {
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
 import { DatabaseInfoError } from '../src/types';
+import { destroyDBs } from './remote_utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -180,10 +182,7 @@ describe('<close> GitDocumentDB#close()', () => {
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
     }
     // Call close() without await
-    gitDDB
-      .close()
-      .then(() => gitDDB.destroy())
-      .catch(() => {});
+    gitDDB.close().catch(() => {});
     const dbInfo = await gitDDB.open();
     expect((dbInfo as DatabaseInfoError).error).toBeInstanceOf(DatabaseClosingError);
     const _id = 'prof01';
@@ -195,5 +194,11 @@ describe('<close> GitDocumentDB#close()', () => {
     await expect(gitDDB.close()).rejects.toThrowError(DatabaseClosingError);
     await expect(gitDDB.destroy()).rejects.toThrowError(DatabaseClosingError);
     await expect(gitDDB.allDocs()).rejects.toThrowError(DatabaseClosingError);
+
+    while (gitDDB.isClosing) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(100);
+    }
+    await destroyDBs([gitDDB]);
   });
 });
