@@ -174,6 +174,26 @@ maybe('<remote/sync> Sync#constructor()', () => {
     destroyDBs([gitDDB]);
   });
 
+  it('accepts remoteURL which ends with .git', async () => {
+    const remoteURL = remoteURLBase + serialId() + '.git';
+    const dbName = serialId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    const options: RemoteOptions = {
+      remote_url: remoteURL,
+      connection: {
+        type: 'github',
+        personal_access_token: token,
+      },
+    };
+    expect(() => new Sync(gitDDB, options)).not.toThrowError();
+
+    destroyDBs([gitDDB]);
+  });
+
   it('throws UndefinedRemoteURLError when remoteURL is undefined.', async () => {
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
