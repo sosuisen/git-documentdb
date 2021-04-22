@@ -83,8 +83,10 @@ export class RemoteRepository {
       }
       const urlArray = this._options.remote_url!.split('/');
       const owner = urlArray[urlArray.length - 2];
-      const repo = urlArray[urlArray.length - 1];
-
+      let repo = urlArray[urlArray.length - 1];
+      if (repo.endsWith('.git')) {
+        repo = repo.replace(/\.git$/, '');
+      }
       let result;
       let retry = 0;
       for (; retry < NETWORK_RETRY; retry++) {
