@@ -296,7 +296,7 @@ export class Sync implements ISync {
    * (options are read only)
    *
    */
-  options () {
+  options (): Required<RemoteOptions> {
     return JSON.parse(JSON.stringify(this._options));
   }
 
