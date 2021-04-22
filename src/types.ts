@@ -538,19 +538,39 @@ export interface SyncResultCancel {
 }
 
 /**
+ * SyncEventCallbacks
+ */
+export type SyncChangeCallback = (syncResult: SyncResult) => void;
+export type SyncLocalChangeCallback = (changedFiles: ChangedFile[]) => void;
+export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[]) => void;
+export type SyncPausedCallback = () => void;
+export type SyncActiveCallback = () => void;
+export type SyncStartCallback = (taskId: string, currentRetries: number) => void;
+export type SyncCompleteCallback = (taskId: string) => void;
+export type SyncErrorCallback = (error: Error) => void;
+export type SyncCallback =
+  | SyncChangeCallback
+  | SyncLocalChangeCallback
+  | SyncRemoteChangeCallback
+  | SyncPausedCallback
+  | SyncActiveCallback
+  | SyncStartCallback
+  | SyncCompleteCallback
+  | SyncErrorCallback;
+/**
  * Interface of Sync
  */
 export interface ISync {
   currentRetries: () => number;
   eventHandlers: {
-    change: ((syncResult: SyncResult) => void)[];
-    localChange: ((changedFiles: ChangedFile[]) => void)[];
-    remoteChange: ((changedFiles: ChangedFile[]) => void)[];
-    paused: (() => void)[];
-    active: (() => void)[];
-    start: ((taskId: string, currentRetries: number) => void)[];
-    complete: ((taskId: string) => void)[];
-    error: ((error: Error) => void)[];
+    change: SyncChangeCallback[];
+    localChange: SyncLocalChangeCallback[];
+    remoteChange: SyncRemoteChangeCallback[];
+    paused: SyncPausedCallback[];
+    active: SyncActiveCallback[];
+    start: SyncStartCallback[];
+    complete: SyncCompleteCallback[];
+    error: SyncErrorCallback[];
   };
   upstream_branch: string;
   credential_callbacks: { [key: string]: any };
@@ -562,8 +582,8 @@ export interface ISync {
   trySync(): Promise<SyncResult>;
   enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
   enqueueSyncTask(): Promise<SyncResult>;
-  on(event: SyncEvent, callback: (result?: any) => void): void;
-  off(event: SyncEvent, callback: (result?: any) => void): void;
+  on(event: SyncEvent, callback: SyncCallback): void;
+  off(event: SyncEvent, callback: SyncCallback): void;
   pause(): void;
   cancel(): void;
   resume(options?: { interval?: number; retry?: number }): void;

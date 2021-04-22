@@ -26,13 +26,20 @@ import {
   UndefinedRemoteURLError,
 } from '../error';
 import {
-  ChangedFile,
   ISync,
   RemoteOptions,
+  SyncActiveCallback,
+  SyncChangeCallback,
+  SyncCompleteCallback,
+  SyncErrorCallback,
   SyncEvent,
+  SyncLocalChangeCallback,
+  SyncPausedCallback,
+  SyncRemoteChangeCallback,
   SyncResult,
   SyncResultCancel,
   SyncResultPush,
+  SyncStartCallback,
   Task,
 } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
@@ -99,14 +106,14 @@ export class Sync implements ISync {
    * @internal
    */
   eventHandlers: {
-    change: ((syncResult: SyncResult) => void)[];
-    localChange: ((changedFiles: ChangedFile[]) => void)[];
-    remoteChange: ((changedFiles: ChangedFile[]) => void)[];
-    paused: (() => void)[];
-    active: (() => void)[];
-    start: ((taskId: string, currentRetries: number) => void)[];
-    complete: ((taskId: string) => void)[];
-    error: ((error: Error) => void)[];
+    change: SyncChangeCallback[];
+    localChange: SyncLocalChangeCallback[];
+    remoteChange: SyncRemoteChangeCallback[];
+    paused: SyncPausedCallback[];
+    active: SyncActiveCallback[];
+    start: SyncStartCallback[];
+    complete: SyncCompleteCallback[];
+    error: SyncErrorCallback[];
   } = {
     change: [],
     localChange: [],
@@ -515,7 +522,7 @@ export class Sync implements ISync {
           );
 
           this.eventHandlers.change.forEach(func => func(syncResultPush));
-          if (syncResultPush.changes?.remote !== undefined) {
+          if (syncResultPush.action === 'push') {
             this.eventHandlers.remoteChange.forEach(func =>
               func(syncResultPush.changes.remote)
             );
