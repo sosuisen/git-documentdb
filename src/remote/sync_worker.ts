@@ -474,7 +474,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    return await push_worker(gitDDB, sync, taskId).catch(err => {
+    return await push_worker(gitDDB, sync, taskId, true).catch(err => {
       throw err;
     });
   }
@@ -591,7 +591,7 @@ export async function sync_worker (
       }
 
       // Need push because it is merged normally.
-      const syncResultPush = await push_worker(gitDDB, sync, taskId).catch(err => {
+      const syncResultPush = await push_worker(gitDDB, sync, taskId, true).catch(err => {
         throw err;
       });
       const syncResultMergeAndPush: SyncResultMergeAndPush = {
@@ -745,7 +745,7 @@ export async function sync_worker (
     await nodegit.Checkout.head(repos, opt);
 
     // Push
-    const syncResultPush = await push_worker(gitDDB, sync, taskId).catch(err => {
+    const syncResultPush = await push_worker(gitDDB, sync, taskId, true).catch(err => {
       throw err;
     });
     const syncResultResolveConflictsAndPush: SyncResultResolveConflictsAndPush = {

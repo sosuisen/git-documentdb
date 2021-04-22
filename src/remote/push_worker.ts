@@ -113,15 +113,20 @@ async function validatePushResult (
 export async function push_worker (
   gitDDB: AbstractDocumentDB,
   sync: ISync,
-  taskId: string
+  taskId: string,
+  skipStartEvent?: boolean
 ): Promise<SyncResultPush> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-  sync.eventHandlers.start.forEach(func => {
-    func(taskId, sync.currentRetries());
-  });
+
+  skipStartEvent ??= false;
+  if (!skipStartEvent) {
+    sync.eventHandlers.start.forEach(func => {
+      func(taskId, sync.currentRetries());
+    });
+  }
 
   const headCommit = await gitDDB.repository()!.getHeadCommit();
 
