@@ -80,6 +80,40 @@ maybe('intg <sync_lifecycle> Sync', () => {
    * Initialize means creating local and remote repositories by using a remote_url
    */
   describe('initialized by create():', () => {
+    it('getSynchronizer() returns an instance of Sync.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        connection: { type: 'github', personal_access_token: token },
+      };
+      await dbA.create(options);
+      const syncA = dbA.getSynchronizer(remoteURL);
+      expect(syncA.remoteURL()).toBe(remoteURL);
+      destroyDBs([dbA]);
+    });
+
+    it('unregisterRemote() removes an instance of Sync.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        connection: { type: 'github', personal_access_token: token },
+      };
+      await dbA.create(options);
+      dbA.unregisterRemote(remoteURL);
+      expect(dbA.getSynchronizer(remoteURL)).toBeUndefined();
+      destroyDBs([dbA]);
+    });
+
     /**
      * Basics: A is empty, creates remote, puts data; B is empty, clones the remote
      */
