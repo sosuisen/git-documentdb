@@ -469,7 +469,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
           }
         }
       } finally {
-        this.isClosing = false;
         this.taskQueue.clear();
 
         /**
@@ -486,6 +485,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         this._currentRepository = undefined;
 
         this._synchronizers = {};
+
+        this.isClosing = false;
       }
     }
   }
