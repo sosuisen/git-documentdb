@@ -333,6 +333,26 @@ describe('<crud/get> get()', () => {
 
       await destroyDBs([gitDDB]);
     });
+
+    it('throws CannotGetEntryError when error occurs while reading a document.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.create();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+
+      const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
+      stub.rejects(new Error());
+      await expect(gitDDB.get('prof01', 1)).rejects.toThrowError(CannotGetEntryError);
+      await gitDDB.destroy();
+    });
   });
 });
 

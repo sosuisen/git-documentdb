@@ -132,7 +132,7 @@ export async function getBackNumber (
       if (!fileSHAHash[entry.sha()]) {
         fileSHAHash[entry.sha()] = true;
         if (Object.keys(fileSHAHash).length === backNumber) {
-          console.log(entry.sha());
+          // console.log(entry.sha());
           fileSHA = entry.sha();
           return;
         }
