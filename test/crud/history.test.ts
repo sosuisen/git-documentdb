@@ -21,6 +21,7 @@ import {
   UndefinedDocumentIdError,
 } from '../../src/error';
 import { sleep } from '../../src/utils';
+import { getBackNumber } from '../../src/crud/history';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -186,4 +187,59 @@ describe('<crud/history> getDocHistory()', () => {
   });
 });
 
-describe('<crud/history> getBackNumber()', () => {});
+describe('<crud/history> getBackNumber()', () => {
+  it('throws RepositoryNotOpenError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    await gitDDB.close();
+    await expect(getBackNumber(gitDDB, 'tmp', 1)).rejects.toThrowError(
+      RepositoryNotOpenError
+    );
+  });
+
+  it('throws CannotGetEntryError if error occurs while reading a document.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
+    stub.rejects(new Error());
+    await expect(getBackNumber(gitDDB, 'tmp', 1)).rejects.toThrowError(CannotGetEntryError);
+    await gitDDB.destroy();
+  });
+
+  it('throws DocumentNotFoundError when the backNumber#0 does not exist', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    await expect(getBackNumber(gitDDB, 'tmp', 0)).rejects.toThrowError(
+      DocumentNotFoundError
+    );
+    await gitDDB.destroy();
+  });
+
+  it('returns DocumentNotFoundError when the backNumber#1 does not exist', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+
+    await expect(getBackNumber(gitDDB, 'tmp', 0)).rejects.toThrowError(
+      DocumentNotFoundError
+    );
+    await gitDDB.destroy();
+  });
+});
