@@ -353,11 +353,10 @@ export type CombineDbStrategies =
  * - Compare function that returns one of the strategies ('ours-prop', 'theirs-prop', 'ours', and 'theirs') can be given. Each argument will be undefined when a document is removed.
  */
 export type ConflictResolveStrategies =
-  | 'ours-prop'
-  | 'theirs-prop'
-  | 'ours'
-  | 'theirs'
-  | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs');
+  | ConflictResolveStrategyLabels
+  | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolveStrategyLabels);
+
+export type ConflictResolveStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
 
 /**
  * Write operation
@@ -376,7 +375,7 @@ export type WriteOperation = 'create' | 'update' | 'delete';
  */
 export type AcceptedConflict = {
   target: DocMetadata;
-  strategy: 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
+  strategy: ConflictResolveStrategyLabels;
   operation: WriteOperation;
 };
 
