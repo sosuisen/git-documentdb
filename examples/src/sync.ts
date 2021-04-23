@@ -18,6 +18,12 @@ const sync_example = async () => {
    */
   const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example-sync.git'; // Please enter your GitHub account name.
   const your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
+  // @ts-ignore
+  if (your_github_personal_access_token === 'Enter your personal access token with checked [repo]') {
+    console.log('Please set your personal access token.');
+    return;
+  }
+
   // Set options for synchronization
   const remoteOptions: RemoteOptions = {
     live: true,
