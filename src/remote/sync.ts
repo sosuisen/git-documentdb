@@ -182,7 +182,7 @@ export class Sync implements ISync {
     this._options.retry ??= Sync.defaultRetry;
     this._options.combine_db_strategy ??= 'nop';
     this._options.include_commits ??= false;
-    this._options.conflict_resolve_strategy ??= 'ours';
+    this._options.conflict_resolve_strategy ??= 'ours-prop';
 
     this.credential_callbacks = createCredential(this._options);
 

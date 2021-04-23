@@ -327,13 +327,14 @@ export type ConnectionSettings =
   | ConnectionSettingsSSH;
 
 /**
- * Behavior when no merge base
- *
- * nop: (default)
- * theirs: remove local repository and git clone <remote repository>
- * ours: git merge -s ours <remote branch>
+ * Behavior when combine inconsistent DBs
  */
-export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
+export type CombineDbStrategies =
+  | 'throw-error'
+  | 'resolve-by-ours'
+  | 'resolve-by-their'
+  | 'replace-with-ours'
+  | 'replace-with-theirs';
 
 /**
  * Strategy for resolving conflicts

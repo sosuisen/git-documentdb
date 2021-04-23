@@ -117,11 +117,16 @@ async function getStrategy (
   ours?: nodegit.TreeEntry,
   theirs?: nodegit.TreeEntry
 ) {
-  const defaultStrategy: ConflictResolveStrategies = 'ours';
+  const defaultStrategy: ConflictResolveStrategies = 'ours-prop';
   if (strategy === undefined) {
     strategy = defaultStrategy;
   }
-  else if (strategy !== 'ours' && strategy !== 'theirs') {
+  else if (
+    strategy !== 'ours-prop' &&
+    strategy !== 'theirs-prop' &&
+    strategy !== 'ours' &&
+    strategy !== 'theirs'
+  ) {
     // Strategy may be a function
     const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
     const oursDoc = ours
