@@ -9,9 +9,9 @@ Get remote options (options are read only)
 <b>Signature:</b>
 
 ```typescript
-options(): any;
+options(): Required<RemoteOptions>;
 ```
 <b>Returns:</b>
 
-any
+Required&lt;[RemoteOptions](./git-documentdb.remoteoptions.md)<!-- -->&gt;
 

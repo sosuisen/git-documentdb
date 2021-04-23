@@ -9,7 +9,7 @@ Get a document
 <b>Signature:</b>
 
 ```typescript
-get(docId: string): Promise<JsonDoc>;
+get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
 ```
 
 ## Parameters
@@ -17,10 +17,13 @@ get(docId: string): Promise<JsonDoc>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  docId | string | id of a target document |
+|  backNumber | number |  |
 
 <b>Returns:</b>
 
-Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
+Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
+
+- JsonDoc if exists. - undefined if not exists.
 
 ## Exceptions
 
@@ -29,8 +32,6 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
 [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
-
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
 
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 

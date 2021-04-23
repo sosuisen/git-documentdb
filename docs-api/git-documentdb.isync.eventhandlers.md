@@ -8,13 +8,13 @@
 
 ```typescript
 eventHandlers: {
-        change: ((syncResult: SyncResult) => void)[];
-        localChange: ((changedFiles: ChangedFile[]) => void)[];
-        remoteChange: ((changedFiles: ChangedFile[]) => void)[];
-        paused: (() => void)[];
-        active: (() => void)[];
-        start: ((taskId: string, currentRetries: number) => void)[];
-        complete: ((taskId: string) => void)[];
-        error: ((error: Error) => void)[];
+        change: SyncChangeCallback[];
+        localChange: SyncLocalChangeCallback[];
+        remoteChange: SyncRemoteChangeCallback[];
+        paused: SyncPausedCallback[];
+        active: SyncActiveCallback[];
+        start: SyncStartCallback[];
+        complete: SyncCompleteCallback[];
+        error: SyncErrorCallback[];
     };
 ```

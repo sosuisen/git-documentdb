@@ -32,7 +32,5 @@ Array of fileSHA (NOTE: getDocHistory returns empty array if document does not e
 
 [UndefinedFileSHAError](./git-documentdb.undefinedfileshaerror.md)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
-
 [CannotGetEntryError](./git-documentdb.cannotgetentryerror.md)
 

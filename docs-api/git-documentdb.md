@@ -29,6 +29,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseExistsError](./git-documentdb.databaseexistserror.md) |  |
 |  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
 |  [FetchConnectionFailedError](./git-documentdb.fetchconnectionfailederror.md) |  |
+|  [FetchPermissionDeniedError](./git-documentdb.fetchpermissiondeniederror.md) |  |
 |  [FileRemoveTimeoutError](./git-documentdb.fileremovetimeouterror.md) |  |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | Main class of GitDocumentDB |
 |  [GitMergeBranchError](./git-documentdb.gitmergebrancherror.md) |  |
@@ -43,13 +44,13 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md) |  |
 |  [InvalidConflictStateError](./git-documentdb.invalidconflictstateerror.md) |  |
 |  [InvalidDbNameCharacterError](./git-documentdb.invaliddbnamecharactererror.md) |  |
+|  [InvalidFileSHAFormatError](./git-documentdb.invalidfileshaformaterror.md) |  |
 |  [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) |  |
 |  [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) |  |
 |  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) |  |
 |  [InvalidLocalDirCharacterError](./git-documentdb.invalidlocaldircharactererror.md) |  |
 |  [InvalidPropertyNameInDocumentError](./git-documentdb.invalidpropertynameindocumenterror.md) |  |
 |  [InvalidRepositoryURLError](./git-documentdb.invalidrepositoryurlerror.md) |  |
-|  [InvalidSSHKeyError](./git-documentdb.invalidsshkeyerror.md) |  |
 |  [InvalidSSHKeyPathError](./git-documentdb.invalidsshkeypatherror.md) |  |
 |  [InvalidURLError](./git-documentdb.invalidurlerror.md) |  |
 |  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) |  |
@@ -131,9 +132,18 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for Sync class |
 |  [RemoveOptions](./git-documentdb.removeoptions.md) | Options for remove() |
 |  [RemoveResult](./git-documentdb.removeresult.md) | Result of remove() |
+|  [SyncActiveCallback](./git-documentdb.syncactivecallback.md) |  |
+|  [SyncCallback](./git-documentdb.synccallback.md) |  |
+|  [SyncChangeCallback](./git-documentdb.syncchangecallback.md) | SyncEventCallbacks |
+|  [SyncCompleteCallback](./git-documentdb.synccompletecallback.md) |  |
 |  [SyncDirection](./git-documentdb.syncdirection.md) | Synchronization direction |
+|  [SyncErrorCallback](./git-documentdb.syncerrorcallback.md) |  |
 |  [SyncEvent](./git-documentdb.syncevent.md) | SyncEvent |
+|  [SyncLocalChangeCallback](./git-documentdb.synclocalchangecallback.md) |  |
+|  [SyncPausedCallback](./git-documentdb.syncpausedcallback.md) |  |
+|  [SyncRemoteChangeCallback](./git-documentdb.syncremotechangecallback.md) |  |
 |  [SyncResult](./git-documentdb.syncresult.md) | Result from sync\_worker() |
+|  [SyncStartCallback](./git-documentdb.syncstartcallback.md) |  |
 |  [Task](./git-documentdb.task.md) | Task for taskQueue |
 |  [TaskLabel](./git-documentdb.tasklabel.md) | TaskLabel DatabaseStatistics.taskCount must have the same members. |
 |  [TaskStatistics](./git-documentdb.taskstatistics.md) | Task Statistics |

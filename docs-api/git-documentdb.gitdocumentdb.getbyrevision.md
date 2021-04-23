@@ -9,7 +9,7 @@ Get a specific revision of a document
 <b>Signature:</b>
 
 ```typescript
-getByRevision(fileSHA: string): Promise<JsonDoc>;
+getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
 ```
 
 ## Parameters
@@ -20,7 +20,9 @@ getByRevision(fileSHA: string): Promise<JsonDoc>;
 
 <b>Returns:</b>
 
-Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
+Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
+
+- JsonDoc if exists. - undefined if not exists.
 
 ## Exceptions
 
@@ -29,8 +31,6 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
 [UndefinedFileSHAError](./git-documentdb.undefinedfileshaerror.md)
-
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
 
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 

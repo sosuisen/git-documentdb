@@ -15,5 +15,5 @@ export declare class PushPermissionDeniedError extends BaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)()](./git-documentdb.pushpermissiondeniederror._constructor_.md) |  | Constructs a new instance of the <code>PushPermissionDeniedError</code> class |
+|  [(constructor)(mes)](./git-documentdb.pushpermissiondeniederror._constructor_.md) |  | Constructs a new instance of the <code>PushPermissionDeniedError</code> class |
 

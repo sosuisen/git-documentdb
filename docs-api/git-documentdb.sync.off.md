@@ -9,7 +9,7 @@ Remove SyncEvent handler
 <b>Signature:</b>
 
 ```typescript
-off(event: SyncEvent, callback: (result?: any) => void): this;
+off(event: SyncEvent, callback: SyncCallback): this;
 ```
 
 ## Parameters
@@ -17,7 +17,7 @@ off(event: SyncEvent, callback: (result?: any) => void): this;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  event | [SyncEvent](./git-documentdb.syncevent.md) |  |
-|  callback | (result?: any) =&gt; void |  |
+|  callback | [SyncCallback](./git-documentdb.synccallback.md) |  |
 
 <b>Returns:</b>
 

@@ -5,7 +5,7 @@
  [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](LICENSE)
  [![Coverage Status](https://coveralls.io/repos/github/sosuisen/git-documentdb/badge.svg?branch=main)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
-> NOTICE: This is a document for GitDocumentDB v0.3.0-alpha
+> NOTICE: This is a document for GitDocumentDB v0.3.0-beta
 
 
 Offline-first DocumentDB using Git

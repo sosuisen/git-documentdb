@@ -101,7 +101,7 @@ export class Collection implements CRUDInterface {
     collectionPath(): string;
     delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-    get(docId: string): Promise<JsonDoc>;
+    get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(_id: string, document: {
         [key: string]: any;
@@ -190,6 +190,7 @@ export type DatabaseInfoSuccess = {
 export type DatabaseOption = {
     local_dir?: string;
     db_name: string;
+    log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 };
 
 // @public
@@ -206,6 +207,11 @@ export class DocumentNotFoundError extends BaseError {
 
 // @public (undocumented)
 export class FetchConnectionFailedError extends BaseError {
+    constructor(mes: string);
+}
+
+// @public (undocumented)
+export class FetchPermissionDeniedError extends BaseError {
     constructor(mes: string);
 }
 
@@ -231,8 +237,8 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
         ok: true;
     }>;
     readonly fileExt = ".json";
-    get(docId: string, backNumber?: number): Promise<JsonDoc>;
-    getByRevision(fileSHA: string): Promise<JsonDoc>;
+    get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+    getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
     getDocHistory(docID: string): Promise<string[]>;
     getRemoteURLs(): string[];
     getSynchronizer(remoteURL: string): Sync;
@@ -321,6 +327,11 @@ export class InvalidDbNameCharacterError extends BaseError {
 }
 
 // @public (undocumented)
+export class InvalidFileSHAFormatError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
 export class InvalidIdCharacterError extends BaseError {
     constructor(id: string);
 }
@@ -348,11 +359,6 @@ export class InvalidPropertyNameInDocumentError extends BaseError {
 // @public (undocumented)
 export class InvalidRepositoryURLError extends BaseError {
     constructor(url: string);
-}
-
-// @public (undocumented)
-export class InvalidSSHKeyError extends BaseError {
-    constructor();
 }
 
 // @public (undocumented)
@@ -390,19 +396,19 @@ export interface ISync {
     enqueueSyncTask(): Promise<SyncResult>;
     // (undocumented)
     eventHandlers: {
-        change: ((syncResult: SyncResult) => void)[];
-        localChange: ((changedFiles: ChangedFile[]) => void)[];
-        remoteChange: ((changedFiles: ChangedFile[]) => void)[];
-        paused: (() => void)[];
-        active: (() => void)[];
-        start: ((taskId: string, currentRetries: number) => void)[];
-        complete: ((taskId: string) => void)[];
-        error: ((error: Error) => void)[];
+        change: SyncChangeCallback[];
+        localChange: SyncLocalChangeCallback[];
+        remoteChange: SyncRemoteChangeCallback[];
+        paused: SyncPausedCallback[];
+        active: SyncActiveCallback[];
+        start: SyncStartCallback[];
+        complete: SyncCompleteCallback[];
+        error: SyncErrorCallback[];
     };
     // (undocumented)
-    off(event: SyncEvent, callback: (result?: any) => void): void;
+    off(event: SyncEvent, callback: SyncCallback): void;
     // (undocumented)
-    on(event: SyncEvent, callback: (result?: any) => void): void;
+    on(event: SyncEvent, callback: SyncCallback): void;
     // (undocumented)
     options(): RemoteOptions;
     // (undocumented)
@@ -454,7 +460,7 @@ export class PushNotAllowedError extends BaseError {
 
 // @public (undocumented)
 export class PushPermissionDeniedError extends BaseError {
-    constructor();
+    constructor(mes: string);
 }
 
 // @public (undocumented)
@@ -579,21 +585,21 @@ export class Sync implements ISync {
     enqueueSyncTask(): Promise<SyncResult>;
     // @internal
     eventHandlers: {
-        change: ((syncResult: SyncResult) => void)[];
-        localChange: ((changedFiles: ChangedFile[]) => void)[];
-        remoteChange: ((changedFiles: ChangedFile[]) => void)[];
-        paused: (() => void)[];
-        active: (() => void)[];
-        start: ((taskId: string, currentRetries: number) => void)[];
-        complete: ((taskId: string) => void)[];
-        error: ((error: Error) => void)[];
+        change: SyncChangeCallback[];
+        localChange: SyncLocalChangeCallback[];
+        remoteChange: SyncRemoteChangeCallback[];
+        paused: SyncPausedCallback[];
+        active: SyncActiveCallback[];
+        start: SyncStartCallback[];
+        complete: SyncCompleteCallback[];
+        error: SyncErrorCallback[];
     };
     init(repos: nodegit.Repository): Promise<SyncResult>;
     // (undocumented)
     static minimumSyncInterval: number;
-    off(event: SyncEvent, callback: (result?: any) => void): this;
-    on(event: SyncEvent, callback: (result?: any) => void): this;
-    options(): any;
+    off(event: SyncEvent, callback: SyncCallback): this;
+    on(event: SyncEvent, callback: SyncCallback): this;
+    options(): Required<RemoteOptions>;
     pause(): boolean;
     remoteURL(): string;
     resume(options?: {
@@ -608,8 +614,23 @@ export class Sync implements ISync {
     upstream_branch: string;
 }
 
+// @public (undocumented)
+export type SyncActiveCallback = () => void;
+
+// @public (undocumented)
+export type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncPausedCallback | SyncActiveCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
+
+// @public
+export type SyncChangeCallback = (syncResult: SyncResult) => void;
+
+// @public (undocumented)
+export type SyncCompleteCallback = (taskId: string) => void;
+
 // @public
 export type SyncDirection = 'pull' | 'push' | 'both';
+
+// @public (undocumented)
+export type SyncErrorCallback = (error: Error) => void;
 
 // @public
 export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | 'active' | 'start' | 'complete' | 'error';
@@ -623,6 +644,15 @@ export function syncImpl(this: AbstractDocumentDB, options?: RemoteOptions): Pro
 export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
     constructor(syncInterval: number, retryInterval: number);
 }
+
+// @public (undocumented)
+export type SyncLocalChangeCallback = (changedFiles: ChangedFile[]) => void;
+
+// @public (undocumented)
+export type SyncPausedCallback = () => void;
+
+// @public (undocumented)
+export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[]) => void;
 
 // @public
 export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;
@@ -700,6 +730,9 @@ export interface SyncResultResolveConflictsAndPush {
     // (undocumented)
     conflicts: AcceptedConflict[];
 }
+
+// @public (undocumented)
+export type SyncStartCallback = (taskId: string, currentRetries: number) => void;
 
 // @public (undocumented)
 export class SyncWorkerError extends BaseError {

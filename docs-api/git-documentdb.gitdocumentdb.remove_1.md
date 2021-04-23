@@ -31,7 +31,7 @@ Promise&lt;[RemoveResult](./git-documentdb.removeresult.md)<!-- -->&gt;
 
 [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) when the specified document does not exist.
 
 [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
 

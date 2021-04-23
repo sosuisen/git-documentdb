@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-off(event: SyncEvent, callback: (result?: any) => void): void;
+off(event: SyncEvent, callback: SyncCallback): void;
 ```
 
 ## Parameters
@@ -15,7 +15,7 @@ off(event: SyncEvent, callback: (result?: any) => void): void;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  event | [SyncEvent](./git-documentdb.syncevent.md) |  |
-|  callback | (result?: any) =&gt; void |  |
+|  callback | [SyncCallback](./git-documentdb.synccallback.md) |  |
 
 <b>Returns:</b>
 

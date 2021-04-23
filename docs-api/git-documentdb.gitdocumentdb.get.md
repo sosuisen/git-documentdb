@@ -9,7 +9,7 @@ Get a document
 <b>Signature:</b>
 
 ```typescript
-get(docId: string, backNumber?: number): Promise<JsonDoc>;
+get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
 ```
 
 ## Parameters
@@ -17,11 +17,13 @@ get(docId: string, backNumber?: number): Promise<JsonDoc>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  docId | string | id of a target document |
-|  backNumber | number | Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned. When backNumber is 0 and a document has been deleted in the current DB, it throws DocumentNotFoundError. |
+|  backNumber | number | Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned. When backNumber is 0 and a document has been deleted in the current DB, it returns undefined. |
 
 <b>Returns:</b>
 
-Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
+Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
+
+- JsonDoc if exists. - undefined if not exists.
 
 ## Exceptions
 
@@ -30,8 +32,6 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md)<!-- -->&gt;
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
 [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
-
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md)
 
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 

@@ -9,5 +9,12 @@ Constructs a new instance of the `PushPermissionDeniedError` class
 <b>Signature:</b>
 
 ```typescript
-constructor();
+constructor(mes: string);
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mes | string |  |
+

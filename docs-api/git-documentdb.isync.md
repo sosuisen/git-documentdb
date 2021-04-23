@@ -20,7 +20,7 @@ export interface ISync
 |  [committer](./git-documentdb.isync.committer.md) | nodegit.Signature |  |
 |  [credential\_callbacks](./git-documentdb.isync.credential_callbacks.md) | { \[key: string\]: any; } |  |
 |  [currentRetries](./git-documentdb.isync.currentretries.md) | () =&gt; number |  |
-|  [eventHandlers](./git-documentdb.isync.eventhandlers.md) | { change: ((syncResult: [SyncResult](./git-documentdb.syncresult.md)<!-- -->) =&gt; void)\[\]; localChange: ((changedFiles: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]) =&gt; void)\[\]; remoteChange: ((changedFiles: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]) =&gt; void)\[\]; paused: (() =&gt; void)\[\]; active: (() =&gt; void)\[\]; start: ((taskId: string, currentRetries: number) =&gt; void)\[\]; complete: ((taskId: string) =&gt; void)\[\]; error: ((error: Error) =&gt; void)\[\]; } |  |
+|  [eventHandlers](./git-documentdb.isync.eventhandlers.md) | { change: [SyncChangeCallback](./git-documentdb.syncchangecallback.md)<!-- -->\[\]; localChange: [SyncLocalChangeCallback](./git-documentdb.synclocalchangecallback.md)<!-- -->\[\]; remoteChange: [SyncRemoteChangeCallback](./git-documentdb.syncremotechangecallback.md)<!-- -->\[\]; paused: [SyncPausedCallback](./git-documentdb.syncpausedcallback.md)<!-- -->\[\]; active: [SyncActiveCallback](./git-documentdb.syncactivecallback.md)<!-- -->\[\]; start: [SyncStartCallback](./git-documentdb.syncstartcallback.md)<!-- -->\[\]; complete: [SyncCompleteCallback](./git-documentdb.synccompletecallback.md)<!-- -->\[\]; error: [SyncErrorCallback](./git-documentdb.syncerrorcallback.md)<!-- -->\[\]; } |  |
 |  [upstream\_branch](./git-documentdb.isync.upstream_branch.md) | string |  |
 
 ## Methods
