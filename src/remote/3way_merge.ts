@@ -7,19 +7,27 @@ import {
   InvalidConflictStateError,
   RepositoryNotOpenError,
 } from '../error';
-import { AcceptedConflict, ConflictResolveStrategies } from '../types';
+import {
+  AcceptedConflict,
+  ConflictResolveStrategies,
+  ConflictResolveStrategyLabels,
+  JsonDoc,
+} from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { getDocument } from './worker_utils';
+import { toSortedJSONString } from '../utils';
 
 /**
  * Write blob to file system
  *
  * @throws {@link CannotCreateDirectoryError}
  */
-async function writeBlobToFile (gitDDB: AbstractDocumentDB, entry: nodegit.TreeEntry) {
-  const data = (await entry.getBlob()).toString();
-  const filename = entry.name();
-  const filePath = nodePath.resolve(gitDDB.workingDir(), filename);
+async function writeBlobToFile (
+  gitDDB: AbstractDocumentDB,
+  fileName: string,
+  data: string
+) {
+  const filePath = nodePath.resolve(gitDDB.workingDir(), fileName);
   const dir = nodePath.dirname(filePath);
   await fs.ensureDir(dir).catch((err: Error) => {
     return Promise.reject(new CannotCreateDirectoryError(err.message));
@@ -58,6 +66,27 @@ async function getStrategy (
     }
   }
   return strategy;
+}
+
+function getMergedDocument (
+  strategy: ConflictResolveStrategyLabels,
+  ours: JsonDoc,
+  theirs: JsonDoc
+): string {
+  let result: { [key: string]: string };
+  if (strategy === 'ours') {
+    result = ours;
+  }
+  else if (strategy === 'theirs') {
+    result = theirs;
+  }
+  else if (strategy === 'ours-prop') {
+    result = { ...theirs, ...ours };
+  }
+  else if (strategy === 'theirs-prop') {
+    result = { ...ours, ...theirs };
+  }
+  return toSortedJSONString(result);
 }
 
 /**
@@ -103,7 +132,7 @@ export async function threeWayMerge (
     // A new file has been created on theirs.
     // Write it to the file.
     // console.log(' #case 1 - Accept theirs (create): ' + path);
-    await writeBlobToFile(gitDDB, theirs);
+    await writeBlobToFile(gitDDB, path, (await theirs.getBlob()).toString());
     await resolvedIndex.addByPath(path);
   }
   else if (!base && ours && !theirs) {
@@ -139,6 +168,15 @@ export async function threeWayMerge (
           strategy: strategy,
           operation: 'create',
         });
+
+        const data = await getMergedDocument(
+          strategy,
+          JSON.parse((await ours.getBlob()).toString()),
+          JSON.parse((await theirs.getBlob()).toString())
+        );
+
+        await writeBlobToFile(gitDDB, path, data);
+
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs' || strategy === 'theirs-prop') {
@@ -152,7 +190,14 @@ export async function threeWayMerge (
           strategy: strategy,
           operation: 'create',
         });
-        await writeBlobToFile(gitDDB, theirs);
+
+        const data = await getMergedDocument(
+          strategy,
+          JSON.parse((await ours.getBlob()).toString()),
+          JSON.parse((await theirs.getBlob()).toString())
+        );
+        await writeBlobToFile(gitDDB, path, data);
+
         await resolvedIndex.addByPath(path);
       }
     }
@@ -201,7 +246,11 @@ export async function threeWayMerge (
           strategy: strategy,
           operation: 'update',
         });
-        await writeBlobToFile(gitDDB, theirs);
+
+        const data = (await theirs.getBlob()).toString();
+
+        await writeBlobToFile(gitDDB, path, data);
+
         await resolvedIndex.addByPath(path);
       }
     }
@@ -235,6 +284,11 @@ export async function threeWayMerge (
           strategy: strategy,
           operation: 'update',
         });
+
+        const data = (await ours.getBlob()).toString();
+
+        await writeBlobToFile(gitDDB, path, data);
+
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs' || strategy === 'theirs-prop') {
@@ -265,7 +319,8 @@ export async function threeWayMerge (
     else if (base.id().equal(ours.id())) {
       // Write theirs to the file.
       // console.log(' #case 14 - Accept theirs (update): ' + path);
-      await writeBlobToFile(gitDDB, theirs);
+      const data = (await theirs.getBlob()).toString();
+      await writeBlobToFile(gitDDB, path, data);
       await resolvedIndex.addByPath(path);
     }
     else if (base.id().equal(theirs.id())) {
@@ -293,6 +348,15 @@ export async function threeWayMerge (
           strategy: strategy,
           operation: 'update',
         });
+
+        const data = await getMergedDocument(
+          strategy,
+          JSON.parse((await ours.getBlob()).toString()),
+          JSON.parse((await theirs.getBlob()).toString())
+        );
+
+        await writeBlobToFile(gitDDB, path, data);
+
         await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs' || strategy === 'theirs-prop') {
@@ -306,7 +370,15 @@ export async function threeWayMerge (
           strategy: strategy,
           operation: 'update',
         });
-        await writeBlobToFile(gitDDB, theirs);
+
+        const data = await getMergedDocument(
+          strategy,
+          JSON.parse((await ours.getBlob()).toString()),
+          JSON.parse((await theirs.getBlob()).toString())
+        );
+
+        await writeBlobToFile(gitDDB, path, data);
+
         await resolvedIndex.addByPath(path);
       }
     }
