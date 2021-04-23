@@ -13,7 +13,7 @@ import {
   CannotConnectError,
   CannotCreateRemoteRepositoryError,
   FetchConnectionFailedError,
-  InvalidSSHKeyError,
+  FetchPermissionDeniedError,
   InvalidURLError,
   PersonalAccessTokenForAnotherAccountError,
   PushConnectionFailedError,
@@ -242,15 +242,15 @@ export class RemoteRepository {
       case error.startsWith('Error: unsupported URL protocol'):
       case error.startsWith('Error: failed to resolve address'):
       case error.startsWith('Error: failed to send request'):
-        throw new InvalidURLError(remoteURL);
+        throw new InvalidURLError(remoteURL + ':' + error);
       case error.startsWith('Error: request failed with status code: 4'): // 401, 404
       case error.startsWith('Error: Method connect has thrown an error'):
       case error.startsWith('Error: ERROR: Repository not found'):
         // Remote repository does not exist, or you do not have permission to the private repository
-        throw new RemoteRepositoryNotFoundError(remoteURL);
+        throw new RemoteRepositoryNotFoundError(remoteURL + ':' + error);
       case error.startsWith('Failed to retrieve list of SSH authentication methods'):
       case error.startsWith('Error: too many redirects or authentication replays'):
-        throw new InvalidSSHKeyError();
+        throw new FetchPermissionDeniedError(error);
       default:
         throw new Error(error);
     }
@@ -295,7 +295,7 @@ export class RemoteRepository {
       // Personal access token is read only
       case error.startsWith('Error: too many redirects or authentication replays'):
       case error.startsWith('Error: ERROR: Permission to'): {
-        throw new PushPermissionDeniedError();
+        throw new PushPermissionDeniedError(error);
       }
       default:
         throw new Error(error);

@@ -256,17 +256,15 @@ export class RemoteRepositoryNotFoundError extends BaseError {
 
 /**
  */
-export class InvalidSSHKeyError extends BaseError {
-  constructor () {
-    super(`SSH key pair is invalid.`);
+export class PushPermissionDeniedError extends BaseError {
+  constructor (mes: string) {
+    super(`Permission denied to push to the repository: ${mes}`);
   }
 }
 
-/**
- */
-export class PushPermissionDeniedError extends BaseError {
-  constructor () {
-    super(`Permission denied to push to the repository.`);
+export class FetchPermissionDeniedError extends BaseError {
+  constructor (mes: string) {
+    super(`Permission denied to fetch to the repository: ${mes}`);
   }
 }
 
