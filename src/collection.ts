@@ -152,6 +152,7 @@ export class Collection implements CRUDInterface {
    *
    * @returns
    *  - JsonDoc if exists.
+   *
    *  - undefined if not exists.
    *
    * @throws {@link DatabaseClosingError}
