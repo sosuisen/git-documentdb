@@ -47,7 +47,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('remote: clone in GitDocumentDB#create(): ', () => {
+maybe('<remote/clone> cloneRepository', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -58,33 +58,11 @@ maybe('remote: clone in GitDocumentDB#create(): ', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  test('Invalid RemoteOptions', async () => {
+  it('returns undefined when invalid RemoteOptions', async () => {
     // @ts-ignore
     await expect(cloneRepository('tmp')).resolves.toBeUndefined();
     await expect(
       cloneRepository('tmp', { remote_url: undefined })
     ).resolves.toBeUndefined();
-  });
-
-  test('Check CannotConnectError and retries in cloning', async () => {
-    const remoteURL = 'https://xyz.invalid/xyz/https_repos';
-    const options: RemoteOptions = {
-      remote_url: remoteURL,
-      connection: { type: 'github', personal_access_token: token },
-    };
-    const dbNameA = serialId();
-    const dbA: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameA,
-      local_dir: localDir,
-    });
-    await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
-    await dbA.destroy();
-
-    const retry = await dbA.create(options).catch((err: CannotConnectError) => {
-      return err.retry;
-    });
-    expect(retry).toBe(NETWORK_RETRY);
-
-    await dbA.destroy();
   });
 });

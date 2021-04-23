@@ -64,7 +64,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('remote: sync: events: ', () => {
+maybe('<remote/sync> [event]', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -77,8 +77,8 @@ maybe('remote: sync: events: ', () => {
   /**
    * Events
    */
-  describe('change: ', () => {
-    test('change once', async () => {
+  describe('change', () => {
+    it('occurs once', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -120,7 +120,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    test('propagate changes between local and remote sites', async () => {
+    it('is propagated between local and remote sites', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -184,7 +184,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    test('localChange', async () => {
+    it('is followed by localChange', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -221,7 +221,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    test('remoteChange', async () => {
+    it('is followed by remoteChange', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -257,7 +257,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    test('paused and active', async () => {
+    it('paused and activates', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -319,7 +319,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    test('active at initialization', async () => {
+    it('active at initialization', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
@@ -346,7 +346,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA]);
     });
 
-    test('start once', async () => {
+    it('starts once', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
@@ -375,7 +375,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA]);
     });
 
-    test('start repeatedly', async () => {
+    it('starts repeatedly', async () => {
       const interval = Sync.minimumSyncInterval;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
@@ -396,7 +396,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA]);
     });
 
-    test('start event returns taskId and current retries', async () => {
+    it('starts event returns taskId and current retries', async () => {
       const interval = Sync.minimumSyncInterval;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
@@ -423,7 +423,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA]);
     });
 
-    test('complete once', async () => {
+    it('completes once', async () => {
       const interval = Sync.minimumSyncInterval;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
@@ -453,7 +453,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA]);
     });
 
-    test('complete repeatedly', async () => {
+    it('completes repeatedly', async () => {
       const interval = Sync.minimumSyncInterval;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
@@ -474,7 +474,7 @@ maybe('remote: sync: events: ', () => {
       await destroyDBs([dbA]);
     });
 
-    test('error', async () => {
+    it('error', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
       await dbA.put({ _id: '1', name: 'fromA' });
       await remoteA.trySync();
@@ -502,7 +502,7 @@ maybe('remote: sync: events: ', () => {
     });
   });
 
-  test('on and off', async () => {
+  it('on and off', async () => {
     const interval = Sync.minimumSyncInterval;
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
       connection: { type: 'github', personal_access_token: token },

@@ -161,7 +161,8 @@ describe('<crud/get> get()', () => {
       }
     );
 
-    await expect(gitDDB.get('prof01')).rejects.toThrowError(DocumentNotFoundError);
+    await expect(gitDDB.get('prof01')).resolves.toBeUndefined();
+
     await gitDDB.destroy();
   });
 
@@ -172,7 +173,7 @@ describe('<crud/get> get()', () => {
       local_dir: localDir,
     });
     await gitDDB.create();
-    await expect(gitDDB.get('prof01')).rejects.toThrowError(DocumentNotFoundError);
+    await expect(gitDDB.get('prof01')).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 
@@ -270,13 +271,13 @@ describe('<crud/get> get()', () => {
       await gitDDB.put(jsonA02);
       await gitDDB.delete(_idA);
       // Get
-      await expect(gitDDB.get(_idA, 0)).rejects.toThrowError(DocumentNotFoundError);
-      await expect(gitDDB.get(_idA)).rejects.toThrowError(DocumentNotFoundError);
+      await expect(gitDDB.get(_idA, 0)).resolves.toBeUndefined();
+      await expect(gitDDB.get(_idA)).resolves.toBeUndefined();
 
       await destroyDBs([gitDDB]);
     });
 
-    it('returns the last revision when get deleted document with backNumber #1.', async () => {
+    it('returns one revision before when get back number #1 of the deleted document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -296,7 +297,7 @@ describe('<crud/get> get()', () => {
       await destroyDBs([gitDDB]);
     });
 
-    it('returns the second new revision when get deleted document with backNumber #2.', async () => {
+    it('returns two revisions before when get back number #2 of the deleted document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -310,6 +311,27 @@ describe('<crud/get> get()', () => {
       const jsonA02 = { _id: _idA, name: 'v02' };
       await gitDDB.put(jsonA02);
       await gitDDB.delete(_idA);
+      // Get
+      await expect(gitDDB.get(_idA, 2)).resolves.toMatchObject(jsonA01);
+
+      await destroyDBs([gitDDB]);
+    });
+
+    it('returns an old revision after a document was deleted and created again.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.create();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      await gitDDB.delete(_idA);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+
       // Get
       await expect(gitDDB.get(_idA, 2)).resolves.toMatchObject(jsonA01);
 
@@ -331,7 +353,7 @@ describe('<crud/get> get()', () => {
       await gitDDB.put(jsonA02);
       await gitDDB.delete(_idA);
       // Get
-      await expect(gitDDB.get(_idA, 3)).rejects.toThrowError(DocumentNotFoundError);
+      await expect(gitDDB.get(_idA, 3)).resolves.toBeUndefined();
 
       await destroyDBs([gitDDB]);
     });
@@ -456,7 +478,7 @@ describe('<crud/get> getByRevision()', () => {
     // Get by revision
     await expect(
       gitDDB.getByRevision('0000000000111111111122222222223333333333')
-    ).rejects.toThrowError(DocumentNotFoundError);
+    ).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 

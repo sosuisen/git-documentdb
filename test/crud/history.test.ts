@@ -167,8 +167,9 @@ describe('<crud/history> getDocHistory()', () => {
         initialHead: gitDDB.defaultBranch,
       }
     );
+    const history = await gitDDB.getDocHistory('tmp');
+    expect(history.length).toBe(0);
 
-    await expect(gitDDB.getDocHistory('tmp')).rejects.toThrowError(DocumentNotFoundError);
     await gitDDB.destroy();
   });
 
@@ -223,9 +224,8 @@ describe('<crud/history> getBackNumber()', () => {
     });
     await gitDDB.create();
 
-    await expect(getBackNumber(gitDDB, 'tmp', 0)).rejects.toThrowError(
-      DocumentNotFoundError
-    );
+    await expect(getBackNumber(gitDDB, 'tmp', 0)).resolves.toBeUndefined();
+
     await gitDDB.destroy();
   });
 
@@ -237,9 +237,8 @@ describe('<crud/history> getBackNumber()', () => {
     });
     await gitDDB.create();
 
-    await expect(getBackNumber(gitDDB, 'tmp', 0)).rejects.toThrowError(
-      DocumentNotFoundError
-    );
+    await expect(getBackNumber(gitDDB, 'tmp', 0)).resolves.toBeUndefined();
+
     await gitDDB.destroy();
   });
 });

@@ -9,8 +9,10 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import sinon from 'sinon';
 import { monotonicFactory } from 'ulid';
 import {
+  CannotWriteDataError,
   InvalidIdCharacterError,
   InvalidIdLengthError,
   InvalidJsonObjectError,
@@ -23,6 +25,8 @@ import { GitDocumentDB } from '../../src/index';
 import { Validator } from '../../src/validator';
 import { put_worker } from '../../src/crud/put';
 import { SHORT_SHA_LENGTH } from '../../src/const';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fs_module = require('fs-extra');
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -31,13 +35,16 @@ const monoId = () => {
 
 const localDir = `./test/database_put`;
 
+// Use sandbox to restore stub and spy in parallel mocha tests
+let sandbox: sinon.SinonSandbox;
 beforeEach(function () {
   // @ts-ignore
   console.log(`... ${this.currentTest.fullTitle()}`);
+  sandbox = sinon.createSandbox();
 });
 
-beforeAll(() => {
-  fs.removeSync(path.resolve(localDir));
+afterEach(function () {
+  sandbox.restore();
 });
 
 afterAll(() => {
@@ -606,9 +613,24 @@ describe('<crud/put> put(JsonDoc)', () => {
     await gitDDB.destroy();
   });
 
-  it.skip(
-    'Test CannotWriteDataError. Create readonly file and try to rewrite it. Prepare it by hand if OS is Windows.'
-  );
+  it('throws CannotWriteDataError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.create();
+    const _id = 'prof01';
+    // Check put operation
+    const stubWriteFile = sandbox.stub(fs_module, 'writeFile');
+    stubWriteFile.rejects();
+
+    await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).rejects.toThrowError(
+      CannotWriteDataError
+    );
+
+    await gitDDB.destroy();
+  });
 });
 
 describe('<crud/put> put(id, document)', () => {

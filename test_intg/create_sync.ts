@@ -17,6 +17,8 @@ import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions } from '../src/types';
 import { destroyDBs, removeRemoteRepositories } from '../test/remote_utils';
+import { CannotConnectError } from '../src/error';
+import { NETWORK_RETRY } from '../src/const';
 
 const reposPrefix = 'test_remote_repository___';
 const localDir = `./test/database_remote_repository`;
@@ -89,6 +91,28 @@ maybe('intg: <create_sync>: create DB with Sync: ', () => {
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
 
       destroyDBs([dbA]);
+    });
+
+    it('throws CannotConnectError and retries in cloning', async () => {
+      const remoteURL = 'https://xyz.invalid/xyz/https_repos';
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        connection: { type: 'github', personal_access_token: token },
+      };
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+      await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
+      await dbA.destroy();
+
+      const retry = await dbA.create(options).catch((err: CannotConnectError) => {
+        return err.retry;
+      });
+      expect(retry).toBe(NETWORK_RETRY);
+
+      await dbA.destroy();
     });
   });
 });

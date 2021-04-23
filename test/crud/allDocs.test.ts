@@ -32,7 +32,7 @@ afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('allDocs(): ', () => {
+describe('<crud/allDocs> allDocs()', () => {
   const _id_1 = '1';
   const name_1 = 'one';
   const _id_a = 'apple';
@@ -56,7 +56,7 @@ describe('allDocs(): ', () => {
   const _id_p = 'pear/Japan/21st';
   const name_p = '21st century pear';
 
-  test('db is not created by GitDocumentDB', async () => {
+  it('opens db which is not created by GitDocumentDB', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -78,7 +78,7 @@ describe('allDocs(): ', () => {
     await gitDDB.destroy();
   });
 
-  test('alphabetic order', async () => {
+  it('returns entries by ascending alphabetic order', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -126,7 +126,7 @@ describe('allDocs(): ', () => {
     await gitDDB.destroy();
   });
 
-  test('options.descending', async () => {
+  it('returns entries by descending alphabetical order', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -161,7 +161,7 @@ describe('allDocs(): ', () => {
     await gitDDB.destroy();
   });
 
-  test('options.include_docs', async () => {
+  it('returns entries including JsonDocs', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -199,7 +199,7 @@ describe('allDocs(): ', () => {
     await gitDDB.destroy();
   });
 
-  test('breadth-first search (recursive)', async () => {
+  it('returns docs by breadth-first search (recursive)', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -263,7 +263,7 @@ describe('allDocs(): ', () => {
     await gitDDB.destroy();
   });
 
-  test('breadth-first search (not recursive)', async () => {
+  it('returns docs by breadth-first search (not recursive)', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -306,8 +306,8 @@ describe('allDocs(): ', () => {
     await gitDDB.destroy();
   });
 
-  describe('Prefix search: ', () => {
-    test('get from directory', async () => {
+  describe('Prefix search', () => {
+    it('gets from directory', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -351,7 +351,7 @@ describe('allDocs(): ', () => {
       await gitDDB.destroy();
     });
 
-    test('get only from top directory', async () => {
+    it('gets only from top directory', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -397,7 +397,7 @@ describe('allDocs(): ', () => {
       await gitDDB.destroy();
     });
 
-    test('use recursive option to get from parent directory and child directory', async () => {
+    it('uses recursive option to get from parent directory and child directory', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -457,7 +457,7 @@ describe('allDocs(): ', () => {
       await gitDDB.destroy();
     });
 
-    test('get from a sub directory', async () => {
+    it('gets from a sub directory', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -493,7 +493,7 @@ describe('allDocs(): ', () => {
       await gitDDB.destroy();
     });
 
-    test('prefix which does not exist', async () => {
+    it('returns no entry when prefix does not match', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -519,7 +519,7 @@ describe('allDocs(): ', () => {
       await gitDDB.destroy();
     });
 
-    test('get from deep directory', async () => {
+    it('gets from deep directory', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -573,10 +573,8 @@ describe('allDocs(): ', () => {
       await gitDDB.destroy();
     });
   });
-});
 
-describe('validator', () => {
-  test('allDocs(): Get invalid JSON', async () => {
+  it('throws InvalidJsonObjectError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,

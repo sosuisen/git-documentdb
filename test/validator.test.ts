@@ -36,7 +36,7 @@ afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('Validations', () => {
+describe('<validator>', () => {
   const dbName = 'test_repos_1';
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     db_name: dbName,
@@ -44,7 +44,7 @@ describe('Validations', () => {
   });
   const validator = new Validator(gitDDB.workingDir());
 
-  test('normalizeCollectionPath', () => {
+  it('normalizeCollectionPath', () => {
     expect(Validator.normalizeCollectionPath(undefined)).toBe('');
     expect(Validator.normalizeCollectionPath('')).toBe('');
     expect(Validator.normalizeCollectionPath('/')).toBe('');
@@ -64,7 +64,7 @@ describe('Validations', () => {
     expect(Validator.normalizeCollectionPath('///users///pages')).toEqual('users/pages/');
   });
 
-  test('validateId()', () => {
+  it('validateId()', () => {
     /**
      * '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
      * '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
@@ -151,7 +151,7 @@ describe('Validations', () => {
     expect(() => validator.validateId('春はあけぼの')).not.toThrowError();
   });
 
-  test('validateCollectionPath', () => {
+  it('validateCollectionPath', () => {
     expect(() => validator.validateCollectionPath('')).not.toThrowError();
     expect(() => validator.validateCollectionPath('foo/bar')).not.toThrowError();
     expect(() => validator.validateCollectionPath('foo\\bar')).not.toThrowError();
@@ -192,7 +192,7 @@ describe('Validations', () => {
     );
   });
 
-  test('validateDocument', () => {
+  it('validateDocument', () => {
     expect(() =>
       validator.validateDocument({ _id: 'id', _deleted: true })
     ).not.toThrowError();
@@ -205,7 +205,7 @@ describe('Validations', () => {
     ).toThrowError(InvalidPropertyNameInDocumentError);
   });
 
-  test('validateDbName', () => {
+  it('validateDbName', () => {
     expect(() => validator.validateDbName('foo/bar')).toThrowError(
       InvalidDbNameCharacterError
     );
@@ -230,7 +230,7 @@ describe('Validations', () => {
     expect(() => validator.validateDbName('春はあけぼの')).not.toThrowError();
   });
 
-  test('validLocalDir', () => {
+  it('validLocalDir', () => {
     expect(() => validator.validateLocalDir('COM3')).toThrowError(
       InvalidLocalDirCharacterError
     );
@@ -261,7 +261,7 @@ describe('Validations', () => {
     expect(() => validator.validateLocalDir('春は/あけぼの')).not.toThrowError();
   });
 
-  test('testWindowsInvalidFileNameCharacter', () => {
+  it('testWindowsInvalidFileNameCharacter', () => {
     expect(validator.testWindowsInvalidFileNameCharacter('dir01/dir02')).toBeFalsy();
     expect(validator.testWindowsInvalidFileNameCharacter('dir01\\dir02')).toBeFalsy();
     expect(validator.testWindowsInvalidFileNameCharacter('dir01:dir02')).toBeFalsy();

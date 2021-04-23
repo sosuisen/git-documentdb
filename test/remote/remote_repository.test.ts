@@ -22,7 +22,7 @@ import {
   CannotConnectError,
   CannotCreateRemoteRepositoryError,
   FetchConnectionFailedError,
-  InvalidSSHKeyError,
+  FetchPermissionDeniedError,
   InvalidURLError,
   PersonalAccessTokenForAnotherAccountError,
   PushConnectionFailedError,
@@ -531,7 +531,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       destroyDBs([gitDDB]);
     });
 
-    it('throws InvalidSSHKeyFormatError when ssh key pair does not exist', async () => {
+    it('throws FetchPermissionDeniedError when ssh key pair does not exist', async () => {
       const remoteURL = 'http://github.com/xyz/' + monoId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
@@ -560,7 +560,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
-        InvalidSSHKeyError
+        FetchPermissionDeniedError
       );
 
       destroyDBs([gitDDB]);
@@ -568,7 +568,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
     it.skip('throws Error when private repository');
 
-    it.skip('throws InvalidSSHKeyFormatError when invalid ssh key pair exists');
+    it.skip('throws FetchPermissionError when invalid ssh key pair exists');
   });
 
   describe(': _checkPush()', () => {

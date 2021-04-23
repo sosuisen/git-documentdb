@@ -32,8 +32,8 @@ afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('Destroy database', () => {
-  test('destroy()', async () => {
+describe('<index> destroy()', () => {
+  it('closes and removes a database', async () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -50,7 +50,27 @@ describe('Destroy database', () => {
     await expect(fs.access(workingDir, fs.constants.F_OK)).rejects.toThrowError();
   });
 
-  test('destroy(): close() throws Error', async () => {
+  it('can removes a database before db is opened', async () => {
+    const dbName = monoId();
+
+    const gitDDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    // Create db
+    await gitDDB.create();
+
+    // Destroy db
+    await gitDDB.destroy();
+
+    // fs.access() throw error when a file cannot be accessed.
+    await expect(fs.access(path.resolve(localDir, dbName))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  it('throws DatabaseCloseTimeoutError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
