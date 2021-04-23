@@ -624,18 +624,20 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * @param docId - id of a target document
    * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned.
-   * When backNumber is 0 and a document has been deleted in the current DB, it throws DocumentNotFoundError.
+   * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
+   *
+   * @returns
+   *  - JsonDoc if exists.
+   *  - undefined if not exists.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
-   *
    */
-  get (docId: string, backNumber?: number): Promise<JsonDoc> {
+  get (docId: string, backNumber?: number): Promise<JsonDoc | undefined> {
     // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
     return getImpl.call(this, docId, backNumber);
   }
@@ -645,13 +647,16 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    * @param - fileSHA SHA-1 hash of Git object (40 characters)
    *
+   * @returns
+   *  - JsonDoc if exists.
+   *  - undefined if not exists.
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedFileSHAError}
-   * @throws {@link DocumentNotFoundError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getByRevision (fileSHA: string): Promise<JsonDoc> {
+  getByRevision (fileSHA: string): Promise<JsonDoc | undefined> {
     return getByRevisionImpl.call(this, fileSHA);
   }
 
@@ -664,7 +669,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedFileSHAError}
-   * @throws {@link DocumentNotFoundError}
    * @throws {@link CannotGetEntryError}
    */
   getDocHistory (docID: string): Promise<string[]> {
@@ -691,7 +695,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
@@ -706,7 +710,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}

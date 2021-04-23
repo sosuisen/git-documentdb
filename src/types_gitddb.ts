@@ -33,7 +33,8 @@ export interface CRUDInterface {
     options?: PutOptions
   ): Promise<PutResult>;
 
-  get(docId: string): Promise<JsonDoc>;
+  get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+
   delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
   delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
 

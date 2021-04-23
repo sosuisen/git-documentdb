@@ -11,10 +11,8 @@ import { AbstractDocumentDB } from '../types_gitddb';
 import {
   CannotGetEntryError,
   DatabaseClosingError,
-  DocumentNotFoundError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
-  UndefinedFileSHAError,
 } from '../error';
 
 export async function getDocHistoryImpl (
@@ -39,7 +37,8 @@ export async function getDocHistoryImpl (
 
   // Calling nameToId() for HEAD throws error when this is first commit.
   await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(() => {
-    throw new DocumentNotFoundError();
+    // throw new DocumentNotFoundError();
+    return [];
   }); // get HEAD
 
   const fileName = _id + this.fileExt;
@@ -85,7 +84,7 @@ export async function getBackNumber (
   gitDDB: AbstractDocumentDB,
   fileName: string,
   backNumber: number
-): Promise<string> {
+): Promise<string | undefined> {
   const _currentRepository = gitDDB.repository();
   if (_currentRepository === undefined) {
     throw new RepositoryNotOpenError();
@@ -126,7 +125,8 @@ export async function getBackNumber (
           fileSHA = entry.sha();
           return;
         }
-        throw new DocumentNotFoundError();
+        // throw new DocumentNotFoundError();
+        return;
       }
 
       if (!fileSHAHash[entry.sha()]) {
@@ -145,5 +145,6 @@ export async function getBackNumber (
   if (fileSHA !== '') {
     return fileSHA;
   }
-  throw new DocumentNotFoundError();
+  // throw new DocumentNotFoundError();
+  return undefined;
 }

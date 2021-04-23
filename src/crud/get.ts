@@ -11,7 +11,6 @@ import { AbstractDocumentDB } from '../types_gitddb';
 import {
   CannotGetEntryError,
   DatabaseClosingError,
-  DocumentNotFoundError,
   InvalidBackNumberError,
   InvalidFileSHAFormatError,
   InvalidJsonObjectError,
@@ -22,11 +21,12 @@ import {
 import { JsonDoc } from '../types';
 import { getBackNumber } from './history';
 
+// eslint-disable-next-line complexity
 export async function getImpl (
   this: AbstractDocumentDB,
   docId: string,
   backNumber?: number
-): Promise<JsonDoc> {
+): Promise<JsonDoc | undefined> {
   const _id = docId;
   if (this.isClosing) {
     throw new DatabaseClosingError();
@@ -49,7 +49,8 @@ export async function getImpl (
   ); // get HEAD
   let document;
   if (!head) {
-    throw new DocumentNotFoundError();
+    // throw new DocumentNotFoundError();
+    return undefined;
   }
 
   const filename = _id + this.fileExt;
@@ -63,12 +64,16 @@ export async function getImpl (
         // https://github.com/libgit2/libgit2/blob/main/include/git2/errors.h
         // GIT_ERROR      = -1,		/**< Generic error */
         // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
-        throw new DocumentNotFoundError(err.message);
+
+        // throw new DocumentNotFoundError(err.message);
+        return undefined;
       }
-      else {
-        throw new CannotGetEntryError(err.message);
-      }
+
+      throw new CannotGetEntryError(err.message);
     });
+    if (entry === undefined) {
+      return undefined;
+    }
     const blob = await entry.getBlob();
 
     try {
@@ -85,6 +90,9 @@ export async function getImpl (
   }
   else if (backNumber > 0) {
     const fileSHA = await getBackNumber(this, filename, backNumber);
+    if (fileSHA === undefined) {
+      return undefined;
+    }
     return await getByRevisionImpl.call(this, fileSHA);
   }
 
@@ -94,7 +102,7 @@ export async function getImpl (
 export async function getByRevisionImpl (
   this: AbstractDocumentDB,
   fileSHA: string
-): Promise<JsonDoc> {
+): Promise<JsonDoc | undefined> {
   if (this.isClosing) {
     throw new DatabaseClosingError();
   }
@@ -118,16 +126,20 @@ export async function getByRevisionImpl (
       // https://github.com/libgit2/libgit2/blob/main/include/git2/errors.h
       // GIT_ERROR      = -1,		/**< Generic error */
       // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
-      throw new DocumentNotFoundError(err.message);
+
+      // throw new DocumentNotFoundError(err.message);
+      return undefined;
     }
-    else {
-      // Other errors
-      // e.g.) "unable to parse OID - contains invalid characters"
-      throw new CannotGetEntryError(err.message);
-    }
+
+    // Other errors
+    // e.g.) "unable to parse OID - contains invalid characters"
+    throw new CannotGetEntryError(err.message);
   });
   let document;
   try {
+    if (blob === undefined) {
+      return undefined;
+    }
     document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
   } catch (e) {
     throw new InvalidJsonObjectError();

@@ -149,18 +149,25 @@ export class Collection implements CRUDInterface {
    * Get a document
    *
    * @param docId - id of a target document
+   *
+   * @returns
+   *  - JsonDoc if exists.
+   *  - undefined if not exists.
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
    */
-  get (docId: string): Promise<JsonDoc> {
+  get (docId: string, backNumber?: number): Promise<JsonDoc | undefined> {
     const _id = this._collectionPath + docId;
 
-    return this._gitDDB.get(_id).then(doc => {
+    return this._gitDDB.get(_id, backNumber).then(doc => {
+      if (doc === undefined) {
+        return undefined;
+      }
       doc._id = docId;
       return doc;
     });
@@ -192,7 +199,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
@@ -208,7 +215,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
    * @throws {@link CannotDeleteDataError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
