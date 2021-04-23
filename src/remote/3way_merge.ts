@@ -128,7 +128,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours') {
+      if (strategy === 'ours' || strategy === 'ours-prop') {
         // Just add it to the index.
         // console.log(' #case 4 - Conflict. Accept ours (create): ' + path);
         acceptedConflicts.push({
@@ -136,12 +136,12 @@ export async function threeWayMerge (
             id: docId,
             file_sha: ours.sha(),
           },
-          strategy: 'ours',
+          strategy: strategy,
           operation: 'create',
         });
         await resolvedIndex.addByPath(path);
       }
-      else if (strategy === 'theirs') {
+      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
         // Write theirs to the file.
         // console.log(' #case 5 - Conflict. Accept theirs (create): ' + path);
         acceptedConflicts.push({
@@ -149,7 +149,7 @@ export async function threeWayMerge (
             id: docId,
             file_sha: theirs.sha(),
           },
-          strategy: 'theirs',
+          strategy: strategy,
           operation: 'create',
         });
         await writeBlobToFile(gitDDB, theirs);
@@ -177,7 +177,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours') {
+      if (strategy === 'ours' || strategy === 'ours-prop') {
         // Just add it to the index.
         // console.log(' #case 8 - Conflict. Accept ours (delete): ' + path);
         acceptedConflicts.push({
@@ -185,12 +185,12 @@ export async function threeWayMerge (
             id: docId,
             file_sha: base.sha(),
           },
-          strategy: 'ours',
+          strategy: strategy,
           operation: 'delete',
         });
         await resolvedIndex.removeByPath(path);
       }
-      else if (strategy === 'theirs') {
+      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
         // Write theirs to the file.
         // console.log(' #case 9 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
@@ -198,7 +198,7 @@ export async function threeWayMerge (
             id: docId,
             file_sha: theirs.sha(),
           },
-          strategy: 'theirs',
+          strategy: strategy,
           operation: 'update',
         });
         await writeBlobToFile(gitDDB, theirs);
@@ -224,7 +224,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours') {
+      if (strategy === 'ours' || strategy === 'ours-prop') {
         // Just add to the index.
         // console.log(' #case 11 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
@@ -232,12 +232,12 @@ export async function threeWayMerge (
             id: docId,
             file_sha: ours.sha(),
           },
-          strategy: 'ours',
+          strategy: strategy,
           operation: 'update',
         });
         await resolvedIndex.addByPath(path);
       }
-      else if (strategy === 'theirs') {
+      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
         // Remove file
         // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + path);
         acceptedConflicts.push({
@@ -245,7 +245,7 @@ export async function threeWayMerge (
             id: docId,
             file_sha: base.sha(),
           },
-          strategy: 'theirs',
+          strategy: strategy,
           operation: 'delete',
         });
         await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
@@ -282,7 +282,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours') {
+      if (strategy === 'ours' || strategy === 'ours-prop') {
         // Just add it to the index.
         // console.log(' #case 16 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
@@ -290,12 +290,12 @@ export async function threeWayMerge (
             id: docId,
             file_sha: ours.sha(),
           },
-          strategy: 'ours',
+          strategy: strategy,
           operation: 'update',
         });
         await resolvedIndex.addByPath(path);
       }
-      else if (strategy === 'theirs') {
+      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
         // Write theirs to the file.
         // console.log(' #case 17 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
@@ -303,7 +303,7 @@ export async function threeWayMerge (
             id: docId,
             file_sha: theirs.sha(),
           },
-          strategy: 'theirs',
+          strategy: strategy,
           operation: 'update',
         });
         await writeBlobToFile(gitDDB, theirs);

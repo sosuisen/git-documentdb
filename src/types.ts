@@ -376,7 +376,7 @@ export type WriteOperation = 'create' | 'update' | 'delete';
  */
 export type AcceptedConflict = {
   target: DocMetadata;
-  strategy: 'ours' | 'theirs';
+  strategy: 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
   operation: WriteOperation;
 };
 
