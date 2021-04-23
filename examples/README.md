@@ -7,7 +7,11 @@ Basic operations (src/index.ts)
 ```
 $ npm start
 ```
+Collection (src/collection.ts)
+```
+$ npm run collection
+```
 Synchronization (src/sync.ts)
 ```
-$ npm start-sync
+$ npm run sync
 ```
