@@ -22,7 +22,9 @@ getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
 
 Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
-- JsonDoc if exists. - undefined if not exists.
+- JsonDoc if exists.
+
+- undefined if not exists.
 
 ## Exceptions
 
