@@ -69,11 +69,17 @@ const gitDDB = new GitDocumentDB({
   await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' }); // Git adds an updated file and commits it.
   // Read
   const doc = await gitDDB.get('nara');
-  console.log(doc); // doc = { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
+  console.log(doc); // { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
   // Delete
-  await gitDDB.remove('nara'); // Git removes a file and commits it.
+  await gitDDB.delete('nara'); // Git deletes a file and commits it. 
+  // You can call remove() as alias for delete().
 ```
-
+## Revisions
+```typescript
+  // get(id, 2) returns two revisions before
+  const oldDoc = await gitDDB.get('nara', 2); 
+  console.log(oldDoc); // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+```
 ## Synchronization
 ```typescript
   const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example.git'; // Please enter your GitHub account name.
@@ -84,7 +90,7 @@ const gitDDB = new GitDocumentDB({
     connection: { type: 'github', personal_access_token: your_github_personal_access_token },
   });
 ```
-(You can find detailed examples in examples/src/sync.ts)
+(You can find more examples in examples/src/sync.ts)
 
 
 ## Prefix search
@@ -108,7 +114,7 @@ const gitDDB = new GitDocumentDB({
 
   // Read
   const flowerInYoshino = await gitDDB.get('yoshino/mt_yoshino');
-  console.log(flowerInYoshino); // flowerInYoshino = { flower: 'cherry blossoms', _id: 'yoshino/mt_yoshino' }
+  console.log(flowerInYoshino); // { flower: 'cherry blossoms', _id: 'yoshino/mt_yoshino' }
 
   // Prefix search
   
@@ -151,7 +157,7 @@ const gitDDB = new GitDocumentDB({
 
   // Read
   const flowerInYoshinoCollection = await yoshino.get('mt_yoshino');
-  console.log(flowerInYoshinoCollection); // flowerInYoshinoCollection = { flower: 'cherry blossoms', _id: 'mt_yoshino' }
+  console.log(flowerInYoshinoCollection); // { flower: 'cherry blossoms', _id: 'mt_yoshino' }
 
   // Read all the documents in nara collection
   const flowersInNaraCollection = await nara.allDocs({ include_docs: true });
@@ -176,6 +182,7 @@ const gitDDB = new GitDocumentDB({
   */
   await gitDDB.close();
 ```
+(You can find more examples in examples/src/collection.ts)
 
 # Examples:
 See examples directory.
@@ -183,7 +190,8 @@ See examples directory.
 $ cd examples
 $ npm i
 $ npm start
-$ npm start-sync
+$ npm run sync
+$ npm run collection
 ```
 
 # Continuous Deployment (CD) using GitDocumentDB
