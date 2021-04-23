@@ -79,6 +79,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
+  // it.only('add .only to just remove remote repositories.', async () => {});
+
   /**
    * before:
    * dbA   :
@@ -693,9 +695,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await destroyDBs([dbA]);
   });
 
-  it('throws CannotPushBecauseUnfetchedCommitExistError when combine_db_strategy is nop in [push] direction', async () => {
+  it('throws CannotPushBecauseUnfetchedCommitExistError for [push] direction', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      combine_db_strategy: 'nop',
       sync_direction: 'push',
     });
 
@@ -724,9 +725,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
    * No merge base
    */
   describe.skip('throws NoMergeBaseError', () => {
-    it('when combine_db_strategy is nop in [both] direction', async () => {
+    it('when combine_db_strategy is throw-error in [both] direction', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        combine_db_strategy: 'nop',
+        combine_db_strategy: 'throw-error',
         sync_direction: 'both',
       });
 

@@ -340,16 +340,24 @@ export type CombineDbStrategies =
  * Strategy for resolving conflicts
  *
  * @remarks
- * - 'ours': Accept ours (Default). When a remote change is conflicted with a local change, the local change is accepted.
+ * 'ours' and 'theirs' are borrowed terms from Git (https://git-scm.com/docs/merge-strategies)
  *
- * - 'theirs': Accept theirs. When a remote change is conflicted with a local change, the remote change is accepted.
+ * - 'ours-prop': Accept ours per property (Default). Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the local change is accepted.
  *
- * - Compare function that returns 'ours' or 'theirs' can be given. Each parameter will be undefined when a document is removed.
+ * - 'theirs-prop': Accept theirs per property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the remote change is accepted.
+ *
+ * - 'ours': Accept ours per document. Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the local change is accepted.
+ *
+ * - 'theirs': Accept theirs per document. Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the remote change is accepted.
+ *
+ * - Compare function that returns one of the strategies ('ours-prop', 'theirs-prop', 'ours', and 'theirs') can be given. Each argument will be undefined when a document is removed.
  */
 export type ConflictResolveStrategies =
+  | 'ours-prop'
+  | 'theirs-prop'
   | 'ours'
   | 'theirs'
-  | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
+  | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs');
 
 /**
  * Write operation
@@ -418,7 +426,7 @@ export type RemoteOptions = {
 
   /* merge */
   conflict_resolve_strategy?: ConflictResolveStrategies;
-  combine_db_strategy?: BehaviorForNoMergeBase;
+  combine_db_strategy?: CombineDbStrategies;
 
   /* results */
   include_commits?: boolean;

@@ -81,17 +81,11 @@ async function calcDistance (
  * @throws {@link NoMergeBaseFoundError}
  */
 function resolveNoMergeBase (sync: ISync) {
-  if (sync.options().combine_db_strategy === 'nop') {
+  if (sync.options().combine_db_strategy === 'throw-error') {
     throw new NoMergeBaseFoundError();
   }
-  else if (sync.options().combine_db_strategy === 'theirs') {
-    // remote local repository and clone remote repository
-  }
-  else if (sync.options().combine_db_strategy === 'ours') {
-    // git merge -s ours
-    // TODO:
-    throw new Error('ours option for combine_db_strategy is not implemented currently.');
-  }
+  // TODO:
+  throw new Error('other options for combine_db_strategy is not implemented currently.');
 }
 
 /**
