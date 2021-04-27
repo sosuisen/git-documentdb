@@ -51,8 +51,10 @@ export class JsonPatch {
     }
     const opLeft = this.fromDiff(diffLeft);
     const opRight = this.fromDiff(diffRight);
-    const newOp = this.transform(opLeft, opRight, prefer!);
-    return type.apply(doc, newOp!);
+    const newOpLeft = this.transform(opLeft, opRight, prefer!);
+    let newDoc = type.apply(doc, opRight);
+    newDoc = type.apply(newDoc, newOpLeft!);
+    return newDoc;
   }
 
   transform (left: JSONOp, right: JSONOp, prefer?: 'left' | 'right') {

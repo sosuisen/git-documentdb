@@ -1,3 +1,4 @@
+import { insertOp, type } from 'ot-json1';
 import { JsonDiff } from '../../src/remote/diff';
 import { JsonPatch } from '../../src/remote/ot';
 
@@ -88,10 +89,16 @@ describe('<remote/ot> OT', () => {
     console.log(patchOurs);
     const patchTheirs = jPatch.fromDiff(diffTheirs!);
     console.log(patchTheirs);
-    const patchMerged = jPatch.transform(patchOurs, patchTheirs, 'left');
-    console.log(patchMerged);
-    expect(patchMerged).toStrictEqual(patch);
 
     expect(jPatch.patch(base, diffOurs!, diffTheirs)).toStrictEqual(merged);
+  });
+
+  it.skip('test transform', () => {
+    const op1 = insertOp(['a'], 'x');
+    console.log(op1);
+    const op2 = insertOp(['b', 'c'], 'y');
+    console.log(op2);
+    const mergeOp = type.transform(op1, op2, 'left');
+    console.log(mergeOp);
   });
 });
