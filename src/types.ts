@@ -596,3 +596,8 @@ export interface ISync {
   cancel(): void;
   resume(options?: { interval?: number; retry?: number }): void;
 }
+
+export type JsonDiffOptions = {
+  idOfSubtree?: string[];
+  minTextLength?: number;
+};

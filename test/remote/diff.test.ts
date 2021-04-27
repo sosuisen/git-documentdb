@@ -372,7 +372,9 @@ describe('<remote/diff> diff', () => {
   });
 
   it('object arrays by objectHash', () => {
-    const myDiff = new JsonDiff(['place']);
+    const myDiff = new JsonDiff({
+      idOfSubtree: ['place'],
+    });
 
     const oldDoc = {
       _id: 'nara',
@@ -406,6 +408,33 @@ describe('<remote/diff> diff', () => {
         _1: ['', 0, 3],
         _t: 'a',
       },
+    });
+  });
+
+  it('long text (more than 30 characters)', () => {
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abcdefghijklmnopqrstuvwxyz0123456789',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: 'abcdefg56789hijklmnopqrstuvwxyz01234',
+    };
+
+    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,15 +1,20 @@
+ abcdefg
++56789
+ hijklmno
+@@ -29,13 +29,8 @@
+ xyz01234
+-56789
+`,
+        0,
+        2,
+      ],
     });
   });
 });
