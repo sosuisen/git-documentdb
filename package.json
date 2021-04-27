@@ -71,6 +71,7 @@
     "@sosuisen/nodegit": "^0.27.3",
     "fs-extra": "^9.1.0",
     "jsondiffpatch": "^0.4.1",
+    "ot-json1": "^1.0.2",
     "rimraf": "^3.0.2",
     "tslog": "^3.1.2",
     "ulid": "^2.3.0"
