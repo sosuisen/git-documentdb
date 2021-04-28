@@ -51,6 +51,8 @@ import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL, NETWORK_TIMEOUT } from '../const';
 
+export const DEFAULT_CONFLICT_RESOLVE_STRATEGY = 'ours';
+
 /**
  * Implementation of GitDocumentDB#sync()
  *
@@ -182,7 +184,7 @@ export class Sync implements ISync {
     this._options.retry ??= Sync.defaultRetry;
     this._options.combine_db_strategy ??= 'throw-error';
     this._options.include_commits ??= false;
-    this._options.conflict_resolve_strategy ??= 'ours-prop';
+    this._options.conflict_resolve_strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
 
     this.credential_callbacks = createCredential(this._options);
 

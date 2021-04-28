@@ -6,25 +6,25 @@ const jDiff = new JsonDiff();
 const jPatch = new JsonPatch();
 
 describe('<remote/ot> OT', () => {
-  it('returns operation from diff of primitives: add', () => {
+  it('returns op from primitives: add', () => {
     const oldDoc = {
       _id: 'nara',
-      prof: 'Nara prefecture',
+      age: 'Nara prefecture',
       year: 1887,
       current: true,
     };
     const newDoc = {
       _id: 'nara',
-      prof: 'Nara prefecture',
+      age: 'Nara prefecture',
       year: 1887,
       current: true,
-      prof2: 'Heijo-kyo',
+      age2: 'Heijo-kyo',
       year2: 710,
       current2: false,
     };
 
     const diff = {
-      prof2: ['Heijo-kyo'],
+      age2: ['Heijo-kyo'],
       year2: [710],
       current2: [false],
     };
@@ -32,8 +32,8 @@ describe('<remote/ot> OT', () => {
 
     // keys must be sorted by descendant order
     const patch = [
+      ['age2', { i: 'Heijo-kyo' }],
       ['current2', { i: false }],
-      ['prof2', { i: 'Heijo-kyo' }],
       ['year2', { i: 710 }],
     ];
     expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
@@ -42,33 +42,33 @@ describe('<remote/ot> OT', () => {
     expect(jPatch.patch(oldDoc, jDiff.diff(oldDoc, newDoc)!)).toStrictEqual(newDoc);
   });
 
-  it('returns merged operation from diff of primitives: add', () => {
+  it('returns merged op from serialized primitives: add', () => {
     const base = {
       _id: 'nara',
-      prof: 'Nara prefecture',
+      age: 'Nara prefecture',
     };
 
     const ours = {
       _id: 'nara',
-      prof: 'Nara prefecture',
+      age: 'Nara prefecture',
       year: 1887,
       current: true,
     };
 
     const theirs = {
       _id: 'nara',
-      prof: 'Nara prefecture',
-      prof2: 'Heijo-kyo',
+      age: 'Nara prefecture',
+      age2: 'Heijo-kyo',
       year2: 710,
       current2: false,
     };
 
     const merged = {
       _id: 'nara',
-      prof: 'Nara prefecture',
+      age: 'Nara prefecture',
       year: 1887,
       current: true,
-      prof2: 'Heijo-kyo',
+      age2: 'Heijo-kyo',
       year2: 710,
       current2: false,
     };
@@ -76,21 +76,91 @@ describe('<remote/ot> OT', () => {
     const diffOurs = jDiff.diff(base, ours);
     const diffTheirs = jDiff.diff(base, theirs);
 
-    const patch = [
-      ['current', { i: true }],
-      ['current2', { i: false }],
-      ['prof2', { i: 'Heijo-kyo' }],
-      ['year', { i: 1887 }],
-      ['year2', { i: 710 }],
-    ];
-    expect(jPatch.apply(base, patch)).toStrictEqual(merged);
+    const patchOurs = jPatch.fromDiff(diffOurs!);
+    console.log(patchOurs);
+    const patchTheirs = jPatch.fromDiff(diffTheirs!);
+    console.log(patchTheirs);
+
+    expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+  });
+
+  it('returns merged op from overwriting primitives: add', () => {
+    const base = {
+      _id: 'nara',
+      age: 'Nara prefecture',
+      deer: 100,
+    };
+
+    // The number of deer has increased.
+    const ours = {
+      _id: 'nara',
+      age: 'Nara prefecture',
+      deer: 1000,
+    };
+
+    // The number of deer in Nara was small in the past.
+    const theirs = {
+      _id: 'nara',
+      age: 'Heijo-kyo',
+      deer: 100,
+    };
+
+    // This is correct as a merge result, but incorrect as a schema.
+    // 'age' and 'deer' is interdependent.
+    // It must be resolved by user.
+    const merged = {
+      _id: 'nara',
+      age: 'Heijo-kyo',
+      deer: 1000,
+    };
+
+    const diffOurs = jDiff.diff(base, ours);
+    // console.log(diffOurs);
+    const diffTheirs = jDiff.diff(base, theirs);
+    // console.log(diffTheirs);
+    const patchOurs = jPatch.fromDiff(diffOurs!);
+    // console.log(patchOurs);
+    const patchTheirs = jPatch.fromDiff(diffTheirs!);
+    // console.log(patchTheirs);
+
+    expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+  });
+
+  it('returns merged op from conflicted primitives: add', () => {
+    const base = {
+      _id: 'nara',
+      age: 'Nara prefecture',
+    };
+
+    const ours = {
+      _id: 'nara',
+      age: 'Previous Nara prefecture',
+      year: 1868,
+    };
+
+    const theirs = {
+      _id: 'nara',
+      age: 'Heijo-kyo',
+      year: 710,
+    };
+
+    const merged = {
+      _id: 'nara',
+      age: 'Previous Nara prefecture',
+      year: 1868,
+    };
+
+    const diffOurs = jDiff.diff(base, ours);
+    console.log(diffOurs);
+    const diffTheirs = jDiff.diff(base, theirs);
+    console.log(diffTheirs);
 
     const patchOurs = jPatch.fromDiff(diffOurs!);
     console.log(patchOurs);
     const patchTheirs = jPatch.fromDiff(diffTheirs!);
     console.log(patchTheirs);
 
-    expect(jPatch.patch(base, diffOurs!, diffTheirs)).toStrictEqual(merged);
+    expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
   });
 
   it.skip('test transform', () => {

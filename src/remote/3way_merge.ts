@@ -86,6 +86,9 @@ function getMergedDocument (
   else if (strategy === 'theirs-prop') {
     result = { ...ours, ...theirs };
   }
+  else {
+    result = {};
+  }
   return toSortedJSONString(result);
 }
 

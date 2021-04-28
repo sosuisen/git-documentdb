@@ -1,6 +1,14 @@
-import { insertOp, JSONOp, moveOp, type } from 'ot-json1';
+/* eslint-disable max-depth */
+import { resolve } from 'path';
+import { insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
 import { Delta } from 'jsondiffpatch';
-import { JsonDoc } from '../types';
+import {
+  ConflictResolveStrategies,
+  ConflictResolveStrategyLabels,
+  JsonDoc,
+} from '../types';
+import { threeWayMerge } from './3way_merge';
+import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from './sync';
 
 export class JsonPatch {
   constructor () {}
@@ -27,11 +35,17 @@ export class JsonPatch {
             if (arr.length === 1) {
               operations.push(insertOp(ancestors.concat(key), arr[0])!);
             }
+            else if (arr.length === 2) {
+              operations.push(replaceOp(ancestors.concat(key), arr[0], arr[1])!);
+            }
           }
         });
       }
     };
     procTree([], diff);
+    if (operations.length === 1) {
+      return (operations[0] as unknown) as JSONOp;
+    }
     return operations;
   }
 
@@ -40,25 +54,107 @@ export class JsonPatch {
   }
 
   patch (
-    doc: JsonDoc,
-    diffLeft: Delta,
-    diffRight?: Delta | undefined,
-    prefer?: 'left' | 'right' | undefined
+    docOurs: JsonDoc,
+    diffOurs: Delta,
+    diffTheirs?: Delta | undefined,
+    strategy?: ConflictResolveStrategyLabels
   ) {
-    prefer ??= 'left';
-    if (diffRight === undefined) {
-      return type.apply(doc, this.fromDiff(diffLeft));
+    strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
+    if (diffTheirs === undefined) {
+      return type.apply(docOurs, this.fromDiff(diffOurs));
     }
-    const opLeft = this.fromDiff(diffLeft);
-    const opRight = this.fromDiff(diffRight);
-    const newOpLeft = this.transform(opLeft, opRight, prefer!);
-    let newDoc = type.apply(doc, opRight);
-    newDoc = type.apply(newDoc, newOpLeft!);
+    const opOurs = this.fromDiff(diffOurs);
+    const opTheirs = this.fromDiff(diffTheirs);
+    const transformedOpTheirs = this.transform(opTheirs, opOurs, strategy!);
+    const newDoc = type.apply(docOurs, transformedOpTheirs!);
     return newDoc;
   }
 
-  transform (left: JSONOp, right: JSONOp, prefer?: 'left' | 'right') {
-    prefer ??= 'left';
-    return type.transform(left, right, prefer);
+  // eslint-disable-next-line complexity
+  resolveConflict (
+    _opOurs: JSONOp,
+    _opTheirs: JSONOp,
+    strategy: ConflictResolveStrategyLabels
+  ): [JSONOp, JSONOp, JSONOp | undefined] {
+    let opOurs = JSON.parse(JSON.stringify(_opOurs));
+    let opTheirs = JSON.parse(JSON.stringify(_opTheirs));
+    let transformedOpTheirs;
+    try {
+      console.log('trying ours: '  + JSON.stringify(opOurs));
+      console.log('trying theirs: '  + JSON.stringify(opTheirs));
+      transformedOpTheirs = type.transform(opTheirs, opOurs, 'right');
+    } catch (err) {
+      if (err.conflict) {
+        console.log('conflict: ' + JSON.stringify(err.conflict));
+        const conflict = err.conflict as { type: number; op1: any[]; op2: any[] };
+        // NOTE: op1 is opTheirs, op2 is opOurs
+        if (strategy.startsWith('ours')) {
+          // Remove conflicted op from theirs
+
+          const targetPosition = conflict.op1.slice(0, -1);
+
+          // Get p, r, d, i, e
+          const conflictedCommands = Object.keys(conflict.op1[conflict.op1.length - 1]);
+
+          // Command and its argument. e.g. {p: 0}
+          let commandAndArgs: { [command: string]: string };
+          if (opTheirs.length > 1 && !Array.isArray(opTheirs[0])) {
+            commandAndArgs = opTheirs[opTheirs.length - 1];
+            conflictedCommands.forEach(command => delete commandAndArgs[command]);
+            opTheirs[opTheirs.length - 1] = commandAndArgs;
+          }
+          else if (opTheirs.length > 1) {
+            // Search target position
+            let pos = -1;
+            for (let i = 0; i < opTheirs.length; i++) {
+              if (opTheirs[i].length - 1 === targetPosition.length) {
+                for (let j = 0; j < targetPosition.length; j++) {
+                  if (opTheirs[i][j] !== targetPosition[j]) {
+                    break;
+                  }
+                  if (j === targetPosition.length - 1) {
+                    pos = i;
+                  }
+                }
+                if (pos >= 0) {
+                  break;
+                }
+              }
+            }
+            if (pos >= 0) {
+              commandAndArgs = opTheirs[pos][opTheirs[pos].length - 1];
+              conflictedCommands.forEach(command => delete commandAndArgs[command]);
+              if (Object.keys(commandAndArgs).length > 0) {
+                opTheirs[pos][opTheirs[pos].length - 1] = commandAndArgs;
+              }
+              else {
+                opTheirs.splice(pos, 1);
+              }
+              if (opTheirs.length === 1) {
+                opTheirs = opTheirs[0];
+              }
+              console.log('# resolved: ' + JSON.stringify(opTheirs));
+            }
+          }
+        }
+        else if (strategy.startsWith('theirs')) {
+        }
+        return [opOurs, opTheirs, undefined];
+      }
+      throw err;
+    }
+    return [opOurs, opTheirs, transformedOpTheirs];
+  }
+
+  transform (opTheirs: JSONOp, opOurs: JSONOp, strategy: ConflictResolveStrategyLabels) {
+    let transformedOpTheirs;
+    while (transformedOpTheirs === undefined) {
+      [opOurs, opTheirs, transformedOpTheirs] = this.resolveConflict(
+        opOurs,
+        opTheirs,
+        strategy
+      );
+    }
+    return transformedOpTheirs;
   }
 }
