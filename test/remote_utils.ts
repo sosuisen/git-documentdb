@@ -64,6 +64,21 @@ export function getChangedFile (
   };
 }
 
+export function getChangedFileBySHA (
+  operation: WriteOperation,
+  doc: JsonDoc,
+  file_sha: string
+): ChangedFile {
+  return {
+    operation,
+    data: {
+      id: doc._id,
+      file_sha,
+      doc,
+    },
+  };
+}
+
 export async function createDatabase (
   remoteURLBase: string,
   localDir: string,
