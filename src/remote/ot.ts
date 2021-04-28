@@ -1,18 +1,11 @@
 /* eslint-disable max-depth */
-import { resolve } from 'path';
 import { insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
-import { Delta } from 'jsondiffpatch';
-import {
-  ConflictResolveStrategies,
-  ConflictResolveStrategyLabels,
-  JsonDoc,
-} from '../types';
-import { threeWayMerge } from './3way_merge';
-import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from './sync';
+import { ConflictResolveStrategyLabels, JsonDoc } from '../types';
+import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
 
 export class JsonPatch {
   constructor () {}
-  fromDiff (diff: Delta): JSONOp {
+  fromDiff (diff: { [key: string]: any }): JSONOp {
     const operations: JSONOp = [];
     const procTree = (ancestors: string[], tree: JsonDoc) => {
       const keys = Object.keys(tree);
@@ -55,19 +48,19 @@ export class JsonPatch {
 
   patch (
     docOurs: JsonDoc,
-    diffOurs: Delta,
-    diffTheirs?: Delta | undefined,
+    diffOurs: { [key: string]: any },
+    diffTheirs?: { [key: string]: any } | undefined,
     strategy?: ConflictResolveStrategyLabels
-  ) {
+  ): JsonDoc {
     strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
     if (diffTheirs === undefined) {
-      return type.apply(docOurs, this.fromDiff(diffOurs));
+      return (type.apply(docOurs, this.fromDiff(diffOurs)) as unknown) as JsonDoc;
     }
     const opOurs = this.fromDiff(diffOurs);
     const opTheirs = this.fromDiff(diffTheirs);
     const transformedOpTheirs = this.transform(opTheirs, opOurs, strategy!);
     const newDoc = type.apply(docOurs, transformedOpTheirs!);
-    return newDoc;
+    return (newDoc as unknown) as JsonDoc;
   }
 
   // eslint-disable-next-line complexity

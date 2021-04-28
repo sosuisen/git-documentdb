@@ -16,6 +16,8 @@ import {
 import { AbstractDocumentDB } from '../types_gitddb';
 import { getDocument } from './worker_utils';
 import { toSortedJSONString } from '../utils';
+import { JsonDiff } from './diff';
+import { JsonPatch } from './ot';
 
 /**
  * Write blob to file system
@@ -69,7 +71,10 @@ async function getStrategy (
 }
 
 function getMergedDocument (
+  jsonDiff: JsonDiff,
+  jsonPatch: JsonPatch,
   strategy: ConflictResolveStrategyLabels,
+  base: JsonDoc | undefined,
   ours: JsonDoc,
   theirs: JsonDoc
 ): string {
@@ -81,10 +86,20 @@ function getMergedDocument (
     result = theirs;
   }
   else if (strategy === 'ours-prop') {
-    result = { ...theirs, ...ours };
+    result = jsonPatch.patch(
+      ours,
+      jsonDiff.diff(base, ours),
+      jsonDiff.diff(base, theirs),
+      strategy
+    );
   }
   else if (strategy === 'theirs-prop') {
-    result = { ...ours, ...theirs };
+    result = jsonPatch.patch(
+      ours,
+      jsonDiff.diff(base, ours),
+      jsonDiff.diff(base, theirs),
+      strategy
+    );
   }
   else {
     result = {};
@@ -173,7 +188,10 @@ export async function threeWayMerge (
         });
 
         const data = await getMergedDocument(
+          gitDDB.jsonDiff,
+          gitDDB.jsonPatch,
           strategy,
+          undefined,
           JSON.parse((await ours.getBlob()).toString()),
           JSON.parse((await theirs.getBlob()).toString())
         );
@@ -195,7 +213,10 @@ export async function threeWayMerge (
         });
 
         const data = await getMergedDocument(
+          gitDDB.jsonDiff,
+          gitDDB.jsonPatch,
           strategy,
+          undefined,
           JSON.parse((await ours.getBlob()).toString()),
           JSON.parse((await theirs.getBlob()).toString())
         );
@@ -353,7 +374,10 @@ export async function threeWayMerge (
         });
 
         const data = await getMergedDocument(
+          gitDDB.jsonDiff,
+          gitDDB.jsonPatch,
           strategy,
+          JSON.parse((await base.getBlob()).toString()),
           JSON.parse((await ours.getBlob()).toString()),
           JSON.parse((await theirs.getBlob()).toString())
         );
@@ -375,7 +399,10 @@ export async function threeWayMerge (
         });
 
         const data = await getMergedDocument(
+          gitDDB.jsonDiff,
+          gitDDB.jsonPatch,
           strategy,
+          JSON.parse((await base.getBlob()).toString()),
           JSON.parse((await ours.getBlob()).toString()),
           JSON.parse((await theirs.getBlob()).toString())
         );

@@ -29,7 +29,8 @@ export class JsonDiff {
     });
   }
 
-  diff (oldDoc: JsonDoc, newDoc: JsonDoc) {
-    return this._jsonDiffPatch.diff(oldDoc, newDoc);
+  diff (oldDoc: JsonDoc | undefined, newDoc: JsonDoc): { [key: string]: any } {
+    if (oldDoc === undefined) return {};
+    return (this._jsonDiffPatch.diff(oldDoc, newDoc) as unknown) as { [key: string]: any };
   }
 }

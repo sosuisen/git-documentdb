@@ -49,9 +49,12 @@ import { push_worker } from './push_worker';
 import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
-import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL, NETWORK_TIMEOUT } from '../const';
-
-export const DEFAULT_CONFLICT_RESOLVE_STRATEGY = 'ours';
+import {
+  DEFAULT_CONFLICT_RESOLVE_STRATEGY,
+  NETWORK_RETRY,
+  NETWORK_RETRY_INTERVAL,
+  NETWORK_TIMEOUT,
+} from '../const';
 
 /**
  * Implementation of GitDocumentDB#sync()

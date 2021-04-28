@@ -8,6 +8,8 @@
 
 import nodegit from '@sosuisen/nodegit';
 import { Logger } from 'tslog';
+import { JsonDiff } from './remote/diff';
+import { JsonPatch } from './remote/ot';
 import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
@@ -56,6 +58,8 @@ export abstract class AbstractDocumentDB {
     email: string;
   };
 
+  abstract jsonDiff: JsonDiff;
+  abstract jsonPatch: JsonPatch;
   abstract defaultBranch: string;
   abstract dbName (): string;
   abstract workingDir (): string;
