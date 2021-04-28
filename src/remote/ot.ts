@@ -76,74 +76,84 @@ export class JsonPatch {
     _opTheirs: JSONOp,
     strategy: ConflictResolveStrategyLabels
   ): [JSONOp, JSONOp, JSONOp | undefined] {
-    let opOurs = JSON.parse(JSON.stringify(_opOurs));
-    let opTheirs = JSON.parse(JSON.stringify(_opTheirs));
     let transformedOpTheirs;
     try {
-      console.log('trying ours: '  + JSON.stringify(opOurs));
-      console.log('trying theirs: '  + JSON.stringify(opTheirs));
-      transformedOpTheirs = type.transform(opTheirs, opOurs, 'right');
+      console.log('trying ours: ' + JSON.stringify(_opOurs));
+      console.log('trying theirs: ' + JSON.stringify(_opTheirs));
+      transformedOpTheirs = type.transform(_opTheirs, _opOurs, 'right');
     } catch (err) {
       if (err.conflict) {
         console.log('conflict: ' + JSON.stringify(err.conflict));
         const conflict = err.conflict as { type: number; op1: any[]; op2: any[] };
-        // NOTE: op1 is opTheirs, op2 is opOurs
+        let conflictedOperation;
+
+        // Remove conflicted op from targetOperations
+        let targetOperations;
         if (strategy.startsWith('ours')) {
-          // Remove conflicted op from theirs
+          // NOTE: op1 is opTheirs, op2 is opOurs
+          conflictedOperation = conflict.op1;
+          targetOperations = JSON.parse(JSON.stringify(_opTheirs));
+        }
+        else {
+          conflictedOperation = conflict.op2;
+          targetOperations = JSON.parse(JSON.stringify(_opOurs));
+        }
+        // Location is array.
+        const conflictedLocation = conflictedOperation.slice(0, -1);
+        // Get p, r, d, i, e
+        const conflictedCommands = Object.keys(
+          conflictedOperation[conflictedOperation.length - 1]
+        );
 
-          const targetPosition = conflict.op1.slice(0, -1);
-
-          // Get p, r, d, i, e
-          const conflictedCommands = Object.keys(conflict.op1[conflict.op1.length - 1]);
-
-          // Command and its argument. e.g. {p: 0}
-          let commandAndArgs: { [command: string]: string };
-          if (opTheirs.length > 1 && !Array.isArray(opTheirs[0])) {
-            commandAndArgs = opTheirs[opTheirs.length - 1];
-            conflictedCommands.forEach(command => delete commandAndArgs[command]);
-            opTheirs[opTheirs.length - 1] = commandAndArgs;
-          }
-          else if (opTheirs.length > 1) {
-            // Search target position
-            let pos = -1;
-            for (let i = 0; i < opTheirs.length; i++) {
-              if (opTheirs[i].length - 1 === targetPosition.length) {
-                for (let j = 0; j < targetPosition.length; j++) {
-                  if (opTheirs[i][j] !== targetPosition[j]) {
-                    break;
-                  }
-                  if (j === targetPosition.length - 1) {
-                    pos = i;
-                  }
-                }
-                if (pos >= 0) {
+        if (targetOperations.length > 1 && !Array.isArray(targetOperations[0])) {
+          // Operation (e.g. {p: 0})
+          const op: { [command: string]: string } =
+            targetOperations[targetOperations.length - 1];
+          conflictedCommands.forEach(command => delete op[command]);
+          targetOperations[targetOperations.length - 1] = op;
+        }
+        else if (targetOperations.length > 1) {
+          // Search conflictedLocation in targetOperations
+          let loc = -1;
+          for (let i = 0; i < targetOperations.length; i++) {
+            if (targetOperations[i].length - 1 === conflictedLocation.length) {
+              for (let j = 0; j < conflictedLocation.length; j++) {
+                if (targetOperations[i][j] !== conflictedLocation[j]) {
                   break;
                 }
+                if (j === conflictedLocation.length - 1) {
+                  loc = i;
+                }
               }
-            }
-            if (pos >= 0) {
-              commandAndArgs = opTheirs[pos][opTheirs[pos].length - 1];
-              conflictedCommands.forEach(command => delete commandAndArgs[command]);
-              if (Object.keys(commandAndArgs).length > 0) {
-                opTheirs[pos][opTheirs[pos].length - 1] = commandAndArgs;
+              if (loc >= 0) {
+                break;
               }
-              else {
-                opTheirs.splice(pos, 1);
-              }
-              if (opTheirs.length === 1) {
-                opTheirs = opTheirs[0];
-              }
-              console.log('# resolved: ' + JSON.stringify(opTheirs));
             }
           }
+          if (loc >= 0) {
+            const op: { [command: string]: string } =
+              targetOperations[loc][targetOperations[loc].length - 1];
+            conflictedCommands.forEach(command => delete op[command]);
+            if (Object.keys(op).length > 0) {
+              targetOperations[loc][targetOperations[loc].length - 1] = op;
+            }
+            else {
+              targetOperations.splice(loc, 1);
+            }
+            if (targetOperations.length === 1) {
+              targetOperations = targetOperations[0];
+            }
+            console.log('# resolved: ' + JSON.stringify(targetOperations));
+          }
         }
-        else if (strategy.startsWith('theirs')) {
+        if (strategy.startsWith('ours')) {
+          return [_opOurs, targetOperations, undefined];
         }
-        return [opOurs, opTheirs, undefined];
+        return [targetOperations, _opTheirs, undefined];
       }
       throw err;
     }
-    return [opOurs, opTheirs, transformedOpTheirs];
+    return [_opOurs, _opTheirs, transformedOpTheirs];
   }
 
   transform (opTheirs: JSONOp, opOurs: JSONOp, strategy: ConflictResolveStrategyLabels) {
