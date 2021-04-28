@@ -102,7 +102,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     const jsonB1 = { _id: '1', name: 'fromB', b: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
-    const mergedJson = { _id: '1', name: 'fromA', a: 'fromA', b: 'fromB' };
+    const mergedJson = { _id: '1', name: 'fromB', a: 'fromA', b: 'fromB' };
 
     // B puts a new file
     const jsonB3 = { _id: '3', name: 'fromB' };
@@ -156,7 +156,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
             id: '1',
             file_sha: mergedDoc!.file_sha,
           },
-          strategy: 'ours',
+          strategy: 'ours-prop',
           operation: 'create-merge',
         },
       ])

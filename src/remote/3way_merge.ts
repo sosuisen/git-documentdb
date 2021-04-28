@@ -174,40 +174,32 @@ export async function threeWayMerge (
       if (strategy === 'ours' || strategy === 'ours-prop') {
         // Just add it to the index.
         // console.log(' #case 4 - Conflict. Accept ours (create): ' + path);
+        const data = await getMergedDocument(
+          gitDDB.jsonDiff,
+          gitDDB.jsonPatch,
+          strategy,
+          undefined,
+          JSON.parse((await ours.getBlob()).toString()),
+          JSON.parse((await theirs.getBlob()).toString())
+        );
+
+        await writeBlobToFile(gitDDB, path, data);
+
+        await resolvedIndex.addByPath(path);
+        const entry = await resolvedIndex.getByPath(path);
+        const file_sha = entry.id.tostrS();
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha: ours.sha(),
+            file_sha,
           },
           strategy: strategy,
           operation: strategy === 'ours' ? 'create' : 'create-merge',
         });
-
-        const data = await getMergedDocument(
-          gitDDB.jsonDiff,
-          gitDDB.jsonPatch,
-          strategy,
-          undefined,
-          JSON.parse((await ours.getBlob()).toString()),
-          JSON.parse((await theirs.getBlob()).toString())
-        );
-
-        await writeBlobToFile(gitDDB, path, data);
-
-        await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs' || strategy === 'theirs-prop') {
         // Write theirs to the file.
         // console.log(' #case 5 - Conflict. Accept theirs (create): ' + path);
-        acceptedConflicts.push({
-          target: {
-            id: docId,
-            file_sha: theirs.sha(),
-          },
-          strategy: strategy,
-          operation: strategy === 'theirs' ? 'create' : 'create-merge',
-        });
-
         const data = await getMergedDocument(
           gitDDB.jsonDiff,
           gitDDB.jsonPatch,
@@ -219,6 +211,17 @@ export async function threeWayMerge (
         await writeBlobToFile(gitDDB, path, data);
 
         await resolvedIndex.addByPath(path);
+        const entry = await resolvedIndex.getByPath(path);
+        const file_sha = entry.id.tostrS();
+
+        acceptedConflicts.push({
+          target: {
+            id: docId,
+            file_sha,
+          },
+          strategy: strategy,
+          operation: strategy === 'theirs' ? 'create' : 'create-merge',
+        });
       }
     }
   }
@@ -360,40 +363,33 @@ export async function threeWayMerge (
       if (strategy === 'ours' || strategy === 'ours-prop') {
         // Just add it to the index.
         // console.log(' #case 16 - Conflict. Accept ours (update): ' + path);
+        const data = await getMergedDocument(
+          gitDDB.jsonDiff,
+          gitDDB.jsonPatch,
+          strategy,
+          JSON.parse((await base.getBlob()).toString()),
+          JSON.parse((await ours.getBlob()).toString()),
+          JSON.parse((await theirs.getBlob()).toString())
+        );
+
+        await writeBlobToFile(gitDDB, path, data);
+
+        await resolvedIndex.addByPath(path);
+        const entry = await resolvedIndex.getByPath(path);
+        const file_sha = entry.id.tostrS();
+
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha: ours.sha(),
+            file_sha,
           },
           strategy: strategy,
           operation: strategy === 'ours' ? 'update' : 'update-merge',
         });
-
-        const data = await getMergedDocument(
-          gitDDB.jsonDiff,
-          gitDDB.jsonPatch,
-          strategy,
-          JSON.parse((await base.getBlob()).toString()),
-          JSON.parse((await ours.getBlob()).toString()),
-          JSON.parse((await theirs.getBlob()).toString())
-        );
-
-        await writeBlobToFile(gitDDB, path, data);
-
-        await resolvedIndex.addByPath(path);
       }
       else if (strategy === 'theirs' || strategy === 'theirs-prop') {
         // Write theirs to the file.
         // console.log(' #case 17 - Conflict. Accept theirs (update): ' + path);
-        acceptedConflicts.push({
-          target: {
-            id: docId,
-            file_sha: theirs.sha(),
-          },
-          strategy: strategy,
-          operation: strategy === 'theirs' ? 'update' : 'update-merge',
-        });
-
         const data = await getMergedDocument(
           gitDDB.jsonDiff,
           gitDDB.jsonPatch,
@@ -406,6 +402,17 @@ export async function threeWayMerge (
         await writeBlobToFile(gitDDB, path, data);
 
         await resolvedIndex.addByPath(path);
+        const entry = await resolvedIndex.getByPath(path);
+        const file_sha = entry.id.tostrS();
+
+        acceptedConflicts.push({
+          target: {
+            id: docId,
+            file_sha,
+          },
+          strategy: strategy,
+          operation: strategy === 'theirs' ? 'update' : 'update-merge',
+        });
       }
     }
   }

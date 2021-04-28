@@ -141,13 +141,17 @@ export class JsonPatchOT implements IJsonPatch {
           }
         }
         if (strategy.startsWith('ours')) {
-          return [_opOurs, targetOperations, undefined];
+          return [JSON.parse(JSON.stringify(_opOurs)), targetOperations, undefined];
         }
-        return [targetOperations, _opTheirs, undefined];
+        return [targetOperations, JSON.parse(JSON.stringify(_opTheirs)), undefined];
       }
       throw err;
     }
-    return [_opOurs, _opTheirs, transformedOpTheirs];
+    return [
+      JSON.parse(JSON.stringify(_opOurs)),
+      JSON.parse(JSON.stringify(_opTheirs)),
+      transformedOpTheirs,
+    ];
   }
 
   transform (opTheirs: JSONOp, opOurs: JSONOp, strategy: ConflictResolveStrategyLabels) {
