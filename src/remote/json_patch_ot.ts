@@ -1,10 +1,11 @@
 /* eslint-disable max-depth */
 import { insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
-import { ConflictResolveStrategyLabels, JsonDoc } from '../types';
+import { ConflictResolveStrategyLabels, IJsonPatch, JsonDoc } from '../types';
 import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
 
-export class JsonPatch {
+export class JsonPatchOT implements IJsonPatch {
   constructor () {}
+
   fromDiff (diff: { [key: string]: any }): JSONOp {
     const operations: JSONOp = [];
     const procTree = (ancestors: string[], tree: JsonDoc) => {

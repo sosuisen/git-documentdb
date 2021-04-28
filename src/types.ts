@@ -362,7 +362,12 @@ export type ConflictResolveStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours'
 /**
  * Write operation
  */
-export type WriteOperation = 'create' | 'update' | 'delete';
+export type WriteOperation =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'create-merge'
+  | 'update-merge';
 
 /**
  * Accepted Conflict
@@ -570,7 +575,7 @@ export type SyncCallback =
  * Interface of Sync
  */
 export interface ISync {
-  currentRetries: () => number;
+  currentRetries(): number;
   eventHandlers: {
     change: SyncChangeCallback[];
     localChange: SyncLocalChangeCallback[];
@@ -602,3 +607,12 @@ export type JsonDiffOptions = {
   idOfSubtree?: string[];
   minTextLength?: number;
 };
+
+export interface IJsonPatch {
+  patch(
+    docOurs: JsonDoc,
+    diffOurs: { [key: string]: any },
+    diffTheirs?: { [key: string]: any } | undefined,
+    strategy?: ConflictResolveStrategyLabels
+  ): JsonDoc;
+}

@@ -11,13 +11,13 @@ import {
   AcceptedConflict,
   ConflictResolveStrategies,
   ConflictResolveStrategyLabels,
+  IJsonPatch,
   JsonDoc,
 } from '../types';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { getDocument } from './worker_utils';
 import { toSortedJSONString } from '../utils';
 import { JsonDiff } from './diff';
-import { JsonPatch } from './ot';
 
 /**
  * Write blob to file system
@@ -72,7 +72,7 @@ async function getStrategy (
 
 function getMergedDocument (
   jsonDiff: JsonDiff,
-  jsonPatch: JsonPatch,
+  jsonPatch: IJsonPatch,
   strategy: ConflictResolveStrategyLabels,
   base: JsonDoc | undefined,
   ours: JsonDoc,
@@ -184,7 +184,7 @@ export async function threeWayMerge (
             file_sha: ours.sha(),
           },
           strategy: strategy,
-          operation: 'create',
+          operation: strategy === 'ours' ? 'create' : 'create-merge',
         });
 
         const data = await getMergedDocument(
@@ -209,7 +209,7 @@ export async function threeWayMerge (
             file_sha: theirs.sha(),
           },
           strategy: strategy,
-          operation: 'create',
+          operation: strategy === 'theirs' ? 'create' : 'create-merge',
         });
 
         const data = await getMergedDocument(
@@ -370,7 +370,7 @@ export async function threeWayMerge (
             file_sha: ours.sha(),
           },
           strategy: strategy,
-          operation: 'update',
+          operation: strategy === 'ours' ? 'update' : 'update-merge',
         });
 
         const data = await getMergedDocument(
@@ -395,7 +395,7 @@ export async function threeWayMerge (
             file_sha: theirs.sha(),
           },
           strategy: strategy,
-          operation: 'update',
+          operation: strategy === 'theirs' ? 'update' : 'update-merge',
         });
 
         const data = await getMergedDocument(

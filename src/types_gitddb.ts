@@ -9,11 +9,11 @@
 import nodegit from '@sosuisen/nodegit';
 import { Logger } from 'tslog';
 import { JsonDiff } from './remote/diff';
-import { JsonPatch } from './remote/ot';
 import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
   AllDocsResult,
+  IJsonPatch,
   JsonDoc,
   PutOptions,
   PutResult,
@@ -59,7 +59,7 @@ export abstract class AbstractDocumentDB {
   };
 
   abstract jsonDiff: JsonDiff;
-  abstract jsonPatch: JsonPatch;
+  abstract jsonPatch: IJsonPatch;
   abstract defaultBranch: string;
   abstract dbName (): string;
   abstract workingDir (): string;

@@ -53,7 +53,7 @@ import { FILE_REMOVE_TIMEOUT } from './const';
 import { cloneRepository } from './remote/clone';
 import { getDocHistoryImpl } from './crud/history';
 import { JsonDiff } from './remote/diff';
-import { JsonPatch } from './remote/ot';
+import { JsonPatchOT } from './remote/json_patch_ot';
 
 const defaultLogLevel = 'info';
 
@@ -130,7 +130,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
   /**
    * JsonPatch
    */
-  jsonPatch: JsonPatch;
+  jsonPatch: JsonPatchOT;
 
   /**
    * Task queue
@@ -173,7 +173,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     this._logLevel = options.log_level ?? defaultLogLevel;
 
     this.jsonDiff = new JsonDiff(options.diffOptions);
-    this.jsonPatch = new JsonPatch();
+    this.jsonPatch = new JsonPatchOT();
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);
