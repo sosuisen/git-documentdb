@@ -9,14 +9,14 @@ Constructs a new instance of the `Collection` class
 <b>Signature:</b>
 
 ```typescript
-constructor(_gitDDB: CRUDInterface & AbstractDocumentDB, _collectionPath: CollectionPath);
+constructor(_gitDDB: CRUDInterface & IDocumentDB, _collectionPath: CollectionPath);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_gitDDB | CRUDInterface &amp; AbstractDocumentDB |  |
+|  \_gitDDB | CRUDInterface &amp; IDocumentDB |  |
 |  \_collectionPath | [CollectionPath](./git-documentdb.collectionpath.md) |  |
 
 ## Exceptions

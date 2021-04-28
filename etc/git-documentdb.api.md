@@ -4,13 +4,14 @@
 
 ```ts
 
+import { JSONOp } from 'ot-json1';
 import { Logger } from 'tslog';
 import nodegit from '@sosuisen/nodegit';
 
 // @public
 export type AcceptedConflict = {
     target: DocMetadata;
-    strategy: 'ours' | 'theirs';
+    strategy: ConflictResolveStrategyLabels;
     operation: WriteOperation;
 };
 
@@ -35,9 +36,6 @@ export type AllDocsResult = {
 export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
     constructor(type: string | undefined);
 }
-
-// @public
-export type BehaviorForNoMergeBase = 'nop' | 'ours' | 'theirs';
 
 // @public (undocumented)
 export class CannotConnectError extends BaseError {
@@ -72,11 +70,6 @@ export class CannotOpenRepositoryError extends BaseError {
 }
 
 // @public (undocumented)
-export class CannotPushBecauseUnfetchedCommitExistsError extends BaseError {
-    constructor();
-}
-
-// @public (undocumented)
 export class CannotWriteDataError extends BaseError {
     constructor(e?: string);
 }
@@ -94,8 +87,8 @@ export function cloneRepository(workingDir: string, remoteOptions: RemoteOptions
 //
 // @public
 export class Collection implements CRUDInterface {
-    // Warning: (ae-forgotten-export) The symbol "AbstractDocumentDB" needs to be exported by the entry point main.d.ts
-    constructor(_gitDDB: CRUDInterface & AbstractDocumentDB, _collectionPath: CollectionPath);
+    // Warning: (ae-forgotten-export) The symbol "IDocumentDB" needs to be exported by the entry point main.d.ts
+    constructor(_gitDDB: CRUDInterface & IDocumentDB, _collectionPath: CollectionPath);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     // (undocumented)
     collectionPath(): string;
@@ -114,6 +107,9 @@ export class Collection implements CRUDInterface {
 export type CollectionPath = string;
 
 // @public
+export type CombineDbStrategies = 'throw-error' | 'resolve-by-ours' | 'resolve-by-their' | 'replace-with-ours' | 'replace-with-theirs';
+
+// @public
 export type CommitInfo = {
     sha: string;
     date: Date;
@@ -122,7 +118,10 @@ export type CommitInfo = {
 };
 
 // @public
-export type ConflictResolveStrategies = 'ours' | 'theirs' | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
+export type ConflictResolveStrategies = ConflictResolveStrategyLabels | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolveStrategyLabels);
+
+// @public (undocumented)
+export type ConflictResolveStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
 
 // @public
 export type ConnectionSettings = ConnectionSettingsNone | ConnectionSettingsGitHub | ConnectionSettingsSSH;
@@ -191,6 +190,7 @@ export type DatabaseOption = {
     local_dir?: string;
     db_name: string;
     log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    diffOptions?: JsonDiffOptions;
 };
 
 // @public
@@ -221,7 +221,7 @@ export class FileRemoveTimeoutError extends BaseError {
 }
 
 // @public
-export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
+export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "DatabaseOption" which is marked as @beta
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
@@ -240,6 +240,7 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
     getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
     getDocHistory(docID: string): Promise<string[]>;
+    getDocWithMetaData(docId: string, backNumber?: number): Promise<JsonDocWithMetadata | undefined>;
     getRemoteURLs(): string[];
     getSynchronizer(remoteURL: string): Sync;
     readonly gitAuthor: {
@@ -248,6 +249,10 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
     };
     isClosing: boolean;
     isOpened(): boolean;
+    // Warning: (ae-forgotten-export) The symbol "JsonDiff" needs to be exported by the entry point main.d.ts
+    jsonDiff: JsonDiff;
+    // Warning: (ae-forgotten-export) The symbol "JsonPatchOT" needs to be exported by the entry point main.d.ts
+    jsonPatch: JsonPatchOT;
     logger: Logger;
     open(): Promise<DatabaseInfo>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
@@ -284,6 +289,16 @@ export class HTTPNetworkError extends BaseError {
 // @public (undocumented)
 export class HttpProtocolRequiredError extends BaseError {
     constructor(url: string);
+}
+
+// @public (undocumented)
+export interface IJsonPatch {
+    // (undocumented)
+    patch(docOurs: JsonDoc, diffOurs: {
+        [key: string]: any;
+    }, diffTheirs?: {
+        [key: string]: any;
+    } | undefined, strategy?: ConflictResolveStrategyLabels): JsonDoc;
 }
 
 // @public (undocumented)
@@ -389,7 +404,7 @@ export interface ISync {
         [key: string]: any;
     };
     // (undocumented)
-    currentRetries: () => number;
+    currentRetries(): number;
     // (undocumented)
     enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
     // (undocumented)
@@ -427,6 +442,12 @@ export interface ISync {
     // (undocumented)
     upstream_branch: string;
 }
+
+// @public (undocumented)
+export type JsonDiffOptions = {
+    idOfSubtree?: string[];
+    minTextLength?: number;
+};
 
 // @public
 export type JsonDoc = {
@@ -501,7 +522,7 @@ export type RemoteOptions = {
     retry?: number;
     retry_interval?: number;
     conflict_resolve_strategy?: ConflictResolveStrategies;
-    combine_db_strategy?: BehaviorForNoMergeBase;
+    combine_db_strategy?: CombineDbStrategies;
     include_commits?: boolean;
 };
 
@@ -561,7 +582,7 @@ export class SocketTimeoutError extends BaseError {
 
 // @public
 export class Sync implements ISync {
-    constructor(_gitDDB: AbstractDocumentDB, _options?: RemoteOptions);
+    constructor(_gitDDB: IDocumentDB, _options?: RemoteOptions);
     // (undocumented)
     author: nodegit.Signature;
     cancel(): boolean;
@@ -638,7 +659,7 @@ export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | '
 // Warning: (ae-internal-missing-underscore) The name "syncImpl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export function syncImpl(this: AbstractDocumentDB, options?: RemoteOptions): Promise<Sync>;
+export function syncImpl(this: IDocumentDB, options?: RemoteOptions): Promise<Sync>;
 
 // @public (undocumented)
 export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
@@ -809,6 +830,11 @@ export class UndefinedRemoteURLError extends BaseError {
     constructor();
 }
 
+// @public (undocumented)
+export class UnfetchedCommitExistsError extends BaseError {
+    constructor();
+}
+
 // @public
 export class Validator {
     constructor(_workingDir: string);
@@ -839,7 +865,7 @@ export class WorkingDirectoryExistsError extends BaseError {
 }
 
 // @public
-export type WriteOperation = 'create' | 'update' | 'delete';
+export type WriteOperation = 'create' | 'update' | 'delete' | 'create-merge' | 'update-merge';
 
 
 ```

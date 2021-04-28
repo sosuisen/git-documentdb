@@ -9,15 +9,21 @@ Strategy for resolving conflicts
 <b>Signature:</b>
 
 ```typescript
-export declare type ConflictResolveStrategies = 'ours' | 'theirs' | ((ours?: JsonDoc, theirs?: JsonDoc) => 'ours' | 'theirs');
+export declare type ConflictResolveStrategies = ConflictResolveStrategyLabels | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolveStrategyLabels);
 ```
-<b>References:</b> [JsonDoc](./git-documentdb.jsondoc.md)
+<b>References:</b> [ConflictResolveStrategyLabels](./git-documentdb.conflictresolvestrategylabels.md)<!-- -->, [JsonDoc](./git-documentdb.jsondoc.md)
 
 ## Remarks
 
-- 'ours': Accept ours (Default). When a remote change is conflicted with a local change, the local change is accepted.
+'ours' and 'theirs' are borrowed terms from Git (https://git-scm.com/docs/merge-strategies)
 
-- 'theirs': Accept theirs. When a remote change is conflicted with a local change, the remote change is accepted.
+- 'ours-prop': (Beta) Accept ours per property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the local change is accepted.
 
-- Compare function that returns 'ours' or 'theirs' can be given. Each parameter will be undefined when a document is removed.
+- 'theirs-prop': (Beta) Accept theirs per property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the remote change is accepted.
+
+- 'ours': Accept ours per document (Default). Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the local change is accepted.
+
+- 'theirs': Accept theirs per document. Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the remote change is accepted.
+
+- Compare function that returns one of the strategies ('ours-prop', 'theirs-prop', 'ours', and 'theirs') can be given. Each argument will be undefined when a document is removed.
 

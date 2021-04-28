@@ -11,11 +11,11 @@ Accepted Conflict
 ```typescript
 export declare type AcceptedConflict = {
     target: DocMetadata;
-    strategy: 'ours' | 'theirs';
+    strategy: ConflictResolveStrategyLabels;
     operation: WriteOperation;
 };
 ```
-<b>References:</b> [DocMetadata](./git-documentdb.docmetadata.md)<!-- -->, [WriteOperation](./git-documentdb.writeoperation.md)
+<b>References:</b> [DocMetadata](./git-documentdb.docmetadata.md)<!-- -->, [ConflictResolveStrategyLabels](./git-documentdb.conflictresolvestrategylabels.md)<!-- -->, [WriteOperation](./git-documentdb.writeoperation.md)
 
 ## Remarks
 

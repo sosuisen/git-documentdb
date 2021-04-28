@@ -23,7 +23,7 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 [NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md) (from enqueueSyncTask)
 
-[CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md) (from enqueueSyncTask)
+[UnfetchedCommitExistsError](./git-documentdb.unfetchedcommitexistserror.md) (from enqueueSyncTask)
 
 [RemoteIsAdvancedWhileMergingError](./git-documentdb.remoteisadvancedwhilemergingerror.md) (from enqueueSyncTask)
 

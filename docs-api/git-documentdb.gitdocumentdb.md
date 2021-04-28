@@ -9,11 +9,9 @@ Main class of GitDocumentDB
 <b>Signature:</b>
 
 ```typescript
-export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface 
+export declare class GitDocumentDB implements IDocumentDB, CRUDInterface 
 ```
-<b>Extends:</b> AbstractDocumentDB
-
-<b>Implements:</b> CRUDInterface
+<b>Implements:</b> IDocumentDB, CRUDInterface
 
 ## Constructors
 
@@ -29,6 +27,8 @@ export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInt
 |  [fileExt](./git-documentdb.gitdocumentdb.fileext.md) |  | (not declared) | File extension of a repository document |
 |  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { readonly name: "GitDocumentDB"; readonly email: "gitddb@example.com"; } | Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | DB is going to close |
+|  [jsonDiff](./git-documentdb.gitdocumentdb.jsondiff.md) |  | JsonDiff | JsonDiff |
+|  [jsonPatch](./git-documentdb.gitdocumentdb.jsonpatch.md) |  | JsonPatchOT | JsonPatch |
 |  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | Logger |
 |  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | TaskQueue | Task queue |
 |  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | [Validator](./git-documentdb.validator.md) | Name validator |
@@ -48,6 +48,7 @@ export declare class GitDocumentDB extends AbstractDocumentDB implements CRUDInt
 |  [get(docId, backNumber)](./git-documentdb.gitdocumentdb.get.md) |  | Get a document |
 |  [getByRevision(fileSHA)](./git-documentdb.gitdocumentdb.getbyrevision.md) |  | Get a specific revision of a document |
 |  [getDocHistory(docID)](./git-documentdb.gitdocumentdb.getdochistory.md) |  | Get revision history of a file from new to old |
+|  [getDocWithMetaData(docId, backNumber)](./git-documentdb.gitdocumentdb.getdocwithmetadata.md) |  | Get a document with metadata |
 |  [getRemoteURLs()](./git-documentdb.gitdocumentdb.getremoteurls.md) |  | getRemoteURLs |
 |  [getSynchronizer(remoteURL)](./git-documentdb.gitdocumentdb.getsynchronizer.md) |  | Get synchronizer |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | Test if a database is opened |

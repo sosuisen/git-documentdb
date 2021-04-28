@@ -43,8 +43,8 @@ export class JsonPatchOT implements IJsonPatch {
     return operations;
   }
 
-  apply (doc: JsonDoc, op: JSONOp) {
-    return type.apply(doc, op);
+  apply (doc: JsonDoc, op: JSONOp): JsonDoc {
+    return (type.apply(doc, op) as unknown) as JsonDoc;
   }
 
   patch (

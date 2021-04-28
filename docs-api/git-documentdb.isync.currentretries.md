@@ -2,10 +2,14 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [ISync](./git-documentdb.isync.md) &gt; [currentRetries](./git-documentdb.isync.currentretries.md)
 
-## ISync.currentRetries property
+## ISync.currentRetries() method
 
 <b>Signature:</b>
 
 ```typescript
-currentRetries: () => number;
+currentRetries(): number;
 ```
+<b>Returns:</b>
+
+number
+

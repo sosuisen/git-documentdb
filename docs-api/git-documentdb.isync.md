@@ -19,7 +19,6 @@ export interface ISync
 |  [author](./git-documentdb.isync.author.md) | nodegit.Signature |  |
 |  [committer](./git-documentdb.isync.committer.md) | nodegit.Signature |  |
 |  [credential\_callbacks](./git-documentdb.isync.credential_callbacks.md) | { \[key: string\]: any; } |  |
-|  [currentRetries](./git-documentdb.isync.currentretries.md) | () =&gt; number |  |
 |  [eventHandlers](./git-documentdb.isync.eventhandlers.md) | { change: [SyncChangeCallback](./git-documentdb.syncchangecallback.md)<!-- -->\[\]; localChange: [SyncLocalChangeCallback](./git-documentdb.synclocalchangecallback.md)<!-- -->\[\]; remoteChange: [SyncRemoteChangeCallback](./git-documentdb.syncremotechangecallback.md)<!-- -->\[\]; paused: [SyncPausedCallback](./git-documentdb.syncpausedcallback.md)<!-- -->\[\]; active: [SyncActiveCallback](./git-documentdb.syncactivecallback.md)<!-- -->\[\]; start: [SyncStartCallback](./git-documentdb.syncstartcallback.md)<!-- -->\[\]; complete: [SyncCompleteCallback](./git-documentdb.synccompletecallback.md)<!-- -->\[\]; error: [SyncErrorCallback](./git-documentdb.syncerrorcallback.md)<!-- -->\[\]; } |  |
 |  [upstream\_branch](./git-documentdb.isync.upstream_branch.md) | string |  |
 
@@ -28,6 +27,7 @@ export interface ISync
 |  Method | Description |
 |  --- | --- |
 |  [cancel()](./git-documentdb.isync.cancel.md) |  |
+|  [currentRetries()](./git-documentdb.isync.currentretries.md) |  |
 |  [enqueuePushTask()](./git-documentdb.isync.enqueuepushtask.md) |  |
 |  [enqueueSyncTask()](./git-documentdb.isync.enqueuesynctask.md) |  |
 |  [off(event, callback)](./git-documentdb.isync.off.md) |  |

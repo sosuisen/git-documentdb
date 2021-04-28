@@ -21,7 +21,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
 |  [CannotGetEntryError](./git-documentdb.cannotgetentryerror.md) |  |
 |  [CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md) |  |
-|  [CannotPushBecauseUnfetchedCommitExistsError](./git-documentdb.cannotpushbecauseunfetchedcommitexistserror.md) |  |
 |  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
 |  [Collection](./git-documentdb.collection.md) | Documents are gathered together in collections. |
 |  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
@@ -82,6 +81,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [UndefinedGitHubAuthenticationError](./git-documentdb.undefinedgithubauthenticationerror.md) |  |
 |  [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md) |  |
 |  [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) |  |
+|  [UnfetchedCommitExistsError](./git-documentdb.unfetchedcommitexistserror.md) |  |
 |  [Validator](./git-documentdb.validator.md) | Validator Class |
 |  [WorkingDirectoryExistsError](./git-documentdb.workingdirectoryexistserror.md) |  |
 
@@ -95,6 +95,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 
 |  Interface | Description |
 |  --- | --- |
+|  [IJsonPatch](./git-documentdb.ijsonpatch.md) |  |
 |  [ISync](./git-documentdb.isync.md) | Interface of Sync |
 |  [SyncResultCancel](./git-documentdb.syncresultcancel.md) |  |
 |  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) |  |
@@ -110,11 +111,12 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [AcceptedConflict](./git-documentdb.acceptedconflict.md) | Accepted Conflict |
 |  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | Options for allDocs() |
 |  [AllDocsResult](./git-documentdb.alldocsresult.md) | Result of allDocs() |
-|  [BehaviorForNoMergeBase](./git-documentdb.behaviorfornomergebase.md) | Behavior when no merge base<!-- -->nop: (default) theirs: remove local repository and git clone &lt;<!-- -->remote repository<!-- -->&gt; ours: git merge -s ours &lt;<!-- -->remote branch<!-- -->&gt; |
 |  [ChangedFile](./git-documentdb.changedfile.md) | Changed file in merge operation |
 |  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
+|  [CombineDbStrategies](./git-documentdb.combinedbstrategies.md) | Behavior when combine inconsistent DBs |
 |  [CommitInfo](./git-documentdb.commitinfo.md) | Commit information |
 |  [ConflictResolveStrategies](./git-documentdb.conflictresolvestrategies.md) | Strategy for resolving conflicts |
+|  [ConflictResolveStrategyLabels](./git-documentdb.conflictresolvestrategylabels.md) |  |
 |  [ConnectionSettings](./git-documentdb.connectionsettings.md) | Connection settings for RemoteOptions |
 |  [ConnectionSettingsGitHub](./git-documentdb.connectionsettingsgithub.md) | Connection settings for GitHub |
 |  [ConnectionSettingsNone](./git-documentdb.connectionsettingsnone.md) | Connection settings do not exist. |
@@ -125,6 +127,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md) | Database information (success) |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
 |  [DocMetadata](./git-documentdb.docmetadata.md) | Type for a document metadata |
+|  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) |  |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
