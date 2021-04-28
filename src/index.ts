@@ -42,7 +42,7 @@ import {
   RemoveOptions,
   RemoveResult,
 } from './types';
-import { AbstractDocumentDB, CRUDInterface } from './types_gitddb';
+import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
 import { getByRevisionImpl, getImpl } from './crud/get';
 import { removeImpl } from './crud/remove';
@@ -89,7 +89,7 @@ const defaultLocalDir = './git-documentdb';
 /**
  * Main class of GitDocumentDB
  */
-export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
+export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * File extension of a repository document
    */
@@ -163,7 +163,6 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    *
    */
   constructor (options: DatabaseOption) {
-    super();
     if (options.db_name === undefined || options.db_name === '') {
       throw new UndefinedDatabaseNameError();
     }

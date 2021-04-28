@@ -7,7 +7,7 @@
  */
 
 import nodegit from '@sosuisen/nodegit';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import {
   CannotGetEntryError,
   DatabaseClosingError,
@@ -16,7 +16,7 @@ import {
 } from '../error';
 
 export async function getDocHistoryImpl (
-  this: AbstractDocumentDB,
+  this: IDocumentDB,
   docId: string
 ): Promise<string[]> {
   const _id = docId;
@@ -81,7 +81,7 @@ export async function getDocHistoryImpl (
 }
 
 export async function getBackNumber (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   fileName: string,
   backNumber: number
 ): Promise<string | undefined> {

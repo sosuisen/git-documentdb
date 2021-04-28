@@ -9,7 +9,7 @@
 import nodegit from '@sosuisen/nodegit';
 import { InvalidJsonObjectError } from '../error';
 import { ChangedFile, CommitInfo, DocMetadata, JsonDoc } from '../types';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 
 /**
  * Get document
@@ -18,11 +18,7 @@ import { AbstractDocumentDB } from '../types_gitddb';
  *
  * @internal
  */
-export async function getDocument (
-  gitDDB: AbstractDocumentDB,
-  id: string,
-  fileOid: nodegit.Oid
-) {
+export async function getDocument (gitDDB: IDocumentDB, id: string, fileOid: nodegit.Oid) {
   const blob = await gitDDB.repository()?.getBlob(fileOid);
   let document: JsonDoc | undefined;
   if (blob) {
@@ -46,7 +42,7 @@ export async function getDocument (
  *
  * @internal
  */
-export async function getChanges (gitDDB: AbstractDocumentDB, diff: nodegit.Diff) {
+export async function getChanges (gitDDB: IDocumentDB, diff: nodegit.Diff) {
   const changes: ChangedFile[] = [];
   for (let i = 0; i < diff.numDeltas(); i++) {
     const delta = diff.getDelta(i);

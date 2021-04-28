@@ -13,11 +13,11 @@ import {
   RepositoryNotOpenError,
 } from '../error';
 import { AllDocsOptions, AllDocsResult, JsonDocWithMetadata } from '../types';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 
 // eslint-disable-next-line complexity
 export async function allDocsImpl (
-  this: AbstractDocumentDB,
+  this: IDocumentDB,
   options?: AllDocsOptions
 ): Promise<AllDocsResult> {
   if (this.isClosing) {

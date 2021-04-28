@@ -10,7 +10,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import nodegit from '@sosuisen/nodegit';
 import { SHORT_SHA_LENGTH } from '../const';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import {
   CannotDeleteDataError,
   DatabaseClosingError,
@@ -28,7 +28,7 @@ import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
  * @internal
  */
 export function removeImpl (
-  this: AbstractDocumentDB,
+  this: IDocumentDB,
   idOrDoc: string | JsonDoc,
   options?: RemoveOptions
 ): Promise<RemoveResult> {
@@ -95,7 +95,7 @@ export function removeImpl (
  * @throws {@link CannotDeleteDataError}
  */
 export async function remove_worker (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   _id: string,
   extension: string,
   commitMessage: string

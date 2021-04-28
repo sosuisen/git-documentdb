@@ -7,7 +7,7 @@
  */
 
 import nodegit from '@sosuisen/nodegit';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import {
   CannotGetEntryError,
   DatabaseClosingError,
@@ -28,7 +28,7 @@ type GetOptions = {
 
 // eslint-disable-next-line complexity
 export async function getImpl (
-  this: AbstractDocumentDB,
+  this: IDocumentDB,
   docId: string,
   options: GetOptions
 ): Promise<JsonDoc | JsonDocWithMetadata | undefined> {
@@ -123,7 +123,7 @@ export async function getImpl (
 }
 
 export async function getByRevisionImpl (
-  this: AbstractDocumentDB,
+  this: IDocumentDB,
   fileSHA: string
 ): Promise<JsonDoc | undefined> {
   if (this.isClosing) {

@@ -11,7 +11,7 @@ import fs from 'fs-extra';
 import nodegit from '@sosuisen/nodegit';
 import { SHORT_SHA_LENGTH } from '../const';
 import { JsonDoc, PutOptions, PutResult } from '../types';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import {
   CannotCreateDirectoryError,
   CannotWriteDataError,
@@ -31,7 +31,7 @@ import { toSortedJSONString } from '../utils';
  */
 // eslint-disable-next-line complexity
 export function putImpl (
-  this: AbstractDocumentDB,
+  this: IDocumentDB,
   idOrDoc: string | JsonDoc,
   docOrOptions: { [key: string]: any } | PutOptions,
   options?: PutOptions
@@ -134,7 +134,7 @@ export function putImpl (
  * @throws {@link CannotWriteDataError}
  */
 export async function put_worker (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   name: string,
   extension: string,
   data: string,

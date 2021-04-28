@@ -14,7 +14,7 @@ import {
   SyncWorkerFetchError,
   UnfetchedCommitExistsError,
 } from '../error';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import { CommitInfo, ISync, SyncResultPush } from '../types';
 import { getChanges, getCommitLogs } from './worker_utils';
 
@@ -26,7 +26,7 @@ import { getChanges, getCommitLogs } from './worker_utils';
  * @throws {@link GitPushError} (from NodeGit.Remote.push())
  */
 async function push (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   sync: ISync,
   taskId: string
 ): Promise<nodegit.Commit | undefined> {
@@ -60,7 +60,7 @@ async function push (
  * @throws {@link UnfetchedCommitExistsError}
  */
 async function validatePushResult (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   sync: ISync,
   taskId: string
 ): Promise<nodegit.Commit | undefined> {
@@ -111,7 +111,7 @@ async function validatePushResult (
  * @throws Error (Other errors from NodeGit.Remote.push())
  */
 export async function push_worker (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   sync: ISync,
   taskId: string,
   skipStartEvent?: boolean

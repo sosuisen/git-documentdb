@@ -14,7 +14,7 @@ import {
   IJsonPatch,
   JsonDoc,
 } from '../types';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import { getDocument } from './worker_utils';
 import { toSortedJSONString } from '../utils';
 import { JsonDiff } from './diff';
@@ -24,11 +24,7 @@ import { JsonDiff } from './diff';
  *
  * @throws {@link CannotCreateDirectoryError}
  */
-async function writeBlobToFile (
-  gitDDB: AbstractDocumentDB,
-  fileName: string,
-  data: string
-) {
+async function writeBlobToFile (gitDDB: IDocumentDB, fileName: string, data: string) {
   const filePath = nodePath.resolve(gitDDB.workingDir(), fileName);
   const dir = nodePath.dirname(filePath);
   await fs.ensureDir(dir).catch((err: Error) => {
@@ -38,7 +34,7 @@ async function writeBlobToFile (
 }
 
 async function getStrategy (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   strategy: ConflictResolveStrategies | undefined,
   path: string,
   ours?: nodegit.TreeEntry,
@@ -117,7 +113,7 @@ function getMergedDocument (
  */
 // eslint-disable-next-line complexity
 export async function threeWayMerge (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   conflict_resolve_strategy: ConflictResolveStrategies,
   resolvedIndex: nodegit.Index,
   path: string,

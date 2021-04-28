@@ -20,7 +20,7 @@ import {
   SyncWorkerFetchError,
   ThreeWayMergeError,
 } from '../error';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import {
   AcceptedConflict,
   CommitInfo,
@@ -38,7 +38,7 @@ import { threeWayMerge } from './3way_merge';
  *
  * @throws {@link SyncWorkerFetchError}
  */
-async function fetch (gitDDB: AbstractDocumentDB, sync: ISync) {
+async function fetch (gitDDB: IDocumentDB, sync: ISync) {
   gitDDB.logger.debug(
     ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`
   );
@@ -56,7 +56,7 @@ async function fetch (gitDDB: AbstractDocumentDB, sync: ISync) {
  * Calc distance
  */
 async function calcDistance (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   localCommit: nodegit.Commit,
   remoteCommit: nodegit.Commit
 ) {
@@ -105,7 +105,7 @@ function resolveNoMergeBase (sync: ISync) {
  */
 // eslint-disable-next-line complexity
 export async function sync_worker (
-  gitDDB: AbstractDocumentDB,
+  gitDDB: IDocumentDB,
   sync: ISync,
   taskId: string
 ): Promise<SyncResult> {

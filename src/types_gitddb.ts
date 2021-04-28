@@ -51,21 +51,21 @@ export interface CRUDInterface {
  *
  * @internal
  */
-export abstract class AbstractDocumentDB {
-  abstract fileExt: string;
-  abstract gitAuthor: {
+export interface IDocumentDB {
+  fileExt: string;
+  gitAuthor: {
     name: string;
     email: string;
   };
 
-  abstract jsonDiff: JsonDiff;
-  abstract jsonPatch: IJsonPatch;
-  abstract defaultBranch: string;
-  abstract dbName (): string;
-  abstract workingDir (): string;
-  abstract isClosing: boolean;
-  abstract repository (): nodegit.Repository | undefined;
-  abstract validator: Validator;
-  abstract logger: Logger;
-  abstract taskQueue: TaskQueue;
+  jsonDiff: JsonDiff;
+  jsonPatch: IJsonPatch;
+  defaultBranch: string;
+  dbName(): string;
+  workingDir(): string;
+  isClosing: boolean;
+  repository(): nodegit.Repository | undefined;
+  validator: Validator;
+  logger: Logger;
+  taskQueue: TaskQueue;
 }

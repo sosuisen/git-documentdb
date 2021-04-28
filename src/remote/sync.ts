@@ -43,7 +43,7 @@ import {
   SyncStartCallback,
   Task,
 } from '../types';
-import { AbstractDocumentDB } from '../types_gitddb';
+import { IDocumentDB } from '../types_gitddb';
 import { sync_worker } from './sync_worker';
 import { push_worker } from './push_worker';
 import { createCredential } from './authentication';
@@ -70,7 +70,7 @@ import {
  *
  * @internal
  */
-export async function syncImpl (this: AbstractDocumentDB, options?: RemoteOptions) {
+export async function syncImpl (this: IDocumentDB, options?: RemoteOptions) {
   const repos = this.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
@@ -90,7 +90,7 @@ export class Sync implements ISync {
   static defaultRetryInterval = NETWORK_RETRY_INTERVAL;
   static defaultRetry = NETWORK_RETRY;
 
-  private _gitDDB: AbstractDocumentDB;
+  private _gitDDB: IDocumentDB;
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
@@ -143,7 +143,7 @@ export class Sync implements ISync {
    * @throws {@link UndefinedRemoteURLError}
    * @throws {@link IntervalTooSmallError}
    */
-  constructor (_gitDDB: AbstractDocumentDB, _options?: RemoteOptions) {
+  constructor (_gitDDB: IDocumentDB, _options?: RemoteOptions) {
     this._gitDDB = _gitDDB;
 
     _options ??= {
