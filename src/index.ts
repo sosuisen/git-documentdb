@@ -35,6 +35,7 @@ import {
   DatabaseInfoSuccess,
   DatabaseOption,
   JsonDoc,
+  JsonDocWithMetadata,
   PutOptions,
   PutResult,
   RemoteOptions,
@@ -655,7 +656,36 @@ export class GitDocumentDB extends AbstractDocumentDB implements CRUDInterface {
    */
   get (docId: string, backNumber?: number): Promise<JsonDoc | undefined> {
     // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
-    return getImpl.call(this, docId, backNumber);
+    return getImpl.call(this, docId, { back_number: backNumber, with_metadata: false });
+  }
+
+  /**
+   * Get a document with metadata
+   *
+   * @param docId - id of a target document
+   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned.
+   * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
+   *
+   * @returns
+   *  - JsonDocWithMetadata if exists.
+   *
+   *  - undefined if not exists.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   */
+  getDocWithMetaData (
+    docId: string,
+    backNumber?: number
+  ): Promise<JsonDocWithMetadata | undefined> {
+    return (getImpl.call(this, docId, {
+      back_number: backNumber,
+      with_metadata: true,
+    }) as unknown) as Promise<JsonDocWithMetadata>;
   }
 
   /**

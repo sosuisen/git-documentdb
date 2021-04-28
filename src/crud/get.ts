@@ -18,15 +18,20 @@ import {
   UndefinedDocumentIdError,
   UndefinedFileSHAError,
 } from '../error';
-import { JsonDoc } from '../types';
+import { JsonDoc, JsonDocWithMetadata } from '../types';
 import { getBackNumber } from './history';
+
+type GetOptions = {
+  back_number?: number;
+  with_metadata?: boolean;
+};
 
 // eslint-disable-next-line complexity
 export async function getImpl (
   this: AbstractDocumentDB,
   docId: string,
-  backNumber?: number
-): Promise<JsonDoc | undefined> {
+  options: GetOptions
+): Promise<JsonDoc | JsonDocWithMetadata | undefined> {
   const _id = docId;
   if (this.isClosing) {
     throw new DatabaseClosingError();
@@ -55,7 +60,7 @@ export async function getImpl (
 
   const filename = _id + this.fileExt;
 
-  if (!backNumber || backNumber === 0) {
+  if (!options.back_number || options.back_number === 0) {
     const commit = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
     const entry = await commit.getEntry(filename).catch(err => {
       if (err.errno === -3) {
@@ -86,14 +91,32 @@ export async function getImpl (
       throw new InvalidJsonObjectError();
     }
 
+    if (options.with_metadata) {
+      return {
+        id: document._id,
+        file_sha: blob.id().tostrS(),
+        doc: document,
+      };
+    }
     return document;
   }
-  else if (backNumber > 0) {
-    const fileSHA = await getBackNumber(this, filename, backNumber);
+  else if (options.back_number > 0) {
+    const fileSHA = await getBackNumber(this, filename, options.back_number);
     if (fileSHA === undefined) {
       return undefined;
     }
-    return await getByRevisionImpl.call(this, fileSHA);
+    const doc = await getByRevisionImpl.call(this, fileSHA);
+    if (doc) {
+      if (options.with_metadata) {
+        return {
+          id: doc._id,
+          file_sha: fileSHA,
+          doc: document,
+        };
+      }
+      return doc;
+    }
+    return undefined;
   }
 
   throw new InvalidBackNumberError();
