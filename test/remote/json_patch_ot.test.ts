@@ -1,9 +1,9 @@
 import { insertOp, type } from 'ot-json1';
 import { JsonDiff } from '../../src/remote/diff';
-import { JsonPatch } from '../../src/remote/ot';
+import { JsonPatchOT } from '../../src/remote/json_patch_ot';
 
 const jDiff = new JsonDiff();
-const jPatch = new JsonPatch();
+const jPatch = new JsonPatchOT();
 
 describe('<remote/ot> OT', () => {
   it('returns op from primitives: add', () => {
