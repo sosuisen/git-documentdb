@@ -16,7 +16,6 @@ import { destroyDBs } from '../remote_utils';
 import {
   CannotGetEntryError,
   DatabaseClosingError,
-  DocumentNotFoundError,
   InvalidFileSHAFormatError,
   InvalidIdCharacterError,
   InvalidJsonObjectError,
