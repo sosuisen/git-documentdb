@@ -36,7 +36,7 @@ import { Sync } from '../../src/remote/sync';
 import { SyncWorkerError } from '../../src/error';
 
 const reposPrefix = 'test_sync_events___';
-const localDir = `./test_intg/database_sync_events`;
+const localDir = `./test/database_sync_events`;
 
 let idCounter = 0;
 const serialId = () => {

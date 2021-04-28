@@ -127,7 +127,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().combine_db_strategy).toBe('nop');
+    expect(sync.options().combine_db_strategy).toBe('throw-error');
 
     destroyDBs([gitDDB]);
   });

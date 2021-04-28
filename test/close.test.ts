@@ -40,7 +40,7 @@ afterAll(() => {
 });
 
 describe('<close> GitDocumentDB#close()', () => {
-  it('waits queued operations', async () => {
+  it.only('waits queued operations', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -48,7 +48,7 @@ describe('<close> GitDocumentDB#close()', () => {
     });
     await gitDDB.create();
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 50; i++) {
       gitDDB.put({ _id: i.toString(), name: i.toString() });
     }
 
@@ -57,7 +57,7 @@ describe('<close> GitDocumentDB#close()', () => {
     await gitDDB.open();
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
-      total_rows: 100,
+      total_rows: 50,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 

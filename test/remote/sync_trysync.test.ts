@@ -36,7 +36,7 @@ import {
 import { sleep } from '../../src/utils';
 
 const reposPrefix = 'test_sync_trysync___';
-const localDir = `./test_intg/database_sync_trysync`;
+const localDir = `./test/database_sync_trysync`;
 
 let idCounter = 0;
 const serialId = () => {
