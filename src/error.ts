@@ -372,7 +372,7 @@ export class NoMergeBaseFoundError extends BaseError {
 
 /**
  */
-export class CannotPushBecauseUnfetchedCommitExistsError extends BaseError {
+export class UnfetchedCommitExistsError extends BaseError {
   constructor () {
     super(
       'Cannot push because a reference that you are trying to update on the remote contains commits that are not present locally.'

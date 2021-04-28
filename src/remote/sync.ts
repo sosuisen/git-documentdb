@@ -13,7 +13,6 @@ import { clearInterval, setInterval } from 'timers';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
-  CannotPushBecauseUnfetchedCommitExistsError,
   IntervalTooSmallError,
   NoMergeBaseFoundError,
   PushNotAllowedError,
@@ -24,6 +23,7 @@ import {
   SyncIntervalLessThanOrEqualToRetryIntervalError,
   SyncWorkerError,
   UndefinedRemoteURLError,
+  UnfetchedCommitExistsError,
 } from '../error';
 import {
   ISync,
@@ -383,7 +383,7 @@ export class Sync implements ISync {
    *
    * @throws {@link PushNotAllowedError} (from this and enqueuePushTask)
    * @throws {@link PushWorkerError} (from this and enqueuePushTask)
-   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from this and enqueuePushTask)
+   * @throws {@link UnfetchedCommitExistsError} (from this and enqueuePushTask)
    */
   async tryPush (options?: {
     onlyPush: boolean;
@@ -441,7 +441,7 @@ export class Sync implements ISync {
    * @throws {@link PushNotAllowedError} (from this and enqueueSyncTask)
    * @throws {@link SyncWorkerError} (from enqueueSyncTask)
    * @throws {@link NoMergeBaseFoundError} (from enqueueSyncTask)
-   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from enqueueSyncTask)
+   * @throws {@link UnfetchedCommitExistsError} (from enqueueSyncTask)
    * @throws {@link RemoteIsAdvancedWhileMergingError} (from enqueueSyncTask)
    */
   async trySync (): Promise<SyncResult> {
@@ -475,7 +475,7 @@ export class Sync implements ISync {
       if (
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
-        resultOrError instanceof CannotPushBecauseUnfetchedCommitExistsError ||
+        resultOrError instanceof UnfetchedCommitExistsError ||
         resultOrError instanceof RemoteIsAdvancedWhileMergingError
       ) {
         // Retry for the following reasons:
@@ -502,7 +502,7 @@ export class Sync implements ISync {
    * Enqueue push task to TaskQueue
    *
    * @throws {@link PushWorkerError}
-   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError}
+   * @throws {@link UnfetchedCommitExistsError}
    * @throws {@link PushNotAllowedError}
    */
   enqueuePushTask (): Promise<SyncResultPush | SyncResultCancel> {
@@ -535,7 +535,7 @@ export class Sync implements ISync {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-          if (!(err instanceof CannotPushBecauseUnfetchedCommitExistsError)) {
+          if (!(err instanceof UnfetchedCommitExistsError)) {
             err = new PushWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(func => {
@@ -575,7 +575,7 @@ export class Sync implements ISync {
    *
    * @throws {@link SyncWorkerError}
    * @throws {@link NoMergeBaseFoundError}
-   * @throws {@link CannotPushBecauseUnfetchedCommitExistsError}
+   * @throws {@link UnfetchedCommitExistsError}
    * @throws {@link RemoteIsAdvancedWhileMergingError}
    * @throws {@link PushNotAllowedError}
    */
@@ -633,7 +633,7 @@ export class Sync implements ISync {
             !(
               err instanceof NoMergeBaseFoundError ||
               err instanceof RemoteIsAdvancedWhileMergingError ||
-              err instanceof CannotPushBecauseUnfetchedCommitExistsError
+              err instanceof UnfetchedCommitExistsError
             )
           ) {
             err = new SyncWorkerError(err.message);

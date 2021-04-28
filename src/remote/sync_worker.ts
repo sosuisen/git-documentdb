@@ -96,7 +96,7 @@ function resolveNoMergeBase (sync: ISync) {
  * @throws {@link CannotDeleteDataError}
  * @throws {@link RemoteIsAdvancedWhileMergingError}
  * @throws {@link InvalidJsonObjectError} (from getChanges())
- * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from push_worker())
+ * @throws {@link UnfetchedCommitExistsError} (from push_worker())
  * @throws {@link InvalidJsonObjectError} (from push_worker())
  * @throws {@link GitPushError} (from push_worker())
  * @throws {@link GitMergeBranchError} (from NodeGit.repos.mergeBranches())

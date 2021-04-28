@@ -22,10 +22,7 @@ import {
   SyncResultPush,
   SyncResultResolveConflictsAndPush,
 } from '../../src/types';
-import {
-  CannotPushBecauseUnfetchedCommitExistsError,
-  NoMergeBaseFoundError,
-} from '../../src/error';
+import { NoMergeBaseFoundError, UnfetchedCommitExistsError } from '../../src/error';
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -695,7 +692,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await destroyDBs([dbA]);
   });
 
-  it('throws CannotPushBecauseUnfetchedCommitExistError for [push] direction', async () => {
+  it('throws UnfetchedCommitExistError for [push] direction', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
       sync_direction: 'push',
     });
@@ -710,9 +707,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     });
     await dbB.create();
 
-    // tryPush throws CannotPushBecauseUnfetchedCommitExistsError
+    // tryPush throws UnfetchedCommitExistsError
     await expect(dbB.sync(remoteA.options())).rejects.toThrowError(
-      CannotPushBecauseUnfetchedCommitExistsError
+      UnfetchedCommitExistsError
     );
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();

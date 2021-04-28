@@ -17,7 +17,7 @@ import sinon from 'sinon';
 import { Sync } from '../src/remote/sync';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions, SyncResultPush } from '../src/types';
-import { CannotPushBecauseUnfetchedCommitExistsError, PushWorkerError } from '../src/error';
+import { PushWorkerError, UnfetchedCommitExistsError } from '../src/error';
 import { sleep } from '../src/utils';
 import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../test/remote_utils';
 import { NETWORK_RETRY } from '../src/const';
@@ -53,7 +53,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  // It may throw error due to memory leak with CannotPushBecauseUnfetchedCommitExistsErro
+  // It may throw error due to memory leak with UnfetchedCommitExistsErro
   // fs.removeSync(path.resolve(localDir));
 });
 
@@ -179,7 +179,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         await expect(
           Promise.all([remoteA.tryPush(), remoteB.tryPush()])
-        ).rejects.toThrowError(CannotPushBecauseUnfetchedCommitExistsError);
+        ).rejects.toThrowError(UnfetchedCommitExistsError);
 
         await destroyDBs([dbA, dbB]);
       });
@@ -213,9 +213,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteB = dbB.getSynchronizer(remoteURL);
 
         await remoteA.tryPush();
-        await expect(remoteB.tryPush()).rejects.toThrowError(
-          CannotPushBecauseUnfetchedCommitExistsError
-        );
+        await expect(remoteB.tryPush()).rejects.toThrowError(UnfetchedCommitExistsError);
 
         await destroyDBs([dbA, dbB]);
       });
@@ -731,7 +729,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const spySync = sandbox.spy(sync_worker_module, 'sync_worker');
 
-        // Either dbA or dbB will get CannotPushBecauseUnfetchedCommitExistsError
+        // Either dbA or dbB will get UnfetchedCommitExistsError
         // and retry automatically.
         const [resultA, resultB] = await Promise.all([
           remoteA.trySync(),

@@ -9,10 +9,10 @@
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle } from '../utils';
 import {
-  CannotPushBecauseUnfetchedCommitExistsError,
   GitPushError,
   RepositoryNotOpenError,
   SyncWorkerFetchError,
+  UnfetchedCommitExistsError,
 } from '../error';
 import { AbstractDocumentDB } from '../types_gitddb';
 import { CommitInfo, ISync, SyncResultPush } from '../types';
@@ -21,7 +21,7 @@ import { getChanges, getCommitLogs } from './worker_utils';
 /**
  * git push
  *
- * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from this and validatePushResult())
+ * @throws {@link UnfetchedCommitExistsError} (from this and validatePushResult())
  * @throws {@link SyncWorkerFetchError} (from validatePushResult())
  * @throws {@link GitPushError} (from NodeGit.Remote.push())
  */
@@ -43,7 +43,7 @@ async function push (
           'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
         )
       ) {
-        throw new CannotPushBecauseUnfetchedCommitExistsError();
+        throw new UnfetchedCommitExistsError();
       }
       throw new GitPushError(err.message);
     });
@@ -57,7 +57,7 @@ async function push (
  * so check is needed.
  *
  * @throws {@link SyncWorkerFetchError}
- * @throws {@link CannotPushBecauseUnfetchedCommitExistsError}
+ * @throws {@link UnfetchedCommitExistsError}
  */
 async function validatePushResult (
   gitDDB: AbstractDocumentDB,
@@ -95,7 +95,7 @@ async function validatePushResult (
         .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
     );
 
-    throw new CannotPushBecauseUnfetchedCommitExistsError();
+    throw new UnfetchedCommitExistsError();
   }
 
   return localCommit;
@@ -105,7 +105,7 @@ async function validatePushResult (
  * Push and get changes
  *
  * @throws {@link RepositoryNotOpenError}
- * @throws {@link CannotPushBecauseUnfetchedCommitExistsError} (from push() and validatePushResult())
+ * @throws {@link UnfetchedCommitExistsError} (from push() and validatePushResult())
  * @throws {@link SyncWorkerFetchError} (from validatePushResult())
  * @throws {@link InvalidJsonObjectError} (from getChanges())
  * @throws Error (Other errors from NodeGit.Remote.push())
