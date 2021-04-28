@@ -4,35 +4,41 @@ skinparam activity {
   BackgroundColor<< Succeeded >> lightgreen
   BackgroundColor<< Failed >> pink
 }
-(*) --> "Start sync"
--left-> if "Remote repository is consistent?"
-  -->[yes] "Can synchronize normally" << Succeeded >>
-else
-  -->[no] if "Which method?"
-    -down->[tryPush()] "(A)CannotPushBecause\nUnfetchedCommitExistsError"
-    if "Check combine_db_strategy" then
-      -->[other strategies] "(C)Resolve manually\nafter catching CannotPushBecause\nUnfetchedCommitExistsError" << Failed >>
-          --> "(D)Call RemoteRepository#destroy()\nor remove the remote repository\nby hand"
-          --> "(E)Call tryPush() again\nby hand"
-          -up-> "Start sync"
-
-          "(C)Resolve manually\nafter catching CannotPushBecause\nUnfetchedCommitExistsError" --> "(F)Call trySync()\nby hand"
-          -up-> "Start sync"
-    else
-      -->[replace-with-ours] "(B)Call combineDB()\nautomatically"
-    endif
-  else 
-    -down->[trySync()] if "" then
-      -->[push_worker] "(A)CannotPushBecause\nUnfetchedCommitExistsError"
-    else
-      -->[sync_worker] "(G)NoMergeBaseFoundError"
-      if "Check combine_db_strategy" then
-        -->[nop] "(H)Resolve manually\nafter catchig NoBaseMergeFoundError" << Failed >>
-        --> "(D)Call RemoteRepository#destroy()\nor remove the remote repository\nby hand"
+(*) -> "Start sync"
+  ->if "<Which method?>" then
+    -->[tryPush()] if "<UnfetchedCommitExistsError>"
+        -->[no] "(C)Synchronize normally"
       else
-        -->[other strategies] "(B)Call combineDB()\nautomatically" << Succeeded >>
+        -->[yes] "(A)Consistency Conflicts"
+        if "<Check combine_db_strategy>" then
+          -->[other strategies] "(D)Resolve inconsistent\nmanually" << Failed >>
+        else
+          -->[replace-with-ours] "(E)Resolve inconsistent\nby combineDB() automatically"
+        endif
+      endif
+    else 
+      -->[trySync()] if "<Which worker?>" then
+        ---->[push_worker] if "<UnfetchedCommitExistsError>"
+        -->[no] "(C)Synchronize normally"
+      else 
+        -->[yes] if "<Retry fetch>" then
+          -->[failure] "(A')Consistency Conflicts"
+        else
+          -->[success] "(B)Transactional Conflicts"
+          -->[retry] "(C)Synchronize normally" <<Succeeded>>
+        endif
+      endif
+    else
+      -->[sync_worker] if "<NoMergeBaseFoundError>"
+        -->[no] "(C)Synchronize normally"
+      else
+        -->[yes] "(A')Consistency Conflicts"
+        -->if "<Check combine_db_strategy>" then
+          -->[nop] "(D)Resolve inconsistent\nmanually" << Failed >>
+        else
+          -->[other strategies] "(E)Resolve inconsistent\nby combineDB() automatically" << Succeeded >>
+        endif
       endif
     endif
-  endif
 endif
 @enduml
