@@ -1,0 +1,47 @@
+@startuml automated_conflict_resolution_flow_both
+title Automated Conflict Resolution Flow (pull and push)
+skinparam activity {
+  BackgroundColor<< Succeeded >> lightgreen
+  BackgroundColor<< Conflict >> orange
+  BackgroundColor<< Failed >> pink
+}
+(*) --> "Sync starts"
+  --> "Fetch"
+  -->[pull and push] "Select Git workflow\nautomatically"
+  
+  "Select Git workflow\nautomatically" -->[push] "Push"
+      if "<UnfetchedCommitExistsError>"
+      -->[no] "Sync succeeds"
+    else 
+      -->[yes] if "<fetch again to\ncheck unfetched commits>" then
+        -->[fetched] "Consistency Conflicts" << Conflict >>
+        else
+          -->[unfetched] "Transactional Conflicts" << Conflict >>
+          -->[push again] "Sync succeeds" <<Succeeded>>
+        endif
+    endif
+
+  "Select Git workflow\nautomatically" -->[merge and push] if "<NoMergeBaseFoundError>"
+      -->[no] if "<Merge conflict?>"
+        -->[yes] "Historical Conflicts" << Conflict >>
+        --> "Resolve conflicts\nautomatically"
+        --> "Merge"        
+      else
+        -->[no] "Merge"
+        --> "Push"
+      endif
+    else
+      -->[yes] "Consistency Conflicts" << Conflict >>
+      -->if "<Check combine_db_strategy>" then
+        -->[nop] "Resolve inconsistent\nmanually" << Failed >>
+      else
+        -->[other strategies] "Resolve inconsistent\nby combineDB() automatically" 
+        --> "Retry sync" << Succeeded >>
+      endif
+    endif
+
+  "Select Git workflow\nautomatically" -->[fast-forward merge] "Fast-forward merge"
+    --> "Sync succeeds"
+
+  "Select Git workflow\nautomatically" -->[nop] "Sync succeeds"
+@enduml
