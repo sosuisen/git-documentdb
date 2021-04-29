@@ -437,4 +437,33 @@ describe('<remote/diff> diff', () => {
       ],
     });
   });
+
+  it('short text (more than 1 characters)', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abcdef',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: 'aebdcf',
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,6 +1,6 @@
+ a
+-bcde
++ebdc
+ f
+`,
+        0,
+        2,
+      ],
+    });
+  });
 });
