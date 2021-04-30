@@ -411,7 +411,7 @@ describe('<remote/diff> diff', () => {
     });
   });
 
-  it('between empty and text', () => {
+  it('from empty to text returns diff by value', () => {
     const myDiff = new JsonDiff({
       minTextLength: 1,
     });
@@ -432,7 +432,82 @@ describe('<remote/diff> diff', () => {
     });
   });
 
-  it('add to head of text', () => {
+  it('from text to empty returns diff by value', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abc',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: '',
+    };
+
+    // Text diff is not used
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: ['abc', ''],
+    });
+  });
+
+  it('from one character', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: ' ',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: 'abc',
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1 +1,3 @@
+- 
++abc
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('to one character', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abc',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: ' ',
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,3 +1 @@
+-abc
++ 
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('adding to head of text returns diff by text (create)', () => {
     const myDiff = new JsonDiff({
       minTextLength: 1,
     });
@@ -459,7 +534,88 @@ describe('<remote/diff> diff', () => {
     });
   });
 
-  it('short text (more than 1 characters)', () => {
+  it('adding to tail of text returns diff by text (create)', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abc',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: 'abc123',
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,3 +1,6 @@
+ abc
++123
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('deleting from head of text returns diff by text (delete)', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abcdef',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: 'def',
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,6 +1,3 @@
+-abc
+ def
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('deleting from tail of text returns diff by text (delete)', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abcdef',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: 'abc',
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,6 +1,3 @@
+ abc
+-def
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('short text (more than 1 characters) returns diff by text (replace)', () => {
     const myDiff = new JsonDiff({
       minTextLength: 1,
     });
@@ -488,7 +644,7 @@ describe('<remote/diff> diff', () => {
     });
   });
 
-  it('long text (more than 30 characters) (move)', () => {
+  it('long text (more than 30 characters) returns diff by text (move)', () => {
     const oldDoc = {
       _id: 'nara',
       text: 'abcdefghijklmnopqrstuvwxyz0123456789',
@@ -508,6 +664,91 @@ describe('<remote/diff> diff', () => {
 @@ -29,13 +29,8 @@
  xyz01234
 -56789
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('not escaped', () => {
+    // google/diff-match-patch uses encodeURI()
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: ' ',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: `AZaz09;,/?:@&=+$-_.!~*'()#`,
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1 +1,26 @@
+- 
++AZaz09;,/?:@&=+$-_.!~*'()#
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('long text with new lines returns diff by text', () => {
+    const oldDoc = {
+      _id: 'littlewomen',
+      text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+    };
+
+    const newDoc = {
+      _id: 'littlewomen',
+      text: `[Xmas won't be Xmas without any presents,]
+grumbled Jo,
+lying on the rug. 
+
+[It's so dreadful to be poor!]
+sighed Meg, looking down at her old dress.`,
+    };
+
+    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,11 +1,6 @@
+-%22Christ
++%5BX
+ mas 
+@@ -12,14 +12,9 @@
+  be 
+-Christ
++X
+ mas 
+@@ -34,17 +34,17 @@
+ resents,
+-%22
++%5D
+ %0Agrumble
+@@ -48,17 +48,17 @@
+ bled Jo,
+- 
++%0A
+ lying on
+@@ -68,17 +68,18 @@
+ e rug. %0A
+-%22
++%0A%5B
+ It's so 
+@@ -102,9 +102,9 @@
+ oor!
+-%22
++%5D
+ %0Asig
 `,
         0,
         2,
