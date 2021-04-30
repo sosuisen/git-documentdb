@@ -411,26 +411,47 @@ describe('<remote/diff> diff', () => {
     });
   });
 
-  it('long text (more than 30 characters)', () => {
+  it('between empty and text', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
     const oldDoc = {
       _id: 'nara',
-      text: 'abcdefghijklmnopqrstuvwxyz0123456789',
+      text: '',
     };
 
     const newDoc = {
       _id: 'nara',
-      text: 'abcdefg56789hijklmnopqrstuvwxyz01234',
+      text: 'abc',
     };
 
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
+    // Text diff is not used
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: ['', 'abc'],
+    });
+  });
+
+  it('add to head of text', () => {
+    const myDiff = new JsonDiff({
+      minTextLength: 1,
+    });
+
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abc',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: '123abc',
+    };
+
+    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
       text: [
-        `@@ -1,15 +1,20 @@
- abcdefg
-+56789
- hijklmno
-@@ -29,13 +29,8 @@
- xyz01234
--56789
+        `@@ -1,3 +1,6 @@
++123
+ abc
 `,
         0,
         2,
@@ -460,6 +481,33 @@ describe('<remote/diff> diff', () => {
 -bcde
 +ebdc
  f
+`,
+        0,
+        2,
+      ],
+    });
+  });
+
+  it('long text (more than 30 characters) (move)', () => {
+    const oldDoc = {
+      _id: 'nara',
+      text: 'abcdefghijklmnopqrstuvwxyz0123456789',
+    };
+
+    const newDoc = {
+      _id: 'nara',
+      text: 'abcdefg56789hijklmnopqrstuvwxyz01234',
+    };
+
+    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      text: [
+        `@@ -1,15 +1,20 @@
+ abcdefg
++56789
+ hijklmno
+@@ -29,13 +29,8 @@
+ xyz01234
+-56789
 `,
         0,
         2,
