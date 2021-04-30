@@ -35,9 +35,11 @@ export class JsonPatchOT implements IJsonPatch {
     let startNum: number;
     let currentLine = 0;
     for (; currentLine < lines.length; currentLine++) {
-      const patchStart = lines[currentLine].match(/^@@ -(\d+?),\d+? \+\d+?,\d+? @@/);
-      if (patchStart) {
-        startNum = parseInt(patchStart[1], 10);
+      let patchStart = lines[currentLine].match(/^@@ -(\d+?),\d+? \+\d+?,\d+? @@/);
+      if (!patchStart) patchStart = lines[currentLine].match(/^@@ -(\d+?) \+\d+?,\d+? @@/m);
+      if (!patchStart) patchStart = lines[currentLine].match(/^@@ -(\d+?),\d+? \+\d+? @@/m);
+      if (!patchStart) continue;
+
         currentLine++;
         if (currentLine >= lines.length) break;
         const isContextLine = lines[currentLine].match(/ (.+?)$/);
@@ -107,7 +109,11 @@ export class JsonPatchOT implements IJsonPatch {
           else if (arr.length === 3) {
             const firstItem = arr[0];
             if (typeof firstItem === 'string') {
-              const isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+?,\d+? @@\n/m);
+              let isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+?,\d+? @@\n/m);
+              if (!isTextPatch)
+                isTextPatch = firstItem.match(/^@@ -\d+? \+\d+?,\d+? @@\n/m);
+              if (!isTextPatch)
+                isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+? @@\n/m);
               if (isTextPatch) {
                 const textOp = this.getTextOp(firstItem);
                 if (textOp) {
