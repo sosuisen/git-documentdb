@@ -6,6 +6,28 @@ import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
 export class JsonPatchOT implements IJsonPatch {
   constructor () {}
 
+  private _textCreateOp (startNum: number, str: string): JSONOp {
+    if (startNum > 0) {
+      return editOp(['text'], 'text-unicode', [startNum, str]);
+    }
+    return editOp(['text'], 'text-unicode', [str]);
+  }
+
+  private _textReplaceOp (startNum: number, from: string, to: string): JSONOp {
+    if (startNum > 0) {
+      return editOp(['text'], 'text-unicode', [startNum, { d: from.length }, to]);
+    }
+    return editOp(['text'], 'text-unicode', [{ d: from.length }, to]);
+  }
+
+  private _textDeleteOp (startNum: number, str: string) {
+    if (startNum > 0) {
+      return editOp(['text'], 'text-unicode', [startNum, { d: str.length }]);
+    }
+    return editOp(['text'], 'text-unicode', [{ d: str.length }]);
+  }
+
+  // eslint-disable-next-line complexity
   getTextOp (text: string): JSONOp {
     // From text patch
     const operators: JSONOp[] = [];
@@ -23,38 +45,31 @@ export class JsonPatchOT implements IJsonPatch {
           const context = isContextLine[1];
           startNum += context.length - 1;
           currentLine++;
+      }
+
+      const isAddOrDeleteLine = lines[currentLine].match(/([+-])(.+?)$/);
+      if (!isAddOrDeleteLine) continue;
+
+      const addOrDelete = isAddOrDeleteLine[1];
+      const str = decodeURI(isAddOrDeleteLine[2]);
+      if (addOrDelete === '+') {
+        // Create
+        operators.push(this._textCreateOp(startNum, str));
+        continue;
+      }
+      // addOrDelete is '-'
+      let isReplace = false;
+      // Read next line to check replace text
+      if (currentLine + 1 < lines.length) {
+        const isReplaceLine = lines[currentLine + 1].match(/\+(.+?)$/);
+        if (isReplaceLine) {
+          isReplace = true;
+          operators.push(this._textReplaceOp(startNum, str, decodeURI(isReplaceLine[1])));
         }
-        const isAddOrDeleteLine = lines[currentLine].match(/([+-])(.+?)$/);
-        if (isAddOrDeleteLine) {
-          const addOrDelete = isAddOrDeleteLine[1];
-          const str = isAddOrDeleteLine[2];
-          if (addOrDelete === '+') {
-            // Create
-            operators.push(editOp(['text'], 'text-unicode', [startNum, str]));
-            continue;
-          }
-          // addOrDelete is '-'
-          let isReplace = false;
-          // Read next line to check replace text
-          if (currentLine + 1 < lines.length) {
-            const isReplaceLine = lines[currentLine + 1].match(/\+(.+?)$/);
-            if (isReplaceLine) {
-              isReplace = true;
-              // Replace
-              operators.push(
-                editOp(['text'], 'text-unicode', [
-                  startNum,
-                  { d: str.length },
-                  isReplaceLine[1],
-                ])
-              );
-            }
-          }
-          if (!isReplace) {
-            // Delete
-            operators.push(editOp(['text'], 'text-unicode', [startNum, { d: str.length }]));
-          }
-        }
+      }
+      if (!isReplace) {
+        // Delete
+        operators.push(this._textDeleteOp(startNum, str));
       }
     }
     return operators.reduce(type.compose, null);
