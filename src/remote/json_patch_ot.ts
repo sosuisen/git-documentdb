@@ -1,15 +1,70 @@
 /* eslint-disable max-depth */
-import { insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
+import { editOp, insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
 import { ConflictResolveStrategyLabels, IJsonPatch, JsonDoc } from '../types';
 import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
 
 export class JsonPatchOT implements IJsonPatch {
   constructor () {}
 
+  getTextOp (text: string): JSONOp {
+    // From text patch
+    const operators: JSONOp[] = [];
+    const lines = text.split('\n');
+    let startNum: number;
+    let currentLine = 0;
+    for (; currentLine < lines.length; currentLine++) {
+      const patchStart = lines[currentLine].match(/^@@ -(\d+?),\d+? \+\d+?,\d+? @@/);
+      if (patchStart) {
+        startNum = parseInt(patchStart[1], 10);
+        currentLine++;
+        if (currentLine >= lines.length) break;
+        const isContextLine = lines[currentLine].match(/ (.+?)$/);
+        if (isContextLine) {
+          const context = isContextLine[1];
+          startNum += context.length - 1;
+          currentLine++;
+        }
+        const isAddOrDeleteLine = lines[currentLine].match(/([+-])(.+?)$/);
+        if (isAddOrDeleteLine) {
+          const addOrDelete = isAddOrDeleteLine[1];
+          const str = isAddOrDeleteLine[2];
+          if (addOrDelete === '+') {
+            // Create
+            operators.push(editOp(['text'], 'text-unicode', [startNum, str]));
+            continue;
+          }
+          // addOrDelete is '-'
+          let isReplace = false;
+          // Read next line to check replace text
+          if (currentLine + 1 < lines.length) {
+            const isReplaceLine = lines[currentLine + 1].match(/\+(.+?)$/);
+            if (isReplaceLine) {
+              isReplace = true;
+              // Replace
+              operators.push(
+                editOp(['text'], 'text-unicode', [
+                  startNum,
+                  { d: str.length },
+                  isReplaceLine[1],
+                ])
+              );
+            }
+          }
+          if (!isReplace) {
+            // Delete
+            operators.push(editOp(['text'], 'text-unicode', [startNum, { d: str.length }]));
+          }
+        }
+      }
+    }
+    return operators.reduce(type.compose, null);
+  }
+
   fromDiff (diff: { [key: string]: any }): JSONOp {
     const operations: JSONOp = [];
     const procTree = (ancestors: string[], tree: JsonDoc) => {
       const keys = Object.keys(tree);
+      let sortedKeys: string[];
       if (keys.includes('_t')) {
         keys.sort(); // 1, 2, 3, _1, _2, _3
         let underBarStart = 0;
@@ -20,21 +75,34 @@ export class JsonPatchOT implements IJsonPatch {
         }
         const noBar = keys.slice(0, underBarStart);
         const underBar = keys.slice(underBarStart, keys.length);
-        const sortedChildren = underBar.concat(noBar); // _1, _2, _3, 1, 2, 3
+        sortedKeys = underBar.concat(noBar); // _1, _2, _3, 1, 2, 3
       }
       else {
-        keys.sort().forEach(key => {
-          if (Array.isArray(tree[key])) {
-            const arr = tree[key] as any[];
-            if (arr.length === 1) {
-              operations.push(insertOp(ancestors.concat(key), arr[0])!);
-            }
-            else if (arr.length === 2) {
-              operations.push(replaceOp(ancestors.concat(key), arr[0], arr[1])!);
+        sortedKeys = keys.sort();
+      }
+      sortedKeys.forEach(key => {
+        if (Array.isArray(tree[key])) {
+          const arr = tree[key] as any[];
+          if (arr.length === 1) {
+            operations.push(insertOp(ancestors.concat(key), arr[0])!);
+          }
+          else if (arr.length === 2) {
+            operations.push(replaceOp(ancestors.concat(key), arr[0], arr[1])!);
+          }
+          else if (arr.length === 3) {
+            const firstItem = arr[0];
+            if (typeof firstItem === 'string') {
+              const isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+?,\d+? @@\n/m);
+              if (isTextPatch) {
+                const textOp = this.getTextOp(firstItem);
+                if (textOp) {
+                  operations.push(textOp);
+                }
+              }
             }
           }
-        });
-      }
+        }
+      });
     };
     procTree([], diff);
     if (operations.length === 1) {

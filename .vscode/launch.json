@@ -4,8 +4,8 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test_intg/remote/3way_merge.test.js", "test_intg/remote/sync_events.test.js"],
-    "default": "test_intg/remote/3way_merge.test.js"
+    "options": ["test/remote/json_patch_ot.test.js"],
+    "default": "test/remote/json_patch_ot.test.js"
   }],
   "configurations": [
       {
