@@ -40,13 +40,15 @@ export class JsonPatchOT implements IJsonPatch {
       if (!patchStart) patchStart = lines[currentLine].match(/^@@ -(\d+?),\d+? \+\d+? @@/m);
       if (!patchStart) continue;
 
+      startNum = parseInt(patchStart[1], 10) - 1;
+      currentLine++;
+      if (currentLine >= lines.length) break;
+
+      const isContextLine = lines[currentLine].match(/ (.+?)$/);
+      if (isContextLine) {
+        const context = isContextLine[1];
+        startNum += context.length;
         currentLine++;
-        if (currentLine >= lines.length) break;
-        const isContextLine = lines[currentLine].match(/ (.+?)$/);
-        if (isContextLine) {
-          const context = isContextLine[1];
-          startNum += context.length - 1;
-          currentLine++;
       }
 
       const isAddOrDeleteLine = lines[currentLine].match(/([+-])(.+?)$/);
