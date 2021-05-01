@@ -801,7 +801,6 @@ sighed Meg, looking down at her old dress.`,
         text: '',
       };
 
-      // The number of deer has increased.
       const ours = {
         _id: 'littlewomen',
         text: `"Christmas won't be Christmas without any presents,"
@@ -809,16 +808,12 @@ grumbled Jo, lying on the rug.
 `,
       };
 
-      // The number of deer in Nara was small in the past.
       const theirs = {
         _id: 'littlewomen',
         text: `"It's so dreadful to be poor!"
 sighed Meg, looking down at her old dress.`,
       };
 
-      // This is correct as a merge result, but incorrect as a schema.
-      // 'age' and 'deer' are interdependent.
-      // It must be resolved by user.
       const merged = {
         _id: 'littlewomen',
         text: `"Christmas won't be Christmas without any presents,"
@@ -828,9 +823,133 @@ sighed Meg, looking down at her old dress.`,
       };
 
       const diffOurs = textOTDiff.diff(base, ours);
-      console.log(diffOurs);
+      // console.log(diffOurs);
       const diffTheirs = textOTDiff.diff(base, theirs);
-      console.log(diffTheirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+    });
+
+    it('merges conflicted text: update and delete', () => {
+      const base = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+      };
+
+      // update
+      const ours = {
+        _id: 'littlewomen',
+        text: `"Xmas won't be Xmas without any presents,"
+grumbled Jo, lying on the rug.
+"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+      };
+
+      // move
+      const theirs = {
+        _id: 'littlewomen',
+        text: `"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.
+"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug.`,
+      };
+
+      // Good result!
+      const merged = {
+        _id: 'littlewomen',
+        text: `"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.
+"Xmas won't be Xmas without any presents,"
+grumbled Jo, lying on the rug.`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+    });
+
+    it('merges conflicted text: add and delete', () => {
+      const base = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+`,
+      };
+
+      const ours = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+      };
+
+      const theirs = {
+        _id: 'littlewomen',
+        text: ``,
+      };
+
+      const merged = {
+        _id: 'littlewomen',
+        text: `"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+    });
+
+    it('merges conflicted text: update and move', () => {
+      const base = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+`,
+      };
+
+      const ours = {
+        _id: 'littlewomen',
+        text: `"Xmas won't be Xmas without any presents,"
+grumbled Jo, lying on the rug.`,
+      };
+
+      const theirs = {
+        _id: 'littlewomen',
+        text: ``,
+      };
+
+      // ! NOTE: Not good result
+      const merged = {
+        _id: 'littlewomen',
+        text: `XX`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
       const patchOurs = jPatch.fromDiff(diffOurs!);
       // console.log(patchOurs);
       const patchTheirs = jPatch.fromDiff(diffTheirs!);
