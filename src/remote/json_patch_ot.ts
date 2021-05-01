@@ -87,7 +87,6 @@ export class JsonPatchOT implements IJsonPatch {
         }
       }
     }
-    console.dir(operators, { depth: 10 });
     return operators.reduce(type.compose, null);
   }
 
