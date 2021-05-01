@@ -33,48 +33,58 @@ export class JsonPatchOT implements IJsonPatch {
     // From text patch
     const operators: JSONOp[] = [];
     const lines = text.split('\n');
-    let startNum: number;
+    let startNum = 0;
     let currentLine = 0;
     for (; currentLine < lines.length; currentLine++) {
-      let patchStart = lines[currentLine].match(/^@@ -(\d+?),\d+? \+\d+?,\d+? @@/);
-      if (!patchStart) patchStart = lines[currentLine].match(/^@@ -(\d+?) \+\d+?,\d+? @@/m);
-      if (!patchStart) patchStart = lines[currentLine].match(/^@@ -(\d+?),\d+? \+\d+? @@/m);
-      if (!patchStart) continue;
+      const line = decodeURI(lines[currentLine]);
 
-      startNum = parseInt(patchStart[1], 10) - 1;
-      currentLine++;
-      if (currentLine >= lines.length) break;
+      let patchStart = line.match(/^@@ -(\d+?),\d+? \+\d+?,\d+? @@/);
+      if (!patchStart) patchStart = line.match(/^@@ -(\d+?) \+\d+?,\d+? @@/m);
+      if (!patchStart) patchStart = line.match(/^@@ -(\d+?),\d+? \+\d+? @@/m);
+      if (patchStart) {
+        startNum = parseInt(patchStart[1], 10) - 1;
+        continue;
+      }
 
-      const isContextLine = lines[currentLine].match(/ (.+?)$/);
+      // Need s option to allow . to match newline characters.
+      const isContextLine = line.match(/^ (.+?)$/s);
       if (isContextLine) {
         const context = isContextLine[1];
         startNum += uniCount(context);
-        currentLine++;
-      }
-
-      const isAddOrDeleteLine = lines[currentLine].match(/([+-])(.+?)$/);
-      if (!isAddOrDeleteLine) continue;
-
-      const addOrDelete = isAddOrDeleteLine[1];
-      const str = decodeURI(isAddOrDeleteLine[2]);
-      if (addOrDelete === '+') {
-        // Create
-        operators.push(this._textCreateOp(startNum, str));
         continue;
       }
-      // addOrDelete is '-'
-      let isReplace = false;
-      // Read next line to check replace text
-      if (currentLine + 1 < lines.length) {
-        const isReplaceLine = lines[currentLine + 1].match(/\+(.+?)$/);
-        if (isReplaceLine) {
-          isReplace = true;
-          operators.push(this._textReplaceOp(startNum, str, decodeURI(isReplaceLine[1])));
+
+      // Need s option to allow . to match newline characters.
+      const isAddOrDeleteLine = line.match(/^([+-])(.+?)$/s);
+      if (isAddOrDeleteLine) {
+        const addOrDelete = isAddOrDeleteLine[1];
+        const str = isAddOrDeleteLine[2];
+        if (addOrDelete === '+') {
+          // Create
+          operators.push(this._textCreateOp(startNum, str));
+          startNum += uniCount(str);
+          continue;
         }
-      }
-      if (!isReplace) {
-        // Delete
-        operators.push(this._textDeleteOp(startNum, str));
+        // addOrDelete is '-'
+        let isReplace = false;
+        // Read next line to check replace text
+        if (currentLine + 1 < lines.length) {
+          const nextLine = decodeURI(lines[currentLine + 1]);
+          // Need s option to allow . to match newline characters.
+          const isReplaceLine = nextLine.match(/^\+(.+?)$/s);
+          if (isReplaceLine) {
+            isReplace = true;
+            const replaceTo = isReplaceLine[1];
+            operators.push(this._textReplaceOp(startNum, str, replaceTo));
+            currentLine++;
+            startNum += uniCount(replaceTo) - uniCount(str);
+          }
+        }
+        if (!isReplace) {
+          // Delete
+          operators.push(this._textDeleteOp(startNum, str));
+          startNum -= uniCount(str);
+        }
       }
     }
     console.dir(operators, { depth: 10 });
