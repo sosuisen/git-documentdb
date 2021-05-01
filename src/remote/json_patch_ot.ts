@@ -1,5 +1,6 @@
 /* eslint-disable max-depth */
 import { editOp, insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
+import { uniCount } from 'unicount';
 import { ConflictResolveStrategyLabels, IJsonPatch, JsonDoc } from '../types';
 import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
 
@@ -15,16 +16,16 @@ export class JsonPatchOT implements IJsonPatch {
 
   private _textReplaceOp (startNum: number, from: string, to: string): JSONOp {
     if (startNum > 0) {
-      return editOp(['text'], 'text-unicode', [startNum, { d: from.length }, to]);
+      return editOp(['text'], 'text-unicode', [startNum, { d: uniCount(from) }, to]);
     }
-    return editOp(['text'], 'text-unicode', [{ d: from.length }, to]);
+    return editOp(['text'], 'text-unicode', [{ d: uniCount(from) }, to]);
   }
 
   private _textDeleteOp (startNum: number, str: string) {
     if (startNum > 0) {
-      return editOp(['text'], 'text-unicode', [startNum, { d: str.length }]);
+      return editOp(['text'], 'text-unicode', [startNum, { d: uniCount(str) }]);
     }
-    return editOp(['text'], 'text-unicode', [{ d: str.length }]);
+    return editOp(['text'], 'text-unicode', [{ d: uniCount(str) }]);
   }
 
   // eslint-disable-next-line complexity
@@ -47,7 +48,7 @@ export class JsonPatchOT implements IJsonPatch {
       const isContextLine = lines[currentLine].match(/ (.+?)$/);
       if (isContextLine) {
         const context = isContextLine[1];
-        startNum += context.length;
+        startNum += uniCount(context);
         currentLine++;
       }
 
@@ -76,6 +77,7 @@ export class JsonPatchOT implements IJsonPatch {
         operators.push(this._textDeleteOp(startNum, str));
       }
     }
+    console.dir(operators, { depth: 10 });
     return operators.reduce(type.compose, null);
   }
 
