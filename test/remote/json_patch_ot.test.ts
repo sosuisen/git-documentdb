@@ -1,9 +1,15 @@
 import { editOp, insertOp, type } from 'ot-json1';
-import { uniCount } from 'unicount';
-import { JsonDiff } from '../../src/remote/diff';
+import { JsonDiff } from '../../src/remote/json_diff';
 import { JsonPatchOT } from '../../src/remote/json_patch_ot';
 
-const jDiff = new JsonDiff();
+const primitiveDiff = new JsonDiff({
+  minTextLength: 1000,
+});
+
+const textOTDiff = new JsonDiff({
+  minTextLength: 0,
+});
+
 const jPatch = new JsonPatchOT();
 
 describe('<remote/ot> OT', () => {
@@ -30,7 +36,7 @@ describe('<remote/ot> OT', () => {
       year2: [710],
       current2: [false],
     };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+    expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
     */
       // keys must be sorted by descendant order
       const patch = [
@@ -63,7 +69,7 @@ describe('<remote/ot> OT', () => {
         year2: [710],
         current2: [false],
       };
-      expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       // keys must be sorted by descendant order
       const patch = [
@@ -92,7 +98,9 @@ describe('<remote/ot> OT', () => {
         current2: false,
       };
 
-      expect(jPatch.patch(oldDoc, jDiff.diff(oldDoc, newDoc)!)).toStrictEqual(newDoc);
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
     });
 
     it('merges independent changes (create)', () => {
@@ -126,8 +134,8 @@ describe('<remote/ot> OT', () => {
         current2: false,
       };
 
-      const diffOurs = jDiff.diff(base, ours);
-      const diffTheirs = jDiff.diff(base, theirs);
+      const diffOurs = primitiveDiff.diff(base, ours);
+      const diffTheirs = primitiveDiff.diff(base, theirs);
 
       const patchOurs = jPatch.fromDiff(diffOurs!);
       // console.log(patchOurs);
@@ -167,9 +175,9 @@ describe('<remote/ot> OT', () => {
         deer: 1000,
       };
 
-      const diffOurs = jDiff.diff(base, ours);
+      const diffOurs = primitiveDiff.diff(base, ours);
       // console.log(diffOurs);
-      const diffTheirs = jDiff.diff(base, theirs);
+      const diffTheirs = primitiveDiff.diff(base, theirs);
       // console.log(diffTheirs);
       const patchOurs = jPatch.fromDiff(diffOurs!);
       // console.log(patchOurs);
@@ -182,9 +190,6 @@ describe('<remote/ot> OT', () => {
 
   describe('for text', () => {
     it('applies patch (create)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -205,7 +210,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
       // keys must be sorted by descendant order
       const patch = ['text', { es: [3, '123'] }];
       // const op = editOp(['title'], 'text-unicode', ['My cool blog entry']);
@@ -215,9 +220,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('applies patch (replace)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -239,7 +241,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
       // keys must be sorted by descendant order
       const patch = ['text', { es: [1, { d: 4 }, 'ebdc'] }];
       // const op = editOp(['title'], 'text-unicode', ['My cool blog entry']);
@@ -249,9 +251,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('applies patch (move)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
       const oldDoc = {
         _id: 'nara',
         text: 'abcdefghijklmnopqrstuvwxyz0123456789',
@@ -275,7 +274,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const op = editOp(['text'], 'text-unicode', [7, '56789']);
       // console.log(op);
@@ -291,10 +290,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (from one character)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: ' ',
@@ -314,7 +309,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
       const patch = ['text', { es: [{ d: 1 }, 'abc'] }];
 
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
@@ -323,10 +318,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (to one character)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abc',
@@ -348,7 +339,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [{ d: 3 }, ' '] }];
 
@@ -358,9 +349,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (create)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -381,7 +369,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [3, '123'] }];
 
@@ -391,10 +379,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (add to head of text)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abc',
@@ -414,7 +398,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: ['123'] }];
       // expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
@@ -423,10 +407,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (add to middle of text', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abc',
@@ -447,7 +427,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [2, '123'] }];
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
@@ -456,10 +436,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (add to tail of text', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abc',
@@ -479,7 +455,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [3, '123'] }];
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
@@ -488,10 +464,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (delete from head of text)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -513,7 +485,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [{ d: 3 }] }];
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
@@ -522,10 +494,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (delete from middle of text)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -548,7 +516,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [1, { d: 2 }] }];
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
@@ -557,10 +525,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (delete from tail of text', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -582,7 +546,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [3, { d: 3 }] }];
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
@@ -591,9 +555,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (replace)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -615,7 +576,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [1, { d: 4 }, 'ebdc'] }];
 
@@ -625,9 +586,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (move)', () => {
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
       const oldDoc = {
         _id: 'nara',
         text: 'abcdefghijklmnopqrstuvwxyz0123456789',
@@ -651,7 +609,7 @@ describe('<remote/ot> OT', () => {
           2,
         ],
       };
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const op = editOp(['text'], 'text-unicode', [7, '56789']);
       // console.log(op);
@@ -668,10 +626,6 @@ describe('<remote/ot> OT', () => {
 
     it('returns patch from diff (escaped)', () => {
       // google/diff-match-patch uses encodeURI()
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: '[abc]',
@@ -693,7 +647,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [5, `de`] }];
 
@@ -704,10 +658,6 @@ describe('<remote/ot> OT', () => {
 
     it('returns patch from diff (not escaped)', () => {
       // google/diff-match-patch uses encodeURI()
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: ' ',
@@ -729,7 +679,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       const patch = ['text', { es: [{ d: 1 }, `AZaz09;,/?:@&=+$-_.!~*'()#`] }];
 
@@ -739,11 +689,6 @@ describe('<remote/ot> OT', () => {
     });
 
     it('returns patch from diff (two new lines)', () => {
-      // google/diff-match-patch uses encodeURI()
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -768,7 +713,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
@@ -828,7 +773,7 @@ sighed Meg, looking down at her old dress.`,
           2,
         ],
       };
-      expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
 
       // console.dir(jPatch.fromDiff(diff), { depth: 10 });
 
@@ -837,10 +782,6 @@ sighed Meg, looking down at her old dress.`,
 
     it('returns patch from diff (emoji)', () => {
       // google/diff-match-patch uses encodeURI()
-      const myDiff = new JsonDiff({
-        minTextLength: 1,
-      });
-
       const oldDoc = {
         _id: 'nara',
         text: '😀😃😄😁😆😅',
@@ -851,10 +792,52 @@ sighed Meg, looking down at her old dress.`,
         text: '😀😃a😄😁b😆😅',
       };
 
-      expect(jPatch.patch(oldDoc, myDiff.diff(oldDoc, newDoc))).toStrictEqual(newDoc);
+      expect(jPatch.patch(oldDoc, textOTDiff.diff(oldDoc, newDoc))).toStrictEqual(newDoc);
     });
 
-    it.skip('merges conflicted text: add', () => {});
+    it('merges conflicted text: add', () => {
+      const base = {
+        _id: 'littlewomen',
+        text: '',
+      };
+
+      // The number of deer has increased.
+      const ours = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+`,
+      };
+
+      // The number of deer in Nara was small in the past.
+      const theirs = {
+        _id: 'littlewomen',
+        text: `"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+      };
+
+      // This is correct as a merge result, but incorrect as a schema.
+      // 'age' and 'deer' are interdependent.
+      // It must be resolved by user.
+      const merged = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+    });
 
     it.skip('merges conflicted primitives: add', () => {});
   });
