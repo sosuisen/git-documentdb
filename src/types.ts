@@ -353,11 +353,15 @@ export type CombineDbStrategies =
  *
  * - Compare function that returns one of the strategies ('ours-prop', 'theirs-prop', 'ours', and 'theirs') can be given. Each argument will be undefined when a document is removed.
  */
-export type ConflictResolveStrategies =
-  | ConflictResolveStrategyLabels
-  | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolveStrategyLabels);
+export type ConflictResolutionStrategies =
+  | ConflictResolutionStrategyLabels
+  | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolutionStrategyLabels);
 
-export type ConflictResolveStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
+export type ConflictResolutionStrategyLabels =
+  | 'ours-prop'
+  | 'theirs-prop'
+  | 'ours'
+  | 'theirs';
 
 /**
  * Write operation
@@ -381,7 +385,7 @@ export type WriteOperation =
  */
 export type AcceptedConflict = {
   target: DocMetadata;
-  strategy: ConflictResolveStrategyLabels;
+  strategy: ConflictResolutionStrategyLabels;
   operation: WriteOperation;
 };
 
@@ -430,7 +434,7 @@ export type RemoteOptions = {
   retry_interval?: number; // msec
 
   /* merge */
-  conflict_resolve_strategy?: ConflictResolveStrategies;
+  conflict_resolve_strategy?: ConflictResolutionStrategies;
   combine_db_strategy?: CombineDbStrategies;
 
   /* results */
@@ -613,6 +617,6 @@ export interface IJsonPatch {
     docOurs: JsonDoc,
     diffOurs: { [key: string]: any },
     diffTheirs?: { [key: string]: any } | undefined,
-    strategy?: ConflictResolveStrategyLabels
+    strategy?: ConflictResolutionStrategyLabels
   ): JsonDoc;
 }

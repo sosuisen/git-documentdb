@@ -9,8 +9,8 @@ import {
 } from '../error';
 import {
   AcceptedConflict,
-  ConflictResolveStrategies,
-  ConflictResolveStrategyLabels,
+  ConflictResolutionStrategies,
+  ConflictResolutionStrategyLabels,
   IJsonPatch,
   JsonDoc,
 } from '../types';
@@ -35,12 +35,12 @@ async function writeBlobToFile (gitDDB: IDocumentDB, fileName: string, data: str
 
 async function getStrategy (
   gitDDB: IDocumentDB,
-  strategy: ConflictResolveStrategies | undefined,
+  strategy: ConflictResolutionStrategies | undefined,
   path: string,
   ours?: nodegit.TreeEntry,
   theirs?: nodegit.TreeEntry
 ) {
-  const defaultStrategy: ConflictResolveStrategies = 'ours-prop';
+  const defaultStrategy: ConflictResolutionStrategies = 'ours-prop';
   if (strategy === undefined) {
     strategy = defaultStrategy;
   }
@@ -69,7 +69,7 @@ async function getStrategy (
 function getMergedDocument (
   jsonDiff: JsonDiff,
   jsonPatch: IJsonPatch,
-  strategy: ConflictResolveStrategyLabels,
+  strategy: ConflictResolutionStrategyLabels,
   base: JsonDoc | undefined,
   ours: JsonDoc,
   theirs: JsonDoc
@@ -114,7 +114,7 @@ function getMergedDocument (
 // eslint-disable-next-line complexity
 export async function threeWayMerge (
   gitDDB: IDocumentDB,
-  conflict_resolve_strategy: ConflictResolveStrategies,
+  conflict_resolve_strategy: ConflictResolutionStrategies,
   resolvedIndex: nodegit.Index,
   path: string,
   mergeBase: nodegit.Commit,

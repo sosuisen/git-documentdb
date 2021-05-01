@@ -1,7 +1,7 @@
 /* eslint-disable max-depth */
 import { editOp, insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
 import { uniCount } from 'unicount';
-import { ConflictResolveStrategyLabels, IJsonPatch, JsonDoc } from '../types';
+import { ConflictResolutionStrategyLabels, IJsonPatch, JsonDoc } from '../types';
 import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
 
 export class JsonPatchOT implements IJsonPatch {
@@ -153,7 +153,7 @@ export class JsonPatchOT implements IJsonPatch {
     docOurs: JsonDoc,
     diffOurs: { [key: string]: any },
     diffTheirs?: { [key: string]: any } | undefined,
-    strategy?: ConflictResolveStrategyLabels
+    strategy?: ConflictResolutionStrategyLabels
   ): JsonDoc {
     strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
     if (diffTheirs === undefined) {
@@ -170,7 +170,7 @@ export class JsonPatchOT implements IJsonPatch {
   resolveConflict (
     _opOurs: JSONOp,
     _opTheirs: JSONOp,
-    strategy: ConflictResolveStrategyLabels
+    strategy: ConflictResolutionStrategyLabels
   ): [JSONOp, JSONOp, JSONOp | undefined] {
     let transformedOpTheirs;
     try {
@@ -256,7 +256,7 @@ export class JsonPatchOT implements IJsonPatch {
     ];
   }
 
-  transform (opTheirs: JSONOp, opOurs: JSONOp, strategy: ConflictResolveStrategyLabels) {
+  transform (opTheirs: JSONOp, opOurs: JSONOp, strategy: ConflictResolutionStrategyLabels) {
     let transformedOpTheirs;
     while (transformedOpTheirs === undefined) {
       [opOurs, opTheirs, transformedOpTheirs] = this.resolveConflict(
