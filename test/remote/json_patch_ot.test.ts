@@ -1,4 +1,5 @@
 import { editOp, insertOp, type } from 'ot-json1';
+import { uniCount } from 'unicount';
 import { JsonDiff } from '../../src/remote/diff';
 import { JsonPatchOT } from '../../src/remote/json_patch_ot';
 
@@ -275,7 +276,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
       expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
-      // keys must be sorted by descendant order
+
       const op = editOp(['text'], 'text-unicode', [7, '56789']);
       // console.log(op);
       const op2 = editOp(['text'], 'text-unicode', [36, { d: 5 }]);
@@ -651,7 +652,7 @@ describe('<remote/ot> OT', () => {
         ],
       };
       expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
-      // keys must be sorted by descendant order
+
       const op = editOp(['text'], 'text-unicode', [7, '56789']);
       // console.log(op);
       const op2 = editOp(['text'], 'text-unicode', [36, { d: 5 }]);
@@ -660,6 +661,42 @@ describe('<remote/ot> OT', () => {
       // console.dir(op3, { depth: 10 });
 
       const patch = ['text', { es: [7, '56789', 24, { d: 5 }] }];
+      expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
+
+      expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
+    });
+
+    it('returns patch from diff (escaped)', () => {
+      // google/diff-match-patch uses encodeURI()
+      const myDiff = new JsonDiff({
+        minTextLength: 1,
+      });
+
+      const oldDoc = {
+        _id: 'nara',
+        text: '[abc]',
+      };
+
+      const newDoc = {
+        _id: 'nara',
+        text: `[abc]de`,
+      };
+
+      const diff = {
+        text: [
+          `@@ -1,5 +1,7 @@
+ %5Babc%5D
++de
+`,
+          0,
+          2,
+        ],
+      };
+
+      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+
+      const patch = ['text', { es: [5, `de`] }];
+
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
 
       expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
@@ -681,7 +718,7 @@ describe('<remote/ot> OT', () => {
         text: `AZaz09;,/?:@&=+$-_.!~*'()#`,
       };
 
-      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      const diff = {
         text: [
           `@@ -1 +1,26 @@
 - 
@@ -690,14 +727,50 @@ describe('<remote/ot> OT', () => {
           0,
           2,
         ],
-      });
+      };
 
-      const patch = ['text', { es: [1, { d: 4 }, 'ebdc'] }];
+      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+
+      const patch = ['text', { es: [{ d: 1 }, `AZaz09;,/?:@&=+$-_.!~*'()#`] }];
 
       expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
 
       expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
+    });
 
+    it('returns patch from diff (two new lines)', () => {
+      // google/diff-match-patch uses encodeURI()
+      const myDiff = new JsonDiff({
+        minTextLength: 1,
+      });
+
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abcdef',
+      };
+
+      const newDoc = {
+        _id: 'nara',
+        text: `ab\ncd\nef`,
+      };
+
+      const diff = {
+        text: [
+          `@@ -1,6 +1,8 @@
+ ab
++%0A
+ cd
++%0A
+ ef
+`,
+          0,
+          2,
+        ],
+      };
+
+      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
     it('returns patch from diff (long text with new lines)', () => {
@@ -719,7 +792,7 @@ lying on the rug.
 sighed Meg, looking down at her old dress.`,
       };
 
-      expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
+      const diff = {
         text: [
           `@@ -1,11 +1,6 @@
 -%22Christ
@@ -754,14 +827,34 @@ sighed Meg, looking down at her old dress.`,
           0,
           2,
         ],
+      };
+      expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual(diff);
+
+      // console.dir(jPatch.fromDiff(diff), { depth: 10 });
+
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('returns patch from diff (emoji)', () => {
+      // google/diff-match-patch uses encodeURI()
+      const myDiff = new JsonDiff({
+        minTextLength: 1,
       });
 
-      const patch = ['text', { es: [1, { d: 4 }, 'ebdc'] }];
+      const oldDoc = {
+        _id: 'nara',
+        text: '😀😃😄😁😆😅',
+      };
 
-      expect(jPatch.fromDiff(diff!)).toStrictEqual(patch);
+      const newDoc = {
+        _id: 'nara',
+        text: '😀😃a😄😁b😆😅',
+      };
 
-      expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
+      expect(jPatch.patch(oldDoc, myDiff.diff(oldDoc, newDoc))).toStrictEqual(newDoc);
     });
+
+    it.skip('merges conflicted text: add', () => {});
 
     it.skip('merges conflicted primitives: add', () => {});
   });
