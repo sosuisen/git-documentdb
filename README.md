@@ -234,3 +234,5 @@ https://github.com/sosuisen/inventory-manager
 - Push server
 - Migration
 - Plugins
+
+(https://github.com/sosuisen/git-documentdb/projects/2)
