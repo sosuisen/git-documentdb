@@ -16,7 +16,7 @@ Use GitDocumentDB to ...
 
 :art: Manage Git repository by PouchDB-like API. 
 
-:rocket: Auto synchronization and conflict resolution with a remote Git repository.
+:rocket: Automated synchronization and conflict resolution with a remote Git repository.
 
 :arrows_counterclockwise: CI/CD through GitHub.
 
@@ -206,12 +206,13 @@ https://github.com/sosuisen/inventory-manager
 # Roadmap
 
 - v0.1 Basic CRUD :feet:
-- v0.2
+- v0.2 Group and Search :feet:
   - Collections :feet:
   - Prefix search :feet:
-- v0.3
+- v0.3 Synchronization
   - Synchronization with GitHub :feet:
-  - Revisions :dog2:(Here now)
+  - Revisions :feet:
+  - Operational Transformation :dog2:(Here now)
 - v0.4 Work on both Node.js and browser
 - v0.5 Grep
 - v0.6 Miscellaneous
@@ -233,3 +234,5 @@ https://github.com/sosuisen/inventory-manager
 - Push server
 - Migration
 - Plugins
+
+(https://github.com/sosuisen/git-documentdb/projects/2)
