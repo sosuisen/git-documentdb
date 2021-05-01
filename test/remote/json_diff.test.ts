@@ -1,4 +1,4 @@
-import { JsonDiff } from '../../src/remote/diff';
+import { JsonDiff } from '../../src/remote/json_diff';
 
 const jDiff = new JsonDiff();
 

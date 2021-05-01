@@ -17,7 +17,7 @@ import {
 import { IDocumentDB } from '../types_gitddb';
 import { getDocument } from './worker_utils';
 import { toSortedJSONString } from '../utils';
-import { JsonDiff } from './diff';
+import { JsonDiff } from './json_diff';
 
 /**
  * Write blob to file system

@@ -8,7 +8,7 @@
 
 import nodegit from '@sosuisen/nodegit';
 import { Logger } from 'tslog';
-import { JsonDiff } from './remote/diff';
+import { JsonDiff } from './remote/json_diff';
 import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
