@@ -1,663 +1,651 @@
 import { JsonDiff } from '../../src/remote/json_diff';
 
-const jDiff = new JsonDiff();
+const primitiveDiff = new JsonDiff({
+  minTextLength: 1000,
+});
+
+const textOTDiff = new JsonDiff({
+  minTextLength: 0,
+});
 
 describe('<remote/diff> diff', () => {
-  it('primitives: add', () => {
-    const oldDoc = {
-      _id: 'nara',
-      prof: 'Nara prefecture',
-      year: 1887,
-      current: true,
-    };
-    const newDoc = {
-      _id: 'nara',
-      prof: 'Nara prefecture',
-      year: 1887,
-      current: true,
-      prof2: 'Heijo-kyo',
-      year2: 710,
-      current2: false,
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      prof2: ['Heijo-kyo'],
-      year2: [710],
-      current2: [false],
-    });
-  });
-
-  it('primitives: update', () => {
-    const oldDoc = {
-      _id: 'nara',
-      prof: 'Nara prefecture',
-      year: 1887,
-      current: true,
-    };
-    const newDoc = {
-      _id: 'nara',
-      prof: 'Heijo-kyo',
-      year: 710,
-      current: false,
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      prof: ['Nara prefecture', 'Heijo-kyo'],
-      year: [1887, 710],
-      current: [true, false],
-    });
-  });
-
-  it('primitives: delete', () => {
-    const oldDoc = {
-      _id: 'nara',
-      prof: 'Nara prefecture',
-      year: 1887,
-      current: true,
-    };
-    const newDoc = {
-      _id: 'nara',
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      prof: ['Nara prefecture', 0, 0],
-      year: [1887, 0, 0],
-      current: [true, 0, 0],
-    });
-  });
-
-  it('nested objects: add property', () => {
-    const oldDoc = {
-      _id: 'nara',
-      data: {
-        prof: 'Nara prefecture',
-        year: 1887,
-      },
-    };
-    const newDoc = {
-      _id: 'nara',
-      data: {
+  describe('primitives', () => {
+    it('adding values', () => {
+      const oldDoc = {
+        _id: 'nara',
         prof: 'Nara prefecture',
         year: 1887,
         current: true,
-      },
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      data: {
-        current: [true],
-      },
-    });
-  });
-
-  it('nested objects: add subtree', () => {
-    const oldDoc = {
-      _id: 'nara',
-      data: {
-        prof: 'Nara prefecture',
-      },
-    };
-    const newDoc = {
-      _id: 'nara',
-      data: {
-        prof: 'Nara prefecture',
-        site: {
-          prof: 'Heijo-kyo',
-        },
-      },
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      data: {
-        site: [{ prof: 'Heijo-kyo' }],
-      },
-    });
-  });
-
-  it('nested objects: add array', () => {
-    const oldDoc = {
-      _id: 'nara',
-      data: {
-        prof: 'Nara prefecture',
-      },
-    };
-    const newDoc = {
-      _id: 'nara',
-      data: {
-        prof: 'Nara prefecture',
-        site: ['Heijo-kyo'],
-      },
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      data: {
-        site: [['Heijo-kyo']],
-      },
-    });
-  });
-
-  it('nested objects: update', () => {
-    const oldDoc = {
-      _id: 'nara',
-      data: {
+      };
+      const newDoc = {
+        _id: 'nara',
         prof: 'Nara prefecture',
         year: 1887,
         current: true,
-      },
-    };
-    const newDoc = {
-      _id: 'nara',
-      data: {
+        prof2: 'Heijo-kyo',
+        year2: 710,
+        current2: false,
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        prof2: ['Heijo-kyo'],
+        year2: [710],
+        current2: [false],
+      });
+    });
+
+    it('updating values', () => {
+      const oldDoc = {
+        _id: 'nara',
+        prof: 'Nara prefecture',
+        year: 1887,
+        current: true,
+      };
+      const newDoc = {
+        _id: 'nara',
         prof: 'Heijo-kyo',
         year: 710,
         current: false,
-      },
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      data: {
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
         prof: ['Nara prefecture', 'Heijo-kyo'],
         year: [1887, 710],
         current: [true, false],
-      },
+      });
     });
-  });
 
-  it('nested objects: delete', () => {
-    const oldDoc = {
-      _id: 'nara',
-      data: {
+    it('deleting values', () => {
+      const oldDoc = {
+        _id: 'nara',
         prof: 'Nara prefecture',
         year: 1887,
         current: true,
-      },
-    };
-    const newDoc = {
-      _id: 'nara',
-      data: {
-        prof: 'Nara prefecture',
-      },
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      data: {
+      };
+      const newDoc = {
+        _id: 'nara',
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        prof: ['Nara prefecture', 0, 0],
         year: [1887, 0, 0],
         current: [true, 0, 0],
-      },
+      });
     });
   });
 
-  it('arrays: insert at first', () => {
-    const oldDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji'],
-    };
-    const newDoc = {
-      _id: 'nara',
-      temple: ['Toshodaiji', 'Todaiji', 'Yakushiji'],
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      temple: {
-        0: ['Toshodaiji'],
-        _t: 'a',
-      },
+  describe('nested objects', () => {
+    it('adding properties', () => {
+      const oldDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+          year: 1887,
+        },
+      };
+      const newDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+          year: 1887,
+          current: true,
+        },
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        data: {
+          current: [true],
+        },
+      });
+    });
+
+    it('adding subtree', () => {
+      const oldDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+        },
+      };
+      const newDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+          site: {
+            prof: 'Heijo-kyo',
+          },
+        },
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        data: {
+          site: [{ prof: 'Heijo-kyo' }],
+        },
+      });
+    });
+
+    it('adding array', () => {
+      const oldDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+        },
+      };
+      const newDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+          site: ['Heijo-kyo'],
+        },
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        data: {
+          site: [['Heijo-kyo']],
+        },
+      });
+    });
+
+    it('updating properties', () => {
+      const oldDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+          year: 1887,
+          current: true,
+        },
+      };
+      const newDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Heijo-kyo',
+          year: 710,
+          current: false,
+        },
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        data: {
+          prof: ['Nara prefecture', 'Heijo-kyo'],
+          year: [1887, 710],
+          current: [true, false],
+        },
+      });
+    });
+
+    it('deleting properties', () => {
+      const oldDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+          year: 1887,
+          current: true,
+        },
+      };
+      const newDoc = {
+        _id: 'nara',
+        data: {
+          prof: 'Nara prefecture',
+        },
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        data: {
+          year: [1887, 0, 0],
+          current: [true, 0, 0],
+        },
+      });
     });
   });
 
-  it('arrays: insert at middle', () => {
-    const oldDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji'],
-    };
-    const newDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Toshodaiji', 'Yakushiji'],
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      temple: {
-        1: ['Toshodaiji'],
-        _t: 'a',
-      },
+  describe('arrays', () => {
+    it('inserting at first', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Toshodaiji', 'Todaiji', 'Yakushiji'],
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        temple: {
+          0: ['Toshodaiji'],
+          _t: 'a',
+        },
+      });
     });
-  });
 
-  it('arrays: insert at last', () => {
-    const oldDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji'],
-    };
-    const newDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      temple: {
-        2: ['Toshodaiji'],
-        _t: 'a',
-      },
+    it('inserting at middle', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Toshodaiji', 'Yakushiji'],
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        temple: {
+          1: ['Toshodaiji'],
+          _t: 'a',
+        },
+      });
     });
-  });
 
-  it('arrays: insert two members', () => {
-    const oldDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji'],
-    };
-    const newDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Toshodaiji', 'Kofukuji', 'Yakushiji'],
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      temple: {
-        1: ['Toshodaiji'],
-        2: ['Kofukuji'],
-        _t: 'a',
-      },
+    it('inserting at last', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        temple: {
+          2: ['Toshodaiji'],
+          _t: 'a',
+        },
+      });
     });
-  });
 
-  it('arrays: move', () => {
-    const oldDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji'],
-    };
-    const newDoc = {
-      _id: 'nara',
-      temple: ['Yakushiji', 'Todaiji'],
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      temple: {
-        _1: ['', 0, 3],
-        _t: 'a',
-      },
+    it('inserting two members', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Toshodaiji', 'Kofukuji', 'Yakushiji'],
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        temple: {
+          1: ['Toshodaiji'],
+          2: ['Kofukuji'],
+          _t: 'a',
+        },
+      });
     });
-    /*
+
+    it('moving', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Yakushiji', 'Todaiji'],
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        temple: {
+          _1: ['', 0, 3],
+          _t: 'a',
+        },
+      });
+      /*
       not {
         _0: ['', 1, 3],
         _t: 'a',
       },
     */
-  });
-
-  it('arrays: move sequential two members', () => {
-    const oldDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji', 'Toshodaiji', 'Kofukuji'],
-    };
-    const newDoc = {
-      _id: 'nara',
-      temple: ['Toshodaiji', 'Kofukuji', 'Todaiji', 'Yakushiji'],
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      temple: {
-        _2: ['', 0, 3],
-        _3: ['', 1, 3],
-        _t: 'a',
-      },
     });
-  });
 
-  it('arrays: remove', () => {
-    const oldDoc = {
-      _id: 'nara',
-      temple: ['Todaiji', 'Yakushiji'],
-    };
-    const newDoc = {
-      _id: 'nara',
-      temple: ['Todaiji'],
-    };
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      temple: {
-        _1: ['Yakushiji', 0, 0],
-        _t: 'a',
-      },
-    });
-  });
-
-  it('nested arrays', () => {
-    const oldDoc = {
-      cherry: [
-        ['NaraPark', 'double cherry blossoms'],
-        ['MtYoshino', 'cherry blossoms'],
-      ],
-    };
-    const newDoc = {
-      cherry: [
-        ['NaraPark', 'double cherry blossoms'],
-        ['MtYoshino', 'awesome cherry blossoms'],
-      ],
-    };
-
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      cherry: {
-        1: {
-          1: ['awesome cherry blossoms'],
-          _1: ['cherry blossoms', 0, 0],
+    it('moving sequential two members', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji', 'Kofukuji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Toshodaiji', 'Kofukuji', 'Todaiji', 'Yakushiji'],
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        temple: {
+          _2: ['', 0, 3],
+          _3: ['', 1, 3],
           _t: 'a',
         },
-        _t: 'a',
-      },
+      });
     });
-  });
 
-  it('object arrays', () => {
-    const oldDoc = {
-      _id: 'nara',
-      site: [
-        { place: 'NaraPark', flower: ['cherry blossoms'] },
-        { place: 'MtYoshino', flower: ['cherry blossoms'] },
-      ],
-    };
-
-    const newDoc = {
-      _id: 'nara',
-      site: [
-        { place: 'MtYoshino', flower: ['cherry blossoms'] },
-        { place: 'NaraPark', flower: ['double cherry blossoms', 'Japanese apricot'] },
-      ],
-    };
-
-    /**
-     * Cannot deal well with array of objects
-     */
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      site: {
-        0: {
-          place: ['NaraPark', 'MtYoshino'],
+    it('deleting', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji'],
+      };
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        temple: {
+          _1: ['Yakushiji', 0, 0],
+          _t: 'a',
         },
-        1: {
-          flower: {
-            0: ['double cherry blossoms'],
-            1: ['Japanese apricot'],
-            _0: ['cherry blossoms', 0, 0],
+      });
+    });
+
+    it('nesting arrays', () => {
+      const oldDoc = {
+        cherry: [
+          ['NaraPark', 'double cherry blossoms'],
+          ['MtYoshino', 'cherry blossoms'],
+        ],
+      };
+      const newDoc = {
+        cherry: [
+          ['NaraPark', 'double cherry blossoms'],
+          ['MtYoshino', 'awesome cherry blossoms'],
+        ],
+      };
+
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        cherry: {
+          1: {
+            1: ['awesome cherry blossoms'],
+            _1: ['cherry blossoms', 0, 0],
             _t: 'a',
           },
-          place: ['MtYoshino', 'NaraPark'],
+          _t: 'a',
         },
-        _t: 'a',
-      },
-    });
-  });
-
-  it('object arrays by objectHash', () => {
-    const myDiff = new JsonDiff({
-      idOfSubtree: ['place'],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      site: [
-        { place: 'NaraPark', flower: ['cherry blossoms'] },
-        { place: 'MtYoshino', flower: ['cherry blossoms'] },
-      ],
-    };
+    it('of objects', () => {
+      const oldDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'NaraPark', flower: ['cherry blossoms'] },
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+        ],
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      site: [
-        { place: 'MtYoshino', flower: ['cherry blossoms'] },
-        { place: 'NaraPark', flower: ['double cherry blossoms', 'Japanese apricot'] },
-      ],
-    };
+      const newDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+          { place: 'NaraPark', flower: ['double cherry blossoms', 'Japanese apricot'] },
+        ],
+      };
 
-    /**
-     * Can deal well with array of objects each of which is identified by objectHash function.
-     */
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      site: {
-        1: {
-          flower: {
-            0: ['double cherry blossoms'],
-            1: ['Japanese apricot'],
-            _0: ['cherry blossoms', 0, 0],
-            _t: 'a',
+      /**
+       * Cannot deal well with array of objects
+       */
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        site: {
+          0: {
+            place: ['NaraPark', 'MtYoshino'],
           },
+          1: {
+            flower: {
+              0: ['double cherry blossoms'],
+              1: ['Japanese apricot'],
+              _0: ['cherry blossoms', 0, 0],
+              _t: 'a',
+            },
+            place: ['MtYoshino', 'NaraPark'],
+          },
+          _t: 'a',
         },
-        _1: ['', 0, 3],
-        _t: 'a',
-      },
+      });
+    });
+
+    it('of object by objectHash', () => {
+      const myDiff = new JsonDiff({
+        minTextLength: 1000,
+        idOfSubtree: ['place'],
+      });
+
+      const oldDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'NaraPark', flower: ['cherry blossoms'] },
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+        ],
+      };
+
+      const newDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+          { place: 'NaraPark', flower: ['double cherry blossoms', 'Japanese apricot'] },
+        ],
+      };
+
+      /**
+       * Can deal well with array of objects each of which is identified by objectHash function.
+       */
+      expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        site: {
+          1: {
+            flower: {
+              0: ['double cherry blossoms'],
+              1: ['Japanese apricot'],
+              _0: ['cherry blossoms', 0, 0],
+              _t: 'a',
+            },
+          },
+          _1: ['', 0, 3],
+          _t: 'a',
+        },
+      });
     });
   });
 
-  it('from empty to text returns diff by value', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+  describe('plaintext-OT', () => {
+    it('from empty to text', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: '',
+      };
+
+      const newDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
+
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -0,0 +1,3 @@
++abc
+`,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: '',
-    };
+    it('from text to empty', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: 'abc',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: '',
+      };
 
-    // Text diff is not used
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: ['', 'abc'],
-    });
-  });
-
-  it('from text to empty returns diff by value', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
-    });
-
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abc',
-    };
-
-    const newDoc = {
-      _id: 'nara',
-      text: '',
-    };
-
-    // Text diff is not used
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: ['abc', ''],
-    });
-  });
-
-  it('from one character', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,3 +0,0 @@
+-abc
+`,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: ' ',
-    };
+    it('from one character', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: ' ',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: 'abc',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1 +1,3 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1 +1,3 @@
 - 
 +abc
 `,
-        0,
-        2,
-      ],
-    });
-  });
-
-  it('to one character', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abc',
-    };
+    it('to one character', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: ' ',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: ' ',
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,3 +1 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,3 +1 @@
 -abc
 + 
 `,
-        0,
-        2,
-      ],
-    });
-  });
-
-  it('adding to head of text returns diff by text (create)', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abc',
-    };
+    it('adding to head of text', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: '123abc',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: '123abc',
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,3 +1,6 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,3 +1,6 @@
 +123
  abc
 `,
-        0,
-        2,
-      ],
-    });
-  });
-
-  it('adding to tail of text returns diff by text (create)', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abc',
-    };
+    it('adding to tail of text', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: 'abc123',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: 'abc123',
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,3 +1,6 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,3 +1,6 @@
  abc
 +123
 `,
-        0,
-        2,
-      ],
-    });
-  });
-
-  it('deleting from head of text returns diff by text (delete)', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abcdef',
-    };
+    it('deleting from head of text', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abcdef',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: 'def',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: 'def',
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,6 +1,3 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,6 +1,3 @@
 -abc
  def
 `,
-        0,
-        2,
-      ],
-    });
-  });
-
-  it('deleting from tail of text returns diff by text (delete)', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abcdef',
-    };
+    it('deleting from tail of text', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abcdef',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: 'abc',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,6 +1,3 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,6 +1,3 @@
  abc
 -def
 `,
-        0,
-        2,
-      ],
-    });
-  });
-
-  it('short text (more than 1 characters) returns diff by text (replace)', () => {
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abcdef',
-    };
+    it('replacing', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abcdef',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: 'aebdcf',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: 'aebdcf',
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,6 +1,6 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,6 +1,6 @@
  a
 -bcde
 +ebdc
  f
 `,
-        0,
-        2,
-      ],
+          0,
+          2,
+        ],
+      });
     });
-  });
 
-  it('long text (more than 30 characters) returns diff by text (move)', () => {
-    const oldDoc = {
-      _id: 'nara',
-      text: 'abcdefghijklmnopqrstuvwxyz0123456789',
-    };
+    it('moving long text', () => {
+      const oldDoc = {
+        _id: 'nara',
+        text: 'abcdefghijklmnopqrstuvwxyz0123456789',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: 'abcdefg56789hijklmnopqrstuvwxyz01234',
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: 'abcdefg56789hijklmnopqrstuvwxyz01234',
+      };
 
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,15 +1,20 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,15 +1,20 @@
  abcdefg
 +56789
  hijklmno
@@ -665,62 +653,58 @@ describe('<remote/diff> diff', () => {
  xyz01234
 -56789
 `,
-        0,
-        2,
-      ],
-    });
-  });
-
-  it('not escaped', () => {
-    // google/diff-match-patch uses encodeURI()
-    const myDiff = new JsonDiff({
-      minTextLength: 1,
+          0,
+          2,
+        ],
+      });
     });
 
-    const oldDoc = {
-      _id: 'nara',
-      text: ' ',
-    };
+    it('adding not escaped characters', () => {
+      // google/diff-match-patch uses encodeURI()
+      const oldDoc = {
+        _id: 'nara',
+        text: ' ',
+      };
 
-    const newDoc = {
-      _id: 'nara',
-      text: `AZaz09;,/?:@&=+$-_.!~*'()#`,
-    };
+      const newDoc = {
+        _id: 'nara',
+        text: `AZaz09;,/?:@&=+$-_.!~*'()#`,
+      };
 
-    expect(myDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1 +1,26 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1 +1,26 @@
 - 
 +AZaz09;,/?:@&=+$-_.!~*'()#
 `,
-        0,
-        2,
-      ],
+          0,
+          2,
+        ],
+      });
     });
-  });
 
-  it('long text with new lines returns diff by text', () => {
-    const oldDoc = {
-      _id: 'littlewomen',
-      text: `"Christmas won't be Christmas without any presents,"
+    it('adding new lines and replacing complex text', () => {
+      const oldDoc = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
 grumbled Jo, lying on the rug. 
 "It's so dreadful to be poor!"
 sighed Meg, looking down at her old dress.`,
-    };
+      };
 
-    const newDoc = {
-      _id: 'littlewomen',
-      text: `[Xmas won't be Xmas without any presents,]
+      const newDoc = {
+        _id: 'littlewomen',
+        text: `[Xmas won't be Xmas without any presents,]
 grumbled Jo,
 lying on the rug. 
 
 [It's so dreadful to be poor!]
 sighed Meg, looking down at her old dress.`,
-    };
+      };
 
-    expect(jDiff.diff(oldDoc, newDoc)).toStrictEqual({
-      text: [
-        `@@ -1,11 +1,6 @@
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        text: [
+          `@@ -1,11 +1,6 @@
 -%22Christ
 +%5BX
  mas 
@@ -750,9 +734,10 @@ sighed Meg, looking down at her old dress.`,
 +%5D
  %0Asig
 `,
-        0,
-        2,
-      ],
+          0,
+          2,
+        ],
+      });
     });
   });
 });

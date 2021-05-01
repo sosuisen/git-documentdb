@@ -1,7 +1,7 @@
-import { create } from 'jsondiffpatch';
+import { create } from '@sosuisen/jsondiffpatch';
 import { JsonDiffOptions, JsonDoc } from '../types';
 
-const JSON_DIFF_MINIMUM_TEXT_LENGTH = 30;
+const JSON_DIFF_MINIMUM_TEXT_LENGTH = 0;
 export class JsonDiff {
   private _jsonDiffPatch;
   constructor (options?: JsonDiffOptions) {
