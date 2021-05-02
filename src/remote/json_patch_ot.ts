@@ -156,13 +156,13 @@ export class JsonPatchOT implements IJsonPatch {
 
   patch (
     docOurs: JsonDoc,
-    docTheirs: JsonDoc,
     diffOurs: { [key: string]: any },
+    docTheirs?: JsonDoc | undefined,
     diffTheirs?: { [key: string]: any } | undefined,
     strategy?: ConflictResolutionStrategyLabels
   ): JsonDoc {
     strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
-    if (diffTheirs === undefined) {
+    if (docTheirs === undefined || diffTheirs === undefined) {
       return (type.apply(docOurs, this.fromDiff(diffOurs)) as unknown) as JsonDoc;
     }
     // console.log(diffOurs);
