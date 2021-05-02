@@ -425,6 +425,20 @@ describe('<remote/diff> diff', () => {
   });
 
   describe('plaintext-OT', () => {
+    it('from undefined object to text', () => {
+      const oldDoc = {};
+
+      const newDoc = {
+        _id: 'nara',
+        text: 'abc',
+      };
+
+      expect(textOTDiff.diff(oldDoc, newDoc)).toStrictEqual({
+        _id: ['nara'],
+        text: ['abc'],
+      });
+    });
+
     it('from empty to text', () => {
       const oldDoc = {
         _id: 'nara',
