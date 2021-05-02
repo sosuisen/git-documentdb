@@ -1205,9 +1205,9 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
    * 3-way merge:
    *   jsonA1:17 - Conflict. Accept theirs (update)
    */
-  it('resolves case 17 - Conflict. Accept ours (update)', async () => {
+  it('resolves case 17 - Conflict. Accept theirs (update)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolve_strategy: 'theirs',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
