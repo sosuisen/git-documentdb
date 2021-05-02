@@ -174,12 +174,12 @@ export class JsonPatchOT implements IJsonPatch {
   ): [JSONOp, JSONOp, JSONOp | undefined] {
     let transformedOpTheirs;
     try {
-      console.log('trying ours: ' + JSON.stringify(_opOurs));
-      console.log('trying theirs: ' + JSON.stringify(_opTheirs));
+      // console.log('trying ours: ' + JSON.stringify(_opOurs));
+      // console.log('trying theirs: ' + JSON.stringify(_opTheirs));
       transformedOpTheirs = type.transform(_opTheirs, _opOurs, 'right');
     } catch (err) {
       if (err.conflict) {
-        console.log('conflict: ' + JSON.stringify(err.conflict));
+        // console.log('conflict: ' + JSON.stringify(err.conflict));
         const conflict = err.conflict as { type: number; op1: any[]; op2: any[] };
         let conflictedOperation;
 
@@ -239,7 +239,7 @@ export class JsonPatchOT implements IJsonPatch {
             if (targetOperations.length === 1) {
               targetOperations = targetOperations[0];
             }
-            console.log('# resolved: ' + JSON.stringify(targetOperations));
+            // console.log('# resolved: ' + JSON.stringify(targetOperations));
           }
         }
         if (strategy.startsWith('ours')) {
