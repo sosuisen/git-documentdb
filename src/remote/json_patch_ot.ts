@@ -7,29 +7,34 @@ import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
 export class JsonPatchOT implements IJsonPatch {
   constructor () {}
 
-  private _textCreateOp (startNum: number, str: string): JSONOp {
+  private _textCreateOp (path: string[], startNum: number, str: string): JSONOp {
     if (startNum > 0) {
-      return editOp(['text'], 'text-unicode', [startNum, str]);
+      return editOp(path, 'text-unicode', [startNum, str]);
     }
-    return editOp(['text'], 'text-unicode', [str]);
+    return editOp(path, 'text-unicode', [str]);
   }
 
-  private _textReplaceOp (startNum: number, from: string, to: string): JSONOp {
+  private _textReplaceOp (
+    path: string[],
+    startNum: number,
+    from: string,
+    to: string
+  ): JSONOp {
     if (startNum > 0) {
-      return editOp(['text'], 'text-unicode', [startNum, { d: uniCount(from) }, to]);
+      return editOp(path, 'text-unicode', [startNum, { d: uniCount(from) }, to]);
     }
-    return editOp(['text'], 'text-unicode', [{ d: uniCount(from) }, to]);
+    return editOp(path, 'text-unicode', [{ d: uniCount(from) }, to]);
   }
 
-  private _textDeleteOp (startNum: number, str: string) {
+  private _textDeleteOp (path: string[], startNum: number, str: string) {
     if (startNum > 0) {
-      return editOp(['text'], 'text-unicode', [startNum, { d: uniCount(str) }]);
+      return editOp(path, 'text-unicode', [startNum, { d: uniCount(str) }]);
     }
-    return editOp(['text'], 'text-unicode', [{ d: uniCount(str) }]);
+    return editOp(path, 'text-unicode', [{ d: uniCount(str) }]);
   }
 
   // eslint-disable-next-line complexity
-  getTextOp (text: string): JSONOp {
+  getTextOp (path: string[], text: string): JSONOp {
     // From text patch
     const operators: JSONOp[] = [];
     const lines = text.split('\n');
@@ -61,7 +66,7 @@ export class JsonPatchOT implements IJsonPatch {
         const str = isAddOrDeleteLine[2];
         if (addOrDelete === '+') {
           // Create
-          operators.push(this._textCreateOp(startNum, str));
+          operators.push(this._textCreateOp(path, startNum, str));
           startNum += uniCount(str);
           continue;
         }
@@ -75,14 +80,14 @@ export class JsonPatchOT implements IJsonPatch {
           if (isReplaceLine) {
             isReplace = true;
             const replaceTo = isReplaceLine[1];
-            operators.push(this._textReplaceOp(startNum, str, replaceTo));
+            operators.push(this._textReplaceOp(path, startNum, str, replaceTo));
             currentLine++;
             startNum += uniCount(replaceTo) - uniCount(str);
           }
         }
         if (!isReplace) {
           // Delete
-          operators.push(this._textDeleteOp(startNum, str));
+          operators.push(this._textDeleteOp(path, startNum, str));
           startNum -= uniCount(str);
         }
       }
@@ -128,7 +133,7 @@ export class JsonPatchOT implements IJsonPatch {
               if (!isTextPatch)
                 isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+? @@\n/m);
               if (isTextPatch) {
-                const textOp = this.getTextOp(firstItem);
+                const textOp = this.getTextOp(ancestors.concat(key), firstItem);
                 if (textOp) {
                   operations.push(textOp);
                 }

@@ -52,7 +52,7 @@ import { TaskQueue } from './task_queue';
 import { FILE_REMOVE_TIMEOUT } from './const';
 import { cloneRepository } from './remote/clone';
 import { getDocHistoryImpl } from './crud/history';
-import { JsonDiff } from './remote/diff';
+import { JsonDiff } from './remote/json_diff';
 import { JsonPatchOT } from './remote/json_patch_ot';
 
 const defaultLogLevel = 'info';
