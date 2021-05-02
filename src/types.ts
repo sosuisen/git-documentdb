@@ -615,6 +615,7 @@ export type JsonDiffOptions = {
 export interface IJsonPatch {
   patch(
     docOurs: JsonDoc,
+    docTheirs: JsonDoc,
     diffOurs: { [key: string]: any },
     diffTheirs?: { [key: string]: any } | undefined,
     strategy?: ConflictResolutionStrategyLabels

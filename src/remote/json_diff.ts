@@ -33,12 +33,9 @@ export class JsonDiff {
     if (_oldDoc === undefined) _oldDoc = {};
     const oldDoc = JSON.parse(JSON.stringify(_oldDoc));
     const newDoc = JSON.parse(JSON.stringify(_newDoc));
-    // console.log('newDoc: ' + JSON.stringify(newDoc));
-
     const diff = (this._jsonDiffPatch.diff(oldDoc, newDoc) as unknown) as {
       [key: string]: any;
     };
-    // console.log('diff: ' + JSON.stringify(diff));
     return diff;
   }
 }

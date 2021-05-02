@@ -84,6 +84,7 @@ function getMergedDocument (
   else if (strategy === 'ours-prop') {
     result = jsonPatch.patch(
       ours,
+      theirs,
       jsonDiff.diff(base, ours),
       jsonDiff.diff(base, theirs),
       strategy
@@ -92,6 +93,7 @@ function getMergedDocument (
   else if (strategy === 'theirs-prop') {
     result = jsonPatch.patch(
       ours,
+      theirs,
       jsonDiff.diff(base, ours),
       jsonDiff.diff(base, theirs),
       strategy

@@ -156,6 +156,7 @@ export class JsonPatchOT implements IJsonPatch {
 
   patch (
     docOurs: JsonDoc,
+    docTheirs: JsonDoc,
     diffOurs: { [key: string]: any },
     diffTheirs?: { [key: string]: any } | undefined,
     strategy?: ConflictResolutionStrategyLabels
@@ -166,9 +167,18 @@ export class JsonPatchOT implements IJsonPatch {
     }
     const opOurs = this.fromDiff(diffOurs);
     const opTheirs = this.fromDiff(diffTheirs);
-    const transformedOpTheirs = this.transform(opTheirs, opOurs, strategy!);
-    const newDoc = type.apply(docOurs, transformedOpTheirs!);
-    return (newDoc as unknown) as JsonDoc;
+    console.log(JSON.stringify(opOurs));
+    console.log(JSON.stringify(opTheirs));
+    const transformedOp = this.transform(opTheirs, opOurs, strategy!);
+    console.log(JSON.stringify(transformedOp));
+    let newDoc: JsonDoc;
+    if (strategy.startsWith('ours')) {
+      newDoc = (type.apply(docOurs, transformedOp!) as unknown) as JsonDoc;
+    }
+    else {
+      newDoc = (type.apply(docTheirs, transformedOp!) as unknown) as JsonDoc;
+    }
+    return newDoc;
   }
 
   // eslint-disable-next-line complexity
@@ -177,14 +187,19 @@ export class JsonPatchOT implements IJsonPatch {
     _opTheirs: JSONOp,
     strategy: ConflictResolutionStrategyLabels
   ): [JSONOp, JSONOp, JSONOp | undefined] {
-    let transformedOpTheirs;
+    let transformedOp;
     try {
-      // console.log('trying ours: ' + JSON.stringify(_opOurs));
-      // console.log('trying theirs: ' + JSON.stringify(_opTheirs));
-      transformedOpTheirs = type.transform(_opTheirs, _opOurs, 'right');
+      console.log('trying ours: ' + JSON.stringify(_opOurs));
+      console.log('trying theirs: ' + JSON.stringify(_opTheirs));
+      if (strategy.startsWith('ours')) {
+        transformedOp = type.transform(_opTheirs, _opOurs, 'right');
+      }
+      else {
+        transformedOp = type.transform(_opOurs, _opTheirs, 'right');
+      }
     } catch (err) {
       if (err.conflict) {
-        // console.log('conflict: ' + JSON.stringify(err.conflict));
+        console.log('conflict: ' + JSON.stringify(err.conflict));
         const conflict = err.conflict as { type: number; op1: any[]; op2: any[] };
         let conflictedOperation;
 
@@ -234,6 +249,7 @@ export class JsonPatchOT implements IJsonPatch {
           if (loc >= 0) {
             const op: { [command: string]: string } =
               targetOperations[loc][targetOperations[loc].length - 1];
+            // delete command
             conflictedCommands.forEach(command => delete op[command]);
             if (Object.keys(op).length > 0) {
               targetOperations[loc][targetOperations[loc].length - 1] = op;
@@ -257,19 +273,15 @@ export class JsonPatchOT implements IJsonPatch {
     return [
       JSON.parse(JSON.stringify(_opOurs)),
       JSON.parse(JSON.stringify(_opTheirs)),
-      transformedOpTheirs,
+      transformedOp,
     ];
   }
 
   transform (opTheirs: JSONOp, opOurs: JSONOp, strategy: ConflictResolutionStrategyLabels) {
-    let transformedOpTheirs;
-    while (transformedOpTheirs === undefined) {
-      [opOurs, opTheirs, transformedOpTheirs] = this.resolveConflict(
-        opOurs,
-        opTheirs,
-        strategy
-      );
+    let transformedOp;
+    while (transformedOp === undefined) {
+      [opOurs, opTheirs, transformedOp] = this.resolveConflict(opOurs, opTheirs, strategy);
     }
-    return transformedOpTheirs;
+    return transformedOp;
   }
 }
