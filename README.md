@@ -209,7 +209,7 @@ https://github.com/sosuisen/inventory-manager
 - v0.2 Group and Search :feet:
   - Collections :feet:
   - Prefix search :feet:
-- v0.3 Synchronization
+- v0.3 Synchronization :feet:
   - Synchronization with GitHub :feet:
   - Revisions :feet:
   - Operational Transformation :dog2:(Here now)
