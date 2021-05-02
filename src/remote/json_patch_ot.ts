@@ -165,16 +165,18 @@ export class JsonPatchOT implements IJsonPatch {
     if (diffTheirs === undefined) {
       return (type.apply(docOurs, this.fromDiff(diffOurs)) as unknown) as JsonDoc;
     }
+    // console.log(diffOurs);
+    // console.log(diffTheirs);
     const opOurs = this.fromDiff(diffOurs);
     const opTheirs = this.fromDiff(diffTheirs);
     const transformedOp = this.transform(opTheirs, opOurs, strategy!);
-    console.log('# transformed: ' + JSON.stringify(transformedOp));
+    // console.log('# transformed: ' + JSON.stringify(transformedOp));
     let newDoc: JsonDoc;
     if (strategy.startsWith('ours')) {
       newDoc = (type.apply(docOurs, transformedOp!) as unknown) as JsonDoc;
     }
     else {
-      console.log('# apply to: ' + JSON.stringify(docTheirs));
+      // console.log('# apply to: ' + JSON.stringify(docTheirs));
       newDoc = (type.apply(docTheirs, transformedOp!) as unknown) as JsonDoc;
     }
     return newDoc;
@@ -188,8 +190,8 @@ export class JsonPatchOT implements IJsonPatch {
   ): [JSONOp, JSONOp, JSONOp | undefined] {
     let transformedOp;
     try {
-      console.log('trying ours: ' + JSON.stringify(_opOurs));
-      console.log('trying theirs: ' + JSON.stringify(_opTheirs));
+      // console.log('trying ours: ' + JSON.stringify(_opOurs));
+      // console.log('trying theirs: ' + JSON.stringify(_opTheirs));
       if (strategy.startsWith('ours')) {
         transformedOp = type.transform(_opTheirs, _opOurs, 'right');
       }
@@ -198,7 +200,7 @@ export class JsonPatchOT implements IJsonPatch {
       }
     } catch (err) {
       if (err.conflict) {
-        console.log('conflict: ' + JSON.stringify(err.conflict));
+        // console.log('conflict: ' + JSON.stringify(err.conflict));
         const conflict = err.conflict as { type: number; op1: any[]; op2: any[] };
         let conflictedOperation;
 
