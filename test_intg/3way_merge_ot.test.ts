@@ -543,7 +543,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    * 3-way merge:
    *   mergedJson:17 - Conflict. Accept theirs (update-merge)
    */
-  it.only('resolves case 17 - Conflict. Accept theirs (update)', async () => {
+  it.only('resolves case 17 - Conflict. Accept theirs (update-merge)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflict_resolve_strategy: 'theirs-prop',
     });
@@ -623,8 +623,10 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     );
     // Conflict occurs on 1.json
 
-    expect(getWorkingDirFiles(dbA)).toEqual([mergedJson]);
     expect(getWorkingDirFiles(dbB)).toEqual([mergedJson]);
+    // Sync dbA
+    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    expect(getWorkingDirFiles(dbA)).toEqual([mergedJson]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

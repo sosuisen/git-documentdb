@@ -167,15 +167,14 @@ export class JsonPatchOT implements IJsonPatch {
     }
     const opOurs = this.fromDiff(diffOurs);
     const opTheirs = this.fromDiff(diffTheirs);
-    console.log(JSON.stringify(opOurs));
-    console.log(JSON.stringify(opTheirs));
     const transformedOp = this.transform(opTheirs, opOurs, strategy!);
-    console.log(JSON.stringify(transformedOp));
+    console.log('# transformed: ' + JSON.stringify(transformedOp));
     let newDoc: JsonDoc;
     if (strategy.startsWith('ours')) {
       newDoc = (type.apply(docOurs, transformedOp!) as unknown) as JsonDoc;
     }
     else {
+      console.log('# apply to: ' + JSON.stringify(docTheirs));
       newDoc = (type.apply(docTheirs, transformedOp!) as unknown) as JsonDoc;
     }
     return newDoc;
