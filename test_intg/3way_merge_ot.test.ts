@@ -81,7 +81,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    *   jsonA2: 1 - Accept theirs (create)
    *   jsonB3: 2 - Accept ours (create)
    */
-  it('resolves case 1 - Accept theirs (create), case 2 - Accept ours (create), case 4 - Conflict. Accept ours (create)', async () => {
+  it('resolves case 1 - Accept theirs (create), case 2 - Accept ours (create), case 4 - Conflict. Accept ours (create-merge)', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -103,6 +103,110 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     const putResultB1 = await dbB.put(jsonB1);
 
     const mergedJson = { _id: '1', name: 'fromB', a: 'fromA', b: 'fromB' };
+
+    // B puts a new file
+    const jsonB3 = { _id: '3', name: 'fromB' };
+    const putResultB3 = await dbB.put(jsonB3);
+
+    // It will occur conflict on id 1.json.
+    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+
+    const mergedDoc = await dbB.getDocWithMetaData('1');
+
+    expect(syncResult1.action).toBe('resolve conflicts and push');
+    expect(syncResult1.commits).toMatchObject({
+      local: getCommitInfo([
+        putResultA1,
+        putResultA2,
+        `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
+          0,
+          7
+        )},ours-prop)`,
+      ]),
+      remote: getCommitInfo([
+        putResultB1,
+        putResultB3,
+        `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
+          0,
+          7
+        )},ours-prop)`,
+      ]),
+    });
+    expect(syncResult1.changes.local.length).toBe(2);
+    expect(syncResult1.changes.local).toEqual(
+      expect.arrayContaining([
+        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+        getChangedFile('create', jsonA2, putResultA2),
+      ])
+    );
+
+    expect(syncResult1.changes.remote.length).toBe(2);
+    expect(syncResult1.changes.remote).toEqual(
+      expect.arrayContaining([
+        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+        getChangedFile('create', jsonB3, putResultB3),
+      ])
+    );
+
+    expect(syncResult1.conflicts.length).toEqual(1);
+    expect(syncResult1.conflicts).toEqual(
+      expect.arrayContaining([
+        {
+          target: {
+            id: '1',
+            file_sha: mergedDoc!.file_sha,
+          },
+          strategy: 'ours-prop',
+          operation: 'create-merge',
+        },
+      ])
+    );
+    // Conflict occurs on 1.json
+
+    expect(getWorkingDirFiles(dbB)).toEqual([mergedJson, jsonA2, jsonB3]);
+    // Sync dbA
+    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    expect(getWorkingDirFiles(dbA)).toEqual([mergedJson, jsonA2, jsonB3]);
+
+    await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+    await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
+
+  /**
+   * before:
+   * dbA   :  jsonA1  jsonA2
+   * dbB   :  jsonB1          jsonB3
+   * after :  mergedJson  jsonA2  jsonB3
+   *
+   * 3-way merge:
+   *   mergedJson: 4 - Conflict. Accept ours (create)
+   *   jsonA2: 1 - Accept theirs (create)
+   *   jsonB3: 2 - Accept ours (create)
+   */
+  it.only('resolves case 1 (plaintext-OT) - Accept theirs (create), case 2 - Accept ours (create), case 4 - Conflict. Accept ours (create-merge)', async () => {
+    const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      remoteURLBase,
+      localDir,
+      serialId,
+      {
+        conflict_resolve_strategy: 'ours-prop',
+      }
+    );
+
+    // A puts and pushes
+    const jsonA1 = { _id: '1', name: 'fromA', a: 'fromA' };
+    const putResultA1 = await dbA.put(jsonA1);
+    const jsonA2 = { _id: '2', name: 'fromA' };
+    const putResultA2 = await dbA.put(jsonA2);
+    await remoteA.tryPush();
+
+    // B puts the same file
+    const jsonB1 = { _id: '1', name: 'fromB', b: 'fromB' };
+    const putResultB1 = await dbB.put(jsonB1);
+
+    const mergedJson = { _id: '1', name: 'fromBfromA', a: 'fromA', b: 'fromB' };
 
     // B puts a new file
     const jsonB3 = { _id: '3', name: 'fromB' };
