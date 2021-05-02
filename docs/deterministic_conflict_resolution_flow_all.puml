@@ -1,5 +1,5 @@
-@startuml automated_conflict_resolution_flow_all
-title Automated Conflict Resolution Flow
+@startuml deterministic_conflict_resolution_flow_all
+title Deterministic Conflict Resolution Flow
 skinparam activity {
   BackgroundColor<< Succeeded >> lightgreen
   BackgroundColor<< Failed >> pink

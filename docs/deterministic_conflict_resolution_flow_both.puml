@@ -1,5 +1,5 @@
-@startuml automated_conflict_resolution_flow_both
-title Automated Conflict Resolution Flow (pull and push)
+@startuml deterministic_conflict_resolution_flow_both
+title Deterministic Conflict Resolution Flow (pull and push)
 skinparam activity {
   BackgroundColor<< Succeeded >> lightgreen
   BackgroundColor<< Conflict >> orange
