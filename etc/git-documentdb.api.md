@@ -11,7 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 // @public
 export type AcceptedConflict = {
     target: DocMetadata;
-    strategy: ConflictResolveStrategyLabels;
+    strategy: ConflictResolutionStrategyLabels;
     operation: WriteOperation;
 };
 
@@ -118,10 +118,10 @@ export type CommitInfo = {
 };
 
 // @public
-export type ConflictResolveStrategies = ConflictResolveStrategyLabels | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolveStrategyLabels);
+export type ConflictResolutionStrategies = ConflictResolutionStrategyLabels | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolutionStrategyLabels);
 
 // @public (undocumented)
-export type ConflictResolveStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
+export type ConflictResolutionStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
 
 // @public
 export type ConnectionSettings = ConnectionSettingsNone | ConnectionSettingsGitHub | ConnectionSettingsSSH;
@@ -294,11 +294,11 @@ export class HttpProtocolRequiredError extends BaseError {
 // @public (undocumented)
 export interface IJsonPatch {
     // (undocumented)
-    patch(docOurs: JsonDoc, diffOurs: {
+    patch(docOurs: JsonDoc, docTheirs: JsonDoc, diffOurs: {
         [key: string]: any;
     }, diffTheirs?: {
         [key: string]: any;
-    } | undefined, strategy?: ConflictResolveStrategyLabels): JsonDoc;
+    } | undefined, strategy?: ConflictResolutionStrategyLabels): JsonDoc;
 }
 
 // @public (undocumented)
@@ -521,7 +521,7 @@ export type RemoteOptions = {
     interval?: number;
     retry?: number;
     retry_interval?: number;
-    conflict_resolve_strategy?: ConflictResolveStrategies;
+    conflict_resolve_strategy?: ConflictResolutionStrategies;
     combine_db_strategy?: CombineDbStrategies;
     include_commits?: boolean;
 };

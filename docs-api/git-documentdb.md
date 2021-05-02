@@ -115,8 +115,8 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
 |  [CombineDbStrategies](./git-documentdb.combinedbstrategies.md) | Behavior when combine inconsistent DBs |
 |  [CommitInfo](./git-documentdb.commitinfo.md) | Commit information |
-|  [ConflictResolveStrategies](./git-documentdb.conflictresolvestrategies.md) | Strategy for resolving conflicts |
-|  [ConflictResolveStrategyLabels](./git-documentdb.conflictresolvestrategylabels.md) |  |
+|  [ConflictResolutionStrategies](./git-documentdb.conflictresolutionstrategies.md) | Strategy for resolving conflicts |
+|  [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md) |  |
 |  [ConnectionSettings](./git-documentdb.connectionsettings.md) | Connection settings for RemoteOptions |
 |  [ConnectionSettingsGitHub](./git-documentdb.connectionsettingsgithub.md) | Connection settings for GitHub |
 |  [ConnectionSettingsNone](./git-documentdb.connectionsettingsnone.md) | Connection settings do not exist. |
