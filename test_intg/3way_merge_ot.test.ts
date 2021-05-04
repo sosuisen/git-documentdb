@@ -446,6 +446,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
   it('resolves case 17 - Conflict. Accept theirs (update-merge)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflict_resolve_strategy: 'theirs-prop',
+      diffOptions: { plainTextProperties: { name: true } },
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'Hello, world!' };
@@ -547,6 +548,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     it('add text', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         conflict_resolve_strategy: 'ours-prop',
+        diffOptions: { plainTextProperties: { name: true } },
       });
 
       // A puts and pushes
@@ -599,6 +601,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     it('move text', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         conflict_resolve_strategy: 'ours-prop',
+        diffOptions: { plainTextProperties: { name: true } },
       });
 
       // A puts and pushes
@@ -651,6 +654,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     it('bad result', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         conflict_resolve_strategy: 'ours-prop',
+        diffOptions: { plainTextProperties: { name: true } },
       });
 
       // A puts and pushes

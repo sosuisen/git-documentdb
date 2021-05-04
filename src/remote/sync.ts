@@ -26,7 +26,6 @@ import {
   UnfetchedCommitExistsError,
 } from '../error';
 import {
-  ISync,
   RemoteOptions,
   SyncActiveCallback,
   SyncCallback,
@@ -43,6 +42,7 @@ import {
   SyncStartCallback,
   Task,
 } from '../types';
+import { ISync } from '../types_sync';
 import { IDocumentDB } from '../types_gitddb';
 import { sync_worker } from './sync_worker';
 import { push_worker } from './push_worker';
@@ -55,6 +55,8 @@ import {
   NETWORK_RETRY_INTERVAL,
   NETWORK_TIMEOUT,
 } from '../const';
+import { JsonDiff } from './json_diff';
+import { JsonPatchOT } from './json_patch_ot';
 
 /**
  * Implementation of GitDocumentDB#sync()
@@ -138,6 +140,16 @@ export class Sync implements ISync {
   committer: nodegit.Signature;
 
   /**
+   * JsonDiff
+   */
+  jsonDiff: JsonDiff;
+
+  /**
+   * JsonPatch
+   */
+  jsonPatch: JsonPatchOT;
+
+  /**
    * constructor
    *
    * @throws {@link UndefinedRemoteURLError}
@@ -157,6 +169,7 @@ export class Sync implements ISync {
       combine_db_strategy: undefined,
       include_commits: undefined,
       conflict_resolve_strategy: undefined,
+      diffOptions: undefined,
     };
     // Deep clone
     this._options = JSON.parse(JSON.stringify(_options));
@@ -188,6 +201,9 @@ export class Sync implements ISync {
     this._options.combine_db_strategy ??= 'throw-error';
     this._options.include_commits ??= false;
     this._options.conflict_resolve_strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
+
+    this.jsonDiff = new JsonDiff(_options.diffOptions);
+    this.jsonPatch = new JsonPatchOT();
 
     this.credential_callbacks = createCredential(this._options);
 

@@ -18,6 +18,7 @@ import { IDocumentDB } from '../types_gitddb';
 import { getDocument } from './worker_utils';
 import { toSortedJSONString } from '../utils';
 import { JsonDiff } from './json_diff';
+import { ISync } from '../types_sync';
 
 /**
  * Write blob to file system
@@ -116,6 +117,7 @@ function getMergedDocument (
 // eslint-disable-next-line complexity
 export async function threeWayMerge (
   gitDDB: IDocumentDB,
+  sync: ISync,
   conflict_resolve_strategy: ConflictResolutionStrategies,
   resolvedIndex: nodegit.Index,
   path: string,
@@ -177,8 +179,8 @@ export async function threeWayMerge (
         // Just add it to the index.
         // console.log(' #case 4 - Conflict. Accept ours (create): ' + path);
         const data = await getMergedDocument(
-          gitDDB.jsonDiff,
-          gitDDB.jsonPatch,
+          sync.jsonDiff,
+          sync.jsonPatch,
           strategy,
           undefined,
           JSON.parse((await ours.getBlob()).toString()),
@@ -203,8 +205,8 @@ export async function threeWayMerge (
         // Write theirs to the file.
         // console.log(' #case 5 - Conflict. Accept theirs (create): ' + path);
         const data = await getMergedDocument(
-          gitDDB.jsonDiff,
-          gitDDB.jsonPatch,
+          sync.jsonDiff,
+          sync.jsonPatch,
           strategy,
           undefined,
           JSON.parse((await ours.getBlob()).toString()),
@@ -366,8 +368,8 @@ export async function threeWayMerge (
         // Just add it to the index.
         // console.log(' #case 16 - Conflict. Accept ours (update): ' + path);
         const data = await getMergedDocument(
-          gitDDB.jsonDiff,
-          gitDDB.jsonPatch,
+          sync.jsonDiff,
+          sync.jsonPatch,
           strategy,
           JSON.parse((await base.getBlob()).toString()),
           JSON.parse((await ours.getBlob()).toString()),
@@ -393,8 +395,8 @@ export async function threeWayMerge (
         // Write theirs to the file.
         // console.log(' #case 17 - Conflict. Accept theirs (update): ' + path);
         const data = await getMergedDocument(
-          gitDDB.jsonDiff,
-          gitDDB.jsonPatch,
+          sync.jsonDiff,
+          sync.jsonPatch,
           strategy,
           JSON.parse((await base.getBlob()).toString()),
           JSON.parse((await ours.getBlob()).toString()),

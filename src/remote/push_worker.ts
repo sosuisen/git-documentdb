@@ -15,7 +15,8 @@ import {
   UnfetchedCommitExistsError,
 } from '../error';
 import { IDocumentDB } from '../types_gitddb';
-import { CommitInfo, ISync, SyncResultPush } from '../types';
+import { CommitInfo, SyncResultPush } from '../types';
+import { ISync } from '../types_sync';
 import { getChanges, getCommitLogs } from './worker_utils';
 
 /**

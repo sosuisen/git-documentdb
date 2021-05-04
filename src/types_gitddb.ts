@@ -58,8 +58,6 @@ export interface IDocumentDB {
     email: string;
   };
 
-  jsonDiff: JsonDiff;
-  jsonPatch: IJsonPatch;
   defaultBranch: string;
   dbName(): string;
   workingDir(): string;

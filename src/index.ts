@@ -52,8 +52,6 @@ import { TaskQueue } from './task_queue';
 import { FILE_REMOVE_TIMEOUT } from './const';
 import { cloneRepository } from './remote/clone';
 import { getDocHistoryImpl } from './crud/history';
-import { JsonDiff } from './remote/json_diff';
-import { JsonPatchOT } from './remote/json_patch_ot';
 
 const defaultLogLevel = 'info';
 
@@ -123,16 +121,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   };
 
   /**
-   * JsonDiff
-   */
-  jsonDiff: JsonDiff;
-
-  /**
-   * JsonPatch
-   */
-  jsonPatch: JsonPatchOT;
-
-  /**
    * Task queue
    */
   taskQueue: TaskQueue;
@@ -170,9 +158,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this._dbName = options.db_name;
     this._localDir = options.local_dir ?? defaultLocalDir;
     this._logLevel = options.log_level ?? defaultLogLevel;
-
-    this.jsonDiff = new JsonDiff(options.diffOptions);
-    this.jsonPatch = new JsonPatchOT();
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);

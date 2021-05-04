@@ -2,12 +2,10 @@ import { editOp, insertOp, type } from 'ot-json1';
 import { JsonDiff } from '../../src/remote/json_diff';
 import { JsonPatchOT } from '../../src/remote/json_patch_ot';
 
-const primitiveDiff = new JsonDiff({
-  minTextLength: 1000,
-});
+const primitiveDiff = new JsonDiff();
 
 const textOTDiff = new JsonDiff({
-  minTextLength: 0,
+  plainTextProperties: { text: true },
 });
 
 const jPatch = new JsonPatchOT();
@@ -944,6 +942,49 @@ grumbled Jo, lying on the rug.`,
       const merged = {
         _id: 'littlewomen',
         text: `XX`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
+
+    it('merges only the selected property', () => {
+      const base = {
+        _id: 'littlewomen',
+        text: '',
+        not_merge: '',
+      };
+
+      const ours = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+`,
+        not_merge: 'from ours',
+      };
+
+      const theirs = {
+        _id: 'littlewomen',
+        text: `"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+        not_merge: 'from theirs',
+      };
+
+      const merged = {
+        _id: 'littlewomen',
+        text: `"Christmas won't be Christmas without any presents,"
+grumbled Jo, lying on the rug. 
+"It's so dreadful to be poor!"
+sighed Meg, looking down at her old dress.`,
+        not_merge: 'from ours',
       };
 
       const diffOurs = textOTDiff.diff(base, ours);

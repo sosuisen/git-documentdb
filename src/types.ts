@@ -6,8 +6,6 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import nodegit from '@sosuisen/nodegit';
-
 /**
  * Database location
  *
@@ -33,7 +31,6 @@ export type DatabaseOption = {
   local_dir?: string;
   db_name: string;
   log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-  diffOptions?: JsonDiffOptions;
 };
 /**
  * Database information
@@ -436,6 +433,7 @@ export type RemoteOptions = {
   /* merge */
   conflict_resolve_strategy?: ConflictResolutionStrategies;
   combine_db_strategy?: CombineDbStrategies;
+  diffOptions?: JsonDiffOptions;
 
   /* results */
   include_commits?: boolean;
@@ -575,41 +573,21 @@ export type SyncCallback =
   | SyncStartCallback
   | SyncCompleteCallback
   | SyncErrorCallback;
-/**
- * Interface of Sync
- */
-export interface ISync {
-  currentRetries(): number;
-  eventHandlers: {
-    change: SyncChangeCallback[];
-    localChange: SyncLocalChangeCallback[];
-    remoteChange: SyncRemoteChangeCallback[];
-    paused: SyncPausedCallback[];
-    active: SyncActiveCallback[];
-    start: SyncStartCallback[];
-    complete: SyncCompleteCallback[];
-    error: SyncErrorCallback[];
-  };
-  upstream_branch: string;
-  credential_callbacks: { [key: string]: any };
-  author: nodegit.Signature;
-  committer: nodegit.Signature;
-  remoteURL(): string;
-  options(): RemoteOptions;
-  tryPush(): Promise<SyncResultPush | SyncResultCancel>;
-  trySync(): Promise<SyncResult>;
-  enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
-  enqueueSyncTask(): Promise<SyncResult>;
-  on(event: SyncEvent, callback: SyncCallback): void;
-  off(event: SyncEvent, callback: SyncCallback): void;
-  pause(): void;
-  cancel(): void;
-  resume(options?: { interval?: number; retry?: number }): void;
-}
 
+/**
+ * Options for JsonDiff
+ *
+ * @remarks
+ *  - plainTextProperties: Only property whose key matches plainTextProperties uses text diff algorithm: google-diff-match-patch.
+ *
+ * e.g.
+ * { a: { b: true }, c: true } matches 'b' (whose ancestor is only 'a') and 'c'.
+ * { a: { _all: true } } matches all child properties of 'a'.
+ * { a: { _regex: /abc/ } } matches child properties of 'a' which match /abc/.
+ */
 export type JsonDiffOptions = {
   idOfSubtree?: string[];
-  minTextLength?: number;
+  plainTextProperties?: { [key: string]: any };
 };
 
 export interface IJsonPatch {

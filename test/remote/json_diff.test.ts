@@ -1,11 +1,9 @@
 import { JsonDiff } from '../../src/remote/json_diff';
 
-const primitiveDiff = new JsonDiff({
-  minTextLength: 1000,
-});
+const primitiveDiff = new JsonDiff();
 
 const textOTDiff = new JsonDiff({
-  minTextLength: 0,
+  plainTextProperties: { text: true },
 });
 
 describe('<remote/diff> diff', () => {
@@ -384,7 +382,6 @@ describe('<remote/diff> diff', () => {
 
     it('of object by objectHash', () => {
       const myDiff = new JsonDiff({
-        minTextLength: 1000,
         idOfSubtree: ['place'],
       });
 

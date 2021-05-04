@@ -24,11 +24,11 @@ import { IDocumentDB } from '../types_gitddb';
 import {
   AcceptedConflict,
   CommitInfo,
-  ISync,
   SyncResult,
   SyncResultMergeAndPush,
   SyncResultResolveConflictsAndPush,
 } from '../types';
+import { ISync } from '../types_sync';
 import { push_worker } from './push_worker';
 import { getChanges, getCommitLogs } from './worker_utils';
 import { threeWayMerge } from './3way_merge';
@@ -355,6 +355,7 @@ export async function sync_worker (
       resolvers.push(
         threeWayMerge(
           gitDDB,
+          sync,
           strategy!,
           resolvedIndex,
           path,

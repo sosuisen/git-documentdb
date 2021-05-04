@@ -5,13 +5,13 @@ import nodegit from '@sosuisen/nodegit';
 import {
   ChangedFile,
   CommitInfo,
-  ISync,
   JsonDoc,
   PutResult,
   RemoteOptions,
   RemoveResult,
   WriteOperation,
 } from '../src/types';
+import { ISync } from '../src/types_sync';
 import { GitDocumentDB } from '../src/index';
 import { FILE_REMOVE_TIMEOUT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
