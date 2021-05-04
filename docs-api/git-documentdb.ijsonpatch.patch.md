@@ -7,11 +7,11 @@
 <b>Signature:</b>
 
 ```typescript
-patch(docOurs: JsonDoc, diffOurs: {
+patch(docOurs: JsonDoc, docTheirs: JsonDoc, diffOurs: {
         [key: string]: any;
     }, diffTheirs?: {
         [key: string]: any;
-    } | undefined, strategy?: ConflictResolveStrategyLabels): JsonDoc;
+    } | undefined, strategy?: ConflictResolutionStrategyLabels): JsonDoc;
 ```
 
 ## Parameters
@@ -19,9 +19,10 @@ patch(docOurs: JsonDoc, diffOurs: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  docOurs | [JsonDoc](./git-documentdb.jsondoc.md) |  |
+|  docTheirs | [JsonDoc](./git-documentdb.jsondoc.md) |  |
 |  diffOurs | { \[key: string\]: any; } |  |
 |  diffTheirs | { \[key: string\]: any; } \| undefined |  |
-|  strategy | [ConflictResolveStrategyLabels](./git-documentdb.conflictresolvestrategylabels.md) |  |
+|  strategy | [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md) |  |
 
 <b>Returns:</b>
 

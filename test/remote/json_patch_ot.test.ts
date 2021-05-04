@@ -142,7 +142,7 @@ describe('<remote/ot> OT', () => {
       const patchTheirs = jPatch.fromDiff(diffTheirs!);
       // console.log(patchTheirs);
 
-      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
     it('merges independent changes (update)', () => {
@@ -184,7 +184,7 @@ describe('<remote/ot> OT', () => {
       const patchTheirs = jPatch.fromDiff(diffTheirs!);
       // console.log(patchTheirs);
 
-      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
   });
 
@@ -831,7 +831,7 @@ sighed Meg, looking down at her old dress.`,
       const patchTheirs = jPatch.fromDiff(diffTheirs!);
       // console.log(patchTheirs);
 
-      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
     it('merges conflicted text: update and delete', () => {
@@ -879,7 +879,7 @@ grumbled Jo, lying on the rug.`,
       const patchTheirs = jPatch.fromDiff(diffTheirs!);
       // console.log(patchTheirs);
 
-      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
     it('merges conflicted text: add and delete', () => {
@@ -918,7 +918,7 @@ sighed Meg, looking down at her old dress.`,
       const patchTheirs = jPatch.fromDiff(diffTheirs!);
       // console.log(patchTheirs);
 
-      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
     it('merges conflicted text: update and move', () => {
@@ -955,7 +955,7 @@ grumbled Jo, lying on the rug.`,
       const patchTheirs = jPatch.fromDiff(diffTheirs!);
       // console.log(patchTheirs);
 
-      expect(jPatch.patch(ours, diffOurs!, diffTheirs)).toStrictEqual(merged);
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
     it.skip('merges conflicted primitives: add', () => {});

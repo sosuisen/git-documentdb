@@ -40,7 +40,7 @@ afterAll(() => {
 });
 
 describe('<close> GitDocumentDB#close()', () => {
-  it.only('waits queued operations', async () => {
+  it('waits queued operations', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,

@@ -156,26 +156,27 @@ export class JsonPatchOT implements IJsonPatch {
 
   patch (
     docOurs: JsonDoc,
-    docTheirs: JsonDoc,
     diffOurs: { [key: string]: any },
+    docTheirs?: JsonDoc | undefined,
     diffTheirs?: { [key: string]: any } | undefined,
     strategy?: ConflictResolutionStrategyLabels
   ): JsonDoc {
     strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
-    if (diffTheirs === undefined) {
+    if (docTheirs === undefined || diffTheirs === undefined) {
       return (type.apply(docOurs, this.fromDiff(diffOurs)) as unknown) as JsonDoc;
     }
+    // console.log(diffOurs);
+    // console.log(diffTheirs);
     const opOurs = this.fromDiff(diffOurs);
     const opTheirs = this.fromDiff(diffTheirs);
-    console.log(JSON.stringify(opOurs));
-    console.log(JSON.stringify(opTheirs));
     const transformedOp = this.transform(opTheirs, opOurs, strategy!);
-    console.log(JSON.stringify(transformedOp));
+    // console.log('# transformed: ' + JSON.stringify(transformedOp));
     let newDoc: JsonDoc;
     if (strategy.startsWith('ours')) {
       newDoc = (type.apply(docOurs, transformedOp!) as unknown) as JsonDoc;
     }
     else {
+      // console.log('# apply to: ' + JSON.stringify(docTheirs));
       newDoc = (type.apply(docTheirs, transformedOp!) as unknown) as JsonDoc;
     }
     return newDoc;
@@ -189,8 +190,8 @@ export class JsonPatchOT implements IJsonPatch {
   ): [JSONOp, JSONOp, JSONOp | undefined] {
     let transformedOp;
     try {
-      console.log('trying ours: ' + JSON.stringify(_opOurs));
-      console.log('trying theirs: ' + JSON.stringify(_opTheirs));
+      // console.log('trying ours: ' + JSON.stringify(_opOurs));
+      // console.log('trying theirs: ' + JSON.stringify(_opTheirs));
       if (strategy.startsWith('ours')) {
         transformedOp = type.transform(_opTheirs, _opOurs, 'right');
       }
@@ -199,7 +200,7 @@ export class JsonPatchOT implements IJsonPatch {
       }
     } catch (err) {
       if (err.conflict) {
-        console.log('conflict: ' + JSON.stringify(err.conflict));
+        // console.log('conflict: ' + JSON.stringify(err.conflict));
         const conflict = err.conflict as { type: number; op1: any[]; op2: any[] };
         let conflictedOperation;
 

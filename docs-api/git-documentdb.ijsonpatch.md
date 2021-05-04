@@ -14,5 +14,5 @@ export interface IJsonPatch
 
 |  Method | Description |
 |  --- | --- |
-|  [patch(docOurs, diffOurs, diffTheirs, strategy)](./git-documentdb.ijsonpatch.patch.md) |  |
+|  [patch(docOurs, docTheirs, diffOurs, diffTheirs, strategy)](./git-documentdb.ijsonpatch.patch.md) |  |
 
