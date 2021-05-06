@@ -687,7 +687,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       ])
     );
     // Only one trySync() will be executed
-    expect(dbA.taskQueue.statistics().sync).toBe(1);
+    expect(dbA.taskQueue.currentStatistics().sync).toBe(1);
 
     await destroyDBs([dbA]);
   });

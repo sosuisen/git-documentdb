@@ -398,7 +398,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
       ])
     );
     // 3 or less tryPushes will be executed
-    expect(dbA.taskQueue.statistics().push).toBeLessThanOrEqual(3);
+    expect(dbA.taskQueue.currentStatistics().push).toBeLessThanOrEqual(3);
 
     await destroyDBs([dbA]);
   });

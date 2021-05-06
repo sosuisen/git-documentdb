@@ -303,7 +303,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         expect(remoteA.options().interval).toBe(interval);
 
         // Wait live sync()
-        while (dbA.taskQueue.statistics().sync === 0) {
+        while (dbA.taskQueue.currentStatistics().sync === 0) {
           // eslint-disable-next-line no-await-in-loop
           await sleep(500);
         }
@@ -339,11 +339,11 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.taskQueue.statistics().sync;
+        const count = dbA.taskQueue.currentStatistics().sync;
         remoteA.cancel();
         await sleep(interval * 2);
         expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.taskQueue.statistics().sync).toBe(count);
+        expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         await destroyDBs([dbA]);
       });
@@ -368,19 +368,19 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.taskQueue.statistics().sync;
+        const count = dbA.taskQueue.currentStatistics().sync;
         expect(remoteA.pause()).toBeTruthy();
         expect(remoteA.pause()).toBeFalsy(); // ignored
 
         await sleep(interval * 2);
         expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.taskQueue.statistics().sync).toBe(count);
+        expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         expect(remoteA.resume()).toBeTruthy();
         expect(remoteA.resume()).toBeFalsy(); // ignored
         await sleep(interval * 2);
         expect(remoteA.options().live).toBeTruthy();
-        expect(dbA.taskQueue.statistics().sync).toBeGreaterThan(count);
+        expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThan(count);
 
         await destroyDBs([dbA]);
       });
@@ -405,14 +405,14 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
-        const count = dbA.taskQueue.statistics().sync;
+        const count = dbA.taskQueue.currentStatistics().sync;
         await dbA.close();
 
         remoteA.resume(); // resume() must be ignored after close();
 
         await sleep(interval * 2);
         expect(remoteA.options().live).toBeFalsy();
-        expect(dbA.taskQueue.statistics().sync).toBe(count);
+        expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         await destroyDBs([dbA]);
       });
@@ -441,7 +441,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         // Wait live sync()
-        while (dbA.taskQueue.statistics().sync === 0) {
+        while (dbA.taskQueue.currentStatistics().sync === 0) {
           // eslint-disable-next-line no-await-in-loop
           await sleep(500);
         }
@@ -450,7 +450,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const jsonA2 = { _id: '2', name: 'fromA' };
         await dbA.put(jsonA2);
 
-        const currentCount = dbA.taskQueue.statistics().sync;
+        const currentCount = dbA.taskQueue.currentStatistics().sync;
         // Change interval
         remoteA.resume({
           interval: interval * 3,
@@ -458,7 +458,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         expect(remoteA.options().interval).toBe(interval * 3);
         await sleep(interval);
         // Check count before next sync()
-        expect(dbA.taskQueue.statistics().sync).toBe(currentCount);
+        expect(dbA.taskQueue.currentStatistics().sync).toBe(currentCount);
 
         await destroyDBs([dbA]);
       });
@@ -484,7 +484,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteA = dbA.getSynchronizer(remoteURL);
 
         await sleep(interval * 5);
-        expect(dbA.taskQueue.statistics().sync).toBeGreaterThanOrEqual(3);
+        expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(3);
 
         await destroyDBs([dbA]);
       });
@@ -972,8 +972,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
       await expect(dbB.get(jsonB1._id)).resolves.toMatchObject(jsonB1);
 
       // Wait next sync()
-      const count = dbA.taskQueue.statistics().sync;
-      while (dbA.taskQueue.statistics().sync === count) {
+      const count = dbA.taskQueue.currentStatistics().sync;
+      while (dbA.taskQueue.currentStatistics().sync === count) {
         // eslint-disable-next-line no-await-in-loop
         await sleep(500);
       }

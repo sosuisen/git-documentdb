@@ -98,7 +98,7 @@ export class TaskQueue {
     return this._taskQueue.length;
   }
 
-  statistics (): TaskStatistics {
+  currentStatistics (): TaskStatistics {
     return JSON.parse(JSON.stringify(this._statistics));
   }
 
