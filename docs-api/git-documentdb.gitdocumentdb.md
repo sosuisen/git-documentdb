@@ -27,8 +27,6 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [fileExt](./git-documentdb.gitdocumentdb.fileext.md) |  | (not declared) | File extension of a repository document |
 |  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { readonly name: "GitDocumentDB"; readonly email: "gitddb@example.com"; } | Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | DB is going to close |
-|  [jsonDiff](./git-documentdb.gitdocumentdb.jsondiff.md) |  | JsonDiff | JsonDiff |
-|  [jsonPatch](./git-documentdb.gitdocumentdb.jsonpatch.md) |  | JsonPatchOT | JsonPatch |
 |  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | Logger |
 |  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | TaskQueue | Task queue |
 |  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | [Validator](./git-documentdb.validator.md) | Name validator |

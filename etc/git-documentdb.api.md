@@ -190,7 +190,6 @@ export type DatabaseOption = {
     local_dir?: string;
     db_name: string;
     log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-    diffOptions?: JsonDiffOptions;
 };
 
 // @public
@@ -249,10 +248,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     };
     isClosing: boolean;
     isOpened(): boolean;
-    // Warning: (ae-forgotten-export) The symbol "JsonDiff" needs to be exported by the entry point main.d.ts
-    jsonDiff: JsonDiff;
-    // Warning: (ae-forgotten-export) The symbol "JsonPatchOT" needs to be exported by the entry point main.d.ts
-    jsonPatch: JsonPatchOT;
     logger: Logger;
     open(): Promise<DatabaseInfo>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
@@ -392,61 +387,11 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
 }
 
 // @public
-export interface ISync {
-    // (undocumented)
-    author: nodegit.Signature;
-    // (undocumented)
-    cancel(): void;
-    // (undocumented)
-    committer: nodegit.Signature;
-    // (undocumented)
-    credential_callbacks: {
-        [key: string]: any;
-    };
-    // (undocumented)
-    currentRetries(): number;
-    // (undocumented)
-    enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
-    // (undocumented)
-    enqueueSyncTask(): Promise<SyncResult>;
-    // (undocumented)
-    eventHandlers: {
-        change: SyncChangeCallback[];
-        localChange: SyncLocalChangeCallback[];
-        remoteChange: SyncRemoteChangeCallback[];
-        paused: SyncPausedCallback[];
-        active: SyncActiveCallback[];
-        start: SyncStartCallback[];
-        complete: SyncCompleteCallback[];
-        error: SyncErrorCallback[];
-    };
-    // (undocumented)
-    off(event: SyncEvent, callback: SyncCallback): void;
-    // (undocumented)
-    on(event: SyncEvent, callback: SyncCallback): void;
-    // (undocumented)
-    options(): RemoteOptions;
-    // (undocumented)
-    pause(): void;
-    // (undocumented)
-    remoteURL(): string;
-    // (undocumented)
-    resume(options?: {
-        interval?: number;
-        retry?: number;
-    }): void;
-    // (undocumented)
-    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
-    // (undocumented)
-    trySync(): Promise<SyncResult>;
-    // (undocumented)
-    upstream_branch: string;
-}
-
-// @public (undocumented)
 export type JsonDiffOptions = {
     idOfSubtree?: string[];
-    minTextLength?: number;
+    plainTextProperties?: {
+        [key: string]: any;
+    };
 };
 
 // @public
@@ -523,6 +468,7 @@ export type RemoteOptions = {
     retry_interval?: number;
     conflict_resolve_strategy?: ConflictResolutionStrategies;
     combine_db_strategy?: CombineDbStrategies;
+    diff_options?: JsonDiffOptions;
     include_commits?: boolean;
 };
 
@@ -580,6 +526,8 @@ export class SocketTimeoutError extends BaseError {
     constructor(url: string);
 }
 
+// Warning: (ae-forgotten-export) The symbol "ISync" needs to be exported by the entry point main.d.ts
+//
 // @public
 export class Sync implements ISync {
     constructor(_gitDDB: IDocumentDB, _options?: RemoteOptions);
@@ -596,12 +544,6 @@ export class Sync implements ISync {
         [key: string]: any;
     };
     currentRetries(): number;
-    // (undocumented)
-    static defaultRetry: number;
-    // (undocumented)
-    static defaultRetryInterval: number;
-    // (undocumented)
-    static defaultSyncInterval: number;
     enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
     enqueueSyncTask(): Promise<SyncResult>;
     // @internal
@@ -616,8 +558,10 @@ export class Sync implements ISync {
         error: SyncErrorCallback[];
     };
     init(repos: nodegit.Repository): Promise<SyncResult>;
-    // (undocumented)
-    static minimumSyncInterval: number;
+    // Warning: (ae-forgotten-export) The symbol "JsonDiff" needs to be exported by the entry point main.d.ts
+    jsonDiff: JsonDiff;
+    // Warning: (ae-forgotten-export) The symbol "JsonPatchOT" needs to be exported by the entry point main.d.ts
+    jsonPatch: JsonPatchOT;
     off(event: SyncEvent, callback: SyncCallback): this;
     on(event: SyncEvent, callback: SyncCallback): this;
     options(): Required<RemoteOptions>;

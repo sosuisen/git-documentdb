@@ -96,7 +96,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  Interface | Description |
 |  --- | --- |
 |  [IJsonPatch](./git-documentdb.ijsonpatch.md) |  |
-|  [ISync](./git-documentdb.isync.md) | Interface of Sync |
 |  [SyncResultCancel](./git-documentdb.syncresultcancel.md) |  |
 |  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) |  |
 |  [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) |  |
@@ -127,7 +126,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md) | Database information (success) |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
 |  [DocMetadata](./git-documentdb.docmetadata.md) | Type for a document metadata |
-|  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) |  |
+|  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | Options for JsonDiff |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |

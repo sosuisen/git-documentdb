@@ -16,10 +16,8 @@ export declare type DatabaseOption = {
     local_dir?: string;
     db_name: string;
     log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-    diffOptions?: JsonDiffOptions;
 };
 ```
-<b>References:</b> [JsonDiffOptions](./git-documentdb.jsondiffoptions.md)
 
 ## Remarks
 

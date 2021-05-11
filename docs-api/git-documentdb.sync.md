@@ -11,7 +11,7 @@ Synchronizer class
 ```typescript
 export declare class Sync implements ISync 
 ```
-<b>Implements:</b> [ISync](./git-documentdb.isync.md)
+<b>Implements:</b> ISync
 
 ## Constructors
 
@@ -26,10 +26,8 @@ export declare class Sync implements ISync
 |  [author](./git-documentdb.sync.author.md) |  | nodegit.Signature |  |
 |  [committer](./git-documentdb.sync.committer.md) |  | nodegit.Signature |  |
 |  [credential\_callbacks](./git-documentdb.sync.credential_callbacks.md) |  | { \[key: string\]: any; } |  |
-|  [defaultRetry](./git-documentdb.sync.defaultretry.md) | <code>static</code> | number |  |
-|  [defaultRetryInterval](./git-documentdb.sync.defaultretryinterval.md) | <code>static</code> | number |  |
-|  [defaultSyncInterval](./git-documentdb.sync.defaultsyncinterval.md) | <code>static</code> | number |  |
-|  [minimumSyncInterval](./git-documentdb.sync.minimumsyncinterval.md) | <code>static</code> | number |  |
+|  [jsonDiff](./git-documentdb.sync.jsondiff.md) |  | JsonDiff | JsonDiff |
+|  [jsonPatch](./git-documentdb.sync.jsonpatch.md) |  | JsonPatchOT | JsonPatch |
 |  [upstream\_branch](./git-documentdb.sync.upstream_branch.md) |  | string |  |
 
 ## Methods
