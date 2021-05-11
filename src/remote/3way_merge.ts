@@ -2,7 +2,6 @@ import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import {
-  CannotCreateDirectoryError,
   CannotDeleteDataError,
   InvalidConflictStateError,
   RepositoryNotOpenError,
@@ -15,24 +14,10 @@ import {
   JsonDoc,
 } from '../types';
 import { IDocumentDB } from '../types_gitddb';
-import { getDocument } from './worker_utils';
+import { getDocument, writeBlobToFile } from './worker_utils';
 import { toSortedJSONString } from '../utils';
 import { JsonDiff } from './json_diff';
 import { ISync } from '../types_sync';
-
-/**
- * Write blob to file system
- *
- * @throws {@link CannotCreateDirectoryError}
- */
-async function writeBlobToFile (gitDDB: IDocumentDB, fileName: string, data: string) {
-  const filePath = nodePath.resolve(gitDDB.workingDir(), fileName);
-  const dir = nodePath.dirname(filePath);
-  await fs.ensureDir(dir).catch((err: Error) => {
-    return Promise.reject(new CannotCreateDirectoryError(err.message));
-  });
-  await fs.writeFile(filePath, data);
-}
 
 async function getStrategy (
   gitDDB: IDocumentDB,

@@ -6,10 +6,30 @@
  * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
+import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
-import { InvalidJsonObjectError } from '../error';
+import fs from 'fs-extra';
+import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
 import { ChangedFile, CommitInfo, DocMetadata, JsonDoc } from '../types';
 import { IDocumentDB } from '../types_gitddb';
+
+/**
+ * Write blob to file system
+ *
+ * @throws {@link CannotCreateDirectoryError}
+ */
+export async function writeBlobToFile (
+  gitDDB: IDocumentDB,
+  fileName: string,
+  data: string
+) {
+  const filePath = nodePath.resolve(gitDDB.workingDir(), fileName);
+  const dir = nodePath.dirname(filePath);
+  await fs.ensureDir(dir).catch((err: Error) => {
+    return Promise.reject(new CannotCreateDirectoryError(err.message));
+  });
+  await fs.writeFile(filePath, data);
+}
 
 /**
  * Get document
