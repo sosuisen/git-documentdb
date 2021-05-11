@@ -15,6 +15,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../../src';
 import {
+  ChangedFile,
   SyncResult,
   SyncResultCancel,
   SyncResultFastForwardMerge,
@@ -649,6 +650,76 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirFiles(dbA)).toEqual([]);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    /**
+     * before:  jsonA1  jsonA2
+     * dbA   : +jsonA1 -jsonA2
+     * dbB   :                 jsonB3
+     * after : +jsonA1         jsonB3
+     */
+    it('which include a local update, delete, and a remote create when a remote db creates a document and a local db updates and deletes another document', async () => {
+      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId,
+        {
+          interval: 5000,
+          live: true,
+        }
+      );
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResult1 = await dbA.put(jsonA1);
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult2 = await dbA.put(jsonA2);
+      await remoteA.tryPush();
+
+      await remoteB.trySync();
+
+      remoteA.on('localChange', (localChanges: ChangedFile[]) => {
+        // console.log('remoteA: ' + JSON.stringify(localChanges));
+      });
+      remoteB.on('localChange', (localChanges: ChangedFile[]) => {
+        // console.log('remoteB: ' + JSON.stringify(localChanges));
+      });
+
+      dbA
+        .delete(jsonA2)
+        .then(() => {
+          remoteA.trySync();
+        })
+        .catch(err => {
+          console.log(err);
+        });
+      const jsonA1dash = { _id: '1', name: 'fromAdash' };
+      await sleep(2000);
+      dbA
+        .put(jsonA1dash)
+        .then(() => {
+          remoteA.trySync();
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
+      const jsonB3 = { _id: '3', name: 'fromB' };
+      dbB
+        .put(jsonB3)
+        .then(() => {
+          remoteB.trySync();
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
+      await sleep(15000);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
