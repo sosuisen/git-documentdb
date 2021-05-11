@@ -112,7 +112,8 @@ export async function createClonedDatabases (
   remoteURLBase: string,
   localDir: string,
   serialId: () => string,
-  options?: RemoteOptions
+  options?: RemoteOptions,
+  log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 ): Promise<[GitDocumentDB, GitDocumentDB, ISync, ISync]> {
   const remoteURL = remoteURLBase + serialId();
 
@@ -121,6 +122,7 @@ export async function createClonedDatabases (
   const dbA: GitDocumentDB = new GitDocumentDB({
     db_name: dbNameA,
     local_dir: localDir,
+    log_level: log_level ?? 'info',
   });
   options ??= {
     remote_url: remoteURL,
@@ -137,6 +139,7 @@ export async function createClonedDatabases (
   const dbB: GitDocumentDB = new GitDocumentDB({
     db_name: dbNameB,
     local_dir: localDir,
+    log_level: log_level ?? 'info',
   });
   // Clone dbA
   await dbB.create(options);
