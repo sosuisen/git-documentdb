@@ -433,7 +433,7 @@ export type RemoteOptions = {
   /* merge */
   conflict_resolve_strategy?: ConflictResolutionStrategies;
   combine_db_strategy?: CombineDbStrategies;
-  diffOptions?: JsonDiffOptions;
+  diff_options?: JsonDiffOptions;
 
   /* results */
   include_commits?: boolean;
