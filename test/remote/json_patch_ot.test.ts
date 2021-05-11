@@ -999,7 +999,7 @@ sighed Meg, looking down at her old dress.`,
       expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
-    it.only('merges non ASCII text', () => {
+    it('merges non ASCII text', () => {
       const base = {
         _id: 'wagahai',
         author: 'なし',
