@@ -229,6 +229,7 @@ https://github.com/sosuisen/inventory-manager
 - v1.0
 
 **Future releases**
+- Markdown with a front matter
 - Git server
 - GitLab and Bitbucket
 - Push server

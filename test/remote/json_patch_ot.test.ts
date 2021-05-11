@@ -999,6 +999,43 @@ sighed Meg, looking down at her old dress.`,
       expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
+    it.only('merges non ASCII text', () => {
+      const base = {
+        _id: 'wagahai',
+        author: 'なし',
+        text: '吾輩は猫である。',
+      };
+
+      const ours = {
+        _id: 'wagahai',
+        author: '夏目漱石',
+        text: `吾輩は猫である。名前はまだ無い。`,
+      };
+
+      const theirs = {
+        _id: 'wagahai',
+        author: '太宰治',
+        text: `吾輩は犬である。`,
+      };
+
+      const merged = {
+        _id: 'wagahai',
+        author: '夏目漱石',
+        text: `吾輩は犬である。名前はまだ無い。`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
+
     it.skip('merges conflicted primitives: add', () => {});
   });
 });
