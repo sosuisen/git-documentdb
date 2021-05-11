@@ -60,7 +60,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [PushPermissionDeniedError](./git-documentdb.pushpermissiondeniederror.md) |  |
 |  [PushWorkerError](./git-documentdb.pushworkererror.md) |  |
 |  [RemoteAlreadyRegisteredError](./git-documentdb.remotealreadyregisterederror.md) |  |
-|  [RemoteIsAdvancedWhileMergingError](./git-documentdb.remoteisadvancedwhilemergingerror.md) |  |
 |  [RemoteRepository](./git-documentdb.remoterepository.md) |  |
 |  [RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md) |  |
 |  [RemoteRepositoryNotFoundError](./git-documentdb.remoterepositorynotfounderror.md) |  |
@@ -99,9 +98,11 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [SyncResultCancel](./git-documentdb.syncresultcancel.md) |  |
 |  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) |  |
 |  [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) |  |
+|  [SyncResultMergeAndPushError](./git-documentdb.syncresultmergeandpusherror.md) |  |
 |  [SyncResultNop](./git-documentdb.syncresultnop.md) |  |
 |  [SyncResultPush](./git-documentdb.syncresultpush.md) |  |
 |  [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md) |  |
+|  [SyncResultResolveConflictsAndPushError](./git-documentdb.syncresultresolveconflictsandpusherror.md) |  |
 
 ## Type Aliases
 

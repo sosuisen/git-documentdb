@@ -25,5 +25,3 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 [UnfetchedCommitExistsError](./git-documentdb.unfetchedcommitexistserror.md) (from enqueueSyncTask)
 
-[RemoteIsAdvancedWhileMergingError](./git-documentdb.remoteisadvancedwhilemergingerror.md) (from enqueueSyncTask)
-

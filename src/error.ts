@@ -520,14 +520,6 @@ export class ThreeWayMergeError extends BaseError {
 
 /**
  */
-export class RemoteIsAdvancedWhileMergingError extends BaseError {
-  constructor () {
-    super(`Remote is advanced while merging.`);
-  }
-}
-
-/**
- */
 export class RemoteRepositoryConnectError extends BaseError {
   constructor (mes: string) {
     super(`Error in RemoteRepository#connect(): ${mes}`);

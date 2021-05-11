@@ -452,11 +452,6 @@ export class RemoteAlreadyRegisteredError extends BaseError {
     constructor(url: string);
 }
 
-// @public (undocumented)
-export class RemoteIsAdvancedWhileMergingError extends BaseError {
-    constructor();
-}
-
 // @public
 export type RemoteOptions = {
     remote_url?: string;
@@ -620,7 +615,7 @@ export type SyncPausedCallback = () => void;
 export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[]) => void;
 
 // @public
-export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;
+export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCancel;
 
 // @public (undocumented)
 export interface SyncResultCancel {
@@ -659,6 +654,20 @@ export interface SyncResultMergeAndPush {
 }
 
 // @public (undocumented)
+export interface SyncResultMergeAndPushError {
+    // (undocumented)
+    action: 'merge and push error';
+    // (undocumented)
+    changes: {
+        local: ChangedFile[];
+    };
+    // (undocumented)
+    commits?: {
+        local: CommitInfo[];
+    };
+}
+
+// @public (undocumented)
 export interface SyncResultNop {
     // (undocumented)
     action: 'nop';
@@ -691,6 +700,22 @@ export interface SyncResultResolveConflictsAndPush {
     commits?: {
         local: CommitInfo[];
         remote: CommitInfo[];
+    };
+    // (undocumented)
+    conflicts: AcceptedConflict[];
+}
+
+// @public (undocumented)
+export interface SyncResultResolveConflictsAndPushError {
+    // (undocumented)
+    action: 'resolve conflicts and push error';
+    // (undocumented)
+    changes: {
+        local: ChangedFile[];
+    };
+    // (undocumented)
+    commits?: {
+        local: CommitInfo[];
     };
     // (undocumented)
     conflicts: AcceptedConflict[];

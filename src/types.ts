@@ -501,7 +501,9 @@ export type SyncResult =
   | SyncResultNop
   | SyncResultPush
   | SyncResultFastForwardMerge
+  | SyncResultMergeAndPushError
   | SyncResultMergeAndPush
+  | SyncResultResolveConflictsAndPushError
   | SyncResultResolveConflictsAndPush
   | SyncResultCancel;
 
@@ -526,6 +528,15 @@ export interface SyncResultFastForwardMerge {
     local: CommitInfo[];
   };
 }
+export interface SyncResultMergeAndPushError {
+  action: 'merge and push error';
+  changes: {
+    local: ChangedFile[];
+  };
+  commits?: {
+    local: CommitInfo[];
+  };
+}
 export interface SyncResultMergeAndPush {
   action: 'merge and push';
   changes: {
@@ -535,6 +546,16 @@ export interface SyncResultMergeAndPush {
   commits?: {
     local: CommitInfo[];
     remote: CommitInfo[]; // The list is sorted from old to new.
+  };
+}
+export interface SyncResultResolveConflictsAndPushError {
+  action: 'resolve conflicts and push error';
+  changes: {
+    local: ChangedFile[];
+  };
+  conflicts: AcceptedConflict[]; // sorted by filename
+  commits?: {
+    local: CommitInfo[];
   };
 }
 export interface SyncResultResolveConflictsAndPush {
