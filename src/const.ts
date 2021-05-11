@@ -12,4 +12,6 @@ export const SHORT_SHA_LENGTH = 7;
 export const NETWORK_TIMEOUT = 7000;
 export const NETWORK_RETRY = 3;
 export const NETWORK_RETRY_INTERVAL = 2000;
+export const DEFAULT_SYNC_INTERVAL = 30000;
+export const MINIMUM_SYNC_INTERVAL = 3000;
 export const DEFAULT_CONFLICT_RESOLVE_STRATEGY = 'ours';

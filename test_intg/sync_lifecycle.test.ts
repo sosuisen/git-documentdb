@@ -20,7 +20,7 @@ import { RemoteOptions, SyncResultPush } from '../src/types';
 import { PushWorkerError, UnfetchedCommitExistsError } from '../src/error';
 import { sleep } from '../src/utils';
 import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../test/remote_utils';
-import { NETWORK_RETRY } from '../src/const';
+import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
 import { push_worker } from '../src/remote/push_worker';
 import { sync_worker } from '../src/remote/sync_worker';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -74,6 +74,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
+
+  // it.only('Run this test with .only to just remove remote repositories.', async () => {});
 
   /**
    * Initialize synchronization by create() with remoteURL
@@ -285,7 +287,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = Sync.minimumSyncInterval;
+        const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -327,7 +329,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = Sync.minimumSyncInterval;
+        const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -356,7 +358,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = Sync.minimumSyncInterval;
+        const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -393,7 +395,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = Sync.minimumSyncInterval;
+        const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -425,7 +427,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = Sync.minimumSyncInterval;
+        const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -471,7 +473,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           db_name: dbNameA,
           local_dir: localDir,
         });
-        const interval = Sync.minimumSyncInterval;
+        const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
           remote_url: remoteURL,
           live: true,
@@ -880,6 +882,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         live: true,
         sync_direction: 'both',
         connection: { type: 'github', personal_access_token: token },
+        interval: 3000,
       };
       const remoteA = await dbA.sync(remoteURL, options);
       let complete = false;
@@ -947,7 +950,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const options: RemoteOptions = {
         remote_url: remoteURL,
         live: true,
-        interval: Sync.minimumSyncInterval,
+        interval: MINIMUM_SYNC_INTERVAL,
         sync_direction: 'both',
         connection: { type: 'github', personal_access_token: token },
       };

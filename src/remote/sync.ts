@@ -51,6 +51,8 @@ import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
 import {
   DEFAULT_CONFLICT_RESOLVE_STRATEGY,
+  DEFAULT_SYNC_INTERVAL,
+  MINIMUM_SYNC_INTERVAL,
   NETWORK_RETRY,
   NETWORK_RETRY_INTERVAL,
   NETWORK_TIMEOUT,
@@ -87,11 +89,6 @@ export async function syncImpl (this: IDocumentDB, options?: RemoteOptions) {
  * Synchronizer class
  */
 export class Sync implements ISync {
-  static defaultSyncInterval = 10000;
-  static minimumSyncInterval = 3000;
-  static defaultRetryInterval = NETWORK_RETRY_INTERVAL;
-  static defaultRetry = NETWORK_RETRY;
-
   private _gitDDB: IDocumentDB;
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
@@ -184,11 +181,11 @@ export class Sync implements ISync {
 
     this._options.live ??= false;
     this._options.sync_direction ??= 'both';
-    this._options.interval ??= Sync.defaultSyncInterval;
-    this._options.retry_interval ??= Sync.defaultRetryInterval;
+    this._options.interval ??= DEFAULT_SYNC_INTERVAL;
+    this._options.retry_interval ??= NETWORK_RETRY_INTERVAL;
 
-    if (this._options.interval < Sync.minimumSyncInterval) {
-      throw new IntervalTooSmallError(Sync.minimumSyncInterval, this._options.interval);
+    if (this._options.interval < MINIMUM_SYNC_INTERVAL) {
+      throw new IntervalTooSmallError(MINIMUM_SYNC_INTERVAL, this._options.interval);
     }
     if (this._options.interval <= this._options.retry_interval) {
       throw new SyncIntervalLessThanOrEqualToRetryIntervalError(
@@ -197,7 +194,7 @@ export class Sync implements ISync {
       );
     }
 
-    this._options.retry ??= Sync.defaultRetry;
+    this._options.retry ??= NETWORK_RETRY;
     this._options.combine_db_strategy ??= 'throw-error';
     this._options.include_commits ??= false;
     this._options.conflict_resolve_strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
@@ -374,11 +371,11 @@ export class Sync implements ISync {
       retry: undefined,
     };
     if (options.interval !== undefined) {
-      if (options.interval >= Sync.minimumSyncInterval) {
+      if (options.interval >= MINIMUM_SYNC_INTERVAL) {
         this._options.interval = options.interval;
       }
       else {
-        throw new IntervalTooSmallError(Sync.minimumSyncInterval, options.interval);
+        throw new IntervalTooSmallError(MINIMUM_SYNC_INTERVAL, options.interval);
       }
     }
     if (options.retry !== undefined) {

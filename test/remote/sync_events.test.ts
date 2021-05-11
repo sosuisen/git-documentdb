@@ -34,6 +34,7 @@ import {
 import { GitDocumentDB } from '../../src';
 import { Sync } from '../../src/remote/sync';
 import { SyncWorkerError } from '../../src/error';
+import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 
 const reposPrefix = 'test_sync_events___';
 const localDir = `./test/database_sync_events`;
@@ -376,7 +377,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('starts repeatedly', async () => {
-      const interval = Sync.minimumSyncInterval;
+      const interval = MINIMUM_SYNC_INTERVAL;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
@@ -397,7 +398,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('starts event returns taskId and current retries', async () => {
-      const interval = Sync.minimumSyncInterval;
+      const interval = MINIMUM_SYNC_INTERVAL;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
@@ -424,7 +425,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('completes once', async () => {
-      const interval = Sync.minimumSyncInterval;
+      const interval = MINIMUM_SYNC_INTERVAL;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
@@ -454,7 +455,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('completes repeatedly', async () => {
-      const interval = Sync.minimumSyncInterval;
+      const interval = MINIMUM_SYNC_INTERVAL;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
         include_commits: true,
@@ -503,7 +504,7 @@ maybe('<remote/sync> [event]', () => {
   });
 
   it('on and off', async () => {
-    const interval = Sync.minimumSyncInterval;
+    const interval = MINIMUM_SYNC_INTERVAL;
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
       connection: { type: 'github', personal_access_token: token },
       include_commits: true,

@@ -13,6 +13,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
 import {
@@ -300,7 +301,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     await gitDDB.create();
     const invalid_options: RemoteOptions = {
       remote_url: remoteURL,
-      interval: Sync.minimumSyncInterval - 1,
+      interval: MINIMUM_SYNC_INTERVAL - 1,
       connection: {
         type: 'github',
         personal_access_token: '',
@@ -312,7 +313,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     await gitDDB.create();
     const valid_options: RemoteOptions = {
       remote_url: remoteURL,
-      interval: Sync.minimumSyncInterval,
+      interval: MINIMUM_SYNC_INTERVAL,
       connection: {
         type: 'github',
         personal_access_token: token,
