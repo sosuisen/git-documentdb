@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -30,7 +31,7 @@ import {
 } from '../types';
 import { ISync } from '../types_sync';
 import { push_worker } from './push_worker';
-import { getChanges, getCommitLogs } from './worker_utils';
+import { getChanges, getCommitLogs, writeBlobToFile } from './worker_utils';
 import { threeWayMerge } from './3way_merge';
 
 /**
@@ -232,8 +233,8 @@ export async function sync_worker (
 
       const localChanges = await getChanges(gitDDB, diff);
       /**
-       * Repository.mergeBranches does not handle deleting file.
-       * So a file deleted on remote side is not applied to
+       * Repository.mergeBranches does not handle updating and deleting file.
+       * So a file updated/deleted on remote side is not applied to
        * on both local filesystem and local index.
        * Change them by hand.
        */
@@ -242,12 +243,16 @@ export async function sync_worker (
         const filename = change.data.id + gitDDB.fileExt;
         const path = nodePath.resolve(repos.workdir(), filename);
         if (change.operation === 'delete') {
-          // eslint-disable-next-line no-await-in-loop
           await fs.remove(path).catch(() => {
             throw new CannotDeleteDataError();
           });
-          // eslint-disable-next-line no-await-in-loop
           await currentIndex.removeByPath(filename);
+        }
+        else if (change.operation === 'update') {
+          const entry = await newCommit.getEntry(filename);
+          const data = (await entry.getBlob()).toString();
+          await writeBlobToFile(gitDDB, filename, data);
+          await currentIndex.addByPath(filename);
         }
       }
 
