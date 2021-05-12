@@ -261,7 +261,7 @@ export async function sync_worker (
       const treeOid: nodegit.Oid | void = await currentIndex.writeTree();
       const newTree = await nodegit.Tree.lookup(repos, treeOid);
       // @ts-ignore
-      await newCommit.amend('HEAD', null, null, null, 'merge', newTree);
+      await newCommit.amend('HEAD', sync.author, sync.committer, null, 'merge', newTree);
 
       // Get list of commits which has been added to local
       let localCommits: CommitInfo[] | undefined;
