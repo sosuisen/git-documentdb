@@ -45,7 +45,7 @@ import {
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
 import { getByRevisionImpl, getImpl } from './crud/get';
-import { removeImpl } from './crud/remove';
+import { deleteImpl } from './crud/remove';
 import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
 import { TaskQueue } from './task_queue';
@@ -857,18 +857,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * This is an alias of remove()
-   */
-  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
-  /**
-   * This is an alias of remove()
-   */
-  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
-    return removeImpl.call(this, idOrDoc, options);
-  }
-
-  /**
    * Remove a document
    *
    * @param id - id of a target document
@@ -882,7 +870,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
-  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
   /**
    * Remove a document
    *
@@ -897,9 +885,22 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
+  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+    return deleteImpl.call(this, idOrDoc, options);
+  }
+
+  /**
+   * This is an alias of remove()
+   */
+
+  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  /**
+   * This is an alias of remove()
+   */
   remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
   remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
-    return removeImpl.call(this, idOrDoc, options);
+    return deleteImpl.call(this, idOrDoc, options);
   }
 
   /**

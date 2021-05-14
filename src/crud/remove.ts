@@ -23,11 +23,11 @@ import {
 import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
 
 /**
- * Implementation of remove()
+ * Implementation of delete()
  *
  * @internal
  */
-export function removeImpl (
+export function deleteImpl (
   this: IDocumentDB,
   idOrDoc: string | JsonDoc,
   options?: RemoveOptions
@@ -61,17 +61,17 @@ export function removeImpl (
     commit_message: undefined,
   };
   const commit_message =
-    options.commit_message ?? `remove: ${_id}${this.fileExt}(<%file_sha%>)`;
+    options.commit_message ?? `delete: ${_id}${this.fileExt}(<%file_sha%>)`;
 
   const taskId = this.taskQueue.newTaskId();
   // delete() must be serial.
   return new Promise((resolve, reject) => {
     this.taskQueue.pushToTaskQueue({
-      label: 'remove',
+      label: 'delete',
       taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        remove_worker(this, _id, this.fileExt, commit_message!)
+        delete_worker(this, _id, this.fileExt, commit_message!)
           .then((result: RemoveResult) => {
             beforeResolve();
             resolve(result);
@@ -94,7 +94,7 @@ export function removeImpl (
  * @throws {@link DocumentNotFoundError}
  * @throws {@link CannotDeleteDataError}
  */
-export async function remove_worker (
+export async function delete_worker (
   gitDDB: IDocumentDB,
   _id: string,
   extension: string,

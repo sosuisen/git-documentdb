@@ -376,25 +376,25 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * This is an alias of remove()
+   * This is an alias of delete()
    */
-  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
   /**
-   * This is an alias of remove()
+   * This is an alias of delete()
    */
-  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     if (typeof idOrDoc === 'string') {
-      return this.remove(idOrDoc, options);
+      return this.delete(idOrDoc, options);
     }
     else if (typeof idOrDoc === 'object') {
-      return this.remove(idOrDoc, options);
+      return this.delete(idOrDoc, options);
     }
     return Promise.reject(new UndefinedDocumentIdError());
   }
 
   /**
-   * Remove a document
+   * Delete a document
    *
    * @param id - id of a target document
    *
@@ -408,7 +408,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
   /**
    * Remove a document
    *
@@ -424,12 +424,12 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
     if (typeof idOrDoc === 'string') {
       const orgId = idOrDoc;
       const _id = this._collectionPath + orgId;
-      return this._gitDDB.remove(_id, options).then(res => {
+      return this._gitDDB.delete(_id, options).then(res => {
         res.id = orgId;
         return res;
       });
@@ -439,7 +439,7 @@ export class Collection implements CRUDInterface {
         const orgId = idOrDoc._id;
         const _id = this._collectionPath + orgId;
         return this._gitDDB
-          .remove(_id, options)
+          .delete(_id, options)
           .then(res => {
             res.id = orgId;
             return res;
