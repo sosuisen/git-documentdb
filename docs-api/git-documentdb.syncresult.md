@@ -9,9 +9,9 @@ Result from sync\_worker()
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPush | SyncResultResolveConflictsAndPush | SyncResultCancel;
+export declare type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCancel;
 ```
-<b>References:</b> [SyncResultNop](./git-documentdb.syncresultnop.md)<!-- -->, [SyncResultPush](./git-documentdb.syncresultpush.md)<!-- -->, [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md)<!-- -->, [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md)<!-- -->, [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md)<!-- -->, [SyncResultCancel](./git-documentdb.syncresultcancel.md)
+<b>References:</b> [SyncResultNop](./git-documentdb.syncresultnop.md)<!-- -->, [SyncResultPush](./git-documentdb.syncresultpush.md)<!-- -->, [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md)<!-- -->, [SyncResultMergeAndPushError](./git-documentdb.syncresultmergeandpusherror.md)<!-- -->, [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md)<!-- -->, [SyncResultResolveConflictsAndPushError](./git-documentdb.syncresultresolveconflictsandpusherror.md)<!-- -->, [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md)<!-- -->, [SyncResultCancel](./git-documentdb.syncresultcancel.md)
 
 ## Remarks
 

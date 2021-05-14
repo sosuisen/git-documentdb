@@ -218,6 +218,67 @@ maybe('<remote/sync> [event]', () => {
       await destroyDBs([dbA, dbB]);
     });
 
+    /**
+     * before:  jsonA1  jsonA2
+     * dbA   : -jsonA1 -jsonA2
+     * dbB   :                 jsonB3
+     * after :                 jsonB3
+     */
+    it('occurs with every retry', async () => {
+      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResult1 = await dbA.put(jsonA1);
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult2 = await dbA.put(jsonA2);
+      await remoteA.tryPush();
+
+      await remoteB.trySync();
+
+      remoteA.on('localChange', (changes: ChangedFile[]) => {
+        // console.log('A local: ' + JSON.stringify(changes));
+      });
+      const localChangesB: ChangedFile[][] = [];
+      remoteB.on('localChange', (changes: ChangedFile[]) => {
+        // console.log('B local: ' + JSON.stringify(changes));
+        localChangesB.push(changes);
+      });
+      /*
+      remoteA.on('remoteChange', (remoteChanges: ChangedFile[]) => {
+        console.log('A remote: ' + JSON.stringify(remoteChanges));
+      });
+      remoteB.on('remoteChange', (remoteChanges: ChangedFile[]) => {
+        console.log('B remote: ' + JSON.stringify(remoteChanges));
+      });
+*/
+      await dbA.delete(jsonA1);
+      await remoteA.trySync();
+
+      await dbA.delete(jsonA2);
+
+      const jsonB3 = { _id: '3', name: 'fromB' };
+      dbB
+        .put(jsonB3)
+        .then(() => {
+          remoteB.trySync(); // merge and push
+          remoteA.trySync(); // will invoke transactional conflict and retry on remoteB
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
+      await sleep(15000);
+
+      expect(localChangesB.length).toBe(2);
+
+      await destroyDBs([dbA, dbB]);
+    });
+
     it('is followed by remoteChange', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,

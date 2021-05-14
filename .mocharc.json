@@ -4,5 +4,5 @@
   "reporter": "list",
   "parallel": true,
   "retries": 3,
-  "timeout": 30000
+  "timeout": 60000
 }

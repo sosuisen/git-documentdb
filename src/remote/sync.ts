@@ -17,7 +17,6 @@ import {
   NoMergeBaseFoundError,
   PushNotAllowedError,
   PushWorkerError,
-  RemoteIsAdvancedWhileMergingError,
   RemoteRepositoryConnectError,
   RepositoryNotOpenError,
   SyncIntervalLessThanOrEqualToRetryIntervalError,
@@ -460,8 +459,8 @@ export class Sync implements ISync {
    * @throws {@link SyncWorkerError} (from enqueueSyncTask)
    * @throws {@link NoMergeBaseFoundError} (from enqueueSyncTask)
    * @throws {@link UnfetchedCommitExistsError} (from enqueueSyncTask)
-   * @throws {@link RemoteIsAdvancedWhileMergingError} (from enqueueSyncTask)
    */
+  // eslint-disable-next-line complexity
   async trySync (): Promise<SyncResult> {
     if (this._options.sync_direction === 'pull') {
       throw new PushNotAllowedError(this._options.sync_direction);
@@ -486,7 +485,13 @@ export class Sync implements ISync {
         }
         return err;
       });
-      if (!(resultOrError instanceof Error)) {
+      if (
+        !(resultOrError instanceof Error) &&
+        !(
+          resultOrError.action === 'merge and push error' ||
+          resultOrError.action === 'resolve conflicts and push error'
+        )
+      ) {
         this._retrySyncCounter = 0;
         return resultOrError;
       }
@@ -494,7 +499,9 @@ export class Sync implements ISync {
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
         resultOrError instanceof UnfetchedCommitExistsError ||
-        resultOrError instanceof RemoteIsAdvancedWhileMergingError
+        (!(resultOrError instanceof Error) &&
+          (resultOrError.action === 'merge and push error' ||
+            resultOrError.action === 'resolve conflicts and push error'))
       ) {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
@@ -594,7 +601,6 @@ export class Sync implements ISync {
    * @throws {@link SyncWorkerError}
    * @throws {@link NoMergeBaseFoundError}
    * @throws {@link UnfetchedCommitExistsError}
-   * @throws {@link RemoteIsAdvancedWhileMergingError}
    * @throws {@link PushNotAllowedError}
    */
   enqueueSyncTask (): Promise<SyncResult> {
@@ -617,6 +623,8 @@ export class Sync implements ISync {
           if (
             syncResult.action === 'resolve conflicts and push' ||
             syncResult.action === 'merge and push' ||
+            syncResult.action === 'resolve conflicts and push error' ||
+            syncResult.action === 'merge and push error' ||
             syncResult.action === 'fast-forward merge' ||
             syncResult.action === 'push'
           ) {
@@ -624,6 +632,8 @@ export class Sync implements ISync {
             if (
               syncResult.action === 'resolve conflicts and push' ||
               syncResult.action === 'merge and push' ||
+              syncResult.action === 'resolve conflicts and push error' ||
+              syncResult.action === 'merge and push error' ||
               syncResult.action === 'fast-forward merge'
             ) {
               this.eventHandlers.localChange.forEach(func =>
@@ -650,7 +660,6 @@ export class Sync implements ISync {
           if (
             !(
               err instanceof NoMergeBaseFoundError ||
-              err instanceof RemoteIsAdvancedWhileMergingError ||
               err instanceof UnfetchedCommitExistsError
             )
           ) {

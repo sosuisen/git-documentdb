@@ -23,7 +23,5 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 [UnfetchedCommitExistsError](./git-documentdb.unfetchedcommitexistserror.md)
 
-[RemoteIsAdvancedWhileMergingError](./git-documentdb.remoteisadvancedwhilemergingerror.md)
-
 [PushNotAllowedError](./git-documentdb.pushnotallowederror.md)
 
