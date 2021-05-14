@@ -89,9 +89,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
 
     // One remote creation
     expect(syncResult.changes.remote.length).toBe(1);
-    expect(syncResult.changes.remote).toEqual(
-      expect.arrayContaining([getChangedFile('create', jsonA1, putResult)])
-    );
+    expect(syncResult.changes.remote).toEqual([
+      getChangedFile('create', jsonA1, putResult),
+    ]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
@@ -240,12 +240,10 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
 
     // Two remote creations
     expect(syncResult.changes.remote.length).toBe(2);
-    expect(syncResult.changes.remote).toEqual(
-      expect.arrayContaining([
-        getChangedFile('create', jsonA1, putResult1),
-        getChangedFile('create', jsonA2, putResult2),
-      ])
-    );
+    expect(syncResult.changes.remote).toEqual([
+      getChangedFile('create', jsonA1, putResult1),
+      getChangedFile('create', jsonA2, putResult2),
+    ]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
 
@@ -283,12 +281,10 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
 
     // One remote update and one remote creation
     expect(syncResult.changes.remote.length).toBe(2);
-    expect(syncResult.changes.remote).toEqual(
-      expect.arrayContaining([
-        getChangedFile('update', jsonA1dash, putResult1dash),
-        getChangedFile('create', jsonA2, putResult2),
-      ])
-    );
+    expect(syncResult.changes.remote).toEqual([
+      getChangedFile('update', jsonA1dash, putResult1dash),
+      getChangedFile('create', jsonA2, putResult2),
+    ]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash, jsonA2]);
 
@@ -324,9 +320,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
 
     // One remote delete
     expect(syncResult1.changes.remote.length).toBe(1);
-    expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([getChangedFile('delete', jsonA1, deleteResult1)])
-    );
+    expect(syncResult1.changes.remote).toEqual([
+      getChangedFile('delete', jsonA1, deleteResult1),
+    ]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([]);
 
@@ -386,17 +382,12 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
       action: 'canceled',
     };
     // results will be include 7 or more cancels
-    expect(results).toEqual(
-      expect.arrayContaining([
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-      ])
-    );
+    let cancelCount = 0;
+    results.forEach(res => {
+      if (res.action === 'canceled') cancelCount++;
+    });
+    expect(cancelCount).toBeGreaterThan(6);
+
     // 3 or less tryPushes will be executed
     expect(dbA.taskQueue.currentStatistics().push).toBeLessThanOrEqual(3);
 

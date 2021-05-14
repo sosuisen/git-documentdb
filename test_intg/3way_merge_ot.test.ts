@@ -149,18 +149,16 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     );
 
     expect(syncResult1.conflicts.length).toEqual(1);
-    expect(syncResult1.conflicts).toEqual(
-      expect.arrayContaining([
-        {
-          target: {
-            id: '1',
-            file_sha: mergedDoc!.file_sha,
-          },
-          strategy: 'ours-diff',
-          operation: 'create-merge',
+    expect(syncResult1.conflicts).toEqual([
+      {
+        target: {
+          id: '1',
+          file_sha: mergedDoc!.file_sha,
         },
-      ])
-    );
+        strategy: 'ours-diff',
+        operation: 'create-merge',
+      },
+    ]);
     // Conflict occurs on 1.json
 
     expect(getWorkingDirFiles(dbB)).toEqual([mergedJson, jsonA2, jsonB3]);
@@ -227,27 +225,23 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
-    expect(syncResult1.changes.local).toEqual(
-      expect.arrayContaining([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-      ])
-    );
+    expect(syncResult1.changes.local).toEqual([
+      getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+    ]);
 
     expect(syncResult1.changes.remote.length).toBe(0);
 
     expect(syncResult1.conflicts.length).toEqual(1);
-    expect(syncResult1.conflicts).toEqual(
-      expect.arrayContaining([
-        {
-          target: {
-            id: '1',
-            file_sha: mergedDoc!.file_sha,
-          },
-          strategy: 'theirs-diff',
-          operation: 'create-merge',
+    expect(syncResult1.conflicts).toEqual([
+      {
+        target: {
+          id: '1',
+          file_sha: mergedDoc!.file_sha,
         },
-      ])
-    );
+        strategy: 'theirs-diff',
+        operation: 'create-merge',
+      },
+    ]);
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
     expect(getWorkingDirFiles(dbB)).toEqual([jsonA1]);
 
@@ -315,23 +309,21 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     expect(syncResult1.changes.local.length).toBe(0);
 
     expect(syncResult1.changes.remote.length).toBe(1);
-    expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([getChangedFile('delete', jsonA1dash, putResultA1dash)])
-    );
+    expect(syncResult1.changes.remote).toEqual([
+      getChangedFile('delete', jsonA1dash, putResultA1dash),
+    ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
-    expect(syncResult1.conflicts).toEqual(
-      expect.arrayContaining([
-        {
-          target: {
-            id: '1',
-            file_sha: deleteResultB1.file_sha,
-          },
-          strategy: 'ours-diff',
-          operation: 'delete',
+    expect(syncResult1.conflicts).toEqual([
+      {
+        target: {
+          id: '1',
+          file_sha: deleteResultB1.file_sha,
         },
-      ])
-    );
+        strategy: 'ours-diff',
+        operation: 'delete',
+      },
+    ]);
     // Conflict occurs on 1.json
 
     expect(getWorkingDirFiles(dbB)).toEqual([]);
@@ -398,28 +390,26 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
-    expect(syncResult1.changes.local).toEqual(
-      expect.arrayContaining([getChangedFile('create', jsonA2, putResultA2)])
-    );
+    expect(syncResult1.changes.local).toEqual([
+      getChangedFile('create', jsonA2, putResultA2),
+    ]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
-    expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([getChangedFile('create', jsonB1, putResultB1)])
-    );
+    expect(syncResult1.changes.remote).toEqual([
+      getChangedFile('create', jsonB1, putResultB1),
+    ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
-    expect(syncResult1.conflicts).toEqual(
-      expect.arrayContaining([
-        {
-          target: {
-            id: '1',
-            file_sha: putResultB1.file_sha,
-          },
-          strategy: 'ours-diff',
-          operation: 'update',
+    expect(syncResult1.conflicts).toEqual([
+      {
+        target: {
+          id: '1',
+          file_sha: putResultB1.file_sha,
         },
-      ])
-    );
+        strategy: 'ours-diff',
+        operation: 'update',
+      },
+    ]);
     // Conflict occurs on 1.json
 
     expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA2]);
@@ -496,32 +486,26 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
-    expect(syncResult1.changes.local).toEqual(
-      expect.arrayContaining([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-      ])
-    );
+    expect(syncResult1.changes.local).toEqual([
+      getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+    ]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
-    expect(syncResult1.changes.remote).toEqual(
-      expect.arrayContaining([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-      ])
-    );
+    expect(syncResult1.changes.remote).toEqual([
+      getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+    ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
-    expect(syncResult1.conflicts).toEqual(
-      expect.arrayContaining([
-        {
-          target: {
-            id: '1',
-            file_sha: mergedDoc!.file_sha,
-          },
-          strategy: 'theirs-diff',
-          operation: 'update-merge',
+    expect(syncResult1.conflicts).toEqual([
+      {
+        target: {
+          id: '1',
+          file_sha: mergedDoc!.file_sha,
         },
-      ])
-    );
+        strategy: 'theirs-diff',
+        operation: 'update-merge',
+      },
+    ]);
     // Conflict occurs on 1.json
 
     expect(getWorkingDirFiles(dbB)).toEqual([mergedJson]);
@@ -581,11 +565,9 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
 
       const mergedDoc = await dbB.getDocWithMetaData('1');
 
-      expect(syncResult1.changes.local).toEqual(
-        expect.arrayContaining([
-          getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-        ])
-      );
+      expect(syncResult1.changes.local).toEqual([
+        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+      ]);
       await destroyDBs([dbA, dbB]);
     });
 
@@ -634,11 +616,9 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
 
       const mergedDoc = await dbB.getDocWithMetaData('1');
 
-      expect(syncResult1.changes.local).toEqual(
-        expect.arrayContaining([
-          getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-        ])
-      );
+      expect(syncResult1.changes.local).toEqual([
+        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+      ]);
       await destroyDBs([dbA, dbB]);
     });
 
@@ -688,11 +668,9 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
 
       const mergedDoc = await dbB.getDocWithMetaData('1');
 
-      expect(syncResult1.changes.local).toEqual(
-        expect.arrayContaining([
-          getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-        ])
-      );
+      expect(syncResult1.changes.local).toEqual([
+        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+      ]);
       await destroyDBs([dbA, dbB]);
     });
   });
