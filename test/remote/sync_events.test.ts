@@ -183,6 +183,62 @@ maybe('<remote/sync> [event]', () => {
       await destroyDBs([dbA, dbB]);
     });
 
+    /**
+     * before:  jsonA1  jsonA2
+     * dbA   : -jsonA1 -jsonA2
+     * dbB   :                 jsonB3
+     * after :                 jsonB3
+     */
+    it('occurs with every retry', async () => {
+      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResult1 = await dbA.put(jsonA1);
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult2 = await dbA.put(jsonA2);
+      await remoteA.tryPush();
+
+      await remoteB.trySync();
+
+      remoteA.on('change', (result: SyncResult) => {
+        // console.log('A: ' + JSON.stringify(result));
+      });
+      const resultsB: SyncResult[] = [];
+      remoteB.on('change', (result: SyncResult) => {
+        // console.log('B: ' + JSON.stringify(result));
+        resultsB.push(result);
+      });
+
+      await dbA.delete(jsonA1);
+      await remoteA.trySync();
+
+      await dbA.delete(jsonA2);
+
+      const jsonB3 = { _id: '3', name: 'fromB' };
+      dbB
+        .put(jsonB3)
+        .then(() => {
+          remoteB.trySync(); // merge and push
+          remoteA.trySync(); // will invoke transactional conflict and retry on remoteB
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
+      await sleep(15000);
+
+      expect(resultsB.length).toBe(2);
+      expect(resultsB[0].action).toBe('merge and push error');
+      expect(resultsB[1].action).toBe('merge and push');
+
+      await destroyDBs([dbA, dbB]);
+    });
+
     it('is followed by localChange', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
@@ -224,7 +280,7 @@ maybe('<remote/sync> [event]', () => {
      * dbB   :                 jsonB3
      * after :                 jsonB3
      */
-    it('occurs with every retry', async () => {
+    it('occurs localChanges with every retry', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -309,6 +365,60 @@ maybe('<remote/sync> [event]', () => {
       expect(changes.length).toBe(1);
 
       expect(changes).toEqual([getChangedFile('create', jsonB1, putResult1)]);
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    /**
+     * before:  jsonA1  jsonA2
+     * dbA   : -jsonA1 -jsonA2
+     * dbB   :                 jsonB3
+     * after :                 jsonB3
+     */
+    it('occurs remoteChanges with every retry', async () => {
+      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResult1 = await dbA.put(jsonA1);
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult2 = await dbA.put(jsonA2);
+      await remoteA.tryPush();
+
+      await remoteB.trySync();
+
+      const remoteChangesA: ChangedFile[][] = [];
+      remoteA.on('remoteChange', (changes: ChangedFile[]) => {
+        // console.log('A remote: ' + JSON.stringify(remoteChanges));
+        remoteChangesA.push(changes);
+      });
+      remoteB.on('remoteChange', (changes: ChangedFile[]) => {
+        // console.log('B remote: ' + JSON.stringify(changes));
+      });
+
+      await dbA.delete(jsonA1);
+      await remoteA.trySync();
+
+      await dbA.delete(jsonA2);
+
+      const jsonB3 = { _id: '3', name: 'fromB' };
+      dbB
+        .put(jsonB3)
+        .then(() => {
+          remoteB.trySync(); // merge and push
+          remoteA.trySync(); // will invoke transactional conflict and retry on remoteB
+        })
+        .catch(err => {
+          console.log(err);
+        });
+
+      await sleep(15000);
+
+      expect(remoteChangesA.length).toBe(2);
 
       await destroyDBs([dbA, dbB]);
     });
