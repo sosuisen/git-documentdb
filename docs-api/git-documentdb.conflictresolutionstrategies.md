@@ -17,13 +17,13 @@ export declare type ConflictResolutionStrategies = ConflictResolutionStrategyLab
 
 'ours' and 'theirs' are borrowed terms from Git (https://git-scm.com/docs/merge-strategies)
 
-- 'ours-prop': (Beta) Accept ours per property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the local change is accepted.
+- 'ours-diff': (Beta) Accept ours per property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the local change is accepted.
 
-- 'theirs-prop': (Beta) Accept theirs per property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the remote change is accepted.
+- 'theirs-diff': (Beta) Accept theirs per property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the remote change is accepted.
 
 - 'ours': Accept ours per document (Default). Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the local change is accepted.
 
 - 'theirs': Accept theirs per document. Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the remote change is accepted.
 
-- Compare function that returns one of the strategies ('ours-prop', 'theirs-prop', 'ours', and 'theirs') can be given. Each argument will be undefined when a document is removed.
+- Compare function that returns one of the strategies ('ours-diff', 'theirs-diff', 'ours', and 'theirs') can be given. Each argument will be undefined when a document is removed.
 

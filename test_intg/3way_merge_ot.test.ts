@@ -87,7 +87,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'ours-prop',
+        conflict_resolve_strategy: 'ours-diff',
       }
     );
 
@@ -121,7 +121,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
           0,
           7
-        )},ours-prop)`,
+        )},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
@@ -129,7 +129,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
           0,
           7
-        )},ours-prop)`,
+        )},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(2);
@@ -156,7 +156,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
             id: '1',
             file_sha: mergedDoc!.file_sha,
           },
-          strategy: 'ours-prop',
+          strategy: 'ours-diff',
           operation: 'create-merge',
         },
       ])
@@ -189,7 +189,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'theirs-prop',
+        conflict_resolve_strategy: 'theirs-diff',
       }
     );
 
@@ -216,14 +216,14 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
           0,
           7
-        )},theirs-prop)`,
+        )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
           0,
           7
-        )},theirs-prop)`,
+        )},theirs-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -243,7 +243,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
             id: '1',
             file_sha: mergedDoc!.file_sha,
           },
-          strategy: 'theirs-prop',
+          strategy: 'theirs-diff',
           operation: 'create-merge',
         },
       ])
@@ -270,7 +270,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    */
   it('resolves case 8 - Conflict. Accept ours (delete)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours-prop',
+      conflict_resolve_strategy: 'ours-diff',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -302,14 +302,14 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(
           0,
           7
-        )},ours-prop)`,
+        )},ours-diff)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
         `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(
           0,
           7
-        )},ours-prop)`,
+        )},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -327,7 +327,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
             id: '1',
             file_sha: deleteResultB1.file_sha,
           },
-          strategy: 'ours-prop',
+          strategy: 'ours-diff',
           operation: 'delete',
         },
       ])
@@ -358,7 +358,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    */
   it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (create), ', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours-prop',
+      conflict_resolve_strategy: 'ours-diff',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -390,11 +390,11 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours-prop)`,
+        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours-prop)`,
+        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -415,7 +415,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
             id: '1',
             file_sha: putResultB1.file_sha,
           },
-          strategy: 'ours-prop',
+          strategy: 'ours-diff',
           operation: 'update',
         },
       ])
@@ -445,7 +445,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    */
   it('resolves case 17 - Conflict. Accept theirs (update-merge)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'theirs-prop',
+      conflict_resolve_strategy: 'theirs-diff',
       diff_options: { plainTextProperties: { name: true } },
     });
     // A puts and pushes
@@ -459,7 +459,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs-prop' });
+    await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs-diff' });
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -485,14 +485,14 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         `resolve: 1${dbA.fileExt}(update-merge,${mergedDoc!.file_sha.substr(
           0,
           7
-        )},theirs-prop)`,
+        )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         `resolve: 1${dbA.fileExt}(update-merge,${mergedDoc!.file_sha.substr(
           0,
           7
-        )},theirs-prop)`,
+        )},theirs-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -517,7 +517,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
             id: '1',
             file_sha: mergedDoc!.file_sha,
           },
-          strategy: 'theirs-prop',
+          strategy: 'theirs-diff',
           operation: 'update-merge',
         },
       ])
@@ -547,7 +547,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
      */
     it('add text', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflict_resolve_strategy: 'ours-prop',
+        conflict_resolve_strategy: 'ours-diff',
         diff_options: { plainTextProperties: { name: true } },
       });
 
@@ -562,7 +562,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         local_dir: localDir,
       });
       // Clone dbA
-      await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'ours-prop' });
+      await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes
@@ -600,7 +600,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
      */
     it('move text', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflict_resolve_strategy: 'ours-prop',
+        conflict_resolve_strategy: 'ours-diff',
         diff_options: { plainTextProperties: { name: true } },
       });
 
@@ -615,7 +615,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         local_dir: localDir,
       });
       // Clone dbA
-      await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'ours-prop' });
+      await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes
@@ -653,7 +653,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
      */
     it('bad result', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflict_resolve_strategy: 'ours-prop',
+        conflict_resolve_strategy: 'ours-diff',
         diff_options: { plainTextProperties: { name: true } },
       });
 
@@ -668,7 +668,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
         local_dir: localDir,
       });
       // Clone dbA
-      await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'ours-prop' });
+      await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes

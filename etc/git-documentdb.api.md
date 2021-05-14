@@ -121,7 +121,7 @@ export type CommitInfo = {
 export type ConflictResolutionStrategies = ConflictResolutionStrategyLabels | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolutionStrategyLabels);
 
 // @public (undocumented)
-export type ConflictResolutionStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
+export type ConflictResolutionStrategyLabels = 'ours-diff' | 'theirs-diff' | 'ours' | 'theirs';
 
 // @public
 export type ConnectionSettings = ConnectionSettingsNone | ConnectionSettingsGitHub | ConnectionSettingsSSH;

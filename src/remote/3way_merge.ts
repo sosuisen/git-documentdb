@@ -26,13 +26,13 @@ async function getStrategy (
   ours?: nodegit.TreeEntry,
   theirs?: nodegit.TreeEntry
 ) {
-  const defaultStrategy: ConflictResolutionStrategies = 'ours-prop';
+  const defaultStrategy: ConflictResolutionStrategies = 'ours-diff';
   if (strategy === undefined) {
     strategy = defaultStrategy;
   }
   else if (
-    strategy !== 'ours-prop' &&
-    strategy !== 'theirs-prop' &&
+    strategy !== 'ours-diff' &&
+    strategy !== 'theirs-diff' &&
     strategy !== 'ours' &&
     strategy !== 'theirs'
   ) {
@@ -67,7 +67,7 @@ function getMergedDocument (
   else if (strategy === 'theirs') {
     result = theirs;
   }
-  else if (strategy === 'ours-prop') {
+  else if (strategy === 'ours-diff') {
     result = jsonPatch.patch(
       ours,
       jsonDiff.diff(base, ours),
@@ -76,7 +76,7 @@ function getMergedDocument (
       strategy
     );
   }
-  else if (strategy === 'theirs-prop') {
+  else if (strategy === 'theirs-diff') {
     result = jsonPatch.patch(
       ours,
       jsonDiff.diff(base, ours),
@@ -160,7 +160,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours' || strategy === 'ours-prop') {
+      if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add it to the index.
         // console.log(' #case 4 - Conflict. Accept ours (create): ' + path);
         const data = await getMergedDocument(
@@ -186,7 +186,7 @@ export async function threeWayMerge (
           operation: strategy === 'ours' ? 'create' : 'create-merge',
         });
       }
-      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
+      else if (strategy === 'theirs' || strategy === 'theirs-diff') {
         // Write theirs to the file.
         // console.log(' #case 5 - Conflict. Accept theirs (create): ' + path);
         const data = await getMergedDocument(
@@ -234,7 +234,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours' || strategy === 'ours-prop') {
+      if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add it to the index.
         // console.log(' #case 8 - Conflict. Accept ours (delete): ' + path);
         acceptedConflicts.push({
@@ -247,7 +247,7 @@ export async function threeWayMerge (
         });
         await resolvedIndex.removeByPath(path);
       }
-      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
+      else if (strategy === 'theirs' || strategy === 'theirs-diff') {
         // Write theirs to the file.
         // console.log(' #case 9 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
@@ -285,7 +285,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours' || strategy === 'ours-prop') {
+      if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add to the index.
         // console.log(' #case 11 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
@@ -303,7 +303,7 @@ export async function threeWayMerge (
 
         await resolvedIndex.addByPath(path);
       }
-      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
+      else if (strategy === 'theirs' || strategy === 'theirs-diff') {
         // Remove file
         // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + path);
         acceptedConflicts.push({
@@ -349,7 +349,7 @@ export async function threeWayMerge (
         ours,
         theirs
       );
-      if (strategy === 'ours' || strategy === 'ours-prop') {
+      if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add it to the index.
         // console.log(' #case 16 - Conflict. Accept ours (update): ' + path);
         const data = await getMergedDocument(
@@ -376,7 +376,7 @@ export async function threeWayMerge (
           operation: strategy === 'ours' ? 'update' : 'update-merge',
         });
       }
-      else if (strategy === 'theirs' || strategy === 'theirs-prop') {
+      else if (strategy === 'theirs' || strategy === 'theirs-diff') {
         // Write theirs to the file.
         // console.log(' #case 17 - Conflict. Accept theirs (update): ' + path);
         const data = await getMergedDocument(

@@ -7,5 +7,5 @@
 <b>Signature:</b>
 
 ```typescript
-export declare type ConflictResolutionStrategyLabels = 'ours-prop' | 'theirs-prop' | 'ours' | 'theirs';
+export declare type ConflictResolutionStrategyLabels = 'ours-diff' | 'theirs-diff' | 'ours' | 'theirs';
 ```
