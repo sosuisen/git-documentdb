@@ -84,7 +84,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  describe(': create()', () => {
+  describe(': createDB()', () => {
     it('creates a remote repository on GitHub by personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
       const octokit = new Octokit({
@@ -100,7 +100,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           type: 'github',
           personal_access_token: token,
         },
-      }).create();
+      }).createDB();
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
     });
 
@@ -120,7 +120,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           personal_access_token: token,
           private: true,
         },
-      }).create();
+      }).createDB();
       const repos = await octokit.repos.get({ owner, repo });
       expect(repos.data.private).toBeTruthy();
     });
@@ -140,7 +140,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           type: 'github',
           personal_access_token: token,
         },
-      }).create();
+      }).createDB();
       const repos = await octokit.repos.get({ owner, repo });
       expect(repos.data.private).toBeTruthy();
     });
@@ -161,7 +161,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           personal_access_token: token,
           private: false,
         },
-      }).create();
+      }).createDB();
       const repos = await octokit.repos.get({ owner, repo });
       expect(repos.data.private).toBeFalsy();
     });
@@ -176,7 +176,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             type: 'github',
             personal_access_token: undefined,
           },
-        }).create()
+        }).createDB()
       ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
     });
 
@@ -190,7 +190,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             type: 'github',
             personal_access_token: token, // This is valid but for another account.
           },
-        }).create()
+        }).createDB()
       ).rejects.toThrowError(PersonalAccessTokenForAnotherAccountError);
     });
 
@@ -205,7 +205,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           personal_access_token: token,
         },
       })
-        .create()
+        .createDB()
         .catch(err => err);
       expect(error).toBeInstanceOf(CannotConnectError);
       // This may be tested by using sinon.spy
@@ -221,7 +221,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           connection: {
             type: 'none',
           },
-        }).create()
+        }).createDB()
       ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
     });
   });
@@ -295,7 +295,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -317,7 +317,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -343,7 +343,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -371,7 +371,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -402,7 +402,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -436,7 +436,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -470,7 +470,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -504,7 +504,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -538,7 +538,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -579,7 +579,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -610,7 +610,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -643,7 +643,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
         remote_url: remoteURL,
       });
@@ -677,7 +677,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
         remote_url: remoteURL,
@@ -704,7 +704,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,
@@ -731,7 +731,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,
@@ -758,7 +758,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,
@@ -785,7 +785,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
         remote_url: readonlyURL,

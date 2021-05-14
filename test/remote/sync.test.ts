@@ -77,7 +77,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -98,7 +98,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -119,7 +119,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -140,7 +140,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -161,7 +161,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -182,7 +182,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -201,7 +201,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       connection: {
         type: 'github',
@@ -219,7 +219,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -238,7 +238,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -257,7 +257,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       sync_direction: 'pull',
@@ -279,7 +279,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const options: RemoteOptions = {
       remote_url: remoteURL,
       connection: {
@@ -298,7 +298,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const invalid_options: RemoteOptions = {
       remote_url: remoteURL,
       interval: MINIMUM_SYNC_INTERVAL - 1,
@@ -310,7 +310,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     expect(() => new Sync(gitDDB, invalid_options)).toThrowError(IntervalTooSmallError);
     await gitDDB.destroy();
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const valid_options: RemoteOptions = {
       remote_url: remoteURL,
       interval: MINIMUM_SYNC_INTERVAL,
@@ -331,7 +331,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const retry_interval = 5000;
     const options: RemoteOptions = {
       remote_url: remoteURL,
@@ -349,7 +349,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     await gitDDB.destroy();
 
     // equal to
-    await gitDDB.create();
+    await gitDDB.createDB();
     options.interval = retry_interval;
     expect(() => new Sync(gitDDB, options)).toThrowError(
       SyncIntervalLessThanOrEqualToRetryIntervalError
@@ -357,7 +357,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     await gitDDB.destroy();
 
     // more than
-    await gitDDB.create();
+    await gitDDB.createDB();
     // eslint-disable-next-line require-atomic-updates
     options.interval = retry_interval + 1;
     expect(() => new Sync(gitDDB, options)).not.toThrowError();

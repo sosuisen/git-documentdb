@@ -59,7 +59,7 @@ maybe('intg: <create_sync>: create DB with Sync: ', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  describe('create()', () => {
+  describe('createDB()', () => {
     it('creates a remote repository on GitHub by using personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
 
@@ -74,7 +74,7 @@ maybe('intg: <create_sync>: create DB with Sync: ', () => {
         connection: { type: 'github', personal_access_token: token },
       };
       // Check dbInfo
-      await expect(dbA.create(options)).resolves.toMatchObject({
+      await expect(dbA.createDB(options)).resolves.toMatchObject({
         is_new: true,
         is_clone: false,
         is_created_by_gitddb: true,
@@ -104,10 +104,10 @@ maybe('intg: <create_sync>: create DB with Sync: ', () => {
         db_name: dbNameA,
         local_dir: localDir,
       });
-      await expect(dbA.create(options)).rejects.toThrowError(CannotConnectError);
+      await expect(dbA.createDB(options)).rejects.toThrowError(CannotConnectError);
       await dbA.destroy();
 
-      const retry = await dbA.create(options).catch((err: CannotConnectError) => {
+      const retry = await dbA.createDB(options).catch((err: CannotConnectError) => {
         return err.retry;
       });
       expect(retry).toBe(NETWORK_RETRY);

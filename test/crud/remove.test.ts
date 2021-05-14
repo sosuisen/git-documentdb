@@ -48,7 +48,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = 'prof01';
       const doc = { _id: _id, name: 'shirase' };
       await gitDDB.put(doc);
@@ -81,7 +81,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = 'prof01';
       const doc = { _id: _id, name: 'shirase' };
       await gitDDB.put(doc);
@@ -104,7 +104,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = '春はあけぼの';
       const doc = { _id: _id, name: 'shirase' };
       await gitDDB.put(doc);
@@ -137,7 +137,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       // @ts-ignore
       await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
       await gitDDB.destroy();
@@ -166,7 +166,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       await expect(gitDDB.remove('_underscore')).rejects.toThrowError(
         InvalidIdCharacterError
@@ -187,7 +187,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id1 = 'dir/1';
       const _id2 = 'dir/2';
       const _id3 = 'dir/childDir/3';
@@ -293,7 +293,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = 'test/prof01';
       await gitDDB.put({ _id: _id, name: 'shirase' });
 
@@ -318,7 +318,7 @@ describe('<crud/remove>', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = 'test/prof01';
       const doc = { _id: _id, name: 'shirase' };
       await gitDDB.put(doc);
@@ -356,7 +356,7 @@ describe('<crud/remove>', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       await Promise.all([
         gitDDB.put({ _id: _id_a, name: name_a }),
@@ -395,7 +395,7 @@ describe('<crud/remove>', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       await Promise.all([
         gitDDB.put({ _id: _id_a, name: name_a }),

@@ -60,7 +60,7 @@ describe('<crud/get> get()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
@@ -75,7 +75,7 @@ describe('<crud/get> get()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'dir01/prof01';
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
@@ -89,7 +89,7 @@ describe('<crud/get> get()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -111,7 +111,7 @@ describe('<crud/get> get()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await gitDDB.close();
     await expect(gitDDB.get('tmp')).rejects.toThrowError(RepositoryNotOpenError);
   });
@@ -122,7 +122,7 @@ describe('<crud/get> get()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     // @ts-ignore
     await expect(gitDDB.get(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
@@ -136,7 +136,7 @@ describe('<crud/get> get()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     await expect(gitDDB.get('_prof01')).rejects.toThrowError(InvalidIdCharacterError);
     await gitDDB.destroy();
@@ -171,7 +171,7 @@ describe('<crud/get> get()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await expect(gitDDB.get('prof01')).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
@@ -182,7 +182,7 @@ describe('<crud/get> get()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
     stub.rejects(new Error());
@@ -196,7 +196,7 @@ describe('<crud/get> get()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const _id = 'invalidJSON';
     let file_sha: string;
@@ -246,7 +246,7 @@ describe('<crud/get> get()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = '春はあけぼの';
     await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get
@@ -262,7 +262,7 @@ describe('<crud/get> get()', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _idA = 'profA';
       const jsonA01 = { _id: _idA, name: 'v01' };
       await gitDDB.put(jsonA01);
@@ -283,7 +283,7 @@ describe('<crud/get> get()', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _idA = 'profA';
       const jsonA01 = { _id: _idA, name: 'v01' };
       await gitDDB.put(jsonA01);
@@ -303,7 +303,7 @@ describe('<crud/get> get()', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _idA = 'profA';
       const jsonA01 = { _id: _idA, name: 'v01' };
       await gitDDB.put(jsonA01);
@@ -323,7 +323,7 @@ describe('<crud/get> get()', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _idA = 'profA';
       const jsonA01 = { _id: _idA, name: 'v01' };
       await gitDDB.put(jsonA01);
@@ -344,7 +344,7 @@ describe('<crud/get> get()', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _idA = 'profA';
       const jsonA01 = { _id: _idA, name: 'v01' };
       await gitDDB.put(jsonA01);
@@ -364,7 +364,7 @@ describe('<crud/get> get()', () => {
         local_dir: localDir,
       });
 
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _idA = 'profA';
       const jsonA01 = { _id: _idA, name: 'v01' };
       await gitDDB.put(jsonA01);
@@ -387,7 +387,7 @@ describe('<crud/get> getByRevision()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get by revision
@@ -404,7 +404,7 @@ describe('<crud/get> getByRevision()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -429,7 +429,7 @@ describe('<crud/get> getByRevision()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await gitDDB.close();
     await expect(
       gitDDB.getByRevision('0000000000111111111122222222223333333333')
@@ -442,7 +442,7 @@ describe('<crud/get> getByRevision()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // @ts-ignore
     await expect(gitDDB.getByRevision(undefined)).rejects.toThrowError(
       UndefinedFileSHAError
@@ -456,7 +456,7 @@ describe('<crud/get> getByRevision()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // @ts-ignore
     await expect(gitDDB.getByRevision('invalid format')).rejects.toThrowError(
       InvalidFileSHAFormatError
@@ -471,7 +471,7 @@ describe('<crud/get> getByRevision()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get by revision
@@ -487,7 +487,7 @@ describe('<crud/get> getByRevision()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const stub = sandbox.stub(nodegit.Repository.prototype, 'getBlob');
     stub.rejects(new Error());
@@ -503,7 +503,7 @@ describe('<crud/get> getByRevision()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const _id = 'invalidJSON';
     let file_sha: string;

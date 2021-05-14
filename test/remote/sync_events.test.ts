@@ -498,7 +498,7 @@ maybe('<remote/sync> [event]', () => {
         include_commits: true,
         live: true,
       };
-      await dbA.create();
+      await dbA.createDB();
 
       const repos = dbA.repository();
       const remote = new Sync(dbA, options);

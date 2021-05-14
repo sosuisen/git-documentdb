@@ -71,7 +71,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // @ts-ignore
     await expect(gitDDB.put(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
     await gitDDB.destroy();
@@ -83,7 +83,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await expect(gitDDB.put({ name: 'Shirase' })).rejects.toThrowError(
       UndefinedDocumentIdError
     );
@@ -96,7 +96,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await expect(
       gitDDB.put({ _id: '<angleBrackets>', name: 'shirase' })
     ).rejects.toThrowError(InvalidIdCharacterError);
@@ -119,7 +119,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const validator = new Validator(gitDDB.workingDir());
     const maxIdLen = validator.maxIdLength();
     let id = '';
@@ -154,7 +154,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = '-.()[]_';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
@@ -171,7 +171,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await expect(
       gitDDB.put({
         _id: 'prof01',
@@ -187,7 +187,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // JSON.stringify() throws error if an object is recursive.
     const obj1 = { obj: {} };
     const obj2 = { obj: obj1 };
@@ -204,7 +204,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // JSON.stringify() throws error if an object has a bigint value
     const obj1 = { bigint: BigInt(9007199254740991) };
     await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(
@@ -222,7 +222,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // JSON.stringify() throws error if an object has a bigint value
     const obj1 = { func: () => {}, symbol: Symbol('foo'), undef: undefined };
     await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).resolves.toMatchObject({
@@ -240,7 +240,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = '春はあけぼの';
     const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
     expect(putResult).toMatchObject({
@@ -275,7 +275,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     // Check put operation
     const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
@@ -294,7 +294,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     // Check put operation
     const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
@@ -317,7 +317,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     // Check put operation
     const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
@@ -339,7 +339,7 @@ describe('<crud/put> put(JsonDoc)', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = 'dir01/prof01';
       // Check put operation
       const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
@@ -358,7 +358,7 @@ describe('<crud/put> put(JsonDoc)', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = 'dir01/prof01';
       // Check put operation
       const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
@@ -379,7 +379,7 @@ describe('<crud/put> put(JsonDoc)', () => {
         db_name: dbName,
         local_dir: localDir,
       });
-      await gitDDB.create();
+      await gitDDB.createDB();
       const _id = 'dir01/prof01';
       // Check put operation
       const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
@@ -401,7 +401,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const results: number[] = [];
     const validResults: number[] = [];
@@ -426,7 +426,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'dir01/prof01';
     await gitDDB.put(
       { _id: _id, name: 'Shirase' },
@@ -445,7 +445,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await gitDDB.put({
       'b': 'b',
       'c': 'c',
@@ -488,7 +488,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     await gitDDB.put({ _id: _id, name: 'Shirase' });
     // Update
@@ -525,7 +525,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     await Promise.all([
       gitDDB.put({ _id: _id_a, name: name_a }),
@@ -576,7 +576,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const workers = [];
     for (let i = 0; i < 100; i++) {
@@ -598,7 +598,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const workers = [];
     for (let i = 0; i < 99; i++) {
@@ -619,7 +619,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     // Check put operation
     const stubWriteFile = sandbox.stub(fs_module, 'writeFile');
@@ -640,7 +640,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await expect(
       // @ts-ignore
       gitDDB.put(undefined, {
@@ -656,7 +656,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // @ts-ignore
     await expect(gitDDB.put('prof01', 'document')).rejects.toThrowError(
       InvalidJsonObjectError
@@ -670,7 +670,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     const putResult = await gitDDB.put(_id, { name: 'Shirase' });
     expect(putResult).toMatchObject({
@@ -689,7 +689,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     const putResult = await gitDDB.put(_id, { name: 'Shirase' });
 
@@ -709,7 +709,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'prof01';
     const putResult = await gitDDB.put(_id, { name: 'Shirase' });
 
@@ -730,7 +730,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'id-in-the-first-argument';
     const doc = { _id: 'id-in-doc', name: 'Shirase' };
     const putResult = await gitDDB.put(_id, doc);
@@ -767,7 +767,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'dir01/prof01';
     await gitDDB.put(_id, { name: 'Shirase' }, { commit_message: 'my commit message' });
     const repository = gitDDB.repository();
@@ -785,7 +785,7 @@ describe('<crud/put> put(id, document)', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _id = 'dir01/prof01';
     await gitDDB.put(_id, { name: 'Shirase' }, { commit_message: '' });
     const repository = gitDDB.repository();
@@ -806,7 +806,7 @@ describe('<crud/put> put_worker', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // @ts-ignore
     await expect(put_worker(undefined)).rejects.toThrowError(UndefinedDBError);
     await gitDDB.destroy();
@@ -852,7 +852,7 @@ describe('<crud/put> put_worker', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     await expect(
       Promise.all([

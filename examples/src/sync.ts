@@ -43,13 +43,13 @@ const sync_example = async () => {
   /**
    * Create a local repository.
    *
-   * Calling create() with remoteOptions
+   * Calling createDB() with remoteOptions
    * creates and connects to a remote repository on GitHub
    * if the remote repository does not exist.
    */
   const resultA = await dbA.open();  
   if (resultA.ok) await dbA.sync(remoteOptions);
-  else await dbA.create(remoteOptions); 
+  else await dbA.createDB(remoteOptions); 
 
   /**
    * git-documentdb-example-sync.git was automatically created in your GitHub account.
@@ -70,13 +70,13 @@ const sync_example = async () => {
   /**
    * Create another local repository.
    *
-   * Calling create() with remoteOptions
+   * Calling createDB() with remoteOptions
    * clones a remote repository on GitHub
    * if the remote repository exists.
    */  
   const resultB = await dbB.open();
   if (resultB.ok) await dbB.sync(remoteOptions);  
-  else await dbB.create(remoteOptions);
+  else await dbB.createDB(remoteOptions);
   
   /**
    * Now synchronization between database B and GitHub has started.

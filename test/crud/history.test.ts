@@ -58,7 +58,7 @@ describe('<crud/history> getDocHistory()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
@@ -92,7 +92,7 @@ describe('<crud/history> getDocHistory()', () => {
       local_dir: localDir,
     });
 
-    await gitDDB.create();
+    await gitDDB.createDB();
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
     await gitDDB.put(jsonA01);
@@ -109,7 +109,7 @@ describe('<crud/history> getDocHistory()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -132,7 +132,7 @@ describe('<crud/history> getDocHistory()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await gitDDB.close();
     await expect(gitDDB.getDocHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
   });
@@ -143,7 +143,7 @@ describe('<crud/history> getDocHistory()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     // @ts-ignore
     await expect(gitDDB.getDocHistory(undefined)).rejects.toThrowError(
       UndefinedDocumentIdError
@@ -179,7 +179,7 @@ describe('<crud/history> getDocHistory()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
     stub.rejects(new Error());
@@ -195,7 +195,7 @@ describe('<crud/history> getBackNumber()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     await gitDDB.close();
     await expect(getBackNumber(gitDDB, 'tmp', 1)).rejects.toThrowError(
       RepositoryNotOpenError
@@ -208,7 +208,7 @@ describe('<crud/history> getBackNumber()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
     stub.rejects(new Error());
@@ -222,7 +222,7 @@ describe('<crud/history> getBackNumber()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     await expect(getBackNumber(gitDDB, 'tmp', 0)).resolves.toBeUndefined();
 
@@ -235,7 +235,7 @@ describe('<crud/history> getBackNumber()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     await expect(getBackNumber(gitDDB, 'tmp', 0)).resolves.toBeUndefined();
 

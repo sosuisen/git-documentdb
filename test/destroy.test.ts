@@ -40,7 +40,7 @@ describe('<index> destroy()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
     const workingDir = gitDDB.workingDir();
     await expect(gitDDB.destroy())
       .resolves.toMatchObject({ ok: true })
@@ -59,7 +59,7 @@ describe('<index> destroy()', () => {
     });
 
     // Create db
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     // Destroy db
     await gitDDB.destroy();
@@ -76,7 +76,7 @@ describe('<index> destroy()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by timeout.

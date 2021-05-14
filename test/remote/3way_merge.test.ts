@@ -332,7 +332,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts, removes, and pushes
@@ -420,7 +420,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -509,7 +509,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A updates and pushes
@@ -589,7 +589,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts, removes, and pushes
@@ -675,7 +675,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.remove(jsonA1);
@@ -761,7 +761,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
+    await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.remove(jsonA1);
@@ -843,7 +843,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -932,7 +932,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -1023,7 +1023,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts
@@ -1112,7 +1112,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -1192,7 +1192,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
+    await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -1276,7 +1276,7 @@ maybe('<remote/sync_worker> threeWayMerge()', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.create(remoteA.options());
+    await dbB.createDB(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A updates, deletes, updates, and pushes

@@ -46,7 +46,7 @@ describe('<close> GitDocumentDB#close()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 50; i++) {
       gitDDB.put({ _id: i.toString(), name: i.toString() });
@@ -70,7 +70,7 @@ describe('<close> GitDocumentDB#close()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
@@ -95,7 +95,7 @@ describe('<close> GitDocumentDB#close()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     const errors: any[] = [];
     for (let i = 0; i < 100; i++) {
@@ -120,7 +120,7 @@ describe('<close> GitDocumentDB#close()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       // eslint-disable-next-line no-await-in-loop
@@ -150,7 +150,7 @@ describe('<close> GitDocumentDB#close()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -175,7 +175,7 @@ describe('<close> GitDocumentDB#close()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.

@@ -15,7 +15,7 @@ const gitddb_example = async () => {
 
   // Open
   const result = await gitDDB.open(); // Open a repository if exists. (/your/path/to/the/example/git-documentdb/db01/.git)
-  if (!result.ok) await gitDDB.create(); // Git creates and opens a repository if not exits.
+  if (!result.ok) await gitDDB.createDB(); // Git creates and opens a repository if not exits.
   // Create
   await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); // Git adds 'nara.json' under the working directory and commits it.
 

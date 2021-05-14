@@ -193,7 +193,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    *  - If localDir does not exist, create it.
    *
-   *  - create() also opens the repository. create() followed by open() has no effect.
+   *  - createDB() also opens the repository. createDB() followed by open() has no effect.
    *
    * @returns Database information
    *
@@ -204,7 +204,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotConnectError}
    *
    */
-  async create (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
+  async createDB (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
     if (this.isClosing) {
       throw new DatabaseClosingError();
     }

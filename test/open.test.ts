@@ -66,7 +66,7 @@ describe('<index> open()', () => {
     });
 
     // Create db
-    await gitDDB.create();
+    await gitDDB.createDB();
 
     // Close created db
     await expect(gitDDB.close()).resolves.toBeUndefined();
@@ -171,7 +171,7 @@ describe('<index> open()', () => {
     });
 
     // Create db
-    await gitDDB.create();
+    await gitDDB.createDB();
     await expect(gitDDB.open()).resolves.toMatchObject({
       ok: true,
       is_new: false,

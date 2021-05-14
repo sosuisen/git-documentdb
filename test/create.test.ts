@@ -108,7 +108,7 @@ describe('<index>', () => {
     });
   });
 
-  describe('create()', () => {
+  describe('createDB()', () => {
     const readonlyDir = './test/_readonly/';
 
     it('throws CannotCreateDirectoryError when tries to create a new repository on a readonly filesystem.', async () => {
@@ -131,7 +131,7 @@ describe('<index>', () => {
         local_dir: readonlyDir + 'database',
       });
       // You don't have permission
-      await expect(gitDDB.create()).rejects.toThrowError(CannotCreateDirectoryError);
+      await expect(gitDDB.createDB()).rejects.toThrowError(CannotCreateDirectoryError);
       if (process.platform !== 'win32') {
         fs.chmodSync(readonlyDir, 0o644);
       }
@@ -146,10 +146,10 @@ describe('<index>', () => {
       });
 
       // Create db
-      await gitDDB.create();
+      await gitDDB.createDB();
       await gitDDB.open();
 
-      await expect(gitDDB.create()).rejects.toThrowError(DatabaseExistsError);
+      await expect(gitDDB.createDB()).rejects.toThrowError(DatabaseExistsError);
 
       await gitDDB.destroy();
     });
@@ -166,7 +166,7 @@ describe('<index>', () => {
       await fs.ensureDir(gitDDB.workingDir());
 
       // Create db
-      await expect(gitDDB.create()).rejects.toThrowError(WorkingDirectoryExistsError);
+      await expect(gitDDB.createDB()).rejects.toThrowError(WorkingDirectoryExistsError);
 
       // Remove working directory
       await gitDDB.destroy();
@@ -181,7 +181,7 @@ describe('<index>', () => {
       });
 
       // Create db
-      await expect(gitDDB.create())
+      await expect(gitDDB.createDB())
         .resolves.toMatchObject({
           ok: true,
           is_new: true,
@@ -212,7 +212,7 @@ describe('<index>', () => {
       });
       const defaultLocalDir = './git-documentdb/';
       // Create db
-      await gitDDB.create();
+      await gitDDB.createDB();
 
       expect(gitDDB.workingDir()).toBe(path.resolve(defaultLocalDir, dbName));
       // Destroy db
