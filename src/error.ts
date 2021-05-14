@@ -172,6 +172,14 @@ export class DocumentNotFoundError extends BaseError {
 
 /**
  */
+export class SameIdExistsError extends BaseError {
+  constructor (e = 'The same id exists') {
+    super(e);
+  }
+}
+
+/**
+ */
 export class DatabaseClosingError extends BaseError {
   constructor (e = 'Database is closing') {
     super(e);

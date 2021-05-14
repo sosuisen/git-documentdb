@@ -8,12 +8,10 @@
 
 import nodegit from '@sosuisen/nodegit';
 import { Logger } from 'tslog';
-import { JsonDiff } from './remote/json_diff';
 import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
   AllDocsResult,
-  IJsonPatch,
   JsonDoc,
   PutOptions,
   PutResult,
@@ -30,6 +28,20 @@ import { Validator } from './validator';
 export interface CRUDInterface {
   put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   put(
+    _id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  create(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  create(
+    _id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  update(
     _id: string,
     document: { [key: string]: any },
     options?: PutOptions

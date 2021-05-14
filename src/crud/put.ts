@@ -16,8 +16,10 @@ import {
   CannotCreateDirectoryError,
   CannotWriteDataError,
   DatabaseClosingError,
+  DocumentNotFoundError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
+  SameIdExistsError,
   TaskCancelError,
   UndefinedDBError,
   UndefinedDocumentIdError,
@@ -97,20 +99,21 @@ export function putImpl (
 
   options ??= {
     commit_message: undefined,
+    createOrUpdate: undefined,
   };
 
   const commit_message =
-    options.commit_message ?? `put: ${_id}${this.fileExt}(<%file_sha%>)`;
+    options.commit_message ?? `<%createOrUpdate%>: ${_id}${this.fileExt}(<%file_sha%>)`;
 
   const taskId = this.taskQueue.newTaskId();
   // put() must be serial.
   return new Promise((resolve, reject) => {
     this.taskQueue.pushToTaskQueue({
-      label: 'put',
+      label: options!.createOrUpdate === undefined ? 'put' : options!.createOrUpdate,
       taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        put_worker(this, _id, this.fileExt, data, commit_message!)
+        put_worker(this, _id, this.fileExt, data, commit_message!, options!.createOrUpdate)
           .then(result => {
             beforeResolve();
             resolve(result);
@@ -138,7 +141,8 @@ export async function put_worker (
   name: string,
   extension: string,
   data: string,
-  commitMessage: string
+  commitMessage: string,
+  createOrUpdate?: 'create' | 'update'
 ): Promise<PutResult> {
   if (gitDDB === undefined) {
     return Promise.reject(new UndefinedDBError());
@@ -164,6 +168,16 @@ export async function put_worker (
 
     // 2. Repository#refreshIndex() grabs copy of latest index
     const index = await _currentRepository.refreshIndex();
+
+    const oldEntry = index.getByPath(filename);
+    if (oldEntry) {
+      if (createOrUpdate === 'create') return Promise.reject(new SameIdExistsError());
+      createOrUpdate ??= 'update';
+    }
+    else {
+      if (createOrUpdate === 'update') return Promise.reject(new DocumentNotFoundError());
+      createOrUpdate ??= 'create';
+    }
 
     // 3. Index#addByPath() adds or updates an index entry from a file on disk.
     // https://libgit2.org/libgit2/#HEAD/group/index/git_index_add_bypath
@@ -192,10 +206,9 @@ export async function put_worker (
     const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
     file_sha = entry.id.tostrS();
 
-    commitMessage = commitMessage.replace(
-      /<%file_sha%>/,
-      file_sha.substr(0, SHORT_SHA_LENGTH)
-    );
+    commitMessage = commitMessage
+      .replace(/<%createOrUpdate%>/, createOrUpdate)
+      .replace(/<%file_sha%>/, file_sha.substr(0, SHORT_SHA_LENGTH));
 
     const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
     const committer = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);

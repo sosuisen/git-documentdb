@@ -143,6 +143,210 @@ export class Collection implements CRUDInterface {
   }
 
   /**
+   * Create a document
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 1' referred to in test/create.test.ts
+   *
+   * @remarks
+   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of create().
+   *
+   * - create() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * @param jsonDoc - See {@link JsonDoc} for restriction
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link SameIdExistsError}
+   *
+   */
+  create (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  /**
+   * Create a document
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 2' referred to in test/create.test.ts
+   *
+   * @remarks
+   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of create().
+   *
+   * - create() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * @param id - _id property of a document
+   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link SameIdExistsError}
+   *
+   */
+  create (
+    id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  create (
+    idOrDoc: string | JsonDoc,
+    docOrOptions: { [key: string]: any } | PutOptions,
+    options?: PutOptions
+  ) {
+    if (typeof idOrDoc === 'string') {
+      const orgId = idOrDoc;
+      const _id = this._collectionPath + orgId;
+      const document = docOrOptions as { [key: string]: any };
+      return this._gitDDB
+        .put(_id, document, {
+          ...options,
+          createOrUpdate: 'create',
+        })
+        .then(res => {
+          res.id = orgId;
+          return res;
+        });
+    }
+    else if (typeof idOrDoc === 'object') {
+      if (idOrDoc._id) {
+        const orgId = idOrDoc._id;
+        const _id = this._collectionPath + orgId;
+        const document = idOrDoc as JsonDoc;
+        options = docOrOptions;
+        return this._gitDDB
+          .put(_id, document, {
+            ...options,
+            createOrUpdate: 'create',
+          })
+          .then(res => {
+            res.id = orgId;
+            return res;
+          });
+      }
+    }
+  }
+
+  /**
+   * Update a document
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 1' referred to in test/update.test.ts
+   *
+   * @remarks
+   * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
+   *
+   * - update() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * - A update operation is not skipped when no change occurred on a specified document.
+   *
+   * @param jsonDoc - See {@link JsonDoc} for restriction
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link DocumentNotFoundError}
+   *
+   */
+  update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  /**
+   * Update a document
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 2' referred to in test/put.test.ts
+   *
+   * @remarks
+   * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
+   *
+   * - update() does not check a write permission of your file system (unlike open()).
+   *
+   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   *
+   * - A update operation is not skipped when no change occurred on a specified document.
+   *
+   * @param id - _id property of a document
+   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotWriteDataError}
+   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidIdLengthError}
+   * @throws {@link DocumentNotFoundError}
+   *
+   */
+  update (
+    id: string,
+    document: { [key: string]: any },
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  update (
+    idOrDoc: string | JsonDoc,
+    docOrOptions: { [key: string]: any } | PutOptions,
+    options?: PutOptions
+  ) {
+    if (typeof idOrDoc === 'string') {
+      const orgId = idOrDoc;
+      const _id = this._collectionPath + orgId;
+      const document = docOrOptions as { [key: string]: any };
+      return this._gitDDB
+        .put(_id, document, {
+          ...options,
+          createOrUpdate: 'update',
+        })
+        .then(res => {
+          res.id = orgId;
+          return res;
+        });
+    }
+    else if (typeof idOrDoc === 'object') {
+      if (idOrDoc._id) {
+        const orgId = idOrDoc._id;
+        const _id = this._collectionPath + orgId;
+        const document = idOrDoc as JsonDoc;
+        options = docOrOptions;
+        return this._gitDDB
+          .put(_id, document, {
+            ...options,
+            createOrUpdate: 'update',
+          })
+          .then(res => {
+            res.id = orgId;
+            return res;
+          });
+      }
+    }
+  }
+
+  /**
    * Get a document
    *
    * @param docId - id of a target document

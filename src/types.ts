@@ -79,7 +79,9 @@ export type DatabaseInfoError = {
 export type TaskStatistics = {
   // A property name equals a member of TaskLabel type
   put: number;
-  remove: number;
+  create: number;
+  update: number;
+  delete: number;
   push: number;
   sync: number;
 };
@@ -134,10 +136,13 @@ export type CollectionPath = string;
  * Options for put()
  *
  * @remarks
- * - commit_message: internal commit message. default is 'put: path/to/the/file'
+ * - commit_message: Internal commit message. default is 'put: path/to/the/file'
+ *
+ * - createOrUpdate: Change behavior of put(). Don't use it. Use create() or update() instead.
  */
 export type PutOptions = {
   commit_message?: string;
+  createOrUpdate?: 'create' | 'update';
 };
 
 /**
@@ -443,7 +448,7 @@ export type RemoteOptions = {
  * TaskLabel
  * DatabaseStatistics.taskCount must have the same members.
  */
-export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
+export type TaskLabel = 'put' | 'create' | 'update' | 'delete' | 'sync' | 'push';
 
 /**
  * Task for taskQueue
