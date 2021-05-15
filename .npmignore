@@ -1,23 +1,31 @@
 # Settings
 .vscode/
 .coveralls.yml
+.eslintignore
 .eslintrc.json
 .gitattributes
 .gitignore
+.mocharc.json
 .npmignore
 api-extractor.json
 jest.config.js
+nyc.config.js
 tsconfig.eslint.json
 tsconfig.json
+tsconfig.mocha.json
+tsconfig-base.json
 
 # static files
 assets/
 docs/
+docs-api/
 examples/
 external_modules/
+out/
 
 # src
 src/
+types/
 
 # Dependency directories
 node_modules/
@@ -27,6 +35,7 @@ coverage/
 test/
 test_intg/
 dist/test/
+.nyc_output/
 
 # api-extractor
 temp/
