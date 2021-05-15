@@ -15,7 +15,6 @@ import path from 'path';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../../src';
 import {
-  ChangedFile,
   SyncResult,
   SyncResultCancel,
   SyncResultFastForwardMerge,
@@ -664,7 +663,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
     const results: SyncResult[] = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line promise/catch-or-return
       remoteA.trySync().then(result => results.push(result));
     }
@@ -674,19 +673,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       action: 'canceled',
     };
     // results will be include 9 cancels
-    expect(results).toEqual(
-      expect.arrayContaining([
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-        syncResultCancel,
-      ])
-    );
+    let cancelCount = 0;
+    results.forEach(res => {
+      if (res.action === 'canceled') cancelCount++;
+    });
+    expect(cancelCount).toBe(2);
     // Only one trySync() will be executed
     expect(dbA.taskQueue.currentStatistics().sync).toBe(1);
 

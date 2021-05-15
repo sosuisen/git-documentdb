@@ -75,6 +75,8 @@ maybe('<remote/sync> [event]', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
+  // it.only('Run this test with .only to just remove remote repositories.', async () => {});
+
   /**
    * Events
    */
