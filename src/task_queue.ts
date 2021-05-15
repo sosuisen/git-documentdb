@@ -141,6 +141,9 @@ export class TaskQueue {
           this._logger.debug(
             ConsoleStyle.BgGreen().FgBlack().tag()`End: ${label}(${targetId || ''})`
           );
+          this._statistics[label]++;
+          this._isTaskQueueWorking = false;
+          this._currentTask = undefined;
         };
         const beforeReject = () => {
           this._logger.debug(
@@ -148,12 +151,11 @@ export class TaskQueue {
               targetId || ''
             })`
           );
-        };
-        this._currentTask.func(beforeResolve, beforeReject).finally(() => {
           this._statistics[label]++;
-
           this._isTaskQueueWorking = false;
           this._currentTask = undefined;
+        };
+        this._currentTask.func(beforeResolve, beforeReject).finally(() => {
           this._execTaskQueue();
         });
       }
