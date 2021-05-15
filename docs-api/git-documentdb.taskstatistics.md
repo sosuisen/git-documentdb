@@ -11,7 +11,9 @@ Task Statistics
 ```typescript
 export declare type TaskStatistics = {
     put: number;
-    remove: number;
+    insert: number;
+    update: number;
+    delete: number;
     push: number;
     sync: number;
 };

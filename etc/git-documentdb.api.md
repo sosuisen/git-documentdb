@@ -95,12 +95,20 @@ export class Collection implements CRUDInterface {
     delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+    insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    insert(id: string, document: {
+        [key: string]: any;
+    }, options?: PutOptions): Promise<PutResult>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(_id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    update(id: string, document: {
+        [key: string]: any;
+    }, options?: PutOptions): Promise<PutResult>;
 }
 
 // @public
@@ -190,6 +198,7 @@ export type DatabaseOption = {
     local_dir?: string;
     db_name: string;
     log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    schema?: Schema;
 };
 
 // @public
@@ -226,7 +235,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
     collection(collectionPath: CollectionPath): Collection;
-    create(remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
+    createDB(remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
     dbName(): string;
     // (undocumented)
     readonly defaultBranch = "main";
@@ -246,6 +255,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
         readonly name: "GitDocumentDB";
         readonly email: "gitddb@example.com";
     };
+    insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    insert(id: string, document: {
+        [key: string]: any;
+    }, options?: PutOptions): Promise<PutResult>;
     isClosing: boolean;
     isOpened(): boolean;
     logger: Logger;
@@ -257,11 +270,16 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     repository(): nodegit.Repository | undefined;
+    schema: Schema;
     sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
     sync(options?: RemoteOptions): Promise<Sync>;
     // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
     taskQueue: TaskQueue;
     unregisterRemote(remoteURL: string): void;
+    update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    update(id: string, document: {
+        [key: string]: any;
+    }, options?: PutOptions): Promise<PutResult>;
     validator: Validator;
     workingDir(): string;
     }
@@ -437,6 +455,7 @@ export class PushWorkerError extends BaseError {
 // @public
 export type PutOptions = {
     commit_message?: string;
+    insertOrUpdate?: 'insert' | 'update';
 };
 
 // @public
@@ -463,7 +482,6 @@ export type RemoteOptions = {
     retry_interval?: number;
     conflict_resolve_strategy?: ConflictResolutionStrategies;
     combine_db_strategy?: CombineDbStrategies;
-    diff_options?: JsonDiffOptions;
     include_commits?: boolean;
 };
 
@@ -515,6 +533,16 @@ export class RepositoryNotOpenError extends BaseError {
 export class RequestTimeoutError extends BaseError {
     constructor(url: string);
 }
+
+// @public (undocumented)
+export class SameIdExistsError extends BaseError {
+    constructor(e?: string);
+}
+
+// @public
+export type Schema = {
+    json: JsonDiffOptions;
+};
 
 // @public (undocumented)
 export class SocketTimeoutError extends BaseError {
@@ -749,12 +777,14 @@ export class TaskCancelError extends BaseError {
 }
 
 // @public
-export type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
+export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
 
 // @public
 export type TaskStatistics = {
     put: number;
-    remove: number;
+    insert: number;
+    update: number;
+    delete: number;
     push: number;
     sync: number;
 };
@@ -834,7 +864,7 @@ export class WorkingDirectoryExistsError extends BaseError {
 }
 
 // @public
-export type WriteOperation = 'create' | 'update' | 'delete' | 'create-merge' | 'update-merge';
+export type WriteOperation = 'insert' | 'update' | 'delete' | 'insert-merge' | 'update-merge';
 
 
 ```

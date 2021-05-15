@@ -4,7 +4,7 @@
 
 ## GitDocumentDB.delete() method
 
-This is an alias of remove()
+Remove a document
 
 <b>Signature:</b>
 
@@ -16,10 +16,26 @@ delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  id | string |  |
+|  id | string | id of a target document |
 |  options | [RemoveOptions](./git-documentdb.removeoptions.md) |  |
 
 <b>Returns:</b>
 
 Promise&lt;[RemoveResult](./git-documentdb.removeresult.md)<!-- -->&gt;
+
+## Exceptions
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+
+[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) when the specified document does not exist.
+
+[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
+
+[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+
+[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
 

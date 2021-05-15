@@ -11,10 +11,13 @@ Options for put()
 ```typescript
 export declare type PutOptions = {
     commit_message?: string;
+    insertOrUpdate?: 'insert' | 'update';
 };
 ```
 
 ## Remarks
 
-- commit\_message: internal commit message. default is 'put: path/to/the/file'
+- commit\_message: Internal commit message. default is 'put: path/to/the/file'
+
+- insertOrUpdate: Change behavior of put(). Don't use it. Use insert() or update() instead.
 

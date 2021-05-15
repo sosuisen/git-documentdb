@@ -9,5 +9,5 @@ TaskLabel DatabaseStatistics.taskCount must have the same members.
 <b>Signature:</b>
 
 ```typescript
-export declare type TaskLabel = 'put' | 'remove' | 'sync' | 'push';
+export declare type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
 ```

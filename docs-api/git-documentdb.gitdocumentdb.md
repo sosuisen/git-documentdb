@@ -28,6 +28,7 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { readonly name: "GitDocumentDB"; readonly email: "gitddb@example.com"; } | Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | DB is going to close |
 |  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | Logger |
+|  [schema](./git-documentdb.gitdocumentdb.schema.md) |  | [Schema](./git-documentdb.schema.md) | Schema |
 |  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | TaskQueue | Task queue |
 |  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | [Validator](./git-documentdb.validator.md) | Name validator |
 
@@ -38,10 +39,10 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [allDocs(options)](./git-documentdb.gitdocumentdb.alldocs.md) |  | Get all the documents |
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | Close a database |
 |  [collection(collectionPath)](./git-documentdb.gitdocumentdb.collection.md) |  | Get a collection |
-|  [create(remoteOptions)](./git-documentdb.gitdocumentdb.create.md) |  | Create and open a repository |
+|  [createDB(remoteOptions)](./git-documentdb.gitdocumentdb.createdb.md) |  | Create and open a repository |
 |  [dbName()](./git-documentdb.gitdocumentdb.dbname.md) |  | Get dbName |
-|  [delete(id, options)](./git-documentdb.gitdocumentdb.delete.md) |  | This is an alias of remove() |
-|  [delete(jsonDoc, options)](./git-documentdb.gitdocumentdb.delete_1.md) |  | This is an alias of remove() |
+|  [delete(id, options)](./git-documentdb.gitdocumentdb.delete.md) |  | Remove a document |
+|  [delete(jsonDoc, options)](./git-documentdb.gitdocumentdb.delete_1.md) |  | Remove a document |
 |  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | Destroy a database |
 |  [get(docId, backNumber)](./git-documentdb.gitdocumentdb.get.md) |  | Get a document |
 |  [getByRevision(fileSHA)](./git-documentdb.gitdocumentdb.getbyrevision.md) |  | Get a specific revision of a document |
@@ -49,15 +50,19 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [getDocWithMetaData(docId, backNumber)](./git-documentdb.gitdocumentdb.getdocwithmetadata.md) |  | Get a document with metadata |
 |  [getRemoteURLs()](./git-documentdb.gitdocumentdb.getremoteurls.md) |  | getRemoteURLs |
 |  [getSynchronizer(remoteURL)](./git-documentdb.gitdocumentdb.getsynchronizer.md) |  | Get synchronizer |
+|  [insert(jsonDoc, options)](./git-documentdb.gitdocumentdb.insert.md) |  | Insert a document |
+|  [insert(id, document, options)](./git-documentdb.gitdocumentdb.insert_1.md) |  | Insert a document |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | Test if a database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | Open an existing repository |
-|  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | Add a document |
-|  [put(id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | Add a document |
-|  [remove(id, options)](./git-documentdb.gitdocumentdb.remove.md) |  | Remove a document |
-|  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | Remove a document |
+|  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | Insert a document if not exists, otherwise update it. |
+|  [put(id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | Insert a document if not exists, otherwise update it. |
+|  [remove(id, options)](./git-documentdb.gitdocumentdb.remove.md) |  | This is an alias of remove() |
+|  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | This is an alias of remove() |
 |  [repository()](./git-documentdb.gitdocumentdb.repository.md) |  | Get a current repository |
 |  [sync(remoteURL, options)](./git-documentdb.gitdocumentdb.sync.md) |  | Synchronize with a remote repository |
 |  [sync(options)](./git-documentdb.gitdocumentdb.sync_1.md) |  | Synchronize with a remote repository |
 |  [unregisterRemote(remoteURL)](./git-documentdb.gitdocumentdb.unregisterremote.md) |  | Stop and unregister remote synchronization |
+|  [update(jsonDoc, options)](./git-documentdb.gitdocumentdb.update.md) |  | Update a document |
+|  [update(id, document, options)](./git-documentdb.gitdocumentdb.update_1.md) |  | Update a document |
 |  [workingDir()](./git-documentdb.gitdocumentdb.workingdir.md) |  | Get a full path of the current Git working directory |
 

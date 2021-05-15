@@ -7,7 +7,7 @@
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Database location
+Database Option
 
 <b>Signature:</b>
 
@@ -16,12 +16,14 @@ export declare type DatabaseOption = {
     local_dir?: string;
     db_name: string;
     log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    schema?: Schema;
 };
 ```
+<b>References:</b> [Schema](./git-documentdb.schema.md)
 
 ## Remarks
 
-OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
+local\_dir and db\_name are OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
 
 ```
 * local_dir: Local directory path that stores repositories of GitDocumentDB.

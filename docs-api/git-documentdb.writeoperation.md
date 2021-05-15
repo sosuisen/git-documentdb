@@ -9,5 +9,5 @@ Write operation
 <b>Signature:</b>
 
 ```typescript
-export declare type WriteOperation = 'create' | 'update' | 'delete' | 'create-merge' | 'update-merge';
+export declare type WriteOperation = 'insert' | 'update' | 'delete' | 'insert-merge' | 'update-merge';
 ```

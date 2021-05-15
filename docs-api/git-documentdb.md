@@ -66,6 +66,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) |  |
 |  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
 |  [RequestTimeoutError](./git-documentdb.requesttimeouterror.md) |  |
+|  [SameIdExistsError](./git-documentdb.sameidexistserror.md) |  |
 |  [SocketTimeoutError](./git-documentdb.sockettimeouterror.md) |  |
 |  [Sync](./git-documentdb.sync.md) | Synchronizer class |
 |  [SyncIntervalLessThanOrEqualToRetryIntervalError](./git-documentdb.syncintervallessthanorequaltoretryintervalerror.md) |  |
@@ -125,9 +126,9 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | Database information |
 |  [DatabaseInfoError](./git-documentdb.databaseinfoerror.md) | Database information (failure) |
 |  [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md) | Database information (success) |
-|  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database location |
+|  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database Option |
 |  [DocMetadata](./git-documentdb.docmetadata.md) | Type for a document metadata |
-|  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | Options for JsonDiff |
+|  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | JsonDiffOptions |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
@@ -135,6 +136,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for Sync class |
 |  [RemoveOptions](./git-documentdb.removeoptions.md) | Options for remove() |
 |  [RemoveResult](./git-documentdb.removeresult.md) | Result of remove() |
+|  [Schema](./git-documentdb.schema.md) | Schema |
 |  [SyncActiveCallback](./git-documentdb.syncactivecallback.md) |  |
 |  [SyncCallback](./git-documentdb.synccallback.md) |  |
 |  [SyncChangeCallback](./git-documentdb.syncchangecallback.md) | SyncEventCallbacks |

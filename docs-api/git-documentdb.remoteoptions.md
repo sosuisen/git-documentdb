@@ -19,11 +19,10 @@ export declare type RemoteOptions = {
     retry_interval?: number;
     conflict_resolve_strategy?: ConflictResolutionStrategies;
     combine_db_strategy?: CombineDbStrategies;
-    diff_options?: JsonDiffOptions;
     include_commits?: boolean;
 };
 ```
-<b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md)<!-- -->, [ConnectionSettings](./git-documentdb.connectionsettings.md)<!-- -->, [ConflictResolutionStrategies](./git-documentdb.conflictresolutionstrategies.md)<!-- -->, [CombineDbStrategies](./git-documentdb.combinedbstrategies.md)<!-- -->, [JsonDiffOptions](./git-documentdb.jsondiffoptions.md)
+<b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md)<!-- -->, [ConnectionSettings](./git-documentdb.connectionsettings.md)<!-- -->, [ConflictResolutionStrategies](./git-documentdb.conflictresolutionstrategies.md)<!-- -->, [CombineDbStrategies](./git-documentdb.combinedbstrategies.md)
 
 ## Remarks
 
