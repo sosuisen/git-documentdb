@@ -17,6 +17,7 @@ import {
   PutResult,
   RemoveOptions,
   RemoveResult,
+  Schema,
 } from './types';
 import { Validator } from './validator';
 
@@ -69,7 +70,7 @@ export interface IDocumentDB {
     name: string;
     email: string;
   };
-
+  schema: Schema;
   defaultBranch: string;
   dbName(): string;
   workingDir(): string;

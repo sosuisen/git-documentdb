@@ -9,6 +9,7 @@ import {
   PutResult,
   RemoteOptions,
   RemoveResult,
+  Schema,
   WriteOperation,
 } from '../src/types';
 import { ISync } from '../src/types_sync';
@@ -83,7 +84,8 @@ export async function createDatabase (
   remoteURLBase: string,
   localDir: string,
   serialId: () => string,
-  options?: RemoteOptions
+  options?: RemoteOptions,
+  schema?: Schema
 ): Promise<[GitDocumentDB, ISync]> {
   const remoteURL = remoteURLBase + serialId();
 
@@ -92,6 +94,7 @@ export async function createDatabase (
   const dbA: GitDocumentDB = new GitDocumentDB({
     db_name: dbNameA,
     local_dir: localDir,
+    schema,
   });
   options ??= {
     remote_url: remoteURL,

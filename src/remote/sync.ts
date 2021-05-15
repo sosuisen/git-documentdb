@@ -165,7 +165,6 @@ export class Sync implements ISync {
       combine_db_strategy: undefined,
       include_commits: undefined,
       conflict_resolve_strategy: undefined,
-      diff_options: undefined,
     };
     // Deep clone
     this._options = JSON.parse(JSON.stringify(_options));
@@ -198,7 +197,7 @@ export class Sync implements ISync {
     this._options.include_commits ??= false;
     this._options.conflict_resolve_strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
 
-    this.jsonDiff = new JsonDiff(_options.diff_options);
+    this.jsonDiff = new JsonDiff(_gitDDB.schema.json);
     this.jsonPatch = new JsonPatchOT();
 
     this.credential_callbacks = createCredential(this._options);

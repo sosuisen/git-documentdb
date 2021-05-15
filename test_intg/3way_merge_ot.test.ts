@@ -434,10 +434,17 @@ maybe('intg: <3way_merge_ot>', () => {
    *   mergedJson:17 - Conflict. Accept theirs (update-merge)
    */
   it('resolves case 17 - Conflict. Accept theirs (update-merge)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'theirs-diff',
-      diff_options: { plainTextProperties: { name: true } },
-    });
+    const [dbA, remoteA] = await createDatabase(
+      remoteURLBase,
+      localDir,
+      serialId,
+      {
+        conflict_resolve_strategy: 'theirs-diff',
+      },
+      {
+        json: { plainTextProperties: { name: true } },
+      }
+    );
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'Hello, world!' };
     const putResultA1 = await dbA.put(jsonA1);
@@ -530,10 +537,17 @@ maybe('intg: <3way_merge_ot>', () => {
      *   mergedJson:17 - Conflict. Accept theirs (update-merge)
      */
     it('add text', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflict_resolve_strategy: 'ours-diff',
-        diff_options: { plainTextProperties: { name: true } },
-      });
+      const [dbA, remoteA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        {
+          conflict_resolve_strategy: 'ours-diff',
+        },
+        {
+          json: { plainTextProperties: { name: true } },
+        }
+      );
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'Nara and Kyoto' };
@@ -581,10 +595,17 @@ maybe('intg: <3way_merge_ot>', () => {
      *   mergedJson:17 - Conflict. Accept theirs (update-merge)
      */
     it('move text', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflict_resolve_strategy: 'ours-diff',
-        diff_options: { plainTextProperties: { name: true } },
-      });
+      const [dbA, remoteA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        {
+          conflict_resolve_strategy: 'ours-diff',
+        },
+        {
+          json: { plainTextProperties: { name: true } },
+        }
+      );
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'Nara Osaka Kyoto Nagoya' };
@@ -632,10 +653,17 @@ maybe('intg: <3way_merge_ot>', () => {
      *   mergedJson:17 - Conflict. Accept theirs (update-merge)
      */
     it('bad result', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflict_resolve_strategy: 'ours-diff',
-        diff_options: { plainTextProperties: { name: true } },
-      });
+      const [dbA, remoteA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        {
+          conflict_resolve_strategy: 'ours-diff',
+        },
+        {
+          json: { plainTextProperties: { name: true } },
+        }
+      );
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'Nara Kyoto' };

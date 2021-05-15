@@ -41,6 +41,7 @@ import {
   RemoteOptions,
   RemoveOptions,
   RemoveResult,
+  Schema,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
@@ -121,6 +122,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   };
 
   /**
+   * Schema
+   */
+  schema: Schema;
+
+  /**
    * Task queue
    */
   taskQueue: TaskQueue;
@@ -158,6 +164,13 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this._dbName = options.db_name;
     this._localDir = options.local_dir ?? defaultLocalDir;
     this._logLevel = options.log_level ?? defaultLogLevel;
+
+    this.schema = options.schema ?? {
+      json: {
+        idOfSubtree: undefined,
+        plainTextProperties: undefined,
+      },
+    };
 
     // Get full-path
     this._workingDirectory = path.resolve(this._localDir, this._dbName);

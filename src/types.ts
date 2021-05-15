@@ -7,10 +7,10 @@
  */
 
 /**
- * Database location
+ * Database Option
  *
  * @remarks
- * OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
+ * local_dir and db_name are OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
  *
  * ```
  * * local_dir: Local directory path that stores repositories of GitDocumentDB.
@@ -31,10 +31,31 @@ export type DatabaseOption = {
   local_dir?: string;
   db_name: string;
   log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+  schema?: Schema;
+};
+/**
+ * Schema
+ *
+ * @remarks
+ *  - plainTextProperties: Only property whose key matches plainTextProperties uses text diff algorithm: google-diff-match-patch.
+ *
+ * e.g.
+ * { a: { b: true }, c: true } matches 'b' (whose ancestor is only 'a') and 'c'.
+ * { a: { _all: true } } matches all child properties of 'a'.
+ * { a: { _regex: /abc/ } } matches child properties of 'a' which match /abc/.
+ */
+export type Schema = {
+  json: JsonDiffOptions;
+};
+/**
+ * JsonDiffOptions
+ */
+export type JsonDiffOptions = {
+  idOfSubtree?: string[];
+  plainTextProperties?: { [key: string]: any };
 };
 /**
  * Database information
- *
  */
 export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
 /**
@@ -438,7 +459,6 @@ export type RemoteOptions = {
   /* merge */
   conflict_resolve_strategy?: ConflictResolutionStrategies;
   combine_db_strategy?: CombineDbStrategies;
-  diff_options?: JsonDiffOptions;
 
   /* results */
   include_commits?: boolean;
@@ -599,22 +619,6 @@ export type SyncCallback =
   | SyncStartCallback
   | SyncCompleteCallback
   | SyncErrorCallback;
-
-/**
- * Options for JsonDiff
- *
- * @remarks
- *  - plainTextProperties: Only property whose key matches plainTextProperties uses text diff algorithm: google-diff-match-patch.
- *
- * e.g.
- * { a: { b: true }, c: true } matches 'b' (whose ancestor is only 'a') and 'c'.
- * { a: { _all: true } } matches all child properties of 'a'.
- * { a: { _regex: /abc/ } } matches child properties of 'a' which match /abc/.
- */
-export type JsonDiffOptions = {
-  idOfSubtree?: string[];
-  plainTextProperties?: { [key: string]: any };
-};
 
 export interface IJsonPatch {
   patch(
