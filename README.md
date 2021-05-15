@@ -213,27 +213,20 @@ https://github.com/sosuisen/inventory-manager
   - Synchronization with GitHub :feet:
   - Revisions :feet:
   - Operational Transformation :dog2:(Here now)
-- v0.4 Work on both Node.js and browser
-- v0.5 Grep
-- v0.6 Miscellaneous
+- v0.4 Backup general data types by Git
+  - GitHub with SSH key pair
+  - Operate other data types
   - Replication
+- v0.5 Work on both Node.js and browser
+  - OAuth
+
+- v1.0
+  - Grep
   - Transaction (bulk)
   - Tag (Redo/Undo)
-- v0.7 Binary attachments
-- v0.8 Authentication
-  - GitHub with OAuth
-  - GitHub with SSH key pair
-- v0.9 Indexed Search
-
-**First official release**
-- v1.0
-
-**Future releases**
-- Markdown with a front matter
-- Git server
-- GitLab and Bitbucket
-- Push server
-- Migration
-- Plugins
+  - Indexed Search
+  - GitLab and Bitbucket
+  - Migration
+  - Plugins
 
 (https://github.com/sosuisen/git-documentdb/projects/2)
