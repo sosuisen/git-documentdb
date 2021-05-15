@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { ChangedFile, GitDocumentDB, RemoteOptions, SyncResult } from 'git-documentdb';
+import { GitDocumentDB, RemoteOptions, SyncResult } from 'git-documentdb';
 
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 
@@ -36,9 +36,21 @@ const sync_example = async () => {
    * Synchronize among database A <--> GitHub <--> database B
    */
 
+  /**
+   * Use scheme for plain-text diff and patch.
+   * Value of 'profile' property will be merged as plain-text.
+   */ 
+  const schema = {
+    json: {
+      plainTextProperties: {
+        'profile': true,
+      },
+    },
+  };
   // Create database A.
   let dbA = new GitDocumentDB({
     db_name: 'dbA',
+    schema,
   });
   /**
    * Create a local repository.
@@ -66,6 +78,7 @@ const sync_example = async () => {
   // Create database B
   let dbB = new GitDocumentDB({
     db_name: 'dbB',
+    schema,
   });
   /**
    * Create another local repository.
@@ -110,6 +123,12 @@ const sync_example = async () => {
     }
     console.log('\n');
   });
+  syncA.on('error', (err: Error) => console.log('sync error on A: ' + err.message));
+  syncA.on('paused', () => console.log('[paused on A]'));
+  syncA.on('active', () => console.log('[resumed on A]'));
+  syncA.on('start', (taskId: string, currentRetries: number) => console.log('[sync start on A] ' + taskId + ', retries: ' + currentRetries));
+  syncA.on('complete', (taskId: string) => console.log('[sync complete on A] ' + taskId));
+
   syncB.on('change', (syncResult: SyncResult) => {
     console.log('\n# ' + syncResult.action + ' action on B');
     if (syncResult.action === 'push')
@@ -126,6 +145,12 @@ const sync_example = async () => {
     }
     console.log('\n');
   });
+  syncB.on('error', (err: Error) => console.log('sync error on B: ' + err.message));
+  syncB.on('paused', () => console.log('[paused on B]'));
+  syncB.on('active', () => console.log('[resumed on B]'));
+  syncB.on('start', (taskId: string, currentRetries: number) => console.log('[sync start on B] ' + taskId + ', retries: ' + currentRetries));
+  syncB.on('complete', (taskId: string) => console.log('[sync complete on B] ' + taskId));
+
   /* localChange is shortcut to get local changes.
   syncA.on('localChange', (changedFiles: ChangedFile[]) => {
     changedFiles.forEach((file) => {
@@ -139,56 +164,32 @@ const sync_example = async () => {
   });
   */
 
-  // Listen synchronization error event.
-  syncA.on('error', (err: Error) => {
-    console.log('sync error on A: ' + err.message);
-  });
-  syncB.on('error', (err: Error) => {
-    console.log('sync error on B: ' + err.message);
-  });
-
-  // Listen other events only on B for simplification.
-  console.log('Listen [other events on B].');
-  syncB.on('paused', () => {
-    console.log('[paused on B]');
-  });
-  syncB.on('active', () => {
-    console.log('[resumed on B]');
-  });
-  syncB.on('start', (taskId: string, currentRetries: number) => {
-    // Can detect retry of a synchronization task
-    console.log('[sync start on B] ' + taskId + ', retries: ' + currentRetries);
-  });
-  syncB.on('complete', (taskId: string) => {
-    console.log('[sync complete on B] ' + taskId);
-  });
-
   console.log('----------------------------------------\n');
 
   // Put documents from dbA.
-  const json01 = { _id: '01', name: 'fromA' }
-  const json02 = { _id: '02', name: 'fromA' }
-  await dbA.put(json01); // invokes localChange event (insert) on B.
-  await dbA.put(json02); // invokes localChange event (insert) on B.
+  const json01 = { _id: '01', from: 'A', profile: 'I am from Kyoto.' };
+  const json02 = { _id: '02', from: 'A', profile: 'I am from Tokyo.' };
+  await dbA.put(json01); // will invoke a change event (insert) on B.
+  await dbA.put(json02); // will invoke a change event (insert) on B.
 
-  // localChange event automatically occurs within 10 or 20 seconds.
+  // 'change' events will occur within 10 or 20 seconds
   // because remoteOptions.interval is set to 10000(msec).
   // Call trySync() by hand if you cannot wait it!
   await syncA.trySync();
   await syncB.trySync();
 
   // Update and delete from dbA.
-  const json01dash = { _id: '01', name: 'fromA (updated)' };
-  await dbA.put(json01dash); // invokes localChange event (update) on B
-  await dbA.delete(json02); // invokes localChange event (delete) on B  
+  const json01dash = { _id: '01', from: 'A (updated)', profile: 'I am from Nara.' };
+  await dbA.put(json01dash); // will invoke change event (update) on B
+  await dbA.delete(json02); // will invoke change event (delete) on B  
   await syncA.trySync();
 
   // Wait automated synchronization on B
   await sleep(syncB.options().interval + 5);
 
-  // Pause sync
+  // Try to pause sync.
   await syncB.pause();
-  // Resume sync
+  // Try to resume sync.
   await syncB.resume();
 
 
@@ -197,22 +198,25 @@ const sync_example = async () => {
    * 
    * Create the same id document on both A and B.
    * The data on the side synchronized later overwrites the another side.
-   * It is a default conflict resolution strategy.
+   * Plain-texts are merged if possible.
+   * This is a default conflict resolution strategy (ours-diff).
+   * 
    * Set remoteOptions.conflict_resolve_strategy to change it.
    */
-  console.log('#### Conflict ####');
-  const sameIdFromA = { _id: '03', name: 'fromA' };
-  const sameIdFromB = { _id: '03', name: 'fromB' }; 
+  console.log('\n**** Automated conflict resolution ****');
+  const sameIdFromA = { _id: '01', from: 'A', profile: 'I am from Nara. I love cherry blossoms.' };
+  const sameIdFromB = { _id: '01', from: 'B', profile: 'My name is Hidekazu and I am from Nara.' }; 
   await dbA.put(sameIdFromA); 
   await dbB.put(sameIdFromB); 
 
   // Several synchronizations will run to resolve the conflict.
   let timeout = remoteOptions.interval! * 10;
   while (timeout > 0) {
-    const resultA = await dbA.get('03');
-    const resultB = await dbB.get('03');
+    const resultA = await dbA.get('01');
+    const resultB = await dbB.get('01');
     if(JSON.stringify(resultA) === JSON.stringify(resultB)) {
-      console.log('**** Resolved ****');
+      console.log('\n**** Resolved ****');
+      // result: {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"}
       console.log('result: ' + JSON.stringify(resultA) + '\n');
       break;
     }
@@ -222,7 +226,6 @@ const sync_example = async () => {
 
   // Clear the documents on GitHub
   await dbA.delete('01');
-  await dbA.delete('03');
   await syncA.trySync();
 
   // Stop sync and destroy DBs
@@ -236,70 +239,86 @@ sync_example();
 /** An example of output (It may change due to your network environment.)
 
 ----------------------------------------
-# Listen SyncResult on both A and B.    
-Listen [other events on B].
+# Listen SyncResult on both A and B.
 ----------------------------------------
 
+[sync start on A] 01F5R6PMYZK34CNQ09KXQ6DH8S, retries: 0
 
 # push action on A
- - insert {"name":"fromA","_id":"01"} on GitHub
- - insert {"name":"fromA","_id":"02"} on GitHub
+ - insert {"from":"A","profile":"I am from Kyoto.","_id":"01"} on GitHub
+ - insert {"from":"A","profile":"I am from Tokyo.","_id":"02"} on GitHub
 
 
-[sync start on B] 01F3XCEQGDB6R97F9NQ9PXFR71, retries: 0
+[sync complete on A] 01F5R6PMYZK34CNQ09KXQ6DH8S
+[sync start on B] 01F5R6PQSXC9E819R67A749TAQ, retries: 0
 
 # fast-forward merge action on B
- - insert {"name":"fromA","_id":"01"} on B     
- - insert {"name":"fromA","_id":"02"} on B     
+ - insert {"from":"A","profile":"I am from Kyoto.","_id":"01"} on B
+ - insert {"from":"A","profile":"I am from Tokyo.","_id":"02"} on B
 
 
-[sync complete on B] 01F3XCEQGDB6R97F9NQ9PXFR71
+[sync complete on B] 01F5R6PQSXC9E819R67A749TAQ
+[sync start on A] 01F5R6PRRVWSPCE2B69HW0ZYVW, retries: 0
 
 # push action on A
- - update {"name":"fromA (updated)","_id":"01"} on GitHub
- - delete {"name":"fromA","_id":"02"} on GitHub
+ - update {"from":"A (updated)","profile":"I am from Nara.","_id":"01"} on GitHub
+ - delete {"from":"A","profile":"I am from Tokyo.","_id":"02"} on GitHub
 
 
-[sync start on B] 01F3XCEY9517Z1ERF67D63SRY8, retries: 0
+[sync complete on A] 01F5R6PRRVWSPCE2B69HW0ZYVW
+[sync start on A] 01F5R6PWMQZFMM0GY7PZA6V48Y, retries: 0
+[sync complete on A] 01F5R6PWMQZFMM0GY7PZA6V48Y
+[sync start on B] 01F5R6PYNR23F5JBANBY68GN2P, retries: 0
 
 # fast-forward merge action on B
- - update {"name":"fromA (updated)","_id":"01"} on B
- - delete {"name":"fromA","_id":"02"} on B
+ - update {"from":"A (updated)","profile":"I am from Nara.","_id":"01"} on B
+ - delete {"from":"A","profile":"I am from Tokyo.","_id":"02"} on B
 
 
-[sync complete on B] 01F3XCEY9517Z1ERF67D63SRY8
+[sync complete on B] 01F5R6PYNR23F5JBANBY68GN2P
 [paused on B]
 [resumed on B]
-#### Conflict ####
+
+**** Automated conflict resolution ****
+[sync start on A] 01F5R6Q6D8DMNVP4Q0PP27AN9Q, retries: 0
 
 # push action on A
- - insert {"name":"fromA","_id":"03"} on GitHub
+ - update {"from":"A","profile":"I am from Nara. I love cherry blossoms.","_id":"01"} on GitHub
 
 
-[sync start on B] 01F3XCFEYWHNWDKFVCGSS39F70, retries: 0
+[sync complete on A] 01F5R6Q6D8DMNVP4Q0PP27AN9Q
+[sync start on B] 01F5R6QF7MDP357B852GV64VH8, retries: 0
+[sync start on A] 01F5R6QG64TRXNM4X25C9DPJRG, retries: 0
+[sync complete on A] 01F5R6QG64TRXNM4X25C9DPJRG
 
 # resolve conflicts and push action on B
- - update {"name":"fromB","_id":"03"} on GitHub
+ - update {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"} on B
+ - update {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"} on GitHub
 
 
-[sync complete on B] 01F3XCFEYWHNWDKFVCGSS39F70
-[sync start on B] 01F3XCFRQW101ND8ZVC30SCK6H, retries: 0
-[sync complete on B] 01F3XCFRQW101ND8ZVC30SCK6H
+[sync complete on B] 01F5R6QF7MDP357B852GV64VH8
+[sync start on B] 01F5R6QS09ZNTMMPF84JN1S2TP, retries: 0
+[sync complete on B] 01F5R6QS09ZNTMMPF84JN1S2TP
+[sync start on A] 01F5R6QSYTCHA8638PWAB8P3NY, retries: 0
 
 # fast-forward merge action on A
- - update {"name":"fromB","_id":"03"} on A
+ - update {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"} on A
 
 
-[sync start on B] 01F3XCG2GQENGCASJQHDTSKQS4, retries: 0
+[sync complete on A] 01F5R6QSYTCHA8638PWAB8P3NY
+[sync start on B] 01F5R6R2S0V9TZV3ZMVXRV2K97, retries: 0
+
 **** Resolved ****
-result: {"name":"fromB","_id":"03"}
+result: {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"}
 
-[sync complete on B] 01F3XCG2GQENGCASJQHDTSKQS4
+[sync start on A] 01F5R6R2V6PJNWRRQZAWKRG3ER, retries: 0
+[sync complete on B] 01F5R6R2S0V9TZV3ZMVXRV2K97
 
 # push action on A
- - delete {"name":"fromA (updated)","_id":"01"} on GitHub
- - delete {"name":"fromB","_id":"03"} on GitHub
+ - delete {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"} on GitHub
 
 
+[sync complete on A] 01F5R6R2V6PJNWRRQZAWKRG3ER
+[paused on A]
 [paused on B]
 */

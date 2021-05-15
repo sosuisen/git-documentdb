@@ -7,7 +7,7 @@
     "build": "rm -rf dist/ && tsc",
     "start": "npm run build && node dist/index.js",
     "collection": "npm run build && node dist/collection.js",
-    "sync": "npm run build && node dist/sync.js"
+    "sync": "rm -rf ./git-documentdb/ && npm run build && node dist/sync.js"
   },
   "author": "",
   "license": "MPL-2.0",
