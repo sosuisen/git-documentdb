@@ -264,8 +264,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
                 id: jsonB1._id,
                 file_sha: putResultB1.file_sha,
               },
-              operation: 'insert',
-              strategy: 'ours',
+              operation: 'insert-merge',
+              strategy: 'ours-diff',
             },
           ],
         });

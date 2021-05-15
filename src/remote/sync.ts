@@ -49,7 +49,7 @@ import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
 import {
-  DEFAULT_CONFLICT_RESOLVE_STRATEGY,
+  DEFAULT_CONFLICT_RESOLUTION_STRATEGY,
   DEFAULT_SYNC_INTERVAL,
   MINIMUM_SYNC_INTERVAL,
   NETWORK_RETRY,
@@ -195,7 +195,7 @@ export class Sync implements ISync {
     this._options.retry ??= NETWORK_RETRY;
     this._options.combine_db_strategy ??= 'throw-error';
     this._options.include_commits ??= false;
-    this._options.conflict_resolve_strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
+    this._options.conflict_resolve_strategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
 
     this.jsonDiff = new JsonDiff(_gitDDB.schema.json);
     this.jsonPatch = new JsonPatchOT();

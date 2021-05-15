@@ -2,7 +2,7 @@
 import { editOp, insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
 import { uniCount } from 'unicount';
 import { ConflictResolutionStrategyLabels, IJsonPatch, JsonDoc } from '../types';
-import { DEFAULT_CONFLICT_RESOLVE_STRATEGY } from '../const';
+import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
 
 export class JsonPatchOT implements IJsonPatch {
   constructor () {}
@@ -161,7 +161,7 @@ export class JsonPatchOT implements IJsonPatch {
     diffTheirs?: { [key: string]: any } | undefined,
     strategy?: ConflictResolutionStrategyLabels
   ): JsonDoc {
-    strategy ??= DEFAULT_CONFLICT_RESOLVE_STRATEGY;
+    strategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
     if (docTheirs === undefined || diffTheirs === undefined) {
       return (type.apply(docOurs, this.fromDiff(diffOurs)) as unknown) as JsonDoc;
     }

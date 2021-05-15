@@ -154,7 +154,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     destroyDBs([gitDDB]);
   });
 
-  it('set conflict_resolve_strategy to ours by default', async () => {
+  it('set conflict_resolve_strategy to ours-diff by default', async () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -170,7 +170,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().conflict_resolve_strategy).toBe('ours');
+    expect(sync.options().conflict_resolve_strategy).toBe('ours-diff');
 
     destroyDBs([gitDDB]);
   });
