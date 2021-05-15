@@ -74,8 +74,11 @@ export class TaskQueue {
    */
   unshiftSyncTaskToTaskQueue (task: Task) {
     if (
-      this._taskQueue.length > 0 &&
-      (this._taskQueue[0].label === 'sync' || this._taskQueue[0].label === 'push')
+      (this._currentTask?.label === 'sync' && task.label === 'sync') ||
+      (this._currentTask?.label === 'push' && task.label === 'push') ||
+      (this._taskQueue.length > 0 &&
+        ((this._taskQueue[0].label === 'sync' && task.label === 'sync') ||
+          (this._taskQueue[0].label === 'push' && task.label === 'push')))
     ) {
       // console.log('## task skipped');
       task.cancel();
