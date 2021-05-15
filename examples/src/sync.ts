@@ -98,9 +98,15 @@ const sync_example = async () => {
       syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
       syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
     }
+    else if (syncResult.action === 'merge and push error') {
+      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
+    }
     else if (syncResult.action === 'resolve conflicts and push') {
       syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
       syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
+    }
+    else if (syncResult.action === 'resolve conflicts and push error') {
+      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
     }
     console.log('\n');
   });
@@ -162,8 +168,8 @@ const sync_example = async () => {
   // Put documents from dbA.
   const json01 = { _id: '01', name: 'fromA' }
   const json02 = { _id: '02', name: 'fromA' }
-  await dbA.put(json01); // invokes localChange event (create) on B.
-  await dbA.put(json02); // invokes localChange event (create) on B.
+  await dbA.put(json01); // invokes localChange event (insert) on B.
+  await dbA.put(json02); // invokes localChange event (insert) on B.
 
   // localChange event automatically occurs within 10 or 20 seconds.
   // because remoteOptions.interval is set to 10000(msec).
@@ -236,15 +242,15 @@ Listen [other events on B].
 
 
 # push action on A
- - create {"name":"fromA","_id":"01"} on GitHub
- - create {"name":"fromA","_id":"02"} on GitHub
+ - insert {"name":"fromA","_id":"01"} on GitHub
+ - insert {"name":"fromA","_id":"02"} on GitHub
 
 
 [sync start on B] 01F3XCEQGDB6R97F9NQ9PXFR71, retries: 0
 
 # fast-forward merge action on B
- - create {"name":"fromA","_id":"01"} on B     
- - create {"name":"fromA","_id":"02"} on B     
+ - insert {"name":"fromA","_id":"01"} on B     
+ - insert {"name":"fromA","_id":"02"} on B     
 
 
 [sync complete on B] 01F3XCEQGDB6R97F9NQ9PXFR71
@@ -267,7 +273,7 @@ Listen [other events on B].
 #### Conflict ####
 
 # push action on A
- - create {"name":"fromA","_id":"03"} on GitHub
+ - insert {"name":"fromA","_id":"03"} on GitHub
 
 
 [sync start on B] 01F3XCFEYWHNWDKFVCGSS39F70, retries: 0
