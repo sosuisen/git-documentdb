@@ -16,6 +16,7 @@ import {
   DocumentNotFoundError,
   InvalidCollectionPathCharacterError,
   RepositoryNotOpenError,
+  SameIdExistsError,
   UndefinedDocumentIdError,
 } from '../src/error';
 import { destroyDBs } from './remote_utils';
@@ -195,6 +196,132 @@ describe('<collection>', () => {
       await expect(users.put()).rejects.toThrowError(UndefinedDocumentIdError);
 
       gitDDB.destroy();
+    });
+  });
+
+  describe('insert(JsonDoc)', () => {
+    it('throws SameIdExistsError when a document which has the same id exists.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      await users.insert({ _id: 'prof01' });
+      await expect(users.insert({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
+        SameIdExistsError
+      );
+      await gitDDB.destroy();
+    });
+
+    it('inserts a document.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      const json01 = { _id: 'prof01', name: 'Shirase' };
+      await users.insert(json01);
+      await expect(users.get('prof01')).resolves.toEqual(json01);
+      await gitDDB.destroy();
+    });
+  });
+
+  describe('insert(id, document)', () => {
+    it('throws SameIdExistsError when a document which has the same id exists.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      await users.insert('prof01', { name: 'Shirase' });
+      await expect(users.insert('prof01', { name: 'Shirase' })).rejects.toThrowError(
+        SameIdExistsError
+      );
+      await gitDDB.destroy();
+    });
+
+    it('inserts a document.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      const json01 = { _id: 'prof01', name: 'Shirase' };
+      await users.insert('prof01', json01);
+      await expect(users.get('prof01')).resolves.toEqual(json01);
+      await gitDDB.destroy();
+    });
+  });
+
+  describe('update(JsonDoc)', () => {
+    it('throws DocumentNotFoundError.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      await expect(users.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
+        DocumentNotFoundError
+      );
+      await gitDDB.destroy();
+    });
+
+    it('update a document.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      const json01 = { _id: 'prof01', name: 'Shirase' };
+      await users.insert(json01);
+      const json01dash = { _id: 'prof01', name: 'updated' };
+      await users.update(json01dash);
+      await expect(users.get('prof01')).resolves.toEqual(json01dash);
+      await gitDDB.destroy();
+    });
+  });
+
+  describe('update(id, document)', () => {
+    it('throws DocumentNotFoundError.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      await expect(users.update('prof01', { name: 'Shirase' })).rejects.toThrowError(
+        DocumentNotFoundError
+      );
+      await gitDDB.destroy();
+    });
+
+    it('update a document.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+      await gitDDB.createDB();
+      const users = gitDDB.collection('users');
+      const json01 = { _id: 'prof01', name: 'Shirase' };
+      await users.insert(json01);
+      const json01dash = { _id: 'prof01', name: 'updated' };
+      await users.update('prof01', json01dash);
+      await expect(users.get('prof01')).resolves.toEqual(json01dash);
+      await gitDDB.destroy();
     });
   });
 
