@@ -554,10 +554,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Insert a document if not exists, otherwise update it.
    *
-   * @privateRemarks
-   *
-   * This is 'overload 1' referred to in test/put.test.ts
-   *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).
    *
@@ -580,10 +576,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
     * Insert a document if not exists, otherwise update it.
-    *
-    * @privateRemarks
-    *
-    * This is 'overload 2' referred to in test/put.test.ts
     *
     * @remarks
     * - put() does not check a write permission of your file system (unlike open()).
@@ -622,10 +614,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Insert a document
    *
-   * @privateRemarks
-   *
-   * This is 'overload 1' referred to in test/insert.test.ts
-   *
    * @remarks
    * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
    *
@@ -649,10 +637,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
    * Insert a document
-   *
-   * @privateRemarks
-   *
-   * This is 'overload 2' referred to in test/insert.test.ts
    *
    * @remarks
    * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
@@ -686,6 +670,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     docOrOptions: { [key: string]: any } | PutOptions,
     options?: PutOptions
   ) {
+    if (typeof idOrDoc === 'object') {
+      docOrOptions = { ...docOrOptions, insertOrUpdate: 'insert' };
+    }
+
     return putImpl.call(this, idOrDoc, docOrOptions, {
       ...options,
       insertOrUpdate: 'insert',
@@ -694,10 +682,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   /**
    * Update a document
-   *
-   * @privateRemarks
-   *
-   * This is 'overload 1' referred to in test/update.test.ts
    *
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
@@ -724,10 +708,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
    * Update a document
-   *
-   * @privateRemarks
-   *
-   * This is 'overload 2' referred to in test/put.test.ts
    *
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
@@ -763,6 +743,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     docOrOptions: { [key: string]: any } | PutOptions,
     options?: PutOptions
   ) {
+    if (typeof idOrDoc === 'object') {
+      docOrOptions = { ...docOrOptions, insertOrUpdate: 'update' };
+    }
+
     return putImpl.call(this, idOrDoc, docOrOptions, {
       ...options,
       insertOrUpdate: 'update',
