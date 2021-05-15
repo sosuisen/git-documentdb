@@ -14,7 +14,11 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../src';
-import { SyncResultMergeAndPush, SyncResultResolveConflictsAndPush } from '../src/types';
+import {
+  Schema,
+  SyncResultMergeAndPush,
+  SyncResultResolveConflictsAndPush,
+} from '../src/types';
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -434,6 +438,9 @@ maybe('intg: <3way_merge_ot>', () => {
    *   mergedJson:17 - Conflict. Accept theirs (update-merge)
    */
   it('resolves case 17 - Conflict. Accept theirs (update-merge)', async () => {
+    const schema: Schema = {
+      json: { plainTextProperties: { name: true } },
+    };
     const [dbA, remoteA] = await createDatabase(
       remoteURLBase,
       localDir,
@@ -441,9 +448,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         conflict_resolve_strategy: 'theirs-diff',
       },
-      {
-        json: { plainTextProperties: { name: true } },
-      }
+      schema
     );
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'Hello, world!' };
@@ -454,6 +459,7 @@ maybe('intg: <3way_merge_ot>', () => {
     const dbB: GitDocumentDB = new GitDocumentDB({
       db_name: dbNameB,
       local_dir: localDir,
+      schema,
     });
     // Clone dbA
     await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'theirs-diff' });
@@ -537,6 +543,9 @@ maybe('intg: <3way_merge_ot>', () => {
      *   mergedJson:17 - Conflict. Accept theirs (update-merge)
      */
     it('add text', async () => {
+      const schema: Schema = {
+        json: { plainTextProperties: { name: true } },
+      };
       const [dbA, remoteA] = await createDatabase(
         remoteURLBase,
         localDir,
@@ -544,9 +553,7 @@ maybe('intg: <3way_merge_ot>', () => {
         {
           conflict_resolve_strategy: 'ours-diff',
         },
-        {
-          json: { plainTextProperties: { name: true } },
-        }
+        schema
       );
 
       // A puts and pushes
@@ -558,6 +565,7 @@ maybe('intg: <3way_merge_ot>', () => {
       const dbB: GitDocumentDB = new GitDocumentDB({
         db_name: dbNameB,
         local_dir: localDir,
+        schema,
       });
       // Clone dbA
       await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
@@ -595,6 +603,9 @@ maybe('intg: <3way_merge_ot>', () => {
      *   mergedJson:17 - Conflict. Accept theirs (update-merge)
      */
     it('move text', async () => {
+      const schema: Schema = {
+        json: { plainTextProperties: { name: true } },
+      };
       const [dbA, remoteA] = await createDatabase(
         remoteURLBase,
         localDir,
@@ -602,9 +613,7 @@ maybe('intg: <3way_merge_ot>', () => {
         {
           conflict_resolve_strategy: 'ours-diff',
         },
-        {
-          json: { plainTextProperties: { name: true } },
-        }
+        schema
       );
 
       // A puts and pushes
@@ -616,6 +625,7 @@ maybe('intg: <3way_merge_ot>', () => {
       const dbB: GitDocumentDB = new GitDocumentDB({
         db_name: dbNameB,
         local_dir: localDir,
+        schema,
       });
       // Clone dbA
       await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
@@ -653,6 +663,9 @@ maybe('intg: <3way_merge_ot>', () => {
      *   mergedJson:17 - Conflict. Accept theirs (update-merge)
      */
     it('bad result', async () => {
+      const schema: Schema = {
+        json: { plainTextProperties: { name: true } },
+      };
       const [dbA, remoteA] = await createDatabase(
         remoteURLBase,
         localDir,
@@ -660,9 +673,7 @@ maybe('intg: <3way_merge_ot>', () => {
         {
           conflict_resolve_strategy: 'ours-diff',
         },
-        {
-          json: { plainTextProperties: { name: true } },
-        }
+        schema
       );
 
       // A puts and pushes
@@ -674,6 +685,7 @@ maybe('intg: <3way_merge_ot>', () => {
       const dbB: GitDocumentDB = new GitDocumentDB({
         db_name: dbNameB,
         local_dir: localDir,
+        schema,
       });
       // Clone dbA
       await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
