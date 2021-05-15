@@ -84,7 +84,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  describe(': createDB()', () => {
+  describe(': create()', () => {
     it('creates a remote repository on GitHub by personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
       const octokit = new Octokit({
@@ -100,7 +100,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           type: 'github',
           personal_access_token: token,
         },
-      }).createDB();
+      }).create();
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
     });
 
@@ -120,7 +120,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           personal_access_token: token,
           private: true,
         },
-      }).createDB();
+      }).create();
       const repos = await octokit.repos.get({ owner, repo });
       expect(repos.data.private).toBeTruthy();
     });
@@ -140,7 +140,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           type: 'github',
           personal_access_token: token,
         },
-      }).createDB();
+      }).create();
       const repos = await octokit.repos.get({ owner, repo });
       expect(repos.data.private).toBeTruthy();
     });
@@ -161,7 +161,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           personal_access_token: token,
           private: false,
         },
-      }).createDB();
+      }).create();
       const repos = await octokit.repos.get({ owner, repo });
       expect(repos.data.private).toBeFalsy();
     });
@@ -176,7 +176,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             type: 'github',
             personal_access_token: undefined,
           },
-        }).createDB()
+        }).create()
       ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
     });
 
@@ -190,7 +190,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             type: 'github',
             personal_access_token: token, // This is valid but for another account.
           },
-        }).createDB()
+        }).create()
       ).rejects.toThrowError(PersonalAccessTokenForAnotherAccountError);
     });
 
@@ -205,7 +205,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           personal_access_token: token,
         },
       })
-        .createDB()
+        .create()
         .catch(err => err);
       expect(error).toBeInstanceOf(CannotConnectError);
       // This may be tested by using sinon.spy
@@ -221,7 +221,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
           connection: {
             type: 'none',
           },
-        }).createDB()
+        }).create()
       ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
     });
   });

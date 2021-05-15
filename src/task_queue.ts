@@ -32,7 +32,7 @@ export class TaskQueue {
    */
   private _statistics: TaskStatistics = {
     put: 0,
-    create: 0,
+    insert: 0,
     update: 0,
     delete: 0,
     push: 0,
@@ -92,7 +92,7 @@ export class TaskQueue {
     this._currentTask = undefined;
     this._statistics = {
       put: 0,
-      create: 0,
+      insert: 0,
       update: 0,
       delete: 0,
       push: 0,

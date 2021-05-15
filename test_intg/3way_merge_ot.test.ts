@@ -58,7 +58,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
+maybe('intg: <3way_merge_ot>', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -77,11 +77,11 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    * after :  mergedJson  jsonA2  jsonB3
    *
    * 3-way merge:
-   *   mergedJson: 4 - Conflict. Accept ours (create-merge)
-   *   jsonA2: 1 - Accept theirs (create)
-   *   jsonB3: 2 - Accept ours (create)
+   *   mergedJson: 4 - Conflict. Accept ours (insert-merge)
+   *   jsonA2: 1 - Accept theirs (insert)
+   *   jsonB3: 2 - Accept ours (insert)
    */
-  it('resolves case 1 - Accept theirs (create), case 2 - Accept ours (create), case 4 - Conflict. Accept ours (create-merge)', async () => {
+  it('resolves case 1 - Accept theirs (insert), case 2 - Accept ours (insert), case 4 - Conflict. Accept ours (insert-merge)', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -118,7 +118,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},ours-diff)`,
@@ -126,7 +126,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},ours-diff)`,
@@ -136,7 +136,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     expect(syncResult1.changes.local).toEqual(
       expect.arrayContaining([
         getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-        getChangedFile('create', jsonA2, putResultA2),
+        getChangedFile('insert', jsonA2, putResultA2),
       ])
     );
 
@@ -144,7 +144,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
         getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-        getChangedFile('create', jsonB3, putResultB3),
+        getChangedFile('insert', jsonB3, putResultB3),
       ])
     );
 
@@ -156,7 +156,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
           file_sha: mergedDoc!.file_sha,
         },
         strategy: 'ours-diff',
-        operation: 'create-merge',
+        operation: 'insert-merge',
       },
     ]);
     // Conflict occurs on 1.json
@@ -179,9 +179,9 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    * after :  jsonA1
    *
    * 3-way merge:
-   *   jsonA1: 5 - Conflict. Accept theirs (create)
+   *   jsonA1: 5 - Conflict. Accept theirs (insert)
    */
-  it('resolves case 5 - Conflict. Accept theirs (create)', async () => {
+  it('resolves case 5 - Conflict. Accept theirs (insert)', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -211,14 +211,14 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${dbA.fileExt}(create-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},theirs-diff)`,
@@ -239,7 +239,7 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
           file_sha: mergedDoc!.file_sha,
         },
         strategy: 'theirs-diff',
-        operation: 'create-merge',
+        operation: 'insert-merge',
       },
     ]);
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
@@ -346,9 +346,9 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
    *
    * 3-way merge:
    *  jsonB1: 11 - Conflict. Accept ours (update)
-   *  jsonA2:  1 - Accept theirs (create)
+   *  jsonA2:  1 - Accept theirs (insert)
    */
-  it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (create), ', async () => {
+  it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (insert), ', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflict_resolve_strategy: 'ours-diff',
     });
@@ -391,12 +391,12 @@ maybe('<remote/sync_worker> threeWayMerge() with OT', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFile('create', jsonA2, putResultA2),
+      getChangedFile('insert', jsonA2, putResultA2),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('create', jsonB1, putResultB1),
+      getChangedFile('insert', jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);

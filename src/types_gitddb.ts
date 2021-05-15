@@ -33,8 +33,8 @@ export interface CRUDInterface {
     options?: PutOptions
   ): Promise<PutResult>;
 
-  create(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-  create(
+  insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  insert(
     _id: string,
     document: { [key: string]: any },
     options?: PutOptions

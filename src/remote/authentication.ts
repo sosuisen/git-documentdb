@@ -16,7 +16,7 @@ import {
 import { ConnectionSettingsGitHub, ConnectionSettingsSSH, RemoteOptions } from '../types';
 
 /**
- * Create credential options for GitHub
+ * Insert credential options for GitHub
  *
  * @internal
  */

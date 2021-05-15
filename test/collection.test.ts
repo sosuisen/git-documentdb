@@ -117,7 +117,7 @@ describe('<collection>', () => {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
         expect(commit.message()).toEqual(
-          `put: users/Gunma/prof01/page01${gitDDB.fileExt}(${putResult.file_sha.substr(
+          `insert: users/Gunma/prof01/page01${gitDDB.fileExt}(${putResult.file_sha.substr(
             0,
             SHORT_SHA_LENGTH
           )})`
@@ -331,7 +331,7 @@ describe('<collection>', () => {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
         expect(commit.message()).toEqual(
-          `remove: users/${_id}${gitDDB.fileExt}(${deleteResult.file_sha.substr(
+          `delete: users/${_id}${gitDDB.fileExt}(${deleteResult.file_sha.substr(
             0,
             SHORT_SHA_LENGTH
           )})`

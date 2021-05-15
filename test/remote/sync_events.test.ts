@@ -114,7 +114,7 @@ maybe('<remote/sync> [event]', () => {
         local: getCommitInfo([putResult1]),
       });
 
-      expect(result!.changes.local).toEqual([getChangedFile('create', jsonA1, putResult1)]);
+      expect(result!.changes.local).toEqual([getChangedFile('insert', jsonA1, putResult1)]);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -269,7 +269,7 @@ maybe('<remote/sync> [event]', () => {
       }
 
       expect(changes.length).toBe(1);
-      expect(changes).toEqual([getChangedFile('create', jsonA1, putResult1)]);
+      expect(changes).toEqual([getChangedFile('insert', jsonA1, putResult1)]);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -364,7 +364,7 @@ maybe('<remote/sync> [event]', () => {
 
       expect(changes.length).toBe(1);
 
-      expect(changes).toEqual([getChangedFile('create', jsonB1, putResult1)]);
+      expect(changes).toEqual([getChangedFile('insert', jsonB1, putResult1)]);
 
       await destroyDBs([dbA, dbB]);
     });

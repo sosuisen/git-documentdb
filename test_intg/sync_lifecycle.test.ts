@@ -264,7 +264,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
                 id: jsonB1._id,
                 file_sha: putResultB1.file_sha,
               },
-              operation: 'create',
+              operation: 'insert',
               strategy: 'ours',
             },
           ],
@@ -668,7 +668,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           changes: {
             remote: [
               {
-                operation: 'create',
+                operation: 'insert',
                 data: {
                   id: putResult.id,
                   file_sha: putResult.file_sha,

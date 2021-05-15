@@ -218,10 +218,10 @@ export async function sync_worker (
     // distance_again.ahead > 0
 
     // This case is occurred when not fast-forward.
-    // - create/update a remote file, and create/update another local file
-    // - create/update a remote file, and create/update the same local file with the same contents
-    // - create/update a remote file, and remove another local file
-    // - remove a remote file, and create/update another local file
+    // - insert/update a remote file, and insert/update another local file
+    // - insert/update a remote file, and insert/update the same local file with the same contents
+    // - insert/update a remote file, and remove another local file
+    // - remove a remote file, and insert/update another local file
     // - remove a remote file, and remove the same local file
 
     // Compare trees before and after merge

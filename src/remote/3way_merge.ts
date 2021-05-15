@@ -132,22 +132,22 @@ export async function threeWayMerge (
     );
   }
   else if (!base && !ours && theirs) {
-    // A new file has been created on theirs.
+    // A new file has been inserted on theirs.
     // Write it to the file.
-    // console.log(' #case 1 - Accept theirs (create): ' + path);
+    // console.log(' #case 1 - Accept theirs (insert): ' + path);
     await writeBlobToFile(gitDDB, path, (await theirs.getBlob()).toString());
     await resolvedIndex.addByPath(path);
   }
   else if (!base && ours && !theirs) {
-    // A new file has been created on ours.
+    // A new file has been inserted on ours.
     // Just add it to the index.
-    // console.log(' #case 2 - Accept ours (create): ' + path);
+    // console.log(' #case 2 - Accept ours (insert): ' + path);
     await resolvedIndex.addByPath(path);
   }
   else if (!base && ours && theirs) {
     if (ours.id().equal(theirs.id())) {
-      // The same filenames with exactly the same contents are created on both local and remote.
-      // console.log(' #case 3 - Accept both (create): ' + path);
+      // The same filenames with exactly the same contents are inserted on both local and remote.
+      // console.log(' #case 3 - Accept both (insert): ' + path);
       // Jut add it to the index.
       await resolvedIndex.addByPath(path);
     }
@@ -162,7 +162,7 @@ export async function threeWayMerge (
       );
       if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add it to the index.
-        // console.log(' #case 4 - Conflict. Accept ours (create): ' + path);
+        // console.log(' #case 4 - Conflict. Accept ours (insert): ' + path);
         const data = await getMergedDocument(
           sync.jsonDiff,
           sync.jsonPatch,
@@ -183,12 +183,12 @@ export async function threeWayMerge (
             file_sha,
           },
           strategy: strategy,
-          operation: strategy === 'ours' ? 'create' : 'create-merge',
+          operation: strategy === 'ours' ? 'insert' : 'insert-merge',
         });
       }
       else if (strategy === 'theirs' || strategy === 'theirs-diff') {
         // Write theirs to the file.
-        // console.log(' #case 5 - Conflict. Accept theirs (create): ' + path);
+        // console.log(' #case 5 - Conflict. Accept theirs (insert): ' + path);
         const data = await getMergedDocument(
           sync.jsonDiff,
           sync.jsonPatch,
@@ -209,7 +209,7 @@ export async function threeWayMerge (
             file_sha,
           },
           strategy: strategy,
-          operation: strategy === 'theirs' ? 'create' : 'create-merge',
+          operation: strategy === 'theirs' ? 'insert' : 'insert-merge',
         });
       }
     }
@@ -323,7 +323,7 @@ export async function threeWayMerge (
   }
   else if (base && ours && theirs) {
     if (ours.id().equal(theirs.id())) {
-      // The same filenames with exactly the same contents are created on both local and remote.
+      // The same filenames with exactly the same contents are inserted on both local and remote.
       // Jut add it to the index.
       // console.log(' #case 13 - Accept both (update): ' + path);
       await resolvedIndex.addByPath(path);

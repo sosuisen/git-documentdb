@@ -45,7 +45,7 @@ import {
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
 import { getByRevisionImpl, getImpl } from './crud/get';
-import { deleteImpl } from './crud/remove';
+import { deleteImpl } from './crud/delete';
 import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncImpl } from './remote/sync';
 import { TaskQueue } from './task_queue';
@@ -552,7 +552,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Create or update a document
+   * Insert a document if not exists, otherwise update it.
    *
    * @privateRemarks
    *
@@ -579,7 +579,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-    * Create a document if not exists, otherwise update it.
+    * Insert a document if not exists, otherwise update it.
     *
     * @privateRemarks
     *
@@ -620,16 +620,16 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Create a document
+   * Insert a document
    *
    * @privateRemarks
    *
-   * This is 'overload 1' referred to in test/create.test.ts
+   * This is 'overload 1' referred to in test/insert.test.ts
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of create().
+   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
    *
-   * - create() does not check a write permission of your file system (unlike open()).
+   * - insert() does not check a write permission of your file system (unlike open()).
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
@@ -646,18 +646,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link SameIdExistsError}
    *
    */
-  create (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-   * Create a document
+   * Insert a document
    *
    * @privateRemarks
    *
-   * This is 'overload 2' referred to in test/create.test.ts
+   * This is 'overload 2' referred to in test/insert.test.ts
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of create().
+   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
    *
-   * - create() does not check a write permission of your file system (unlike open()).
+   * - insert() does not check a write permission of your file system (unlike open()).
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
@@ -675,20 +675,20 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link SameIdExistsError}
    *
    */
-  create (
+  insert (
     id: string,
     document: { [key: string]: any },
     options?: PutOptions
   ): Promise<PutResult>;
 
-  create (
+  insert (
     idOrDoc: string | JsonDoc,
     docOrOptions: { [key: string]: any } | PutOptions,
     options?: PutOptions
   ) {
     return putImpl.call(this, idOrDoc, docOrOptions, {
       ...options,
-      createOrUpdate: 'create',
+      insertOrUpdate: 'insert',
     });
   }
 
@@ -746,7 +746,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
+   * @throws {@link CannotInsertedirectoryError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
    * @throws {@link DocumentNotFoundError}
@@ -765,7 +765,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   ) {
     return putImpl.call(this, idOrDoc, docOrOptions, {
       ...options,
-      createOrUpdate: 'update',
+      insertOrUpdate: 'update',
     });
   }
 

@@ -256,7 +256,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     // Check filename
@@ -306,7 +306,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
     await gitDDB.destroy();
   });
@@ -369,7 +369,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
       await gitDDB.destroy();
     });
 
@@ -698,7 +698,7 @@ describe('<crud/put> put(id, document)', () => {
     const repository = gitDDB.repository();
     const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
     const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
+    expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
 
     await gitDDB.destroy();
   });
@@ -748,7 +748,7 @@ describe('<crud/put> put(id, document)', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`put: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
     }
 
     // Check filename

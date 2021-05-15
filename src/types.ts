@@ -79,7 +79,7 @@ export type DatabaseInfoError = {
 export type TaskStatistics = {
   // A property name equals a member of TaskLabel type
   put: number;
-  create: number;
+  insert: number;
   update: number;
   delete: number;
   push: number;
@@ -138,11 +138,11 @@ export type CollectionPath = string;
  * @remarks
  * - commit_message: Internal commit message. default is 'put: path/to/the/file'
  *
- * - createOrUpdate: Change behavior of put(). Don't use it. Use create() or update() instead.
+ * - insertOrUpdate: Change behavior of put(). Don't use it. Use insert() or update() instead.
  */
 export type PutOptions = {
   commit_message?: string;
-  createOrUpdate?: 'create' | 'update';
+  insertOrUpdate?: 'insert' | 'update';
 };
 
 /**
@@ -369,10 +369,10 @@ export type ConflictResolutionStrategyLabels =
  * Write operation
  */
 export type WriteOperation =
-  | 'create'
+  | 'insert'
   | 'update'
   | 'delete'
-  | 'create-merge'
+  | 'insert-merge'
   | 'update-merge';
 
 /**
@@ -448,7 +448,7 @@ export type RemoteOptions = {
  * TaskLabel
  * DatabaseStatistics.taskCount must have the same members.
  */
-export type TaskLabel = 'put' | 'create' | 'update' | 'delete' | 'sync' | 'push';
+export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
 
 /**
  * Task for taskQueue

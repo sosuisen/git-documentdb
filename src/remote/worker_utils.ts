@@ -119,7 +119,7 @@ export async function getChanges (gitDDB: IDocumentDB, diff: nodegit.Diff) {
     }
     else if (!oldExist && newExist) {
       changes.push({
-        operation: 'create',
+        operation: 'insert',
         data: {
           ...newDocMetadata,
           // eslint-disable-next-line no-await-in-loop

@@ -143,14 +143,14 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Create a document
+   * Insert a document
    *
    * @privateRemarks
    *
-   * This is 'overload 1' referred to in test/create.test.ts
+   * This is 'overload 1' referred to in test/insert.test.ts
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of create().
+   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
    *
    * - create() does not check a write permission of your file system (unlike open()).
    *
@@ -169,16 +169,16 @@ export class Collection implements CRUDInterface {
    * @throws {@link SameIdExistsError}
    *
    */
-  create (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-   * Create a document
+   * Insert a document
    *
    * @privateRemarks
    *
-   * This is 'overload 2' referred to in test/create.test.ts
+   * This is 'overload 2' referred to in test/insert.test.ts
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of create().
+   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
    *
    * - create() does not check a write permission of your file system (unlike open()).
    *
@@ -198,13 +198,13 @@ export class Collection implements CRUDInterface {
    * @throws {@link SameIdExistsError}
    *
    */
-  create (
+  insert (
     id: string,
     document: { [key: string]: any },
     options?: PutOptions
   ): Promise<PutResult>;
 
-  create (
+  insert (
     idOrDoc: string | JsonDoc,
     docOrOptions: { [key: string]: any } | PutOptions,
     options?: PutOptions
@@ -216,7 +216,7 @@ export class Collection implements CRUDInterface {
       return this._gitDDB
         .put(_id, document, {
           ...options,
-          createOrUpdate: 'create',
+          insertOrUpdate: 'insert',
         })
         .then(res => {
           res.id = orgId;
@@ -232,7 +232,7 @@ export class Collection implements CRUDInterface {
         return this._gitDDB
           .put(_id, document, {
             ...options,
-            createOrUpdate: 'create',
+            insertOrUpdate: 'insert',
           })
           .then(res => {
             res.id = orgId;
@@ -320,7 +320,7 @@ export class Collection implements CRUDInterface {
       return this._gitDDB
         .put(_id, document, {
           ...options,
-          createOrUpdate: 'update',
+          insertOrUpdate: 'update',
         })
         .then(res => {
           res.id = orgId;
@@ -336,7 +336,7 @@ export class Collection implements CRUDInterface {
         return this._gitDDB
           .put(_id, document, {
             ...options,
-            createOrUpdate: 'update',
+            insertOrUpdate: 'update',
           })
           .then(res => {
             res.id = orgId;

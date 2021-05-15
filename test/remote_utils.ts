@@ -158,7 +158,7 @@ export const createRemoteRepository = async (remoteURL: string) => {
       personal_access_token: token,
     },
   })
-    .createDB()
+    .create()
     .catch(err => {
       console.debug('Cannot create: ' + remoteURL);
       console.debug(err);

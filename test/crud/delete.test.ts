@@ -19,7 +19,7 @@ import {
   UndefinedDocumentIdError,
 } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
-import { remove_worker } from '../../src/crud/remove';
+import { delete_worker } from '../../src/crud/delete';
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
@@ -39,7 +39,7 @@ beforeAll(() => {
 afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
-describe('<crud/remove>', () => {
+describe('<crud/delete>', () => {
   describe('delete():', () => {
     it('deletes a document by id.', async () => {
       const dbName = monoId();
@@ -68,7 +68,7 @@ describe('<crud/remove>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`remove: ${_id}${gitDDB.fileExt}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id}${gitDDB.fileExt}(${short_sha})`);
       }
 
       await gitDDB.destroy();
@@ -124,7 +124,7 @@ describe('<crud/remove>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`remove: ${_id}${gitDDB.fileExt}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id}${gitDDB.fileExt}(${short_sha})`);
       }
 
       await gitDDB.destroy();
@@ -153,7 +153,7 @@ describe('<crud/remove>', () => {
       });
       await expect(gitDDB.remove('prof01')).rejects.toThrowError(RepositoryNotOpenError);
       await expect(
-        remove_worker(gitDDB, 'prof01', gitDDB.fileExt, 'message')
+        delete_worker(gitDDB, 'prof01', gitDDB.fileExt, 'message')
       ).rejects.toThrowError(RepositoryNotOpenError);
       await gitDDB.destroy();
     });
@@ -226,7 +226,7 @@ describe('<crud/remove>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`remove: ${_id1}${gitDDB.fileExt}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id1}${gitDDB.fileExt}(${short_sha})`);
       }
 
       /**
@@ -239,9 +239,9 @@ describe('<crud/remove>', () => {
       await expect(gitDDB.get(_id1)).resolves.toBeUndefined();
       await expect(gitDDB.remove(_id1)).rejects.toThrowError(DocumentNotFoundError);
       // @ts-ignore
-      await expect(remove_worker(undefined)).rejects.toThrowError(UndefinedDBError);
+      await expect(delete_worker(undefined)).rejects.toThrowError(UndefinedDBError);
       // @ts-ignore
-      await expect(remove_worker(gitDDB, undefined)).rejects.toThrowError(
+      await expect(delete_worker(gitDDB, undefined)).rejects.toThrowError(
         DocumentNotFoundError
       );
 
@@ -335,7 +335,7 @@ describe('<crud/remove>', () => {
     });
   });
 
-  describe('remove_worker', () => {
+  describe('delete_worker', () => {
     const _id_a = 'apple';
     const name_a = 'Apple woman';
     const _id_b = 'banana';
@@ -408,11 +408,11 @@ describe('<crud/remove>', () => {
 
       await expect(
         Promise.all([
-          remove_worker(gitDDB, _id_a, gitDDB.fileExt, 'message'),
-          remove_worker(gitDDB, _id_b, gitDDB.fileExt, 'message'),
-          remove_worker(gitDDB, _id_c01, gitDDB.fileExt, 'message'),
-          remove_worker(gitDDB, _id_c02, gitDDB.fileExt, 'message'),
-          remove_worker(gitDDB, _id_d, gitDDB.fileExt, 'message'),
+          delete_worker(gitDDB, _id_a, gitDDB.fileExt, 'message'),
+          delete_worker(gitDDB, _id_b, gitDDB.fileExt, 'message'),
+          delete_worker(gitDDB, _id_c01, gitDDB.fileExt, 'message'),
+          delete_worker(gitDDB, _id_c02, gitDDB.fileExt, 'message'),
+          delete_worker(gitDDB, _id_d, gitDDB.fileExt, 'message'),
         ])
       ).rejects.toThrowError();
 
