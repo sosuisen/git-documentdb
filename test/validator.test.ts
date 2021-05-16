@@ -8,9 +8,11 @@
 
 import path from 'path';
 import fs from 'fs-extra';
+import { Validator } from '../src/validator';
 import { GitDocumentDB } from '../src';
 import {
   InvalidCollectionPathCharacterError,
+  InvalidCollectionPathError,
   InvalidCollectionPathLengthError,
   InvalidDbNameCharacterError,
   InvalidIdCharacterError,
@@ -18,8 +20,7 @@ import {
   InvalidLocalDirCharacterError,
   InvalidPropertyNameInDocumentError,
   UndefinedDocumentIdError,
-  Validator,
-} from '../src/main';
+} from '../src/error';
 
 const localDir = './test/database_validate';
 
@@ -138,7 +139,6 @@ describe('<validator>', () => {
     expect(() => validator.validateId('abc/../def')).toThrowError(
       InvalidCollectionPathCharacterError
     );
-
     const maxLen = validator.maxIdLength();
     let _id = '';
     for (let i = 0; i < maxLen; i++) {
@@ -149,6 +149,15 @@ describe('<validator>', () => {
     expect(() => validator.validateId(_id)).toThrowError(InvalidIdLengthError);
 
     expect(() => validator.validateId('春はあけぼの')).not.toThrowError();
+  });
+
+  it('throws InvalidCollectionPathError', () => {
+    expect(() => validator.validateId('.gitddb/foo')).toThrowError(
+      InvalidCollectionPathError
+    );
+    expect(() => validator.validateCollectionPath('.gitddb/')).toThrowError(
+      InvalidCollectionPathError
+    );
   });
 
   it('validateCollectionPath', () => {

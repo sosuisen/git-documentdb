@@ -4,8 +4,8 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/remote/3way_merge.test.js"],
-    "default": "test/remote/3way_merge.test.js"
+    "options": ["test/validator.test.js"],
+    "default": "test/validator.test.js"
   }],
   "configurations": [
       {

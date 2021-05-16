@@ -280,7 +280,7 @@ export class Validator {
 
     const normalized = Validator.normalizeCollectionPath(collectionPath);
 
-    if (collectionPath === '.gitddb/') {
+    if (normalized === '.gitddb/') {
       throw new InvalidCollectionPathError(collectionPath);
     }
 
