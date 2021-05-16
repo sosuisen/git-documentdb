@@ -169,6 +169,8 @@ export class Sync implements ISync {
     };
     // Deep clone
     this._options = JSON.parse(JSON.stringify(_options));
+    // Set function again
+    this._options.conflict_resolution_strategy = _options.conflict_resolution_strategy;
 
     if (this._options.remote_url === undefined || this._options.remote_url === '') {
       /**
