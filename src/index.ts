@@ -784,6 +784,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
+   * @throws {@link CorruptedRepositoryError}
+   * @throws {@link InvalidBackNumberError}
    */
   get (docId: string, backNumber?: number): Promise<JsonDoc | undefined> {
     // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
@@ -808,6 +810,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
+   * @throws {@link CorruptedRepositoryError}
+   * @throws {@link InvalidBackNumberError}
    */
   getDocWithMetaData (
     docId: string,
@@ -833,6 +837,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedFileSHAError}
    * @throws {@link InvalidJsonObjectError}
+   * @throws {@link CannotGetEntryError}
    */
   getByRevision (fileSHA: string): Promise<JsonDoc | undefined> {
     return getByRevisionImpl.call(this, fileSHA);
@@ -846,7 +851,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedFileSHAError}
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidIdCharacterError}
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link InvalidIdLengthError}
    * @throws {@link CannotGetEntryError}
    */
   getDocHistory (docID: string): Promise<string[]> {
