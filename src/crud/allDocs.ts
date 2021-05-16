@@ -123,7 +123,6 @@ export async function allDocsImpl (
 
     while (filteredEntries.length > 0) {
       const entry = filteredEntries.shift();
-      if (entry === undefined) break;
       if (entry?.isDirectory()) {
         if (options.recursive && entry.name() !== '.gitddb') {
           // eslint-disable-next-line no-await-in-loop
@@ -134,15 +133,15 @@ export async function allDocsImpl (
         }
       }
       else {
-        const _id = entry.path().replace(new RegExp(this.fileExt + '$'), '');
+        const _id = entry!.path().replace(new RegExp(this.fileExt + '$'), '');
         const documentInBatch: JsonDocWithMetadata = {
           id: _id,
-          file_sha: entry.id().tostrS(),
+          file_sha: entry!.id().tostrS(),
         };
 
         if (options.include_docs) {
           // eslint-disable-next-line no-await-in-loop
-          const blob = await entry.getBlob();
+          const blob = await entry!.getBlob();
           // eslint-disable-next-line max-depth
           try {
             const doc = JSON.parse(blob.toString());
