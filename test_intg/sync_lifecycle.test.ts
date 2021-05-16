@@ -75,7 +75,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  // it.only('Run this test with .only to just remove remote repositories.', async () => {});
+  // it.only('Run this test with .only to just remove remote repositories.', async () => { await removeRemoteRepositories('test_'); });
 
   /**
    * Initialize synchronization by createDB() with remoteURL
