@@ -115,14 +115,13 @@ export async function push_worker (
   gitDDB: IDocumentDB,
   sync: ISync,
   taskId: string,
-  skipStartEvent?: boolean
+  skipStartEvent = false
 ): Promise<SyncResultPush> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
 
-  skipStartEvent ??= false;
   if (!skipStartEvent) {
     sync.eventHandlers.start.forEach(func => {
       func(taskId, sync.currentRetries());
