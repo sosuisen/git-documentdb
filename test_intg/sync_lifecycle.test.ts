@@ -118,6 +118,29 @@ maybe('intg <sync_lifecycle> Sync', () => {
       destroyDBs([dbA]);
     });
 
+    it.skip('getRemoteURLs() returns sync', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+        log_level: 'trace',
+      });
+      const options: RemoteOptions = {
+        remote_url: remoteURL,
+        connection: { type: 'github', personal_access_token: token },
+      };
+      await dbA.createDB(options);
+      const remoteURL2 = remoteURLBase + serialId();
+      const options2: RemoteOptions = {
+        remote_url: remoteURL2,
+        connection: { type: 'github', personal_access_token: token },
+      };
+      await dbA.sync(options2);
+      expect(dbA.getRemoteURLs()).toEqual([remoteURL, remoteURL2]);
+      destroyDBs([dbA]);
+    });
+
     /**
      * Basics: A is empty, creates remote, puts data; B is empty, clones the remote
      */
