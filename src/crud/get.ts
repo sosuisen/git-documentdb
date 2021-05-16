@@ -54,7 +54,6 @@ export async function getImpl (
   ); // get HEAD
   let document;
   if (!head) {
-    // throw new DocumentNotFoundError();
     return undefined;
   }
 
@@ -70,7 +69,6 @@ export async function getImpl (
         // GIT_ERROR      = -1,		/**< Generic error */
         // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
 
-        // throw new DocumentNotFoundError(err.message);
         return undefined;
       }
 
@@ -150,7 +148,6 @@ export async function getByRevisionImpl (
       // GIT_ERROR      = -1,		/**< Generic error */
       // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
 
-      // throw new DocumentNotFoundError(err.message);
       return undefined;
     }
 

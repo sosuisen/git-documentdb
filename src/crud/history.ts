@@ -80,6 +80,12 @@ export async function getDocHistoryImpl (
   return fileSHAArray;
 }
 
+/**
+ * getBackNumber
+ *
+ * @param fileName e.g.) foo.json
+ * @param backNumber 0 or greater
+ */
 export async function getBackNumber (
   gitDDB: IDocumentDB,
   fileName: string,
@@ -97,6 +103,7 @@ export async function getBackNumber (
   let fileSHA = '';
   walk.pushHead();
   walk.sorting(nodegit.Revwalk.SORT.TOPOLOGICAL, nodegit.Revwalk.SORT.TIME);
+  // eslint-disable-next-line complexity
   await (async function step () {
     const oid = await walk.next().catch(() => {
       return null;
@@ -119,16 +126,26 @@ export async function getBackNumber (
       }
     }
 
-    if (entry != null) {
+    if (headFlag) {
       if (backNumber === 0) {
-        if (headFlag) {
+        if (entry != null) {
+          // The file is not deleted when headFlag equals true and entry exists.
           fileSHA = entry.sha();
           return;
         }
-        // throw new DocumentNotFoundError();
+        // The file is deleted.
         return;
       }
+      // Go next step
+      if (entry != null) {
+        fileSHAHash[entry.sha()] = true;
+        backNumber++;
+      }
+      headFlag = false;
+      await step();
+    }
 
+    if (entry != null) {
       if (!fileSHAHash[entry.sha()]) {
         fileSHAHash[entry.sha()] = true;
         if (Object.keys(fileSHAHash).length === backNumber) {
@@ -138,7 +155,6 @@ export async function getBackNumber (
         }
       }
     }
-    headFlag = false;
     await step();
   })();
 

@@ -216,7 +216,7 @@ describe('<crud/history> getBackNumber()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws DocumentNotFoundError when the backNumber#0 does not exist', async () => {
+  it('returns undefined when the backNumber#0 does not exist', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -229,7 +229,7 @@ describe('<crud/history> getBackNumber()', () => {
     await gitDDB.destroy();
   });
 
-  it('returns DocumentNotFoundError when the backNumber#1 does not exist', async () => {
+  it('returns undefined when the backNumber#1 does not exist', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -237,8 +237,33 @@ describe('<crud/history> getBackNumber()', () => {
     });
     await gitDDB.createDB();
 
-    await expect(getBackNumber(gitDDB, 'tmp', 0)).resolves.toBeUndefined();
+    await expect(getBackNumber(gitDDB, 'tmp', 1)).resolves.toBeUndefined();
 
+    await gitDDB.destroy();
+  });
+
+  it('returns backNumber#0', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const putResult = await gitDDB.put({ _id: 'tmp', name: 0 });
+    await expect(getBackNumber(gitDDB, 'tmp.json', 0)).resolves.toBe(putResult.file_sha);
+    await gitDDB.destroy();
+  });
+
+  it('returns backNumber#1', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const putResult = await gitDDB.put({ _id: 'tmp', name: 0 });
+    await gitDDB.put({ _id: 'tmp', name: 1 });
+    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.file_sha);
     await gitDDB.destroy();
   });
 });

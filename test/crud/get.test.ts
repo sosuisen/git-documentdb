@@ -143,7 +143,7 @@ describe('<crud/get> get()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws DocumentNotFoundError if db does not have commits.', async () => {
+  it('returns undefined if db does not have commits.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -166,7 +166,7 @@ describe('<crud/get> get()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws DocumentNotFoundError if a document is not put.', async () => {
+  it('returns undefined if a document is not put.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
@@ -273,7 +273,7 @@ describe('<crud/get> get()', () => {
       await destroyDBs([gitDDB]);
     });
 
-    it('throws DocumentNotFoundError when get deleted document with backNumber #0.', async () => {
+    it('returns undefined when get deleted document with backNumber #0.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -350,12 +350,33 @@ describe('<crud/get> get()', () => {
       await gitDDB.put(jsonA02);
 
       // Get
-      await expect(gitDDB.get(_idA, 2)).resolves.toMatchObject(jsonA01);
+      await expect(gitDDB.get(_idA, 1)).resolves.toMatchObject(jsonA01);
 
       await destroyDBs([gitDDB]);
     });
 
-    it('throws DocumentNotFoundError when get document with backNumber that does not exist.', async () => {
+    it('returns undefined when get document with backNumber that does not exist (1)', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.createDB();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      await gitDDB.delete(_idA);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+
+      // Get
+      await expect(gitDDB.get(_idA, 2)).resolves.toBeUndefined();
+
+      await destroyDBs([gitDDB]);
+    });
+
+    it('returns undefined when get document with backNumber that does not exist (2)', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         db_name: dbName,
@@ -482,7 +503,7 @@ describe('<crud/get> getByRevision()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws DocumentNotFoundError', async () => {
+  it('returns undefined', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
