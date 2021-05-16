@@ -150,6 +150,7 @@ export class Sync implements ISync {
    *
    * @throws {@link UndefinedRemoteURLError}
    * @throws {@link IntervalTooSmallError}
+   * @throws {@link InvalidAuthenticationTypeError}
    */
   constructor (_gitDDB: IDocumentDB, _options?: RemoteOptions) {
     this._gitDDB = _gitDDB;
