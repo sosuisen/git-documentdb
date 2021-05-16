@@ -317,12 +317,13 @@ export class Sync implements ISync {
   }
 
   /**
-   * Get remote options
-   * (options are read only)
-   *
+   * Get remote options (read only)
    */
   options (): Required<RemoteOptions> {
-    return JSON.parse(JSON.stringify(this._options));
+    const newOptions: Required<RemoteOptions> = JSON.parse(JSON.stringify(this._options));
+    // options include function.
+    newOptions.conflict_resolution_strategy = this._options.conflict_resolution_strategy!;
+    return newOptions;
   }
 
   /**
