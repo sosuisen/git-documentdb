@@ -7,6 +7,7 @@
  */
 
 import path from 'path';
+import { deepStrictEqual } from 'assert';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
@@ -590,5 +591,46 @@ describe('<crud/get> getByRevision()', () => {
     );
 
     await gitDDB.destroy();
+  });
+
+  describe('<crud/get> getDocWithMetadata', () => {
+    it('returns JsonDoc with metadata', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.createDB();
+      const _id = 'prof01';
+      const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
+      // Get
+      await expect(gitDDB.getDocWithMetaData(_id)).resolves.toEqual({
+        id: _id,
+        file_sha: putResult.file_sha,
+        doc: { _id: _id, name: 'shirase' },
+      });
+      await gitDDB.destroy();
+    });
+
+    it('returns backNumber#1 with metadata', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.createDB();
+      const _id = 'prof01';
+      const putResult = await gitDDB.put({ _id: _id, name: '1' });
+      await gitDDB.put({ _id: _id, name: '2' });
+      // Get
+      await expect(gitDDB.getDocWithMetaData(_id, 1)).resolves.toEqual({
+        id: _id,
+        file_sha: putResult.file_sha,
+        doc: { _id: _id, name: '1' },
+      });
+      await gitDDB.destroy();
+    });
   });
 });

@@ -109,7 +109,7 @@ export async function getImpl (
         return {
           id: doc._id,
           file_sha: fileSHA,
-          doc: document,
+          doc,
         };
       }
       return doc;
