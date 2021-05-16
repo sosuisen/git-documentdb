@@ -56,10 +56,10 @@ import { getDocHistoryImpl } from './crud/history';
 
 const defaultLogLevel = 'info';
 
-const databaseName = 'GitDocumentDB';
-const databaseVersion = '1.0';
-const gitddbVersion = `${databaseName}: ${databaseVersion}`;
-const gitddbVersionFileName = '.gitddb/lib_version';
+export const DATABASE_NAME = 'GitDocumentDB';
+export const DATABASE_VERSION = '1.0';
+export const GIT_DOCUMENTDB_VERSION = `${DATABASE_NAME}: ${DATABASE_VERSION}`;
+export const GIT_DOCUMENTDB_VERSION_FILENAME = '.gitddb/lib_version';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -364,9 +364,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     // First commit
     await put_worker(
       this,
-      gitddbVersionFileName,
+      GIT_DOCUMENTDB_VERSION_FILENAME,
       '',
-      gitddbVersion,
+      GIT_DOCUMENTDB_VERSION,
       this._firstCommitMessage
     );
     return this._dbInfo;
@@ -374,7 +374,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   private async _setDbInfo () {
     const version = await fs
-      .readFile(path.resolve(this._workingDirectory, gitddbVersionFileName), 'utf8')
+      .readFile(
+        path.resolve(this._workingDirectory, GIT_DOCUMENTDB_VERSION_FILENAME),
+        'utf8'
+      )
       .catch(() => {
         (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = false;
         (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
@@ -382,9 +385,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       });
     if (version === undefined) return this._dbInfo;
 
-    if (new RegExp('^' + databaseName).test(version)) {
+    if (new RegExp('^' + DATABASE_NAME).test(version)) {
       (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = true;
-      if (new RegExp('^' + gitddbVersion).test(version)) {
+      if (new RegExp('^' + GIT_DOCUMENTDB_VERSION).test(version)) {
         (this._dbInfo as DatabaseInfoSuccess).is_valid_version = true;
       }
       else {
