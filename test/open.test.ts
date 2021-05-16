@@ -11,7 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
 import { CannotOpenRepositoryError, RepositoryNotFoundError } from '../src/error';
-import { GitDocumentDB } from '../src/index';
+import { GIT_DOCUMENTDB_VERSION_FILENAME, GitDocumentDB } from '../src/index';
 import { put_worker } from '../src/crud/put';
 import { DatabaseInfo, DatabaseInfoError } from '../src/types';
 
@@ -92,13 +92,21 @@ describe('<index> open()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
+    await fs.ensureDir(gitDDB.workingDir());
+
     // Create empty repository
     await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
       return Promise.reject(err);
     });
     await gitDDB.open();
-    // First commit with another db version
-    await put_worker(gitDDB, '.gitddb/version', '', 'Another App: 0.1', 'first commit');
+    // put another db version
+    await put_worker(
+      gitDDB,
+      GIT_DOCUMENTDB_VERSION_FILENAME,
+      '',
+      'Another App: 0.1',
+      'first commit'
+    );
     await gitDDB.close();
 
     await expect(gitDDB.open()).resolves.toMatchObject({
