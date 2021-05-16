@@ -76,8 +76,6 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  // it.only('Run this test with .only to just remove remote repositories.', async () => { await removeRemoteRepositories('test_'); });
-
   /**
    * before:
    * dbA   :
