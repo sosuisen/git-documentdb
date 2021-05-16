@@ -1,6 +1,7 @@
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
 import {
   CannotDeleteDataError,
   InvalidConflictStateError,
@@ -26,7 +27,7 @@ async function getStrategy (
   ours?: nodegit.TreeEntry,
   theirs?: nodegit.TreeEntry
 ) {
-  const defaultStrategy: ConflictResolutionStrategies = 'ours-diff';
+  const defaultStrategy: ConflictResolutionStrategies = DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
   if (strategy === undefined) {
     strategy = defaultStrategy;
   }
