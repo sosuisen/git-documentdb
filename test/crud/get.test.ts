@@ -16,6 +16,7 @@ import { sleep } from '../../src/utils';
 import { destroyDBs } from '../remote_utils';
 import {
   CannotGetEntryError,
+  CorruptedRepositoryError,
   DatabaseClosingError,
   InvalidBackNumberError,
   InvalidFileSHAFormatError,
@@ -415,6 +416,30 @@ describe('<crud/get> get()', () => {
       stub.rejects(new Error());
       await expect(gitDDB.get('prof01', 1)).rejects.toThrowError(CannotGetEntryError);
       await gitDDB.destroy();
+    });
+
+    it('throws CorruptedRepositoryError when target blob does not exist.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.createDB();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      const putResult = await gitDDB.put(jsonA01);
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      await gitDDB.put(jsonA02);
+
+      const dirName = putResult.file_sha.substr(0, 2);
+      const fileName = putResult.file_sha.substr(2);
+      const fullPath = path.resolve(gitDDB.workingDir(), '.git/objects', dirName, fileName);
+      fs.removeSync(fullPath);
+
+      await expect(gitDDB.get(_idA, 1)).rejects.toThrowError(CorruptedRepositoryError);
+
+      await destroyDBs([gitDDB]);
     });
   });
 });

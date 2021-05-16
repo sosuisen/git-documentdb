@@ -571,3 +571,9 @@ export class InvalidFileSHAFormatError extends BaseError {
     super(`File SHA format is invalid.`);
   }
 }
+
+export class CorruptedRepositoryError extends BaseError {
+  constructor () {
+    super(`Repository is corrupted.`);
+  }
+}

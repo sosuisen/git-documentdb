@@ -10,6 +10,7 @@ import nodegit from '@sosuisen/nodegit';
 import { IDocumentDB } from '../types_gitddb';
 import {
   CannotGetEntryError,
+  CorruptedRepositoryError,
   DatabaseClosingError,
   InvalidBackNumberError,
   InvalidFileSHAFormatError,
@@ -114,7 +115,8 @@ export async function getImpl (
       }
       return doc;
     }
-    return undefined;
+    // The document exists in index, but not found.
+    throw new CorruptedRepositoryError();
   }
 
   throw new InvalidBackNumberError();
