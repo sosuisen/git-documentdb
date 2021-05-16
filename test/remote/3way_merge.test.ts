@@ -73,8 +73,6 @@ maybe('<remote/3way_merge>', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  // it.only('Run this test with .only to just remove remote repositories.', async () => { await removeRemoteRepositories('test_'); });
-
   it('throws InvalidConflictsStateError', async () => {
     const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
       remoteURLBase,
@@ -1494,7 +1492,7 @@ maybe('<remote/3way_merge>', () => {
    * 3-way merge:
    *   jsonB1:16 - Conflict. Accept ours (update)
    */
-  it.only('resolves case 16 by user strategy function.', async () => {
+  it('resolves case 16 by user strategy function.', async () => {
     const userStrategyByDate = (ours?: JsonDoc, theirs?: JsonDoc) => {
       if (ours === undefined || theirs === undefined) {
         throw new Error('Undefined document');
@@ -1568,6 +1566,93 @@ maybe('<remote/3way_merge>', () => {
     // Sync dbA
     const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirFiles(dbA)).toEqual([jsonB1]);
+
+    await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+    await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
+
+  /**
+   * before:  jsonA1
+   * dbA   : +jsonA1
+   * dbB   :  jsonB1
+   * after : +jsonA1
+   *
+   * 3-way merge:
+   *   jsonA1:17 - Conflict. Accept theirs (update)
+   */
+  it('resolves case 17 by user strategy function.', async () => {
+    const userStrategyByDate = (ours?: JsonDoc, theirs?: JsonDoc) => {
+      if (ours === undefined || theirs === undefined) {
+        throw new Error('Undefined document');
+      }
+      if (ours.date > theirs.date) {
+        return 'ours';
+      }
+      return 'theirs';
+    };
+    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      conflict_resolution_strategy: userStrategyByDate,
+    });
+    // A puts and pushes
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    const putResultA1 = await dbA.put(jsonA1);
+    await remoteA.tryPush();
+
+    const dbNameB = serialId();
+    const dbB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbNameB,
+      local_dir: localDir,
+    });
+    // Clone dbA
+    await dbB.createDB({ ...remoteA.options(), conflict_resolution_strategy: 'theirs' });
+    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+
+    // A puts and pushes
+    const jsonA1dash = { _id: '1', name: 'updated', date: '2021/06/16' };
+    const putResultA1dash = await dbA.put(jsonA1dash);
+    await remoteA.tryPush();
+
+    // B puts
+    const jsonB1 = { _id: '1', name: 'fromB', date: '2021/05/16' };
+    const putResultB1 = await dbB.put(jsonB1);
+
+    // It will occur conflict on id 1.json.
+    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    expect(syncResult1.action).toBe('resolve conflicts and push');
+    expect(syncResult1.commits).toMatchObject({
+      local: getCommitInfo([
+        putResultA1dash,
+        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+      ]),
+      remote: getCommitInfo([
+        putResultB1,
+        `resolve: 1${dbA.fileExt}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+      ]),
+    });
+    expect(syncResult1.changes.local.length).toBe(1);
+    expect(syncResult1.changes.local).toEqual([
+      getChangedFile('update', jsonA1dash, putResultA1dash),
+    ]);
+
+    expect(syncResult1.changes.remote.length).toBe(0);
+
+    expect(syncResult1.conflicts.length).toEqual(1);
+    expect(syncResult1.conflicts).toEqual([
+      {
+        target: {
+          id: '1',
+          file_sha: putResultA1dash.file_sha,
+        },
+        strategy: 'theirs',
+        operation: 'update',
+      },
+    ]);
+    // Conflict occurs on 1.json
+
+    expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
+    expect(getWorkingDirFiles(dbB)).toEqual([jsonA1dash]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
