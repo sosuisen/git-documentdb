@@ -9,6 +9,7 @@
 import nodegit from '@sosuisen/nodegit';
 import {
   HttpProtocolRequiredError,
+  InvalidAuthenticationTypeError,
   InvalidRepositoryURLError,
   InvalidSSHKeyPathError,
   UndefinedPersonalAccessTokenError,
@@ -85,7 +86,7 @@ export const createCredential = (options: RemoteOptions) => {
   }
   else {
     // @ts-ignore
-    throw new InvalidAuthenticationTypeError(this._options.connection.type);
+    throw new InvalidAuthenticationTypeError(options.connection.type);
   }
 
   const callbacks = {
