@@ -20,6 +20,8 @@ import {
   HttpProtocolRequiredError,
   IntervalTooSmallError,
   InvalidRepositoryURLError,
+  PushNotAllowedError,
+  RemoteRepositoryConnectError,
   RepositoryNotOpenError,
   SyncIntervalLessThanOrEqualToRetryIntervalError,
   UndefinedPersonalAccessTokenError,
@@ -366,6 +368,42 @@ maybe('<remote/sync> Sync#constructor()', () => {
   });
 });
 
+maybe('<remote/sync> init()', () => {
+  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
+    ? process.env.GITDDB_GITHUB_USER_URL
+    : process.env.GITDDB_GITHUB_USER_URL + '/';
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+
+  beforeAll(async () => {
+    // Remove remote
+    await removeRemoteRepositories(reposPrefix);
+  });
+
+  it('throws RemoteRepositoryConnectError.', async () => {
+    const dbName = serialId();
+    const remoteURL =
+      'https://github.com/sosuisen/foobar_test_for_remote_repository_connect_error';
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const options: RemoteOptions = {
+      remote_url: remoteURL,
+      connection: {
+        type: 'github',
+        personal_access_token: 'foo',
+      },
+    };
+    const sync = new Sync(gitDDB, options);
+    //
+    await expect(sync.init(gitDDB.repository()!)).rejects.toThrowError(
+      RemoteRepositoryConnectError
+    );
+    await gitDDB.destroy();
+  });
+});
+
 maybe('<remote/sync> syncImpl()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
@@ -391,5 +429,41 @@ maybe('<remote/sync> syncImpl()', () => {
       })
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
+  });
+});
+
+maybe('<remote/sync> tryPush()', () => {
+  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
+    ? process.env.GITDDB_GITHUB_USER_URL
+    : process.env.GITDDB_GITHUB_USER_URL + '/';
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+
+  beforeAll(async () => {
+    // Remove remote
+    await removeRemoteRepositories(reposPrefix);
+  });
+
+  it('throws PushNotAllowedError.', async () => {
+    const remoteURL = remoteURLBase + serialId();
+    const dbName = serialId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const options: RemoteOptions = {
+      remote_url: remoteURL,
+      connection: {
+        type: 'github',
+        personal_access_token: token,
+      },
+      sync_direction: 'pull',
+    };
+    const sync = new Sync(gitDDB, options);
+    await await expect(sync.init(gitDDB.repository()!)).rejects.toThrowError(
+      PushNotAllowedError
+    );
+
+    destroyDBs([gitDDB]);
   });
 });

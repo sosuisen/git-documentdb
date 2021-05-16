@@ -16,6 +16,7 @@ import { destroyDBs } from '../remote_utils';
 import {
   CannotGetEntryError,
   DatabaseClosingError,
+  InvalidBackNumberError,
   InvalidFileSHAFormatError,
   InvalidIdCharacterError,
   InvalidJsonObjectError,
@@ -255,6 +256,23 @@ describe('<crud/get> get()', () => {
   });
 
   describe('<crud/get> get() back number', () => {
+    it('throws InvalidBackNumberError when back_number is less than 0.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      await gitDDB.createDB();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      // Get
+      await expect(gitDDB.get(_idA, -1)).rejects.toThrowError(InvalidBackNumberError);
+
+      await destroyDBs([gitDDB]);
+    });
+
     it('throws DocumentNotFoundError when get deleted document with backNumber #0.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({

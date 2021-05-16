@@ -85,6 +85,19 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
   });
 
   describe(': create()', () => {
+    it('throws InvalidAuthenticationTypeError', () => {
+      const remoteURL = remoteURLBase + serialId();
+      expect(() => {
+        const repo = new RemoteRepository({
+          remote_url: remoteURL,
+          connection: {
+            // @ts-ignore
+            type: 'gitlab',
+          },
+        });
+      });
+    });
+
     it('creates a remote repository on GitHub by personal access token', async () => {
       const remoteURL = remoteURLBase + serialId();
       const octokit = new Octokit({
@@ -94,6 +107,26 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const owner = urlArray[urlArray.length - 2];
       const repo = urlArray[urlArray.length - 1];
 
+      await new RemoteRepository({
+        remote_url: remoteURL,
+        connection: {
+          type: 'github',
+          personal_access_token: token,
+        },
+      }).create();
+      await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
+    });
+
+    it('creates a remote repository by url which ends with .git.', async () => {
+      let remoteURL = remoteURLBase + serialId();
+      const octokit = new Octokit({
+        auth: token,
+      });
+      const urlArray = remoteURL.split('/');
+      const owner = urlArray[urlArray.length - 2];
+      const repo = urlArray[urlArray.length - 1];
+
+      remoteURL += '.git';
       await new RemoteRepository({
         remote_url: remoteURL,
         connection: {

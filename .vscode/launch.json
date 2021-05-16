@@ -4,8 +4,8 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test_intg/3way_merge_ot.test.js"],
-    "default": "test_intg/3way_merge_ot.test.js"
+    "options": ["test/remote/3way_merge.test.js"],
+    "default": "test/remote/3way_merge.test.js"
   }],
   "configurations": [
       {

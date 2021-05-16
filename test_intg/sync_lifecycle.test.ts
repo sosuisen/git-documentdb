@@ -17,7 +17,11 @@ import sinon from 'sinon';
 import { Sync } from '../src/remote/sync';
 import { GitDocumentDB } from '../src';
 import { RemoteOptions, SyncResultPush } from '../src/types';
-import { PushWorkerError, UnfetchedCommitExistsError } from '../src/error';
+import {
+  PushWorkerError,
+  RemoteAlreadyRegisteredError,
+  UnfetchedCommitExistsError,
+} from '../src/error';
 import { sleep } from '../src/utils';
 import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../test/remote_utils';
 import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
@@ -865,6 +869,27 @@ maybe('intg <sync_lifecycle> Sync', () => {
    * Initialize means creating local and remote repositories by using a remote_url
    */
   describe('initialized by sync():', () => {
+    it('throws RemoteAlreadyRegisteredError when sync() the same url twice.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameA,
+        local_dir: localDir,
+      });
+
+      await dbA.createDB();
+
+      const options: RemoteOptions = {
+        connection: { type: 'github', personal_access_token: token },
+      };
+      const remoteA = await dbA.sync(remoteURL, options);
+      await expect(dbA.sync(remoteURL, options)).rejects.toThrowError(
+        RemoteAlreadyRegisteredError
+      );
+      dbA.destroy();
+    });
+
     it('can be called with remoteURL and RemoteOption (overload).', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
