@@ -436,7 +436,7 @@ export type AcceptedConflict = {
  *
  * [merge]
  *
- * - conflict_resolve_strategy: Default is 'ours'.
+ * - conflict_resolution_strategy: Default is 'ours'.
  *
  * - combine_db_strategy:
  *
@@ -457,7 +457,7 @@ export type RemoteOptions = {
   retry_interval?: number; // msec
 
   /* merge */
-  conflict_resolve_strategy?: ConflictResolutionStrategies;
+  conflict_resolution_strategy?: ConflictResolutionStrategies;
   combine_db_strategy?: CombineDbStrategies;
 
   /* results */

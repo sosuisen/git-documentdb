@@ -366,7 +366,7 @@ export async function sync_worker (
 
   const mergeBaseCommit = await repos.getCommit(mergeBase);
   const resolvers: Promise<void>[] = [];
-  const strategy = sync.options().conflict_resolve_strategy;
+  const strategy = sync.options().conflict_resolution_strategy;
   // eslint-disable-next-line complexity
   Object.keys(allFileObj).forEach(path => {
     resolvers.push(

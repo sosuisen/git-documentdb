@@ -103,7 +103,7 @@ function getMergedDocument (
 export async function threeWayMerge (
   gitDDB: IDocumentDB,
   sync: ISync,
-  conflict_resolve_strategy: ConflictResolutionStrategies,
+  conflict_resolution_strategy: ConflictResolutionStrategies,
   resolvedIndex: nodegit.Index,
   path: string,
   mergeBase: nodegit.Commit,
@@ -155,7 +155,7 @@ export async function threeWayMerge (
       // ! Conflict
       const strategy = await getStrategy(
         gitDDB,
-        conflict_resolve_strategy,
+        conflict_resolution_strategy,
         path,
         ours,
         theirs
@@ -229,7 +229,7 @@ export async function threeWayMerge (
       // ! Conflict
       const strategy = await getStrategy(
         gitDDB,
-        conflict_resolve_strategy,
+        conflict_resolution_strategy,
         path,
         ours,
         theirs
@@ -280,7 +280,7 @@ export async function threeWayMerge (
       // ! Conflict
       const strategy = await getStrategy(
         gitDDB,
-        conflict_resolve_strategy,
+        conflict_resolution_strategy,
         path,
         ours,
         theirs
@@ -344,7 +344,7 @@ export async function threeWayMerge (
       // ! Conflict
       const strategy = await getStrategy(
         gitDDB,
-        conflict_resolve_strategy,
+        conflict_resolution_strategy,
         path,
         ours,
         theirs

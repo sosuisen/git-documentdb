@@ -480,7 +480,7 @@ export type RemoteOptions = {
     interval?: number;
     retry?: number;
     retry_interval?: number;
-    conflict_resolve_strategy?: ConflictResolutionStrategies;
+    conflict_resolution_strategy?: ConflictResolutionStrategies;
     combine_db_strategy?: CombineDbStrategies;
     include_commits?: boolean;
 };

@@ -201,7 +201,7 @@ const sync_example = async () => {
    * Plain-texts are merged if possible.
    * This is a default conflict resolution strategy (ours-diff).
    * 
-   * Set remoteOptions.conflict_resolve_strategy to change it.
+   * Set remoteOptions.conflict_resolution_strategy to change it.
    */
   console.log('\n**** Automated conflict resolution ****');
   const sameIdFromA = { _id: '01', from: 'A', profile: 'I am from Nara. I love cherry blossoms.' };

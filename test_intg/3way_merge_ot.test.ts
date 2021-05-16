@@ -91,7 +91,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'ours-diff',
+        conflict_resolution_strategy: 'ours-diff',
       }
     );
 
@@ -191,7 +191,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'theirs-diff',
+        conflict_resolution_strategy: 'theirs-diff',
       }
     );
 
@@ -268,7 +268,7 @@ maybe('intg: <3way_merge_ot>', () => {
    */
   it('resolves case 8 - Conflict. Accept ours (delete)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours-diff',
+      conflict_resolution_strategy: 'ours-diff',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -354,7 +354,7 @@ maybe('intg: <3way_merge_ot>', () => {
    */
   it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (insert), ', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours-diff',
+      conflict_resolution_strategy: 'ours-diff',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -446,7 +446,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'theirs-diff',
+        conflict_resolution_strategy: 'theirs-diff',
       },
       schema
     );
@@ -462,7 +462,10 @@ maybe('intg: <3way_merge_ot>', () => {
       schema,
     });
     // Clone dbA
-    await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'theirs-diff' });
+    await dbB.createDB({
+      ...remoteA.options(),
+      conflict_resolution_strategy: 'theirs-diff',
+    });
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -551,7 +554,7 @@ maybe('intg: <3way_merge_ot>', () => {
         localDir,
         serialId,
         {
-          conflict_resolve_strategy: 'ours-diff',
+          conflict_resolution_strategy: 'ours-diff',
         },
         schema
       );
@@ -568,7 +571,10 @@ maybe('intg: <3way_merge_ot>', () => {
         schema,
       });
       // Clone dbA
-      await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
+      await dbB.createDB({
+        ...remoteA.options(),
+        conflict_resolution_strategy: 'ours-diff',
+      });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes
@@ -611,7 +617,7 @@ maybe('intg: <3way_merge_ot>', () => {
         localDir,
         serialId,
         {
-          conflict_resolve_strategy: 'ours-diff',
+          conflict_resolution_strategy: 'ours-diff',
         },
         schema
       );
@@ -628,7 +634,10 @@ maybe('intg: <3way_merge_ot>', () => {
         schema,
       });
       // Clone dbA
-      await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
+      await dbB.createDB({
+        ...remoteA.options(),
+        conflict_resolution_strategy: 'ours-diff',
+      });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes
@@ -671,7 +680,7 @@ maybe('intg: <3way_merge_ot>', () => {
         localDir,
         serialId,
         {
-          conflict_resolve_strategy: 'ours-diff',
+          conflict_resolution_strategy: 'ours-diff',
         },
         schema
       );
@@ -688,7 +697,10 @@ maybe('intg: <3way_merge_ot>', () => {
         schema,
       });
       // Clone dbA
-      await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'ours-diff' });
+      await dbB.createDB({
+        ...remoteA.options(),
+        conflict_resolution_strategy: 'ours-diff',
+      });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes

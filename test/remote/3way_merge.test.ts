@@ -86,7 +86,7 @@ maybe('<remote/3way_merge>', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'ours',
+        conflict_resolution_strategy: 'ours',
       }
     );
 
@@ -173,7 +173,7 @@ maybe('<remote/3way_merge>', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'ours',
+        conflict_resolution_strategy: 'ours',
       }
     );
 
@@ -252,7 +252,7 @@ maybe('<remote/3way_merge>', () => {
       localDir,
       serialId,
       {
-        conflict_resolve_strategy: 'theirs',
+        conflict_resolution_strategy: 'theirs',
       }
     );
 
@@ -319,7 +319,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 6 - Accept both (delete), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -407,7 +407,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 7 - Accept ours (delete), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -496,7 +496,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 8 - Conflict. Accept ours (delete)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -576,7 +576,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 10 - Accept theirs (delete), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -662,7 +662,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (insert), ', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -748,7 +748,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 12 - accept theirs (delete), case 1 - Accept theirs (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -761,7 +761,7 @@ maybe('<remote/3way_merge>', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
+    await dbB.createDB({ ...remoteA.options(), conflict_resolution_strategy: 'theirs' });
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.remove(jsonA1);
@@ -830,7 +830,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 13 - Accept both (update), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -919,7 +919,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 14 - Accept theirs (update), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -1010,7 +1010,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 15 - Accept ours (update), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -1099,7 +1099,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 16 - Conflict. Accept ours (update)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1179,7 +1179,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 17 - Conflict. Accept theirs (update)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'theirs',
+      conflict_resolution_strategy: 'theirs',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1192,7 +1192,7 @@ maybe('<remote/3way_merge>', () => {
       local_dir: localDir,
     });
     // Clone dbA
-    await dbB.createDB({ ...remoteA.options(), conflict_resolve_strategy: 'theirs' });
+    await dbB.createDB({ ...remoteA.options(), conflict_resolution_strategy: 'theirs' });
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -1259,7 +1259,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves many conflicts', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolve_strategy: 'ours',
+      conflict_resolution_strategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
