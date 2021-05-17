@@ -23,6 +23,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md) |  |
 |  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
 |  [Collection](./git-documentdb.collection.md) | Documents are gathered together in collections. |
+|  [CorruptedRepositoryError](./git-documentdb.corruptedrepositoryerror.md) |  |
 |  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
 |  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
 |  [DatabaseExistsError](./git-documentdb.databaseexistserror.md) |  |
@@ -104,6 +105,15 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [SyncResultPush](./git-documentdb.syncresultpush.md) |  |
 |  [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md) |  |
 |  [SyncResultResolveConflictsAndPushError](./git-documentdb.syncresultresolveconflictsandpusherror.md) |  |
+
+## Variables
+
+|  Variable | Description |
+|  --- | --- |
+|  [DATABASE\_NAME](./git-documentdb.database_name.md) |  |
+|  [DATABASE\_VERSION](./git-documentdb.database_version.md) |  |
+|  [GIT\_DOCUMENTDB\_VERSION\_FILENAME](./git-documentdb.git_documentdb_version_filename.md) |  |
+|  [GIT\_DOCUMENTDB\_VERSION](./git-documentdb.git_documentdb_version.md) |  |
 
 ## Type Aliases
 

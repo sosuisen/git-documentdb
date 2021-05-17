@@ -154,6 +154,17 @@ export type ConnectionSettingsSSH = {
     pass_phrase?: string;
 };
 
+// @public (undocumented)
+export class CorruptedRepositoryError extends BaseError {
+    constructor();
+}
+
+// @public (undocumented)
+export const DATABASE_NAME = "GitDocumentDB";
+
+// @public (undocumented)
+export const DATABASE_VERSION = "1.0";
+
 // @public
 export type DatabaseCloseOption = {
     force?: boolean;
@@ -227,6 +238,12 @@ export class FetchPermissionDeniedError extends BaseError {
 export class FileRemoveTimeoutError extends BaseError {
     constructor();
 }
+
+// @public (undocumented)
+export const GIT_DOCUMENTDB_VERSION: string;
+
+// @public (undocumented)
+export const GIT_DOCUMENTDB_VERSION_FILENAME = ".gitddb/lib_version";
 
 // @public
 export class GitDocumentDB implements IDocumentDB, CRUDInterface {

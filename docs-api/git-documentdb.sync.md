@@ -42,7 +42,7 @@ export declare class Sync implements ISync
 |  [init(repos)](./git-documentdb.sync.init.md) |  | Create remote connection |
 |  [off(event, callback)](./git-documentdb.sync.off.md) |  | Remove SyncEvent handler |
 |  [on(event, callback)](./git-documentdb.sync.on.md) |  | Add SyncEvent handler |
-|  [options()](./git-documentdb.sync.options.md) |  | Get remote options (options are read only) |
+|  [options()](./git-documentdb.sync.options.md) |  | Get remote options (read only) |
 |  [pause()](./git-documentdb.sync.pause.md) |  | Alias of cancel() |
 |  [remoteURL()](./git-documentdb.sync.remoteurl.md) |  | Get remoteURL |
 |  [resume(options)](./git-documentdb.sync.resume.md) |  | Resume synchronization |

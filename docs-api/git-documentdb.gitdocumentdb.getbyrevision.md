@@ -36,3 +36,5 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 
+[CannotGetEntryError](./git-documentdb.cannotgetentryerror.md)
+

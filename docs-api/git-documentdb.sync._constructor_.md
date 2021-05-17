@@ -25,3 +25,5 @@ constructor(_gitDDB: IDocumentDB, _options?: RemoteOptions);
 
 [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md)
 
+[InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md)
+

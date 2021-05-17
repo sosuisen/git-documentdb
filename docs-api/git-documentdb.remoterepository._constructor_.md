@@ -18,3 +18,7 @@ constructor(options: RemoteOptions);
 |  --- | --- | --- |
 |  options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
 
+## Exceptions
+
+[InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md)
+

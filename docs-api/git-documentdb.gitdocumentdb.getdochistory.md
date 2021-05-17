@@ -30,7 +30,15 @@ Array of fileSHA (NOTE: getDocHistory returns empty array if document does not e
 
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
-[UndefinedFileSHAError](./git-documentdb.undefinedfileshaerror.md)
+[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+
+[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+
+[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
+
+[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
+
+[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
 
 [CannotGetEntryError](./git-documentdb.cannotgetentryerror.md)
 

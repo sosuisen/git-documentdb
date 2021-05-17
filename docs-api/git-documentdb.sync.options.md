@@ -4,7 +4,7 @@
 
 ## Sync.options() method
 
-Get remote options (options are read only)
+Get remote options (read only)
 
 <b>Signature:</b>
 

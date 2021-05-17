@@ -41,3 +41,7 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
 [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
 
+[CorruptedRepositoryError](./git-documentdb.corruptedrepositoryerror.md)
+
+[InvalidBackNumberError](./git-documentdb.invalidbacknumbererror.md)
+

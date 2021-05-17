@@ -41,3 +41,7 @@ Promise&lt;[JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) \| und
 
 [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
 
+[CorruptedRepositoryError](./git-documentdb.corruptedrepositoryerror.md)
+
+[InvalidBackNumberError](./git-documentdb.invalidbacknumbererror.md)
+
