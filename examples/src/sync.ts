@@ -69,9 +69,9 @@ const sync_example = async () => {
    * The data will be synchronized every remoteOptions.interval msec (10000 msec).
    * 
    * Check below if you fail:
-   *  - It throws NoMergeBaseFoundError if the github_repository has already exist. 
+   *  - It throws Error if the github_repository has already exist. 
    *    Delete it before running this example.
-   *  - It throws RemoteRepositoryConnectError if [repo] is not checked
+   *  - It throws Error if [repo] is not checked
    *    in your personal access token settings.
    */
 

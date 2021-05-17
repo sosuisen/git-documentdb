@@ -59,7 +59,7 @@ const gitddb_example = async () => {
   /**
    * Synchronization
    */
-  const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example.git'; // Please enter your GitHub account name.
+  const github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example.git'; // Please enter your GitHub account name.
   const your_github_personal_access_token = 'Enter your personal access token with checked [repo]'; // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
   // @ts-ignore
   if (your_github_personal_access_token !== 'Enter your personal access token with checked [repo]') {
@@ -72,8 +72,10 @@ const gitddb_example = async () => {
     // git-documentdb-example.git is automatically created in your GitHub account.
     // The data will be synchronized every 10 seconds.
     // Check below if you fail:
-    // - It throws NoMergeBaseFoundError if the github_repository has already exist. Delete it before running this example.
-    // - It throws RemoteRepositoryConnectError if [repo] is not checked in your personal access token settings.
+    // - It throws Error if the github_repository has already exist.
+    //   Delete it before running this example.
+    // - It throws Error if [repo] is not checked 
+    //   in your personal access token settings.
   }
 
 
