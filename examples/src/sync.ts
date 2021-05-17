@@ -16,7 +16,7 @@ const sync_example = async () => {
    * Please get your personal access token with checked [repo].
    * (See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token )
    */
-  const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example-sync.git'; // Please enter your GitHub account name.
+  const github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example-sync.git'; // Please enter your GitHub account name.
   const your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
   // @ts-ignore
   if (your_github_personal_access_token === 'Enter your personal access token with checked [repo]') {
