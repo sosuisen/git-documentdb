@@ -42,7 +42,10 @@ const gitddb_example = async () => {
   
 
   // Revisions 
-  // get(id, 2) returns two revisions before
+  // get(id, 2) returns two revisions before.
+  //  rev 0(current): deleted
+  //  rev-1: double cherry blossoms
+  //  rev-2: cherry blossoms
   const oldDoc = await gitDDB.get('nara', 2); 
 
   console.log(`\n$ gitDDB.get('nara', 2) # Get two revisions before`);
