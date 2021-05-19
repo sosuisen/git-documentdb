@@ -44,7 +44,7 @@ export async function allDocsImpl (
     e => false
   ); // get HEAD
   if (!head) {
-    return { total_rows: 0 };
+    return { total_rows: 0, rows: [] };
   }
 
   const commit_sha = (head as nodegit.Oid).tostrS();
@@ -81,7 +81,7 @@ export async function allDocsImpl (
       directories.push(specifiedTree);
     }
     else {
-      return { total_rows: 0, commit_sha };
+      return { total_rows: 0, commit_sha, rows: [] };
     }
   }
   else {
@@ -156,16 +156,9 @@ export async function allDocsImpl (
     }
   }
 
-  if (rows.length > 0) {
-    return {
-      total_rows: rows.length,
-      commit_sha,
-      rows,
-    };
-  }
-
   return {
     total_rows: rows.length,
     commit_sha,
+    rows,
   };
 }

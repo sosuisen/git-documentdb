@@ -250,7 +250,7 @@ export type RemoveResult = {
 export type AllDocsResult = {
   total_rows: number;
   commit_sha?: string;
-  rows?: JsonDocWithMetadata[];
+  rows: JsonDocWithMetadata[];
 };
 
 /**

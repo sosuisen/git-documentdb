@@ -27,7 +27,7 @@ export type AllDocsOptions = {
 export type AllDocsResult = {
     total_rows: number;
     commit_sha?: string;
-    rows?: JsonDocWithMetadata[];
+    rows: JsonDocWithMetadata[];
 };
 
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
@@ -95,6 +95,7 @@ export class Collection implements CRUDInterface {
     delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
     delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+    static getCollections(gitDDB: CRUDInterface & IDocumentDB, rootPath?: string): Promise<Collection[]>;
     insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     insert(id: string, document: {
         [key: string]: any;
@@ -264,6 +265,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     readonly fileExt = ".json";
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
     getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
+    getCollections(rootPath?: string): Promise<Collection[]>;
     getDocHistory(docID: string): Promise<string[]>;
     getDocWithMetaData(docId: string, backNumber?: number): Promise<JsonDocWithMetadata | undefined>;
     getRemoteURLs(): string[];

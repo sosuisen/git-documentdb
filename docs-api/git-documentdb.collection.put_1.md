@@ -4,7 +4,7 @@
 
 ## Collection.put() method
 
-Add a document
+Insert a document if not exists. Otherwise, update it.
 
 <b>Signature:</b>
 
