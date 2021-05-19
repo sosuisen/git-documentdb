@@ -58,6 +58,11 @@ export class Collection implements CRUDInterface {
     validator.validateCollectionPath(this._collectionPath);
   }
 
+  /**
+   * Get normalized path of collection
+   *
+   * @returns '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
+   */
   collectionPath () {
     return this._collectionPath;
   }
