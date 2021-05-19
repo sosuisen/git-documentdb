@@ -4,7 +4,7 @@
 
 ## GitDocumentDB.put() method
 
-Insert a document if not exists, otherwise update it.
+Insert a document if not exists. Otherwise, update it.
 
 <b>Signature:</b>
 

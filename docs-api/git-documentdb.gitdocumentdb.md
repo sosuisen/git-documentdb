@@ -46,6 +46,7 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [destroy(options)](./git-documentdb.gitdocumentdb.destroy.md) |  | Destroy a database |
 |  [get(docId, backNumber)](./git-documentdb.gitdocumentdb.get.md) |  | Get a document |
 |  [getByRevision(fileSHA)](./git-documentdb.gitdocumentdb.getbyrevision.md) |  | Get a specific revision of a document |
+|  [getCollections(rootPath)](./git-documentdb.gitdocumentdb.getcollections.md) |  | Get collections |
 |  [getDocHistory(docID)](./git-documentdb.gitdocumentdb.getdochistory.md) |  | Get revision history of a file from new to old |
 |  [getDocWithMetaData(docId, backNumber)](./git-documentdb.gitdocumentdb.getdocwithmetadata.md) |  | Get a document with metadata |
 |  [getRemoteURLs()](./git-documentdb.gitdocumentdb.getremoteurls.md) |  | getRemoteURLs |
@@ -54,8 +55,8 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [insert(id, document, options)](./git-documentdb.gitdocumentdb.insert_1.md) |  | Insert a document |
 |  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | Test if a database is opened |
 |  [open()](./git-documentdb.gitdocumentdb.open.md) |  | Open an existing repository |
-|  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | Insert a document if not exists, otherwise update it. |
-|  [put(id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | Insert a document if not exists, otherwise update it. |
+|  [put(jsonDoc, options)](./git-documentdb.gitdocumentdb.put.md) |  | Insert a document if not exists. Otherwise, update it. |
+|  [put(id, document, options)](./git-documentdb.gitdocumentdb.put_1.md) |  | Insert a document if not exists. Otherwise, update it. |
 |  [remove(id, options)](./git-documentdb.gitdocumentdb.remove.md) |  | This is an alias of remove() |
 |  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | This is an alias of remove() |
 |  [repository()](./git-documentdb.gitdocumentdb.repository.md) |  | Get a current repository |

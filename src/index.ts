@@ -444,6 +444,17 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
+   * Get collections
+   *
+   * @param rootPath Get collections directly under the path.
+   * @returns Promise<Collection[]>
+   * @throws {@link RepositoryNotOpenError}
+   */
+  async getCollections (rootPath?: string): Promise<Collection[]> {
+    return await Collection.getCollections(this, rootPath);
+  }
+
+  /**
    * Test if a database is opened
    *
    */
@@ -568,7 +579,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Insert a document if not exists, otherwise update it.
+   * Insert a document if not exists. Otherwise, update it.
    *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).
@@ -591,7 +602,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-    * Insert a document if not exists, otherwise update it.
+    * Insert a document if not exists. Otherwise, update it.
     *
     * @remarks
     * - put() does not check a write permission of your file system (unlike open()).
