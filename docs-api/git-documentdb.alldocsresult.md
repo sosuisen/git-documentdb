@@ -12,7 +12,7 @@ Result of allDocs()
 export declare type AllDocsResult = {
     total_rows: number;
     commit_sha?: string;
-    rows?: JsonDocWithMetadata[];
+    rows: JsonDocWithMetadata[];
 };
 ```
 <b>References:</b> [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)

@@ -73,6 +73,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       total_rows: 0,
+      rows: [],
     });
 
     await gitDDB.destroy();
@@ -92,6 +93,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       total_rows: 0,
+      rows: [],
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
@@ -513,6 +515,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
       await expect(gitDDB.allDocs({ prefix, include_docs: true })).resolves.toMatchObject({
         total_rows: 0,
+        rows: [],
         commit_sha: expect.stringMatching(/^[\da-z]{40}/),
       });
 
