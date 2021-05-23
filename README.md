@@ -13,7 +13,7 @@ Use GitDocumentDB to ...
 
 :art: Manage Git repository by PouchDB-like API. 
 
-:rocket: Automated synchronization and conflict resolution with a remote Git repository.
+:rocket: Synchronize and diff & patch automatically with a remote repository. No need to resolve conflicts manually.
 
 :arrows_counterclockwise: CI/CD through GitHub.
 
