@@ -1,11 +1,11 @@
 <img alt="GitDocumentDB" src="https://github.com/sosuisen/git-documentdb/blob/main/assets/git-documentdb_icon-128x128.png" width=60 height=60 align="left"> 
 
-# GitDocumentDB
+# [GitDocumentDB](https://gitddb.com)
  [![npm version](https://badge.fury.io/js/git-documentdb.svg)](https://badge.fury.io/js/git-documentdb)
  [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](LICENSE)
  [![Coverage Status](https://coveralls.io/repos/github/sosuisen/git-documentdb/badge.svg?branch=main)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
-Offline-first DocumentDB using Git
+Offline-first DocumentDB that Syncs with Git
 
 Use GitDocumentDB to ...
 
@@ -210,7 +210,8 @@ https://github.com/sosuisen/inventory-manager
 - v0.3 Synchronization :feet:
   - Synchronization with GitHub :feet:
   - Revisions :feet:
-  - Operational Transformation :dog2:(Here now)
+  - Automated conflict resolution :feet:
+  - Automated JSON diff and patch :dog2:(Here now)
 - v0.4 Backup general data types by Git
   - GitHub with SSH key pair
   - Operate other data types
@@ -224,6 +225,7 @@ https://github.com/sosuisen/inventory-manager
   - Tag (Redo/Undo)
   - Indexed Search
   - GitLab and Bitbucket
+  - Push server
   - Migration
   - Plugins
 
