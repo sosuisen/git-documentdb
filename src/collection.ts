@@ -65,7 +65,7 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get collections directly under a path
+   * Get collections whose path start with specified path
    *
    * @param rootPath Default is '/'.
    * @returns Collection[]
