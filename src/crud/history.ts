@@ -96,22 +96,25 @@ export async function getBackNumber (
     throw new RepositoryNotOpenError();
   }
 
-  const fileSHAHash: { [key: string]: boolean } = {};
   const walk = _currentRepository.createRevWalk();
 
   let headFlag = true;
   let fileSHA = '';
   walk.pushHead();
   walk.sorting(nodegit.Revwalk.SORT.TOPOLOGICAL, nodegit.Revwalk.SORT.TIME);
+  let prevSHA = '';
+  let shaCounter = 0;
   // eslint-disable-next-line complexity
-  await (async function step () {
+
+  // eslint-disable-next-line complexity
+  async function step (): Promise<'success' | 'failure' | 'next'> {
     const oid = await walk.next().catch(() => {
       return null;
     });
     if (oid == null) {
-      return;
+      return 'failure';
     }
-    const commit = await nodegit.Commit.lookup(_currentRepository, oid);
+    const commit = await nodegit.Commit.lookup(_currentRepository!, oid);
     let entry = null;
     try {
       entry = await commit.getEntry(fileName);
@@ -131,32 +134,42 @@ export async function getBackNumber (
         if (entry != null) {
           // The file is not deleted when headFlag equals true and entry exists.
           fileSHA = entry.sha();
-          return;
+          return 'success';
         }
         // The file is deleted.
-        return;
+        return 'failure';
       }
       // Go next step
       if (entry != null) {
-        fileSHAHash[entry.sha()] = true;
+        prevSHA = entry.sha();
+        shaCounter++;
         backNumber++;
       }
       headFlag = false;
-      await step();
+      return 'next';
     }
 
     if (entry != null) {
-      if (!fileSHAHash[entry.sha()]) {
-        fileSHAHash[entry.sha()] = true;
-        if (Object.keys(fileSHAHash).length === backNumber) {
+      // Skip consecutive same SHAs
+      const sha = entry.sha();
+      if (prevSHA !== sha) {
+        prevSHA = sha;
+        shaCounter++;
+        if (shaCounter >= backNumber) {
           // console.log(entry.sha());
-          fileSHA = entry.sha();
-          return;
+          fileSHA = sha;
+          return 'success';
         }
       }
     }
-    await step();
-  })();
+    else {
+      // Reset check for consecutive SHAs
+      prevSHA = '';
+    }
+    return 'next';
+  }
+  // eslint-disable-next-line no-await-in-loop
+  while ((await step()) === 'next') {}
 
   if (fileSHA !== '') {
     return fileSHA;

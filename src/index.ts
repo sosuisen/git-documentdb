@@ -784,7 +784,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * Get a document
    *
    * @param docId - id of a target document
-   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned.
+   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned.
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
    *
    * @returns

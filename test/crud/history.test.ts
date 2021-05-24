@@ -266,4 +266,20 @@ describe('<crud/history> getBackNumber()', () => {
     await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.file_sha);
     await gitDDB.destroy();
   });
+
+  it('returns correct backNumber when the same document is created after deleting', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const json = { _id: 'tmp', name: 0 };
+    const putResult = await gitDDB.put(json);
+    await gitDDB.delete('tmp');
+    // Create the same document again
+    await gitDDB.put(json);
+    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.file_sha);
+    await gitDDB.destroy();
+  });
 });
