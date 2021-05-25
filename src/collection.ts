@@ -8,19 +8,15 @@
 
 import nodegit from '@sosuisen/nodegit';
 
-import {
-  RepositoryNotFoundError,
-  RepositoryNotOpenError,
-  UndefinedDocumentIdError,
-} from './error';
+import { RepositoryNotOpenError, UndefinedDocumentIdError } from './error';
 import {
   AllDocsOptions,
   AllDocsResult,
   CollectionPath,
+  DeleteOptions,
   JsonDoc,
   PutOptions,
   PutResult,
-  RemoveOptions,
   RemoveResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
@@ -431,12 +427,12 @@ export class Collection implements CRUDInterface {
   /**
    * This is an alias of delete()
    */
-  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  remove (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * This is an alias of delete()
    */
-  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     if (typeof idOrDoc === 'string') {
       return this.delete(idOrDoc, options);
     }
@@ -461,7 +457,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * Remove a document
    *
@@ -477,8 +473,8 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     if (typeof idOrDoc === 'string') {
       const orgId = idOrDoc;
       const _id = this._collectionPath + orgId;

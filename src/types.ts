@@ -164,15 +164,16 @@ export type CollectionPath = string;
 export type PutOptions = {
   commit_message?: string;
   insertOrUpdate?: 'insert' | 'update';
+  taskId?: string;
 };
 
 /**
- * Options for remove()
+ * Options for delete()
  *
  * @remarks
- * - commit_message: internal commit message. default is 'remove: path/to/the/file'
+ * - commit_message: internal commit message. default is 'delete: path/to/the/file'
  */
-export type RemoveOptions = {
+export type DeleteOptions = {
   commit_message?: string;
 };
 

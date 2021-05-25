@@ -39,7 +39,7 @@ import {
   PutOptions,
   PutResult,
   RemoteOptions,
-  RemoveOptions,
+  DeleteOptions,
   RemoveResult,
   Schema,
 } from './types';
@@ -890,7 +890,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
-  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * Remove a document
    *
@@ -905,8 +905,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
-  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     return deleteImpl.call(this, idOrDoc, options);
   }
 
@@ -914,12 +914,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * This is an alias of remove()
    */
 
-  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  remove (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * This is an alias of remove()
    */
-  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     return deleteImpl.call(this, idOrDoc, options);
   }
 

@@ -20,7 +20,7 @@ import {
   UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
-import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
+import { DeleteOptions, JsonDoc, RemoveResult } from '../types';
 
 /**
  * Implementation of delete()
@@ -30,7 +30,7 @@ import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
 export function deleteImpl (
   this: IDocumentDB,
   idOrDoc: string | JsonDoc,
-  options?: RemoveOptions
+  options?: DeleteOptions
 ): Promise<RemoveResult> {
   let _id: string;
   if (typeof idOrDoc === 'string') {

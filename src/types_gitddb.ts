@@ -15,7 +15,7 @@ import {
   JsonDoc,
   PutOptions,
   PutResult,
-  RemoveOptions,
+  DeleteOptions,
   RemoveResult,
   Schema,
 } from './types';
@@ -50,11 +50,11 @@ export interface CRUDInterface {
 
   get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
 
-  delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-  delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  delete(id: string, options?: DeleteOptions): Promise<RemoveResult>;
+  delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
 
-  remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-  remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+  remove(id: string, options?: DeleteOptions): Promise<RemoveResult>;
+  remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
 
   allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
 }
