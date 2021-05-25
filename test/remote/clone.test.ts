@@ -13,11 +13,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { cloneRepository } from '../../src/remote/clone';
-import { GitDocumentDB } from '../../src';
-import { RemoteOptions } from '../../src/types';
-import { CannotConnectError } from '../../src/error';
 import { removeRemoteRepositories } from '../remote_utils';
-import { NETWORK_RETRY } from '../../src/const';
 
 const reposPrefix = 'test_clone___';
 const localDir = `./test/database_clone`;

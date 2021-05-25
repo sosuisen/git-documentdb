@@ -16,7 +16,6 @@ import fs from 'fs-extra';
 import { GitDocumentDB } from '../../src';
 import {
   SyncResult,
-  SyncResultCancel,
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
   SyncResultPush,
