@@ -8,7 +8,14 @@
 
 import { monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
-import { Task, TaskEnqueueCallback, TaskMetadata, TaskStatistics } from './types';
+import {
+  Task,
+  TaskCallback,
+  TaskEnqueueCallback,
+  TaskEvent,
+  TaskMetadata,
+  TaskStatistics,
+} from './types';
 import { ConsoleStyle, sleep } from './utils';
 
 const ulid = monotonicFactory();
@@ -25,7 +32,13 @@ export class TaskQueue {
   private _taskQueue: Task[] = [];
   private _isTaskQueueWorking = false;
 
-  private _onceEventHandlers: {
+  private _eventHandlersOnce: {
+    enqueue: TaskEnqueueCallback[];
+  } = {
+    enqueue: [],
+  };
+
+  private _eventHandlers: {
     enqueue: TaskEnqueueCallback[];
   } = {
     enqueue: [],
@@ -78,8 +91,13 @@ export class TaskQueue {
       targetId: task.targetId,
       queuedTime: task.queuedTime,
     };
-    while (this._onceEventHandlers.enqueue.length > 0) {
-      const callback = this._onceEventHandlers.enqueue.shift();
+    this._eventHandlers.enqueue.forEach(callback => {
+      if (callback !== undefined) {
+        callback(taskMetadata);
+      }
+    });
+    while (this._eventHandlersOnce.enqueue.length > 0) {
+      const callback = this._eventHandlersOnce.enqueue.shift();
       if (callback !== undefined) {
         callback(taskMetadata);
       }
@@ -108,6 +126,12 @@ export class TaskQueue {
 
   clear () {
     this._taskQueue.forEach(task => task.cancel());
+    this._eventHandlers = {
+      enqueue: [],
+    };
+    this._eventHandlersOnce = {
+      enqueue: [],
+    };
     this._taskQueue.length = 0;
     this._isTaskQueueWorking = false;
     this._currentTask = undefined;
@@ -129,9 +153,26 @@ export class TaskQueue {
     return JSON.parse(JSON.stringify(this._statistics));
   }
 
-  once (event: 'enqueue', callback: TaskEnqueueCallback) {
-    this._onceEventHandlers[event].push(callback);
+  once (event: TaskEvent, callback: TaskCallback) {
+    this._eventHandlersOnce[event].push(callback);
 
+    return this;
+  }
+
+  on (event: TaskEvent, callback: TaskCallback) {
+    this._eventHandlers[event].push(callback);
+
+    return this;
+  }
+
+  off (event: TaskEvent, callback: TaskCallback) {
+    // @ts-ignore
+    this._eventHandlers[event] = this._eventHandlers[event].filter(
+      (func: (res?: any) => void) => func !== callback
+    );
+    this._eventHandlersOnce[event] = this._eventHandlersOnce[event].filter(
+      (func: (res?: any) => void) => func !== callback
+    );
     return this;
   }
 

@@ -467,6 +467,14 @@ export type RemoteOptions = {
 };
 
 /**
+ * TaskEvent
+ */
+export type TaskEvent = 'enqueue';
+
+export type TaskEnqueueCallback = (taskMetadata: TaskMetadata) => void;
+export type TaskCallback = TaskEnqueueCallback;
+
+/**
  * TaskLabel
  * DatabaseStatistics.taskCount must have the same members.
  */
@@ -481,8 +489,6 @@ export type TaskMetadata = {
   targetId?: string;
   queuedTime: number;
 };
-
-export type TaskEnqueueCallback = (taskMetadata: TaskMetadata) => void;
 
 /**
  * Task for taskQueue
