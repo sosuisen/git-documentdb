@@ -80,9 +80,11 @@ export class TaskQueue {
     };
     while (this._onceEventHandlers.enqueue.length > 0) {
       const callback = this._onceEventHandlers.enqueue.shift();
-      callback(taskMetadata);
+      if (callback !== undefined) {
+        callback(taskMetadata);
+      }
     }
-    this._execTaskQueue();  
+    this._execTaskQueue();
   }
 
   /**
@@ -102,10 +104,6 @@ export class TaskQueue {
     }
     this._taskQueue.unshift(task);
     this._execTaskQueue();
-  }
-
-  once (event: 'enqueue', callback: TaskEnqueueCallback) {
-    this._onceEventHandlers[event].push(callback);
   }
 
   clear () {
@@ -129,6 +127,12 @@ export class TaskQueue {
 
   currentStatistics (): TaskStatistics {
     return JSON.parse(JSON.stringify(this._statistics));
+  }
+
+  once (event: 'enqueue', callback: TaskEnqueueCallback) {
+    this._onceEventHandlers[event].push(callback);
+
+    return this;
   }
 
   async waitCompletion (timeoutMsec: number) {
