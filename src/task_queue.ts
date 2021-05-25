@@ -8,7 +8,7 @@
 
 import { monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
-import { Task, TaskStatistics } from './types';
+import { Task, TaskEnqueueCallback, TaskMetadata, TaskStatistics } from './types';
 import { ConsoleStyle, sleep } from './utils';
 
 const ulid = monotonicFactory();
@@ -24,6 +24,12 @@ export class TaskQueue {
   // @ts-ignore
   private _taskQueue: Task[] = [];
   private _isTaskQueueWorking = false;
+
+  private _onceEventHandlers: {
+    enqueue: TaskEnqueueCallback[];
+  } = {
+    enqueue: [],
+  };
 
   /**
    * Task Statistics
@@ -66,7 +72,17 @@ export class TaskQueue {
    */
   pushToTaskQueue (task: Task) {
     this._taskQueue.push(task);
-    this._execTaskQueue();
+    const taskMetadata: TaskMetadata = {
+      label: task.label,
+      taskId: task.taskId,
+      targetId: task.targetId,
+      queuedTime: task.queuedTime,
+    };
+    while (this._onceEventHandlers.enqueue.length > 0) {
+      const callback = this._onceEventHandlers.enqueue.shift();
+      callback(taskMetadata);
+    }
+    this._execTaskQueue();  
   }
 
   /**
@@ -86,6 +102,10 @@ export class TaskQueue {
     }
     this._taskQueue.unshift(task);
     this._execTaskQueue();
+  }
+
+  once (event: 'enqueue', callback: TaskEnqueueCallback) {
+    this._onceEventHandlers[event].push(callback);
   }
 
   clear () {

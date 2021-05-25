@@ -586,6 +586,7 @@ export class Sync implements ISync {
       return {
         label: 'push',
         taskId: taskId!,
+        queuedTime: Date.now(),
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };
@@ -688,6 +689,7 @@ export class Sync implements ISync {
       return {
         label: 'sync',
         taskId: taskId!,
+        queuedTime: Date.now(),
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };

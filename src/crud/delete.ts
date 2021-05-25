@@ -70,6 +70,7 @@ export function deleteImpl (
       label: 'delete',
       taskId: taskId,
       targetId: _id,
+      queuedTime: Date.now(),
       func: (beforeResolve, beforeReject) =>
         delete_worker(this, _id, this.fileExt, commit_message!)
           .then((result: RemoveResult) => {

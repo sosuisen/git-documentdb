@@ -471,12 +471,21 @@ export type RemoteOptions = {
 export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
 
 /**
- * Task for taskQueue
+ * TaskMetadata
  */
-export type Task = {
+export type TaskMetadata = {
   label: TaskLabel;
   taskId: string;
   targetId?: string;
+  queuedTime: number;
+};
+
+export type TaskEnqueueCallback = (taskMetadata: TaskMetadata) => void;
+
+/**
+ * Task for taskQueue
+ */
+export type Task = TaskMetadata & {
   func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
   cancel: () => void;
 };
