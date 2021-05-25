@@ -7,6 +7,7 @@
  */
 
 import { GitDocumentDB, RemoteOptions, SyncResult } from 'git-documentdb';
+import { showChanges } from './utils';
 
 const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
 
@@ -109,25 +110,8 @@ const sync_example = async () => {
   const syncB = dbB.getSynchronizer(github_repository);
   // Listen change event which tells changes in detail.
   syncA.on('change', (syncResult: SyncResult) => {
-    console.log('\n# ' + syncResult.action + ' action on A');
-    if (syncResult.action === 'push')
-      syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
-    else if (syncResult.action === 'fast-forward merge')
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
-    else if (syncResult.action === 'merge and push') {
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
-      syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
-    }
-    else if (syncResult.action === 'merge and push error') {
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
-    }
-    else if (syncResult.action === 'resolve conflicts and push') {
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
-      syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
-    }
-    else if (syncResult.action === 'resolve conflicts and push error') {
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on A') });
-    }
+    console.log('\n');
+    showChanges(syncResult, 'A');
     console.log('\n');
   });
   syncA.on('error', (err: Error) => console.log('sync error on A: ' + err.message))
@@ -137,19 +121,8 @@ const sync_example = async () => {
     .on('complete', (taskId: string) => console.log('[sync complete on A] ' + taskId));
 
   syncB.on('change', (syncResult: SyncResult) => {
-    console.log('\n# ' + syncResult.action + ' action on B');
-    if (syncResult.action === 'push')
-      syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
-    else if (syncResult.action === 'fast-forward merge')
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on B') });
-    else if (syncResult.action === 'merge and push') {
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on B') });
-      syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
-    }
-    else if (syncResult.action === 'resolve conflicts and push') {
-      syncResult.changes.local.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on B') });
-      syncResult.changes.remote.forEach(file => { console.log(' - ' + file.operation + ' ' + JSON.stringify(file.data.doc) + ' on GitHub') });
-    }
+    console.log('\n');
+    showChanges(syncResult, 'B');    
     console.log('\n');
   });
   syncB.on('error', (err: Error) => console.log('sync error on B: ' + err.message))
@@ -216,7 +189,7 @@ const sync_example = async () => {
   await dbA.put(sameIdFromA); 
   await dbB.put(sameIdFromB); 
 
-  // Several synchronizations will run to resolve the conflict.
+  // Synchronizations will run several times to resolve the conflict.
   let timeout = remoteOptions.interval! * 10;
   while (timeout > 0) {
     const resultA = await dbA.get('01');
