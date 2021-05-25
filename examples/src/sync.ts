@@ -108,7 +108,7 @@ const sync_example = async () => {
   syncA.on('change', (syncResult: SyncResult) => {
     showChanges(syncResult, 'A'); 
   });
-  syncA.on('error', (err: Error) => console.log('sync error on A: ' + err.message))
+  syncA.on('error', (err: Error) => console.log('[sync error on A] ' + err.message))
     .on('paused', () => console.log('[paused on A]'))
     .on('active', () => console.log('[resumed on A]'))
     .on('start', (taskId: string, currentRetries: number) => console.log('[sync start on A] <' + taskId + '> retries: ' + currentRetries))
@@ -118,7 +118,7 @@ const sync_example = async () => {
   syncB.on('change', (syncResult: SyncResult) => {
     showChanges(syncResult, 'B');    
   });
-  syncB.on('error', (err: Error) => console.log('sync error on B: ' + err.message))
+  syncB.on('error', (err: Error) => console.log('[sync error on B] ' + err.message))
     .on('paused', () => console.log('[paused on B]'))
     .on('active', () => console.log('[resumed on B]'))
     .on('start', (taskId: string, currentRetries: number) => console.log('[sync start on B] <' + taskId + '> retries: ' + currentRetries))
@@ -137,27 +137,32 @@ const sync_example = async () => {
   // Put documents on A.
   const json01 = { _id: '01', from: 'A', profile: 'I am from Kyoto.' };
   const json02 = { _id: '02', from: 'A', profile: 'I am from Tokyo.' };
-  await dbA.put(json01); 
-  await dbA.put(json02);
+  await dbA.insert(json01); 
+  await dbA.insert(json02);
 
   // 'change' events will occur within 10 or 20 seconds
   // because remoteOptions.interval is set to 10,000(msec).
   // Call trySync() by hand if you cannot wait it!
+  console.log('(1) Sync insert operations');
   await syncA.trySync(); // will invoke a change (push) on A, which includes two insert operations.
   await syncB.trySync(); // will invoke a change (fast-forward merge) on B, which includes two insert operations.
 
   // Update and delete on A.
   const json01dash = { _id: '01', from: 'A (updated)', profile: 'I am from Nara.' };
-  await dbA.put(json01dash);
+  await dbA.update(json01dash);
   await dbA.delete(json02);
+  console.log('\n(2) Sync update and delete operations');
   await syncA.trySync(); // will invoke a change (push) on A, which includes update and delete operations.
 
   // Wait automated synchronization on B.
   await sleep(syncB.options().interval + 5); // will invoke a change (fast-forward merge) on B, which includes update and delete operations.
 
+  console.log('\n(3) Pause and resume sync');
   // Try to pause sync.
+  await syncA.pause();
   await syncB.pause();
   // Try to resume sync.
+  await syncA.resume();
   await syncB.resume();
 
 
@@ -171,7 +176,7 @@ const sync_example = async () => {
    * 
    * Plain-text values in JSON are merged by diff and patch if specified in scheme.
    */
-  console.log('\n**** Automated conflict resolution ****');
+  console.log('\n(4) Automated conflict resolution');
   const sameIdFromA = { _id: '01', from: 'A', profile: 'I am from Nara. I love cherry blossoms.' };
   const sameIdFromB = { _id: '01', from: 'B', profile: 'My name is Hidekazu and I am from Nara.' }; 
   await dbA.put(sameIdFromA); 
@@ -184,7 +189,7 @@ const sync_example = async () => {
     const resultB = await dbB.get('01');
     // Check if convergence was reached.
     if(JSON.stringify(resultA) === JSON.stringify(resultB)) {
-      console.log('\n**** Resolved ****');
+      console.log('\n(5) Resolved');
       // result: {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"}
       console.log('result: ' + JSON.stringify(resultA) + '\n');
       break;
@@ -207,52 +212,59 @@ sync_example();
 
 /** An example of output (It may change due to your network environment.)
 
-[sync start on A] <01F6HT7BAH7PR4X8GMAXZQW2JT> retries: 0
+(1) Sync insert operations
+[sync start on A] <01F6J52Y2NPFTWK7A8EME7KVE6> retries: 0
 
 [sync change (push) on A]
  - insert {"from":"A","profile":"I am from Kyoto.","_id":"01"} on GitHub
  - insert {"from":"A","profile":"I am from Tokyo.","_id":"02"} on GitHub
 
-[sync complete on A] <01F6HT7BAH7PR4X8GMAXZQW2JT>
-[sync start on B] <01F6HT7ENMH7ZZY3X2RHYSHBV9> retries: 0
+[sync complete on A] <01F6J52Y2NPFTWK7A8EME7KVE6>
+[sync start on B] <01F6J530ZRM6SNYC71J01N2V6Z> retries: 0
 
 [sync change (fast-forward merge) on B]
  - insert {"from":"A","profile":"I am from Kyoto.","_id":"01"} on B
  - insert {"from":"A","profile":"I am from Tokyo.","_id":"02"} on B
 
-[sync complete on B] <01F6HT7ENMH7ZZY3X2RHYSHBV9>
-[sync start on A] <01F6HT7FNPV4QRN2H78JJTNAHQ> retries: 0
+[sync complete on B] <01F6J530ZRM6SNYC71J01N2V6Z>
+
+(2) Sync update and delete operations
+[sync start on A] <01F6J531ZM1ZQJ6SN975ETGAK2> retries: 0
 
 [sync change (push) on A]
  - update from {"from":"A","profile":"I am from Kyoto.","_id":"01"}
             to {"from":"A (updated)","profile":"I am from Nara.","_id":"01"} on GitHub
  - delete {"from":"A","profile":"I am from Tokyo.","_id":"02"} on GitHub
 
-[sync complete on A] <01F6HT7FNPV4QRN2H78JJTNAHQ>
-[sync start on B] <01F6HT7N1AYGK7EBTY4ACKZD10> retries: 0
+[sync complete on A] <01F6J531ZM1ZQJ6SN975ETGAK2>
+[sync start on A] <01F6J535PEVB6Q1FNQH3KCGHDX> retries: 0
+[sync complete on A] <01F6J535PEVB6Q1FNQH3KCGHDX>
+[sync start on B] <01F6J537ST0BQBYYQ7HG02DRTS> retries: 0
 
 [sync change (fast-forward merge) on B]
  - update from {"from":"A","profile":"I am from Kyoto.","_id":"01"}
             to {"from":"A (updated)","profile":"I am from Nara.","_id":"01"} on B
  - delete {"from":"A","profile":"I am from Tokyo.","_id":"02"} on B
 
-[sync complete on B] <01F6HT7N1AYGK7EBTY4ACKZD10>
-[sync start on A] <01F6HT7WBBADDZM0MS3MF78G1X> retries: 0
+[sync complete on B] <01F6J537ST0BQBYYQ7HG02DRTS>
+
+(3) Pause and resume sync
+[paused on A]
 [paused on B]
+[resumed on A]
 [resumed on B]
 
-**** Automated conflict resolution ****
-[sync complete on A] <01F6HT7WBBADDZM0MS3MF78G1X>
-[sync start on A] <01F6HT8646C98Y4A6TCQGFQXD4> retries: 0
-[sync start on B] <01F6HT86AAS3X55YCG9XYD2WTC> retries: 0
+(4) Automated conflict resolution
+[sync start on A] <01F6J53RFH3Y1JP2Y5CX80K2HQ> retries: 0
+[sync start on B] <01F6J53RFMGDW2340TM10SGSFD> retries: 0
 
 [sync change (push) on A]
  - update from {"from":"A (updated)","profile":"I am from Nara.","_id":"01"}
             to {"from":"A","profile":"I am from Nara. I love cherry blossoms.","_id":"01"} on GitHub
 
-[sync complete on A] <01F6HT8646C98Y4A6TCQGFQXD4>
-sync error on B: Cannot push because a reference that you are trying to update on the remote contains commits that are not present locally.
-[sync start on B] <01F6HT8BV1R7N2XJZHNNP0VDFV> retries: 1
+[sync complete on A] <01F6J53RFH3Y1JP2Y5CX80K2HQ>
+[sync error on B] Cannot push because a reference that you are trying to update on the remote contains commits that are not present locally.
+[sync start on B] <01F6J53Y4THC89GYA4YQXSB58D> retries: 1
 
 [sync change (resolve conflicts and push) on B]
  - update from {"from":"B","profile":"My name is Hidekazu and I am from Nara.","_id":"01"}
@@ -260,30 +272,30 @@ sync error on B: Cannot push because a reference that you are trying to update o
  - update from {"from":"A","profile":"I am from Nara. I love cherry blossoms.","_id":"01"}
             to {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"} on GitHub
 
-[sync complete on B] <01F6HT8BV1R7N2XJZHNNP0VDFV>
-[sync start on A] <01F6HT8FX0TENTA7BNFXJGQWFG> retries: 0
-[sync start on B] <01F6HT8G3P9SHZTQK7XY6QCGZ3> retries: 0
-[sync complete on B] <01F6HT8G3P9SHZTQK7XY6QCGZ3>
+[sync complete on B] <01F6J53Y4THC89GYA4YQXSB58D>
+[sync start on A] <01F6J5428R0Q2PTBGVFEM837ZP> retries: 0
+[sync start on B] <01F6J5428V1R65D5G0DEW3VSWN> retries: 0
+[sync complete on B] <01F6J5428V1R65D5G0DEW3VSWN>
 
 [sync change (fast-forward merge) on A]
  - update from {"from":"A","profile":"I am from Nara. I love cherry blossoms.","_id":"01"}
             to {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"} on A
 
-[sync complete on A] <01F6HT8FX0TENTA7BNFXJGQWFG>
-[sync start on A] <01F6HT8SNPMHGG037VVFVFWCY4> retries: 0
-[sync start on B] <01F6HT8SW95ZASTZK6TYY63YHK> retries: 0
-[sync complete on A] <01F6HT8SNPMHGG037VVFVFWCY4>
+[sync complete on A] <01F6J5428R0Q2PTBGVFEM837ZP>
+[sync start on A] <01F6J54C1JJ3033ZFWVAV00SK5> retries: 0
+[sync start on B] <01F6J54C1N3N2A2QS28WDC9HVQ> retries: 0
 
-**** Resolved ****
+(5) Resolved
 result: {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"}
 
-[sync start on A] <01F6HT8T7VGBYBTVG38WVHNJXE> retries: 0
-[sync complete on B] <01F6HT8SW95ZASTZK6TYY63YHK>
+[sync complete on A] <01F6J54C1JJ3033ZFWVAV00SK5>
+[sync complete on B] <01F6J54C1N3N2A2QS28WDC9HVQ>
+[sync start on A] <01F6J54CGCVPMSXK6FE6S8E6A7> retries: 0
 
 [sync change (push) on A]
  - delete {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"} on GitHub
 
-[sync complete on A] <01F6HT8T7VGBYBTVG38WVHNJXE>
+[sync complete on A] <01F6J54CGCVPMSXK6FE6S8E6A7>
 [paused on A]
 [paused on B]
 
