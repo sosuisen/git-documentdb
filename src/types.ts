@@ -511,13 +511,26 @@ export type SyncEvent =
   | 'complete'
   | 'error';
 
+export type ChangedFileInsert = {
+  operation: 'insert';
+  new: JsonDocWithMetadata;
+};
+
+export type ChangedFileUpdate = {
+  operation: 'update';
+  old: JsonDocWithMetadata;
+  new: JsonDocWithMetadata;
+};
+
+export type ChangedFileDelete = {
+  operation: 'delete';
+  old: JsonDocWithMetadata;
+};
+
 /**
  * Changed file in merge operation
  */
-export type ChangedFile = {
-  operation: WriteOperation;
-  data: JsonDocWithMetadata;
-};
+export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 
 /**
  * Commit information

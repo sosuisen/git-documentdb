@@ -23,7 +23,12 @@ import {
   UnfetchedCommitExistsError,
 } from '../src/error';
 import { sleep } from '../src/utils';
-import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../test/remote_utils';
+import {
+  destroyDBs,
+  getChangedFileInsert,
+  getChangedFileUpdate,
+  removeRemoteRepositories,
+} from '../test/remote_utils';
 import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
 import { push_worker } from '../src/remote/push_worker';
 import { sync_worker } from '../src/remote/sync_worker';
@@ -268,7 +273,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbB.createDB(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
+        const putResultA1 = await dbA.put(jsonA1);
         const remoteA = dbA.getSynchronizer(remoteURL);
         await remoteA.tryPush();
 
@@ -281,7 +286,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           action: 'resolve conflicts and push',
           changes: {
             local: [],
-            remote: [getChangedFile('update', jsonB1, putResultB1)],
+            remote: [getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1)],
           },
           conflicts: [
             {
@@ -691,16 +696,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const syncResultPush: SyncResultPush = {
           action: 'push',
           changes: {
-            remote: [
-              {
-                operation: 'insert',
-                data: {
-                  id: putResult.id,
-                  file_sha: putResult.file_sha,
-                  doc: jsonA1,
-                },
-              },
-            ],
+            remote: [getChangedFileInsert(jsonA1, putResult)],
           },
         };
 

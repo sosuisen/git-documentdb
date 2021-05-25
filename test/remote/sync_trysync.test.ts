@@ -27,7 +27,9 @@ import {
   createClonedDatabases,
   createDatabase,
   destroyDBs,
-  getChangedFile,
+  getChangedFileDelete,
+  getChangedFileInsert,
+  getChangedFileUpdate,
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
@@ -111,7 +113,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1.commit_sha);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
-        getChangedFile('insert', jsonA1, putResultA1),
+        getChangedFileInsert(jsonA1, putResultA1),
       ]);
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
@@ -142,7 +144,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.commits!.remote[0].sha).toBe(deleteResultA1.commit_sha);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
-        getChangedFile('delete', jsonA1, deleteResultA1),
+        getChangedFileDelete(jsonA1, deleteResultA1),
       ]);
 
       expect(getWorkingDirFiles(dbA)).toEqual([]);
@@ -161,7 +163,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
+      const putResultA1 = await dbA.put(jsonA1);
       await remoteA.tryPush();
 
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -173,7 +175,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1dash.commit_sha);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
-        getChangedFile('update', jsonA1dash, putResultA1dash),
+        getChangedFileUpdate(jsonA1, putResultA1, jsonA1dash, putResultA1dash),
       ]);
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
@@ -209,9 +211,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.commits!.local.length).toBe(1);
       expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commit_sha);
       expect(syncResult1.changes.local.length).toBe(1);
-      expect(syncResult1.changes.local).toEqual([
-        getChangedFile('insert', jsonA1, putResult1),
-      ]);
+      expect(syncResult1.changes.local).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
 
       expect(getWorkingDirFiles(dbB)).toEqual([jsonA1]);
 
@@ -254,8 +254,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.changes.local.length).toBe(2);
       expect(syncResult1.changes.local).toEqual(
         expect.arrayContaining([
-          getChangedFile('insert', jsonA1, putResult1),
-          getChangedFile('insert', jsonA2, putResult2),
+          getChangedFileInsert(jsonA1, putResult1),
+          getChangedFileInsert(jsonA2, putResult2),
         ])
       );
 
@@ -306,12 +306,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([
-        getChangedFile('insert', jsonA1, putResultA1),
+        getChangedFileInsert(jsonA1, putResultA1),
       ]);
 
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
-        getChangedFile('insert', jsonB2, putResultB2),
+        getChangedFileInsert(jsonB2, putResultB2),
       ]);
 
       expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonB2]);
@@ -362,16 +362,16 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.changes.local.length).toBe(2);
       expect(syncResult1.changes.local).toEqual(
         expect.arrayContaining([
-          getChangedFile('insert', jsonA1, putResultA1),
-          getChangedFile('insert', jsonA2, putResultA2),
+          getChangedFileInsert(jsonA1, putResultA1),
+          getChangedFileInsert(jsonA2, putResultA2),
         ])
       );
 
       expect(syncResult1.changes.remote.length).toBe(2);
       expect(syncResult1.changes.remote).toEqual(
         expect.arrayContaining([
-          getChangedFile('insert', jsonB3, putResultB3),
-          getChangedFile('insert', jsonB4, putResultB4),
+          getChangedFileInsert(jsonB3, putResultB3),
+          getChangedFileInsert(jsonB4, putResultB4),
         ])
       );
 
@@ -520,12 +520,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([
-        getChangedFile('insert', jsonA2, putResultA2),
+        getChangedFileInsert(jsonA2, putResultA2),
       ]);
 
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
-        getChangedFile('delete', jsonA1, deleteResultB1),
+        getChangedFileDelete(jsonA1, deleteResultB1),
       ]);
 
       expect(getWorkingDirFiles(dbB)).toEqual([jsonA2]);
@@ -581,12 +581,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([
-        getChangedFile('delete', jsonA1, deleteResultA1),
+        getChangedFileDelete(jsonA1, deleteResultA1),
       ]);
 
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
-        getChangedFile('insert', jsonB2, putResultB2),
+        getChangedFileInsert(jsonB2, putResultB2),
       ]);
 
       expect(getWorkingDirFiles(dbB)).toEqual([jsonB2]);

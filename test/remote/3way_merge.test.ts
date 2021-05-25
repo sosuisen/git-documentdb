@@ -26,7 +26,9 @@ import {
   createClonedDatabases,
   createDatabase,
   destroyDBs,
-  getChangedFile,
+  getChangedFileDelete,
+  getChangedFileInsert,
+  getChangedFileUpdate,
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
@@ -143,15 +145,13 @@ maybe('<remote/3way_merge>', () => {
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
-    expect(syncResult1.changes.local).toEqual([
-      getChangedFile('insert', jsonA2, putResultA2),
-    ]);
+    expect(syncResult1.changes.local).toEqual([getChangedFileInsert(jsonA2, putResultA2)]);
 
     expect(syncResult1.changes.remote.length).toBe(2);
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
-        getChangedFile('insert', jsonB3, putResultB3),
-        getChangedFile('update', jsonB1, putResultB1),
+        getChangedFileInsert(jsonB3, putResultB3),
+        getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
       ])
     );
 
@@ -232,7 +232,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -302,7 +302,7 @@ maybe('<remote/3way_merge>', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFile('update', jsonA1, putResultA1),
+      getChangedFileUpdate(jsonB1, putResultB1, jsonA1, putResultA1),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(0);
@@ -390,7 +390,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -476,8 +476,8 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.changes.remote.length).toBe(2);
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
-        getChangedFile('update', jsonB1, putResultB1),
-        getChangedFile('delete', jsonA2, deleteResultB2),
+        getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
+        getChangedFileDelete(jsonA2, deleteResultB2),
       ])
     );
 
@@ -558,7 +558,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('delete', jsonA1dash, putResultA1dash),
+      getChangedFileDelete(jsonA1dash, putResultA1dash),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -638,7 +638,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFile('insert', jsonA1dash, putResultA1dash),
+      getChangedFileInsert(jsonA1dash, putResultA1dash),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(0);
@@ -719,12 +719,12 @@ maybe('<remote/3way_merge>', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFile('delete', jsonA2, deleteResultA2),
+      getChangedFileDelete(jsonA2, deleteResultA2),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -803,14 +803,10 @@ maybe('<remote/3way_merge>', () => {
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
-    expect(syncResult1.changes.local).toEqual([
-      getChangedFile('insert', jsonA2, putResultA2),
-    ]);
+    expect(syncResult1.changes.local).toEqual([getChangedFileInsert(jsonA2, putResultA2)]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
-    expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('insert', jsonB1, putResultB1),
-    ]);
+    expect(syncResult1.changes.remote).toEqual([getChangedFileInsert(jsonB1, putResultB1)]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
@@ -891,8 +887,8 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.changes.local.length).toBe(2);
     expect(syncResult1.changes.local).toEqual(
       expect.arrayContaining([
-        getChangedFile('delete', jsonB1, putResultB1),
-        getChangedFile('insert', jsonA2, putResultA2),
+        getChangedFileDelete(jsonB1, putResultB1),
+        getChangedFileInsert(jsonA2, putResultA2),
       ])
     );
 
@@ -980,7 +976,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -1067,12 +1063,12 @@ maybe('<remote/3way_merge>', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFile('update', jsonA2dash, putResultA2dash),
+      getChangedFileUpdate(jsonA2, putResultB2, jsonA2dash, putResultA2dash),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -1161,8 +1157,8 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(2);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
-      getChangedFile('update', jsonB2, putResultB2),
+      getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA2, putResultA2dash, jsonB2, putResultB2),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -1242,7 +1238,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA1dash, putResultA1dash, jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -1320,7 +1316,7 @@ maybe('<remote/3way_merge>', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFile('update', jsonA1dash, putResultA1dash),
+      getChangedFileUpdate(jsonB1, putResultB1, jsonA1dash, putResultA1dash),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(0);
@@ -1435,9 +1431,9 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.changes.remote.length).toBe(3);
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
-        getChangedFile('delete', jsonA1dash, putResultA1dash),
-        getChangedFile('insert', jsonB2, putResultB2),
-        getChangedFile('update', jsonB3, putResultB3),
+        getChangedFileDelete(jsonA1dash, putResultA1dash),
+        getChangedFileInsert(jsonB2, putResultB2),
+        getChangedFileUpdate(jsonA3dash, putResultA3dash, jsonB3, putResultB3),
       ])
     );
 
@@ -1546,7 +1542,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('update', jsonB1, putResultB1),
+      getChangedFileUpdate(jsonA1dash, putResultA1dash, jsonB1, putResultB1),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -1633,7 +1629,7 @@ maybe('<remote/3way_merge>', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFile('update', jsonA1dash, putResultA1dash),
+      getChangedFileUpdate(jsonB1, putResultB1, jsonA1dash, putResultA1dash),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(0);

@@ -34,12 +34,12 @@ import {
   DatabaseInfo,
   DatabaseInfoSuccess,
   DatabaseOption,
+  DeleteOptions,
   JsonDoc,
   JsonDocWithMetadata,
   PutOptions,
   PutResult,
   RemoteOptions,
-  DeleteOptions,
   RemoveResult,
   Schema,
 } from './types';

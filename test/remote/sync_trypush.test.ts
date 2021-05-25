@@ -17,7 +17,9 @@ import {
   compareWorkingDirAndBlobs,
   createDatabase,
   destroyDBs,
-  getChangedFile,
+  getChangedFileDelete,
+  getChangedFileInsert,
+  getChangedFileUpdate,
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
@@ -89,9 +91,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
 
     // One remote creation
     expect(syncResult.changes.remote.length).toBe(1);
-    expect(syncResult.changes.remote).toEqual([
-      getChangedFile('insert', jsonA1, putResult),
-    ]);
+    expect(syncResult.changes.remote).toEqual([getChangedFileInsert(jsonA1, putResult)]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
 
@@ -164,7 +164,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
     // One remote update
     expect(syncResult.changes.remote.length).toBe(1);
     expect(syncResult.changes.remote[0]).toMatchObject(
-      getChangedFile('update', jsonA1dash, putResult)
+      getChangedFileUpdate(jsonA1, putResultA1, jsonA1dash, putResult)
     );
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
@@ -202,7 +202,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
     // One remote creation
     expect(syncResult.changes.remote.length).toBe(1);
     expect(syncResult.changes.remote[0]).toMatchObject(
-      getChangedFile('insert', jsonA2, putResultA2)
+      getChangedFileInsert(jsonA2, putResultA2)
     );
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
@@ -241,8 +241,8 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
     // Two remote creations
     expect(syncResult.changes.remote.length).toBe(2);
     expect(syncResult.changes.remote).toEqual([
-      getChangedFile('insert', jsonA1, putResult1),
-      getChangedFile('insert', jsonA2, putResult2),
+      getChangedFileInsert(jsonA1, putResult1),
+      getChangedFileInsert(jsonA2, putResult2),
     ]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
@@ -282,8 +282,8 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
     // One remote update and one remote creation
     expect(syncResult.changes.remote.length).toBe(2);
     expect(syncResult.changes.remote).toEqual([
-      getChangedFile('update', jsonA1dash, putResult1dash),
-      getChangedFile('insert', jsonA2, putResult2),
+      getChangedFileUpdate(jsonA1, putResult1, jsonA1dash, putResult1dash),
+      getChangedFileInsert(jsonA2, putResult2),
     ]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash, jsonA2]);
@@ -321,7 +321,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
     // One remote delete
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('delete', jsonA1, deleteResult1),
+      getChangedFileDelete(jsonA1, deleteResult1),
     ]);
 
     expect(getWorkingDirFiles(dbA)).toEqual([]);

@@ -12,10 +12,10 @@ import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
   AllDocsResult,
+  DeleteOptions,
   JsonDoc,
   PutOptions,
   PutResult,
-  DeleteOptions,
   RemoveResult,
   Schema,
 } from './types';

@@ -26,7 +26,8 @@ import {
   createDatabase,
   destroyDBs,
   destroyRemoteRepository,
-  getChangedFile,
+  getChangedFileInsert,
+  getChangedFileUpdate,
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
@@ -114,7 +115,7 @@ maybe('<remote/sync> [event]', () => {
         local: getCommitInfo([putResult1]),
       });
 
-      expect(result!.changes.local).toEqual([getChangedFile('insert', jsonA1, putResult1)]);
+      expect(result!.changes.local).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -167,7 +168,7 @@ maybe('<remote/sync> [event]', () => {
       expect(resultA!.action).toBe('fast-forward merge');
 
       expect(resultA!.changes.local).toEqual([
-        getChangedFile('update', jsonB1, putResultB1),
+        getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1),
       ]);
 
       expect(resultB!.action).toBe('resolve conflicts and push');
@@ -269,7 +270,7 @@ maybe('<remote/sync> [event]', () => {
       }
 
       expect(changes.length).toBe(1);
-      expect(changes).toEqual([getChangedFile('insert', jsonA1, putResult1)]);
+      expect(changes).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -364,7 +365,7 @@ maybe('<remote/sync> [event]', () => {
 
       expect(changes.length).toBe(1);
 
-      expect(changes).toEqual([getChangedFile('insert', jsonB1, putResult1)]);
+      expect(changes).toEqual([getChangedFileInsert(jsonB1, putResult1)]);
 
       await destroyDBs([dbA, dbB]);
     });
