@@ -16,8 +16,15 @@ const sync_example = async () => {
    * Please get your personal access token with checked [repo].
    * (See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token )
    */
-  const github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example-sync.git'; // Please enter your GitHub account name.
-  const your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
+  let github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example-sync.git'; // Please enter your GitHub account name.
+  let your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
+  // You can also set them from environment variables:
+  //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
+  // e.g.) https://github.com/foo/
+  //  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
+  if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example-sync.git';
+  if (process.env.GITDDB_PERSONAL_ACCESS_TOKEN) your_github_personal_access_token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN;
+
   // @ts-ignore
   if (your_github_personal_access_token === 'Enter your personal access token with checked [repo]') {
     console.log('Please set your personal access token.');
@@ -123,11 +130,11 @@ const sync_example = async () => {
     }
     console.log('\n');
   });
-  syncA.on('error', (err: Error) => console.log('sync error on A: ' + err.message));
-  syncA.on('paused', () => console.log('[paused on A]'));
-  syncA.on('active', () => console.log('[resumed on A]'));
-  syncA.on('start', (taskId: string, currentRetries: number) => console.log('[sync start on A] ' + taskId + ', retries: ' + currentRetries));
-  syncA.on('complete', (taskId: string) => console.log('[sync complete on A] ' + taskId));
+  syncA.on('error', (err: Error) => console.log('sync error on A: ' + err.message))
+    .on('paused', () => console.log('[paused on A]'))
+    .on('active', () => console.log('[resumed on A]'))
+    .on('start', (taskId: string, currentRetries: number) => console.log('[sync start on A] ' + taskId + ', retries: ' + currentRetries))
+    .on('complete', (taskId: string) => console.log('[sync complete on A] ' + taskId));
 
   syncB.on('change', (syncResult: SyncResult) => {
     console.log('\n# ' + syncResult.action + ' action on B');
@@ -145,11 +152,11 @@ const sync_example = async () => {
     }
     console.log('\n');
   });
-  syncB.on('error', (err: Error) => console.log('sync error on B: ' + err.message));
-  syncB.on('paused', () => console.log('[paused on B]'));
-  syncB.on('active', () => console.log('[resumed on B]'));
-  syncB.on('start', (taskId: string, currentRetries: number) => console.log('[sync start on B] ' + taskId + ', retries: ' + currentRetries));
-  syncB.on('complete', (taskId: string) => console.log('[sync complete on B] ' + taskId));
+  syncB.on('error', (err: Error) => console.log('sync error on B: ' + err.message))
+    .on('paused', () => console.log('[paused on B]'))
+    .on('active', () => console.log('[resumed on B]'))
+    .on('start', (taskId: string, currentRetries: number) => console.log('[sync start on B] ' + taskId + ', retries: ' + currentRetries))
+    .on('complete', (taskId: string) => console.log('[sync complete on B] ' + taskId));
 
   /* localChange is shortcut to get local changes.
   syncA.on('localChange', (changedFiles: ChangedFile[]) => {
