@@ -83,7 +83,23 @@ export class TaskQueue {
   /**
    * Push task to TaskQueue
    */
+  // eslint-disable-next-line complexity
   pushToTaskQueue (task: Task) {
+    // Skip consecutive sync/push events
+    if (
+      (this._taskQueue.length === 0 &&
+        ((this._currentTask?.label === 'sync' && task.label === 'sync') ||
+          (this._currentTask?.label === 'push' && task.label === 'push'))) ||
+      (this._taskQueue.length > 0 &&
+        ((this._taskQueue[this._taskQueue.length - 1].label === 'sync' &&
+          task.label === 'sync') ||
+          (this._taskQueue[this._taskQueue.length - 1].label === 'push' &&
+            task.label === 'push')))
+    ) {
+      // console.log('## task skipped');
+      task.cancel();
+      return;
+    }
     this._taskQueue.push(task);
     const taskMetadata: TaskMetadata = {
       label: task.label,
@@ -108,6 +124,7 @@ export class TaskQueue {
   /**
    * Unshift task to TaskQueue
    */
+  /*
   unshiftSyncTaskToTaskQueue (task: Task) {
     if (
       (this._currentTask?.label === 'sync' && task.label === 'sync') ||
@@ -123,7 +140,7 @@ export class TaskQueue {
     this._taskQueue.unshift(task);
     this._execTaskQueue();
   }
-
+  */
   clear () {
     this._taskQueue.forEach(task => task.cancel());
     this._eventHandlers = {

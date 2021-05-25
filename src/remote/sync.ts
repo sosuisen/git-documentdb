@@ -594,7 +594,8 @@ export class Sync implements ISync {
 
     return new Promise(
       (resolve: (value: SyncResultPush | SyncResultCancel) => void, reject) => {
-        this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
+        this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
+        // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
       }
     );
   }
@@ -696,7 +697,8 @@ export class Sync implements ISync {
     };
 
     return new Promise((resolve: (value: SyncResult) => void, reject) => {
-      this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
+      this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
+      // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
     });
   }
 
