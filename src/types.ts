@@ -175,6 +175,7 @@ export type PutOptions = {
  */
 export type DeleteOptions = {
   commit_message?: string;
+  taskId?: string;
 };
 
 /**

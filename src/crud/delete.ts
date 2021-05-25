@@ -59,11 +59,12 @@ export function deleteImpl (
 
   options ??= {
     commit_message: undefined,
+    taskId: undefined,
   };
   const commit_message =
     options.commit_message ?? `delete: ${_id}${this.fileExt}(<%file_sha%>)`;
 
-  const taskId = this.taskQueue.newTaskId();
+  const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // delete() must be serial.
   return new Promise((resolve, reject) => {
     this.taskQueue.pushToTaskQueue({

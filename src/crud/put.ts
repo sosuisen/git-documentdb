@@ -100,12 +100,13 @@ export function putImpl (
   options ??= {
     commit_message: undefined,
     insertOrUpdate: undefined,
+    taskId: undefined,
   };
 
   const commit_message =
     options.commit_message ?? `<%insertOrUpdate%>: ${_id}${this.fileExt}(<%file_sha%>)`;
 
-  const taskId = this.taskQueue.newTaskId();
+  const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // put() must be serial.
   return new Promise((resolve, reject) => {
     this.taskQueue.pushToTaskQueue({
