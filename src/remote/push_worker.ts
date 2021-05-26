@@ -89,11 +89,13 @@ async function validatePushResult (
   )) as unknown) as { ahead: number; behind: number };
 
   if (distance.ahead !== 0 || distance.behind !== 0) {
-    gitDDB.logger.debug(
-      ConsoleStyle.BgWhite()
-        .FgBlack()
-        .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
-    );
+    gitDDB
+      .getLogger()
+      .debug(
+        ConsoleStyle.BgWhite()
+          .FgBlack()
+          .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
+      );
 
     throw new UnfetchedCommitExistsError();
   }

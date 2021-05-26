@@ -41,9 +41,9 @@ import { threeWayMerge } from './3way_merge';
  * @throws {@link SyncWorkerFetchError}
  */
 async function fetch (gitDDB: IDocumentDB, sync: ISync) {
-  gitDDB.logger.debug(
-    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`
-  );
+  gitDDB
+    .getLogger()
+    .debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`);
   await gitDDB
     .repository()!
     .fetch('origin', {
@@ -69,9 +69,11 @@ async function calcDistance (
     localCommit.id(),
     remoteCommit.id()
   )) as unknown) as { ahead: number; behind: number };
-  gitDDB.logger.debug(
-    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(distance)}`
-  );
+  gitDDB
+    .getLogger()
+    .debug(
+      ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(distance)}`
+    );
   return distance;
 }
 
@@ -340,9 +342,9 @@ export async function sync_worker (
   const allFileObj: { [key: string]: boolean } = {};
   conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
     const stage = nodegit.Index.entryStage(entry);
-    gitDDB.logger.debug(
-      ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${stage} : ${entry.path}`
-    );
+    gitDDB
+      .getLogger()
+      .debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${stage} : ${entry.path}`);
 
     // entries() returns all files in stage 0, 1, 2 and 3.
     // A file may exist in multiple stages.

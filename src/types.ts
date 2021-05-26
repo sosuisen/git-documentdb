@@ -6,6 +6,8 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import { TLogLevelName } from 'tslog';
+
 /**
  * Database Option
  *
@@ -24,15 +26,17 @@
  *   - dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \ | ? * \0.
  *   - dbName cannot end with a period or a white space.
  *   - dbName does not allow '.' and '..'.
+ *
+ * * log_level: Default is 'info'.
  * ```
- * @beta
  */
 export type DatabaseOption = {
   local_dir?: string;
   db_name: string;
-  log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+  log_level?: TLogLevelName;
   schema?: Schema;
 };
+
 /**
  * Schema
  *

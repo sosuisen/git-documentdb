@@ -51,6 +51,13 @@ export class TaskQueue {
   }
 
   /**
+   * Set logger
+   */
+  setLogger (logger: Logger) {
+    this._logger = logger;
+  }
+
+  /**
    * Get current task ID
    */
   currentTaskId () {

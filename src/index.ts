@@ -107,7 +107,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   private _localDir: string;
   private _dbName: string;
-  private _logLevel: string;
+
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
 
@@ -120,6 +120,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     is_created_by_gitddb: true,
     is_valid_version: true,
   };
+
+  private _logLevel: TLogLevelName;
 
   /**
    * Schema
@@ -144,7 +146,22 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Logger
    */
-  logger: Logger;
+  private _logger!: Logger; // Use definite assignment assertion
+
+  getLogger (): Logger {
+    return this._logger;
+  }
+
+  setLogLevel (level: TLogLevelName) {
+    this._logger = new Logger({
+      name: this._dbName,
+      minLevel: level as TLogLevelName,
+      displayDateTime: false,
+      displayFunctionName: false,
+      displayFilePath: 'hidden',
+    });
+    if (this.taskQueue) this.taskQueue.setLogger(this._logger);
+  }
 
   /**
    * Constructor
@@ -190,14 +207,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
         Validator.maxWorkingDirectoryLength()
       );
     }
-    this.logger = new Logger({
-      name: this._dbName,
-      minLevel: this._logLevel as TLogLevelName,
-      displayDateTime: false,
-      displayFunctionName: false,
-      displayFilePath: 'hidden',
-    });
-    this.taskQueue = new TaskQueue(this.logger);
+    this.setLogLevel(this._logLevel);
+    this.taskQueue = new TaskQueue(this.getLogger());
   }
 
   /**
@@ -245,7 +256,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this._currentRepository = await cloneRepository(
       this.workingDir(),
       remoteOptions,
-      this.logger
+      this.getLogger()
     ).catch((err: Error) => {
       throw err;
     });

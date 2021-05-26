@@ -261,8 +261,8 @@ export class Sync implements ISync {
       .catch(err => {
         throw new RemoteRepositoryConnectError(err.message);
       });
-    this._gitDDB.logger.debug('git remote: ' + gitResult);
-    this._gitDDB.logger.debug('remote repository: ' + remoteResult);
+    this._gitDDB.getLogger().debug('git remote: ' + gitResult);
+    this._gitDDB.getLogger().debug('remote repository: ' + remoteResult);
     if (remoteResult === 'create') {
       this.upstream_branch = '';
     }
@@ -275,7 +275,7 @@ export class Sync implements ISync {
        */
     }
     else if (this.upstream_branch === '') {
-      this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
+      this._gitDDB.getLogger().debug('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
       syncResult = await this.tryPush();
@@ -289,11 +289,11 @@ export class Sync implements ISync {
       this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else if (this._options.sync_direction === 'push') {
-      this._gitDDB.logger.debug('upstream_branch exists. tryPush..');
+      this._gitDDB.getLogger().debug('upstream_branch exists. tryPush..');
       syncResult = await this.tryPush();
     }
     else if (this._options.sync_direction === 'both') {
-      this._gitDDB.logger.debug('upstream_branch exists. trySync..');
+      this._gitDDB.getLogger().debug('upstream_branch exists. trySync..');
       syncResult = await this.trySync();
     }
 
@@ -424,7 +424,7 @@ export class Sync implements ISync {
       // eslint-disable-next-line no-await-in-loop
       const resultOrError = await this.enqueuePushTask().catch((err: Error) => {
         // Invoke retry fail event
-        this._gitDDB.logger.debug('Push failed: ' + err.message);
+        this._gitDDB.getLogger().debug('Push failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
           throw err;
@@ -438,9 +438,11 @@ export class Sync implements ISync {
       // eslint-disable-next-line no-await-in-loop
       if (!(await this.canNetworkConnection())) {
         // Retry to connect due to network error.
-        this._gitDDB.logger.debug(
-          ConsoleStyle.BgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
-        );
+        this._gitDDB
+          .getLogger()
+          .debug(
+            ConsoleStyle.BgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
+          );
         // eslint-disable-next-line no-await-in-loop
         await sleep(this._options.retry_interval!);
       }
@@ -476,12 +478,11 @@ export class Sync implements ISync {
       this._retrySyncCounter = 0;
       return result;
     }
-
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
       const resultOrError = await this.enqueueSyncTask().catch((err: Error) => {
         // Invoke retry fail event
-        this._gitDDB.logger.debug('Sync failed: ' + err.message);
+        this._gitDDB.getLogger().debug('Sync failed: ' + err.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
           throw err;
@@ -509,9 +510,11 @@ export class Sync implements ISync {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
         // - Problem will be resolved by sync again.
-        this._gitDDB.logger.debug(
-          ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
-        );
+        this._gitDDB
+          .getLogger()
+          .debug(
+            ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
+          );
         // eslint-disable-next-line no-await-in-loop
         await sleep(this._options.retry_interval!);
       }
@@ -544,11 +547,13 @@ export class Sync implements ISync {
     ) => (beforeResolve: () => void, beforeReject: () => void) =>
       push_worker(this._gitDDB, this, taskId)
         .then((syncResultPush: SyncResultPush) => {
-          this._gitDDB.logger.debug(
-            ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
-              syncResultPush
-            )}`
-          );
+          this._gitDDB
+            .getLogger()
+            .debug(
+              ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
+                syncResultPush
+              )}`
+            );
 
           this.eventHandlers.change.forEach(func => func(syncResultPush));
           if (syncResultPush.action === 'push') {
@@ -620,11 +625,13 @@ export class Sync implements ISync {
       sync_worker(this._gitDDB, this, taskId)
         // eslint-disable-next-line complexity
         .then(syncResult => {
-          this._gitDDB.logger.debug(
-            ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
-              syncResult
-            )}`
-          );
+          this._gitDDB
+            .getLogger()
+            .debug(
+              ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
+                syncResult
+              )}`
+            );
           if (
             syncResult.action === 'resolve conflicts and push' ||
             syncResult.action === 'merge and push' ||
