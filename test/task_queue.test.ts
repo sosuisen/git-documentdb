@@ -132,11 +132,17 @@ describe('<task_queue>', () => {
       local_dir: localDir,
     });
     await gitDDB.createDB();
-    gitDDB.insert({ _id: '01' });
-    expect(gitDDB.taskQueue.currentTaskId()).not.toBeUndefined();
-    await sleep(3000);
-    expect(gitDDB.taskQueue.currentTaskId()).toBeUndefined();
-    await gitDDB.destroy();
+    gitDDB.insert(
+      { _id: '01' },
+      {
+        enqueueCallback: async () => {
+          expect(gitDDB.taskQueue.currentTaskId()).not.toBeUndefined();
+          await sleep(3000);
+          expect(gitDDB.taskQueue.currentTaskId()).toBeUndefined();
+          await gitDDB.destroy();
+        },
+      }
+    );
   });
 
   it('returns newTaskId', () => {
@@ -182,6 +188,7 @@ describe('<task_queue>', () => {
       delete: 1,
       push: 0,
       sync: 0,
+      cancel: 0,
     });
     gitDDB.taskQueue.clear();
     expect(gitDDB.taskQueue.currentStatistics()).toEqual({
@@ -191,165 +198,93 @@ describe('<task_queue>', () => {
       delete: 0,
       push: 0,
       sync: 0,
+      cancel: 0,
     });
 
     await gitDDB.destroy();
   });
 
-  it('on enqueue event', async () => {
+  it('sets ordered enqueueTime', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
     });
     await gitDDB.createDB();
-    const enqueueEvent: TaskMetadata[] = [];
-    gitDDB.taskQueue.on('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent.push(taskMetadata);
+    const promiseList: Promise<TaskMetadata>[] = [];
+    const maxNumber = 30;
+    for (let i = 0; i < maxNumber; i++) {
+      const id = `${i}`;
+      promiseList.push(
+        new Promise(resolve => {
+          gitDDB.put(
+            { _id: 'foo', taskId: id },
+            {
+              taskId: id,
+              enqueueCallback: (taskMetaData: TaskMetadata) => {
+                resolve(taskMetaData);
+              },
+            }
+          );
+        })
+      );
+    }
+
+    const taskMetadataList = await Promise.all(promiseList);
+    taskMetadataList.sort((a, b) => {
+      if (a.enqueueTime! > b.enqueueTime!) return 1;
+      if (a.enqueueTime! < b.enqueueTime!) return -1;
+      return 0;
     });
-    const id1 = gitDDB.taskQueue.newTaskId();
-    const id2 = gitDDB.taskQueue.newTaskId();
-
-    const time1 = Date.now();
-    await gitDDB.put({ _id: '1' }, { taskId: id1 });
-    await sleep(1000);
-    const time2 = Date.now();
-    await gitDDB.put({ _id: '2' }, { taskId: id2 });
-    await sleep(1000);
-    const time3 = Date.now();
-    expect(enqueueEvent.length).toBe(2);
-    expect(enqueueEvent[0].label).toBe('put');
-    expect(enqueueEvent[0].targetId).toBe('1');
-    expect(enqueueEvent[0].taskId).toBe(id1);
-    expect(enqueueEvent[0].enqueueTime).toBeGreaterThanOrEqual(time1);
-    expect(enqueueEvent[0].enqueueTime).toBeLessThan(time2);
-
-    expect(enqueueEvent[1].label).toBe('put');
-    expect(enqueueEvent[1].targetId).toBe('2');
-    expect(enqueueEvent[1].taskId).toBe(id2);
-    expect(enqueueEvent[1].enqueueTime).toBeGreaterThanOrEqual(time2);
-    expect(enqueueEvent[1].enqueueTime).toBeLessThan(time3);
+    for (let i = 0; i < maxNumber - 1; i++) {
+      expect(
+        taskMetadataList[i].enqueueTime! < taskMetadataList[i + 1].enqueueTime!
+      ).toBeTruthy();
+    }
 
     await gitDDB.destroy();
   });
 
-  it('on multiple enqueue events', async () => {
+  it('invokes enqueueCallback with ordered enqueueTime', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       db_name: dbName,
       local_dir: localDir,
     });
     await gitDDB.createDB();
-    const enqueueEvent: TaskMetadata[] = [];
-    const enqueueEvent2: TaskMetadata[] = [];
-    gitDDB.taskQueue.on('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent.push(taskMetadata);
+    const promiseList: Promise<TaskMetadata>[] = [];
+    const rand = [0, 3, 2, 1, 4, 5, 8, 7, 9, 6];
+    for (let i = 0; i < 10; i++) {
+      const id = `${rand[i]}`;
+      promiseList.push(
+        new Promise(resolve => {
+          gitDDB.put(
+            { _id: 'foo', taskId: id },
+            {
+              taskId: id,
+              enqueueCallback: (taskMetaData: TaskMetadata) => {
+                resolve(taskMetaData);
+              },
+            }
+          );
+        })
+      );
+    }
+
+    const taskMetadataList = await Promise.all(promiseList);
+    // Sort new to old
+    taskMetadataList.sort((a, b) => {
+      if (a.enqueueTime! > b.enqueueTime!) return -1;
+      if (a.enqueueTime! < b.enqueueTime!) return 1;
+      return 0;
     });
-    gitDDB.taskQueue.on('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent2.push(taskMetadata);
-    });
-    await gitDDB.put({ _id: '1' });
-    await gitDDB.put({ _id: '2' });
-    expect(enqueueEvent.length).toBe(2);
-    expect(enqueueEvent2.length).toBe(2);
 
-    await gitDDB.destroy();
-  });
-
-  it('off enqueue event', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.createDB();
-    const enqueueEvent: TaskMetadata[] = [];
-    const callback = (taskMetadata: TaskMetadata) => {
-      enqueueEvent.push(taskMetadata);
-    };
-    gitDDB.taskQueue.on('enqueue', callback);
-    await gitDDB.put({ _id: '1' });
-    await sleep(1000);
-
-    gitDDB.taskQueue.off('enqueue', callback);
-
-    await gitDDB.put({ _id: '2' });
-    await sleep(1000);
-
-    expect(enqueueEvent.length).toBe(1);
-
-    await gitDDB.destroy();
-  });
-
-  it('off one event from multiple enqueue', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.createDB();
-    const enqueueEvent: TaskMetadata[] = [];
-    const enqueueEvent2: TaskMetadata[] = [];
-    gitDDB.taskQueue.on('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent.push(taskMetadata);
-    });
-    const callback = (taskMetadata: TaskMetadata) => {
-      enqueueEvent2.push(taskMetadata);
-    };
-    gitDDB.taskQueue.on('enqueue', callback);
-    await gitDDB.put({ _id: '1' });
-    gitDDB.taskQueue.off('enqueue', callback);
-    await gitDDB.put({ _id: '2' });
-    expect(enqueueEvent.length).toBe(2);
-    expect(enqueueEvent2.length).toBe(1);
-
-    await gitDDB.destroy();
-  });
-
-  it('once multiple enqueue events', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.createDB();
-    const enqueueEvent: TaskMetadata[] = [];
-    const enqueueEvent2: TaskMetadata[] = [];
-    gitDDB.taskQueue.once('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent.push(taskMetadata);
-    });
-    gitDDB.taskQueue.once('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent2.push(taskMetadata);
-    });
-    await gitDDB.put({ _id: '1' });
-    await gitDDB.put({ _id: '2' });
-    expect(enqueueEvent.length).toBe(1);
-    expect(enqueueEvent2.length).toBe(1);
-
-    await gitDDB.destroy();
-  });
-
-  it('off once enqueue event', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
-    await gitDDB.createDB();
-    const enqueueEvent: TaskMetadata[] = [];
-    const enqueueEvent2: TaskMetadata[] = [];
-    gitDDB.taskQueue.once('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent.push(taskMetadata);
-    });
-    const callback = (taskMetadata: TaskMetadata) => {
-      enqueueEvent2.push(taskMetadata);
-    };
-    gitDDB.taskQueue.once('enqueue', callback);
-    gitDDB.taskQueue.off('enqueue', callback);
-    await gitDDB.put({ _id: '1' });
-
-    expect(enqueueEvent.length).toBe(1);
-    expect(enqueueEvent2.length).toBe(0);
+    const revisions = await gitDDB.getDocHistory('foo');
+    for (let i = 0; i < revisions.length; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const doc = await gitDDB.getByRevision(revisions[i]);
+      expect(doc!.taskId).toBe(taskMetadataList[i].taskId);
+    }
 
     await gitDDB.destroy();
   });
@@ -406,6 +341,7 @@ maybe('<task_queue> remote', () => {
       delete: 0,
       push: 1,
       sync: 1,
+      cancel: 0,
     });
     dbA.taskQueue.clear();
     expect(dbA.taskQueue.currentStatistics()).toEqual({
@@ -415,6 +351,7 @@ maybe('<task_queue> remote', () => {
       delete: 0,
       push: 0,
       sync: 0,
+      cancel: 0,
     });
     await destroyDBs([dbA]);
   });

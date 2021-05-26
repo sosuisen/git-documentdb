@@ -435,11 +435,25 @@ describe('<crud/delete>', () => {
     await gitDDB.put({ _id: '2' });
     const id1 = gitDDB.taskQueue.newTaskId();
     const id2 = gitDDB.taskQueue.newTaskId();
-    gitDDB.taskQueue.on('enqueue', (taskMetadata: TaskMetadata) => {
-      enqueueEvent.push(taskMetadata);
-    });
-    await gitDDB.delete({ _id: '1' }, { taskId: id1 });
-    await gitDDB.delete({ _id: '2' }, { taskId: id2 });
+    await gitDDB.delete(
+      { _id: '1' },
+      {
+        taskId: id1,
+        enqueueCallback: (taskMetadata: TaskMetadata) => {
+          enqueueEvent.push(taskMetadata);
+        },
+      }
+    );
+    await gitDDB.delete(
+      { _id: '2' },
+      {
+        taskId: id2,
+        enqueueCallback: (taskMetadata: TaskMetadata) => {
+          enqueueEvent.push(taskMetadata);
+        },
+      }
+    );
+
     await sleep(2000);
     expect(enqueueEvent[0].taskId).toBe(id1);
     expect(enqueueEvent[1].taskId).toBe(id2);

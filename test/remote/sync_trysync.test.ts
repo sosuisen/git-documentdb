@@ -656,9 +656,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
   it('skips consecutive sync tasks', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
-
-    const jsonA1 = { _id: '1', name: 'fromA' };
-    await dbA.put(jsonA1);
+    // dbA.setLogLevel('trace');
     const results: SyncResult[] = [];
     for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line promise/catch-or-return
@@ -671,7 +669,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     results.forEach(res => {
       if (res.action === 'canceled') cancelCount++;
     });
+    // Check results
     expect(cancelCount).toBe(2);
+
+    // Check statistics
+    expect(dbA.taskQueue.currentStatistics().cancel).toBe(2);
+
     // Only one trySync() will be executed
     expect(dbA.taskQueue.currentStatistics().sync).toBe(1);
 
@@ -680,6 +683,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
   it('skips consecutive sync tasks after crud tasks', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    // dbA.setLogLevel('trace');
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     for (let i = 0; i < 10; i++) {
@@ -697,7 +701,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     results.forEach(res => {
       if (res.action === 'canceled') cancelCount++;
     });
+    // Check results
     expect(cancelCount).toBe(2);
+
+    // Check statistics
+    expect(dbA.taskQueue.currentStatistics().cancel).toBe(2);
+
     // Only one trySync() will be executed
     expect(dbA.taskQueue.currentStatistics().sync).toBe(1);
 
