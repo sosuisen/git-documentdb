@@ -109,6 +109,7 @@ export type TaskStatistics = {
   delete: number;
   push: number;
   sync: number;
+  cancel: number;
 };
 
 /**
