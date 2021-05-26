@@ -32,18 +32,6 @@ export class TaskQueue {
   private _taskQueue: Task[] = [];
   private _isTaskQueueWorking = false;
 
-  private _eventHandlersOnce: {
-    enqueue: TaskEnqueueCallback[];
-  } = {
-    enqueue: [],
-  };
-
-  private _eventHandlers: {
-    enqueue: TaskEnqueueCallback[];
-  } = {
-    enqueue: [],
-  };
-
   /**
    * Task Statistics
    *
@@ -143,12 +131,6 @@ export class TaskQueue {
   */
   clear () {
     this._taskQueue.forEach(task => task.cancel());
-    this._eventHandlers = {
-      enqueue: [],
-    };
-    this._eventHandlersOnce = {
-      enqueue: [],
-    };
     this._taskQueue.length = 0;
     this._isTaskQueueWorking = false;
     this._currentTask = undefined;
@@ -168,29 +150,6 @@ export class TaskQueue {
 
   currentStatistics (): TaskStatistics {
     return JSON.parse(JSON.stringify(this._statistics));
-  }
-
-  once (event: TaskEvent, callback: TaskCallback) {
-    this._eventHandlersOnce[event].push(callback);
-
-    return this;
-  }
-
-  on (event: TaskEvent, callback: TaskCallback) {
-    this._eventHandlers[event].push(callback);
-
-    return this;
-  }
-
-  off (event: TaskEvent, callback: TaskCallback) {
-    // @ts-ignore
-    this._eventHandlers[event] = this._eventHandlers[event].filter(
-      (func: (res?: any) => void) => func !== callback
-    );
-    this._eventHandlersOnce[event] = this._eventHandlersOnce[event].filter(
-      (func: (res?: any) => void) => func !== callback
-    );
-    return this;
   }
 
   async waitCompletion (timeoutMsec: number) {
