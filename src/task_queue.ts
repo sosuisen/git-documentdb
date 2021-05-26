@@ -233,7 +233,14 @@ export class TaskQueue {
           this._isTaskQueueWorking = false;
           this._currentTask = undefined;
         };
-        this._currentTask.func(beforeResolve, beforeReject).finally(() => {
+        const taskMetadata: TaskMetadata = {
+          label: label,
+          taskId: taskId,
+          targetId: targetId,
+          enqueueTime: this._currentTask.enqueueTime,
+        };
+
+        this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {
           this._execTaskQueue();
         });
       }

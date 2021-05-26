@@ -586,7 +586,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         // Call push_worker which is not spied by Sinon
         stubPush.onSecondCall().callsFake(async () => {
           stubPush.restore();
-          return await push_worker(dbA, sync, 'myTaskId');
+          return await push_worker(dbA, sync, {
+            label: 'sync',
+            taskId: 'myTaskId',
+          });
         });
 
         await expect(sync.init(dbA.repository()!)).resolves.toMatchObject(syncResultPush);
@@ -619,7 +622,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         // Call push_worker which is not spied by Sinon
         stubPush.onSecondCall().callsFake(async () => {
           stubPush.restore();
-          return await push_worker(dbA, sync, 'myTaskId');
+          return await push_worker(dbA, sync, {
+            label: 'sync',
+            taskId: 'myTaskId',
+          });
         });
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(PushWorkerError);
@@ -688,7 +694,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         // Call push_worker which is not spied by Sinon
         stubSync.onSecondCall().callsFake(async () => {
           stubSync.restore();
-          return await sync_worker(dbA, sync, 'myTaskId');
+          return await sync_worker(dbA, sync, {
+            label: 'sync',
+            taskId: 'myTaskId',
+          });
         });
 
         const jsonA1 = { _id: '1', name: 'profile01' };

@@ -15,7 +15,7 @@ import {
   UnfetchedCommitExistsError,
 } from '../error';
 import { IDocumentDB } from '../types_gitddb';
-import { CommitInfo, SyncResultPush } from '../types';
+import { CommitInfo, SyncResultPush, TaskMetadata } from '../types';
 import { ISync } from '../types_sync';
 import { getChanges, getCommitLogs } from './worker_utils';
 
@@ -28,8 +28,7 @@ import { getChanges, getCommitLogs } from './worker_utils';
  */
 async function push (
   gitDDB: IDocumentDB,
-  sync: ISync,
-  taskId: string
+  sync: ISync
 ): Promise<nodegit.Commit | undefined> {
   const repos = gitDDB.repository();
   if (repos === undefined) return;
@@ -115,7 +114,7 @@ async function validatePushResult (
 export async function push_worker (
   gitDDB: IDocumentDB,
   sync: ISync,
-  taskId: string,
+  taskMetadata: TaskMetadata,
   skipStartEvent = false
 ): Promise<SyncResultPush> {
   const repos = gitDDB.repository();
@@ -125,7 +124,7 @@ export async function push_worker (
 
   if (!skipStartEvent) {
     sync.eventHandlers.start.forEach(func => {
-      func(taskId, sync.currentRetries());
+      func(taskMetadata, sync.currentRetries());
     });
   }
 
@@ -154,7 +153,7 @@ export async function push_worker (
   }
 
   // Push
-  const headCommitAfterPush = await push(gitDDB, sync, taskId);
+  const headCommitAfterPush = await push(gitDDB, sync);
 
   // Get changes
   const diff = await nodegit.Diff.treeToTree(

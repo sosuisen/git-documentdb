@@ -29,6 +29,7 @@ import {
   SyncResultMergeAndPushError,
   SyncResultResolveConflictsAndPush,
   SyncResultResolveConflictsAndPushError,
+  TaskMetadata,
 } from '../types';
 import { ISync } from '../types_sync';
 import { push_worker } from './push_worker';
@@ -110,14 +111,14 @@ function resolveNoMergeBase (sync: ISync) {
 export async function sync_worker (
   gitDDB: IDocumentDB,
   sync: ISync,
-  taskId: string
+  taskMetadata: TaskMetadata
 ): Promise<SyncResult> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
   sync.eventHandlers.start.forEach(func => {
-    func(taskId, sync.currentRetries());
+    func(taskMetadata, sync.currentRetries());
   });
 
   /**
@@ -172,7 +173,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    return await push_worker(gitDDB, sync, taskId, true).catch(err => {
+    return await push_worker(gitDDB, sync, taskMetadata, true).catch(err => {
       throw err;
     });
   }
@@ -296,7 +297,7 @@ export async function sync_worker (
     }
 
     // Need push because it is merged normally.
-    const syncResultPush = await push_worker(gitDDB, sync, taskId, true).catch(() => {
+    const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
       return undefined;
     });
 
@@ -461,7 +462,7 @@ export async function sync_worker (
   await nodegit.Checkout.head(repos, opt);
 
   // Push
-  const syncResultPush = await push_worker(gitDDB, sync, taskId, true).catch(() => {
+  const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
     return undefined;
   });
 

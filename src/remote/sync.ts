@@ -40,6 +40,7 @@ import {
   SyncResultPush,
   SyncStartCallback,
   Task,
+  TaskMetadata,
 } from '../types';
 import { ISync } from '../types_sync';
 import { IDocumentDB } from '../types_gitddb';
@@ -551,8 +552,12 @@ export class Sync implements ISync {
     const callback = (
       resolve: (value: SyncResultPush | SyncResultCancel) => void,
       reject: (reason: any) => void
-    ) => (beforeResolve: () => void, beforeReject: () => void) =>
-      push_worker(this._gitDDB, this, taskId)
+    ) => (
+      beforeResolve: () => void,
+      beforeReject: () => void,
+      taskMetadata: TaskMetadata
+    ) =>
+      push_worker(this._gitDDB, this, taskMetadata)
         .then((syncResultPush: SyncResultPush) => {
           this._gitDDB
             .getLogger()
@@ -562,13 +567,13 @@ export class Sync implements ISync {
               )}`
             );
 
-          this.eventHandlers.change.forEach(func => func(syncResultPush));
+          this.eventHandlers.change.forEach(func => func(syncResultPush, taskMetadata));
           if (syncResultPush.action === 'push') {
             this.eventHandlers.remoteChange.forEach(func =>
-              func(syncResultPush.changes.remote)
+              func(syncResultPush.changes.remote, taskMetadata)
             );
           }
-          this.eventHandlers.complete.forEach(func => func(taskId!));
+          this.eventHandlers.complete.forEach(func => func(taskMetadata));
 
           beforeResolve();
           resolve(syncResultPush);
@@ -579,7 +584,7 @@ export class Sync implements ISync {
             err = new PushWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(func => {
-            func(err);
+            func(err, taskMetadata);
           });
 
           beforeReject();
@@ -627,8 +632,12 @@ export class Sync implements ISync {
     const callback = (
       resolve: (value: SyncResult) => void,
       reject: (reason: any) => void
-    ) => (beforeResolve: () => void, beforeReject: () => void) =>
-      sync_worker(this._gitDDB, this, taskId)
+    ) => (
+      beforeResolve: () => void,
+      beforeReject: () => void,
+      taskMetadata: TaskMetadata
+    ) =>
+      sync_worker(this._gitDDB, this, taskMetadata)
         // eslint-disable-next-line complexity
         .then(syncResult => {
           this._gitDDB
@@ -646,7 +655,7 @@ export class Sync implements ISync {
             syncResult.action === 'fast-forward merge' ||
             syncResult.action === 'push'
           ) {
-            this.eventHandlers.change.forEach(func => func(syncResult));
+            this.eventHandlers.change.forEach(func => func(syncResult, taskMetadata));
             if (
               syncResult.action === 'resolve conflicts and push' ||
               syncResult.action === 'merge and push' ||
@@ -655,7 +664,7 @@ export class Sync implements ISync {
               syncResult.action === 'fast-forward merge'
             ) {
               this.eventHandlers.localChange.forEach(func =>
-                func(syncResult.changes.local)
+                func(syncResult.changes.local, taskMetadata)
               );
             }
             if (
@@ -664,11 +673,11 @@ export class Sync implements ISync {
               syncResult.action === 'push'
             ) {
               this.eventHandlers.remoteChange.forEach(func =>
-                func(syncResult.changes.remote)
+                func(syncResult.changes.remote, taskMetadata)
               );
             }
           }
-          this.eventHandlers.complete.forEach(func => func(taskId!));
+          this.eventHandlers.complete.forEach(func => func(taskMetadata));
 
           beforeResolve();
           resolve(syncResult);
@@ -684,7 +693,7 @@ export class Sync implements ISync {
             err = new SyncWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(func => {
-            func(err);
+            func(err, taskMetadata);
           });
 
           beforeReject();

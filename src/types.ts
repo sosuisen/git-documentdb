@@ -501,7 +501,11 @@ export type TaskMetadata = {
  * Task for taskQueue
  */
 export type Task = TaskMetadata & {
-  func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
+  func: (
+    beforeResolve: () => void,
+    beforeReject: () => void,
+    taskMetadata: TaskMetadata
+  ) => Promise<void>;
   cancel: () => void;
   enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
@@ -640,14 +644,26 @@ export interface SyncResultCancel {
 /**
  * SyncEventCallbacks
  */
-export type SyncChangeCallback = (syncResult: SyncResult) => void;
-export type SyncLocalChangeCallback = (changedFiles: ChangedFile[]) => void;
-export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[]) => void;
+export type SyncChangeCallback = (
+  syncResult: SyncResult,
+  taskMetadata: TaskMetadata
+) => void;
+export type SyncLocalChangeCallback = (
+  changedFiles: ChangedFile[],
+  taskMetadata: TaskMetadata
+) => void;
+export type SyncRemoteChangeCallback = (
+  changedFiles: ChangedFile[],
+  taskMetadata: TaskMetadata
+) => void;
 export type SyncPausedCallback = () => void;
 export type SyncActiveCallback = () => void;
-export type SyncStartCallback = (taskId: string, currentRetries: number) => void;
-export type SyncCompleteCallback = (taskId: string) => void;
-export type SyncErrorCallback = (error: Error) => void;
+export type SyncStartCallback = (
+  taskMetadata: TaskMetadata,
+  currentRetries: number
+) => void;
+export type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
+export type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 export type SyncCallback =
   | SyncChangeCallback
   | SyncLocalChangeCallback

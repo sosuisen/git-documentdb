@@ -18,6 +18,7 @@ import {
   RemoteOptions,
   SyncResult,
   SyncResultFastForwardMerge,
+  TaskMetadata,
 } from '../../src/types';
 import { sleep } from '../../src/utils';
 import {
@@ -94,12 +95,16 @@ maybe('<remote/sync> [event]', () => {
 
       // B syncs
       let result: SyncResultFastForwardMerge | undefined;
-      remoteB.on('change', (syncResult: SyncResult) => {
+      let changeTaskId = '';
+      remoteB.on('change', (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
         result = syncResult as SyncResultFastForwardMerge;
+        changeTaskId = taskMetadata.taskId;
       });
       let complete = false;
-      remoteB.on('complete', () => {
+      let endTaskId = '';
+      remoteB.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
+        endTaskId = taskMetadata.taskId;
       });
       await remoteB.trySync();
 
@@ -116,6 +121,8 @@ maybe('<remote/sync> [event]', () => {
       });
 
       expect(result!.changes.local).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
+
+      expect(changeTaskId).toBe(endTaskId);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -254,12 +261,19 @@ maybe('<remote/sync> [event]', () => {
 
       // B syncs
       let changes: ChangedFile[] = [];
-      remoteB.on('localChange', (localChanges: ChangedFile[]) => {
-        changes = localChanges;
-      });
+      let changeTaskId = '';
+      remoteB.on(
+        'localChange',
+        (localChanges: ChangedFile[], taskMetadata: TaskMetadata) => {
+          changes = localChanges;
+          changeTaskId = taskMetadata.taskId;
+        }
+      );
       let complete = false;
-      remoteB.on('complete', () => {
+      let endTaskId = '';
+      remoteB.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
+        endTaskId = taskMetadata.taskId;
       });
       await remoteB.trySync();
 
@@ -271,6 +285,8 @@ maybe('<remote/sync> [event]', () => {
 
       expect(changes.length).toBe(1);
       expect(changes).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
+
+      expect(changeTaskId).toBe(endTaskId);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -344,12 +360,19 @@ maybe('<remote/sync> [event]', () => {
       );
 
       let changes: ChangedFile[] = [];
-      remoteB.on('remoteChange', (remoteChanges: ChangedFile[]) => {
-        changes = remoteChanges;
-      });
+      let changeTaskId = '';
+      remoteB.on(
+        'remoteChange',
+        (remoteChanges: ChangedFile[], taskMetadata: TaskMetadata) => {
+          changes = remoteChanges;
+          changeTaskId = taskMetadata.taskId;
+        }
+      );
       let complete = false;
-      remoteB.on('complete', () => {
+      let endTaskId = '';
+      remoteB.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
+        endTaskId = taskMetadata.taskId;
       });
 
       // B puts and syncs
@@ -366,6 +389,8 @@ maybe('<remote/sync> [event]', () => {
       expect(changes.length).toBe(1);
 
       expect(changes).toEqual([getChangedFileInsert(jsonB1, putResult1)]);
+
+      expect(changeTaskId).toBe(endTaskId);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -563,7 +588,7 @@ maybe('<remote/sync> [event]', () => {
       await destroyDBs([dbA]);
     });
 
-    it('starts event returns taskId and current retries', async () => {
+    it('starts event returns taskMetaData and current retries', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personal_access_token: token },
@@ -575,9 +600,9 @@ maybe('<remote/sync> [event]', () => {
       let counter = 0;
       let taskId = '';
       let currentRetries = -1;
-      remoteA.on('start', (_taskId: string, _currentRetries: number) => {
+      remoteA.on('start', (taskMetadata: TaskMetadata, _currentRetries: number) => {
         counter++;
-        taskId = _taskId;
+        taskId = taskMetadata.taskId;
         currentRetries = _currentRetries;
       });
 
@@ -599,9 +624,16 @@ maybe('<remote/sync> [event]', () => {
         interval,
       });
 
+      let startTaskId = '';
+      remoteA.on('start', (taskMetadata: TaskMetadata) => {
+        startTaskId = taskMetadata.taskId;
+      });
+
       let complete = false;
-      remoteA.on('complete', () => {
+      let endTaskId = '';
+      remoteA.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
+        endTaskId = taskMetadata.taskId;
       });
 
       expect(complete).toBe(false);
@@ -615,6 +647,7 @@ maybe('<remote/sync> [event]', () => {
       }
 
       expect(complete).toBe(true);
+      expect(startTaskId).toBe(endTaskId);
       expect(sleepTime).toBeLessThan(interval * 2);
 
       await destroyDBs([dbA]);
@@ -652,13 +685,21 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '1', name: 'fromB' });
       await remoteB.trySync();
 
+      let startTaskId = '';
+      remoteA.on('start', (taskMetadata: TaskMetadata) => {
+        startTaskId = taskMetadata.taskId;
+      });
+
       let error = false;
-      remoteA.on('error', () => {
+      let errorTaskId = '';
+      remoteA.on('error', (e: Error, taskMetadata: TaskMetadata) => {
         error = true;
+        errorTaskId = taskMetadata.taskId;
       });
       await expect(remoteA.trySync()).rejects.toThrowError(SyncWorkerError);
 
       expect(error).toBe(true);
+      expect(startTaskId).toBe(errorTaskId);
 
       error = false;
       await expect(remoteA.tryPush()).rejects.toThrowError(Error); // request failed with status code: 404
