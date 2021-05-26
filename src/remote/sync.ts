@@ -473,11 +473,14 @@ export class Sync implements ISync {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
     }
+    /*
     else {
+      console.log('# cancel because _retrySyncCounter is not 0: ' + this._retrySyncCounter);      
       const result: SyncResultCancel = { action: 'canceled' };
       this._retrySyncCounter = 0;
       return result;
     }
+    */
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
       const resultOrError = await this.enqueueSyncTask().catch((err: Error) => {
@@ -489,6 +492,10 @@ export class Sync implements ISync {
         }
         return err;
       });
+      if (!(resultOrError instanceof Error) && resultOrError.action === 'canceled') {
+        return resultOrError;
+      }
+
       if (
         !(resultOrError instanceof Error) &&
         !(
