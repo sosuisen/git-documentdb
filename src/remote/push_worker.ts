@@ -49,7 +49,7 @@ async function push (
       throw new GitPushError(err.message);
     });
   // gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
-  const headCommit = await validatePushResult(gitDDB, sync, taskId);
+  const headCommit = await validatePushResult(gitDDB, sync);
   return headCommit;
 }
 
@@ -62,8 +62,7 @@ async function push (
  */
 async function validatePushResult (
   gitDDB: IDocumentDB,
-  sync: ISync,
-  taskId: string
+  sync: ISync
 ): Promise<nodegit.Commit | undefined> {
   const repos = gitDDB.repository();
   if (repos === undefined) return undefined;
