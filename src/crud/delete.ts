@@ -60,6 +60,7 @@ export function deleteImpl (
   options ??= {
     commit_message: undefined,
     taskId: undefined,
+    enqueueCallback: undefined,
   };
   const commit_message =
     options.commit_message ?? `delete: ${_id}${this.fileExt}(<%file_sha%>)`;
@@ -71,7 +72,6 @@ export function deleteImpl (
       label: 'delete',
       taskId: taskId,
       targetId: _id,
-      enqueueTime: Date.now(),
       func: (beforeResolve, beforeReject) =>
         delete_worker(this, _id, this.fileExt, commit_message!)
           .then((result: RemoveResult) => {
@@ -85,6 +85,7 @@ export function deleteImpl (
       cancel: () => {
         reject(new TaskCancelError(taskId));
       },
+      enqueueCallback: options?.enqueueCallback,
     });
   });
 }

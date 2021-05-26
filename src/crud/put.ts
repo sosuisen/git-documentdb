@@ -101,6 +101,7 @@ export function putImpl (
     commit_message: undefined,
     insertOrUpdate: undefined,
     taskId: undefined,
+    enqueueCallback: undefined,
   };
 
   const commit_message =
@@ -113,7 +114,6 @@ export function putImpl (
       label: options!.insertOrUpdate === undefined ? 'put' : options!.insertOrUpdate,
       taskId: taskId,
       targetId: _id,
-      enqueueTime: Date.now(),
       func: (beforeResolve, beforeReject) =>
         put_worker(this, _id, this.fileExt, data, commit_message!, options!.insertOrUpdate)
           .then(result => {
@@ -127,6 +127,7 @@ export function putImpl (
       cancel: () => {
         reject(new TaskCancelError(taskId));
       },
+      enqueueCallback: options?.enqueueCallback,
     });
   });
 }
