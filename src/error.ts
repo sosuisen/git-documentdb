@@ -577,3 +577,9 @@ export class CorruptedRepositoryError extends BaseError {
     super(`Repository is corrupted.`);
   }
 }
+
+export class ConsecutiveSyncSkippedError extends BaseError {
+  constructor (taskLabel: string, taskId: string) {
+    super(`Consecutive ${taskLabel} skipped (id: ${taskId})`);
+  }
+}

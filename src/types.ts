@@ -165,6 +165,7 @@ export type PutOptions = {
   commit_message?: string;
   insertOrUpdate?: 'insert' | 'update';
   taskId?: string;
+  enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 /**
@@ -176,6 +177,7 @@ export type PutOptions = {
 export type DeleteOptions = {
   commit_message?: string;
   taskId?: string;
+  enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 /**
@@ -487,7 +489,7 @@ export type TaskMetadata = {
   label: TaskLabel;
   taskId: string;
   targetId?: string;
-  enqueueTime: number;
+  enqueueTime?: string;
 };
 
 /**
@@ -496,6 +498,7 @@ export type TaskMetadata = {
 export type Task = TaskMetadata & {
   func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
   cancel: () => void;
+  enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 /**
