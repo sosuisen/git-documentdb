@@ -221,14 +221,14 @@ describe('<task_queue>', () => {
     expect(enqueueEvent[0].label).toBe('put');
     expect(enqueueEvent[0].targetId).toBe('1');
     expect(enqueueEvent[0].taskId).toBe(id1);
-    expect(enqueueEvent[0].queuedTime).toBeGreaterThanOrEqual(time1);
-    expect(enqueueEvent[0].queuedTime).toBeLessThan(time2);
+    expect(enqueueEvent[0].enqueueTime).toBeGreaterThanOrEqual(time1);
+    expect(enqueueEvent[0].enqueueTime).toBeLessThan(time2);
 
     expect(enqueueEvent[1].label).toBe('put');
     expect(enqueueEvent[1].targetId).toBe('2');
     expect(enqueueEvent[1].taskId).toBe(id2);
-    expect(enqueueEvent[1].queuedTime).toBeGreaterThanOrEqual(time2);
-    expect(enqueueEvent[1].queuedTime).toBeLessThan(time3);
+    expect(enqueueEvent[1].enqueueTime).toBeGreaterThanOrEqual(time2);
+    expect(enqueueEvent[1].enqueueTime).toBeLessThan(time3);
 
     await gitDDB.destroy();
   });

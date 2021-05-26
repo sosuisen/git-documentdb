@@ -105,7 +105,7 @@ export class TaskQueue {
       label: task.label,
       taskId: task.taskId,
       targetId: task.targetId,
-      queuedTime: task.queuedTime,
+      enqueueTime: task.enqueueTime,
     };
     this._eventHandlers.enqueue.forEach(callback => {
       if (callback !== undefined) {

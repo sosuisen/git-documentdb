@@ -487,7 +487,7 @@ export type TaskMetadata = {
   label: TaskLabel;
   taskId: string;
   targetId?: string;
-  queuedTime: number;
+  enqueueTime: number;
 };
 
 /**

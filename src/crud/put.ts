@@ -113,7 +113,7 @@ export function putImpl (
       label: options!.insertOrUpdate === undefined ? 'put' : options!.insertOrUpdate,
       taskId: taskId,
       targetId: _id,
-      queuedTime: Date.now(),
+      enqueueTime: Date.now(),
       func: (beforeResolve, beforeReject) =>
         put_worker(this, _id, this.fileExt, data, commit_message!, options!.insertOrUpdate)
           .then(result => {
