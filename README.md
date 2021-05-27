@@ -24,6 +24,10 @@ Use GitDocumentDB to ...
 You do not need knowledge of Git to start. However, you make the most of GitDocumentDB if you understand Git.
 
 # API
+## Overview
+https://gitddb.com/docs/api/API_overview
+
+## Specifications
 https://github.com/sosuisen/git-documentdb/blob/doc-v1.0/docs-api/index.md
 
 
