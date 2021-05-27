@@ -7,6 +7,7 @@
 import { JSONOp } from 'ot-json1';
 import { Logger } from 'tslog';
 import nodegit from '@sosuisen/nodegit';
+import { TLogLevelName } from 'tslog';
 
 // @public
 export type AcceptedConflict = {
@@ -27,7 +28,7 @@ export type AllDocsOptions = {
 export type AllDocsResult = {
     total_rows: number;
     commit_sha?: string;
-    rows?: JsonDocWithMetadata[];
+    rows: JsonDocWithMetadata[];
 };
 
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
@@ -75,9 +76,25 @@ export class CannotWriteDataError extends BaseError {
 }
 
 // @public
-export type ChangedFile = {
-    operation: WriteOperation;
-    data: JsonDocWithMetadata;
+export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
+
+// @public (undocumented)
+export type ChangedFileDelete = {
+    operation: 'delete';
+    old: JsonDocWithMetadata;
+};
+
+// @public (undocumented)
+export type ChangedFileInsert = {
+    operation: 'insert';
+    new: JsonDocWithMetadata;
+};
+
+// @public (undocumented)
+export type ChangedFileUpdate = {
+    operation: 'update';
+    old: JsonDocWithMetadata;
+    new: JsonDocWithMetadata;
 };
 
 // @public
@@ -90,11 +107,11 @@ export class Collection implements CRUDInterface {
     // Warning: (ae-forgotten-export) The symbol "IDocumentDB" needs to be exported by the entry point main.d.ts
     constructor(_gitDDB: CRUDInterface & IDocumentDB, _collectionPath: CollectionPath);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
-    // (undocumented)
     collectionPath(): string;
-    delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-    delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    delete(id: string, options?: DeleteOptions): Promise<RemoveResult>;
+    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+    static getCollections(gitDDB: CRUDInterface & IDocumentDB, rootPath?: string): Promise<Collection[]>;
     insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     insert(id: string, document: {
         [key: string]: any;
@@ -103,8 +120,8 @@ export class Collection implements CRUDInterface {
     put(_id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
-    remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-    remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    remove(id: string, options?: DeleteOptions): Promise<RemoveResult>;
+    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
     update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     update(id: string, document: {
         [key: string]: any;
@@ -153,6 +170,11 @@ export type ConnectionSettingsSSH = {
     public_key_path: string;
     pass_phrase?: string;
 };
+
+// @public (undocumented)
+export class ConsecutiveSyncSkippedError extends BaseError {
+    constructor(taskLabel: string, taskId: string);
+}
 
 // @public (undocumented)
 export class CorruptedRepositoryError extends BaseError {
@@ -204,12 +226,19 @@ export type DatabaseInfoSuccess = {
     is_valid_version: boolean;
 };
 
-// @beta
+// @public
 export type DatabaseOption = {
     local_dir?: string;
     db_name: string;
-    log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    log_level?: TLogLevelName;
     schema?: Schema;
+};
+
+// @public
+export type DeleteOptions = {
+    commit_message?: string;
+    taskId?: string;
+    enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 // @public
@@ -247,7 +276,6 @@ export const GIT_DOCUMENTDB_VERSION_FILENAME = ".gitddb/lib_version";
 
 // @public
 export class GitDocumentDB implements IDocumentDB, CRUDInterface {
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "DatabaseOption" which is marked as @beta
     constructor(options: DatabaseOption);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
@@ -256,16 +284,19 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     dbName(): string;
     // (undocumented)
     readonly defaultBranch = "main";
-    delete(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-    delete(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    delete(id: string, options?: DeleteOptions): Promise<RemoveResult>;
+    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
     readonly fileExt = ".json";
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
     getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
+    getCollections(rootPath?: string): Promise<Collection[]>;
     getDocHistory(docID: string): Promise<string[]>;
     getDocWithMetaData(docId: string, backNumber?: number): Promise<JsonDocWithMetadata | undefined>;
+    // (undocumented)
+    getLogger(): Logger;
     getRemoteURLs(): string[];
     getSynchronizer(remoteURL: string): Sync;
     readonly gitAuthor: {
@@ -278,16 +309,17 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     }, options?: PutOptions): Promise<PutResult>;
     isClosing: boolean;
     isOpened(): boolean;
-    logger: Logger;
     open(): Promise<DatabaseInfo>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
-    remove(id: string, options?: RemoveOptions): Promise<RemoveResult>;
-    remove(jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
+    remove(id: string, options?: DeleteOptions): Promise<RemoveResult>;
+    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
     repository(): nodegit.Repository | undefined;
     schema: Schema;
+    // (undocumented)
+    setLogLevel(level: TLogLevelName): void;
     sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
     sync(options?: RemoteOptions): Promise<Sync>;
     // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
@@ -473,6 +505,8 @@ export class PushWorkerError extends BaseError {
 export type PutOptions = {
     commit_message?: string;
     insertOrUpdate?: 'insert' | 'update';
+    taskId?: string;
+    enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 // @public
@@ -522,11 +556,6 @@ export class RemoteRepositoryConnectError extends BaseError {
 export class RemoteRepositoryNotFoundError extends BaseError {
     constructor(url: string);
 }
-
-// @public
-export type RemoveOptions = {
-    commit_message?: string;
-};
 
 // @public
 export type RemoveResult = {
@@ -626,16 +655,16 @@ export type SyncActiveCallback = () => void;
 export type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncPausedCallback | SyncActiveCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
 
 // @public
-export type SyncChangeCallback = (syncResult: SyncResult) => void;
+export type SyncChangeCallback = (syncResult: SyncResult, taskMetadata: TaskMetadata) => void;
 
 // @public (undocumented)
-export type SyncCompleteCallback = (taskId: string) => void;
+export type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
 
 // @public
 export type SyncDirection = 'pull' | 'push' | 'both';
 
 // @public (undocumented)
-export type SyncErrorCallback = (error: Error) => void;
+export type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 
 // @public
 export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | 'active' | 'start' | 'complete' | 'error';
@@ -651,13 +680,13 @@ export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
 }
 
 // @public (undocumented)
-export type SyncLocalChangeCallback = (changedFiles: ChangedFile[]) => void;
+export type SyncLocalChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 
 // @public (undocumented)
 export type SyncPausedCallback = () => void;
 
 // @public (undocumented)
-export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[]) => void;
+export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 
 // @public
 export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCancel;
@@ -767,7 +796,7 @@ export interface SyncResultResolveConflictsAndPushError {
 }
 
 // @public (undocumented)
-export type SyncStartCallback = (taskId: string, currentRetries: number) => void;
+export type SyncStartCallback = (taskMetadata: TaskMetadata, currentRetries: number) => void;
 
 // @public (undocumented)
 export class SyncWorkerError extends BaseError {
@@ -780,21 +809,36 @@ export class SyncWorkerFetchError extends BaseError {
 }
 
 // @public
-export type Task = {
-    label: TaskLabel;
-    taskId: string;
-    targetId?: string;
-    func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
+export type Task = TaskMetadata & {
+    func: (beforeResolve: () => void, beforeReject: () => void, taskMetadata: TaskMetadata) => Promise<void>;
     cancel: () => void;
+    enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
+
+// @public (undocumented)
+export type TaskCallback = TaskEnqueueCallback;
 
 // @public (undocumented)
 export class TaskCancelError extends BaseError {
     constructor(taskId: string);
 }
 
+// @public (undocumented)
+export type TaskEnqueueCallback = (taskMetadata: TaskMetadata) => void;
+
+// @public
+export type TaskEvent = 'enqueue';
+
 // @public
 export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
+
+// @public
+export type TaskMetadata = {
+    label: TaskLabel;
+    taskId: string;
+    targetId?: string;
+    enqueueTime?: string;
+};
 
 // @public
 export type TaskStatistics = {
@@ -804,6 +848,7 @@ export type TaskStatistics = {
     delete: number;
     push: number;
     sync: number;
+    cancel: number;
 };
 
 // @public (undocumented)

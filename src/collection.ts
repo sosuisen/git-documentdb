@@ -6,15 +6,17 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { UndefinedDocumentIdError } from './error';
+import nodegit from '@sosuisen/nodegit';
+
+import { RepositoryNotOpenError, UndefinedDocumentIdError } from './error';
 import {
   AllDocsOptions,
   AllDocsResult,
   CollectionPath,
+  DeleteOptions,
   JsonDoc,
   PutOptions,
   PutResult,
-  RemoveOptions,
   RemoveResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
@@ -58,12 +60,59 @@ export class Collection implements CRUDInterface {
     validator.validateCollectionPath(this._collectionPath);
   }
 
+  /**
+   * Get collections whose path start with specified path
+   *
+   * @param rootPath Default is '/'.
+   * @returns Collection[]
+   * @throws {@link RepositoryNotOpenError}
+   */
+  static async getCollections (
+    gitDDB: CRUDInterface & IDocumentDB,
+    rootPath = '/'
+  ): Promise<Collection[]> {
+    const repos = gitDDB.repository();
+    if (repos === undefined) {
+      throw new RepositoryNotOpenError();
+    }
+    const head = await nodegit.Reference.nameToId(repos, 'HEAD').catch(e => false); // get HEAD
+    if (!head) {
+      return [];
+    }
+    const commit = await repos.getCommit(head as nodegit.Oid); // get the commit of HEAD
+    let rootTree = await commit.getTree();
+
+    const collections: Collection[] = [];
+    if (rootPath !== '/') {
+      const rootEntry = await rootTree.getEntry(rootPath).catch(e => null);
+      if (rootEntry === null || !rootEntry.isTree()) {
+        return [];
+      }
+      rootTree = await rootEntry.getTree();
+    }
+    const entries = rootTree.entries(); // returns entry by alphabetical order
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      if (entry.isDirectory()) {
+        if (entry.path() !== '.gitddb') {
+          collections.push(new Collection(gitDDB, entry.path()));
+        }
+      }
+    }
+    return collections;
+  }
+
+  /**
+   * Get normalized path of collection
+   *
+   * @returns '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
+   */
   collectionPath () {
     return this._collectionPath;
   }
 
   /**
-   * Add a document
+   * Insert a document if not exists. Otherwise, update it.
    *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).
@@ -85,7 +134,7 @@ export class Collection implements CRUDInterface {
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-   * Add a document
+   * Insert a document if not exists. Otherwise, update it.
    *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).
@@ -378,12 +427,12 @@ export class Collection implements CRUDInterface {
   /**
    * This is an alias of delete()
    */
-  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  remove (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * This is an alias of delete()
    */
-  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     if (typeof idOrDoc === 'string') {
       return this.delete(idOrDoc, options);
     }
@@ -408,7 +457,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * Remove a document
    *
@@ -424,8 +473,8 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     if (typeof idOrDoc === 'string') {
       const orgId = idOrDoc;
       const _id = this._collectionPath + orgId;

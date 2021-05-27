@@ -110,7 +110,7 @@ export async function getChanges (gitDDB: IDocumentDB, diff: nodegit.Diff) {
       // Use oldFile. newFile is empty when removed.
       changes.push({
         operation: 'delete',
-        data: {
+        old: {
           ...oldDocMetadata,
           // eslint-disable-next-line no-await-in-loop
           doc: await getDocument(gitDDB, docId, delta.oldFile().id()),
@@ -120,7 +120,7 @@ export async function getChanges (gitDDB: IDocumentDB, diff: nodegit.Diff) {
     else if (!oldExist && newExist) {
       changes.push({
         operation: 'insert',
-        data: {
+        new: {
           ...newDocMetadata,
           // eslint-disable-next-line no-await-in-loop
           doc: await getDocument(gitDDB, docId, delta.newFile().id()),
@@ -130,7 +130,12 @@ export async function getChanges (gitDDB: IDocumentDB, diff: nodegit.Diff) {
     else if (oldExist && newExist) {
       changes.push({
         operation: 'update',
-        data: {
+        old: {
+          ...oldDocMetadata,
+          // eslint-disable-next-line no-await-in-loop
+          doc: await getDocument(gitDDB, docId, delta.oldFile().id()),
+        },
+        new: {
           ...newDocMetadata,
           // eslint-disable-next-line no-await-in-loop
           doc: await getDocument(gitDDB, docId, delta.newFile().id()),

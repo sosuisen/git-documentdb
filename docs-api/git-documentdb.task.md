@@ -9,13 +9,11 @@ Task for taskQueue
 <b>Signature:</b>
 
 ```typescript
-export declare type Task = {
-    label: TaskLabel;
-    taskId: string;
-    targetId?: string;
-    func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
+export declare type Task = TaskMetadata & {
+    func: (beforeResolve: () => void, beforeReject: () => void, taskMetadata: TaskMetadata) => Promise<void>;
     cancel: () => void;
+    enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 ```
-<b>References:</b> [TaskLabel](./git-documentdb.tasklabel.md)
+<b>References:</b> [TaskMetadata](./git-documentdb.taskmetadata.md)
 

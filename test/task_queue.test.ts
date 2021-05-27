@@ -14,6 +14,7 @@ import { GitDocumentDB } from '../src/index';
 import { createDatabase, destroyDBs, removeRemoteRepositories } from './remote_utils';
 import { sleep } from '../src/utils';
 import { TaskQueue } from '../src/task_queue';
+import { TaskMetadata } from '../src/types';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -131,19 +132,21 @@ describe('<task_queue>', () => {
       local_dir: localDir,
     });
     await gitDDB.createDB();
-    gitDDB.insert({ _id: '01' });
-    expect(gitDDB.taskQueue.currentTaskId()).not.toBeUndefined();
-    await sleep(3000);
-    expect(gitDDB.taskQueue.currentTaskId()).toBeUndefined();
-    await gitDDB.destroy();
+    gitDDB.insert(
+      { _id: '01' },
+      {
+        enqueueCallback: async () => {
+          expect(gitDDB.taskQueue.currentTaskId()).not.toBeUndefined();
+          await sleep(3000);
+          expect(gitDDB.taskQueue.currentTaskId()).toBeUndefined();
+          await gitDDB.destroy();
+        },
+      }
+    );
   });
 
   it('returns newTaskId', () => {
     const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
-    });
     const taskQueue = new TaskQueue(
       new Logger({
         name: dbName,
@@ -185,6 +188,7 @@ describe('<task_queue>', () => {
       delete: 1,
       push: 0,
       sync: 0,
+      cancel: 0,
     });
     gitDDB.taskQueue.clear();
     expect(gitDDB.taskQueue.currentStatistics()).toEqual({
@@ -194,9 +198,95 @@ describe('<task_queue>', () => {
       delete: 0,
       push: 0,
       sync: 0,
+      cancel: 0,
     });
 
-    gitDDB.destroy();
+    await gitDDB.destroy();
+  });
+
+  it('sets ordered enqueueTime', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const promiseList: Promise<TaskMetadata>[] = [];
+    const maxNumber = 30;
+    for (let i = 0; i < maxNumber; i++) {
+      const id = `${i}`;
+      promiseList.push(
+        new Promise(resolve => {
+          gitDDB.put(
+            { _id: 'foo', taskId: id },
+            {
+              taskId: id,
+              enqueueCallback: (taskMetaData: TaskMetadata) => {
+                resolve(taskMetaData);
+              },
+            }
+          );
+        })
+      );
+    }
+
+    const taskMetadataList = await Promise.all(promiseList);
+    taskMetadataList.sort((a, b) => {
+      if (a.enqueueTime! > b.enqueueTime!) return 1;
+      if (a.enqueueTime! < b.enqueueTime!) return -1;
+      return 0;
+    });
+    for (let i = 0; i < maxNumber - 1; i++) {
+      expect(
+        taskMetadataList[i].enqueueTime! < taskMetadataList[i + 1].enqueueTime!
+      ).toBeTruthy();
+    }
+
+    await gitDDB.destroy();
+  });
+
+  it('invokes enqueueCallback with ordered enqueueTime', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const promiseList: Promise<TaskMetadata>[] = [];
+    const rand = [0, 3, 2, 1, 4, 5, 8, 7, 9, 6];
+    for (let i = 0; i < 10; i++) {
+      const id = `${rand[i]}`;
+      promiseList.push(
+        new Promise(resolve => {
+          gitDDB.put(
+            { _id: 'foo', taskId: id },
+            {
+              taskId: id,
+              enqueueCallback: (taskMetaData: TaskMetadata) => {
+                resolve(taskMetaData);
+              },
+            }
+          );
+        })
+      );
+    }
+
+    const taskMetadataList = await Promise.all(promiseList);
+    // Sort new to old
+    taskMetadataList.sort((a, b) => {
+      if (a.enqueueTime! > b.enqueueTime!) return -1;
+      if (a.enqueueTime! < b.enqueueTime!) return 1;
+      return 0;
+    });
+
+    const revisions = await gitDDB.getDocHistory('foo');
+    for (let i = 0; i < revisions.length; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const doc = await gitDDB.getByRevision(revisions[i]);
+      expect(doc!.taskId).toBe(taskMetadataList[i].taskId);
+    }
+
+    await gitDDB.destroy();
   });
 });
 
@@ -251,6 +341,7 @@ maybe('<task_queue> remote', () => {
       delete: 0,
       push: 1,
       sync: 1,
+      cancel: 0,
     });
     dbA.taskQueue.clear();
     expect(dbA.taskQueue.currentStatistics()).toEqual({
@@ -260,6 +351,7 @@ maybe('<task_queue> remote', () => {
       delete: 0,
       push: 0,
       sync: 0,
+      cancel: 0,
     });
     await destroyDBs([dbA]);
   });

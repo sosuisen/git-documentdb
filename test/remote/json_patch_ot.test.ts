@@ -1,4 +1,4 @@
-import { editOp, insertOp, type } from 'ot-json1';
+import { editOp, type } from 'ot-json1';
 import { JsonDiff } from '../../src/remote/json_diff';
 import { JsonPatchOT } from '../../src/remote/json_patch_ot';
 

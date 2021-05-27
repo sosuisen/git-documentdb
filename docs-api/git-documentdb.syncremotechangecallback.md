@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncRemoteChangeCallback = (changedFiles: ChangedFile[]) => void;
+export declare type SyncRemoteChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 ```
-<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [TaskMetadata](./git-documentdb.taskmetadata.md)
 

@@ -34,12 +34,12 @@ import {
   DatabaseInfo,
   DatabaseInfoSuccess,
   DatabaseOption,
+  DeleteOptions,
   JsonDoc,
   JsonDocWithMetadata,
   PutOptions,
   PutResult,
   RemoteOptions,
-  RemoveOptions,
   RemoveResult,
   Schema,
 } from './types';
@@ -107,7 +107,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   private _localDir: string;
   private _dbName: string;
-  private _logLevel: string;
+
   private _currentRepository: nodegit.Repository | undefined;
   private _workingDirectory: string;
 
@@ -120,6 +120,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     is_created_by_gitddb: true,
     is_valid_version: true,
   };
+
+  private _logLevel: TLogLevelName;
 
   /**
    * Schema
@@ -144,7 +146,22 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Logger
    */
-  logger: Logger;
+  private _logger!: Logger; // Use definite assignment assertion
+
+  getLogger (): Logger {
+    return this._logger;
+  }
+
+  setLogLevel (level: TLogLevelName) {
+    this._logger = new Logger({
+      name: this._dbName,
+      minLevel: level as TLogLevelName,
+      displayDateTime: false,
+      displayFunctionName: false,
+      displayFilePath: 'hidden',
+    });
+    if (this.taskQueue) this.taskQueue.setLogger(this._logger);
+  }
 
   /**
    * Constructor
@@ -190,14 +207,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
         Validator.maxWorkingDirectoryLength()
       );
     }
-    this.logger = new Logger({
-      name: this._dbName,
-      minLevel: this._logLevel as TLogLevelName,
-      displayDateTime: false,
-      displayFunctionName: false,
-      displayFilePath: 'hidden',
-    });
-    this.taskQueue = new TaskQueue(this.logger);
+    this.setLogLevel(this._logLevel);
+    this.taskQueue = new TaskQueue(this.getLogger());
   }
 
   /**
@@ -245,7 +256,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this._currentRepository = await cloneRepository(
       this.workingDir(),
       remoteOptions,
-      this.logger
+      this.getLogger()
     ).catch((err: Error) => {
       throw err;
     });
@@ -444,6 +455,17 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
+   * Get collections
+   *
+   * @param rootPath Get collections directly under the path.
+   * @returns Promise<Collection[]>
+   * @throws {@link RepositoryNotOpenError}
+   */
+  async getCollections (rootPath?: string): Promise<Collection[]> {
+    return await Collection.getCollections(this, rootPath);
+  }
+
+  /**
    * Test if a database is opened
    *
    */
@@ -568,7 +590,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Insert a document if not exists, otherwise update it.
+   * Insert a document if not exists. Otherwise, update it.
    *
    * @remarks
    * - put() does not check a write permission of your file system (unlike open()).
@@ -591,7 +613,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-    * Insert a document if not exists, otherwise update it.
+    * Insert a document if not exists. Otherwise, update it.
     *
     * @remarks
     * - put() does not check a write permission of your file system (unlike open()).
@@ -773,7 +795,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * Get a document
    *
    * @param docId - id of a target document
-   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned.
+   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned.
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
    *
    * @returns
@@ -879,7 +901,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
-  delete (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  delete (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * Remove a document
    *
@@ -894,8 +916,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
-  delete (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     return deleteImpl.call(this, idOrDoc, options);
   }
 
@@ -903,12 +925,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * This is an alias of remove()
    */
 
-  remove (id: string, options?: RemoveOptions): Promise<RemoveResult>;
+  remove (id: string, options?: DeleteOptions): Promise<RemoveResult>;
   /**
    * This is an alias of remove()
    */
-  remove (jsonDoc: JsonDoc, options?: RemoveOptions): Promise<RemoveResult>;
-  remove (idOrDoc: string | JsonDoc, options?: RemoveOptions): Promise<RemoveResult> {
+  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
     return deleteImpl.call(this, idOrDoc, options);
   }
 

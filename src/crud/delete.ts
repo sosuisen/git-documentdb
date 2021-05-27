@@ -20,7 +20,7 @@ import {
   UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
-import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
+import { DeleteOptions, JsonDoc, RemoveResult } from '../types';
 
 /**
  * Implementation of delete()
@@ -30,7 +30,7 @@ import { JsonDoc, RemoveOptions, RemoveResult } from '../types';
 export function deleteImpl (
   this: IDocumentDB,
   idOrDoc: string | JsonDoc,
-  options?: RemoveOptions
+  options?: DeleteOptions
 ): Promise<RemoveResult> {
   let _id: string;
   if (typeof idOrDoc === 'string') {
@@ -59,11 +59,13 @@ export function deleteImpl (
 
   options ??= {
     commit_message: undefined,
+    taskId: undefined,
+    enqueueCallback: undefined,
   };
   const commit_message =
     options.commit_message ?? `delete: ${_id}${this.fileExt}(<%file_sha%>)`;
 
-  const taskId = this.taskQueue.newTaskId();
+  const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // delete() must be serial.
   return new Promise((resolve, reject) => {
     this.taskQueue.pushToTaskQueue({
@@ -83,6 +85,7 @@ export function deleteImpl (
       cancel: () => {
         reject(new TaskCancelError(taskId));
       },
+      enqueueCallback: options?.enqueueCallback,
     });
   });
 }

@@ -79,6 +79,14 @@ const collection_example = async () => {
    *      gitDDB.collection('yoshino').get({ _id: 'mt_yoshino' }) returns { _id: 'mt_yoshino', flower: 'awesome cherry blossoms' }.
    */
 
+  console.log('\nCollections are');
+  const cols = await gitDDB.getCollections();
+  cols.forEach(col => {
+    console.log(` - ${col.collectionPath()}`); 
+    // - nara/
+    // - yoshino/
+  });
+
   await gitDDB.close();
 };
 collection_example();

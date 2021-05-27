@@ -6,6 +6,8 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import { TLogLevelName } from 'tslog';
+
 /**
  * Database Option
  *
@@ -24,15 +26,17 @@
  *   - dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \ | ? * \0.
  *   - dbName cannot end with a period or a white space.
  *   - dbName does not allow '.' and '..'.
+ *
+ * * log_level: Default is 'info'.
  * ```
- * @beta
  */
 export type DatabaseOption = {
   local_dir?: string;
   db_name: string;
-  log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+  log_level?: TLogLevelName;
   schema?: Schema;
 };
+
 /**
  * Schema
  *
@@ -105,6 +109,7 @@ export type TaskStatistics = {
   delete: number;
   push: number;
   sync: number;
+  cancel: number;
 };
 
 /**
@@ -164,16 +169,20 @@ export type CollectionPath = string;
 export type PutOptions = {
   commit_message?: string;
   insertOrUpdate?: 'insert' | 'update';
+  taskId?: string;
+  enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 /**
- * Options for remove()
+ * Options for delete()
  *
  * @remarks
- * - commit_message: internal commit message. default is 'remove: path/to/the/file'
+ * - commit_message: internal commit message. default is 'delete: path/to/the/file'
  */
-export type RemoveOptions = {
+export type DeleteOptions = {
   commit_message?: string;
+  taskId?: string;
+  enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 /**
@@ -250,7 +259,7 @@ export type RemoveResult = {
 export type AllDocsResult = {
   total_rows: number;
   commit_sha?: string;
-  rows?: JsonDocWithMetadata[];
+  rows: JsonDocWithMetadata[];
 };
 
 /**
@@ -465,20 +474,40 @@ export type RemoteOptions = {
 };
 
 /**
+ * TaskEvent
+ */
+export type TaskEvent = 'enqueue';
+
+export type TaskEnqueueCallback = (taskMetadata: TaskMetadata) => void;
+export type TaskCallback = TaskEnqueueCallback;
+
+/**
  * TaskLabel
  * DatabaseStatistics.taskCount must have the same members.
  */
 export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
 
 /**
- * Task for taskQueue
+ * TaskMetadata
  */
-export type Task = {
+export type TaskMetadata = {
   label: TaskLabel;
   taskId: string;
   targetId?: string;
-  func: (beforeResolve: () => void, beforeReject: () => void) => Promise<void>;
+  enqueueTime?: string;
+};
+
+/**
+ * Task for taskQueue
+ */
+export type Task = TaskMetadata & {
+  func: (
+    beforeResolve: () => void,
+    beforeReject: () => void,
+    taskMetadata: TaskMetadata
+  ) => Promise<void>;
   cancel: () => void;
+  enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 /**
@@ -494,13 +523,26 @@ export type SyncEvent =
   | 'complete'
   | 'error';
 
+export type ChangedFileInsert = {
+  operation: 'insert';
+  new: JsonDocWithMetadata;
+};
+
+export type ChangedFileUpdate = {
+  operation: 'update';
+  old: JsonDocWithMetadata;
+  new: JsonDocWithMetadata;
+};
+
+export type ChangedFileDelete = {
+  operation: 'delete';
+  old: JsonDocWithMetadata;
+};
+
 /**
  * Changed file in merge operation
  */
-export type ChangedFile = {
-  operation: WriteOperation;
-  data: JsonDocWithMetadata;
-};
+export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 
 /**
  * Commit information
@@ -602,14 +644,26 @@ export interface SyncResultCancel {
 /**
  * SyncEventCallbacks
  */
-export type SyncChangeCallback = (syncResult: SyncResult) => void;
-export type SyncLocalChangeCallback = (changedFiles: ChangedFile[]) => void;
-export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[]) => void;
+export type SyncChangeCallback = (
+  syncResult: SyncResult,
+  taskMetadata: TaskMetadata
+) => void;
+export type SyncLocalChangeCallback = (
+  changedFiles: ChangedFile[],
+  taskMetadata: TaskMetadata
+) => void;
+export type SyncRemoteChangeCallback = (
+  changedFiles: ChangedFile[],
+  taskMetadata: TaskMetadata
+) => void;
 export type SyncPausedCallback = () => void;
 export type SyncActiveCallback = () => void;
-export type SyncStartCallback = (taskId: string, currentRetries: number) => void;
-export type SyncCompleteCallback = (taskId: string) => void;
-export type SyncErrorCallback = (error: Error) => void;
+export type SyncStartCallback = (
+  taskMetadata: TaskMetadata,
+  currentRetries: number
+) => void;
+export type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
+export type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 export type SyncCallback =
   | SyncChangeCallback
   | SyncLocalChangeCallback

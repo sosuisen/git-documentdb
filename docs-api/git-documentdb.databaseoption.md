@@ -4,9 +4,6 @@
 
 ## DatabaseOption type
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Database Option
 
 <b>Signature:</b>
@@ -15,7 +12,7 @@ Database Option
 export declare type DatabaseOption = {
     local_dir?: string;
     db_name: string;
-    log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+    log_level?: TLogLevelName;
     schema?: Schema;
 };
 ```
@@ -37,6 +34,8 @@ local\_dir and db\_name are OS specific options. <b>It is recommended to use ASC
   - dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \ | ? * \0.
   - dbName cannot end with a period or a white space.
   - dbName does not allow '.' and '..'.
+
+* log_level: Default is 'info'.
 
 ```
 

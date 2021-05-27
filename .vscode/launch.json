@@ -4,8 +4,8 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/open.test.js"],
-    "default": "test/open.test.js"
+    "options": ["test/crud/get.test.js"],
+    "default": "test/crud/get.test.js"
   }],
   "configurations": [
       {

@@ -12,8 +12,11 @@ Options for put()
 export declare type PutOptions = {
     commit_message?: string;
     insertOrUpdate?: 'insert' | 'update';
+    taskId?: string;
+    enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 ```
+<b>References:</b> [TaskMetadata](./git-documentdb.taskmetadata.md)
 
 ## Remarks
 

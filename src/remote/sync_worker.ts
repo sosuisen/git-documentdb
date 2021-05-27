@@ -29,6 +29,7 @@ import {
   SyncResultMergeAndPushError,
   SyncResultResolveConflictsAndPush,
   SyncResultResolveConflictsAndPushError,
+  TaskMetadata,
 } from '../types';
 import { ISync } from '../types_sync';
 import { push_worker } from './push_worker';
@@ -41,9 +42,9 @@ import { threeWayMerge } from './3way_merge';
  * @throws {@link SyncWorkerFetchError}
  */
 async function fetch (gitDDB: IDocumentDB, sync: ISync) {
-  gitDDB.logger.debug(
-    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`
-  );
+  gitDDB
+    .getLogger()
+    .debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`);
   await gitDDB
     .repository()!
     .fetch('origin', {
@@ -69,9 +70,11 @@ async function calcDistance (
     localCommit.id(),
     remoteCommit.id()
   )) as unknown) as { ahead: number; behind: number };
-  gitDDB.logger.debug(
-    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(distance)}`
-  );
+  gitDDB
+    .getLogger()
+    .debug(
+      ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(distance)}`
+    );
   return distance;
 }
 
@@ -108,14 +111,14 @@ function resolveNoMergeBase (sync: ISync) {
 export async function sync_worker (
   gitDDB: IDocumentDB,
   sync: ISync,
-  taskId: string
+  taskMetadata: TaskMetadata
 ): Promise<SyncResult> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
   sync.eventHandlers.start.forEach(func => {
-    func(taskId, sync.currentRetries());
+    func(taskMetadata, sync.currentRetries());
   });
 
   /**
@@ -170,7 +173,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    return await push_worker(gitDDB, sync, taskId, true).catch(err => {
+    return await push_worker(gitDDB, sync, taskMetadata, true).catch(err => {
       throw err;
     });
   }
@@ -242,15 +245,16 @@ export async function sync_worker (
      */
     // Cannot use await in forEach. Use for-of.
     for (const change of localChanges) {
-      const filename = change.data.id + gitDDB.fileExt;
-      const path = nodePath.resolve(repos.workdir(), filename);
       if (change.operation === 'delete') {
+        const filename = change.old.id + gitDDB.fileExt;
+        const path = nodePath.resolve(repos.workdir(), filename);
         await fs.remove(path).catch(() => {
           throw new CannotDeleteDataError();
         });
         await currentIndex.removeByPath(filename);
       }
       else if (change.operation === 'update') {
+        const filename = change.old.id + gitDDB.fileExt;
         const entry = await newCommit.getEntry(filename);
         const data = (await entry.getBlob()).toString();
         await writeBlobToFile(gitDDB, filename, data);
@@ -293,7 +297,7 @@ export async function sync_worker (
     }
 
     // Need push because it is merged normally.
-    const syncResultPush = await push_worker(gitDDB, sync, taskId, true).catch(() => {
+    const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
       return undefined;
     });
 
@@ -339,9 +343,9 @@ export async function sync_worker (
   const allFileObj: { [key: string]: boolean } = {};
   conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
     const stage = nodegit.Index.entryStage(entry);
-    gitDDB.logger.debug(
-      ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${stage} : ${entry.path}`
-    );
+    gitDDB
+      .getLogger()
+      .debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${stage} : ${entry.path}`);
 
     // entries() returns all files in stage 0, 1, 2 and 3.
     // A file may exist in multiple stages.
@@ -458,7 +462,7 @@ export async function sync_worker (
   await nodegit.Checkout.head(repos, opt);
 
   // Push
-  const syncResultPush = await push_worker(gitDDB, sync, taskId, true).catch(() => {
+  const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
     return undefined;
   });
 

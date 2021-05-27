@@ -23,7 +23,12 @@ import {
   UnfetchedCommitExistsError,
 } from '../src/error';
 import { sleep } from '../src/utils';
-import { destroyDBs, getChangedFile, removeRemoteRepositories } from '../test/remote_utils';
+import {
+  destroyDBs,
+  getChangedFileInsert,
+  getChangedFileUpdate,
+  removeRemoteRepositories,
+} from '../test/remote_utils';
 import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
 import { push_worker } from '../src/remote/push_worker';
 import { sync_worker } from '../src/remote/sync_worker';
@@ -268,7 +273,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbB.createDB(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
+        const putResultA1 = await dbA.put(jsonA1);
         const remoteA = dbA.getSynchronizer(remoteURL);
         await remoteA.tryPush();
 
@@ -281,7 +286,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           action: 'resolve conflicts and push',
           changes: {
             local: [],
-            remote: [getChangedFile('update', jsonB1, putResultB1)],
+            remote: [getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1)],
           },
           conflicts: [
             {
@@ -581,7 +586,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         // Call push_worker which is not spied by Sinon
         stubPush.onSecondCall().callsFake(async () => {
           stubPush.restore();
-          return await push_worker(dbA, sync, 'myTaskId');
+          return await push_worker(dbA, sync, {
+            label: 'sync',
+            taskId: 'myTaskId',
+          });
         });
 
         await expect(sync.init(dbA.repository()!)).resolves.toMatchObject(syncResultPush);
@@ -614,7 +622,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         // Call push_worker which is not spied by Sinon
         stubPush.onSecondCall().callsFake(async () => {
           stubPush.restore();
-          return await push_worker(dbA, sync, 'myTaskId');
+          return await push_worker(dbA, sync, {
+            label: 'sync',
+            taskId: 'myTaskId',
+          });
         });
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(PushWorkerError);
@@ -683,7 +694,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
         // Call push_worker which is not spied by Sinon
         stubSync.onSecondCall().callsFake(async () => {
           stubSync.restore();
-          return await sync_worker(dbA, sync, 'myTaskId');
+          return await sync_worker(dbA, sync, {
+            label: 'sync',
+            taskId: 'myTaskId',
+          });
         });
 
         const jsonA1 = { _id: '1', name: 'profile01' };
@@ -691,16 +705,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const syncResultPush: SyncResultPush = {
           action: 'push',
           changes: {
-            remote: [
-              {
-                operation: 'insert',
-                data: {
-                  id: putResult.id,
-                  file_sha: putResult.file_sha,
-                  doc: jsonA1,
-                },
-              },
-            ],
+            remote: [getChangedFileInsert(jsonA1, putResult)],
           },
         };
 

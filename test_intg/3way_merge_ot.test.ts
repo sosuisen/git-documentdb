@@ -24,8 +24,9 @@ import {
   createClonedDatabases,
   createDatabase,
   destroyDBs,
-  getChangedFile,
-  getChangedFileBySHA,
+  getChangedFileDelete,
+  getChangedFileInsert,
+  getChangedFileUpdateBySHA,
   getCommitInfo,
   getWorkingDirFiles,
   removeRemoteRepositories,
@@ -137,16 +138,26 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.changes.local.length).toBe(2);
     expect(syncResult1.changes.local).toEqual(
       expect.arrayContaining([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-        getChangedFile('insert', jsonA2, putResultA2),
+        getChangedFileUpdateBySHA(
+          jsonB1,
+          putResultB1.file_sha,
+          mergedJson,
+          mergedDoc!.file_sha
+        ),
+        getChangedFileInsert(jsonA2, putResultA2),
       ])
     );
 
     expect(syncResult1.changes.remote.length).toBe(2);
     expect(syncResult1.changes.remote).toEqual(
       expect.arrayContaining([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
-        getChangedFile('insert', jsonB3, putResultB3),
+        getChangedFileUpdateBySHA(
+          jsonA1,
+          putResultA1.file_sha,
+          mergedJson,
+          mergedDoc!.file_sha
+        ),
+        getChangedFileInsert(jsonB3, putResultB3),
       ])
     );
 
@@ -228,7 +239,12 @@ maybe('intg: <3way_merge_ot>', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+      getChangedFileUpdateBySHA(
+        jsonB1,
+        putResultB1!.file_sha,
+        mergedJson,
+        mergedDoc!.file_sha
+      ),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(0);
@@ -312,7 +328,7 @@ maybe('intg: <3way_merge_ot>', () => {
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('delete', jsonA1dash, putResultA1dash),
+      getChangedFileDelete(jsonA1dash, putResultA1dash),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -392,14 +408,10 @@ maybe('intg: <3way_merge_ot>', () => {
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
-    expect(syncResult1.changes.local).toEqual([
-      getChangedFile('insert', jsonA2, putResultA2),
-    ]);
+    expect(syncResult1.changes.local).toEqual([getChangedFileInsert(jsonA2, putResultA2)]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
-    expect(syncResult1.changes.remote).toEqual([
-      getChangedFile('insert', jsonB1, putResultB1),
-    ]);
+    expect(syncResult1.changes.remote).toEqual([getChangedFileInsert(jsonB1, putResultB1)]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
@@ -501,12 +513,22 @@ maybe('intg: <3way_merge_ot>', () => {
     });
     expect(syncResult1.changes.local.length).toBe(1);
     expect(syncResult1.changes.local).toEqual([
-      getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+      getChangedFileUpdateBySHA(
+        jsonB1,
+        putResultB1.file_sha,
+        mergedJson,
+        mergedDoc!.file_sha
+      ),
     ]);
 
     expect(syncResult1.changes.remote.length).toBe(1);
     expect(syncResult1.changes.remote).toEqual([
-      getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+      getChangedFileUpdateBySHA(
+        jsonA1dash,
+        putResultA1dash.file_sha,
+        mergedJson,
+        mergedDoc!.file_sha
+      ),
     ]);
 
     expect(syncResult1.conflicts.length).toEqual(1);
@@ -592,7 +614,12 @@ maybe('intg: <3way_merge_ot>', () => {
       const mergedDoc = await dbB.getDocWithMetaData('1');
 
       expect(syncResult1.changes.local).toEqual([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+        getChangedFileUpdateBySHA(
+          jsonB1,
+          putResultB1.file_sha,
+          mergedJson,
+          mergedDoc!.file_sha
+        ),
       ]);
       await destroyDBs([dbA, dbB]);
     });
@@ -655,7 +682,12 @@ maybe('intg: <3way_merge_ot>', () => {
       const mergedDoc = await dbB.getDocWithMetaData('1');
 
       expect(syncResult1.changes.local).toEqual([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+        getChangedFileUpdateBySHA(
+          jsonB1,
+          putResultB1.file_sha,
+          mergedJson,
+          mergedDoc!.file_sha
+        ),
       ]);
       await destroyDBs([dbA, dbB]);
     });
@@ -719,7 +751,12 @@ maybe('intg: <3way_merge_ot>', () => {
       const mergedDoc = await dbB.getDocWithMetaData('1');
 
       expect(syncResult1.changes.local).toEqual([
-        getChangedFileBySHA('update', mergedJson, mergedDoc!.file_sha),
+        getChangedFileUpdateBySHA(
+          jsonB1,
+          putResultB1.file_sha,
+          mergedJson,
+          mergedDoc!.file_sha
+        ),
       ]);
       await destroyDBs([dbA, dbB]);
     });

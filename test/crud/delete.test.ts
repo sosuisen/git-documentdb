@@ -20,6 +20,9 @@ import {
 } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
 import { delete_worker } from '../../src/crud/delete';
+import { TaskMetadata } from '../../src/types';
+import { sleep } from '../../src/utils';
+
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
@@ -418,5 +421,43 @@ describe('<crud/delete>', () => {
 
       await gitDDB.destroy();
     });
+  });
+
+  it('set taskId', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+    await gitDDB.createDB();
+    const enqueueEvent: TaskMetadata[] = [];
+    await gitDDB.put({ _id: '1' });
+    await gitDDB.put({ _id: '2' });
+    const id1 = gitDDB.taskQueue.newTaskId();
+    const id2 = gitDDB.taskQueue.newTaskId();
+    await gitDDB.delete(
+      { _id: '1' },
+      {
+        taskId: id1,
+        enqueueCallback: (taskMetadata: TaskMetadata) => {
+          enqueueEvent.push(taskMetadata);
+        },
+      }
+    );
+    await gitDDB.delete(
+      { _id: '2' },
+      {
+        taskId: id2,
+        enqueueCallback: (taskMetadata: TaskMetadata) => {
+          enqueueEvent.push(taskMetadata);
+        },
+      }
+    );
+
+    await sleep(2000);
+    expect(enqueueEvent[0].taskId).toBe(id1);
+    expect(enqueueEvent[1].taskId).toBe(id2);
+
+    await gitDDB.destroy();
   });
 });

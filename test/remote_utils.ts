@@ -3,14 +3,15 @@ import { Octokit } from '@octokit/rest';
 import sinon from 'sinon';
 import nodegit from '@sosuisen/nodegit';
 import {
-  ChangedFile,
+  ChangedFileDelete,
+  ChangedFileInsert,
+  ChangedFileUpdate,
   CommitInfo,
   JsonDoc,
   PutResult,
   RemoteOptions,
   RemoveResult,
   Schema,
-  WriteOperation,
 } from '../src/types';
 import { ISync } from '../src/types_sync';
 import { GitDocumentDB } from '../src/index';
@@ -50,32 +51,100 @@ export function getCommitInfo (
  * Get ChangedFile Object from args
  * @remarks 'result' must includes file_sha of 'doc'
  */
-export function getChangedFile (
-  operation: WriteOperation,
-  doc: JsonDoc,
-  result: PutResult | RemoveResult
-): ChangedFile {
+export function getChangedFileInsert (
+  newDoc: JsonDoc,
+  newResult: PutResult | RemoveResult
+): ChangedFileInsert {
   return {
-    operation,
-    data: {
-      id: doc._id,
-      file_sha: result.file_sha,
-      doc,
+    operation: 'insert',
+    new: {
+      id: newDoc!._id,
+      file_sha: newResult!.file_sha,
+      doc: newDoc,
     },
   };
 }
 
-export function getChangedFileBySHA (
-  operation: WriteOperation,
-  doc: JsonDoc,
-  file_sha: string
-): ChangedFile {
+export function getChangedFileUpdate (
+  oldDoc: JsonDoc,
+  oldResult: PutResult | RemoveResult,
+  newDoc: JsonDoc,
+  newResult: PutResult | RemoveResult
+): ChangedFileUpdate {
   return {
-    operation,
-    data: {
-      id: doc._id,
-      file_sha,
-      doc,
+    operation: 'update',
+    old: {
+      id: oldDoc!._id,
+      file_sha: oldResult!.file_sha,
+      doc: oldDoc!,
+    },
+    new: {
+      id: newDoc!._id,
+      file_sha: newResult!.file_sha,
+      doc: newDoc,
+    },
+  };
+}
+
+export function getChangedFileDelete (
+  oldDoc: JsonDoc,
+  oldResult: PutResult | RemoveResult
+): ChangedFileDelete {
+  return {
+    operation: 'delete',
+    old: {
+      id: oldDoc!._id,
+      file_sha: oldResult!.file_sha,
+      doc: oldDoc,
+    },
+  };
+}
+
+export function getChangedFileInsertBySHA (
+  newDoc: JsonDoc,
+  newFileSHA: string
+): ChangedFileInsert {
+  return {
+    operation: 'insert',
+    new: {
+      id: newDoc!._id,
+      file_sha: newFileSHA,
+      doc: newDoc,
+    },
+  };
+}
+
+export function getChangedFileUpdateBySHA (
+  oldDoc: JsonDoc,
+  oldFileSHA: string,
+  newDoc: JsonDoc,
+  newFileSHA: string
+): ChangedFileUpdate {
+  return {
+    operation: 'update',
+    old: {
+      id: oldDoc!._id,
+      file_sha: oldFileSHA,
+      doc: oldDoc!,
+    },
+    new: {
+      id: newDoc!._id,
+      file_sha: newFileSHA,
+      doc: newDoc,
+    },
+  };
+}
+
+export function getChangedFileDeleteBySHA (
+  oldDoc: JsonDoc,
+  oldFileSHA: string
+): ChangedFileDelete {
+  return {
+    operation: 'delete',
+    old: {
+      id: oldDoc!._id,
+      file_sha: oldFileSHA,
+      doc: oldDoc,
     },
   };
 }
