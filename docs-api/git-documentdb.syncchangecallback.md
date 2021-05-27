@@ -9,7 +9,7 @@ SyncEventCallbacks
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncChangeCallback = (syncResult: SyncResult) => void;
+export declare type SyncChangeCallback = (syncResult: SyncResult, taskMetadata: TaskMetadata) => void;
 ```
-<b>References:</b> [SyncResult](./git-documentdb.syncresult.md)
+<b>References:</b> [SyncResult](./git-documentdb.syncresult.md)<!-- -->, [TaskMetadata](./git-documentdb.taskmetadata.md)
 

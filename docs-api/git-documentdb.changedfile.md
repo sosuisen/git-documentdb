@@ -9,10 +9,7 @@ Changed file in merge operation
 <b>Signature:</b>
 
 ```typescript
-export declare type ChangedFile = {
-    operation: WriteOperation;
-    data: JsonDocWithMetadata;
-};
+export declare type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 ```
-<b>References:</b> [WriteOperation](./git-documentdb.writeoperation.md)<!-- -->, [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)
+<b>References:</b> [ChangedFileInsert](./git-documentdb.changedfileinsert.md)<!-- -->, [ChangedFileUpdate](./git-documentdb.changedfileupdate.md)<!-- -->, [ChangedFileDelete](./git-documentdb.changedfiledelete.md)
 

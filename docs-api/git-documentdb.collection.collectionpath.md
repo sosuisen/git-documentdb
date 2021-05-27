@@ -4,6 +4,8 @@
 
 ## Collection.collectionPath() method
 
+Get normalized path of collection
+
 <b>Signature:</b>
 
 ```typescript
@@ -12,4 +14,6 @@ collectionPath(): string;
 <b>Returns:</b>
 
 string
+
+'' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
 

@@ -7,5 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncCompleteCallback = (taskId: string) => void;
+export declare type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
 ```
+<b>References:</b> [TaskMetadata](./git-documentdb.taskmetadata.md)
+

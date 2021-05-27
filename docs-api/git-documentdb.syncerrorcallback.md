@@ -7,5 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncErrorCallback = (error: Error) => void;
+export declare type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 ```
+<b>References:</b> [TaskMetadata](./git-documentdb.taskmetadata.md)
+

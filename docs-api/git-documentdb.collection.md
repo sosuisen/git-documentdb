@@ -48,11 +48,11 @@ gitDDB.collection('Sapporo').get({ _id: '1' }); // returns { _id: '1', name: 'Yu
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [allDocs(options)](./git-documentdb.collection.alldocs.md) |  | Get all the documents |
-|  [collectionPath()](./git-documentdb.collection.collectionpath.md) |  |  |
+|  [collectionPath()](./git-documentdb.collection.collectionpath.md) |  | Get normalized path of collection |
 |  [delete(id, options)](./git-documentdb.collection.delete.md) |  | Delete a document |
 |  [delete(jsonDoc, options)](./git-documentdb.collection.delete_1.md) |  | Remove a document |
 |  [get(docId, backNumber)](./git-documentdb.collection.get.md) |  | Get a document |
-|  [getCollections(gitDDB, rootPath)](./git-documentdb.collection.getcollections.md) | <code>static</code> | getCollections |
+|  [getCollections(gitDDB, rootPath)](./git-documentdb.collection.getcollections.md) | <code>static</code> | Get collections whose path start with specified path |
 |  [insert(jsonDoc, options)](./git-documentdb.collection.insert.md) |  | Insert a document |
 |  [insert(id, document, options)](./git-documentdb.collection.insert_1.md) |  | Insert a document |
 |  [put(jsonDoc, options)](./git-documentdb.collection.put.md) |  | Insert a document if not exists. Otherwise, update it. |

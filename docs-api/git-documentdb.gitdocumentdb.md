@@ -27,7 +27,6 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [fileExt](./git-documentdb.gitdocumentdb.fileext.md) |  | (not declared) | File extension of a repository document |
 |  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { readonly name: "GitDocumentDB"; readonly email: "gitddb@example.com"; } | Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | DB is going to close |
-|  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | Logger |
 |  [schema](./git-documentdb.gitdocumentdb.schema.md) |  | [Schema](./git-documentdb.schema.md) | Schema |
 |  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | TaskQueue | Task queue |
 |  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | [Validator](./git-documentdb.validator.md) | Name validator |
@@ -49,6 +48,7 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [getCollections(rootPath)](./git-documentdb.gitdocumentdb.getcollections.md) |  | Get collections |
 |  [getDocHistory(docID)](./git-documentdb.gitdocumentdb.getdochistory.md) |  | Get revision history of a file from new to old |
 |  [getDocWithMetaData(docId, backNumber)](./git-documentdb.gitdocumentdb.getdocwithmetadata.md) |  | Get a document with metadata |
+|  [getLogger()](./git-documentdb.gitdocumentdb.getlogger.md) |  |  |
 |  [getRemoteURLs()](./git-documentdb.gitdocumentdb.getremoteurls.md) |  | getRemoteURLs |
 |  [getSynchronizer(remoteURL)](./git-documentdb.gitdocumentdb.getsynchronizer.md) |  | Get synchronizer |
 |  [insert(jsonDoc, options)](./git-documentdb.gitdocumentdb.insert.md) |  | Insert a document |
@@ -60,6 +60,7 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [remove(id, options)](./git-documentdb.gitdocumentdb.remove.md) |  | This is an alias of remove() |
 |  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | This is an alias of remove() |
 |  [repository()](./git-documentdb.gitdocumentdb.repository.md) |  | Get a current repository |
+|  [setLogLevel(level)](./git-documentdb.gitdocumentdb.setloglevel.md) |  |  |
 |  [sync(remoteURL, options)](./git-documentdb.gitdocumentdb.sync.md) |  | Synchronize with a remote repository |
 |  [sync(options)](./git-documentdb.gitdocumentdb.sync_1.md) |  | Synchronize with a remote repository |
 |  [unregisterRemote(remoteURL)](./git-documentdb.gitdocumentdb.unregisterremote.md) |  | Stop and unregister remote synchronization |

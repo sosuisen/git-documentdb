@@ -17,7 +17,7 @@ get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  docId | string | id of a target document |
-|  backNumber | number | Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned. When backNumber is 0 and a document has been deleted in the current DB, it returns undefined. |
+|  backNumber | number | Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned. When backNumber is 0 and a document has been deleted in the current DB, it returns undefined. |
 
 <b>Returns:</b>
 

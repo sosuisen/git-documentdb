@@ -23,6 +23,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md) |  |
 |  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
 |  [Collection](./git-documentdb.collection.md) | Documents are gathered together in collections. |
+|  [ConsecutiveSyncSkippedError](./git-documentdb.consecutivesyncskippederror.md) |  |
 |  [CorruptedRepositoryError](./git-documentdb.corruptedrepositoryerror.md) |  |
 |  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
 |  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
@@ -123,6 +124,9 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [AllDocsOptions](./git-documentdb.alldocsoptions.md) | Options for allDocs() |
 |  [AllDocsResult](./git-documentdb.alldocsresult.md) | Result of allDocs() |
 |  [ChangedFile](./git-documentdb.changedfile.md) | Changed file in merge operation |
+|  [ChangedFileDelete](./git-documentdb.changedfiledelete.md) |  |
+|  [ChangedFileInsert](./git-documentdb.changedfileinsert.md) |  |
+|  [ChangedFileUpdate](./git-documentdb.changedfileupdate.md) |  |
 |  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
 |  [CombineDbStrategies](./git-documentdb.combinedbstrategies.md) | Behavior when combine inconsistent DBs |
 |  [CommitInfo](./git-documentdb.commitinfo.md) | Commit information |
@@ -136,7 +140,8 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseInfo](./git-documentdb.databaseinfo.md) | Database information |
 |  [DatabaseInfoError](./git-documentdb.databaseinfoerror.md) | Database information (failure) |
 |  [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md) | Database information (success) |
-|  [DatabaseOption](./git-documentdb.databaseoption.md) | <b><i>(BETA)</i></b> Database Option |
+|  [DatabaseOption](./git-documentdb.databaseoption.md) | Database Option |
+|  [DeleteOptions](./git-documentdb.deleteoptions.md) | Options for delete() |
 |  [DocMetadata](./git-documentdb.docmetadata.md) | Type for a document metadata |
 |  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | JsonDiffOptions |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
@@ -144,7 +149,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
 |  [PutResult](./git-documentdb.putresult.md) | Result of put() |
 |  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for Sync class |
-|  [RemoveOptions](./git-documentdb.removeoptions.md) | Options for remove() |
 |  [RemoveResult](./git-documentdb.removeresult.md) | Result of remove() |
 |  [Schema](./git-documentdb.schema.md) | Schema |
 |  [SyncActiveCallback](./git-documentdb.syncactivecallback.md) |  |
@@ -160,7 +164,11 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [SyncResult](./git-documentdb.syncresult.md) | Result from sync\_worker() |
 |  [SyncStartCallback](./git-documentdb.syncstartcallback.md) |  |
 |  [Task](./git-documentdb.task.md) | Task for taskQueue |
+|  [TaskCallback](./git-documentdb.taskcallback.md) |  |
+|  [TaskEnqueueCallback](./git-documentdb.taskenqueuecallback.md) |  |
+|  [TaskEvent](./git-documentdb.taskevent.md) | TaskEvent |
 |  [TaskLabel](./git-documentdb.tasklabel.md) | TaskLabel DatabaseStatistics.taskCount must have the same members. |
+|  [TaskMetadata](./git-documentdb.taskmetadata.md) | TaskMetadata |
 |  [TaskStatistics](./git-documentdb.taskstatistics.md) | Task Statistics |
 |  [WriteOperation](./git-documentdb.writeoperation.md) | Write operation |
 

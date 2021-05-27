@@ -4,7 +4,7 @@
 
 ## Collection.getCollections() method
 
-getCollections
+Get collections whose path start with specified path
 
 <b>Signature:</b>
 
@@ -17,7 +17,7 @@ static getCollections(gitDDB: CRUDInterface & IDocumentDB, rootPath?: string): P
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  gitDDB | CRUDInterface &amp; IDocumentDB |  |
-|  rootPath | string | Get collections directly under the path. |
+|  rootPath | string | Default is '/'. |
 
 <b>Returns:</b>
 
