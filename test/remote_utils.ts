@@ -7,10 +7,10 @@ import {
   ChangedFileInsert,
   ChangedFileUpdate,
   CommitInfo,
+  DeleteResult,
   JsonDoc,
   PutResult,
   RemoteOptions,
-  RemoveResult,
   Schema,
 } from '../src/types';
 import { ISync } from '../src/types_sync';
@@ -24,7 +24,7 @@ const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
  * Get CommitInfo Object Array from args
  */
 export function getCommitInfo (
-  resultOrMessage: (PutResult | RemoveResult | string)[]
+  resultOrMessage: (PutResult | DeleteResult | string)[]
 ): CommitInfo[] {
   return resultOrMessage.reduce((acc, current) => {
     if (typeof current === 'string') {
@@ -53,7 +53,7 @@ export function getCommitInfo (
  */
 export function getChangedFileInsert (
   newDoc: JsonDoc,
-  newResult: PutResult | RemoveResult
+  newResult: PutResult | DeleteResult
 ): ChangedFileInsert {
   return {
     operation: 'insert',
@@ -67,9 +67,9 @@ export function getChangedFileInsert (
 
 export function getChangedFileUpdate (
   oldDoc: JsonDoc,
-  oldResult: PutResult | RemoveResult,
+  oldResult: PutResult | DeleteResult,
   newDoc: JsonDoc,
-  newResult: PutResult | RemoveResult
+  newResult: PutResult | DeleteResult
 ): ChangedFileUpdate {
   return {
     operation: 'update',
@@ -88,7 +88,7 @@ export function getChangedFileUpdate (
 
 export function getChangedFileDelete (
   oldDoc: JsonDoc,
-  oldResult: PutResult | RemoveResult
+  oldResult: PutResult | DeleteResult
 ): ChangedFileDelete {
   return {
     operation: 'delete',

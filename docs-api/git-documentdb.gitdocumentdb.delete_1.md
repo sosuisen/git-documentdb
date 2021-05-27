@@ -9,7 +9,7 @@ Remove a document
 <b>Signature:</b>
 
 ```typescript
-delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 ```
 
 ## Parameters
@@ -21,7 +21,7 @@ delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
 
 <b>Returns:</b>
 
-Promise&lt;[RemoveResult](./git-documentdb.removeresult.md)<!-- -->&gt;
+Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
 
 ## Exceptions
 
