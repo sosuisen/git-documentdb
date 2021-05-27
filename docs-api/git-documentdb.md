@@ -142,6 +142,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md) | Database information (success) |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | Database Option |
 |  [DeleteOptions](./git-documentdb.deleteoptions.md) | Options for delete() |
+|  [DeleteResult](./git-documentdb.deleteresult.md) | Result of remove() |
 |  [DocMetadata](./git-documentdb.docmetadata.md) | Type for a document metadata |
 |  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | JsonDiffOptions |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
@@ -149,7 +150,6 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
 |  [PutResult](./git-documentdb.putresult.md) | Result of put() |
 |  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for Sync class |
-|  [RemoveResult](./git-documentdb.removeresult.md) | Result of remove() |
 |  [Schema](./git-documentdb.schema.md) | Schema |
 |  [SyncActiveCallback](./git-documentdb.syncactivecallback.md) |  |
 |  [SyncCallback](./git-documentdb.synccallback.md) |  |

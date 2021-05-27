@@ -20,7 +20,7 @@ import {
   UndefinedDBError,
   UndefinedDocumentIdError,
 } from '../error';
-import { DeleteOptions, JsonDoc, RemoveResult } from '../types';
+import { DeleteOptions, DeleteResult, JsonDoc } from '../types';
 
 /**
  * Implementation of delete()
@@ -31,7 +31,7 @@ export function deleteImpl (
   this: IDocumentDB,
   idOrDoc: string | JsonDoc,
   options?: DeleteOptions
-): Promise<RemoveResult> {
+): Promise<DeleteResult> {
   let _id: string;
   if (typeof idOrDoc === 'string') {
     _id = idOrDoc;
@@ -74,7 +74,7 @@ export function deleteImpl (
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
         delete_worker(this, _id, this.fileExt, commit_message!)
-          .then((result: RemoveResult) => {
+          .then((result: DeleteResult) => {
             beforeResolve();
             resolve(result);
           })
@@ -102,7 +102,7 @@ export async function delete_worker (
   _id: string,
   extension: string,
   commitMessage: string
-): Promise<RemoveResult> {
+): Promise<DeleteResult> {
   if (gitDDB === undefined) {
     return Promise.reject(new UndefinedDBError());
   }

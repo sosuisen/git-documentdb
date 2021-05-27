@@ -108,8 +108,8 @@ export class Collection implements CRUDInterface {
     constructor(_gitDDB: CRUDInterface & IDocumentDB, _collectionPath: CollectionPath);
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     collectionPath(): string;
-    delete(id: string, options?: DeleteOptions): Promise<RemoveResult>;
-    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+    delete(id: string, options?: DeleteOptions): Promise<DeleteResult>;
+    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
     static getCollections(gitDDB: CRUDInterface & IDocumentDB, rootPath?: string): Promise<Collection[]>;
     insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
@@ -120,8 +120,8 @@ export class Collection implements CRUDInterface {
     put(_id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
-    remove(id: string, options?: DeleteOptions): Promise<RemoveResult>;
-    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+    remove(id: string, options?: DeleteOptions): Promise<DeleteResult>;
+    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
     update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     update(id: string, document: {
         [key: string]: any;
@@ -242,6 +242,14 @@ export type DeleteOptions = {
 };
 
 // @public
+export type DeleteResult = {
+    ok: true;
+    id: string;
+    file_sha: string;
+    commit_sha: string;
+};
+
+// @public
 export type DocMetadata = {
     id: string;
     file_sha: string;
@@ -284,8 +292,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     dbName(): string;
     // (undocumented)
     readonly defaultBranch = "main";
-    delete(id: string, options?: DeleteOptions): Promise<RemoveResult>;
-    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+    delete(id: string, options?: DeleteOptions): Promise<DeleteResult>;
+    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
@@ -314,8 +322,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     put(id: string, document: {
         [key: string]: any;
     }, options?: PutOptions): Promise<PutResult>;
-    remove(id: string, options?: DeleteOptions): Promise<RemoveResult>;
-    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+    remove(id: string, options?: DeleteOptions): Promise<DeleteResult>;
+    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
     repository(): nodegit.Repository | undefined;
     schema: Schema;
     // (undocumented)
@@ -556,14 +564,6 @@ export class RemoteRepositoryConnectError extends BaseError {
 export class RemoteRepositoryNotFoundError extends BaseError {
     constructor(url: string);
 }
-
-// @public
-export type RemoveResult = {
-    ok: true;
-    id: string;
-    file_sha: string;
-    commit_sha: string;
-};
 
 // @public (undocumented)
 export class RepositoryNotFoundError extends BaseError {

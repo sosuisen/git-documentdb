@@ -14,10 +14,10 @@ import {
   AllDocsResult,
   CollectionPath,
   DeleteOptions,
+  DeleteResult,
   JsonDoc,
   PutOptions,
   PutResult,
-  RemoveResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { Validator } from './validator';
@@ -427,12 +427,12 @@ export class Collection implements CRUDInterface {
   /**
    * This is an alias of delete()
    */
-  remove (id: string, options?: DeleteOptions): Promise<RemoveResult>;
+  remove (id: string, options?: DeleteOptions): Promise<DeleteResult>;
   /**
    * This is an alias of delete()
    */
-  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
-  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
+  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
     if (typeof idOrDoc === 'string') {
       return this.delete(idOrDoc, options);
     }
@@ -457,7 +457,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  delete (id: string, options?: DeleteOptions): Promise<RemoveResult>;
+  delete (id: string, options?: DeleteOptions): Promise<DeleteResult>;
   /**
    * Remove a document
    *
@@ -473,8 +473,8 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
-  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<RemoveResult> {
+  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
     if (typeof idOrDoc === 'string') {
       const orgId = idOrDoc;
       const _id = this._collectionPath + orgId;
