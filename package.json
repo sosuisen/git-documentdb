@@ -1,6 +1,6 @@
 {
   "name": "git-documentdb",
-  "version": "0.3.3-beta.1",
+  "version": "0.3.3",
   "description": "Offline-first DocumentDB using Git",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
