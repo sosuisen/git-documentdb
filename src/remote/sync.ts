@@ -37,6 +37,7 @@ import {
   SyncRemoteChangeCallback,
   SyncResult,
   SyncResultCancel,
+  SyncResultCombineDatabase,
   SyncResultPush,
   SyncStartCallback,
   Task,
@@ -406,6 +407,7 @@ export class Sync implements ISync {
    * @throws {@link PushWorkerError} (from this and enqueuePushTask)
    * @throws {@link UnfetchedCommitExistsError} (from this and enqueuePushTask)
    */
+  // eslint-disable-next-line complexity
   async tryPush (options?: {
     onlyPush: boolean;
   }): Promise<SyncResultPush | SyncResultCancel> {
@@ -415,27 +417,48 @@ export class Sync implements ISync {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
     }
-    else {
-      const result: SyncResultCancel = { action: 'canceled' };
-      this._retrySyncCounter = 0;
-      return result;
-    }
 
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
-      const resultOrError = await this.enqueuePushTask().catch((err: Error) => {
-        // Invoke retry fail event
-        this._gitDDB.getLogger().debug('Push failed: ' + err.message);
+      const resultOrError = await this.enqueuePushTask().catch((err: Error) => err);
+
+      let error: Error | undefined;
+      let result: SyncResultPush | SyncResultCancel | undefined;
+      if (resultOrError instanceof Error) {
+        error = resultOrError;
+      }
+      else {
+        result = resultOrError;
+      }
+
+      if (error instanceof UnfetchedCommitExistsError) {
+        if (this._options.sync_direction === 'push') {
+          if (this._options.combine_db_strategy === 'replace-with-ours') {
+            // TODO: Exec replace-with-ours instead of throw error
+          }
+          else {
+            throw error;
+          }
+        }
+      }
+
+      if (error) {
+        this._gitDDB.getLogger().debug('Push failed: ' + error.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw err;
+          throw error;
         }
-        return err;
-      });
-      if (!(resultOrError instanceof Error)) {
-        this._retrySyncCounter = 0;
-        return resultOrError;
       }
+
+      if (result && result.action === 'canceled') {
+        return result;
+      }
+
+      if (error === undefined && result !== undefined) {
+        this._retrySyncCounter = 0;
+        return result;
+      }
+
       // eslint-disable-next-line no-await-in-loop
       if (!(await this.canNetworkConnection())) {
         // Retry to connect due to network error.
@@ -449,13 +472,13 @@ export class Sync implements ISync {
       }
       else {
         this._retrySyncCounter = 0;
-        throw resultOrError;
+        throw error;
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
-    const result: SyncResultCancel = { action: 'canceled' };
+    const cancel: SyncResultCancel = { action: 'canceled' };
     this._retrySyncCounter = 0;
-    return result;
+    return cancel;
   }
 
   /**
@@ -474,50 +497,67 @@ export class Sync implements ISync {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
     }
-    /*
-    else {
-      console.log('# cancel because _retrySyncCounter is not 0: ' + this._retrySyncCounter);      
-      const result: SyncResultCancel = { action: 'canceled' };
-      this._retrySyncCounter = 0;
-      return result;
-    }
-    */
+
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
-      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => {
-        // Invoke retry fail event
-        this._gitDDB.getLogger().debug('Sync failed: ' + err.message);
+      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => err);
+
+      let error: Error | undefined;
+      let result: SyncResult | undefined;
+      if (resultOrError instanceof Error) {
+        error = resultOrError;
+      }
+      else if (
+        resultOrError.action === 'merge and push error' ||
+        resultOrError.action === 'resolve conflicts and push error'
+      ) {
+        result = resultOrError;
+        error = resultOrError.error;
+      }
+      else {
+        result = resultOrError;
+      }
+
+      if (error instanceof NoMergeBaseFoundError) {
+        if (this._options.combine_db_strategy === 'throw-error') {
+          throw error;
+        }
+        else if (this._options.combine_db_strategy === 'combine-with-theirs') {
+          // return SyncResultCombineDatabase
+          // eslint-disable-next-line no-await-in-loop
+          return await this.combineDatabaseWithTheirs();
+        }
+      }
+
+      if (error) {
+        this._gitDDB.getLogger().debug('Sync or push failed: ' + error.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw err;
+          throw error;
         }
-        return err;
-      });
-      if (!(resultOrError instanceof Error) && resultOrError.action === 'canceled') {
-        return resultOrError;
+      }
+
+      if (result && result.action === 'canceled') {
+        return result;
+      }
+
+      if (error === undefined && result !== undefined) {
+        // No error
+        this._retrySyncCounter = 0;
+        return result;
       }
 
       if (
-        !(resultOrError instanceof Error) &&
-        !(
-          resultOrError.action === 'merge and push error' ||
-          resultOrError.action === 'resolve conflicts and push error'
-        )
-      ) {
-        this._retrySyncCounter = 0;
-        return resultOrError;
-      }
-      if (
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
-        resultOrError instanceof UnfetchedCommitExistsError ||
-        (!(resultOrError instanceof Error) &&
-          (resultOrError.action === 'merge and push error' ||
-            resultOrError.action === 'resolve conflicts and push error'))
+        error instanceof UnfetchedCommitExistsError
       ) {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
         // - Problem will be resolved by sync again.
+        //   - 'push' action throws UnfetchedCommitExistsError
+        //   - push_worker in 'merge and push' action throws UnfetchedCommitExistsError
+        //   - push_worker in 'resolve conflicts and push' action throws UnfetchedCommitExistsError
         this._gitDDB
           .getLogger()
           .debug(
@@ -527,14 +567,15 @@ export class Sync implements ISync {
         await sleep(this._options.retry_interval!);
       }
       else {
+        // Throw error
         this._retrySyncCounter = 0;
-        throw resultOrError;
+        throw error;
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
-    const result: SyncResultCancel = { action: 'canceled' };
+    const cancel: SyncResultCancel = { action: 'canceled' };
     this._retrySyncCounter = 0;
-    return result;
+    return cancel;
   }
 
   /**
@@ -721,6 +762,20 @@ export class Sync implements ISync {
       this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
       // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
     });
+  }
+
+  /**
+   * Clone a remote repository and combine the current local working directory with it.
+   */
+  combineDatabaseWithTheirs (): SyncResultCombineDatabase {
+    const result: SyncResultCombineDatabase = {
+      action: 'combine database',
+      changes: {
+        local: [],
+        remote: [],
+      },
+    };
+    return result;
   }
 
   /**
