@@ -572,6 +572,7 @@ export type SyncResult =
   | SyncResultMergeAndPush
   | SyncResultResolveConflictsAndPushError
   | SyncResultResolveConflictsAndPush
+  | SyncResultCombineDatabase
   | SyncResultCancel;
 
 export interface SyncResultNop {
@@ -637,6 +638,13 @@ export interface SyncResultResolveConflictsAndPush {
   commits?: {
     local: CommitInfo[];
     remote: CommitInfo[];
+  };
+}
+export interface SyncResultCombineDatabase {
+  action: 'combine database';
+  changes: {
+    local: ChangedFile[];
+    remote: ChangedFile[];
   };
 }
 export interface SyncResultCancel {
