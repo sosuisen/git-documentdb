@@ -237,7 +237,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     }
 
     if (fs.existsSync(this._workingDirectory)) {
-      throw new WorkingDirectoryExistsError();
+      // Throw exception if not empty
+      if (fs.readdirSync(this._workingDirectory).length !== 0) {
+        throw new WorkingDirectoryExistsError();
+      }
     }
 
     /**
