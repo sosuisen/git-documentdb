@@ -21,12 +21,8 @@ skinparam activity {
         ---->[push_worker] if "<UnfetchedCommitExistsError>"
         -->[no] "(C)Synchronize normally"
       else 
-        -->[yes] if "<Retry fetch>" then
-          -->[failure] "(A')Consistency Conflicts"
-        else
-          -->[success] "(B)Transactional Conflicts"
-          -->[retry] "(C)Synchronize normally" <<Succeeded>>
-        endif
+        -->[yes] "(B)Transactional Conflicts"
+          -->[retries] "(C)Synchronize normally" <<Succeeded>>
       endif
     else
       -->[sync_worker] if "<NoMergeBaseFoundError>"
@@ -34,7 +30,7 @@ skinparam activity {
       else
         -->[yes] "(A')Consistency Conflicts"
         -->if "<Check combine_db_strategy>" then
-          -->[nop] "(D)Resolve inconsistent\nmanually" << Failed >>
+          -->[throw-error] "(D)Resolve inconsistent\nmanually" << Failed >>
         else
           -->[other strategies] "(E)Resolve inconsistent\nby combineDB() automatically" << Succeeded >>
         endif
