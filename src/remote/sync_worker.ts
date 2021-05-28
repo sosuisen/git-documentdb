@@ -79,24 +79,11 @@ async function calcDistance (
 }
 
 /**
- * Resolve no merge base
- *
- * @throws {@link NoMergeBaseFoundError}
- */
-function resolveNoMergeBase (sync: ISync) {
-  if (sync.options().combine_db_strategy === 'throw-error') {
-    throw new NoMergeBaseFoundError();
-  }
-  // TODO:
-  throw new Error('other options for combine_db_strategy is not implemented currently.');
-}
-
-/**
  * sync_worker
  *
  * @throws {@link RepositoryNotOpenError} (from this and push_worker())
  * @throws {@link SyncWorkerFetchError} (from fetch() and push_worker())
- * @throws {@link NoMergeBaseFoundError} (from resolveNoMergeBase())
+ * @throws {@link NoMergeBaseFoundError}
  * @throws {@link ThreeWayMergeError}
  * @throws {@link CannotDeleteDataError}
  * @throws {@link InvalidJsonObjectError} (from getChanges())
@@ -157,13 +144,9 @@ export async function sync_worker (
         // Exception locks files. Try cleanup
         repos.cleanup();
 
-        /**
-         * TODO:
-         * May throw 'Error: no merge base found'
-         */
         if (res instanceof Error) {
           if (res.message.startsWith('no merge base found')) {
-            resolveNoMergeBase(sync);
+            throw new NoMergeBaseFoundError();
           }
           throw new GitMergeBranchError(res.message);
         }
