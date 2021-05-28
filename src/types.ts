@@ -364,8 +364,8 @@ export type ConnectionSettings =
  */
 export type CombineDbStrategies =
   | 'throw-error'
-  | 'resolve-by-ours'
-  | 'resolve-by-their'
+  | 'combine-with-ours'
+  | 'combine-with-theirs'
   | 'replace-with-ours'
   | 'replace-with-theirs';
 
