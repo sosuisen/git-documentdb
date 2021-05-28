@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { GitDocumentDB, RemoteOptions, SyncResult } from 'git-documentdb';
+import { GitDocumentDB, RemoteOptions, SyncResult, Task, TaskMetadata } from 'git-documentdb';
 import { showChanges, sleep } from './utils';
 
 const sync_example = async () => {
@@ -105,24 +105,24 @@ const sync_example = async () => {
   
   // Listen change event which occurs when a document is changed.
   const syncA = dbA.getSynchronizer(github_repository);
-  syncA.on('change', (syncResult: SyncResult) => {
+  syncA.on('change', (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
     showChanges(syncResult, 'A'); 
   });
-  syncA.on('error', (err: Error) => console.log('[sync error on A] ' + err.message))
+  syncA.on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on A] ' + err.message))
     .on('paused', () => console.log('[paused on A]'))
     .on('active', () => console.log('[resumed on A]'))
-    .on('start', (taskId: string, currentRetries: number) => console.log('[sync start on A] <' + taskId + '> retries: ' + currentRetries))
-    .on('complete', (taskId: string) => console.log('[sync complete on A] <' + taskId + '>'));
+    .on('start', (taskMetadata: TaskMetadata, currentRetries: number) => console.log('[sync start on A] <' + taskMetadata.taskId + '> retries: ' + currentRetries))
+    .on('complete', (taskMetadata: TaskMetadata) => console.log('[sync complete on A] <' + taskMetadata.taskId + '>'));
 
   const syncB = dbB.getSynchronizer(github_repository);    
-  syncB.on('change', (syncResult: SyncResult) => {
+  syncB.on('change', (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
     showChanges(syncResult, 'B');    
   });
-  syncB.on('error', (err: Error) => console.log('[sync error on B] ' + err.message))
+  syncB.on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on B] ' + err.message))
     .on('paused', () => console.log('[paused on B]'))
     .on('active', () => console.log('[resumed on B]'))
-    .on('start', (taskId: string, currentRetries: number) => console.log('[sync start on B] <' + taskId + '> retries: ' + currentRetries))
-    .on('complete', (taskId: string) => console.log('[sync complete on B] <' + taskId + '>'));
+    .on('start', (taskMetadata: TaskMetadata, currentRetries: number) => console.log('[sync start on B] <' + taskMetadata.taskId + '> retries: ' + currentRetries))
+    .on('complete', (taskMetadata: TaskMetadata) => console.log('[sync complete on B] <' + taskMetadata.taskId + '>'));
 
   /**
    * 'change' event includes changes in both local and remote sides in a synchronization.

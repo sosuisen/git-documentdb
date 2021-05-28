@@ -9,7 +9,7 @@ This is an alias of delete()
 <b>Signature:</b>
 
 ```typescript
-remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 ```
 
 ## Parameters
@@ -21,5 +21,5 @@ remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
 
 <b>Returns:</b>
 
-Promise&lt;[RemoveResult](./git-documentdb.removeresult.md)<!-- -->&gt;
+Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
 

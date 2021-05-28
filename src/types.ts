@@ -238,7 +238,7 @@ export type PutResult = {
  * - commit_sha: SHA-1 hash of Git commit (40 characters)
  *
  */
-export type RemoveResult = {
+export type DeleteResult = {
   ok: true;
   id: string;
   file_sha: string;

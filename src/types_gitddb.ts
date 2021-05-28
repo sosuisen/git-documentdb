@@ -13,10 +13,10 @@ import {
   AllDocsOptions,
   AllDocsResult,
   DeleteOptions,
+  DeleteResult,
   JsonDoc,
   PutOptions,
   PutResult,
-  RemoveResult,
   Schema,
 } from './types';
 import { Validator } from './validator';
@@ -50,11 +50,11 @@ export interface CRUDInterface {
 
   get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
 
-  delete(id: string, options?: DeleteOptions): Promise<RemoveResult>;
-  delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  delete(id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 
-  remove(id: string, options?: DeleteOptions): Promise<RemoveResult>;
-  remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<RemoveResult>;
+  remove(id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 
   allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
 }
