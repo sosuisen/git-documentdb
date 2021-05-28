@@ -37,7 +37,6 @@ import {
   SyncRemoteChangeCallback,
   SyncResult,
   SyncResultCancel,
-  SyncResultCombineDatabase,
   SyncResultPush,
   SyncStartCallback,
   Task,
@@ -60,6 +59,7 @@ import {
 } from '../const';
 import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
+import { combineDatabaseWithTheirs } from './combine';
 
 /**
  * Implementation of GitDocumentDB#sync()
@@ -525,7 +525,7 @@ export class Sync implements ISync {
         else if (this._options.combine_db_strategy === 'combine-with-theirs') {
           // return SyncResultCombineDatabase
           // eslint-disable-next-line no-await-in-loop
-          return await this.combineDatabaseWithTheirs();
+          return await combineDatabaseWithTheirs(this._gitDDB, this.options());
         }
       }
 
@@ -762,20 +762,6 @@ export class Sync implements ISync {
       this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
       // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
     });
-  }
-
-  /**
-   * Clone a remote repository and combine the current local working directory with it.
-   */
-  combineDatabaseWithTheirs (): SyncResultCombineDatabase {
-    const result: SyncResultCombineDatabase = {
-      action: 'combine database',
-      changes: {
-        local: [],
-        remote: [],
-      },
-    };
-    return result;
   }
 
   /**
