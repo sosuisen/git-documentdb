@@ -447,6 +447,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks Be aware that it can corrupt the database.
    */
   setRepository (repos: nodegit.Repository) {
+    this._currentRepository = undefined;
     this._currentRepository = repos;
   }
 

@@ -642,10 +642,6 @@ export interface SyncResultResolveConflictsAndPush {
 }
 export interface SyncResultCombineDatabase {
   action: 'combine database';
-  changes: {
-    local: ChangedFile[];
-    remote: ChangedFile[];
-  };
 }
 export interface SyncResultCancel {
   action: 'canceled';

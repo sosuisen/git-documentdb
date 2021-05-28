@@ -13,6 +13,7 @@ import { clearInterval, setInterval } from 'timers';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
+  CombineDatabaseError,
   IntervalTooSmallError,
   NoMergeBaseFoundError,
   PushNotAllowedError,
@@ -525,7 +526,11 @@ export class Sync implements ISync {
         else if (this._options.combine_db_strategy === 'combine-with-theirs') {
           // return SyncResultCombineDatabase
           // eslint-disable-next-line no-await-in-loop
-          return await combineDatabaseWithTheirs(this._gitDDB, this.options());
+          return await combineDatabaseWithTheirs(this._gitDDB, this.options()).catch(
+            err => {
+              throw new CombineDatabaseError(err.message);
+            }
+          );
         }
       }
 

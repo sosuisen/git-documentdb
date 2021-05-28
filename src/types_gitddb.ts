@@ -12,13 +12,17 @@ import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
   AllDocsResult,
+  DatabaseCloseOption,
+  DatabaseInfo,
   DeleteOptions,
   DeleteResult,
   JsonDoc,
   PutOptions,
   PutResult,
+  RemoteOptions,
   Schema,
 } from './types';
+import { ISync } from './types_sync';
 import { Validator } from './validator';
 
 /**
@@ -80,4 +84,8 @@ export interface IDocumentDB {
   validator: Validator;
   getLogger(): Logger;
   taskQueue: TaskQueue;
+  open(): Promise<DatabaseInfo>;
+  close(options?: DatabaseCloseOption): Promise<void>;
+  sync(options?: RemoteOptions): Promise<ISync>;
+  sync(remoteURL: string, options?: RemoteOptions): Promise<ISync>;
 }

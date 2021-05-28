@@ -583,3 +583,9 @@ export class ConsecutiveSyncSkippedError extends BaseError {
     super(`Consecutive ${taskLabel} skipped (id: ${taskId})`);
   }
 }
+
+export class CombineDatabaseError extends BaseError {
+  constructor (mes: string) {
+    super(`Combine database failed: ${mes})`);
+  }
+}
