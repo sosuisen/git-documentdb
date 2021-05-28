@@ -280,16 +280,19 @@ export async function sync_worker (
     }
 
     // Need push because it is merged normally.
-    const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
-      return undefined;
-    });
+    const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(
+      (err: Error) => {
+        return err;
+      }
+    );
 
-    if (syncResultPush === undefined) {
+    if (syncResultPush instanceof Error) {
       const syncResultMergeAndPushError: SyncResultMergeAndPushError = {
         action: 'merge and push error',
         changes: {
           local: localChanges,
         },
+        error: syncResultPush,
       };
       if (localCommits) {
         syncResultMergeAndPushError.commits = {
@@ -445,17 +448,20 @@ export async function sync_worker (
   await nodegit.Checkout.head(repos, opt);
 
   // Push
-  const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
-    return undefined;
-  });
+  const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(
+    (err: Error) => {
+      return err;
+    }
+  );
 
-  if (syncResultPush === undefined) {
+  if (syncResultPush instanceof Error) {
     const syncResultResolveConflictsAndPushError: SyncResultResolveConflictsAndPushError = {
       action: 'resolve conflicts and push error',
       conflicts: acceptedConflicts,
       changes: {
         local: localChanges,
       },
+      error: syncResultPush,
     };
     if (localCommits) {
       syncResultResolveConflictsAndPushError.commits = {

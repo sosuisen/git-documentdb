@@ -603,6 +603,7 @@ export interface SyncResultMergeAndPushError {
   commits?: {
     local: CommitInfo[];
   };
+  error: Error;
 }
 export interface SyncResultMergeAndPush {
   action: 'merge and push';
@@ -624,6 +625,7 @@ export interface SyncResultResolveConflictsAndPushError {
   commits?: {
     local: CommitInfo[];
   };
+  error: Error;
 }
 export interface SyncResultResolveConflictsAndPush {
   action: 'resolve conflicts and push';
