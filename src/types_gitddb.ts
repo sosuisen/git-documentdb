@@ -76,6 +76,7 @@ export interface IDocumentDB {
   workingDir(): string;
   isClosing: boolean;
   repository(): nodegit.Repository | undefined;
+  setRepository(repos: nodegit.Repository): void;
   validator: Validator;
   getLogger(): Logger;
   taskQueue: TaskQueue;
