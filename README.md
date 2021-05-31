@@ -19,7 +19,7 @@ Use GitDocumentDB to ...
 
 :arrows_counterclockwise: CI/CD through GitHub.
 
-:dromedary_camel: Travel history of database snapshots.
+:dromedary_camel: Travel history of database.
 
 You do not need knowledge of Git to start. However, you make the most of GitDocumentDB if you understand Git.
 
