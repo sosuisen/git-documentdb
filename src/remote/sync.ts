@@ -523,7 +523,7 @@ export class Sync implements ISync {
         if (this._options.combine_db_strategy === 'throw-error') {
           throw error;
         }
-        else if (this._options.combine_db_strategy === 'combine-with-theirs') {
+        else if (this._options.combine_db_strategy === 'combine-head-with-theirs') {
           // return SyncResultCombineDatabase
           // eslint-disable-next-line no-await-in-loop
           return await combineDatabaseWithTheirs(this._gitDDB, this.options()).catch(

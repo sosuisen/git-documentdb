@@ -762,9 +762,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('does not invoke when combine-with-theirs with empty local and empty remote', async () => {
+    it('does not invoke when combine-head-with-theirs with empty local and empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        combine_db_strategy: 'combine-with-theirs',
+        combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
       });
 
@@ -792,9 +792,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('does not invoke when combine-with-theirs with empty local and not empty remote', async () => {
+    it('does not invoke when combine-head-with-theirs with empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        combine_db_strategy: 'combine-with-theirs',
+        combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
       });
 
@@ -826,10 +826,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-
-    it('does not invoke when combine-with-theirs with not empty local and empty remote', async () => {
+    it('does not invoke when combine-head-with-theirs with not empty local and empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        combine_db_strategy: 'combine-with-theirs',
+        combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
       });
 
@@ -860,9 +859,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('does not invoke when combine-with-theirs with not empty local and not empty remote', async () => {
+    it('does not invoke when combine-head-with-theirs with not empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        combine_db_strategy: 'combine-with-theirs',
+        combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
       });
 

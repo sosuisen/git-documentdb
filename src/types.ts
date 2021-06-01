@@ -364,8 +364,10 @@ export type ConnectionSettings =
  */
 export type CombineDbStrategies =
   | 'throw-error'
-  | 'combine-with-ours'
-  | 'combine-with-theirs'
+  | 'combine-head-with-ours'
+  | 'combine-head-with-theirs'
+  | 'combine-history-with-ours'
+  | 'combine-history-with-theirs'
   | 'replace-with-ours'
   | 'replace-with-theirs';
 
