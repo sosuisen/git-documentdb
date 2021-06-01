@@ -12,6 +12,7 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../../src';
 import {
@@ -737,10 +738,10 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   });
 
   /**
-   * No merge base
+   * Combine database
    */
-  describe('NoMergeBaseError', () => {
-    it('invokes when combine_db_strategy is throw-error in [both] direction', async () => {
+  describe('Combining database', () => {
+    it('throws NoMergeBaseFoundError when combine_db_strategy is throw-error in [both] direction', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'throw-error',
         sync_direction: 'both',
@@ -762,7 +763,36 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('does not invoke when combine-head-with-theirs with empty local and empty remote', async () => {
+    it('commits with valid commit message for combine-head-with-theirs', async () => {
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        combine_db_strategy: 'combine-head-with-theirs',
+        sync_direction: 'both',
+      });
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.createDB();
+
+      // Need local commit to combine dbs with commit message.
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      await dbB.put(jsonB1);
+
+      // Combine with remote db
+      await expect(dbB.sync(remoteA.options())).resolves.not.toThrowError(
+        NoMergeBaseFoundError
+      );
+      const repository = dbB.repository();
+      const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
+      const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
+      expect(commit.message()).toEqual(`combine database head with theirs`);
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it('succeeds when combine-head-with-theirs with empty local and empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -780,6 +810,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         NoMergeBaseFoundError
       );
 
+      // Put new doc to combined db.
       const jsonB2 = { _id: '2', name: 'fromB' };
       await dbB.put(jsonB2);
 
@@ -792,7 +823,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('does not invoke when combine-head-with-theirs with empty local and not empty remote', async () => {
+    it('succeeds combine-head-with-theirs with empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -814,6 +845,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         NoMergeBaseFoundError
       );
 
+      // Put new doc to combined db.
       const jsonB2 = { _id: '2', name: 'fromB' };
       await dbB.put(jsonB2);
 
@@ -826,7 +858,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('does not invoke when combine-head-with-theirs with not empty local and empty remote', async () => {
+    it('succeeds when combine-head-with-theirs with not empty local and empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -847,6 +879,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         NoMergeBaseFoundError
       );
 
+      // Put new doc to combined db.
       const jsonB2 = { _id: '2', name: 'fromB' };
       await dbB.put(jsonB2);
 
@@ -859,7 +892,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('does not invoke when combine-head-with-theirs with not empty local and not empty remote', async () => {
+    it('succeeds when combine-head-with-theirs with not empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -887,12 +920,14 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         NoMergeBaseFoundError
       );
 
+      // Put new doc to combined db.
       const jsonB3 = { _id: '3', name: 'fromB' };
       await dbB.put(jsonB3);
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
-      // jsonB1 is skipped due to combine-with-theirs strategy
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonB2, jsonB3]);
+      // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
+      jsonB1._id = jsonB1._id + '-from-' + dbB.dbId();
+      expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA1, jsonB2, jsonB3]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

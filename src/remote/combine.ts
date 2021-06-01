@@ -59,19 +59,42 @@ export async function combineDatabaseWithTheirs (
       const dir = path.dirname(remoteFilePath);
 
       await fs.ensureDir(dir);
-      // Copy localFilePath to remoteFilePath if remoteFilePath not exists
+
       if (fs.existsSync(remoteFilePath)) {
-        continue;
+        // Add postfix and copy localFilePath to remoteFilePath if remoteFilePath exists
+        let duplicatedFileName = '';
+        const postfix = '-from-' + gitDDB.dbId();
+        if (remoteFilePath.endsWith(gitDDB.fileExt)) {
+          const doc = fs.readJSONSync(localFilePath);
+          doc._id += postfix;
+          duplicatedFileName = doc._id + gitDDB.fileExt;
+          fs.writeJSONSync(path.resolve(remoteDir, duplicatedFileName), doc);
+        }
+        else {
+          // Add postfix before extension.
+          duplicatedFileName = path.resolve(
+            path.dirname(filename),
+            path.basename(filename, path.extname(remoteDir)) +
+              postfix +
+              path.extname(remoteDir)
+          );
+          fs.copyFileSync(localFilePath, path.resolve(remoteDir, duplicatedFileName));
+        }
+        await index.addByPath(duplicatedFileName);
+        await index.write();
       }
-      await fs.copyFile(localFilePath, remoteFilePath);
-      await index.addByPath(filename);
-      await index.write();
+      else {
+        // Copy localFilePath to remoteFilePath if remoteFilePath not exists
+        await fs.copyFile(localFilePath, remoteFilePath);
+        await index.addByPath(filename);
+        await index.write();
+      }
     }
 
     if (localDocs.length > 0) {
       const treeOid = await index.writeTree();
 
-      const commitMessage = 'combine database with theirs';
+      const commitMessage = 'combine database head with theirs';
       const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
       const committer = nodegit.Signature.now(
         gitDDB.gitAuthor.name,
