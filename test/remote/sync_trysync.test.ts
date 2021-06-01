@@ -16,6 +16,7 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../../src';
 import {
+  DatabaseOpenResult,
   SyncResult,
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
@@ -36,6 +37,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
+import { Sync } from '../../src/remote/sync';
 
 const reposPrefix = 'test_sync_trysync___';
 const localDir = `./test/database_sync_trysync`;
@@ -897,6 +899,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
       });
+      const dbIdA = dbA.dbId();
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -909,6 +912,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       });
       await dbB.createDB();
 
+      const dbIdB = dbB.dbId();
+      expect(dbIdB).not.toBe(dbIdA);
+
       const jsonB1 = { _id: '1', name: 'fromB' };
       await dbB.put(jsonB1);
 
@@ -920,13 +926,15 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         NoMergeBaseFoundError
       );
 
+      expect(dbB.dbId()).toBe(dbIdA);
+
       // Put new doc to combined db.
       const jsonB3 = { _id: '3', name: 'fromB' };
       await dbB.put(jsonB3);
 
       expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
       // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
-      jsonB1._id = jsonB1._id + '-from-' + dbB.dbId();
+      jsonB1._id = jsonB1._id + '-from-' + dbIdB;
       expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA1, jsonB2, jsonB3]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
