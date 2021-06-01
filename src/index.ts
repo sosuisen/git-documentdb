@@ -263,6 +263,17 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       throw new CannotCreateDirectoryError(err.message);
     });
 
+    this._dbOpenResult = {
+      ok: true,
+      db_id: '',
+      creator: '',
+      version: '',
+      is_new: false,
+      is_clone: false,
+      is_created_by_gitddb: true,
+      is_valid_version: true,
+    };
+
     if (remoteOptions?.remote_url === undefined) {
       this._dbOpenResult = await this._createRepository();
       return this._dbOpenResult;
