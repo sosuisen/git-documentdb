@@ -151,15 +151,6 @@ describe('<validator>', () => {
     expect(() => validator.validateId('春はあけぼの')).not.toThrowError();
   });
 
-  it('throws InvalidCollectionPathError', () => {
-    expect(() => validator.validateId('.gitddb/foo')).toThrowError(
-      InvalidCollectionPathError
-    );
-    expect(() => validator.validateCollectionPath('.gitddb/')).toThrowError(
-      InvalidCollectionPathError
-    );
-  });
-
   it('validateCollectionPath', () => {
     expect(() => validator.validateCollectionPath('')).not.toThrowError();
     expect(() => validator.validateCollectionPath('foo/bar')).not.toThrowError();

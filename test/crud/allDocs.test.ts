@@ -71,8 +71,9 @@ describe('<crud/allDocs> allDocs()', () => {
     });
     await gitDDB.open();
 
-    await expect(gitDDB.allDocs()).resolves.toStrictEqual({
+    await expect(gitDDB.allDocs()).resolves.toMatchObject({
       total_rows: 0,
+      commit_sha: /^.+$/,
       rows: [],
     });
 

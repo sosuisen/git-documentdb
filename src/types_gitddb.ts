@@ -13,7 +13,7 @@ import {
   AllDocsOptions,
   AllDocsResult,
   DatabaseCloseOption,
-  DatabaseInfo,
+  DatabaseOpenResult,
   DeleteOptions,
   DeleteResult,
   JsonDoc,
@@ -84,7 +84,7 @@ export interface IDocumentDB {
   validator: Validator;
   getLogger(): Logger;
   taskQueue: TaskQueue;
-  open(): Promise<DatabaseInfo>;
+  open(): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
   sync(options?: RemoteOptions): Promise<ISync>;
   sync(remoteURL: string, options?: RemoteOptions): Promise<ISync>;

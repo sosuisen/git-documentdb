@@ -11,6 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger, TLogLevelName } from 'tslog';
+import { ulid } from 'ulid';
 import {
   CannotCreateDirectoryError,
   CannotOpenRepositoryError,
@@ -33,6 +34,7 @@ import {
   DatabaseCloseOption,
   DatabaseInfo,
   DatabaseInfoSuccess,
+  DatabaseOpenResult,
   DatabaseOption,
   DeleteOptions,
   DeleteResult,
@@ -56,10 +58,11 @@ import { getDocHistoryImpl } from './crud/history';
 
 const defaultLogLevel = 'info';
 
-export const DATABASE_NAME = 'GitDocumentDB';
+export const DATABASE_CREATOR = 'GitDocumentDB';
 export const DATABASE_VERSION = '1.0';
-export const GIT_DOCUMENTDB_VERSION = `${DATABASE_NAME}: ${DATABASE_VERSION}`;
-export const GIT_DOCUMENTDB_VERSION_FILENAME = '.gitddb/lib_version';
+export const GIT_DOCUMENTDB_INFO_ID = '.gitddb/info';
+export const FIRST_COMMIT_MESSAGE = 'first commit';
+export const SET_DATABASE_ID_MESSAGE = 'set database id';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -86,6 +89,15 @@ interface RepositoryInitOptions {
 const defaultLocalDir = './git-documentdb';
 
 /**
+ * Get database ID
+ *
+ * @internal
+ */
+export function generateDatabaseId () {
+  return ulid(Date.now());
+}
+
+/**
  * Main class of GitDocumentDB
  */
 export class GitDocumentDB implements IDocumentDB, CRUDInterface {
@@ -103,8 +115,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   readonly defaultBranch = 'main';
 
-  private _firstCommitMessage = 'first commit';
-
   private _localDir: string;
   private _dbName: string;
 
@@ -113,8 +123,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   private _synchronizers: { [url: string]: Sync } = {};
 
-  private _dbInfo: DatabaseInfo = {
+  private _dbOpenResult: DatabaseOpenResult = {
     ok: true,
+    db_id: '',
+    creator: '',
+    version: '',
     is_new: false,
     is_clone: false,
     is_created_by_gitddb: true,
@@ -228,7 +241,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotConnectError}
    *
    */
-  async createDB (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
+  async createDB (remoteOptions?: RemoteOptions): Promise<DatabaseOpenResult> {
     if (this.isClosing) {
       throw new DatabaseClosingError();
     }
@@ -251,8 +264,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     });
 
     if (remoteOptions?.remote_url === undefined) {
-      this._dbInfo = await this._createRepository();
-      return this._dbInfo;
+      this._dbOpenResult = await this._createRepository();
+      return this._dbOpenResult;
     }
 
     // Clone repository if remoteURL exists
@@ -267,14 +280,14 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     if (this._currentRepository === undefined) {
       // Clone failed. Try to create remote repository in sync().
       // Please check is_clone flag if you would like to know whether clone is succeeded or not.
-      this._dbInfo = await this._createRepository();
+      this._dbOpenResult = await this._createRepository();
     }
     else {
       // this.logger.warn('Clone succeeded.');
       /**
        * TODO: validate db
        */
-      (this._dbInfo as DatabaseInfoSuccess).is_clone = true;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_clone = true;
     }
 
     /**
@@ -285,8 +298,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
     if (remoteOptions?.remote_url !== undefined) {
       if (
-        (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb &&
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version
+        (this._dbOpenResult as DatabaseInfoSuccess).is_created_by_gitddb &&
+        (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version
       ) {
         // Can synchronize
         /**
@@ -297,7 +310,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       }
     }
 
-    return this._dbInfo;
+    return this._dbOpenResult;
   }
 
   /**
@@ -310,29 +323,32 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @returns Database information
    *
    */
-  async open (): Promise<DatabaseInfo> {
+  async open (): Promise<DatabaseOpenResult> {
     const dbInfoError = (err: Error) => {
-      this._dbInfo = {
+      this._dbOpenResult = {
         ok: false,
         error: err,
       };
-      return this._dbInfo;
+      return this._dbOpenResult;
     };
 
     if (this.isClosing) {
       return dbInfoError(new DatabaseClosingError());
     }
     if (this.isOpened()) {
-      (this._dbInfo as DatabaseInfoSuccess).is_new = false;
-      return this._dbInfo;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_new = false;
+      return this._dbOpenResult;
     }
 
     /**
      * Reset
      */
     this._synchronizers = {};
-    this._dbInfo = {
+    this._dbOpenResult = {
       ok: true,
+      db_id: '',
+      creator: '',
+      version: '',
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,
@@ -355,8 +371,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     }
 
     await this._setDbInfo();
-
-    return this._dbInfo;
+    return this._dbOpenResult;
   }
 
   private async _createRepository () {
@@ -366,7 +381,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     const options: RepositoryInitOptions = {
       initialHead: this.defaultBranch,
     };
-    (this._dbInfo as DatabaseInfoSuccess).is_new = true;
+    (this._dbOpenResult as DatabaseInfoSuccess).is_new = true;
+
     this._currentRepository = await nodegit.Repository.initExt(
       this._workingDirectory,
       // @ts-ignore
@@ -376,44 +392,70 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     });
 
     // First commit
+    const info = {
+      db_id: generateDatabaseId(),
+      creator: DATABASE_CREATOR,
+      version: DATABASE_VERSION,
+    };
+    // Do not use this.put() because it increments TaskQueue.statistics.put.
     await put_worker(
       this,
-      GIT_DOCUMENTDB_VERSION_FILENAME,
-      '',
-      GIT_DOCUMENTDB_VERSION,
-      this._firstCommitMessage
+      GIT_DOCUMENTDB_INFO_ID,
+      this.fileExt,
+      JSON.stringify(info),
+      FIRST_COMMIT_MESSAGE
     );
-    return this._dbInfo;
+    this._dbOpenResult = { ...this._dbOpenResult, ...info };
+
+    return this._dbOpenResult;
   }
 
   private async _setDbInfo () {
-    const version = await fs
-      .readFile(
-        path.resolve(this._workingDirectory, GIT_DOCUMENTDB_VERSION_FILENAME),
-        'utf8'
-      )
-      .catch(() => {
-        (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = false;
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
-        return undefined;
-      });
-    if (version === undefined) return this._dbInfo;
+    let info = (await this.get(GIT_DOCUMENTDB_INFO_ID).catch(
+      () => undefined
+    )) as DatabaseInfo;
 
-    if (new RegExp('^' + DATABASE_NAME).test(version)) {
-      (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = true;
-      if (new RegExp('^' + GIT_DOCUMENTDB_VERSION).test(version)) {
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = true;
+    info ??= {
+      db_id: '',
+      creator: '',
+      version: '',
+    };
+
+    info.creator ??= '';
+    info.version ??= '';
+
+    // Set db_id if not exists.
+    if (info.db_id === '') {
+      info.db_id = generateDatabaseId();
+      // Do not use this.put() because it increments TaskQueue.statistics.put.
+      await put_worker(
+        this,
+        GIT_DOCUMENTDB_INFO_ID,
+        this.fileExt,
+        JSON.stringify(info),
+        SET_DATABASE_ID_MESSAGE
+      );
+    }
+
+    (this._dbOpenResult as DatabaseInfo).db_id = info.db_id;
+    (this._dbOpenResult as DatabaseInfo).creator = info.creator;
+    (this._dbOpenResult as DatabaseInfo).version = info.version;
+
+    if (new RegExp('^' + DATABASE_CREATOR).test(info.creator)) {
+      (this._dbOpenResult as DatabaseInfoSuccess).is_created_by_gitddb = true;
+      if (new RegExp('^' + DATABASE_VERSION).test(info.version)) {
+        (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version = true;
       }
       else {
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
+        (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version = false;
         /**
          * TODO: Need migration
          */
       }
     }
     else {
-      (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = false;
-      (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_created_by_gitddb = false;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version = false;
     }
   }
 
@@ -423,6 +465,17 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   dbName () {
     return this._dbName;
+  }
+
+  /**
+   * Get dbId
+   *
+   */
+  dbId () {
+    if (this._dbOpenResult.ok === true) {
+      return this._dbOpenResult.db_id;
+    }
+    return '';
   }
 
   /**

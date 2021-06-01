@@ -59,9 +59,26 @@ export type JsonDiffOptions = {
   plainTextProperties?: { [key: string]: any };
 };
 /**
- * Database information
+ * Result of opening database
  */
-export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
+export type DatabaseOpenResult = (DatabaseInfo & DatabaseInfoSuccess) | DatabaseInfoError;
+
+/**
+ * Database info
+ *
+ * @remarks
+ * - db_id: ULID of the database. (See https://github.com/ulid/spec for ULID)
+ *
+ * - creator: Creator of the database. Default is 'GitDocumentDB'.
+ *
+ * - version: Version of the GitDocumentDB specification.
+ */
+export type DatabaseInfo = {
+  db_id: string;
+  creator: string;
+  version: string;
+};
+
 /**
  * Database information (success)
  *

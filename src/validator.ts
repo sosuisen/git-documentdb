@@ -280,10 +280,6 @@ export class Validator {
 
     const normalized = Validator.normalizeCollectionPath(collectionPath);
 
-    if (normalized === '.gitddb/') {
-      throw new InvalidCollectionPathError(collectionPath);
-    }
-
     const trailingSlashRemoved = normalized.slice(0, -1);
     const arr = trailingSlashRemoved.split('/');
     arr.forEach(part => {
