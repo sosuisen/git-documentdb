@@ -305,7 +305,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
      * Check and sync repository if exists
      */
 
-    await this._setDbInfo();
+    await this.loadDbInfo();
 
     if (remoteOptions?.remote_url !== undefined) {
       if (
@@ -381,7 +381,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       return dbInfoError(new CannotOpenRepositoryError(err));
     }
 
-    await this._setDbInfo();
+    await this.loadDbInfo();
     return this._dbOpenResult;
   }
 
@@ -417,11 +417,15 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       FIRST_COMMIT_MESSAGE
     );
     this._dbOpenResult = { ...this._dbOpenResult, ...info };
-
     return this._dbOpenResult;
   }
 
-  private async _setDbInfo () {
+  /**
+   * Load DatabaseInfo from .gitddb/info.json
+   *
+   * @internal
+   */
+  async loadDbInfo () {
     let info = (await this.get(GIT_DOCUMENTDB_INFO_ID).catch(
       () => undefined
     )) as DatabaseInfo;

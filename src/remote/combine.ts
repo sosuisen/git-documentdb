@@ -152,6 +152,7 @@ export async function combineDatabaseWithTheirs (
   }
   const repos = await nodegit.Repository.open(gitDDB.workingDir());
   gitDDB.setRepository(repos!);
+  await gitDDB.loadDbInfo();
 
   const result: SyncResultCombineDatabase = {
     action: 'combine database',

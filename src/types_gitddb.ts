@@ -85,6 +85,7 @@ export interface IDocumentDB {
   repository(): nodegit.Repository | undefined;
   setRepository(repos: nodegit.Repository): void;
   getLogger(): Logger;
+  loadDbInfo(): void;
   open(): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
   sync(options?: RemoteOptions): Promise<ISync>;
