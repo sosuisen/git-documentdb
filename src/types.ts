@@ -378,6 +378,8 @@ export type ConnectionSettings =
 
 /**
  * Behavior when combine inconsistent DBs
+ *
+ * Default is 'combine-head-with-theirs'.
  */
 export type CombineDbStrategies =
   | 'throw-error'

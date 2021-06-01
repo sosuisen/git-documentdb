@@ -199,7 +199,7 @@ export class Sync implements ISync {
     }
 
     this._options.retry ??= NETWORK_RETRY;
-    this._options.combine_db_strategy ??= 'throw-error';
+    this._options.combine_db_strategy ??= 'combine-head-with-theirs';
     this._options.include_commits ??= false;
     this._options.conflict_resolution_strategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
 
