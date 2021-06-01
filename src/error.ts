@@ -117,8 +117,8 @@ export class InvalidIdLengthError extends BaseError {
 /**
  */
 export class InvalidJsonObjectError extends BaseError {
-  constructor (e = `Invalid JSON object`) {
-    super(e);
+  constructor (idOrSha: string) {
+    super(`Invalid JSON object: ${idOrSha}`);
   }
 }
 

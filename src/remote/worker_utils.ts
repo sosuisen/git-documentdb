@@ -49,7 +49,7 @@ export async function getDocument (gitDDB: IDocumentDB, id: string, fileOid: nod
       // Overwrite _id in a document by _id in arguments
       document._id = id;
     } catch (e) {
-      throw new InvalidJsonObjectError();
+      throw new InvalidJsonObjectError(id);
     }
   }
   return document;

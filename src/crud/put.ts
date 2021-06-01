@@ -54,7 +54,7 @@ export function putImpl (
       document = docOrOptions;
     }
     else {
-      return Promise.reject(new InvalidJsonObjectError());
+      return Promise.reject(new InvalidJsonObjectError(_id));
     }
   }
   else if (typeof idOrDoc === 'object') {
@@ -81,7 +81,7 @@ export function putImpl (
     data = JSON.stringify(document);
   } catch (err) {
     // not json
-    return Promise.reject(new InvalidJsonObjectError());
+    return Promise.reject(new InvalidJsonObjectError(_id));
   }
 
   // Must clone doc before rewriting _id

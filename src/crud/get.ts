@@ -87,7 +87,7 @@ export async function getImpl (
       // Overwrite _id in a document by _id in arguments
       document._id = _id;
     } catch (e) {
-      throw new InvalidJsonObjectError();
+      throw new InvalidJsonObjectError(_id);
     }
 
     if (options.with_metadata) {
@@ -164,7 +164,7 @@ export async function getByRevisionImpl (
     }
     document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
   } catch (e) {
-    throw new InvalidJsonObjectError();
+    throw new InvalidJsonObjectError('file_sha: ' + fileSHA);
   }
 
   return document;
