@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { GitDocumentDB } from 'git-documentdb';
+import { GitDocumentDB, Sync } from 'git-documentdb';
 
 const gitddb_example = async () => {
   let gitDDB = new GitDocumentDB({
@@ -59,21 +59,27 @@ const gitddb_example = async () => {
   /**
    * Synchronization
    */
-  const github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example.git'; // Please enter your GitHub account name.
-  const your_github_personal_access_token = 'Enter your personal access token with checked [repo]'; // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  let github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example.git'; // Please enter your GitHub account name.
+  let your_github_personal_access_token = 'Enter your personal access token with checked [repo]'; // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  // You can also set them from environment variables:
+  //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
+  //    e.g.) https://github.com/foo/
+  //  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
+  if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example.git';
+  if (process.env.GITDDB_PERSONAL_ACCESS_TOKEN) your_github_personal_access_token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN;
+
   // @ts-ignore
+  let sync: Sync = undefined;
   if (your_github_personal_access_token !== 'Enter your personal access token with checked [repo]') {
-    await gitDDB.sync({
+    console.log('\n# Initialize sync..');
+    sync = await gitDDB.sync({
       live: true,
       remote_url: github_repository,
       connection: { type: 'github', personal_access_token: your_github_personal_access_token },
     });
-    console.log('\n# Start sync..');
     // git-documentdb-example.git is automatically created in your GitHub account.
-    // The data will be synchronized every 10 seconds.
+    // The data will be synchronized every 30 seconds(default).
     // Check below if you fail:
-    // - It throws Error if the github_repository has already exist.
-    //   Delete it before running this example.
     // - It throws Error if [repo] is not checked 
     //   in your personal access token settings.
   }
@@ -133,6 +139,11 @@ const gitddb_example = async () => {
     ]
   }
   */
+
+  if (sync) {
+    console.log('\n# Sync immediately..');
+    await sync.trySync(); 
+  }
 
   // Close database
   await gitDDB.close();
