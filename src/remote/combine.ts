@@ -16,7 +16,7 @@ import { RemoteOptions, SyncResultCombineDatabase } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import { FileRemoveTimeoutError } from '../error';
 import { FILE_REMOVE_TIMEOUT } from '../const';
-import { sleep } from '../utils';
+import { sleep, toSortedJSONString } from '../utils';
 
 /**
  * Clone a remote repository and combine the current local working directory with it.
@@ -68,7 +68,10 @@ export async function combineDatabaseWithTheirs (
           const doc = fs.readJSONSync(localFilePath);
           doc._id += postfix;
           duplicatedFileName = doc._id + gitDDB.fileExt;
-          fs.writeJSONSync(path.resolve(remoteDir, duplicatedFileName), doc);
+          fs.writeFileSync(
+            path.resolve(remoteDir, duplicatedFileName),
+            toSortedJSONString(doc)
+          );
         }
         else {
           // Add postfix before extension.
