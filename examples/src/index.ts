@@ -68,8 +68,7 @@ const gitddb_example = async () => {
   if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example.git';
   if (process.env.GITDDB_PERSONAL_ACCESS_TOKEN) your_github_personal_access_token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN;
 
-  // @ts-ignore
-  let sync: Sync = undefined;
+  let sync: Sync | undefined;
   if (your_github_personal_access_token !== 'Enter your personal access token with checked [repo]') {
     console.log('\n# Initialize sync..');
     sync = await gitDDB.sync({
