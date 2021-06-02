@@ -538,6 +538,7 @@ export type SyncEvent =
   | 'change'
   | 'localChange'
   | 'remoteChange'
+  | 'combine'
   | 'paused'
   | 'active'
   | 'start'
@@ -669,6 +670,9 @@ export interface SyncResultResolveConflictsAndPush {
     remote: CommitInfo[];
   };
 }
+/**
+ * Combine databases (no push)
+ */
 export interface SyncResultCombineDatabase {
   action: 'combine database';
   duplicates: DuplicatedFile[];
@@ -692,6 +696,7 @@ export type SyncRemoteChangeCallback = (
   changedFiles: ChangedFile[],
   taskMetadata: TaskMetadata
 ) => void;
+export type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void;
 export type SyncPausedCallback = () => void;
 export type SyncActiveCallback = () => void;
 export type SyncStartCallback = (
@@ -704,6 +709,7 @@ export type SyncCallback =
   | SyncChangeCallback
   | SyncLocalChangeCallback
   | SyncRemoteChangeCallback
+  | SyncCombineDatabaseCallback
   | SyncPausedCallback
   | SyncActiveCallback
   | SyncStartCallback

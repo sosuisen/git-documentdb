@@ -30,6 +30,7 @@ import {
   SyncActiveCallback,
   SyncCallback,
   SyncChangeCallback,
+  SyncCombineDatabaseCallback,
   SyncCompleteCallback,
   SyncErrorCallback,
   SyncEvent,
@@ -143,6 +144,7 @@ export class Sync implements ISync {
     change: SyncChangeCallback[];
     localChange: SyncLocalChangeCallback[];
     remoteChange: SyncRemoteChangeCallback[];
+    combine: SyncCombineDatabaseCallback[];
     paused: SyncPausedCallback[];
     active: SyncActiveCallback[];
     start: SyncStartCallback[];
@@ -152,6 +154,7 @@ export class Sync implements ISync {
     change: [],
     localChange: [],
     remoteChange: [],
+    combine: [],
     paused: [],
     active: [],
     start: [],
@@ -553,11 +556,17 @@ export class Sync implements ISync {
         else if (this._options.combine_db_strategy === 'combine-head-with-theirs') {
           // return SyncResultCombineDatabase
           // eslint-disable-next-line no-await-in-loop
-          return await combineDatabaseWithTheirs(this._gitDDB, this.options()).catch(
-            err => {
-              throw new CombineDatabaseError(err.message);
-            }
+          const syncResultCombineDatabase = await combineDatabaseWithTheirs(
+            this._gitDDB,
+            this.options()
+          ).catch(err => {
+            throw new CombineDatabaseError(err.message);
+          });
+          // eslint-disable-next-line no-loop-func
+          this.eventHandlers.combine.forEach(func =>
+            func(syncResultCombineDatabase.duplicates)
           );
+          return syncResultCombineDatabase;
         }
       }
 
@@ -806,6 +815,8 @@ export class Sync implements ISync {
       this.eventHandlers[event].push(callback as SyncLocalChangeCallback);
     if (event === 'remoteChange')
       this.eventHandlers[event].push(callback as SyncRemoteChangeCallback);
+    if (event === 'combine')
+      this.eventHandlers[event].push(callback as SyncCombineDatabaseCallback);
     if (event === 'paused') this.eventHandlers[event].push(callback as SyncPausedCallback);
     if (event === 'active') this.eventHandlers[event].push(callback as SyncActiveCallback);
     if (event === 'start') this.eventHandlers[event].push(callback as SyncStartCallback);
@@ -838,6 +849,7 @@ export class Sync implements ISync {
       change: [],
       localChange: [],
       remoteChange: [],
+      combine: [],
       paused: [],
       active: [],
       start: [],
