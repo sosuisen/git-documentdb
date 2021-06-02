@@ -566,6 +566,14 @@ export type ChangedFileDelete = {
 export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 
 /**
+ * Duplicated file in combine operation
+ */
+export type DuplicatedFile = {
+  original: DocMetadata;
+  duplicate: DocMetadata;
+};
+
+/**
  * Commit information
  */
 export type CommitInfo = {
@@ -663,6 +671,7 @@ export interface SyncResultResolveConflictsAndPush {
 }
 export interface SyncResultCombineDatabase {
   action: 'combine database';
+  duplicates: DuplicatedFile[];
 }
 export interface SyncResultCancel {
   action: 'canceled';

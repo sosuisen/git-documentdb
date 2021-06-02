@@ -362,9 +362,11 @@ export const compareWorkingDirAndBlobs = async (
 };
 
 export const getWorkingDirFiles = (gitDDB: GitDocumentDB) => {
-  return listFiles(gitDDB, gitDDB.workingDir()).map(filepath =>
-    fs.readJSONSync(gitDDB.workingDir() + '/' + filepath)
-  );
+  return listFiles(gitDDB, gitDDB.workingDir()).map(filepath => {
+    const doc = fs.readJSONSync(gitDDB.workingDir() + '/' + filepath);
+    doc._id = filepath.replace(new RegExp(gitDDB.fileExt + '$'), '');
+    return doc;
+  });
 };
 
 export const destroyDBs = async (DBs: GitDocumentDB[]) => {
