@@ -71,9 +71,9 @@ export async function combineDatabaseWithTheirs (
 
         if (remoteFilePath.endsWith(gitDDB.fileExt)) {
           const doc = fs.readJSONSync(localFilePath);
-          doc._id = meta.id + postfix;
-          duplicatedFileName = doc._id + gitDDB.fileExt;
-          duplicatedFileId = doc._id;
+          doc._id = path.basename(meta.id + postfix);
+          duplicatedFileName = meta.id + postfix + gitDDB.fileExt;
+          duplicatedFileId = meta.id + postfix;
           duplicatedFileExt = gitDDB.fileExt;
           fs.writeFileSync(
             path.resolve(remoteDir, duplicatedFileName),

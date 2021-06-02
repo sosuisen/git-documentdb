@@ -346,6 +346,9 @@ maybe('<remote/combine>', () => {
       });
       expect(getWorkingDirDocs(dbB)).toEqual([jsonB2, jsonB3, jsonB1, jsonA1]);
 
+      const rawJSON = fs.readJSONSync(dbB.workingDir() + '/deep/one.json');
+      rawJSON._id = 'one'; // not 'deep/one'
+
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
