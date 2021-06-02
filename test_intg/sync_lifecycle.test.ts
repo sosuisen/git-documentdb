@@ -907,54 +907,12 @@ maybe('intg <sync_lifecycle> Sync', () => {
       await dbA.createDB();
 
       const options: RemoteOptions = {
+        remote_url: remoteURL,
         connection: { type: 'github', personal_access_token: token },
       };
-      const remoteA = await dbA.sync(remoteURL, options);
-      await expect(dbA.sync(remoteURL, options)).rejects.toThrowError(
-        RemoteAlreadyRegisteredError
-      );
+      const remoteA = await dbA.sync(options);
+      await expect(dbA.sync(options)).rejects.toThrowError(RemoteAlreadyRegisteredError);
       dbA.destroy();
-    });
-
-    it('can be called with remoteURL and RemoteOption (overload).', async () => {
-      const remoteURL = remoteURLBase + serialId();
-      const dbNameA = serialId();
-
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-      });
-
-      await dbA.createDB();
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-
-      const options: RemoteOptions = {
-        live: true,
-        sync_direction: 'both',
-        connection: { type: 'github', personal_access_token: token },
-        interval: 3000,
-      };
-      const remoteA = await dbA.sync(remoteURL, options);
-      let complete = false;
-      remoteA.on('complete', () => {
-        complete = true;
-      });
-      // eslint-disable-next-line no-unmodified-loop-condition
-      while (!complete) {
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(1000);
-      }
-
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
-      });
-      await dbB.createDB(options);
-      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-
-      await destroyDBs([dbA, dbB]);
     });
 
     it('After dbA#sync() created remote repository, dbB#createDB() clones it.', async () => {

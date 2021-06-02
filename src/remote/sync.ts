@@ -63,8 +63,9 @@ import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 
 /**
- * Implementation of GitDocumentDB#sync()
+ * Implementation of GitDocumentDB#sync(options, get_sync_result)
  *
+ * @throws {@link RepositoryNotFoundError}
  * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
  * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
  *
@@ -76,15 +77,41 @@ import { combineDatabaseWithTheirs } from './combine';
  *
  * @internal
  */
-export async function syncImpl (this: IDocumentDB, options?: RemoteOptions) {
+export async function syncAndGetResultImpl (
+  this: IDocumentDB,
+  options: RemoteOptions
+): Promise<[Sync, SyncResult]> {
   const repos = this.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-  const remote = new Sync(this, options);
-  await remote.init(repos);
-
-  return remote;
+  const sync = new Sync(this, options);
+  const syncResult = await sync.init(repos);
+  return [sync, syncResult];
+}
+/**
+ * Implementation of GitDocumentDB#sync(options)
+ *
+ * @throws {@link RepositoryNotFoundError}
+ * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+ * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+ *
+ * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+ * @throws {@link PushWorkerError} (from Sync#init())
+ * @throws {@link SyncWorkerError} (from Sync#init())
+ * @throws {@link NoMergeBaseFoundError}
+ * @throws {@link PushNotAllowedError}  (from Sync#init())
+ *
+ * @internal
+ */
+export async function syncImpl (this: IDocumentDB, options: RemoteOptions): Promise<Sync> {
+  const repos = this.repository();
+  if (repos === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+  const sync = new Sync(this, options);
+  await sync.init(repos);
+  return sync;
 }
 
 /**

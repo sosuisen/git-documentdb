@@ -22,6 +22,7 @@ import {
   InvalidWorkingDirectoryPathLengthError,
   RemoteAlreadyRegisteredError,
   RepositoryNotFoundError,
+  RepositoryNotOpenError,
   UndefinedDatabaseNameError,
   WorkingDirectoryExistsError,
 } from './error';
@@ -44,13 +45,15 @@ import {
   PutResult,
   RemoteOptions,
   Schema,
+  SyncRemoteChangeCallback,
+  SyncResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
 import { getByRevisionImpl, getImpl } from './crud/get';
 import { deleteImpl } from './crud/delete';
 import { allDocsImpl } from './crud/allDocs';
-import { Sync, syncImpl } from './remote/sync';
+import { Sync, syncAndGetResultImpl, syncImpl } from './remote/sync';
 import { TaskQueue } from './task_queue';
 import { FILE_REMOVE_TIMEOUT } from './const';
 import { cloneRepository } from './remote/clone';
@@ -1063,20 +1066,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
    * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
    *
-   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
-   * @throws {@link PushWorkerError} (from Sync#init())
-   * @throws {@link SyncWorkerError} (from Sync#init())
-   *
-   * @remarks
-   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
-   */
-  async sync (remoteURL: string, options?: RemoteOptions): Promise<Sync>;
-  /**
-   * Synchronize with a remote repository
-   *
-   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
-   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
-   *
+   * @throws {@link RepositoryNotFoundError} (from Sync#syncImpl())
    * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
    * @throws {@link PushWorkerError} (from Sync#init())
    * @throws {@link SyncWorkerError} (from Sync#init())
@@ -1084,27 +1074,44 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call removeRemote() before register it again.
    */
-  async sync (options?: RemoteOptions): Promise<Sync>;
+  async sync (options: RemoteOptions): Promise<Sync>;
+  /**
+   * Synchronize with a remote repository
+   *
+   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+   *
+   * @throws {@link RepositoryNotFoundError} (from Sync#syncAndGetResultImpl())
+   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+   * @throws {@link PushWorkerError} (from Sync#init())
+   * @throws {@link SyncWorkerError} (from Sync#init())
+   *
+   * @remarks
+   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call removeRemote() before register it again.
+   */
   async sync (
-    remoteUrlOrOption?: string | RemoteOptions,
-    options?: RemoteOptions
-  ): Promise<Sync> {
-    if (typeof remoteUrlOrOption === 'string') {
-      options ??= {};
-      options.remote_url = remoteUrlOrOption;
-    }
-    else {
-      options = remoteUrlOrOption;
-    }
+    options: RemoteOptions,
+    get_sync_result: boolean
+  ): Promise<[Sync, SyncResult]>;
 
+  async sync (
+    options: RemoteOptions,
+    get_sync_result?: boolean
+  ): Promise<Sync | [Sync, SyncResult]> {
     if (
-      options?.remote_url !== undefined &&
+      options.remote_url !== undefined &&
       this._synchronizers[options?.remote_url] !== undefined
     ) {
       throw new RemoteAlreadyRegisteredError(options.remote_url);
     }
-    const remote = await syncImpl.call(this, options);
-    this._synchronizers[remote.remoteURL()] = remote;
-    return remote;
+
+    if (get_sync_result) {
+      const [sync, syncResult] = await syncAndGetResultImpl.call(this, options);
+      this._synchronizers[sync.remoteURL()] = sync;
+      return [sync, syncResult];
+    }
+    const sync = await syncImpl.call(this, options);
+    this._synchronizers[sync.remoteURL()] = sync;
+    return sync;
   }
 }

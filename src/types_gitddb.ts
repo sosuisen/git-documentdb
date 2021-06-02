@@ -21,6 +21,7 @@ import {
   PutResult,
   RemoteOptions,
   Schema,
+  SyncResult,
 } from './types';
 import { ISync } from './types_sync';
 import { Validator } from './validator';
@@ -88,6 +89,6 @@ export interface IDocumentDB {
   loadDbInfo(): void;
   open(): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
-  sync(options?: RemoteOptions): Promise<ISync>;
-  sync(remoteURL: string, options?: RemoteOptions): Promise<ISync>;
+  sync(options: RemoteOptions, get_sync_result: boolean): Promise<[ISync, SyncResult]>;
+  sync(options: RemoteOptions): Promise<ISync>;
 }
