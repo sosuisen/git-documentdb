@@ -30,7 +30,7 @@ import {
   getChangedFileInsert,
   getChangedFileUpdate,
   getCommitInfo,
-  getWorkingDirFiles,
+  getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
 import { GitDocumentDB } from '../../src';
@@ -182,8 +182,8 @@ maybe('<remote/sync> [event]', () => {
 
       expect(resultB!.changes.local).toEqual([]);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonB1]);
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonB1]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonB1]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonB1]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

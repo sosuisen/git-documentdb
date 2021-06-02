@@ -28,7 +28,7 @@ import {
   getChangedFileInsert,
   getChangedFileUpdateBySHA,
   getCommitInfo,
-  getWorkingDirFiles,
+  getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../test/remote_utils';
 
@@ -174,10 +174,10 @@ maybe('intg: <3way_merge_ot>', () => {
     ]);
     // Conflict occurs on 1.json
 
-    expect(getWorkingDirFiles(dbB)).toEqual([mergedJson, jsonA2, jsonB3]);
+    expect(getWorkingDirDocs(dbB)).toEqual([mergedJson, jsonA2, jsonB3]);
     // Sync dbA
     const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-    expect(getWorkingDirFiles(dbA)).toEqual([mergedJson, jsonA2, jsonB3]);
+    expect(getWorkingDirDocs(dbA)).toEqual([mergedJson, jsonA2, jsonB3]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -260,8 +260,8 @@ maybe('intg: <3way_merge_ot>', () => {
         operation: 'insert-merge',
       },
     ]);
-    expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
-    expect(getWorkingDirFiles(dbB)).toEqual([jsonA1]);
+    expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
+    expect(getWorkingDirDocs(dbB)).toEqual([jsonA1]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -344,11 +344,11 @@ maybe('intg: <3way_merge_ot>', () => {
     ]);
     // Conflict occurs on 1.json
 
-    expect(getWorkingDirFiles(dbB)).toEqual([]);
+    expect(getWorkingDirDocs(dbB)).toEqual([]);
 
     // Sync dbA
     const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-    expect(getWorkingDirFiles(dbA)).toEqual([]);
+    expect(getWorkingDirDocs(dbA)).toEqual([]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -426,11 +426,11 @@ maybe('intg: <3way_merge_ot>', () => {
     ]);
     // Conflict occurs on 1.json
 
-    expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA2]);
+    expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA2]);
 
     // Sync dbA
     const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-    expect(getWorkingDirFiles(dbA)).toEqual([jsonB1, jsonA2]);
+    expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonA2]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -544,10 +544,10 @@ maybe('intg: <3way_merge_ot>', () => {
     ]);
     // Conflict occurs on 1.json
 
-    expect(getWorkingDirFiles(dbB)).toEqual([mergedJson]);
+    expect(getWorkingDirDocs(dbB)).toEqual([mergedJson]);
     // Sync dbA
     const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-    expect(getWorkingDirFiles(dbA)).toEqual([mergedJson]);
+    expect(getWorkingDirDocs(dbA)).toEqual([mergedJson]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

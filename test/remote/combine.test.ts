@@ -20,7 +20,7 @@ import {
   compareWorkingDirAndBlobs,
   createDatabase,
   destroyDBs,
-  getWorkingDirFiles,
+  getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
 
@@ -142,8 +142,8 @@ maybe('<remote/combine>', () => {
       const jsonB2 = { _id: '2', name: 'fromB' };
       await dbB.put(jsonB2);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([]);
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonB2]);
+      expect(getWorkingDirDocs(dbA)).toEqual([]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -177,8 +177,8 @@ maybe('<remote/combine>', () => {
       const jsonB2 = { _id: '2', name: 'fromB' };
       await dbB.put(jsonB2);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonB2]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -211,8 +211,8 @@ maybe('<remote/combine>', () => {
       const jsonB2 = { _id: '2', name: 'fromB' };
       await dbB.put(jsonB2);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([]);
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonB2]);
+      expect(getWorkingDirDocs(dbA)).toEqual([]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -256,7 +256,7 @@ maybe('<remote/combine>', () => {
       const jsonB3 = { _id: '3', name: 'fromB' };
       await dbB.put(jsonB3);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
       // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
       jsonB1._id = jsonB1._id + '-from-' + dbIdB;
       const duplicatedB1 = await dbB.getDocWithMetaData(jsonB1._id);
@@ -278,7 +278,7 @@ maybe('<remote/combine>', () => {
           },
         ],
       });
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonB1, jsonA1, jsonB2, jsonB3]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA1, jsonB2, jsonB3]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -322,7 +322,7 @@ maybe('<remote/combine>', () => {
       const jsonB3 = { _id: '3', name: 'fromB' };
       await dbB.put(jsonB3);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
       // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
       jsonB1._id = jsonB1._id + '-from-' + dbIdB;
       const duplicatedB1 = await dbB.getDocWithMetaData(jsonB1._id);
@@ -344,7 +344,7 @@ maybe('<remote/combine>', () => {
           },
         ],
       });
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonB2, jsonB3, jsonB1, jsonA1]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonB2, jsonB3, jsonB1, jsonA1]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

@@ -361,7 +361,7 @@ export const compareWorkingDirAndBlobs = async (
   return true;
 };
 
-export const getWorkingDirFiles = (gitDDB: GitDocumentDB) => {
+export const getWorkingDirDocs = (gitDDB: GitDocumentDB) => {
   return listFiles(gitDDB, gitDDB.workingDir()).map(filepath => {
     const doc = fs.readJSONSync(gitDDB.workingDir() + '/' + filepath);
     doc._id = filepath.replace(new RegExp(gitDDB.fileExt + '$'), '');
