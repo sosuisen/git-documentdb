@@ -220,6 +220,40 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
+    it('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
+      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        combine_db_strategy: 'combine-head-with-theirs',
+        sync_direction: 'both',
+      });
+      const jsonA1 = { _id: 'deep/one', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await remoteA.trySync();
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        db_name: dbNameB,
+        local_dir: localDir,
+      });
+      await dbB.createDB();
+
+      const jsonB2 = {
+        _id: 'item/box01F76SNGYBWA5PBAYR0GNNT3Y4/item01F76SP8HNANY5QAXZ53DEHXBJ',
+        name: 'fromB',
+      };
+      await dbB.put(jsonB2);
+
+      // Combine with remote db
+      await dbB.sync(remoteA.options(), true);
+
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonB2]);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
+    });
+
     it('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',

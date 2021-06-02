@@ -58,10 +58,10 @@ export async function combineDatabaseWithTheirs (
       const remoteFilePath = path.resolve(remoteDir, filename);
       const dir = path.dirname(remoteFilePath);
 
+      await fs.ensureDir(dir);
+
       if (remoteIds.includes(meta.id)) {
         // Add postfix and copy localFilePath to remoteFilePath if remoteFilePath exists
-
-        await fs.ensureDir(dir);
 
         let duplicatedFileName = '';
         let duplicatedFileId = '';
