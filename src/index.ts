@@ -55,6 +55,7 @@ import { TaskQueue } from './task_queue';
 import { FILE_REMOVE_TIMEOUT } from './const';
 import { cloneRepository } from './remote/clone';
 import { getDocHistoryImpl } from './crud/history';
+import { toSortedJSONString } from './utils';
 
 const defaultLogLevel = 'info';
 
@@ -413,7 +414,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       this,
       GIT_DOCUMENTDB_INFO_ID,
       this.fileExt,
-      JSON.stringify(info),
+      toSortedJSONString(info),
       FIRST_COMMIT_MESSAGE
     );
     this._dbOpenResult = { ...this._dbOpenResult, ...info };
@@ -447,7 +448,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
         this,
         GIT_DOCUMENTDB_INFO_ID,
         this.fileExt,
-        JSON.stringify(info),
+        toSortedJSONString(info),
         SET_DATABASE_ID_MESSAGE
       );
     }
