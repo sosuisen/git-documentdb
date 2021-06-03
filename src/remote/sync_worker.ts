@@ -138,21 +138,30 @@ export async function sync_worker (
       });
   }
   else if (distance.ahead > 0 && distance.behind > 0) {
+    throw new NoMergeBaseFoundError();
+    // Check no merge base found
+    /*
+    await nodegit.Merge.base(repos, oldCommit.id(), oldRemoteCommit.id()).catch(res => {
+      if (res instanceof Error) {
+        if (res.message.startsWith('no merge base found')) {
+          throw new NoMergeBaseFoundError();
+        }
+      }
+    });
+
     newCommitOid = await repos
       .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`)
       .catch((res: nodegit.Index) => {
-        // Exception locks files. Try cleanup
+        // Exception may lock files. Try cleanup
         repos.cleanup();
-
         if (res instanceof Error) {
-          if (res.message.startsWith('no merge base found')) {
-            throw new NoMergeBaseFoundError();
-          }
           throw new GitMergeBranchError(res.message);
         }
-        /* returns conflicted index */ conflictedIndex = res;
+        // returns conflicted index
+        conflictedIndex = res;
         return undefined;
       });
+    */
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push

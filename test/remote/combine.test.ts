@@ -223,7 +223,7 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.only('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
+    it('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -257,7 +257,7 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.only('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
+    it('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -398,6 +398,7 @@ maybe('<remote/combine>', () => {
         sync_direction: 'both',
       });
       let duplicatedFiles: DuplicatedFile[] = [];
+
       remoteA.on('combine', (duplicates: DuplicatedFile[]) => {
         console.log('### combine');
         duplicatedFiles = [...duplicates];
@@ -406,7 +407,7 @@ maybe('<remote/combine>', () => {
       const dbIdA = dbA.dbId();
 
       const jsonA1 = { _id: '1', name: 'fromA' };
-      const putResultA1 = await dbA.put(jsonA1);
+      await dbA.put(jsonA1);
 
       // Delete remote repository
       await destroyRemoteRepository(remoteA.remoteURL());
@@ -418,8 +419,6 @@ maybe('<remote/combine>', () => {
       });
       await dbB.createDB();
 
-      const dbIdB = dbB.dbId();
-
       const jsonB1 = { _id: '1', name: 'fromB' };
       const putResultB1 = await dbB.put(jsonB1);
 
@@ -430,13 +429,13 @@ maybe('<remote/combine>', () => {
       const remoteB = await dbB.sync(remoteA.options());
       // Combine database on A
       await remoteA.trySync();
-
+/*
       jsonA1._id = jsonA1._id + '-from-' + dbIdA;
       const duplicatedA1 = await dbA.getDocWithMetaData(jsonA1._id);
 
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonB1, jsonB2]);
       // jsonA1 is duplicated with postfix due to combine-head-with-theirs strategy
-/*
+
       while (duplicatedFiles.length === 0) {
         // eslint-disable-next-line no-await-in-loop
         await sleep(3000);
