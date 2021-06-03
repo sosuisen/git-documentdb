@@ -427,9 +427,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Create and push to new remote repository
-      console.log('# sync start');
       const remoteB = await dbB.sync(remoteA.options());
-      console.log('# sync end');
       // Combine database on A
       await remoteA.trySync();
 
