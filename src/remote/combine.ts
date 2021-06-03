@@ -145,6 +145,7 @@ export async function combineDatabaseWithTheirs (
     gitDDB.repository()!.cleanup();
     await fs.rename(gitDDB.workingDir(), tmpLocalDir);
 
+    // getHeadCommit() may leak memory.
     if (remoteRepository) remoteRepository.cleanup();
     remoteRepository = undefined;
 

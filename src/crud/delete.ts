@@ -177,6 +177,9 @@ export async function delete_worker (
     }
   } catch (err) {
     return Promise.reject(new CannotDeleteDataError(err.message));
+  } finally {
+    // getHeadCommit() may leak memory.
+    gitDDB.repository()?.cleanup();
   }
 
   return {

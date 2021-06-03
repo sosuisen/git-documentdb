@@ -234,6 +234,9 @@ export async function put_worker (
     commit_sha = commit.tostrS();
   } catch (err) {
     return Promise.reject(new CannotWriteDataError(err.message));
+  } finally {
+    // getHeadCommit() may leak memory.
+    gitDDB.repository()?.cleanup();
   }
 
   return {
