@@ -223,7 +223,7 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.only('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
+    it('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -257,7 +257,7 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.only('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
+    it('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -323,7 +323,7 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.only('returns SyncResult with duplicates when combine-head-with-theirs with deep local and deep remote', async () => {
+    it('returns SyncResult with duplicates when combine-head-with-theirs with deep local and deep remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -392,7 +392,7 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.only('invokes combine event with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
+    it.skip('invokes combine event with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -436,7 +436,7 @@ maybe('<remote/combine>', () => {
 
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonB1, jsonB2]);
       // jsonA1 is duplicated with postfix due to combine-head-with-theirs strategy
-/*
+
       while (duplicatedFiles.length === 0) {
         // eslint-disable-next-line no-await-in-loop
         await sleep(3000);
@@ -464,7 +464,7 @@ maybe('<remote/combine>', () => {
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
-*/
+
       await destroyDBs([dbA, dbB]);
     });
   });
