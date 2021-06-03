@@ -392,7 +392,7 @@ maybe('<remote/combine>', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.skip('invokes combine event with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
+    it('invokes combine event with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
       const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combine_db_strategy: 'combine-head-with-theirs',
         sync_direction: 'both',
@@ -429,7 +429,9 @@ maybe('<remote/combine>', () => {
       // Create and push to new remote repository
       const remoteB = await dbB.sync(remoteA.options());
       // Combine database on A
-      await remoteA.trySync();
+      await remoteA.trySync().catch(async () => {
+        await dbA.destroy();
+      });
 
       jsonA1._id = jsonA1._id + '-from-' + dbIdA;
       const duplicatedA1 = await dbA.getDocWithMetaData(jsonA1._id);
