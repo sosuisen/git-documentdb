@@ -7,8 +7,7 @@
  */
 
 import nodePath from 'path';
-import nodegit from '@sosuisen/nodegit';
-import git from 'isomorphic-git';
+import git, { ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { NormalizeCommit } from '../utils';
 import { JSON_EXT } from '../const';
@@ -34,20 +33,11 @@ export async function writeBlobToFile (
   await fs.writeFile(filePath, data);
 }
 
-export async function getDocumentIso (
-  workingDir: string,
-  filepath: string,
-  file_sha: string
-) {
-  const { blob } = await git.readBlob({
-    fs,
-    dir: workingDir,
-    oid: file_sha,
-  });
+export function getDocumentFromBuffer (filepath: string, buffer: Uint8Array) {
   const id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
   let document: JsonDoc | undefined;
   try {
-    document = (JSON.parse(Buffer.from(blob).toString('utf-8')) as unknown) as JsonDoc;
+    document = (JSON.parse(Buffer.from(buffer).toString('utf-8')) as unknown) as JsonDoc;
     document._id = id;
   } catch (e) {
     throw new InvalidJsonObjectError(id);
@@ -55,28 +45,13 @@ export async function getDocumentIso (
   return document;
 }
 
-/**
- * Get document
- *
- * @throws {@link InvalidJsonObjectError}
- *
- * @internal
- */
-export async function getDocument (gitDDB: IDocumentDB, id: string, fileOid: nodegit.Oid) {
-  const blob = await gitDDB.repository()?.getBlob(fileOid);
-  let document: JsonDoc | undefined;
-  if (blob) {
-    try {
-      document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
-      // _id in a document may differ from _id in a filename by mistake.
-      // _id in a file is SSOT.
-      // Overwrite _id in a document by _id in arguments
-      document._id = id;
-    } catch (e) {
-      throw new InvalidJsonObjectError(id);
-    }
-  }
-  return document;
+export async function getDocument (workingDir: string, filepath: string, file_sha: string) {
+  const { blob } = await git.readBlob({
+    fs,
+    dir: workingDir,
+    oid: file_sha,
+  });
+  return getDocumentFromBuffer(filepath, blob);
 }
 
 async function getAllFilesFromCommit (
@@ -129,8 +104,13 @@ export async function getChanges (
         return;
       }
 
+      let id = filepath;
+      if (id.endsWith(JSON_EXT)) {
+        id = id.replace(new RegExp(JSON_EXT + '$'), '');
+      }
+
       const Atype = A === null ? undefined : await A.type();
-      const Btype = A === null ? undefined : await A.type();
+      const Btype = B === null ? undefined : await B.type();
 
       if (Atype === 'tree' || Btype === 'tree') {
         return;
@@ -144,10 +124,10 @@ export async function getChanges (
         change = {
           operation: 'delete',
           old: {
-            id: filepath,
+            id,
             file_sha: Aoid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocumentIso(workingDir, filepath, Aoid),
+            doc: await getDocument(workingDir, filepath, Aoid),
           },
         };
       }
@@ -155,10 +135,10 @@ export async function getChanges (
         change = {
           operation: 'insert',
           new: {
-            id: filepath,
+            id,
             file_sha: Boid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocumentIso(workingDir, filepath, Boid),
+            doc: await getDocument(workingDir, filepath, Boid),
           },
         };
       }
@@ -166,16 +146,16 @@ export async function getChanges (
         change = {
           operation: 'update',
           old: {
-            id: filepath,
+            id,
             file_sha: Aoid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocumentIso(workingDir, filepath, Aoid),
+            doc: await getDocument(workingDir, filepath, Aoid),
           },
           new: {
-            id: filepath,
+            id,
             file_sha: Boid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocumentIso(workingDir, filepath, Boid),
+            doc: await getDocument(workingDir, filepath, Boid),
           },
         };
       }
@@ -208,7 +188,7 @@ export async function getChangesIso2 (
           id: file,
           file_sha: oldFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocumentIso(workingDir, file, oldFileOidMap[file]),
+          doc: await getDocument(workingDir, file, oldFileOidMap[file]),
         },
       });
     }
@@ -219,7 +199,7 @@ export async function getChangesIso2 (
           id: file,
           file_sha: newFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocumentIso(workingDir, file, newFileOidMap[file]),
+          doc: await getDocument(workingDir, file, newFileOidMap[file]),
         },
       });
     }
@@ -230,13 +210,13 @@ export async function getChangesIso2 (
           id: file,
           file_sha: oldFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocumentIso(workingDir, file, oldFileOidMap[file]),
+          doc: await getDocument(workingDir, file, oldFileOidMap[file]),
         },
         new: {
           id: file,
           file_sha: newFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocumentIso(workingDir, file, newFileOidMap[file]),
+          doc: await getDocument(workingDir, file, newFileOidMap[file]),
         },
       });
     }
@@ -276,13 +256,21 @@ export async function getCommitLogs (
     commits.unshift(NormalizeCommit(commit!));
 
     // Add the parents of this commit to the queue
+    const parents: ReadCommitResult[] = [];
     for (const oid of commit!.commit.parent) {
       // eslint-disable-next-line no-await-in-loop
       const parent_commit = await git.readCommit({ fs, dir: workingDir, oid });
       if (!tips.map(my_commit => my_commit.oid).includes(parent_commit.oid)) {
-        tips.push(parent_commit);
+        parents.push(parent_commit);
       }
     }
+    parents
+      .sort((a, b) => {
+        if (a.commit.committer.timestamp < b.commit.committer.timestamp) return 1;
+        if (a.commit.committer.timestamp > b.commit.committer.timestamp) return -1;
+        return 0;
+      })
+      .forEach(parent => tips.unshift(parent));
   }
   // The list is sorted from old to new.
   return commits;

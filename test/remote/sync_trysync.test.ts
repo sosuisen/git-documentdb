@@ -335,7 +335,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * dbB   :                  jsonB3  jsonB4
      * after :  jsonA1  jsonA2  jsonB3  jsonB4
      */
-    it('which includes two local creations and two remote creations when a remote db creates two documents and a local db creates two different documents', async () => {
+    it.only('which includes two local creations and two remote creations when a remote db creates two documents and a local db creates two different documents', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,

@@ -95,7 +95,7 @@ export async function getAllMetadata (repos: nodegit.Repository) {
  * Get normalized commit
  */
 export function NormalizeCommit (commit: ReadCommitResult): NormalizedCommit {
-  return {
+  const normalized: NormalizedCommit = {
     sha: commit.oid,
     message: commit.commit.message.trimEnd(),
     parent: commit.commit.parent,
@@ -109,8 +109,11 @@ export function NormalizeCommit (commit: ReadCommitResult): NormalizedCommit {
       email: commit.commit.committer.email,
       timestamp: new Date(commit.commit.committer.timestamp),
     },
-    gpgsig: commit.commit.gpgsig,
   };
+  if (commit.commit.gpgsig !== undefined) {
+    normalized.gpgsig = commit.commit.gpgsig;
+  }
+  return normalized;
 }
 
 /**

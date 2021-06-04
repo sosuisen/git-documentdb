@@ -87,7 +87,7 @@ maybe('<remote/3way_merge>', () => {
     );
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    const commit = await dbA.repository()?.getCommit(putResultA1.commit_sha);
+    const commit = putResultA1.commit_sha;
     const index = await dbA.repository()?.refreshIndex();
     await expect(
       threeWayMerge(dbA, remoteA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
