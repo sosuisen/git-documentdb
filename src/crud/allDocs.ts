@@ -7,6 +7,7 @@
  */
 
 import nodegit from '@sosuisen/nodegit';
+import { JSON_EXT } from '../const';
 import {
   DatabaseClosingError,
   InvalidJsonObjectError,
@@ -133,7 +134,7 @@ export async function allDocsImpl (
         }
       }
       else {
-        const _id = entry!.path().replace(new RegExp(this.fileExt + '$'), '');
+        const _id = entry!.path().replace(new RegExp(JSON_EXT + '$'), '');
         const documentInBatch: JsonDocWithMetadata = {
           id: _id,
           file_sha: entry!.id().tostrS(),

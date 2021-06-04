@@ -31,6 +31,7 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../test/remote_utils';
+import { JSON_EXT } from '../src/const';
 
 const reposPrefix = 'test_3way_merge_ot___';
 const localDir = `./test_intg/database_3way_merge_ot`;
@@ -121,18 +122,12 @@ maybe('intg: <3way_merge_ot>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
-          0,
-          7
-        )},ours-diff)`,
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
-          0,
-          7
-        )},ours-diff)`,
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(2);
@@ -224,14 +219,14 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${dbA.fileExt}(insert-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},theirs-diff)`,
@@ -311,17 +306,11 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(
-          0,
-          7
-        )},ours-diff)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `resolve: 1${dbA.fileExt}(delete,${deleteResultB1.file_sha.substr(
-          0,
-          7
-        )},ours-diff)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -400,11 +389,11 @@ maybe('intg: <3way_merge_ot>', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${dbA.fileExt}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -498,14 +487,14 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${dbA.fileExt}(update-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${dbA.fileExt}(update-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.file_sha.substr(
           0,
           7
         )},theirs-diff)`,

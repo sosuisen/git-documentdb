@@ -21,6 +21,7 @@ import {
 } from '../error';
 import { JsonDoc, JsonDocWithMetadata } from '../types';
 import { getBackNumber } from './history';
+import { JSON_EXT } from '../const';
 
 type GetOptions = {
   back_number?: number;
@@ -58,7 +59,7 @@ export async function getImpl (
     return undefined;
   }
 
-  const filename = _id + this.fileExt;
+  const filename = _id + JSON_EXT;
 
   if (!options.back_number || options.back_number === 0) {
     const commit = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD

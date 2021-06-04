@@ -14,6 +14,7 @@ import {
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../error';
+import { JSON_EXT } from '../const';
 
 export async function getDocHistoryImpl (
   this: IDocumentDB,
@@ -41,7 +42,7 @@ export async function getDocHistoryImpl (
     return [];
   }); // get HEAD
 
-  const fileName = _id + this.fileExt;
+  const fileName = _id + JSON_EXT;
 
   const fileSHAArray: string[] = [];
   const fileSHAHash: { [key: string]: boolean } = {};

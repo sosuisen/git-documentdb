@@ -73,7 +73,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * dbA   : +jsonA1
    * after :  jsonA1
    */
-  it('changes one remote creation when pushes after one put()', async function () {
+  it.only('changes one remote creation when pushes after one put()', async function () {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     // Put and push

@@ -9,7 +9,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import nodegit from '@sosuisen/nodegit';
-import { SHORT_SHA_LENGTH } from '../const';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
 import { IDocumentDB } from '../types_gitddb';
 import {
   CannotDeleteDataError,
@@ -63,7 +63,7 @@ export function deleteImpl (
     enqueueCallback: undefined,
   };
   const commit_message =
-    options.commit_message ?? `delete: ${_id}${this.fileExt}(<%file_sha%>)`;
+    options.commit_message ?? `delete: ${_id}${JSON_EXT}(<%file_sha%>)`;
 
   const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // delete() must be serial.
@@ -73,7 +73,7 @@ export function deleteImpl (
       taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        delete_worker(this, _id, this.fileExt, commit_message!)
+        delete_worker(this, _id, JSON_EXT, commit_message!)
           .then((result: DeleteResult) => {
             beforeResolve();
             resolve(result);

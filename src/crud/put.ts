@@ -9,7 +9,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import git from 'isomorphic-git';
-import { SHORT_SHA_LENGTH } from '../const';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
 import { JsonDoc, PutOptions, PutResult } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import {
@@ -105,7 +105,7 @@ export function putImpl (
   };
 
   const commit_message =
-    options.commit_message ?? `<%insertOrUpdate%>: ${_id}${this.fileExt}(<%file_sha%>)`;
+    options.commit_message ?? `<%insertOrUpdate%>: ${_id}${JSON_EXT}(<%file_sha%>)`;
 
   const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // put() must be serial.
@@ -115,7 +115,7 @@ export function putImpl (
       taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        put_worker(this, _id, this.fileExt, data, commit_message!, options!.insertOrUpdate)
+        put_worker(this, _id, JSON_EXT, data, commit_message!, options!.insertOrUpdate)
           .then(result => {
             beforeResolve();
             resolve(result);

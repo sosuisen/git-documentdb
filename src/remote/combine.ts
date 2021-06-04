@@ -20,7 +20,7 @@ import {
 } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import { FileRemoveTimeoutError, RemoteRepositoryNotFoundError } from '../error';
-import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT } from '../const';
+import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXT } from '../const';
 import { getAllMetadata, toSortedJSONString } from '../utils';
 
 /**
@@ -69,12 +69,12 @@ export async function combineDatabaseWithTheirs (
         let duplicatedFileExt = '';
         const postfix = DUPLICATED_FILE_POSTFIX + gitDDB.dbId();
 
-        if (remoteFilePath.endsWith(gitDDB.fileExt)) {
+        if (remoteFilePath.endsWith(JSON_EXT)) {
           const doc = fs.readJSONSync(localFilePath);
           doc._id = path.basename(meta.id + postfix);
-          duplicatedFileName = meta.id + postfix + gitDDB.fileExt;
+          duplicatedFileName = meta.id + postfix + JSON_EXT;
           duplicatedFileId = meta.id + postfix;
-          duplicatedFileExt = gitDDB.fileExt;
+          duplicatedFileExt = JSON_EXT;
           fs.writeFileSync(
             path.resolve(remoteDir, duplicatedFileName),
             toSortedJSONString(doc)

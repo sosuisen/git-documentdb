@@ -8,7 +8,8 @@
 
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
-import { DocMetadata } from './types';
+import { ReadCommitResult } from 'isomorphic-git';
+import { DocMetadata, NormalizedCommit } from './types';
 
 /**
  * @internal
@@ -88,6 +89,28 @@ export async function getAllMetadata (repos: nodegit.Repository) {
     }
   }
   return files;
+}
+
+/**
+ * Get normalized commit
+ */
+export function NormalizeCommit (commit: ReadCommitResult): NormalizedCommit {
+  return {
+    sha: commit.oid,
+    message: commit.commit.message.trimEnd(),
+    parent: commit.commit.parent,
+    author: {
+      name: commit.commit.author.name,
+      email: commit.commit.author.email,
+      timestamp: new Date(commit.commit.author.timestamp),
+    },
+    committer: {
+      name: commit.commit.committer.name,
+      email: commit.commit.committer.email,
+      timestamp: new Date(commit.commit.committer.timestamp),
+    },
+    gpgsig: commit.commit.gpgsig,
+  };
 }
 
 /**

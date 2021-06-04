@@ -8,9 +8,12 @@
 
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
+import { NormalizeCommit } from '../utils';
+import { JSON_EXT } from '../const';
 import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
-import { ChangedFile, CommitInfo, DocMetadata, JsonDoc } from '../types';
+import { ChangedFile, JsonDoc, NormalizedCommit } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 
 /**
@@ -29,6 +32,27 @@ export async function writeBlobToFile (
     return Promise.reject(new CannotCreateDirectoryError(err.message));
   });
   await fs.writeFile(filePath, data);
+}
+
+export async function getDocumentIso (
+  workingDir: string,
+  filepath: string,
+  file_sha: string
+) {
+  const { blob } = await git.readBlob({
+    fs,
+    dir: workingDir,
+    oid: file_sha,
+  });
+  const id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
+  let document: JsonDoc | undefined;
+  try {
+    document = (JSON.parse(Buffer.from(blob).toString('utf-8')) as unknown) as JsonDoc;
+    document._id = id;
+  } catch (e) {
+    throw new InvalidJsonObjectError(id);
+  }
+  return document;
 }
 
 /**
@@ -55,6 +79,29 @@ export async function getDocument (gitDDB: IDocumentDB, id: string, fileOid: nod
   return document;
 }
 
+async function getAllFilesFromCommit (
+  workingDir: string,
+  commitOid: string
+): Promise<[string[], { [key: string]: string }]> {
+  const commit = await git.readCommit({ fs, dir: workingDir, oid: commitOid });
+  const files: string[] = [];
+  const fileOidMap: { [key: string]: string } = {};
+  const trees = [];
+  trees.push(commit.commit.tree);
+  while (trees.length > 0) {
+    // eslint-disable-next-line no-await-in-loop
+    const tree = await git.readTree({ fs, dir: workingDir, oid: commitOid });
+    tree.tree.forEach(entry => {
+      if (entry.type === 'tree') trees.push(entry.oid);
+      else {
+        files.push(entry.path);
+        fileOidMap[entry.path] = entry.oid;
+      }
+    });
+  }
+  return [files, fileOidMap];
+}
+
 /**
  * Get changed files
  *
@@ -62,88 +109,141 @@ export async function getDocument (gitDDB: IDocumentDB, id: string, fileOid: nod
  *
  * @internal
  */
-export async function getChanges (gitDDB: IDocumentDB, diff: nodegit.Diff) {
+export async function getChanges (
+  workingDir: string,
+  oldCommitOid: string,
+  newCommitOid: string
+) {
+  return await git.walk({
+    fs,
+    dir: workingDir,
+    trees: [git.TREE({ ref: oldCommitOid }), git.TREE({ ref: newCommitOid })],
+    // @ts-ignore
+    // eslint-disable-next-line complexity
+    map: async function (filepath, [A, B]) {
+      // ignore directories
+      if (filepath === '.') {
+        return;
+      }
+      if (filepath.startsWith('.gitddb/')) {
+        return;
+      }
+
+      const Atype = A === null ? undefined : await A.type();
+      const Btype = A === null ? undefined : await A.type();
+
+      if (Atype === 'tree' || Btype === 'tree') {
+        return;
+      }
+      // generate ids
+      const Aoid = A === null ? undefined : await A.oid();
+      const Boid = B === null ? undefined : await B.oid();
+
+      let change: ChangedFile;
+      if (Boid === undefined) {
+        change = {
+          operation: 'delete',
+          old: {
+            id: filepath,
+            file_sha: Aoid,
+            // eslint-disable-next-line no-await-in-loop
+            doc: await getDocumentIso(workingDir, filepath, Aoid),
+          },
+        };
+      }
+      else if (Aoid === undefined) {
+        change = {
+          operation: 'insert',
+          new: {
+            id: filepath,
+            file_sha: Boid,
+            // eslint-disable-next-line no-await-in-loop
+            doc: await getDocumentIso(workingDir, filepath, Boid),
+          },
+        };
+      }
+      else if (Aoid !== Boid) {
+        change = {
+          operation: 'update',
+          old: {
+            id: filepath,
+            file_sha: Aoid,
+            // eslint-disable-next-line no-await-in-loop
+            doc: await getDocumentIso(workingDir, filepath, Aoid),
+          },
+          new: {
+            id: filepath,
+            file_sha: Boid,
+            // eslint-disable-next-line no-await-in-loop
+            doc: await getDocumentIso(workingDir, filepath, Boid),
+          },
+        };
+      }
+      else {
+        return;
+      }
+      return change;
+    },
+  });
+}
+
+export async function getChangesIso2 (
+  workingDir: string,
+  oldCommitOid: string,
+  newCommitOid: string
+) {
   const changes: ChangedFile[] = [];
-  for (let i = 0; i < diff.numDeltas(); i++) {
-    const delta = diff.getDelta(i);
-    // https://libgit2.org/libgit2/#HEAD/type/git_diff_delta
-    // Both oldFile() and newFile() will return the same file to show diffs.
-    /*
-    console.log(
-      `changed old: ${delta.oldFile().path()}, ${delta.oldFile().flags().toString(2)}`
-    );
-    console.log(
-      `        new: ${delta.newFile().path()}, ${delta.newFile().flags().toString(2)}`
-    );
-    */
-    /**
-     * flags:
-     * https://libgit2.org/libgit2/#HEAD/type/git_diff_flag_t
-     * The fourth bit represents whether file exists at this side of the delta or not.
-     * [a file is removed]
-     * changed old: test.txt, 1100
-     *         new: test.txt,  100
-     * [a file is added]
-     * changed old: test.txt,  100
-     *         new: test.txt, 1100
-     * [a file is modified]
-     * changed old: test.txt, 1100
-     *         new: test.txt, 1100
-     */
+  const [oldFiles, oldFileOidMap] = await getAllFilesFromCommit(workingDir, oldCommitOid);
+  const [newFiles, newFileOidMap] = await getAllFilesFromCommit(workingDir, newCommitOid);
 
-    const oldExist = delta.oldFile().flags() >> 3;
-    const newExist = delta.newFile().flags() >> 3;
+  const allFiles = [...oldFiles, ...newFiles].sort();
 
-    const docId = delta
-      .newFile()
-      .path()
-      .replace(new RegExp(gitDDB.fileExt + '$'), '');
-    const oldDocMetadata: DocMetadata = {
-      id: docId,
-      file_sha: delta.oldFile().id().tostrS(),
-    };
-    const newDocMetadata: DocMetadata = {
-      id: docId,
-      file_sha: delta.newFile().id().tostrS(),
-    };
-    if (oldExist && !newExist) {
-      // Use oldFile. newFile is empty when removed.
+  for (let i = 0; i < allFiles.length; i++) {
+    const file = allFiles[i];
+
+    if (oldFileOidMap[file] && !newFileOidMap[file]) {
       changes.push({
         operation: 'delete',
         old: {
-          ...oldDocMetadata,
+          id: file,
+          file_sha: oldFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(gitDDB, docId, delta.oldFile().id()),
+          doc: await getDocumentIso(workingDir, file, oldFileOidMap[file]),
         },
       });
     }
-    else if (!oldExist && newExist) {
+    else if (!oldFileOidMap[file] && newFileOidMap[file]) {
       changes.push({
         operation: 'insert',
         new: {
-          ...newDocMetadata,
+          id: file,
+          file_sha: newFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(gitDDB, docId, delta.newFile().id()),
+          doc: await getDocumentIso(workingDir, file, newFileOidMap[file]),
         },
       });
     }
-    else if (oldExist && newExist) {
+    else if (oldFileOidMap[file] !== newFileOidMap[file]) {
       changes.push({
         operation: 'update',
         old: {
-          ...oldDocMetadata,
+          id: file,
+          file_sha: oldFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(gitDDB, docId, delta.oldFile().id()),
+          doc: await getDocumentIso(workingDir, file, oldFileOidMap[file]),
         },
         new: {
-          ...newDocMetadata,
+          id: file,
+          file_sha: newFileOidMap[file],
           // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(gitDDB, docId, delta.newFile().id()),
+          doc: await getDocumentIso(workingDir, file, newFileOidMap[file]),
         },
       });
     }
+    else {
+      // no changes
+    }
   }
-
   return changes;
 }
 
@@ -151,67 +251,58 @@ export async function getChanges (gitDDB: IDocumentDB, diff: nodegit.Diff) {
  * Get commit logs newer than an oldCommit, until a newCommit
  *
  * @remarks
- * - This will leak memory. It may be a bug in NodeGit 0.27.
  *
  * - Logs are sorted from old to new.
  *
  * - oldCommit is not included to return value.
  *
  * @internal
- * @beta
  */
 export async function getCommitLogs (
-  oldCommit: nodegit.Commit,
-  newCommit: nodegit.Commit
-): Promise<CommitInfo[]> {
-  const endId = oldCommit.id().tostrS();
+  workingDir: string,
+  oldCommitOid: string,
+  newCommitOid: string
+): Promise<NormalizedCommit[]> {
+  // Return partial logs.
+  // See https://github.com/isomorphic-git/isomorphic-git/blob/main/src/commands/log.js
+  const tips = [await git.readCommit({ fs, dir: workingDir, oid: newCommitOid })];
+  const commits: NormalizedCommit[] = [];
+  while (tips.length > 0) {
+    const commit = tips.pop();
 
-  /**
-   * TODO: Use RevWalk instead of Commit.history()
-   * Using history() is inefficient.
-   */
+    // Not include oldCommitOid
+    if (commit?.oid === oldCommitOid) break;
 
-  // Walk the history from this commit backwards.
-  const history = newCommit.history();
-  const commitList = await new Promise<nodegit.Commit[]>((resolve, reject) => {
-    const list: nodegit.Commit[] = [];
-    const onCommit = (commit: nodegit.Commit) => {
-      if (commit.id().tostrS() === endId) {
-        history.removeAllListeners();
-        resolve(list);
+    commits.unshift(NormalizeCommit(commit!));
+
+    // Add the parents of this commit to the queue
+    for (const oid of commit!.commit.parent) {
+      // eslint-disable-next-line no-await-in-loop
+      const parent_commit = await git.readCommit({ fs, dir: workingDir, oid });
+      if (!tips.map(my_commit => my_commit.oid).includes(parent_commit.oid)) {
+        tips.push(parent_commit);
       }
-      else {
-        list.unshift(commit);
-      }
-    };
-    const onEnd = (commits: nodegit.Commit[]) => {
-      console.log(
-        JSON.stringify(
-          commits.map(commit => {
-            return { id: commit.id, message: commit.message };
-          })
-        )
-      );
-      history.removeAllListeners();
-      reject(new Error('Unexpected end of walking commit history'));
-    };
-    const onError = (error: Error) => {
-      history.removeAllListeners();
-      reject(error);
-    };
-    history.on('commit', onCommit);
-    history.on('end', onEnd);
-    history.on('error', onError);
-    history.start();
-  });
+    }
+  }
   // The list is sorted from old to new.
-  const commitInfoList = commitList.map(commit => {
-    return {
-      sha: commit.id().tostrS(),
-      date: commit.date(),
-      author: commit.author().toString(),
-      message: commit.message(),
-    };
+  return commits;
+}
+
+/**
+ * Calc distance
+ */
+export async function calcDistance (
+  workingDir: string,
+  localCommitOid: string,
+  remoteCommitOid: string
+) {
+  const [baseCommitOid] = await git.findMergeBase({
+    fs,
+    dir: workingDir,
+    oids: [localCommitOid, remoteCommitOid],
   });
-  return commitInfoList;
+  return {
+    ahead: localCommitOid !== baseCommitOid ? 1 : 0,
+    behind: remoteCommitOid !== baseCommitOid ? 1 : 0,
+  };
 }

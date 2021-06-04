@@ -20,6 +20,7 @@ import {
 } from '../src/index';
 import { put_worker } from '../src/crud/put';
 import { DatabaseInfo, DatabaseInfoError, DatabaseOpenResult } from '../src/types';
+import { JSON_EXT } from '../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -118,7 +119,7 @@ describe('<index> open()', () => {
     await put_worker(
       gitDDB,
       GIT_DOCUMENTDB_INFO_ID,
-      gitDDB.fileExt,
+      JSON_EXT,
       JSON.stringify({
         creator,
       }),
@@ -156,7 +157,7 @@ describe('<index> open()', () => {
     await put_worker(
       gitDDB,
       GIT_DOCUMENTDB_INFO_ID,
-      gitDDB.fileExt,
+      JSON_EXT,
       JSON.stringify({
         db_id: generateDatabaseId(),
         creator: DATABASE_CREATOR,
@@ -198,7 +199,7 @@ describe('<index> open()', () => {
     await put_worker(
       gitDDB,
       GIT_DOCUMENTDB_INFO_ID,
-      gitDDB.fileExt,
+      JSON_EXT,
       JSON.stringify({
         db_id: '',
         creator: DATABASE_CREATOR,

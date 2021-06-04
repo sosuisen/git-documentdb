@@ -1,7 +1,7 @@
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
-import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
+import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY, JSON_EXT } from '../const';
 import {
   CannotDeleteDataError,
   InvalidConflictStateError,
@@ -38,7 +38,7 @@ async function getStrategy (
     strategy !== 'theirs'
   ) {
     // Strategy may be a function
-    const id = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
+    const id = path.replace(new RegExp(JSON_EXT + '$'), '');
     const oursDoc = ours
       ? await getDocument(gitDDB, id, ours.id()).catch(() => undefined)
       : undefined;
@@ -123,7 +123,7 @@ export async function threeWayMerge (
   const theirs = await theirsCommit.getEntry(path).catch(() => undefined);
   const base = await baseCommit.getEntry(path).catch(() => undefined);
 
-  const docId = path.replace(new RegExp(gitDDB.fileExt + '$'), '');
+  const docId = path.replace(new RegExp(JSON_EXT + '$'), '');
 
   // 2 x 2 x 2 cases
   if (!base && !ours && !theirs) {

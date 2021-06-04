@@ -4,8 +4,8 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/crud/get.test.js"],
-    "default": "test/crud/get.test.js"
+    "options": ["test/remote/sync_trypush.test.js"],
+    "default": "test/remote/sync_trypush.test.js"
   }],
   "configurations": [
       {

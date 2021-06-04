@@ -62,7 +62,7 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-  // It may throw error due to memory leak with UnfetchedCommitExistsErro
+  // It may throw error due to memory leak with UnfetchedCommitExistsError
   // fs.removeSync(path.resolve(localDir));
 });
 
@@ -181,7 +181,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      it('Race condition of two tryPush() calls throws PushWorkerError.', async () => {
+      it('Race condition of two tryPush() calls throws UnfetchedCommitExistsError.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -216,7 +216,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      it('Ordered condition of two tryPush() calls throws PushWorkerError.', async () => {
+      it('Ordered condition of two tryPush() calls throws UnfetchedCommitExistsError.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();

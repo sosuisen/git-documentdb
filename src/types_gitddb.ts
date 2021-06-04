@@ -70,7 +70,6 @@ export interface CRUDInterface {
  * @internal
  */
 export interface IDocumentDB {
-  fileExt: string;
   gitAuthor: {
     name: string;
     email: string;

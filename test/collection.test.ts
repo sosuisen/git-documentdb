@@ -10,7 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
-import { SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/index';
 import {
   DocumentNotFoundError,
@@ -118,7 +118,7 @@ describe('<collection>', () => {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
         expect(commit.message()).toEqual(
-          `insert: users/Gunma/prof01/page01${gitDDB.fileExt}(${putResult.file_sha.substr(
+          `insert: users/Gunma/prof01/page01${JSON_EXT}(${putResult.file_sha.substr(
             0,
             SHORT_SHA_LENGTH
           )})`
@@ -458,7 +458,7 @@ describe('<collection>', () => {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
         expect(commit.message()).toEqual(
-          `delete: users/${_id}${gitDDB.fileExt}(${deleteResult.file_sha.substr(
+          `delete: users/${_id}${JSON_EXT}(${deleteResult.file_sha.substr(
             0,
             SHORT_SHA_LENGTH
           )})`

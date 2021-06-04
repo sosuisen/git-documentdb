@@ -575,13 +575,23 @@ export type DuplicatedFile = {
 };
 
 /**
- * Commit information
+ * Normalized Commit
  */
-export type CommitInfo = {
+export type NormalizedCommit = {
   sha: string;
-  date: Date;
-  author: string;
   message: string;
+  parent: string[];
+  author: {
+    name: string;
+    email: string;
+    timestamp: Date;
+  };
+  committer: {
+    name: string;
+    email: string;
+    timestamp: Date;
+  };
+  gpgsig?: string;
 };
 
 /**
@@ -614,7 +624,7 @@ export interface SyncResultPush {
     remote: ChangedFile[];
   };
   commits?: {
-    remote: CommitInfo[]; // The list is sorted from old to new.
+    remote: NormalizedCommit[]; // The list is sorted from old to new.
   };
 }
 export interface SyncResultFastForwardMerge {
@@ -623,7 +633,7 @@ export interface SyncResultFastForwardMerge {
     local: ChangedFile[];
   };
   commits?: {
-    local: CommitInfo[];
+    local: NormalizedCommit[];
   };
 }
 export interface SyncResultMergeAndPushError {
@@ -632,7 +642,7 @@ export interface SyncResultMergeAndPushError {
     local: ChangedFile[];
   };
   commits?: {
-    local: CommitInfo[];
+    local: NormalizedCommit[];
   };
   error: Error;
 }
@@ -643,8 +653,8 @@ export interface SyncResultMergeAndPush {
     remote: ChangedFile[];
   };
   commits?: {
-    local: CommitInfo[];
-    remote: CommitInfo[]; // The list is sorted from old to new.
+    local: NormalizedCommit[];
+    remote: NormalizedCommit[]; // The list is sorted from old to new.
   };
 }
 export interface SyncResultResolveConflictsAndPushError {
@@ -654,7 +664,7 @@ export interface SyncResultResolveConflictsAndPushError {
   };
   conflicts: AcceptedConflict[]; // sorted by filename
   commits?: {
-    local: CommitInfo[];
+    local: NormalizedCommit[];
   };
   error: Error;
 }
@@ -666,8 +676,8 @@ export interface SyncResultResolveConflictsAndPush {
   };
   conflicts: AcceptedConflict[]; // sorted by filename
   commits?: {
-    local: CommitInfo[];
-    remote: CommitInfo[];
+    local: NormalizedCommit[];
+    remote: NormalizedCommit[];
   };
 }
 /**

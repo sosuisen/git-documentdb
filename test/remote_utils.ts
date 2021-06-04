@@ -15,7 +15,7 @@ import {
 } from '../src/types';
 import { ISync } from '../src/types_sync';
 import { GitDocumentDB } from '../src/index';
-import { FILE_REMOVE_TIMEOUT } from '../src/const';
+import { FILE_REMOVE_TIMEOUT, JSON_EXT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
@@ -364,7 +364,7 @@ export const compareWorkingDirAndBlobs = async (
 export const getWorkingDirDocs = (gitDDB: GitDocumentDB) => {
   return listFiles(gitDDB, gitDDB.workingDir()).map(filepath => {
     const doc = fs.readJSONSync(gitDDB.workingDir() + '/' + filepath);
-    doc._id = filepath.replace(new RegExp(gitDDB.fileExt + '$'), '');
+    doc._id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
     return doc;
   });
 };
