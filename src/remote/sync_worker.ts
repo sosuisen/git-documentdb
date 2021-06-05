@@ -189,8 +189,8 @@ export async function sync_worker (
         // Get list of commits which has been merged to local
         const commitsFromRemote = await getCommitLogs(
           gitDDB.workingDir(),
-          oldCommitOid,
-          oldRemoteCommitOid
+          oldRemoteCommitOid,
+          oldCommitOid
         );
         SyncResultFastForwardMerge.commits = {
           local: commitsFromRemote,
@@ -243,17 +243,39 @@ export async function sync_worker (
 
     await currentIndex.write();
 
-    const treeOid: nodegit.Oid | void = await currentIndex.writeTree();
-    const newTree = await nodegit.Tree.lookup(repos, treeOid);
+    /**
+     * Amend (move HEAD and commit again)
+     */
+    const newCommit = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: newCommitOid!,
+    });
+    const mergeParents = newCommit.commit.parent;
+    const amendedNewCommitOid = await git.commit({
+      fs,
+      dir: gitDDB.workingDir(),
+      author: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      committer: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      message: 'merge',
+      parent: mergeParents,
+    });
 
-    const newCommit = await repos.getCommit(newCommitOid!);
-    // @ts-ignore
-    await newCommit.amend('HEAD', sync.author, sync.committer, null, 'merge', newTree);
+    let localCommits: NormalizedCommit[] | undefined;
 
     // Get list of commits which has been added to local
-    let localCommits: NormalizedCommit[] | undefined;
     if (sync.options().include_commits) {
-      const amendedNewCommit = await repos.getHeadCommit();
+      const amendedNewCommit = await git.readCommit({
+        fs,
+        dir: gitDDB.workingDir(),
+        oid: amendedNewCommitOid,
+      });
 
       const [baseCommitOid] = await git.findMergeBase({
         fs,
@@ -263,30 +285,12 @@ export async function sync_worker (
 
       const commitsFromRemote = await getCommitLogs(
         gitDDB.workingDir(),
-        baseCommitOid,
-        oldRemoteCommitOid
+        oldRemoteCommitOid,
+        baseCommitOid
       );
       // Add merge commit
-      localCommits = [
-        ...commitsFromRemote,
-        {
-          sha: amendedNewCommit.id().tostrS(),
-          message: amendedNewCommit.message(),
-          parent: amendedNewCommit.parents().map(oid => oid.tostrS()),
-          author: {
-            name: amendedNewCommit.author().name(),
-            email: amendedNewCommit.author().email(),
-            timestamp: new Date(amendedNewCommit.author().when().time()),
-          },
-          committer: {
-            name: amendedNewCommit.committer().name(),
-            email: amendedNewCommit.committer().email(),
-            timestamp: new Date(amendedNewCommit.committer().when().time()),
-          },
-        },
-      ];
+      localCommits = [...commitsFromRemote, NormalizeCommit(amendedNewCommit)];
     }
-
     // Need push because it is merged normally.
     const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(
       (err: Error) => {
@@ -450,8 +454,8 @@ export async function sync_worker (
   if (sync.options().include_commits) {
     const commitsFromRemote = await getCommitLogs(
       gitDDB.workingDir(),
-      mergeBaseCommitOid,
-      oldRemoteCommitOid
+      oldRemoteCommitOid,
+      mergeBaseCommitOid
     );
     const overwriteCommit = await git.readCommit({
       fs,

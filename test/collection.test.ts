@@ -121,7 +121,7 @@ describe('<collection>', () => {
           `insert: users/Gunma/prof01/page01${JSON_EXT}(${putResult.file_sha.substr(
             0,
             SHORT_SHA_LENGTH
-          )})`
+          )})\n`
         );
       }
 
@@ -148,7 +148,7 @@ describe('<collection>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`message`);
+        expect(commit.message()).toEqual(`message\n`);
       }
 
       gitDDB.destroy();
@@ -178,7 +178,7 @@ describe('<collection>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`message`);
+        expect(commit.message()).toEqual(`message\n`);
       }
 
       gitDDB.destroy();

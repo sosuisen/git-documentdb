@@ -772,7 +772,7 @@ export class Sync implements ISync {
               err instanceof UnfetchedCommitExistsError
             )
           ) {
-            // err = new SyncWorkerError(err.message);
+            err = new SyncWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(func => {
             func(err, taskMetadata);

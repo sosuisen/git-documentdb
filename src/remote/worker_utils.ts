@@ -54,29 +54,6 @@ export async function getDocument (workingDir: string, filepath: string, file_sh
   return getDocumentFromBuffer(filepath, blob);
 }
 
-async function getAllFilesFromCommit (
-  workingDir: string,
-  commitOid: string
-): Promise<[string[], { [key: string]: string }]> {
-  const commit = await git.readCommit({ fs, dir: workingDir, oid: commitOid });
-  const files: string[] = [];
-  const fileOidMap: { [key: string]: string } = {};
-  const trees = [];
-  trees.push(commit.commit.tree);
-  while (trees.length > 0) {
-    // eslint-disable-next-line no-await-in-loop
-    const tree = await git.readTree({ fs, dir: workingDir, oid: commitOid });
-    tree.tree.forEach(entry => {
-      if (entry.type === 'tree') trees.push(entry.oid);
-      else {
-        files.push(entry.path);
-        fileOidMap[entry.path] = entry.oid;
-      }
-    });
-  }
-  return [files, fileOidMap];
-}
-
 /**
  * Get changed files
  *
@@ -167,113 +144,85 @@ export async function getChanges (
   });
 }
 
-export async function getChangesIso2 (
-  workingDir: string,
-  oldCommitOid: string,
-  newCommitOid: string
-) {
-  const changes: ChangedFile[] = [];
-  const [oldFiles, oldFileOidMap] = await getAllFilesFromCommit(workingDir, oldCommitOid);
-  const [newFiles, newFileOidMap] = await getAllFilesFromCommit(workingDir, newCommitOid);
-
-  const allFiles = [...oldFiles, ...newFiles].sort();
-
-  for (let i = 0; i < allFiles.length; i++) {
-    const file = allFiles[i];
-
-    if (oldFileOidMap[file] && !newFileOidMap[file]) {
-      changes.push({
-        operation: 'delete',
-        old: {
-          id: file,
-          file_sha: oldFileOidMap[file],
-          // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(workingDir, file, oldFileOidMap[file]),
-        },
-      });
-    }
-    else if (!oldFileOidMap[file] && newFileOidMap[file]) {
-      changes.push({
-        operation: 'insert',
-        new: {
-          id: file,
-          file_sha: newFileOidMap[file],
-          // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(workingDir, file, newFileOidMap[file]),
-        },
-      });
-    }
-    else if (oldFileOidMap[file] !== newFileOidMap[file]) {
-      changes.push({
-        operation: 'update',
-        old: {
-          id: file,
-          file_sha: oldFileOidMap[file],
-          // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(workingDir, file, oldFileOidMap[file]),
-        },
-        new: {
-          id: file,
-          file_sha: newFileOidMap[file],
-          // eslint-disable-next-line no-await-in-loop
-          doc: await getDocument(workingDir, file, newFileOidMap[file]),
-        },
-      });
-    }
-    else {
-      // no changes
-    }
-  }
-  return changes;
-}
-
 /**
- * Get commit logs newer than an oldCommit, until a newCommit
+ * Get commit logs by walking backward
  *
  * @remarks
  *
- * - Logs are sorted from old to new.
+ * - Logs are sorted by commit date from old to new. Ancestors are placed before descendants if the dates are the same.
  *
- * - oldCommit is not included to return value.
+ * - Walking stops when it reaches to walkToCommitOid or walkToCommitOid2.
+ *
+ * - Use walkToCommitOid2 when walkFromCommit has two parents.
+ *
+ * - walkToCommit is not included to return value.
  *
  * @internal
  */
 export async function getCommitLogs (
   workingDir: string,
-  oldCommitOid: string,
-  newCommitOid: string
+  walkFromCommitOid: string,
+  walkToCommitOid: string,
+  walkToCommitOid2?: string
 ): Promise<NormalizedCommit[]> {
   // Return partial logs.
   // See https://github.com/isomorphic-git/isomorphic-git/blob/main/src/commands/log.js
-  const tips = [await git.readCommit({ fs, dir: workingDir, oid: newCommitOid })];
+  const tree: { [child: string]: string[] } = {};
+  const isDescendent = (child: string, target: string): boolean => {
+    const nodes = [...tree[child]];
+    while (nodes.length > 0) {
+      const parent = nodes.pop();
+      if (parent === target) return true;
+      if (tree[parent!] !== undefined) {
+        nodes.push(...tree[parent!]);
+      }
+    }
+    return false;
+  };
+  const parents = [await git.readCommit({ fs, dir: workingDir, oid: walkFromCommitOid })];
+  const history: ReadCommitResult[] = [];
   const commits: NormalizedCommit[] = [];
-  while (tips.length > 0) {
-    const commit = tips.pop();
+  while (parents.length > 0) {
+    const commit = parents.pop();
 
-    // Not include oldCommitOid
-    if (commit?.oid === oldCommitOid) break;
+    if (commit!.oid === walkToCommitOid || commit!.oid === walkToCommitOid2) continue;
 
-    commits.unshift(NormalizeCommit(commit!));
+    commits.push(NormalizeCommit(commit!));
 
+    tree[commit!.oid] = commit!.commit.parent;
     // Add the parents of this commit to the queue
-    const parents: ReadCommitResult[] = [];
     for (const oid of commit!.commit.parent) {
       // eslint-disable-next-line no-await-in-loop
       const parent_commit = await git.readCommit({ fs, dir: workingDir, oid });
-      if (!tips.map(my_commit => my_commit.oid).includes(parent_commit.oid)) {
+      if (!history.map(my_commit => my_commit.oid).includes(parent_commit.oid)) {
+        history.push(parent_commit);
         parents.push(parent_commit);
       }
     }
-    parents
-      .sort((a, b) => {
-        if (a.commit.committer.timestamp < b.commit.committer.timestamp) return 1;
-        if (a.commit.committer.timestamp > b.commit.committer.timestamp) return -1;
-        return 0;
-      })
-      .forEach(parent => tips.unshift(parent));
   }
   // The list is sorted from old to new.
-  return commits;
+  return commits.sort((a, b) => {
+    /*
+    console.log(
+      'isDescendent:' +
+        a.sha +
+        '# ' +
+        a.committer.timestamp.getTime() +
+        ', ' +
+        b.sha +
+        '# ' +
+        b.committer.timestamp.getTime() +
+        ': ' +
+        isDescendent(a.sha, b.sha)
+    );
+    */
+    if (a.committer.timestamp.getTime() > b.committer.timestamp.getTime()) return 1;
+    if (a.committer.timestamp.getTime() < b.committer.timestamp.getTime()) return -1;
+
+    // Ancestors are placed before descendants if the dates are the same.
+    if (isDescendent(a.sha, b.sha)) return 1;
+    return -1;
+  });
 }
 
 /**

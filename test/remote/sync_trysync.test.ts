@@ -300,6 +300,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       // Sync dbB
       const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
+
       expect(syncResult1.commits!.local.length).toBe(2); // put commit and merge commit
       expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
       expect(syncResult1.commits!.local[0].sha).toBe(putResultA1.commit_sha);
@@ -307,12 +308,10 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.commits!.remote[0].sha).toBe(putResultB2.commit_sha);
       expect(syncResult1.commits!.remote[1].message).toBe('merge');
 
-      expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([
         getChangedFileInsert(jsonA1, putResultA1),
       ]);
 
-      expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileInsert(jsonB2, putResultB2),
       ]);
@@ -335,7 +334,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * dbB   :                  jsonB3  jsonB4
      * after :  jsonA1  jsonA2  jsonB3  jsonB4
      */
-    it.only('which includes two local creations and two remote creations when a remote db creates two documents and a local db creates two different documents', async () => {
+    it('which includes two local creations and two remote creations when a remote db creates two documents and a local db creates two different documents', async () => {
       const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
