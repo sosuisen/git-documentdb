@@ -44,8 +44,8 @@ const gitddb_example = async () => {
   // Revisions 
   // get(id, 2) returns two revisions before.
   //  rev 0(current): deleted
-  //  rev-1: double cherry blossoms
-  //  rev-2: cherry blossoms
+  //  rev 1: double cherry blossoms
+  //  rev 2: cherry blossoms
   const oldDoc = await gitDDB.get('nara', 2); 
 
   console.log(`\n$ gitDDB.get('nara', 2) # Get two revisions before`);
@@ -78,9 +78,6 @@ const gitddb_example = async () => {
     });
     // git-documentdb-example.git is automatically created in your GitHub account.
     // The data will be synchronized every 30 seconds(default).
-    // Check below if you fail:
-    // - It throws Error if [repo] is not checked 
-    //   in your personal access token settings.
   }
 
 
@@ -116,9 +113,9 @@ const gitddb_example = async () => {
   // Prefix search
   
   // Read all the documents whose IDs start with the prefix.
-  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/', include_docs: true });
+  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/' });
 
-  console.log(`\n$ gitDDB.allDocs({ prefix: 'nara/', include_docs: true }) # Prefix search`);
+  console.log(`\n$ gitDDB.allDocs({ prefix: 'nara/' }) # Prefix search`);
   console.dir(flowersInNara, { depth: 3 });
   /* flowersInNara = 
   {

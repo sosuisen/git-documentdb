@@ -35,7 +35,7 @@ export async function allDocsImpl (
     recursive: undefined,
     prefix: undefined,
   };
-  options.include_docs ??= false;
+  options.include_docs ??= true;
   options.descending ??= false;
   options.recursive ??= true;
   options.prefix ??= '';

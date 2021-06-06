@@ -206,7 +206,7 @@ export type DeleteOptions = {
  * Options for allDocs()
  *
  * @remarks
- * - include_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file_sha' properties. Default is false.
+ * - include_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file_sha' properties. Default is true.
  *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *

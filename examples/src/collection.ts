@@ -38,9 +38,9 @@ const collection_example = async () => {
 
 
   // Read all the documents in nara collection
-  const flowersInNaraCollection = await nara.allDocs({ include_docs: true });
+  const flowersInNaraCollection = await nara.allDocs();
 
-  console.log(`\n$ nara.allDocs({ include_docs: true }) # Search all from collection`);
+  console.log(`\n$ nara.allDocs() # Search all from collection`);
   console.dir(flowersInNaraCollection, { depth: 3 });
   /* flowersInNaraCollection = 
   {
@@ -69,7 +69,7 @@ const collection_example = async () => {
 
   /*
    * Actually, the collection is a sugar syntax of filepath.
-   * Both filepath (like PouchDB) and collection put the same file on the same location in a Git repository.
+   * Both filepath and collection put the same file on the same location in a Git repository.
    *
    * Please check the generated files under examples/git-documentdb/db01/ and examples/git-documentdb/db02/ are the same.
    * 
