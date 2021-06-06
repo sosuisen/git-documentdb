@@ -30,9 +30,9 @@
   "keywords": [
     "Git",
     "GitHub",
-    "PouchDB",
     "Offline-first",
-    "DocumentDB"
+    "DocumentDB",
+    "Synchronization"
   ],
   "author": "Hidekazu Kubota",
   "license": "MPL-2.0",
