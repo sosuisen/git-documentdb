@@ -11,9 +11,9 @@ Use GitDocumentDB to ...
 
 :green_book: Store JSON documents into Git repository. 
 
-:art: Manage Git repository by PouchDB-like API. 
+:art: Manage Git repository by document database API. 
 
-:rocket: Synchronize and diff & patch automatically with a remote repository.
+:rocket: Synchronize, diff and patch automatically with a remote repository.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(No need to resolve conflicts manually.)
 
