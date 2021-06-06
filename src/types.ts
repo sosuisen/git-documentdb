@@ -228,7 +228,7 @@ export type AllDocsOptions = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
@@ -248,7 +248,7 @@ export type PutResult = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git blob (40 characters)
  *
@@ -283,7 +283,7 @@ export type AllDocsResult = {
  * Type for a JSON document with metadata
  *
  * @remarks
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
@@ -298,7 +298,7 @@ export type JsonDocWithMetadata = DocMetadata & {
  * Type for a document metadata
  *
  * @remarks
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *

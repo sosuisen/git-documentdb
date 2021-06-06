@@ -374,7 +374,7 @@ export class Validator {
    * Validate document
    *
    * @remarks
-   * - Key cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
+   * - Key cannot start with an underscore _.
    *
    * @throws {@link InvalidPropertyNameInDocumentError}
    * @throws {@link UndefinedDocumentIdError}
