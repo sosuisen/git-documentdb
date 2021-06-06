@@ -682,9 +682,7 @@ export class Sync implements ISync {
         interval?: number;
         retry?: number;
     }): boolean;
-    tryPush(options?: {
-        onlyPush: boolean;
-    }): Promise<SyncResultPush | SyncResultCancel>;
+    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
     trySync(): Promise<SyncResult>;
     // (undocumented)
     upstream_branch: string;

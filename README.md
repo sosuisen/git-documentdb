@@ -64,27 +64,32 @@ const gitDDB = new GitDocumentDB({
 
 ## Basic CRUD
 ```typescript
-// Open
-  const result = await gitDDB.open(); // Open a repository if exists. (/your/path/to/the/example/git-documentdb/db01/.git)
-  if (!result.ok) await gitDDB.createDB(); // Git creates and opens a repository if not exits.
-  // Create (Insert if not exists)
-  await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); // Git adds 'nara.json' under the working directory and commits it.
+  // Open a repository at /your/path/to/the/example/git-documentdb/db01/.git
+  const result = await gitDDB.open(); 
+  // Create and open the repository if not exits.
+  if (!result.ok) await gitDDB.createDB(); 
+
+  // Create
+  await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); 
+  // Git adds 'nara.json' under the working directory and commits it.
 
   console.log(`$ gitDDB.put({ _id: 'nara' ... }) # Create`);
   console.log(await gitDDB.get('nara')); // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
   
-  // Update
-  await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' }); // Git adds an updated file and commits it.
+  // Update document if exists.
+  console.log(`\n$ gitDDB.put({ _id: 'nara' ... }) # Update`);
+  await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' });
+  // Git adds an updated file and commits it.
 
   // Read
   const doc = await gitDDB.get('nara');
-
-  console.log(`\n$ gitDDB.put({ _id: 'nara' ... }) # Update`);
-  console.log(doc); // { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
+  console.log(doc);
+  // { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
 
   // Delete
-  await gitDDB.delete('nara'); // Git deletes a file and commits it. You can call remove() as alias for delete().
-
+  await gitDDB.delete('nara');
+  // Git deletes a file and commits it.
+  
   console.log(`\n$ gitDDB.delete('nara') # Delete`);
   console.log(await gitDDB.get('nara')); // undefined
   ```
@@ -92,12 +97,15 @@ const gitDDB = new GitDocumentDB({
 ```typescript
   // get(id, 2) returns two revisions before
   const oldDoc = await gitDDB.get('nara', 2); 
-  console.log(oldDoc); // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+  console.log(oldDoc);
+  // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
 ```
 ## Synchronization
 ```typescript
-  const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example.git'; // Please enter your GitHub account name.
-  const your_github_personal_access_token = 'Enter your personal access token with checked [repo]'; // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  // Please enter your GitHub account name.
+  const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example.git';
+  // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  const your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
   await gitDDB.sync({
     live: true,
     remote_url: github_repository,
@@ -128,7 +136,8 @@ const gitDDB = new GitDocumentDB({
 
   // Read
   const flowerInYoshino = await gitDDB.get('yoshino/mt_yoshino');
-  console.log(flowerInYoshino); // { flower: 'cherry blossoms', _id: 'yoshino/mt_yoshino' }
+  console.log(flowerInYoshino);
+  // { flower: 'cherry blossoms', _id: 'yoshino/mt_yoshino' }
 
   // Prefix search
   
@@ -154,7 +163,8 @@ const gitDDB = new GitDocumentDB({
   }
   */
  
-  // destroy() closes DB and removes both the Git repository and the working directory if they exist.
+  // destroy() closes DB and removes
+  // both the Git repository and the working directory if they exist.
   await gitDDB.destroy();
 ```
 
@@ -171,7 +181,8 @@ const gitDDB = new GitDocumentDB({
 
   // Read
   const flowerInYoshinoCollection = await yoshino.get('mt_yoshino');
-  console.log(flowerInYoshinoCollection); // { flower: 'cherry blossoms', _id: 'mt_yoshino' }
+  console.log(flowerInYoshinoCollection);
+  // { flower: 'cherry blossoms', _id: 'mt_yoshino' }
 
   // Read all the documents in nara collection
   const flowersInNaraCollection = await nara.allDocs();

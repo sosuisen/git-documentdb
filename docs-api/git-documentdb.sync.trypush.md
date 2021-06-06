@@ -9,17 +9,8 @@ Try to push with retries
 <b>Signature:</b>
 
 ```typescript
-tryPush(options?: {
-        onlyPush: boolean;
-    }): Promise<SyncResultPush | SyncResultCancel>;
+tryPush(): Promise<SyncResultPush | SyncResultCancel>;
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  options | { onlyPush: boolean; } |  |
-
 <b>Returns:</b>
 
 Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCancel](./git-documentdb.syncresultcancel.md)<!-- -->&gt;
