@@ -13,29 +13,34 @@ const gitddb_example = async () => {
     db_name: 'db01', // Git working directory
   });
 
-  // Open
-  const result = await gitDDB.open(); // Open a repository if exists. (/your/path/to/the/example/git-documentdb/db01/.git)
-  if (!result.ok) await gitDDB.createDB(); // Git creates and opens a repository if not exits.
-  // Create (Insert if not exists)
-  await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); // Git adds 'nara.json' under the working directory and commits it.
+  // Open a repository at /your/path/to/the/example/git-documentdb/db01/.git
+  const result = await gitDDB.open(); 
+  // Create and open the repository if not exits.
+  if (!result.ok) await gitDDB.createDB(); 
+  // Create
+  await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' });
+  // Git adds 'nara.json' under the working directory and commits it.
 
   console.log(`$ gitDDB.put({ _id: 'nara' ... }) # Create`);
   console.log(await gitDDB.get('nara')); // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
   
 
-  // Update
-  await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' }); // Git adds an updated file and commits it.
+  // Update document if exists.
+  await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' }); 
+  // Git adds an updated file and commits it.
 
 
   // Read
   const doc = await gitDDB.get('nara');
 
   console.log(`\n$ gitDDB.put({ _id: 'nara' ... }) # Update`);
-  console.log(doc); // { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
+  console.log(doc);
+  // { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
 
 
   // Delete
-  await gitDDB.delete('nara'); // Git deletes a file and commits it. You can call remove() as alias for delete().
+  await gitDDB.delete('nara');
+  // Git deletes a file and commits it.
 
   console.log(`\n$ gitDDB.delete('nara') # Delete`);
   console.log(await gitDDB.get('nara')); // undefined
@@ -49,7 +54,8 @@ const gitddb_example = async () => {
   const oldDoc = await gitDDB.get('nara', 2); 
 
   console.log(`\n$ gitDDB.get('nara', 2) # Get two revisions before`);
-  console.log(oldDoc); // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+  console.log(oldDoc);
+   // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
   
   /* Where is the working directory?
   const workingDir = gitDDB.workingDir();
@@ -59,8 +65,10 @@ const gitddb_example = async () => {
   /**
    * Synchronization
    */
-  let github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example.git'; // Please enter your GitHub account name.
-  let your_github_personal_access_token = 'Enter your personal access token with checked [repo]'; // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  // Please enter your GitHub account name.
+  let github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example.git'; 
+  // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+  let your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
   // You can also set them from environment variables:
   //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
   //    e.g.) https://github.com/foo/
@@ -107,7 +115,8 @@ const gitddb_example = async () => {
   const flowerInYoshino = await gitDDB.get('yoshino/mt_yoshino');
 
   console.log(`$ gitDDB.get('yoshino/mt_yoshino') # Get from subdirectory`);
-  console.log(flowerInYoshino); // { flower: 'awesome cherry blossoms', _id: 'yoshino/mt_yoshino' }
+  console.log(flowerInYoshino);
+  // { flower: 'awesome cherry blossoms', _id: 'yoshino/mt_yoshino' }
 
 
   // Prefix search
