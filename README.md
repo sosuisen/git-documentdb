@@ -134,7 +134,7 @@ const gitDDB = new GitDocumentDB({
   // Prefix search
   
   // Read all the documents whose IDs start with the prefix.
-  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/', include_docs: true });
+  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/' });
   console.dir(flowersInNara, { depth: 3 });
   /* flowersInNara = 
   {
@@ -175,7 +175,7 @@ const gitDDB = new GitDocumentDB({
   console.log(flowerInYoshinoCollection); // { flower: 'cherry blossoms', _id: 'mt_yoshino' }
 
   // Read all the documents in nara collection
-  const flowersInNaraCollection = await nara.allDocs({ include_docs: true });
+  const flowersInNaraCollection = await nara.allDocs();
   console.dir(flowersInNaraCollection, { depth: 3 });
   /* flowersInNaraCollection = 
   {
