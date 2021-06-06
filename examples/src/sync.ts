@@ -61,64 +61,46 @@ const sync_example = async () => {
   /**
    * Open or create local and remote repositories.
    * 
-   * - Open a local repository, or create it if not ok.
+   * - Open a local repository, or create it if not exists.
+   * 
+   * - createDB() creates a local repository and opens it.
    * 
    * - sync() connects to a remote repository on GitHub,
    *   or creates it if not exists.
-   * 
-   * - createDB() creates a local repository and opens it.
-   *   createdDB() with RemoteOptions additionally clones a remote repository,
-   *   or creates it if not exists.
    */
   const resultA = await dbA.open();  
-  if (resultA.ok) await dbA.sync(remoteOptions);
-  else await dbA.createDB(remoteOptions); 
-  
-  /**
-   * git-documentdb-example-sync.git has been automatically created in your GitHub account.
-   * 
-   * Synchronization between database A and GitHub starts from now.
-   * The data will be synchronized every remoteOptions.interval msec (10,000 msec).
-   * 
-   * Check below if you fail:
-   *  - It throws Error if the github_repository has already exist. 
-   *    Delete it before running this example.
-   *  - It throws Error if [repo] is not checked
-   *    in your personal access token settings.
-   */
+  if (!resultA.ok) await dbA.createDB();
 
-  // Create dbB
+  /**
+   * Sync between database A and GitHub
+   * every remoteOptions.interval msec (10,000 msec).
+   */
+  const syncA = await dbA.sync(remoteOptions);
+
+  // Create local database B
   let dbB = new GitDocumentDB({
     db_name: 'dbB',
     schema,
   });
-  /**
-   * Create another local repository.
-   */  
   const resultB = await dbB.open();
-  if (resultB.ok) await dbB.sync(remoteOptions);  
-  else await dbB.createDB(remoteOptions);
-  
-  /**
-   * Synchronization between database B and GitHub starts from now.
-   */
+  if (!resultB.ok) await dbB.createDB();
+  // Sync between database B and GitHub.
+  const syncB = await dbB.sync(remoteOptions);
   
   // Listen change event which occurs when a document is changed.
-  const syncA = dbA.getSynchronizer(github_repository);
   syncA.on('change', (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
     showChanges(syncResult, 'A'); 
-  });
-  syncA.on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on A] ' + err.message))
+  })
+    .on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on A] ' + err.message))
     .on('paused', () => console.log('[paused on A]'))
     .on('active', () => console.log('[resumed on A]'))
     .on('start', (taskMetadata: TaskMetadata, currentRetries: number) => console.log('[sync start on A] <' + taskMetadata.taskId + '> retries: ' + currentRetries))
     .on('complete', (taskMetadata: TaskMetadata) => console.log('[sync complete on A] <' + taskMetadata.taskId + '>'));
 
-  const syncB = dbB.getSynchronizer(github_repository);    
   syncB.on('change', (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
     showChanges(syncResult, 'B');    
-  });
-  syncB.on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on B] ' + err.message))
+  })
+    .on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on B] ' + err.message))
     .on('paused', () => console.log('[paused on B]'))
     .on('active', () => console.log('[resumed on B]'))
     .on('start', (taskMetadata: TaskMetadata, currentRetries: number) => console.log('[sync start on B] <' + taskMetadata.taskId + '> retries: ' + currentRetries))
