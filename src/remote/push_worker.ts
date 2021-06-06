@@ -7,17 +7,14 @@
  */
 
 import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
+import fs from 'fs-extra';
 import { ConsoleStyle } from '../utils';
-import {
-  GitPushError,
-  RepositoryNotOpenError,
-  SyncWorkerFetchError,
-  UnfetchedCommitExistsError,
-} from '../error';
+import { GitPushError, SyncWorkerFetchError, UnfetchedCommitExistsError } from '../error';
 import { IDocumentDB } from '../types_gitddb';
-import { CommitInfo, SyncResultPush, TaskMetadata } from '../types';
+import { NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
 import { ISync } from '../types_sync';
-import { getChanges, getCommitLogs } from './worker_utils';
+import { calcDistance, getChanges, getCommitLogs } from './worker_utils';
 
 /**
  * git push
@@ -26,12 +23,8 @@ import { getChanges, getCommitLogs } from './worker_utils';
  * @throws {@link SyncWorkerFetchError} (from validatePushResult())
  * @throws {@link GitPushError} (from NodeGit.Remote.push())
  */
-async function push (
-  gitDDB: IDocumentDB,
-  sync: ISync
-): Promise<nodegit.Commit | undefined> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) return;
+async function push (gitDDB: IDocumentDB, sync: ISync): Promise<void> {
+  const repos = gitDDB.repository()!;
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
     .push(['refs/heads/main:refs/heads/main'], {
@@ -48,8 +41,7 @@ async function push (
       throw new GitPushError(err.message);
     });
   // gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
-  const headCommit = await validatePushResult(gitDDB, sync);
-  return headCommit;
+  await validatePushResult(gitDDB, sync);
 }
 
 /**
@@ -59,17 +51,8 @@ async function push (
  * @throws {@link SyncWorkerFetchError}
  * @throws {@link UnfetchedCommitExistsError}
  */
-async function validatePushResult (
-  gitDDB: IDocumentDB,
-  sync: ISync
-): Promise<nodegit.Commit | undefined> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) return undefined;
-  /*
-  gitDDB.logger.debug(
-    ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: Check if pushed.`
-  );
-  */
+async function validatePushResult (gitDDB: IDocumentDB, sync: ISync): Promise<void> {
+  const repos = gitDDB.repository()!;
   await repos
     .fetch('origin', {
       callbacks: sync.credential_callbacks,
@@ -78,16 +61,19 @@ async function validatePushResult (
       throw new SyncWorkerFetchError(err.message);
     });
 
-  const localCommit = await repos.getHeadCommit();
-  const remoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
-  // @types/nodegit is wrong
-  const distance = ((await nodegit.Graph.aheadBehind(
-    repos,
-    localCommit.id(),
-    remoteCommit.id()
-  )) as unknown) as { ahead: number; behind: number };
+  const localCommitOid = await git.resolveRef({
+    fs,
+    dir: gitDDB.workingDir(),
+    ref: 'HEAD',
+  });
+  const remoteCommitOid = await git.resolveRef({
+    fs,
+    dir: gitDDB.workingDir(),
+    ref: 'refs/remotes/origin/main',
+  });
+  const distance = await calcDistance(gitDDB.workingDir(), localCommitOid, remoteCommitOid);
 
-  if (distance.ahead !== 0 || distance.behind !== 0) {
+  if (distance.behind > 0) {
     gitDDB
       .getLogger()
       .debug(
@@ -98,8 +84,6 @@ async function validatePushResult (
 
     throw new UnfetchedCommitExistsError();
   }
-
-  return localCommit;
 }
 
 /**
@@ -117,51 +101,83 @@ export async function push_worker (
   taskMetadata: TaskMetadata,
   skipStartEvent = false
 ): Promise<SyncResultPush> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) {
-    throw new RepositoryNotOpenError();
-  }
-
   if (!skipStartEvent) {
     sync.eventHandlers.start.forEach(func => {
       func(taskMetadata, sync.currentRetries());
     });
   }
 
-  const headCommit = await gitDDB.repository()!.getHeadCommit();
+  /**
+  a) The first push
+              
+  --[baseCommit(remoteCommit)]--(...)--[headCommit(localCommit)]
 
-  // Get the oldest commit that has not been pushed yet.
-  let oldestCommit = await gitDDB
-    .repository()!
-    .getReferenceCommit('refs/remotes/origin/main')
+  b) Fast forward
+              
+  --[baseCommit]--(...)--[remoteCommit]--(...)--[headCommit(localCommit)]
+  
+  c) HEAD is a merge commit
+                  ┌--(...)--[localCommit]---┐
+  --[baseCommit]--+                         +--[headCommit]
+                  └--(...)--[remoteCommit]--┘
+  */
+
+  const headCommitOid = await git.resolveRef({
+    fs,
+    dir: gitDDB.workingDir(),
+    ref: 'HEAD',
+  });
+  const headCommit = await git.readCommit({
+    fs,
+    dir: gitDDB.workingDir(),
+    oid: headCommitOid,
+  });
+
+  let localCommitOid: string;
+
+  let remoteCommitOid = await git
+    .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'refs/remotes/origin/main' })
     .catch(() => undefined);
 
-  if (oldestCommit === undefined) {
-    // This is the first push in this repository.
-    // Get the first commit.
-    const revwalk = nodegit.Revwalk.create(gitDDB.repository()!);
-    revwalk.push(headCommit.id());
-    revwalk.sorting(nodegit.Revwalk.SORT.REVERSE);
-    const commitList: nodegit.Oid[] = await revwalk.fastWalk(1);
-    oldestCommit = await gitDDB.repository()!.getCommit(commitList[0]);
+  if (headCommit.commit.parent.length === 2) {
+    // HEAD is a merge commit.
+    if (headCommit.commit.parent[0] === remoteCommitOid) {
+      localCommitOid = headCommit.commit.parent[1];
+    }
+    else {
+      localCommitOid = headCommit.commit.parent[0];
+    }
+  }
+  else {
+    localCommitOid = headCommitOid;
   }
 
-  // Get a list of commits which will be pushed to remote.
-  let commitListRemote: CommitInfo[] | undefined;
-  if (sync.options().include_commits) {
-    commitListRemote = await getCommitLogs(oldestCommit, headCommit);
+  let baseCommitOid: string;
+
+  if (remoteCommitOid === undefined) {
+    // This is the first push in this repository.
+    // Get the first commit.
+    const logs = await git.log({ fs, dir: gitDDB.workingDir() });
+    baseCommitOid = logs[logs.length - 1].oid;
+    remoteCommitOid = baseCommitOid;
+  }
+  else {
+    [baseCommitOid] = await git.findMergeBase({
+      fs,
+      dir: gitDDB.workingDir(),
+      oids: [localCommitOid, remoteCommitOid],
+    });
   }
 
   // Push
-  const headCommitAfterPush = await push(gitDDB, sync);
+  await push(gitDDB, sync);
 
-  // Get changes
-  const diff = await nodegit.Diff.treeToTree(
-    gitDDB.repository()!,
-    await oldestCommit.getTree(),
-    await headCommitAfterPush!.getTree()
+  const remoteChanges = await getChanges(
+    gitDDB.workingDir(),
+    remoteCommitOid,
+    headCommitOid
   );
-  const remoteChanges = await getChanges(gitDDB, diff);
+
   const syncResult: SyncResultPush = {
     action: 'push',
     changes: {
@@ -169,7 +185,15 @@ export async function push_worker (
     },
   };
 
-  if (commitListRemote) {
+  // Get a list of commits which will be pushed to remote.
+  let commitListRemote: NormalizedCommit[] | undefined;
+  if (sync.options().include_commits) {
+    commitListRemote = await getCommitLogs(
+      gitDDB.workingDir(),
+      headCommitOid,
+      baseCommitOid,
+      remoteCommitOid
+    );
     syncResult.commits = {
       remote: commitListRemote,
     };

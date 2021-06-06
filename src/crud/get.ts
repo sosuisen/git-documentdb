@@ -21,6 +21,7 @@ import {
 } from '../error';
 import { JsonDoc, JsonDocWithMetadata } from '../types';
 import { getBackNumber } from './history';
+import { JSON_EXT } from '../const';
 
 type GetOptions = {
   back_number?: number;
@@ -58,7 +59,7 @@ export async function getImpl (
     return undefined;
   }
 
-  const filename = _id + this.fileExt;
+  const filename = _id + JSON_EXT;
 
   if (!options.back_number || options.back_number === 0) {
     const commit = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -87,7 +88,7 @@ export async function getImpl (
       // Overwrite _id in a document by _id in arguments
       document._id = _id;
     } catch (e) {
-      throw new InvalidJsonObjectError();
+      throw new InvalidJsonObjectError(_id);
     }
 
     if (options.with_metadata) {
@@ -164,7 +165,7 @@ export async function getByRevisionImpl (
     }
     document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
   } catch (e) {
-    throw new InvalidJsonObjectError();
+    throw new InvalidJsonObjectError('file_sha: ' + fileSHA);
   }
 
   return document;

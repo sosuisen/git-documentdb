@@ -15,5 +15,5 @@ export declare class InvalidJsonObjectError extends BaseError
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(e)](./git-documentdb.invalidjsonobjecterror._constructor_.md) |  | Constructs a new instance of the <code>InvalidJsonObjectError</code> class |
+|  [(constructor)(idOrSha)](./git-documentdb.invalidjsonobjecterror._constructor_.md) |  | Constructs a new instance of the <code>InvalidJsonObjectError</code> class |
 

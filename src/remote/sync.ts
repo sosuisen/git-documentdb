@@ -13,6 +13,7 @@ import { clearInterval, setInterval } from 'timers';
 import nodegit from '@sosuisen/nodegit';
 import { ConsoleStyle, sleep } from '../utils';
 import {
+  CombineDatabaseError,
   IntervalTooSmallError,
   NoMergeBaseFoundError,
   PushNotAllowedError,
@@ -29,6 +30,7 @@ import {
   SyncActiveCallback,
   SyncCallback,
   SyncChangeCallback,
+  SyncCombineDatabaseCallback,
   SyncCompleteCallback,
   SyncErrorCallback,
   SyncEvent,
@@ -59,10 +61,12 @@ import {
 } from '../const';
 import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
+import { combineDatabaseWithTheirs } from './combine';
 
 /**
- * Implementation of GitDocumentDB#sync()
+ * Implementation of GitDocumentDB#sync(options, get_sync_result)
  *
+ * @throws {@link RepositoryNotFoundError}
  * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
  * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
  *
@@ -74,15 +78,41 @@ import { JsonPatchOT } from './json_patch_ot';
  *
  * @internal
  */
-export async function syncImpl (this: IDocumentDB, options?: RemoteOptions) {
+export async function syncAndGetResultImpl (
+  this: IDocumentDB,
+  options: RemoteOptions
+): Promise<[Sync, SyncResult]> {
   const repos = this.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-  const remote = new Sync(this, options);
-  await remote.init(repos);
-
-  return remote;
+  const sync = new Sync(this, options);
+  const syncResult = await sync.init(repos);
+  return [sync, syncResult];
+}
+/**
+ * Implementation of GitDocumentDB#sync(options)
+ *
+ * @throws {@link RepositoryNotFoundError}
+ * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+ * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+ *
+ * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+ * @throws {@link PushWorkerError} (from Sync#init())
+ * @throws {@link SyncWorkerError} (from Sync#init())
+ * @throws {@link NoMergeBaseFoundError}
+ * @throws {@link PushNotAllowedError}  (from Sync#init())
+ *
+ * @internal
+ */
+export async function syncImpl (this: IDocumentDB, options: RemoteOptions): Promise<Sync> {
+  const repos = this.repository();
+  if (repos === undefined) {
+    throw new RepositoryNotOpenError();
+  }
+  const sync = new Sync(this, options);
+  await sync.init(repos);
+  return sync;
 }
 
 /**
@@ -93,8 +123,9 @@ export class Sync implements ISync {
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
-  private _remoteRepository: RemoteRepository;
   private _retrySyncCounter = 0; // Decremental count
+
+  remoteRepository: RemoteRepository;
 
   /**
    * Return current retry count (incremental)
@@ -114,6 +145,7 @@ export class Sync implements ISync {
     change: SyncChangeCallback[];
     localChange: SyncLocalChangeCallback[];
     remoteChange: SyncRemoteChangeCallback[];
+    combine: SyncCombineDatabaseCallback[];
     paused: SyncPausedCallback[];
     active: SyncActiveCallback[];
     start: SyncStartCallback[];
@@ -123,6 +155,7 @@ export class Sync implements ISync {
     change: [],
     localChange: [],
     remoteChange: [],
+    combine: [],
     paused: [],
     active: [],
     start: [],
@@ -197,7 +230,7 @@ export class Sync implements ISync {
     }
 
     this._options.retry ??= NETWORK_RETRY;
-    this._options.combine_db_strategy ??= 'throw-error';
+    this._options.combine_db_strategy ??= 'combine-head-with-theirs';
     this._options.include_commits ??= false;
     this._options.conflict_resolution_strategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
 
@@ -222,7 +255,7 @@ export class Sync implements ISync {
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
-    this._remoteRepository = new RemoteRepository({
+    this.remoteRepository = new RemoteRepository({
       remote_url: this._options.remote_url,
       connection: this._options.connection,
     });
@@ -257,7 +290,7 @@ export class Sync implements ISync {
    */
   async init (repos: nodegit.Repository): Promise<SyncResult> {
     const onlyFetch = this._options.sync_direction === 'pull';
-    const [gitResult, remoteResult] = await this._remoteRepository
+    const [gitResult, remoteResult] = await this.remoteRepository
       .connect(this._gitDDB.repository()!, this.credential_callbacks, onlyFetch)
       .catch(err => {
         throw new RemoteRepositoryConnectError(err.message);
@@ -406,6 +439,7 @@ export class Sync implements ISync {
    * @throws {@link PushWorkerError} (from this and enqueuePushTask)
    * @throws {@link UnfetchedCommitExistsError} (from this and enqueuePushTask)
    */
+  // eslint-disable-next-line complexity
   async tryPush (options?: {
     onlyPush: boolean;
   }): Promise<SyncResultPush | SyncResultCancel> {
@@ -415,27 +449,48 @@ export class Sync implements ISync {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
     }
-    else {
-      const result: SyncResultCancel = { action: 'canceled' };
-      this._retrySyncCounter = 0;
-      return result;
-    }
 
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
-      const resultOrError = await this.enqueuePushTask().catch((err: Error) => {
-        // Invoke retry fail event
-        this._gitDDB.getLogger().debug('Push failed: ' + err.message);
+      const resultOrError = await this.enqueuePushTask().catch((err: Error) => err);
+
+      let error: Error | undefined;
+      let result: SyncResultPush | SyncResultCancel | undefined;
+      if (resultOrError instanceof Error) {
+        error = resultOrError;
+      }
+      else {
+        result = resultOrError;
+      }
+
+      if (error instanceof UnfetchedCommitExistsError) {
+        if (this._options.sync_direction === 'push') {
+          if (this._options.combine_db_strategy === 'replace-with-ours') {
+            // TODO: Exec replace-with-ours instead of throw error
+          }
+          else {
+            throw error;
+          }
+        }
+      }
+
+      if (error) {
+        this._gitDDB.getLogger().debug('Push failed: ' + error.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw err;
+          throw error;
         }
-        return err;
-      });
-      if (!(resultOrError instanceof Error)) {
-        this._retrySyncCounter = 0;
-        return resultOrError;
       }
+
+      if (result && result.action === 'canceled') {
+        return result;
+      }
+
+      if (error === undefined && result !== undefined) {
+        this._retrySyncCounter = 0;
+        return result;
+      }
+
       // eslint-disable-next-line no-await-in-loop
       if (!(await this.canNetworkConnection())) {
         // Retry to connect due to network error.
@@ -449,13 +504,13 @@ export class Sync implements ISync {
       }
       else {
         this._retrySyncCounter = 0;
-        throw resultOrError;
+        throw error;
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
-    const result: SyncResultCancel = { action: 'canceled' };
+    const cancel: SyncResultCancel = { action: 'canceled' };
     this._retrySyncCounter = 0;
-    return result;
+    return cancel;
   }
 
   /**
@@ -474,50 +529,77 @@ export class Sync implements ISync {
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
     }
-    /*
-    else {
-      console.log('# cancel because _retrySyncCounter is not 0: ' + this._retrySyncCounter);      
-      const result: SyncResultCancel = { action: 'canceled' };
-      this._retrySyncCounter = 0;
-      return result;
-    }
-    */
+
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
-      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => {
-        // Invoke retry fail event
-        this._gitDDB.getLogger().debug('Sync failed: ' + err.message);
+      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => err);
+
+      let error: Error | undefined;
+      let result: SyncResult | undefined;
+      if (resultOrError instanceof Error) {
+        error = resultOrError;
+      }
+      else if (
+        resultOrError.action === 'merge and push error' ||
+        resultOrError.action === 'resolve conflicts and push error'
+      ) {
+        result = resultOrError;
+        error = resultOrError.error;
+      }
+      else {
+        result = resultOrError;
+      }
+
+      if (error instanceof NoMergeBaseFoundError) {
+        if (this._options.combine_db_strategy === 'throw-error') {
+          throw error;
+        }
+        else if (this._options.combine_db_strategy === 'combine-head-with-theirs') {
+          // return SyncResultCombineDatabase
+          // eslint-disable-next-line no-await-in-loop
+          const syncResultCombineDatabase = await combineDatabaseWithTheirs(
+            this._gitDDB,
+            this.options()
+          ).catch(err => {
+            throw new CombineDatabaseError(err.message);
+          });
+          // eslint-disable-next-line no-loop-func
+          this.eventHandlers.combine.forEach(func =>
+            func(syncResultCombineDatabase.duplicates)
+          );
+          return syncResultCombineDatabase;
+        }
+      }
+
+      if (error) {
+        this._gitDDB.getLogger().debug('Sync or push failed: ' + error.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
-          throw err;
+          throw error;
         }
-        return err;
-      });
-      if (!(resultOrError instanceof Error) && resultOrError.action === 'canceled') {
-        return resultOrError;
+      }
+
+      if (result && result.action === 'canceled') {
+        return result;
+      }
+
+      if (error === undefined && result !== undefined) {
+        // No error
+        this._retrySyncCounter = 0;
+        return result;
       }
 
       if (
-        !(resultOrError instanceof Error) &&
-        !(
-          resultOrError.action === 'merge and push error' ||
-          resultOrError.action === 'resolve conflicts and push error'
-        )
-      ) {
-        this._retrySyncCounter = 0;
-        return resultOrError;
-      }
-      if (
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
-        resultOrError instanceof UnfetchedCommitExistsError ||
-        (!(resultOrError instanceof Error) &&
-          (resultOrError.action === 'merge and push error' ||
-            resultOrError.action === 'resolve conflicts and push error'))
+        error instanceof UnfetchedCommitExistsError
       ) {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
         // - Problem will be resolved by sync again.
+        //   - 'push' action throws UnfetchedCommitExistsError
+        //   - push_worker in 'merge and push' action throws UnfetchedCommitExistsError
+        //   - push_worker in 'resolve conflicts and push' action throws UnfetchedCommitExistsError
         this._gitDDB
           .getLogger()
           .debug(
@@ -527,14 +609,15 @@ export class Sync implements ISync {
         await sleep(this._options.retry_interval!);
       }
       else {
+        // Throw error
         this._retrySyncCounter = 0;
-        throw resultOrError;
+        throw error;
       }
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
-    const result: SyncResultCancel = { action: 'canceled' };
+    const cancel: SyncResultCancel = { action: 'canceled' };
     this._retrySyncCounter = 0;
-    return result;
+    return cancel;
   }
 
   /**
@@ -733,6 +816,8 @@ export class Sync implements ISync {
       this.eventHandlers[event].push(callback as SyncLocalChangeCallback);
     if (event === 'remoteChange')
       this.eventHandlers[event].push(callback as SyncRemoteChangeCallback);
+    if (event === 'combine')
+      this.eventHandlers[event].push(callback as SyncCombineDatabaseCallback);
     if (event === 'paused') this.eventHandlers[event].push(callback as SyncPausedCallback);
     if (event === 'active') this.eventHandlers[event].push(callback as SyncActiveCallback);
     if (event === 'start') this.eventHandlers[event].push(callback as SyncStartCallback);
@@ -765,6 +850,7 @@ export class Sync implements ISync {
       change: [],
       localChange: [],
       remoteChange: [],
+      combine: [],
       paused: [],
       active: [],
       start: [],

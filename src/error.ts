@@ -117,8 +117,8 @@ export class InvalidIdLengthError extends BaseError {
 /**
  */
 export class InvalidJsonObjectError extends BaseError {
-  constructor (e = `Invalid JSON object`) {
-    super(e);
+  constructor (idOrSha: string) {
+    super(`Invalid JSON object: ${idOrSha}`);
   }
 }
 
@@ -581,5 +581,11 @@ export class CorruptedRepositoryError extends BaseError {
 export class ConsecutiveSyncSkippedError extends BaseError {
   constructor (taskLabel: string, taskId: string) {
     super(`Consecutive ${taskLabel} skipped (id: ${taskId})`);
+  }
+}
+
+export class CombineDatabaseError extends BaseError {
+  constructor (mes: string) {
+    super(`Combine database failed: ${mes})`);
   }
 }

@@ -9,9 +9,10 @@
 
 import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
-import { SHORT_SHA_LENGTH } from '../const';
-import { ConsoleStyle } from '../utils';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
+import { ConsoleStyle, NormalizeCommit } from '../utils';
 import {
   CannotDeleteDataError,
   GitMergeBranchError,
@@ -23,7 +24,7 @@ import {
 import { IDocumentDB } from '../types_gitddb';
 import {
   AcceptedConflict,
-  CommitInfo,
+  NormalizedCommit,
   SyncResult,
   SyncResultMergeAndPush,
   SyncResultMergeAndPushError,
@@ -33,7 +34,7 @@ import {
 } from '../types';
 import { ISync } from '../types_sync';
 import { push_worker } from './push_worker';
-import { getChanges, getCommitLogs, writeBlobToFile } from './worker_utils';
+import { calcDistance, getChanges, getCommitLogs, writeBlobToFile } from './worker_utils';
 import { threeWayMerge } from './3way_merge';
 
 /**
@@ -56,47 +57,11 @@ async function fetch (gitDDB: IDocumentDB, sync: ISync) {
 }
 
 /**
- * Calc distance
- */
-async function calcDistance (
-  gitDDB: IDocumentDB,
-  localCommit: nodegit.Commit,
-  remoteCommit: nodegit.Commit
-) {
-  const repos = gitDDB.repository()!;
-  // @types/nodegit is wrong
-  const distance = ((await nodegit.Graph.aheadBehind(
-    repos,
-    localCommit.id(),
-    remoteCommit.id()
-  )) as unknown) as { ahead: number; behind: number };
-  gitDDB
-    .getLogger()
-    .debug(
-      ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(distance)}`
-    );
-  return distance;
-}
-
-/**
- * Resolve no merge base
- *
- * @throws {@link NoMergeBaseFoundError}
- */
-function resolveNoMergeBase (sync: ISync) {
-  if (sync.options().combine_db_strategy === 'throw-error') {
-    throw new NoMergeBaseFoundError();
-  }
-  // TODO:
-  throw new Error('other options for combine_db_strategy is not implemented currently.');
-}
-
-/**
  * sync_worker
  *
  * @throws {@link RepositoryNotOpenError} (from this and push_worker())
  * @throws {@link SyncWorkerFetchError} (from fetch() and push_worker())
- * @throws {@link NoMergeBaseFoundError} (from resolveNoMergeBase())
+ * @throws {@link NoMergeBaseFoundError}
  * @throws {@link ThreeWayMergeError}
  * @throws {@link CannotDeleteDataError}
  * @throws {@link InvalidJsonObjectError} (from getChanges())
@@ -129,16 +94,28 @@ export async function sync_worker (
   /**
    * Calc distance
    */
-  const oldCommit = await repos.getHeadCommit();
-  const oldRemoteCommit = await repos.getReferenceCommit('refs/remotes/origin/main');
-  const distance = await calcDistance(gitDDB, oldCommit, oldRemoteCommit);
+  const oldCommitOid = await git.resolveRef({
+    fs,
+    dir: gitDDB.workingDir(),
+    ref: 'HEAD',
+  });
+  const oldRemoteCommitOid = await git.resolveRef({
+    fs,
+    dir: gitDDB.workingDir(),
+    ref: 'refs/remotes/origin/main',
+  });
+  const distance = await calcDistance(
+    gitDDB.workingDir(),
+    oldCommitOid,
+    oldRemoteCommitOid
+  );
   // ahead: 0, behind 0 => Nothing to do: Local does not have new commits. Remote has not pushed new commits.
   // ahead: 0, behind 1 => Fast-forward merge : Local does not have new commits. Remote has pushed new commits.
   // ahead: 1, behind 0 => Push : Local has new commits. Remote has not pushed new commits.
   // ahead: 1, behind 1 => Merge, may resolve conflict and push: Local has new commits. Remote has pushed new commits.
 
   let conflictedIndex: nodegit.Index | undefined;
-  let newCommitOid: nodegit.Oid | undefined;
+  let newCommitOid: nodegit.Oid | string | undefined;
   if (distance.ahead === 0 && distance.behind === 0) {
     return { action: 'nop' };
   }
@@ -157,13 +134,9 @@ export async function sync_worker (
         // Exception locks files. Try cleanup
         repos.cleanup();
 
-        /**
-         * TODO:
-         * May throw 'Error: no merge base found'
-         */
         if (res instanceof Error) {
           if (res.message.startsWith('no merge base found')) {
-            resolveNoMergeBase(sync);
+            throw new NoMergeBaseFoundError();
           }
           throw new GitMergeBranchError(res.message);
         }
@@ -178,28 +151,32 @@ export async function sync_worker (
     });
   }
 
+  if (newCommitOid instanceof nodegit.Oid) {
+    newCommitOid = newCommitOid.tostrS();
+  }
+
   if (conflictedIndex === undefined) {
     // Conflict has not been occurred.
     // Exec fast-forward or normal merge.
 
     // When a local file is removed and the same remote file is removed,
     // they cannot be merged by fast-forward. They are merged as usual.
-
-    const newCommit = await repos.getCommit(newCommitOid!);
-
     const distance_again = await calcDistance(
-      gitDDB,
-      newCommit,
-      await repos.getReferenceCommit('refs/remotes/origin/main')
+      gitDDB.workingDir(),
+      newCommitOid!,
+      await git.resolveRef({
+        fs,
+        dir: gitDDB.workingDir(),
+        ref: 'refs/remotes/origin/main',
+      })
     );
 
     if (distance_again.ahead === 0) {
-      const diff = await nodegit.Diff.treeToTree(
-        repos,
-        await oldCommit.getTree(),
-        await newCommit.getTree()
+      const localChanges = await getChanges(
+        gitDDB.workingDir(),
+        oldCommitOid,
+        newCommitOid!
       );
-      const localChanges = await getChanges(gitDDB, diff);
 
       const SyncResultFastForwardMerge: SyncResult = {
         action: 'fast-forward merge',
@@ -210,7 +187,11 @@ export async function sync_worker (
 
       if (sync.options().include_commits) {
         // Get list of commits which has been merged to local
-        const commitsFromRemote = await getCommitLogs(oldCommit, oldRemoteCommit);
+        const commitsFromRemote = await getCommitLogs(
+          gitDDB.workingDir(),
+          oldRemoteCommitOid,
+          oldCommitOid
+        );
         SyncResultFastForwardMerge.commits = {
           local: commitsFromRemote,
         };
@@ -228,15 +209,9 @@ export async function sync_worker (
     // - remove a remote file, and remove the same local file
 
     // Compare trees before and after merge
-    const diff = await nodegit.Diff.treeToTree(
-      repos,
-      await oldCommit.getTree(),
-      await newCommit.getTree()
-    );
-
     const currentIndex = await repos.refreshIndex();
 
-    const localChanges = await getChanges(gitDDB, diff);
+    const localChanges = await getChanges(gitDDB.workingDir(), oldCommitOid, newCommitOid!);
     /**
      * Repository.mergeBranches does not handle updating and deleting file.
      * So a file updated/deleted on remote side is not applied to
@@ -246,7 +221,7 @@ export async function sync_worker (
     // Cannot use await in forEach. Use for-of.
     for (const change of localChanges) {
       if (change.operation === 'delete') {
-        const filename = change.old.id + gitDDB.fileExt;
+        const filename = change.old.id + JSON_EXT;
         const path = nodePath.resolve(repos.workdir(), filename);
         await fs.remove(path).catch(() => {
           throw new CannotDeleteDataError();
@@ -254,9 +229,13 @@ export async function sync_worker (
         await currentIndex.removeByPath(filename);
       }
       else if (change.operation === 'update') {
-        const filename = change.old.id + gitDDB.fileExt;
-        const entry = await newCommit.getEntry(filename);
-        const data = (await entry.getBlob()).toString();
+        const filename = change.old.id + JSON_EXT;
+        const { blob } = await git.readBlob({
+          fs,
+          dir: gitDDB.workingDir(),
+          oid: change.old.id,
+        });
+        const data = Buffer.from(blob).toString('utf-8');
         await writeBlobToFile(gitDDB, filename, data);
         await currentIndex.addByPath(filename);
       }
@@ -264,49 +243,68 @@ export async function sync_worker (
 
     await currentIndex.write();
 
-    const treeOid: nodegit.Oid | void = await currentIndex.writeTree();
-    const newTree = await nodegit.Tree.lookup(repos, treeOid);
-    // @ts-ignore
-    await newCommit.amend('HEAD', sync.author, sync.committer, null, 'merge', newTree);
-
-    // Get list of commits which has been added to local
-    let localCommits: CommitInfo[] | undefined;
-    if (sync.options().include_commits) {
-      const amendedNewCommit = await repos.getHeadCommit();
-
-      const mergeBase = await nodegit.Merge.base(
-        repos,
-        oldCommit.id(),
-        oldRemoteCommit.id()
-      );
-
-      const commitsFromRemote = await getCommitLogs(
-        await repos.getCommit(mergeBase),
-        oldRemoteCommit
-      );
-      // Add merge commit
-      localCommits = [
-        ...commitsFromRemote,
-        {
-          sha: amendedNewCommit.id().tostrS(),
-          date: amendedNewCommit.date(),
-          author: amendedNewCommit.author().toString(),
-          message: amendedNewCommit.message(),
-        },
-      ];
-    }
-
-    // Need push because it is merged normally.
-    const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
-      return undefined;
+    /**
+     * Amend (move HEAD and commit again)
+     */
+    const newCommit = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: newCommitOid!,
+    });
+    const mergeParents = newCommit.commit.parent;
+    const amendedNewCommitOid = await git.commit({
+      fs,
+      dir: gitDDB.workingDir(),
+      author: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      committer: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      message: 'merge',
+      parent: mergeParents,
     });
 
-    if (syncResultPush === undefined) {
+    let localCommits: NormalizedCommit[] | undefined;
+
+    // Get list of commits which has been added to local
+    if (sync.options().include_commits) {
+      const amendedNewCommit = await git.readCommit({
+        fs,
+        dir: gitDDB.workingDir(),
+        oid: amendedNewCommitOid,
+      });
+
+      const [baseCommitOid] = await git.findMergeBase({
+        fs,
+        dir: gitDDB.workingDir(),
+        oids: [oldCommitOid, oldRemoteCommitOid],
+      });
+
+      const commitsFromRemote = await getCommitLogs(
+        gitDDB.workingDir(),
+        oldRemoteCommitOid,
+        baseCommitOid
+      );
+      // Add merge commit
+      localCommits = [...commitsFromRemote, NormalizeCommit(amendedNewCommit)];
+    }
+    // Need push because it is merged normally.
+    const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(
+      (err: Error) => {
+        return err;
+      }
+    );
+
+    if (syncResultPush instanceof Error) {
       const syncResultMergeAndPushError: SyncResultMergeAndPushError = {
         action: 'merge and push error',
         changes: {
           local: localChanges,
         },
+        error: syncResultPush,
       };
       if (localCommits) {
         syncResultMergeAndPushError.commits = {
@@ -338,8 +336,6 @@ export async function sync_worker (
    * https://git-scm.com/docs/git-merge#_true_merge
    */
 
-  const mergeBase = await nodegit.Merge.base(repos, oldCommit.id(), oldRemoteCommit.id());
-
   const allFileObj: { [key: string]: boolean } = {};
   conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
     const stage = nodegit.Index.entryStage(entry);
@@ -367,8 +363,12 @@ export async function sync_worker (
 
   // Try to check conflict for all files in conflicted index.
   // console.log('3-way merge..');
+  const [mergeBaseCommitOid] = await git.findMergeBase({
+    fs,
+    dir: gitDDB.workingDir(),
+    oids: [oldCommitOid, oldRemoteCommitOid],
+  });
 
-  const mergeBaseCommit = await repos.getCommit(mergeBase);
   const resolvers: Promise<void>[] = [];
   const strategy = sync.options().conflict_resolution_strategy;
   // eslint-disable-next-line complexity
@@ -380,9 +380,9 @@ export async function sync_worker (
         strategy!,
         resolvedIndex,
         path,
-        mergeBaseCommit,
-        oldCommit,
-        oldRemoteCommit,
+        mergeBaseCommitOid,
+        oldCommitOid,
+        oldRemoteCommitOid,
         acceptedConflicts
       ).catch(err => {
         throw new ThreeWayMergeError(err.message);
@@ -391,6 +391,8 @@ export async function sync_worker (
   });
   await Promise.all(resolvers);
   resolvedIndex.conflictCleanup();
+  await resolvedIndex.write();
+  await resolvedIndex.writeTree();
 
   acceptedConflicts.sort((a, b) => {
     return a.target.id === b.target.id ? 0 : a.target.id > b.target.id ? 1 : -1;
@@ -402,7 +404,7 @@ export async function sync_worker (
     // e.g.) put-ours: myID
     const fileName =
       conflict.target.type === undefined || conflict.target.type === 'json'
-        ? conflict.target.id + gitDDB.fileExt
+        ? conflict.target.id + JSON_EXT
         : conflict.target.id;
     commitMessage += `${fileName}(${conflict.operation},${conflict.target.file_sha.substr(
       0,
@@ -413,48 +415,55 @@ export async function sync_worker (
     commitMessage = commitMessage.slice(0, -2);
   }
 
-  await resolvedIndex.write();
+  const overwriteCommitOid = await git.commit({
+    fs,
+    dir: gitDDB.workingDir(),
+    author: {
+      name: sync.author.name(),
+      email: sync.author.email(),
+    },
+    committer: {
+      name: sync.committer.name(),
+      email: sync.committer.email(),
+    },
+    parent: [
+      await git.resolveRef({
+        fs,
+        dir: gitDDB.workingDir(),
+        ref: 'HEAD',
+      }),
+      await git.resolveRef({
+        fs,
+        dir: gitDDB.workingDir(),
+        ref: 'refs/remotes/origin/main',
+      }),
+    ],
+    message: commitMessage,
+  });
 
-  const treeOid: nodegit.Oid | void = await resolvedIndex.writeTree();
-
-  const overwriteCommitOid: nodegit.Oid = await repos.createCommit(
-    'HEAD',
-    sync.author,
-    sync.committer,
-    commitMessage,
-    treeOid,
-    [
-      await repos.getHeadCommit(),
-      await repos.getReferenceCommit('refs/remotes/origin/main'),
-    ]
-  );
   repos.stateCleanup();
 
-  const overwriteCommit = await repos.getCommit(overwriteCommitOid);
-  const diff = await nodegit.Diff.treeToTree(
-    repos,
-    await oldCommit.getTree(),
-    await overwriteCommit.getTree()
+  const localChanges = await getChanges(
+    gitDDB.workingDir(),
+    oldCommitOid,
+    overwriteCommitOid
   );
-  const localChanges = await getChanges(gitDDB, diff);
 
   // Get list of commits which has been added to local
-  let localCommits: CommitInfo[] | undefined;
+  let localCommits: NormalizedCommit[] | undefined;
   if (sync.options().include_commits) {
     const commitsFromRemote = await getCommitLogs(
-      await repos.getCommit(mergeBase),
-      oldRemoteCommit
+      gitDDB.workingDir(),
+      oldRemoteCommitOid,
+      mergeBaseCommitOid
     );
+    const overwriteCommit = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: overwriteCommitOid,
+    });
     // Add merge commit
-    localCommits = [
-      ...commitsFromRemote,
-      {
-        sha: overwriteCommit.id().tostrS(),
-        date: overwriteCommit.date(),
-        author: overwriteCommit.author().toString(),
-        message: overwriteCommit.message(),
-      },
-    ];
+    localCommits = [...commitsFromRemote, NormalizeCommit(overwriteCommit)];
   }
 
   const opt = new nodegit.CheckoutOptions();
@@ -462,17 +471,20 @@ export async function sync_worker (
   await nodegit.Checkout.head(repos, opt);
 
   // Push
-  const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(() => {
-    return undefined;
-  });
+  const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(
+    (err: Error) => {
+      return err;
+    }
+  );
 
-  if (syncResultPush === undefined) {
+  if (syncResultPush instanceof Error) {
     const syncResultResolveConflictsAndPushError: SyncResultResolveConflictsAndPushError = {
       action: 'resolve conflicts and push error',
       conflicts: acceptedConflicts,
       changes: {
         local: localChanges,
       },
+      error: syncResultPush,
     };
     if (localCommits) {
       syncResultResolveConflictsAndPushError.commits = {

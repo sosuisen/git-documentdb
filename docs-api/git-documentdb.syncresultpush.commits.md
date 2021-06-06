@@ -8,6 +8,6 @@
 
 ```typescript
 commits?: {
-        remote: CommitInfo[];
+        remote: NormalizedCommit[];
     };
 ```

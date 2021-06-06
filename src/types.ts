@@ -59,9 +59,26 @@ export type JsonDiffOptions = {
   plainTextProperties?: { [key: string]: any };
 };
 /**
- * Database information
+ * Result of opening database
  */
-export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
+export type DatabaseOpenResult = (DatabaseInfo & DatabaseInfoSuccess) | DatabaseInfoError;
+
+/**
+ * Database info
+ *
+ * @remarks
+ * - db_id: ULID of the database. (See https://github.com/ulid/spec for ULID)
+ *
+ * - creator: Creator of the database. Default is 'GitDocumentDB'.
+ *
+ * - version: Version of the GitDocumentDB specification.
+ */
+export type DatabaseInfo = {
+  db_id: string;
+  creator: string;
+  version: string;
+};
+
 /**
  * Database information (success)
  *
@@ -189,7 +206,7 @@ export type DeleteOptions = {
  * Options for allDocs()
  *
  * @remarks
- * - include_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file_sha' properties. Default is false.
+ * - include_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file_sha' properties. Default is true.
  *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
@@ -211,7 +228,7 @@ export type AllDocsOptions = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
@@ -231,7 +248,7 @@ export type PutResult = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git blob (40 characters)
  *
@@ -266,7 +283,7 @@ export type AllDocsResult = {
  * Type for a JSON document with metadata
  *
  * @remarks
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
@@ -281,7 +298,7 @@ export type JsonDocWithMetadata = DocMetadata & {
  * Type for a document metadata
  *
  * @remarks
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+ * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
  *
  * - file_sha: SHA-1 hash of Git object (40 characters)
  *
@@ -361,11 +378,15 @@ export type ConnectionSettings =
 
 /**
  * Behavior when combine inconsistent DBs
+ *
+ * Default is 'combine-head-with-theirs'.
  */
 export type CombineDbStrategies =
   | 'throw-error'
-  | 'resolve-by-ours'
-  | 'resolve-by-their'
+  | 'combine-head-with-ours'
+  | 'combine-head-with-theirs'
+  | 'combine-history-with-ours'
+  | 'combine-history-with-theirs'
   | 'replace-with-ours'
   | 'replace-with-theirs';
 
@@ -517,6 +538,7 @@ export type SyncEvent =
   | 'change'
   | 'localChange'
   | 'remoteChange'
+  | 'combine'
   | 'paused'
   | 'active'
   | 'start'
@@ -545,13 +567,31 @@ export type ChangedFileDelete = {
 export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 
 /**
- * Commit information
+ * Duplicated file in combine operation
  */
-export type CommitInfo = {
+export type DuplicatedFile = {
+  original: DocMetadata;
+  duplicate: DocMetadata;
+};
+
+/**
+ * Normalized Commit
+ */
+export type NormalizedCommit = {
   sha: string;
-  date: Date;
-  author: string;
   message: string;
+  parent: string[];
+  author: {
+    name: string;
+    email: string;
+    timestamp: Date;
+  };
+  committer: {
+    name: string;
+    email: string;
+    timestamp: Date;
+  };
+  gpgsig?: string;
 };
 
 /**
@@ -572,6 +612,7 @@ export type SyncResult =
   | SyncResultMergeAndPush
   | SyncResultResolveConflictsAndPushError
   | SyncResultResolveConflictsAndPush
+  | SyncResultCombineDatabase
   | SyncResultCancel;
 
 export interface SyncResultNop {
@@ -583,7 +624,7 @@ export interface SyncResultPush {
     remote: ChangedFile[];
   };
   commits?: {
-    remote: CommitInfo[]; // The list is sorted from old to new.
+    remote: NormalizedCommit[]; // The list is sorted from old to new.
   };
 }
 export interface SyncResultFastForwardMerge {
@@ -592,7 +633,7 @@ export interface SyncResultFastForwardMerge {
     local: ChangedFile[];
   };
   commits?: {
-    local: CommitInfo[];
+    local: NormalizedCommit[];
   };
 }
 export interface SyncResultMergeAndPushError {
@@ -601,8 +642,9 @@ export interface SyncResultMergeAndPushError {
     local: ChangedFile[];
   };
   commits?: {
-    local: CommitInfo[];
+    local: NormalizedCommit[];
   };
+  error: Error;
 }
 export interface SyncResultMergeAndPush {
   action: 'merge and push';
@@ -611,8 +653,8 @@ export interface SyncResultMergeAndPush {
     remote: ChangedFile[];
   };
   commits?: {
-    local: CommitInfo[];
-    remote: CommitInfo[]; // The list is sorted from old to new.
+    local: NormalizedCommit[];
+    remote: NormalizedCommit[]; // The list is sorted from old to new.
   };
 }
 export interface SyncResultResolveConflictsAndPushError {
@@ -622,8 +664,9 @@ export interface SyncResultResolveConflictsAndPushError {
   };
   conflicts: AcceptedConflict[]; // sorted by filename
   commits?: {
-    local: CommitInfo[];
+    local: NormalizedCommit[];
   };
+  error: Error;
 }
 export interface SyncResultResolveConflictsAndPush {
   action: 'resolve conflicts and push';
@@ -633,9 +676,16 @@ export interface SyncResultResolveConflictsAndPush {
   };
   conflicts: AcceptedConflict[]; // sorted by filename
   commits?: {
-    local: CommitInfo[];
-    remote: CommitInfo[];
+    local: NormalizedCommit[];
+    remote: NormalizedCommit[];
   };
+}
+/**
+ * Combine databases (no push)
+ */
+export interface SyncResultCombineDatabase {
+  action: 'combine database';
+  duplicates: DuplicatedFile[];
 }
 export interface SyncResultCancel {
   action: 'canceled';
@@ -656,6 +706,7 @@ export type SyncRemoteChangeCallback = (
   changedFiles: ChangedFile[],
   taskMetadata: TaskMetadata
 ) => void;
+export type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void;
 export type SyncPausedCallback = () => void;
 export type SyncActiveCallback = () => void;
 export type SyncStartCallback = (
@@ -668,6 +719,7 @@ export type SyncCallback =
   | SyncChangeCallback
   | SyncLocalChangeCallback
   | SyncRemoteChangeCallback
+  | SyncCombineDatabaseCallback
   | SyncPausedCallback
   | SyncActiveCallback
   | SyncStartCallback

@@ -6,16 +6,16 @@ import {
   ChangedFileDelete,
   ChangedFileInsert,
   ChangedFileUpdate,
-  CommitInfo,
   DeleteResult,
   JsonDoc,
+  NormalizedCommit,
   PutResult,
   RemoteOptions,
   Schema,
 } from '../src/types';
 import { ISync } from '../src/types_sync';
 import { GitDocumentDB } from '../src/index';
-import { FILE_REMOVE_TIMEOUT } from '../src/const';
+import { FILE_REMOVE_TIMEOUT, JSON_EXT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
@@ -25,26 +25,29 @@ const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
  */
 export function getCommitInfo (
   resultOrMessage: (PutResult | DeleteResult | string)[]
-): CommitInfo[] {
+): NormalizedCommit[] {
   return resultOrMessage.reduce((acc, current) => {
-    if (typeof current === 'string') {
-      acc.push({
-        sha: expect.stringMatching(/^.+$/),
-        author: expect.stringMatching(/^.+$/),
-        date: expect.any(Date),
-        message: current,
-      });
-    }
-    else {
-      acc.push({
-        sha: current.commit_sha,
-        author: expect.stringMatching(/^.+$/),
-        date: expect.any(Date),
-        message: expect.stringMatching(/^.+$/),
-      });
-    }
+    let message = '';
+    if (typeof current === 'string') message = current;
+    else message = expect.stringMatching(/^.+$/);
+    const commit: NormalizedCommit = {
+      sha: expect.any(String),
+      message,
+      parent: expect.any(Array),
+      author: {
+        name: expect.any(String),
+        email: expect.any(String),
+        timestamp: expect.any(Date),
+      },
+      committer: {
+        name: expect.any(String),
+        email: expect.any(String),
+        timestamp: expect.any(Date),
+      },
+    };
+    acc.push(commit);
     return acc;
-  }, [] as CommitInfo[]);
+  }, [] as NormalizedCommit[]);
 }
 
 /**
@@ -361,10 +364,12 @@ export const compareWorkingDirAndBlobs = async (
   return true;
 };
 
-export const getWorkingDirFiles = (gitDDB: GitDocumentDB) => {
-  return listFiles(gitDDB, gitDDB.workingDir()).map(filepath =>
-    fs.readJSONSync(gitDDB.workingDir() + '/' + filepath)
-  );
+export const getWorkingDirDocs = (gitDDB: GitDocumentDB) => {
+  return listFiles(gitDDB, gitDDB.workingDir()).map(filepath => {
+    const doc = fs.readJSONSync(gitDDB.workingDir() + '/' + filepath);
+    doc._id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
+    return doc;
+  });
 };
 
 export const destroyDBs = async (DBs: GitDocumentDB[]) => {

@@ -10,7 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
-import { SHORT_SHA_LENGTH } from '../../src/const';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
 import {
   DocumentNotFoundError,
   InvalidIdCharacterError,
@@ -71,7 +71,7 @@ describe('<crud/delete>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${gitDDB.fileExt}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})`);
       }
 
       await gitDDB.destroy();
@@ -127,7 +127,7 @@ describe('<crud/delete>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${gitDDB.fileExt}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})`);
       }
 
       await gitDDB.destroy();
@@ -156,7 +156,7 @@ describe('<crud/delete>', () => {
       });
       await expect(gitDDB.remove('prof01')).rejects.toThrowError(RepositoryNotOpenError);
       await expect(
-        delete_worker(gitDDB, 'prof01', gitDDB.fileExt, 'message')
+        delete_worker(gitDDB, 'prof01', JSON_EXT, 'message')
       ).rejects.toThrowError(RepositoryNotOpenError);
       await gitDDB.destroy();
     });
@@ -229,7 +229,7 @@ describe('<crud/delete>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id1}${gitDDB.fileExt}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id1}${JSON_EXT}(${short_sha})`);
       }
 
       /**
@@ -411,11 +411,11 @@ describe('<crud/delete>', () => {
 
       await expect(
         Promise.all([
-          delete_worker(gitDDB, _id_a, gitDDB.fileExt, 'message'),
-          delete_worker(gitDDB, _id_b, gitDDB.fileExt, 'message'),
-          delete_worker(gitDDB, _id_c01, gitDDB.fileExt, 'message'),
-          delete_worker(gitDDB, _id_c02, gitDDB.fileExt, 'message'),
-          delete_worker(gitDDB, _id_d, gitDDB.fileExt, 'message'),
+          delete_worker(gitDDB, _id_a, JSON_EXT, 'message'),
+          delete_worker(gitDDB, _id_b, JSON_EXT, 'message'),
+          delete_worker(gitDDB, _id_c01, JSON_EXT, 'message'),
+          delete_worker(gitDDB, _id_c02, JSON_EXT, 'message'),
+          delete_worker(gitDDB, _id_d, JSON_EXT, 'message'),
         ])
       ).rejects.toThrowError();
 

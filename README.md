@@ -11,15 +11,15 @@ Use GitDocumentDB to ...
 
 :green_book: Store JSON documents into Git repository. 
 
-:art: Manage Git repository by PouchDB-like API. 
+:art: Manage Git repository by document database API. 
 
-:rocket: Synchronize and diff & patch automatically with a remote repository.
+:rocket: Synchronize, diff and patch automatically with a remote repository.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(No need to resolve conflicts manually.)
 
 :arrows_counterclockwise: CI/CD through GitHub.
 
-:dromedary_camel: Travel history of database snapshots.
+:dromedary_camel: Travel history of database.
 
 You do not need knowledge of Git to start. However, you make the most of GitDocumentDB if you understand Git.
 
@@ -64,19 +64,30 @@ const gitDDB = new GitDocumentDB({
 
 ## Basic CRUD
 ```typescript
-  // Open
-  await gitDDB.create(); // Git creates and opens a repository (/your/path/to/the/example/git-documentdb/db01/.git)
-  // Create
+// Open
+  const result = await gitDDB.open(); // Open a repository if exists. (/your/path/to/the/example/git-documentdb/db01/.git)
+  if (!result.ok) await gitDDB.createDB(); // Git creates and opens a repository if not exits.
+  // Create (Insert if not exists)
   await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); // Git adds 'nara.json' under the working directory and commits it.
+
+  console.log(`$ gitDDB.put({ _id: 'nara' ... }) # Create`);
+  console.log(await gitDDB.get('nara')); // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+  
   // Update
   await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' }); // Git adds an updated file and commits it.
+
   // Read
   const doc = await gitDDB.get('nara');
+
+  console.log(`\n$ gitDDB.put({ _id: 'nara' ... }) # Update`);
   console.log(doc); // { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
+
   // Delete
-  await gitDDB.delete('nara'); // Git deletes a file and commits it. 
-  // You can call remove() as alias for delete().
-```
+  await gitDDB.delete('nara'); // Git deletes a file and commits it. You can call remove() as alias for delete().
+
+  console.log(`\n$ gitDDB.delete('nara') # Delete`);
+  console.log(await gitDDB.get('nara')); // undefined
+  ```
 ## Revisions
 ```typescript
   // get(id, 2) returns two revisions before
@@ -122,7 +133,7 @@ const gitDDB = new GitDocumentDB({
   // Prefix search
   
   // Read all the documents whose IDs start with the prefix.
-  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/', include_docs: true });
+  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/' });
   console.dir(flowersInNara, { depth: 3 });
   /* flowersInNara = 
   {
@@ -163,7 +174,7 @@ const gitDDB = new GitDocumentDB({
   console.log(flowerInYoshinoCollection); // { flower: 'cherry blossoms', _id: 'mt_yoshino' }
 
   // Read all the documents in nara collection
-  const flowersInNaraCollection = await nara.allDocs({ include_docs: true });
+  const flowersInNaraCollection = await nara.allDocs();
   console.dir(flowersInNaraCollection, { depth: 3 });
   /* flowersInNaraCollection = 
   {
@@ -216,15 +227,15 @@ https://github.com/sosuisen/inventory-manager
   - Synchronization with GitHub :feet:
   - Revisions :feet:
   - Automated conflict resolution :feet:
-  - Automated JSON diff and patch :dog2:(Here now)
-- v0.4 Backup general data types by Git
-  - GitHub with SSH key pair
+  - Automated JSON diff and patch :feet:
+  - Automated combine inconsistent repositories :dog2:(Here now)
+- v0.4 Work on both Node.js and browser
+  - Connect with SSH key pair
+  - Connect to GitHub with OAuth
+
+- until v1.0
   - Operate other data types
   - Replication
-- v0.5 Work on both Node.js and browser
-  - OAuth
-
-- v1.0
   - Grep
   - Transaction (bulk)
   - Tag (Redo/Undo)

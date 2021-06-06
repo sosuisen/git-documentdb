@@ -6,6 +6,11 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import path from 'path';
+import nodegit from '@sosuisen/nodegit';
+import { ReadCommitResult } from 'isomorphic-git';
+import { DocMetadata, NormalizedCommit } from './types';
+
 /**
  * @internal
  */
@@ -39,6 +44,77 @@ export const toSortedJSONString = (obj: Record<string, any>) => {
     2
   );
 };
+
+/**
+ * Get metadata of all files from current Git index
+ *
+ * @internal
+ */
+export async function getAllMetadata (repos: nodegit.Repository) {
+  const files: DocMetadata[] = [];
+  const head = await nodegit.Reference.nameToId(repos, 'HEAD').catch(e => false);
+  if (head) {
+    const headCommit = await repos.getCommit(head as nodegit.Oid);
+    const localTree = await headCommit.getTree();
+    const directories: nodegit.Tree[] = [];
+    directories.push(localTree);
+
+    while (directories.length > 0) {
+      const dir = directories.shift();
+      if (dir === undefined) break;
+      const entries = dir.entries(); // returns entry by alphabetical order
+      while (entries.length > 0) {
+        const entry = entries.shift();
+        if (entry?.isDirectory()) {
+          // eslint-disable-next-line max-depth
+          if (entry.name() !== '.gitddb') {
+            // eslint-disable-next-line no-await-in-loop
+            const subtree = await entry.getTree();
+            directories.push(subtree);
+          }
+        }
+        else {
+          const entryPath = entry!.path();
+          const ext = path.extname(entryPath);
+          const id = entryPath.replace(new RegExp(ext + '$'), '');
+
+          const docMetadata: DocMetadata = {
+            id,
+            file_sha: entry!.id().tostrS(),
+            type: ext === '.json' ? 'json' : 'raw',
+          };
+          files.push(docMetadata);
+        }
+      }
+    }
+  }
+  return files;
+}
+
+/**
+ * Get normalized commit
+ */
+export function NormalizeCommit (commit: ReadCommitResult): NormalizedCommit {
+  const normalized: NormalizedCommit = {
+    sha: commit.oid,
+    message: commit.commit.message.trimEnd(),
+    parent: commit.commit.parent,
+    author: {
+      name: commit.commit.author.name,
+      email: commit.commit.author.email,
+      timestamp: new Date(commit.commit.author.timestamp),
+    },
+    committer: {
+      name: commit.commit.committer.name,
+      email: commit.commit.committer.email,
+      timestamp: new Date(commit.commit.committer.timestamp),
+    },
+  };
+  if (commit.commit.gpgsig !== undefined) {
+    normalized.gpgsig = commit.commit.gpgsig;
+  }
+  return normalized;
+}
 
 /**
  * Template literal tag for console style

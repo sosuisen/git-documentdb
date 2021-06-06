@@ -12,9 +12,11 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
+import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../../src';
 import {
+  DatabaseOpenResult,
   SyncResult,
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
@@ -31,10 +33,11 @@ import {
   getChangedFileInsert,
   getChangedFileUpdate,
   getCommitInfo,
-  getWorkingDirFiles,
+  getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
+import { Sync } from '../../src/remote/sync';
 
 const reposPrefix = 'test_sync_trysync___';
 const localDir = `./test/database_sync_trysync`;
@@ -116,7 +119,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         getChangedFileInsert(jsonA1, putResultA1),
       ]);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
 
@@ -147,7 +150,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         getChangedFileDelete(jsonA1, deleteResultA1),
       ]);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([]);
+      expect(getWorkingDirDocs(dbA)).toEqual([]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
 
@@ -178,7 +181,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         getChangedFileUpdate(jsonA1, putResultA1, jsonA1dash, putResultA1dash),
       ]);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1dash]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
 
@@ -213,11 +216,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
 
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1]);
 
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -259,11 +262,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         ])
       );
 
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonA2]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonA2]);
 
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonA2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -297,6 +300,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       // Sync dbB
       const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
+
       expect(syncResult1.commits!.local.length).toBe(2); // put commit and merge commit
       expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
       expect(syncResult1.commits!.local[0].sha).toBe(putResultA1.commit_sha);
@@ -304,21 +308,19 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.commits!.remote[0].sha).toBe(putResultB2.commit_sha);
       expect(syncResult1.commits!.remote[1].message).toBe('merge');
 
-      expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([
         getChangedFileInsert(jsonA1, putResultA1),
       ]);
 
-      expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileInsert(jsonB2, putResultB2),
       ]);
 
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonB2]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonB2]);
 
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonB2]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -375,11 +377,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         ])
       );
 
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
 
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -419,8 +421,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.changes.local.length).toBe(0);
       expect(syncResult1.changes.remote.length).toBe(0);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1]);
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -471,8 +473,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.changes.local.length).toBe(0);
       expect(syncResult1.changes.remote.length).toBe(0);
 
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA1dash]);
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA1dash]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA1dash]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA1dash]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -528,11 +530,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         getChangedFileDelete(jsonA1, deleteResultB1),
       ]);
 
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonA2]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonA2]);
 
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonA2]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonA2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -589,11 +591,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         getChangedFileInsert(jsonB2, putResultB2),
       ]);
 
-      expect(getWorkingDirFiles(dbB)).toEqual([jsonB2]);
+      expect(getWorkingDirDocs(dbB)).toEqual([jsonB2]);
 
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirFiles(dbA)).toEqual([jsonB2]);
+      expect(getWorkingDirDocs(dbA)).toEqual([jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -641,11 +643,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(syncResult1.changes.local.length).toBe(0); // Must no be 1 but 0, because diff is empty.
       expect(syncResult1.changes.remote.length).toBe(0); // Must no be 1 but 0, because diff is empty.
 
-      expect(getWorkingDirFiles(dbB)).toEqual([]);
+      expect(getWorkingDirDocs(dbB)).toEqual([]);
 
       // Sync dbA
       const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirFiles(dbA)).toEqual([]);
+      expect(getWorkingDirDocs(dbA)).toEqual([]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -718,9 +720,6 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       sync_direction: 'push',
     });
 
-    const jsonA1 = { _id: '1', name: 'fromA' };
-    await dbA.put(jsonA1);
-
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
       db_name: dbNameB,
@@ -737,35 +736,5 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
     await destroyDBs([dbA, dbB]);
-  });
-
-  /**
-   * No merge base
-   */
-  describe.skip('throws NoMergeBaseError', () => {
-    it('when combine_db_strategy is throw-error in [both] direction', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        combine_db_strategy: 'throw-error',
-        sync_direction: 'both',
-      });
-
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
-      });
-      await dbB.createDB();
-
-      // trySync throws NoMergeBaseFoundError
-      await expect(dbB.sync(remoteA.options())).rejects.toThrowError(NoMergeBaseFoundError);
-
-      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
-      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
-
-      await destroyDBs([dbA, dbB]);
-    });
   });
 });

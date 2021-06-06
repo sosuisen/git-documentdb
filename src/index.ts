@@ -11,6 +11,7 @@ import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger, TLogLevelName } from 'tslog';
+import { ulid } from 'ulid';
 import {
   CannotCreateDirectoryError,
   CannotOpenRepositoryError,
@@ -21,6 +22,7 @@ import {
   InvalidWorkingDirectoryPathLengthError,
   RemoteAlreadyRegisteredError,
   RepositoryNotFoundError,
+  RepositoryNotOpenError,
   UndefinedDatabaseNameError,
   WorkingDirectoryExistsError,
 } from './error';
@@ -33,6 +35,7 @@ import {
   DatabaseCloseOption,
   DatabaseInfo,
   DatabaseInfoSuccess,
+  DatabaseOpenResult,
   DatabaseOption,
   DeleteOptions,
   DeleteResult,
@@ -42,24 +45,28 @@ import {
   PutResult,
   RemoteOptions,
   Schema,
+  SyncRemoteChangeCallback,
+  SyncResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { put_worker, putImpl } from './crud/put';
 import { getByRevisionImpl, getImpl } from './crud/get';
 import { deleteImpl } from './crud/delete';
 import { allDocsImpl } from './crud/allDocs';
-import { Sync, syncImpl } from './remote/sync';
+import { Sync, syncAndGetResultImpl, syncImpl } from './remote/sync';
 import { TaskQueue } from './task_queue';
-import { FILE_REMOVE_TIMEOUT } from './const';
+import { FILE_REMOVE_TIMEOUT, JSON_EXT } from './const';
 import { cloneRepository } from './remote/clone';
 import { getDocHistoryImpl } from './crud/history';
+import { toSortedJSONString } from './utils';
 
 const defaultLogLevel = 'info';
 
-export const DATABASE_NAME = 'GitDocumentDB';
+export const DATABASE_CREATOR = 'GitDocumentDB';
 export const DATABASE_VERSION = '1.0';
-export const GIT_DOCUMENTDB_VERSION = `${DATABASE_NAME}: ${DATABASE_VERSION}`;
-export const GIT_DOCUMENTDB_VERSION_FILENAME = '.gitddb/lib_version';
+export const GIT_DOCUMENTDB_INFO_ID = '.gitddb/info';
+export const FIRST_COMMIT_MESSAGE = 'first commit';
+export const SET_DATABASE_ID_MESSAGE = 'set database id';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -86,13 +93,18 @@ interface RepositoryInitOptions {
 const defaultLocalDir = './git-documentdb';
 
 /**
+ * Get database ID
+ *
+ * @internal
+ */
+export function generateDatabaseId () {
+  return ulid(Date.now());
+}
+
+/**
  * Main class of GitDocumentDB
  */
 export class GitDocumentDB implements IDocumentDB, CRUDInterface {
-  /**
-   * File extension of a repository document
-   */
-  readonly fileExt = '.json';
   /**
    * Author name and email
    */
@@ -103,8 +115,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   readonly defaultBranch = 'main';
 
-  private _firstCommitMessage = 'first commit';
-
   private _localDir: string;
   private _dbName: string;
 
@@ -113,8 +123,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   private _synchronizers: { [url: string]: Sync } = {};
 
-  private _dbInfo: DatabaseInfo = {
+  private _dbOpenResult: DatabaseOpenResult = {
     ok: true,
+    db_id: '',
+    creator: '',
+    version: '',
     is_new: false,
     is_clone: false,
     is_created_by_gitddb: true,
@@ -228,7 +241,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotConnectError}
    *
    */
-  async createDB (remoteOptions?: RemoteOptions): Promise<DatabaseInfo> {
+  async createDB (remoteOptions?: RemoteOptions): Promise<DatabaseOpenResult> {
     if (this.isClosing) {
       throw new DatabaseClosingError();
     }
@@ -237,7 +250,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     }
 
     if (fs.existsSync(this._workingDirectory)) {
-      throw new WorkingDirectoryExistsError();
+      // Throw exception if not empty
+      if (fs.readdirSync(this._workingDirectory).length !== 0) {
+        throw new WorkingDirectoryExistsError();
+      }
     }
 
     /**
@@ -247,9 +263,20 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       throw new CannotCreateDirectoryError(err.message);
     });
 
+    this._dbOpenResult = {
+      ok: true,
+      db_id: '',
+      creator: '',
+      version: '',
+      is_new: false,
+      is_clone: false,
+      is_created_by_gitddb: true,
+      is_valid_version: true,
+    };
+
     if (remoteOptions?.remote_url === undefined) {
-      this._dbInfo = await this._createRepository();
-      return this._dbInfo;
+      this._dbOpenResult = await this._createRepository();
+      return this._dbOpenResult;
     }
 
     // Clone repository if remoteURL exists
@@ -264,26 +291,26 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     if (this._currentRepository === undefined) {
       // Clone failed. Try to create remote repository in sync().
       // Please check is_clone flag if you would like to know whether clone is succeeded or not.
-      this._dbInfo = await this._createRepository();
+      this._dbOpenResult = await this._createRepository();
     }
     else {
       // this.logger.warn('Clone succeeded.');
       /**
        * TODO: validate db
        */
-      (this._dbInfo as DatabaseInfoSuccess).is_clone = true;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_clone = true;
     }
 
     /**
      * Check and sync repository if exists
      */
 
-    await this._setDbInfo();
+    await this.loadDbInfo();
 
     if (remoteOptions?.remote_url !== undefined) {
       if (
-        (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb &&
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version
+        (this._dbOpenResult as DatabaseInfoSuccess).is_created_by_gitddb &&
+        (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version
       ) {
         // Can synchronize
         /**
@@ -294,7 +321,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       }
     }
 
-    return this._dbInfo;
+    return this._dbOpenResult;
   }
 
   /**
@@ -307,29 +334,32 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @returns Database information
    *
    */
-  async open (): Promise<DatabaseInfo> {
+  async open (): Promise<DatabaseOpenResult> {
     const dbInfoError = (err: Error) => {
-      this._dbInfo = {
+      this._dbOpenResult = {
         ok: false,
         error: err,
       };
-      return this._dbInfo;
+      return this._dbOpenResult;
     };
 
     if (this.isClosing) {
       return dbInfoError(new DatabaseClosingError());
     }
     if (this.isOpened()) {
-      (this._dbInfo as DatabaseInfoSuccess).is_new = false;
-      return this._dbInfo;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_new = false;
+      return this._dbOpenResult;
     }
 
     /**
      * Reset
      */
     this._synchronizers = {};
-    this._dbInfo = {
+    this._dbOpenResult = {
       ok: true,
+      db_id: '',
+      creator: '',
+      version: '',
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,
@@ -351,9 +381,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       return dbInfoError(new CannotOpenRepositoryError(err));
     }
 
-    await this._setDbInfo();
-
-    return this._dbInfo;
+    await this.loadDbInfo();
+    return this._dbOpenResult;
   }
 
   private async _createRepository () {
@@ -363,7 +392,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     const options: RepositoryInitOptions = {
       initialHead: this.defaultBranch,
     };
-    (this._dbInfo as DatabaseInfoSuccess).is_new = true;
+    (this._dbOpenResult as DatabaseInfoSuccess).is_new = true;
+
     this._currentRepository = await nodegit.Repository.initExt(
       this._workingDirectory,
       // @ts-ignore
@@ -373,44 +403,74 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     });
 
     // First commit
+    const info = {
+      db_id: generateDatabaseId(),
+      creator: DATABASE_CREATOR,
+      version: DATABASE_VERSION,
+    };
+    // Do not use this.put() because it increments TaskQueue.statistics.put.
     await put_worker(
       this,
-      GIT_DOCUMENTDB_VERSION_FILENAME,
-      '',
-      GIT_DOCUMENTDB_VERSION,
-      this._firstCommitMessage
+      GIT_DOCUMENTDB_INFO_ID,
+      JSON_EXT,
+      toSortedJSONString(info),
+      FIRST_COMMIT_MESSAGE
     );
-    return this._dbInfo;
+    this._dbOpenResult = { ...this._dbOpenResult, ...info };
+    return this._dbOpenResult;
   }
 
-  private async _setDbInfo () {
-    const version = await fs
-      .readFile(
-        path.resolve(this._workingDirectory, GIT_DOCUMENTDB_VERSION_FILENAME),
-        'utf8'
-      )
-      .catch(() => {
-        (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = false;
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
-        return undefined;
-      });
-    if (version === undefined) return this._dbInfo;
+  /**
+   * Load DatabaseInfo from .gitddb/info.json
+   *
+   * @internal
+   */
+  async loadDbInfo () {
+    let info = (await this.get(GIT_DOCUMENTDB_INFO_ID).catch(
+      () => undefined
+    )) as DatabaseInfo;
 
-    if (new RegExp('^' + DATABASE_NAME).test(version)) {
-      (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = true;
-      if (new RegExp('^' + GIT_DOCUMENTDB_VERSION).test(version)) {
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = true;
+    info ??= {
+      db_id: '',
+      creator: '',
+      version: '',
+    };
+
+    info.creator ??= '';
+    info.version ??= '';
+
+    // Set db_id if not exists.
+    if (info.db_id === '') {
+      info.db_id = generateDatabaseId();
+      // Do not use this.put() because it increments TaskQueue.statistics.put.
+      await put_worker(
+        this,
+        GIT_DOCUMENTDB_INFO_ID,
+        JSON_EXT,
+        toSortedJSONString(info),
+        SET_DATABASE_ID_MESSAGE
+      );
+    }
+
+    (this._dbOpenResult as DatabaseInfo).db_id = info.db_id;
+    (this._dbOpenResult as DatabaseInfo).creator = info.creator;
+    (this._dbOpenResult as DatabaseInfo).version = info.version;
+
+    if (new RegExp('^' + DATABASE_CREATOR).test(info.creator)) {
+      (this._dbOpenResult as DatabaseInfoSuccess).is_created_by_gitddb = true;
+      if (new RegExp('^' + DATABASE_VERSION).test(info.version)) {
+        (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version = true;
       }
       else {
-        (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
+        (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version = false;
         /**
          * TODO: Need migration
          */
       }
     }
     else {
-      (this._dbInfo as DatabaseInfoSuccess).is_created_by_gitddb = false;
-      (this._dbInfo as DatabaseInfoSuccess).is_valid_version = false;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_created_by_gitddb = false;
+      (this._dbOpenResult as DatabaseInfoSuccess).is_valid_version = false;
     }
   }
 
@@ -420,6 +480,17 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   dbName () {
     return this._dbName;
+  }
+
+  /**
+   * Get dbId
+   *
+   */
+  dbId () {
+    if (this._dbOpenResult.ok === true) {
+      return this._dbOpenResult.db_id;
+    }
+    return '';
   }
 
   /**
@@ -434,11 +505,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   /**
    * Get a current repository
-   * @remarks Be aware that direct operation of the current repository can corrupt the database.
-   *
    */
   repository (): nodegit.Repository | undefined {
     return this._currentRepository;
+  }
+
+  /**
+   * Set repository
+   * @remarks Be aware that it can corrupt the database.
+   */
+  setRepository (repos: nodegit.Repository) {
+    this._currentRepository = undefined;
+    this._currentRepository = repos;
   }
 
   /**
@@ -984,6 +1062,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
    * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
    *
+   * @throws {@link RepositoryNotFoundError} (from Sync#syncImpl())
    * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
    * @throws {@link PushWorkerError} (from Sync#init())
    * @throws {@link SyncWorkerError} (from Sync#init())
@@ -991,41 +1070,44 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
    */
-  async sync (remoteURL: string, options?: RemoteOptions): Promise<Sync>;
+  async sync (options: RemoteOptions): Promise<Sync>;
   /**
    * Synchronize with a remote repository
    *
    * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
    * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
    *
+   * @throws {@link RepositoryNotFoundError} (from Sync#syncAndGetResultImpl())
    * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
    * @throws {@link PushWorkerError} (from Sync#init())
    * @throws {@link SyncWorkerError} (from Sync#init())
    *
    * @remarks
-   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call removeRemote() before register it again.
+   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
    */
-  async sync (options?: RemoteOptions): Promise<Sync>;
   async sync (
-    remoteUrlOrOption?: string | RemoteOptions,
-    options?: RemoteOptions
-  ): Promise<Sync> {
-    if (typeof remoteUrlOrOption === 'string') {
-      options ??= {};
-      options.remote_url = remoteUrlOrOption;
-    }
-    else {
-      options = remoteUrlOrOption;
-    }
+    options: RemoteOptions,
+    get_sync_result: boolean
+  ): Promise<[Sync, SyncResult]>;
 
+  async sync (
+    options: RemoteOptions,
+    get_sync_result?: boolean
+  ): Promise<Sync | [Sync, SyncResult]> {
     if (
-      options?.remote_url !== undefined &&
+      options.remote_url !== undefined &&
       this._synchronizers[options?.remote_url] !== undefined
     ) {
       throw new RemoteAlreadyRegisteredError(options.remote_url);
     }
-    const remote = await syncImpl.call(this, options);
-    this._synchronizers[remote.remoteURL()] = remote;
-    return remote;
+
+    if (get_sync_result) {
+      const [sync, syncResult] = await syncAndGetResultImpl.call(this, options);
+      this._synchronizers[sync.remoteURL()] = sync;
+      return [sync, syncResult];
+    }
+    const sync = await syncImpl.call(this, options);
+    this._synchronizers[sync.remoteURL()] = sync;
+    return sync;
   }
 }

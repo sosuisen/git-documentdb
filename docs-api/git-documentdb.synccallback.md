@@ -7,7 +7,7 @@
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncPausedCallback | SyncActiveCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
+export declare type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncCombineDatabaseCallback | SyncPausedCallback | SyncActiveCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
 ```
-<b>References:</b> [SyncChangeCallback](./git-documentdb.syncchangecallback.md)<!-- -->, [SyncLocalChangeCallback](./git-documentdb.synclocalchangecallback.md)<!-- -->, [SyncRemoteChangeCallback](./git-documentdb.syncremotechangecallback.md)<!-- -->, [SyncPausedCallback](./git-documentdb.syncpausedcallback.md)<!-- -->, [SyncActiveCallback](./git-documentdb.syncactivecallback.md)<!-- -->, [SyncStartCallback](./git-documentdb.syncstartcallback.md)<!-- -->, [SyncCompleteCallback](./git-documentdb.synccompletecallback.md)<!-- -->, [SyncErrorCallback](./git-documentdb.syncerrorcallback.md)
+<b>References:</b> [SyncChangeCallback](./git-documentdb.syncchangecallback.md)<!-- -->, [SyncLocalChangeCallback](./git-documentdb.synclocalchangecallback.md)<!-- -->, [SyncRemoteChangeCallback](./git-documentdb.syncremotechangecallback.md)<!-- -->, [SyncCombineDatabaseCallback](./git-documentdb.synccombinedatabasecallback.md)<!-- -->, [SyncPausedCallback](./git-documentdb.syncpausedcallback.md)<!-- -->, [SyncActiveCallback](./git-documentdb.syncactivecallback.md)<!-- -->, [SyncStartCallback](./git-documentdb.syncstartcallback.md)<!-- -->, [SyncCompleteCallback](./git-documentdb.synccompletecallback.md)<!-- -->, [SyncErrorCallback](./git-documentdb.syncerrorcallback.md)
 

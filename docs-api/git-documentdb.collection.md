@@ -19,7 +19,7 @@ Collection is a sugar syntax of filepath representation.
 
 Use Collection to omit directories from the filepath.
 
-Both filepath representation (like PouchDB) and collection put the same file on the same location in a Git repository.
+Both filepath representation and collection put the same file on the same location in a Git repository.
 
 ## Example
 

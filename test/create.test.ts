@@ -10,6 +10,7 @@ import path from 'path';
 import sinon from 'sinon';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
+import { DatabaseInfo, DatabaseOpenResult } from '../src/types';
 import {
   CannotCreateDirectoryError,
   DatabaseExistsError,
@@ -17,7 +18,7 @@ import {
   UndefinedDatabaseNameError,
   WorkingDirectoryExistsError,
 } from '../src/error';
-import { GitDocumentDB } from '../src/index';
+import { DATABASE_CREATOR, DATABASE_VERSION, GitDocumentDB } from '../src/index';
 import { Validator } from '../src/validator';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs_module = require('fs-extra');
@@ -154,7 +155,49 @@ describe('<index>', () => {
       await gitDDB.destroy();
     });
 
-    it('throws WorkingDirectoryExistsError.', async () => {
+    it('throws WorkingDirectoryExistsError if a file exists.', async () => {
+      const dbName = monoId();
+
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      // Create working directory
+      await fs.ensureDir(gitDDB.workingDir());
+
+      // Create a file
+      fs.writeFileSync(path.resolve(gitDDB.workingDir(), 'tmp.txt'), 'foo');
+
+      // Create db
+      await expect(gitDDB.createDB()).rejects.toThrowError(WorkingDirectoryExistsError);
+
+      // Remove working directory
+      await gitDDB.destroy();
+    });
+
+    it('throws WorkingDirectoryExistsError if a directory exists.', async () => {
+      const dbName = monoId();
+
+      const gitDDB = new GitDocumentDB({
+        db_name: dbName,
+        local_dir: localDir,
+      });
+
+      // Create working directory
+      await fs.ensureDir(gitDDB.workingDir());
+
+      // Create a directory
+      await fs.ensureDir(path.resolve(gitDDB.workingDir(), '.git'));
+
+      // Create db
+      await expect(gitDDB.createDB()).rejects.toThrowError(WorkingDirectoryExistsError);
+
+      // Remove working directory
+      await gitDDB.destroy();
+    });
+
+    it('does not throws WorkingDirectoryExistsError if empty.', async () => {
       const dbName = monoId();
 
       const gitDDB = new GitDocumentDB({
@@ -166,7 +209,18 @@ describe('<index>', () => {
       await fs.ensureDir(gitDDB.workingDir());
 
       // Create db
-      await expect(gitDDB.createDB()).rejects.toThrowError(WorkingDirectoryExistsError);
+      const dbOpenResult = (await gitDDB.createDB()) as DatabaseOpenResult;
+      expect(dbOpenResult).toMatchObject({
+        ok: true,
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+        is_new: true,
+        is_clone: false,
+        is_created_by_gitddb: true,
+        is_valid_version: true,
+      });
+
+      expect((dbOpenResult as DatabaseInfo).db_id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
 
       // Remove working directory
       await gitDDB.destroy();
@@ -181,15 +235,18 @@ describe('<index>', () => {
       });
 
       // Create db
-      await expect(gitDDB.createDB())
-        .resolves.toMatchObject({
-          ok: true,
-          is_new: true,
-          is_clone: false,
-          is_created_by_gitddb: true,
-          is_valid_version: true,
-        })
-        .catch(e => console.error(e));
+      const dbOpenResult = (await gitDDB.createDB()) as DatabaseOpenResult;
+      expect(dbOpenResult).toMatchObject({
+        ok: true,
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+        is_new: true,
+        is_clone: false,
+        is_created_by_gitddb: true,
+        is_valid_version: true,
+      });
+
+      expect((dbOpenResult as DatabaseInfo).db_id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
 
       // Check if working directory exists
       expect(fs.existsSync(path.resolve(localDir, dbName))).toBeTruthy();

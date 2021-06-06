@@ -8,8 +8,8 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import nodegit from '@sosuisen/nodegit';
-import { SHORT_SHA_LENGTH } from '../const';
+import git from 'isomorphic-git';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
 import { JsonDoc, PutOptions, PutResult } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import {
@@ -54,7 +54,7 @@ export function putImpl (
       document = docOrOptions;
     }
     else {
-      return Promise.reject(new InvalidJsonObjectError());
+      return Promise.reject(new InvalidJsonObjectError(_id));
     }
   }
   else if (typeof idOrDoc === 'object') {
@@ -81,7 +81,7 @@ export function putImpl (
     data = JSON.stringify(document);
   } catch (err) {
     // not json
-    return Promise.reject(new InvalidJsonObjectError());
+    return Promise.reject(new InvalidJsonObjectError(_id));
   }
 
   // Must clone doc before rewriting _id
@@ -105,7 +105,7 @@ export function putImpl (
   };
 
   const commit_message =
-    options.commit_message ?? `<%insertOrUpdate%>: ${_id}${this.fileExt}(<%file_sha%>)`;
+    options.commit_message ?? `<%insertOrUpdate%>: ${_id}${JSON_EXT}(<%file_sha%>)`;
 
   const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // put() must be serial.
@@ -115,7 +115,7 @@ export function putImpl (
       taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        put_worker(this, _id, this.fileExt, data, commit_message!, options!.insertOrUpdate)
+        put_worker(this, _id, JSON_EXT, data, commit_message!, options!.insertOrUpdate)
           .then(result => {
             beforeResolve();
             resolve(result);
@@ -148,12 +148,12 @@ export async function put_worker (
   insertOrUpdate?: 'insert' | 'update'
 ): Promise<PutResult> {
   if (gitDDB === undefined) {
-    return Promise.reject(new UndefinedDBError());
+    throw new UndefinedDBError();
   }
 
   const _currentRepository = gitDDB.repository();
   if (_currentRepository === undefined) {
-    return Promise.reject(new RepositoryNotOpenError());
+    throw new RepositoryNotOpenError();
   }
 
   let file_sha, commit_sha: string;
@@ -164,15 +164,27 @@ export async function put_worker (
 
   try {
     await fs.ensureDir(dir).catch((err: Error) => {
-      return Promise.reject(new CannotCreateDirectoryError(err.message));
+      throw new CannotCreateDirectoryError(err.message);
     });
     // 1. Write a file to disk
     await fs.writeFile(filePath, data);
 
-    // 2. Repository#refreshIndex() grabs copy of latest index
-    const index = await _currentRepository.refreshIndex();
+    const headCommit = await git
+      .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' })
+      .catch(() => undefined);
 
-    const oldEntry = index.getByPath(filename);
+    const oldEntry =
+      headCommit === undefined
+        ? undefined
+        : await git
+          .readBlob({
+            fs,
+            dir: gitDDB.workingDir(),
+            oid: headCommit,
+            filepath: filename,
+          })
+          .catch(() => undefined);
+
     if (oldEntry) {
       if (insertOrUpdate === 'insert') return Promise.reject(new SameIdExistsError());
       insertOrUpdate ??= 'update';
@@ -182,58 +194,33 @@ export async function put_worker (
       insertOrUpdate ??= 'insert';
     }
 
-    // 3. Index#addByPath() adds or updates an index entry from a file on disk.
-    // https://libgit2.org/libgit2/#HEAD/group/index/git_index_add_bypath
-    await index.addByPath(filename);
+    await git.add({ fs, dir: gitDDB.workingDir(), filepath: filename });
 
-    // 4. Index#write() writes an existing index object from memory
-    // back to disk using an atomic file lock.
-    await index.write();
+    const { oid } = await git.hashBlob({ object: data });
+    file_sha = oid;
 
-    /**
-     * 5. Index#writeTree() writes the index as a tree.
-     * https://libgit2.org/libgit2/#HEAD/group/index/git_index_write_tree
-     * This method will scan the index and write a representation of its current state
-     * back to disk; it recursively creates tree objects for each of the subtrees stored
-     * in the index, but only returns the OID of the root tree.
-     *
-     * This is the OID that can be used e.g. to create a commit. (Repository#creatCommit())
-     * The index must not contain any file in conflict.
-     *
-     * See https://git-scm.com/book/en/v2/Git-Internals-Git-Objects#_tree_objects
-     * to understand Tree objects.
-     */
-    const treeOid = await index.writeTree();
-
-    // Get SHA of blob if needed.
-    const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
-    file_sha = entry.id.tostrS();
-
+    // isomorphic-git automatically adds trailing LF to commitMessage.
+    // (Trailing LFs are usually ignored when displaying git log.)
     commitMessage = commitMessage
       .replace(/<%insertOrUpdate%>/, insertOrUpdate)
       .replace(/<%file_sha%>/, file_sha.substr(0, SHORT_SHA_LENGTH));
 
-    const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
-    const committer = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
-
-    const head = await _currentRepository.getHeadCommit();
-    const parentCommits: nodegit.Commit[] = [];
-    if (head !== null) {
-      parentCommits.push(head);
-    }
-    // 6. Commit
-    const commit = await _currentRepository.createCommit(
-      'HEAD',
-      author,
-      committer,
-      commitMessage,
-      treeOid,
-      parentCommits
-    );
-
-    commit_sha = commit.tostrS();
+    // Default ref is HEAD
+    commit_sha = await git.commit({
+      fs,
+      dir: gitDDB.workingDir(),
+      author: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      committer: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      message: commitMessage,
+    });
   } catch (err) {
-    return Promise.reject(new CannotWriteDataError(err.message));
+    throw new CannotWriteDataError(err.message);
   }
 
   return {

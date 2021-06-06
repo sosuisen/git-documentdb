@@ -4,11 +4,7 @@
 
 ## git-documentdb package
 
-Offline-first DocumentDB using Git
-
-## Remarks
-
-GitDocumentDB stores a document into Git repository. It is managed by PouchDB-like offline-first API. A database can be synchronized with a remote Git repository.
+Offline-first Database that Syncs with Git
 
 ## Classes
 
@@ -23,6 +19,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md) |  |
 |  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
 |  [Collection](./git-documentdb.collection.md) | Documents are gathered together in collections. |
+|  [CombineDatabaseError](./git-documentdb.combinedatabaseerror.md) |  |
 |  [ConsecutiveSyncSkippedError](./git-documentdb.consecutivesyncskippederror.md) |  |
 |  [CorruptedRepositoryError](./git-documentdb.corruptedrepositoryerror.md) |  |
 |  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
@@ -99,6 +96,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  --- | --- |
 |  [IJsonPatch](./git-documentdb.ijsonpatch.md) |  |
 |  [SyncResultCancel](./git-documentdb.syncresultcancel.md) |  |
+|  [SyncResultCombineDatabase](./git-documentdb.syncresultcombinedatabase.md) | Combine databases (no push) |
 |  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) |  |
 |  [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) |  |
 |  [SyncResultMergeAndPushError](./git-documentdb.syncresultmergeandpusherror.md) |  |
@@ -111,10 +109,11 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 
 |  Variable | Description |
 |  --- | --- |
-|  [DATABASE\_NAME](./git-documentdb.database_name.md) |  |
+|  [DATABASE\_CREATOR](./git-documentdb.database_creator.md) |  |
 |  [DATABASE\_VERSION](./git-documentdb.database_version.md) |  |
-|  [GIT\_DOCUMENTDB\_VERSION\_FILENAME](./git-documentdb.git_documentdb_version_filename.md) |  |
-|  [GIT\_DOCUMENTDB\_VERSION](./git-documentdb.git_documentdb_version.md) |  |
+|  [FIRST\_COMMIT\_MESSAGE](./git-documentdb.first_commit_message.md) |  |
+|  [GIT\_DOCUMENTDB\_INFO\_ID](./git-documentdb.git_documentdb_info_id.md) |  |
+|  [SET\_DATABASE\_ID\_MESSAGE](./git-documentdb.set_database_id_message.md) |  |
 
 ## Type Aliases
 
@@ -128,8 +127,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [ChangedFileInsert](./git-documentdb.changedfileinsert.md) |  |
 |  [ChangedFileUpdate](./git-documentdb.changedfileupdate.md) |  |
 |  [CollectionPath](./git-documentdb.collectionpath.md) | CollectionPath<!-- -->- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0<!-- -->- \*\*It is recommended to use ASCII characters and case-insensitive names for cross-platform.\*\*<!-- -->- A directory name cannot end with a period or a white space.<!-- -->- A directory name does not allow '.' and '..'.<!-- -->- collectionPath cannot start with a slash.<!-- -->- Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection. |
-|  [CombineDbStrategies](./git-documentdb.combinedbstrategies.md) | Behavior when combine inconsistent DBs |
-|  [CommitInfo](./git-documentdb.commitinfo.md) | Commit information |
+|  [CombineDbStrategies](./git-documentdb.combinedbstrategies.md) | Behavior when combine inconsistent DBs<!-- -->Default is 'combine-head-with-theirs'. |
 |  [ConflictResolutionStrategies](./git-documentdb.conflictresolutionstrategies.md) | Strategy for resolving conflicts |
 |  [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md) |  |
 |  [ConnectionSettings](./git-documentdb.connectionsettings.md) | Connection settings for RemoteOptions |
@@ -137,16 +135,19 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [ConnectionSettingsNone](./git-documentdb.connectionsettingsnone.md) | Connection settings do not exist. |
 |  [ConnectionSettingsSSH](./git-documentdb.connectionsettingsssh.md) | Connection settings for SSH |
 |  [DatabaseCloseOption](./git-documentdb.databasecloseoption.md) | How to close database |
-|  [DatabaseInfo](./git-documentdb.databaseinfo.md) | Database information |
+|  [DatabaseInfo](./git-documentdb.databaseinfo.md) | Database info |
 |  [DatabaseInfoError](./git-documentdb.databaseinfoerror.md) | Database information (failure) |
 |  [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md) | Database information (success) |
+|  [DatabaseOpenResult](./git-documentdb.databaseopenresult.md) | Result of opening database |
 |  [DatabaseOption](./git-documentdb.databaseoption.md) | Database Option |
 |  [DeleteOptions](./git-documentdb.deleteoptions.md) | Options for delete() |
 |  [DeleteResult](./git-documentdb.deleteresult.md) | Result of remove() |
 |  [DocMetadata](./git-documentdb.docmetadata.md) | Type for a document metadata |
+|  [DuplicatedFile](./git-documentdb.duplicatedfile.md) | Duplicated file in combine operation |
 |  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | JsonDiffOptions |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | Type for a JSON document that is stored in a database |
 |  [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md) | Type for a JSON document with metadata |
+|  [NormalizedCommit](./git-documentdb.normalizedcommit.md) | Normalized Commit |
 |  [PutOptions](./git-documentdb.putoptions.md) | Options for put() |
 |  [PutResult](./git-documentdb.putresult.md) | Result of put() |
 |  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for Sync class |
@@ -154,6 +155,7 @@ GitDocumentDB stores a document into Git repository. It is managed by PouchDB-li
 |  [SyncActiveCallback](./git-documentdb.syncactivecallback.md) |  |
 |  [SyncCallback](./git-documentdb.synccallback.md) |  |
 |  [SyncChangeCallback](./git-documentdb.syncchangecallback.md) | SyncEventCallbacks |
+|  [SyncCombineDatabaseCallback](./git-documentdb.synccombinedatabasecallback.md) |  |
 |  [SyncCompleteCallback](./git-documentdb.synccompletecallback.md) |  |
 |  [SyncDirection](./git-documentdb.syncdirection.md) | Synchronization direction |
 |  [SyncErrorCallback](./git-documentdb.syncerrorcallback.md) |  |

@@ -12,13 +12,18 @@ import { TaskQueue } from './task_queue';
 import {
   AllDocsOptions,
   AllDocsResult,
+  DatabaseCloseOption,
+  DatabaseOpenResult,
   DeleteOptions,
   DeleteResult,
   JsonDoc,
   PutOptions,
   PutResult,
+  RemoteOptions,
   Schema,
+  SyncResult,
 } from './types';
+import { ISync } from './types_sync';
 import { Validator } from './validator';
 
 /**
@@ -65,18 +70,24 @@ export interface CRUDInterface {
  * @internal
  */
 export interface IDocumentDB {
-  fileExt: string;
   gitAuthor: {
     name: string;
     email: string;
   };
   schema: Schema;
   defaultBranch: string;
-  dbName(): string;
-  workingDir(): string;
   isClosing: boolean;
-  repository(): nodegit.Repository | undefined;
   validator: Validator;
-  getLogger(): Logger;
   taskQueue: TaskQueue;
+  dbName(): string;
+  dbId(): string;
+  workingDir(): string;
+  repository(): nodegit.Repository | undefined;
+  setRepository(repos: nodegit.Repository): void;
+  getLogger(): Logger;
+  loadDbInfo(): void;
+  open(): Promise<DatabaseOpenResult>;
+  close(options?: DatabaseCloseOption): Promise<void>;
+  sync(options: RemoteOptions, get_sync_result: boolean): Promise<[ISync, SyncResult]>;
+  sync(options: RemoteOptions): Promise<ISync>;
 }

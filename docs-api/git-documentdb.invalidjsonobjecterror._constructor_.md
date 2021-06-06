@@ -9,12 +9,12 @@ Constructs a new instance of the `InvalidJsonObjectError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(e?: string);
+constructor(idOrSha: string);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  e | string |  |
+|  idOrSha | string |  |
 

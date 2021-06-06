@@ -16,5 +16,6 @@ export interface SyncResultMergeAndPushError
 |  --- | --- | --- |
 |  [action](./git-documentdb.syncresultmergeandpusherror.action.md) | 'merge and push error' |  |
 |  [changes](./git-documentdb.syncresultmergeandpusherror.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultmergeandpusherror.commits.md) | { local: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
+|  [commits?](./git-documentdb.syncresultmergeandpusherror.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
+|  [error](./git-documentdb.syncresultmergeandpusherror.error.md) | Error |  |
 

@@ -68,7 +68,7 @@ describe('<validator>', () => {
   it('validateId()', () => {
     /**
      * '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
-     * '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
+     * '_id' cannot start with an underscore _.
      * '_id' cannot end with a period . (For compatibility with the file system of Windows)
      */
     // Punctuations
@@ -149,15 +149,6 @@ describe('<validator>', () => {
     expect(() => validator.validateId(_id)).toThrowError(InvalidIdLengthError);
 
     expect(() => validator.validateId('春はあけぼの')).not.toThrowError();
-  });
-
-  it('throws InvalidCollectionPathError', () => {
-    expect(() => validator.validateId('.gitddb/foo')).toThrowError(
-      InvalidCollectionPathError
-    );
-    expect(() => validator.validateCollectionPath('.gitddb/')).toThrowError(
-      InvalidCollectionPathError
-    );
   });
 
   it('validateCollectionPath', () => {

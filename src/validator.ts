@@ -280,10 +280,6 @@ export class Validator {
 
     const normalized = Validator.normalizeCollectionPath(collectionPath);
 
-    if (normalized === '.gitddb/') {
-      throw new InvalidCollectionPathError(collectionPath);
-    }
-
     const trailingSlashRemoved = normalized.slice(0, -1);
     const arr = trailingSlashRemoved.split('/');
     arr.forEach(part => {
@@ -378,7 +374,7 @@ export class Validator {
    * Validate document
    *
    * @remarks
-   * - Key cannot start with an underscore _. (For compatibility with CouchDB/PouchDB)
+   * - Key cannot start with an underscore _.
    *
    * @throws {@link InvalidPropertyNameInDocumentError}
    * @throws {@link UndefinedDocumentIdError}

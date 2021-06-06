@@ -6,6 +6,7 @@ import {
   SyncActiveCallback,
   SyncCallback,
   SyncChangeCallback,
+  SyncCombineDatabaseCallback,
   SyncCompleteCallback,
   SyncErrorCallback,
   SyncEvent,
@@ -27,6 +28,7 @@ export interface ISync {
     change: SyncChangeCallback[];
     localChange: SyncLocalChangeCallback[];
     remoteChange: SyncRemoteChangeCallback[];
+    combine: SyncCombineDatabaseCallback[];
     paused: SyncPausedCallback[];
     active: SyncActiveCallback[];
     start: SyncStartCallback[];

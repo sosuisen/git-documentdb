@@ -24,7 +24,7 @@ import {
 import { GitDocumentDB } from '../../src/index';
 import { Validator } from '../../src/validator';
 import { put_worker } from '../../src/crud/put';
-import { SHORT_SHA_LENGTH } from '../../src/const';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
 import { sleep } from '../../src/utils';
 import { TaskMetadata } from '../../src/types';
 
@@ -259,7 +259,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})\n`);
     }
 
     // Check filename
@@ -309,7 +309,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})\n`);
     }
     await gitDDB.destroy();
   });
@@ -372,7 +372,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
       // Check commit message
-      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})\n`);
       await gitDDB.destroy();
     });
 
@@ -438,7 +438,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     const repository = gitDDB.repository();
     const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
     const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    expect(commit.message()).toEqual(`my commit message`);
+    expect(commit.message()).toEqual(`my commit message\n`);
     await gitDDB.destroy();
   });
 
@@ -736,7 +736,7 @@ describe('<crud/put> put(id, document)', () => {
     const repository = gitDDB.repository();
     const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
     const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
+    expect(commit.message()).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})\n`);
 
     await gitDDB.destroy();
   });
@@ -786,7 +786,7 @@ describe('<crud/put> put(id, document)', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`insert: ${_id}${gitDDB.fileExt}(${short_sha})`);
+      expect(commit.message()).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})\n`);
     }
 
     // Check filename
@@ -812,7 +812,7 @@ describe('<crud/put> put(id, document)', () => {
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
       const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`my commit message`);
+      expect(commit.message()).toEqual(`my commit message\n`);
     }
     await gitDDB.destroy();
   });
@@ -860,7 +860,7 @@ describe('<crud/put> put_worker', () => {
       put_worker(
         gitDDB,
         'prof01',
-        gitDDB.fileExt,
+        JSON_EXT,
         '{ "_id": "prof01", "name": "Shirase" }',
         'message'
       )
@@ -868,9 +868,7 @@ describe('<crud/put> put_worker', () => {
     await gitDDB.destroy();
   });
 
-  // Skip this test because segmentation fault often occurs in libgit2.
-  // Check this only when you would like to check behavior of _put_worker()
-  it.skip('Concurrent calls of _put_worker() cause an error.', async () => {
+  it('Concurrent calls of _put_worker() succeeds.', async () => {
     const _id_a = 'apple';
     const name_a = 'Apple woman';
     const _id_b = 'banana';
@@ -897,47 +895,47 @@ describe('<crud/put> put_worker', () => {
         put_worker(
           gitDDB,
           _id_a,
-          gitDDB.fileExt,
+          JSON_EXT,
           `{ "_id": "${_id_a}", "name": "${name_a}" }`,
           'message'
         ),
         put_worker(
           gitDDB,
           _id_b,
-          gitDDB.fileExt,
+          JSON_EXT,
           `{ "_id": "${_id_b}", "name": "${name_b}" }`,
           'message'
         ),
         put_worker(
           gitDDB,
           _id_c01,
-          gitDDB.fileExt,
+          JSON_EXT,
           `{ "_id": "${_id_c01}", "name": "${name_c01}" }`,
           'message'
         ),
         put_worker(
           gitDDB,
           _id_c02,
-          gitDDB.fileExt,
+          JSON_EXT,
           `{ "_id": "${_id_c02}", "name": "${name_c02}" }`,
           'message'
         ),
         put_worker(
           gitDDB,
           _id_d,
-          gitDDB.fileExt,
+          JSON_EXT,
           `{ "_id": "${_id_d}", "name": "${name_d}" }`,
           'message'
         ),
         put_worker(
           gitDDB,
           _id_p,
-          gitDDB.fileExt,
+          JSON_EXT,
           `{ "_id": "${_id_p}", "name": "${name_p}" }`,
           'message'
         ),
       ])
-    ).rejects.toThrowError();
+    ).resolves.not.toThrowError();
 
     await gitDDB.destroy();
   });

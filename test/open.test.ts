@@ -11,9 +11,16 @@ import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
 import { CannotOpenRepositoryError, RepositoryNotFoundError } from '../src/error';
-import { GIT_DOCUMENTDB_VERSION_FILENAME, GitDocumentDB } from '../src/index';
+import {
+  DATABASE_CREATOR,
+  DATABASE_VERSION,
+  generateDatabaseId,
+  GIT_DOCUMENTDB_INFO_ID,
+  GitDocumentDB,
+} from '../src/index';
 import { put_worker } from '../src/crud/put';
-import { DatabaseInfo, DatabaseInfoError } from '../src/types';
+import { DatabaseInfo, DatabaseInfoError, DatabaseOpenResult } from '../src/types';
+import { JSON_EXT } from '../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -42,8 +49,10 @@ describe('<index> open()', () => {
       db_name: dbName,
       local_dir: localDir,
     });
-    const dbInfo: DatabaseInfo = await gitDDB.open();
-    expect((dbInfo as DatabaseInfoError).error).toBeInstanceOf(RepositoryNotFoundError);
+    const dbOpenResult: DatabaseOpenResult = await gitDDB.open();
+    expect((dbOpenResult as DatabaseInfoError).error).toBeInstanceOf(
+      RepositoryNotFoundError
+    );
   });
 
   it('throws CannotOpenRepositoryError.', async () => {
@@ -54,8 +63,10 @@ describe('<index> open()', () => {
     });
     // Create empty .git directory
     await fs.ensureDir(gitDDB.workingDir() + '/.git/');
-    const dbInfo: DatabaseInfo = await gitDDB.open();
-    expect((dbInfo as DatabaseInfoError).error).toBeInstanceOf(CannotOpenRepositoryError);
+    const dbOpenResult: DatabaseOpenResult = await gitDDB.open();
+    expect((dbOpenResult as DatabaseInfoError).error).toBeInstanceOf(
+      CannotOpenRepositoryError
+    );
   });
 
   it('opens an existing repository.', async () => {
@@ -66,14 +77,18 @@ describe('<index> open()', () => {
     });
 
     // Create db
-    await gitDDB.createDB();
+    const oldResult = (await gitDDB.createDB()) as DatabaseInfo;
 
     // Close created db
     await expect(gitDDB.close()).resolves.toBeUndefined();
 
     // Open existing db
-    await expect(gitDDB.open()).resolves.toMatchObject({
+    const dbOpenResult = await gitDDB.open();
+    expect(dbOpenResult).toEqual({
       ok: true,
+      db_id: oldResult.db_id,
+      creator: DATABASE_CREATOR,
+      version: DATABASE_VERSION,
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,
@@ -82,7 +97,7 @@ describe('<index> open()', () => {
     expect(gitDDB.isOpened()).toBeTruthy();
 
     // Destroy() closes db automatically
-    await expect(gitDDB.destroy()).resolves.toMatchObject({ ok: true });
+    await expect(gitDDB.destroy()).resolves.toEqual({ ok: true });
     expect(gitDDB.isOpened()).toBeFalsy();
   });
 
@@ -99,18 +114,25 @@ describe('<index> open()', () => {
       return Promise.reject(err);
     });
     await gitDDB.open();
-    // put another db version
+    // put another app
+    const creator = 'Another App';
     await put_worker(
       gitDDB,
-      GIT_DOCUMENTDB_VERSION_FILENAME,
-      '',
-      'Another App: 0.1',
+      GIT_DOCUMENTDB_INFO_ID,
+      JSON_EXT,
+      JSON.stringify({
+        creator,
+      }),
       'first commit'
     );
     await gitDDB.close();
 
-    await expect(gitDDB.open()).resolves.toMatchObject({
+    const dbOpenResult = await gitDDB.open();
+    expect(dbOpenResult).toEqual({
       ok: true,
+      db_id: (dbOpenResult as DatabaseInfo).db_id,
+      creator,
+      version: '',
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: false,
@@ -134,15 +156,23 @@ describe('<index> open()', () => {
     // First commit with another db version
     await put_worker(
       gitDDB,
-      '.gitddb/lib_version',
-      '',
-      'GitDocumentDB: 0.1',
+      GIT_DOCUMENTDB_INFO_ID,
+      JSON_EXT,
+      JSON.stringify({
+        db_id: generateDatabaseId(),
+        creator: DATABASE_CREATOR,
+        version: '0.01',
+      }),
       'first commit'
     );
     await gitDDB.close();
 
-    await expect(gitDDB.open()).resolves.toMatchObject({
+    const dbOpenResult = await gitDDB.open();
+    expect(dbOpenResult).toMatchObject({
       ok: true,
+      db_id: (dbOpenResult as DatabaseInfo).db_id,
+      creator: DATABASE_CREATOR,
+      version: '0.01',
       is_new: false,
       is_clone: false,
       is_created_by_gitddb: true,
@@ -151,7 +181,7 @@ describe('<index> open()', () => {
     await gitDDB.destroy();
   });
 
-  it('opens a repository with no version file.', async () => {
+  it('returns new db_id when opens db without db_id.', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
       db_name: dbName,
@@ -162,12 +192,36 @@ describe('<index> open()', () => {
       return Promise.reject(err);
     });
 
-    await expect(gitDDB.open()).resolves.toMatchObject({
+    await gitDDB.open();
+
+    const prevDbId = gitDDB.dbId();
+    // First commit with another db version
+    await put_worker(
+      gitDDB,
+      GIT_DOCUMENTDB_INFO_ID,
+      JSON_EXT,
+      JSON.stringify({
+        db_id: '',
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+      }),
+      'first commit'
+    );
+    await gitDDB.close();
+
+    const dbOpenResult = await gitDDB.open();
+    const newDbId = (dbOpenResult as DatabaseInfo).db_id;
+
+    expect(newDbId).not.toBe(prevDbId);
+    expect(dbOpenResult).toMatchObject({
       ok: true,
+      db_id: newDbId,
+      creator: DATABASE_CREATOR,
+      version: DATABASE_VERSION,
       is_new: false,
       is_clone: false,
-      is_created_by_gitddb: false,
-      is_valid_version: false,
+      is_created_by_gitddb: true,
+      is_valid_version: true,
     });
   });
 

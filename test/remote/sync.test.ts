@@ -116,7 +116,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     destroyDBs([gitDDB]);
   });
 
-  it('set combine_db_strategy to nop by default', async () => {
+  it('set combine_db_strategy to combine-head-with-theirs by default', async () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -132,7 +132,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().combine_db_strategy).toBe('throw-error');
+    expect(sync.options().combine_db_strategy).toBe('combine-head-with-theirs');
 
     destroyDBs([gitDDB]);
   });

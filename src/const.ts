@@ -15,3 +15,5 @@ export const NETWORK_RETRY_INTERVAL = 2000;
 export const DEFAULT_SYNC_INTERVAL = 30000;
 export const MINIMUM_SYNC_INTERVAL = 3000;
 export const DEFAULT_CONFLICT_RESOLUTION_STRATEGY = 'ours-diff';
+export const DUPLICATED_FILE_POSTFIX = '-from-';
+export const JSON_EXT = '.json';

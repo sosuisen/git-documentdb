@@ -9,7 +9,7 @@ Synchronize with a remote repository
 <b>Signature:</b>
 
 ```typescript
-sync(options?: RemoteOptions): Promise<Sync>;
+sync(options: RemoteOptions, get_sync_result: boolean): Promise<[Sync, SyncResult]>;
 ```
 
 ## Parameters
@@ -17,16 +17,19 @@ sync(options?: RemoteOptions): Promise<Sync>;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
+|  get\_sync\_result | boolean |  |
 
 <b>Returns:</b>
 
-Promise&lt;[Sync](./git-documentdb.sync.md)<!-- -->&gt;
+Promise&lt;\[[Sync](./git-documentdb.sync.md)<!-- -->, [SyncResult](./git-documentdb.syncresult.md)<!-- -->\]&gt;
 
 ## Exceptions
 
 [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) (from Sync\#constructor())
 
 [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) (from Sync\#constructor())
+
+[RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) (from Sync\#syncAndGetResultImpl())
 
 [RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md) (from Sync\#init())
 
@@ -36,5 +39,5 @@ Promise&lt;[Sync](./git-documentdb.sync.md)<!-- -->&gt;
 
 ## Remarks
 
-Register and synchronize with a remote repository. Do not register the same remote repository again. Call removeRemote() before register it again.
+Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
 

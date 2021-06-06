@@ -28,6 +28,7 @@ export declare class Sync implements ISync
 |  [credential\_callbacks](./git-documentdb.sync.credential_callbacks.md) |  | { \[key: string\]: any; } |  |
 |  [jsonDiff](./git-documentdb.sync.jsondiff.md) |  | JsonDiff | JsonDiff |
 |  [jsonPatch](./git-documentdb.sync.jsonpatch.md) |  | JsonPatchOT | JsonPatch |
+|  [remoteRepository](./git-documentdb.sync.remoterepository.md) |  | [RemoteRepository](./git-documentdb.remoterepository.md) |  |
 |  [upstream\_branch](./git-documentdb.sync.upstream_branch.md) |  | string |  |
 
 ## Methods
