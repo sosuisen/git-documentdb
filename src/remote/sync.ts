@@ -123,8 +123,9 @@ export class Sync implements ISync {
   private _options: RemoteOptions;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
-  private _remoteRepository: RemoteRepository;
   private _retrySyncCounter = 0; // Decremental count
+
+  remoteRepository: RemoteRepository;
 
   /**
    * Return current retry count (incremental)
@@ -254,7 +255,7 @@ export class Sync implements ISync {
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
-    this._remoteRepository = new RemoteRepository({
+    this.remoteRepository = new RemoteRepository({
       remote_url: this._options.remote_url,
       connection: this._options.connection,
     });
@@ -289,7 +290,7 @@ export class Sync implements ISync {
    */
   async init (repos: nodegit.Repository): Promise<SyncResult> {
     const onlyFetch = this._options.sync_direction === 'pull';
-    const [gitResult, remoteResult] = await this._remoteRepository
+    const [gitResult, remoteResult] = await this.remoteRepository
       .connect(this._gitDDB.repository()!, this.credential_callbacks, onlyFetch)
       .catch(err => {
         throw new RemoteRepositoryConnectError(err.message);

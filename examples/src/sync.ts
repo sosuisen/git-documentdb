@@ -185,7 +185,16 @@ const sync_example = async () => {
   await dbA.delete('01');
   await syncA.trySync();
 
-  // Stop sync and destroy databases.
+  /**
+   * Uncomment them if you would like to delete the remote repository on GitHub.
+   * (Before that, please check [delete_repo] of your personal access token.)
+   * 
+   * await syncA.pause();
+   * await syncB.pause();
+   * await syncA.remoteRepository.destroy();
+   */
+
+  // Destroy databases. Synchronization is stopped automatically.
   // Use close() instead of destroy() if you would like to leave DBs.
   await dbA.destroy();
   await dbB.destroy();
