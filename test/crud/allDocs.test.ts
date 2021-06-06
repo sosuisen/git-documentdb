@@ -103,7 +103,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.put({ _id: _id_1, name: name_1 });
     await gitDDB.put({ _id: _id_c, name: name_c });
 
-    await expect(gitDDB.allDocs()).resolves.toMatchObject({
+    await expect(gitDDB.allDocs({ include_docs: false })).resolves.toMatchObject({
       total_rows: 4,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -142,7 +142,9 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.put({ _id: _id_a, name: name_a });
     await gitDDB.put({ _id: _id_c, name: name_c });
 
-    await expect(gitDDB.allDocs({ descending: true })).resolves.toMatchObject({
+    await expect(
+      gitDDB.allDocs({ descending: true, include_docs: false })
+    ).resolves.toMatchObject({
       total_rows: 3,
       commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [

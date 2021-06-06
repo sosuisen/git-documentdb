@@ -703,7 +703,7 @@ describe('<collection>', () => {
       await users.put({ _id: _id_b, name: name_b });
       await users.put({ _id: _id_a, name: name_a });
 
-      await expect(users.allDocs()).resolves.toMatchObject({
+      await expect(users.allDocs({ include_docs: false })).resolves.toMatchObject({
         total_rows: 2,
         commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [

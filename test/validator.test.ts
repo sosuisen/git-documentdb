@@ -68,7 +68,7 @@ describe('<validator>', () => {
   it('validateId()', () => {
     /**
      * '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
-     * '_id' cannot start with an underscore _. (For compatibility with PouchDB and CouchDB)
+     * '_id' cannot start with an underscore _.
      * '_id' cannot end with a period . (For compatibility with the file system of Windows)
      */
     // Punctuations
