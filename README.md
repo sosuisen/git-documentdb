@@ -240,7 +240,7 @@ https://github.com/sosuisen/inventory-manager
   - Revisions :feet:
   - Automated conflict resolution :feet:
   - Automated JSON diff and patch :feet:
-  - Automated combining inconsistent repositories :dog2:(Here now)
+  - Automated combining of inconsistent repositories :dog2:(Here now)
 - v0.4 Work on both Node.js and browser
   - Connect with SSH key pair
   - Connect to GitHub with OAuth
