@@ -47,6 +47,6 @@ export declare class Sync implements ISync
 |  [pause()](./git-documentdb.sync.pause.md) |  | Alias of cancel() |
 |  [remoteURL()](./git-documentdb.sync.remoteurl.md) |  | Get remoteURL |
 |  [resume(options)](./git-documentdb.sync.resume.md) |  | Resume synchronization |
-|  [tryPush(options)](./git-documentdb.sync.trypush.md) |  | Try to push with retries |
+|  [tryPush()](./git-documentdb.sync.trypush.md) |  | Try to push with retries |
 |  [trySync()](./git-documentdb.sync.trysync.md) |  | Try to sync with retries |
 
