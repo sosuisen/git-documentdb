@@ -440,9 +440,7 @@ export class Sync implements ISync {
    * @throws {@link UnfetchedCommitExistsError} (from this and enqueuePushTask)
    */
   // eslint-disable-next-line complexity
-  async tryPush (options?: {
-    onlyPush: boolean;
-  }): Promise<SyncResultPush | SyncResultCancel> {
+  async tryPush (): Promise<SyncResultPush | SyncResultCancel> {
     if (this._options.sync_direction === 'pull') {
       throw new PushNotAllowedError(this._options.sync_direction);
     }
