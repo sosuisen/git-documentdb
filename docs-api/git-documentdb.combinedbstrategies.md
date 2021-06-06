@@ -6,8 +6,10 @@
 
 Behavior when combine inconsistent DBs
 
+Default is 'combine-head-with-theirs'.
+
 <b>Signature:</b>
 
 ```typescript
-export declare type CombineDbStrategies = 'throw-error' | 'resolve-by-ours' | 'resolve-by-their' | 'replace-with-ours' | 'replace-with-theirs';
+export declare type CombineDbStrategies = 'throw-error' | 'combine-head-with-ours' | 'combine-head-with-theirs' | 'combine-history-with-ours' | 'combine-history-with-theirs' | 'replace-with-ours' | 'replace-with-theirs';
 ```

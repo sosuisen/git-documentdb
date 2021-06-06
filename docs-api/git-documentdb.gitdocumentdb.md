@@ -24,7 +24,6 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [defaultBranch](./git-documentdb.gitdocumentdb.defaultbranch.md) |  | (not declared) |  |
-|  [fileExt](./git-documentdb.gitdocumentdb.fileext.md) |  | (not declared) | File extension of a repository document |
 |  [gitAuthor](./git-documentdb.gitdocumentdb.gitauthor.md) |  | { readonly name: "GitDocumentDB"; readonly email: "gitddb@example.com"; } | Author name and email |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | DB is going to close |
 |  [schema](./git-documentdb.gitdocumentdb.schema.md) |  | [Schema](./git-documentdb.schema.md) | Schema |
@@ -39,6 +38,7 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [close(options)](./git-documentdb.gitdocumentdb.close.md) |  | Close a database |
 |  [collection(collectionPath)](./git-documentdb.gitdocumentdb.collection.md) |  | Get a collection |
 |  [createDB(remoteOptions)](./git-documentdb.gitdocumentdb.createdb.md) |  | Create and open a repository |
+|  [dbId()](./git-documentdb.gitdocumentdb.dbid.md) |  | Get dbId |
 |  [dbName()](./git-documentdb.gitdocumentdb.dbname.md) |  | Get dbName |
 |  [delete(id, options)](./git-documentdb.gitdocumentdb.delete.md) |  | Remove a document |
 |  [delete(jsonDoc, options)](./git-documentdb.gitdocumentdb.delete_1.md) |  | Remove a document |
@@ -61,8 +61,9 @@ export declare class GitDocumentDB implements IDocumentDB, CRUDInterface
 |  [remove(jsonDoc, options)](./git-documentdb.gitdocumentdb.remove_1.md) |  | This is an alias of remove() |
 |  [repository()](./git-documentdb.gitdocumentdb.repository.md) |  | Get a current repository |
 |  [setLogLevel(level)](./git-documentdb.gitdocumentdb.setloglevel.md) |  |  |
-|  [sync(remoteURL, options)](./git-documentdb.gitdocumentdb.sync.md) |  | Synchronize with a remote repository |
-|  [sync(options)](./git-documentdb.gitdocumentdb.sync_1.md) |  | Synchronize with a remote repository |
+|  [setRepository(repos)](./git-documentdb.gitdocumentdb.setrepository.md) |  | Set repository |
+|  [sync(options)](./git-documentdb.gitdocumentdb.sync.md) |  | Synchronize with a remote repository |
+|  [sync(options, get\_sync\_result)](./git-documentdb.gitdocumentdb.sync_1.md) |  | Synchronize with a remote repository |
 |  [unregisterRemote(remoteURL)](./git-documentdb.gitdocumentdb.unregisterremote.md) |  | Stop and unregister remote synchronization |
 |  [update(jsonDoc, options)](./git-documentdb.gitdocumentdb.update.md) |  | Update a document |
 |  [update(id, document, options)](./git-documentdb.gitdocumentdb.update_1.md) |  | Update a document |

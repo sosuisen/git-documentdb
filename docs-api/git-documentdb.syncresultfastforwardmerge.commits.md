@@ -8,6 +8,6 @@
 
 ```typescript
 commits?: {
-        local: CommitInfo[];
+        local: NormalizedCommit[];
     };
 ```

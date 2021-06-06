@@ -19,7 +19,7 @@ export declare type AllDocsOptions = {
 
 ## Remarks
 
-- include\_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file\_sha' properties. Default is false.
+- include\_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file\_sha' properties. Default is true.
 
 - descending: Sort results in rows by descendant. Default is false (ascendant).
 

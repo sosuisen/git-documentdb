@@ -9,7 +9,7 @@ Create and open a repository
 <b>Signature:</b>
 
 ```typescript
-createDB(remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
+createDB(remoteOptions?: RemoteOptions): Promise<DatabaseOpenResult>;
 ```
 
 ## Parameters
@@ -20,7 +20,7 @@ createDB(remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
 
 <b>Returns:</b>
 
-Promise&lt;[DatabaseInfo](./git-documentdb.databaseinfo.md)<!-- -->&gt;
+Promise&lt;[DatabaseOpenResult](./git-documentdb.databaseopenresult.md)<!-- -->&gt;
 
 Database information
 

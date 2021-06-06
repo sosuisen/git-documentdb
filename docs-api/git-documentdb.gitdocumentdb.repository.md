@@ -15,7 +15,3 @@ repository(): nodegit.Repository | undefined;
 
 nodegit.Repository \| undefined
 
-## Remarks
-
-Be aware that direct operation of the current repository can corrupt the database.
-

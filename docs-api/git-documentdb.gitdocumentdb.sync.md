@@ -9,14 +9,13 @@ Synchronize with a remote repository
 <b>Signature:</b>
 
 ```typescript
-sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
+sync(options: RemoteOptions): Promise<Sync>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteURL | string |  |
 |  options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
 
 <b>Returns:</b>
@@ -28,6 +27,8 @@ Promise&lt;[Sync](./git-documentdb.sync.md)<!-- -->&gt;
 [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) (from Sync\#constructor())
 
 [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) (from Sync\#constructor())
+
+[RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) (from Sync\#syncImpl())
 
 [RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md) (from Sync\#init())
 

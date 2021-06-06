@@ -131,16 +131,13 @@ export class Collection implements CRUDInterface {
 // @public
 export type CollectionPath = string;
 
-// @public
-export type CombineDbStrategies = 'throw-error' | 'resolve-by-ours' | 'resolve-by-their' | 'replace-with-ours' | 'replace-with-theirs';
+// @public (undocumented)
+export class CombineDatabaseError extends BaseError {
+    constructor(mes: string);
+}
 
 // @public
-export type CommitInfo = {
-    sha: string;
-    date: Date;
-    author: string;
-    message: string;
-};
+export type CombineDbStrategies = 'throw-error' | 'combine-head-with-ours' | 'combine-head-with-theirs' | 'combine-history-with-ours' | 'combine-history-with-theirs' | 'replace-with-ours' | 'replace-with-theirs';
 
 // @public
 export type ConflictResolutionStrategies = ConflictResolutionStrategyLabels | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolutionStrategyLabels);
@@ -182,7 +179,7 @@ export class CorruptedRepositoryError extends BaseError {
 }
 
 // @public (undocumented)
-export const DATABASE_NAME = "GitDocumentDB";
+export const DATABASE_CREATOR = "GitDocumentDB";
 
 // @public (undocumented)
 export const DATABASE_VERSION = "1.0";
@@ -209,7 +206,11 @@ export class DatabaseExistsError extends BaseError {
 }
 
 // @public
-export type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
+export type DatabaseInfo = {
+    db_id: string;
+    creator: string;
+    version: string;
+};
 
 // @public
 export type DatabaseInfoError = {
@@ -225,6 +226,9 @@ export type DatabaseInfoSuccess = {
     is_created_by_gitddb: boolean;
     is_valid_version: boolean;
 };
+
+// @public
+export type DatabaseOpenResult = (DatabaseInfo & DatabaseInfoSuccess) | DatabaseInfoError;
 
 // @public
 export type DatabaseOption = {
@@ -261,6 +265,12 @@ export class DocumentNotFoundError extends BaseError {
     constructor(e?: string);
 }
 
+// @public
+export type DuplicatedFile = {
+    original: DocMetadata;
+    duplicate: DocMetadata;
+};
+
 // @public (undocumented)
 export class FetchConnectionFailedError extends BaseError {
     constructor(mes: string);
@@ -277,10 +287,15 @@ export class FileRemoveTimeoutError extends BaseError {
 }
 
 // @public (undocumented)
-export const GIT_DOCUMENTDB_VERSION: string;
+export const FIRST_COMMIT_MESSAGE = "first commit";
+
+// Warning: (ae-internal-missing-underscore) The name "generateDatabaseId" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function generateDatabaseId(): string;
 
 // @public (undocumented)
-export const GIT_DOCUMENTDB_VERSION_FILENAME = ".gitddb/lib_version";
+export const GIT_DOCUMENTDB_INFO_ID = ".gitddb/info";
 
 // @public
 export class GitDocumentDB implements IDocumentDB, CRUDInterface {
@@ -288,7 +303,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
     close(options?: DatabaseCloseOption): Promise<void>;
     collection(collectionPath: CollectionPath): Collection;
-    createDB(remoteOptions?: RemoteOptions): Promise<DatabaseInfo>;
+    createDB(remoteOptions?: RemoteOptions): Promise<DatabaseOpenResult>;
+    dbId(): string;
     dbName(): string;
     // (undocumented)
     readonly defaultBranch = "main";
@@ -297,7 +313,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
-    readonly fileExt = ".json";
     get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
     getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
     getCollections(rootPath?: string): Promise<Collection[]>;
@@ -317,7 +332,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     }, options?: PutOptions): Promise<PutResult>;
     isClosing: boolean;
     isOpened(): boolean;
-    open(): Promise<DatabaseInfo>;
+    // @internal
+    loadDbInfo(): Promise<void>;
+    open(): Promise<DatabaseOpenResult>;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     put(id: string, document: {
         [key: string]: any;
@@ -328,8 +345,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     schema: Schema;
     // (undocumented)
     setLogLevel(level: TLogLevelName): void;
-    sync(remoteURL: string, options?: RemoteOptions): Promise<Sync>;
-    sync(options?: RemoteOptions): Promise<Sync>;
+    setRepository(repos: nodegit.Repository): void;
+    sync(options: RemoteOptions): Promise<Sync>;
+    sync(options: RemoteOptions, get_sync_result: boolean): Promise<[Sync, SyncResult]>;
     // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
     taskQueue: TaskQueue;
     unregisterRemote(remoteURL: string): void;
@@ -428,7 +446,7 @@ export class InvalidIdLengthError extends BaseError {
 
 // @public (undocumented)
 export class InvalidJsonObjectError extends BaseError {
-    constructor(e?: string);
+    constructor(idOrSha: string);
 }
 
 // @public (undocumented)
@@ -483,6 +501,24 @@ export type JsonDocWithMetadata = DocMetadata & {
 export class NoMergeBaseFoundError extends BaseError {
     constructor();
 }
+
+// @public
+export type NormalizedCommit = {
+    sha: string;
+    message: string;
+    parent: string[];
+    author: {
+        name: string;
+        email: string;
+        timestamp: Date;
+    };
+    committer: {
+        name: string;
+        email: string;
+        timestamp: Date;
+    };
+    gpgsig?: string;
+};
 
 // @public (undocumented)
 export class PersonalAccessTokenForAnotherAccountError extends BaseError {
@@ -591,6 +627,9 @@ export type Schema = {
 };
 
 // @public (undocumented)
+export const SET_DATABASE_ID_MESSAGE = "set database id";
+
+// @public (undocumented)
 export class SocketTimeoutError extends BaseError {
     constructor(url: string);
 }
@@ -620,6 +659,7 @@ export class Sync implements ISync {
         change: SyncChangeCallback[];
         localChange: SyncLocalChangeCallback[];
         remoteChange: SyncRemoteChangeCallback[];
+        combine: SyncCombineDatabaseCallback[];
         paused: SyncPausedCallback[];
         active: SyncActiveCallback[];
         start: SyncStartCallback[];
@@ -635,6 +675,8 @@ export class Sync implements ISync {
     on(event: SyncEvent, callback: SyncCallback): this;
     options(): Required<RemoteOptions>;
     pause(): boolean;
+    // (undocumented)
+    remoteRepository: RemoteRepository;
     remoteURL(): string;
     resume(options?: {
         interval?: number;
@@ -651,11 +693,19 @@ export class Sync implements ISync {
 // @public (undocumented)
 export type SyncActiveCallback = () => void;
 
+// Warning: (ae-internal-missing-underscore) The name "syncAndGetResultImpl" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function syncAndGetResultImpl(this: IDocumentDB, options: RemoteOptions): Promise<[Sync, SyncResult]>;
+
 // @public (undocumented)
-export type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncPausedCallback | SyncActiveCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
+export type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncCombineDatabaseCallback | SyncPausedCallback | SyncActiveCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
 
 // @public
 export type SyncChangeCallback = (syncResult: SyncResult, taskMetadata: TaskMetadata) => void;
+
+// @public (undocumented)
+export type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void;
 
 // @public (undocumented)
 export type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
@@ -667,12 +717,12 @@ export type SyncDirection = 'pull' | 'push' | 'both';
 export type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 
 // @public
-export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'paused' | 'active' | 'start' | 'complete' | 'error';
+export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'combine' | 'paused' | 'active' | 'start' | 'complete' | 'error';
 
 // Warning: (ae-internal-missing-underscore) The name "syncImpl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export function syncImpl(this: IDocumentDB, options?: RemoteOptions): Promise<Sync>;
+export function syncImpl(this: IDocumentDB, options: RemoteOptions): Promise<Sync>;
 
 // @public (undocumented)
 export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
@@ -689,12 +739,20 @@ export type SyncPausedCallback = () => void;
 export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 
 // @public
-export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCancel;
+export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCombineDatabase | SyncResultCancel;
 
 // @public (undocumented)
 export interface SyncResultCancel {
     // (undocumented)
     action: 'canceled';
+}
+
+// @public
+export interface SyncResultCombineDatabase {
+    // (undocumented)
+    action: 'combine database';
+    // (undocumented)
+    duplicates: DuplicatedFile[];
 }
 
 // @public (undocumented)
@@ -707,7 +765,7 @@ export interface SyncResultFastForwardMerge {
     };
     // (undocumented)
     commits?: {
-        local: CommitInfo[];
+        local: NormalizedCommit[];
     };
 }
 
@@ -722,8 +780,8 @@ export interface SyncResultMergeAndPush {
     };
     // (undocumented)
     commits?: {
-        local: CommitInfo[];
-        remote: CommitInfo[];
+        local: NormalizedCommit[];
+        remote: NormalizedCommit[];
     };
 }
 
@@ -737,8 +795,10 @@ export interface SyncResultMergeAndPushError {
     };
     // (undocumented)
     commits?: {
-        local: CommitInfo[];
+        local: NormalizedCommit[];
     };
+    // (undocumented)
+    error: Error;
 }
 
 // @public (undocumented)
@@ -757,7 +817,7 @@ export interface SyncResultPush {
     };
     // (undocumented)
     commits?: {
-        remote: CommitInfo[];
+        remote: NormalizedCommit[];
     };
 }
 
@@ -772,8 +832,8 @@ export interface SyncResultResolveConflictsAndPush {
     };
     // (undocumented)
     commits?: {
-        local: CommitInfo[];
-        remote: CommitInfo[];
+        local: NormalizedCommit[];
+        remote: NormalizedCommit[];
     };
     // (undocumented)
     conflicts: AcceptedConflict[];
@@ -789,10 +849,12 @@ export interface SyncResultResolveConflictsAndPushError {
     };
     // (undocumented)
     commits?: {
-        local: CommitInfo[];
+        local: NormalizedCommit[];
     };
     // (undocumented)
     conflicts: AcceptedConflict[];
+    // (undocumented)
+    error: Error;
 }
 
 // @public (undocumented)

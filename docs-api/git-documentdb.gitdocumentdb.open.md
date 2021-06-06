@@ -9,11 +9,11 @@ Open an existing repository
 <b>Signature:</b>
 
 ```typescript
-open(): Promise<DatabaseInfo>;
+open(): Promise<DatabaseOpenResult>;
 ```
 <b>Returns:</b>
 
-Promise&lt;[DatabaseInfo](./git-documentdb.databaseinfo.md)<!-- -->&gt;
+Promise&lt;[DatabaseOpenResult](./git-documentdb.databaseopenresult.md)<!-- -->&gt;
 
 Database information
 

@@ -34,5 +34,5 @@ void
 
 ## Remarks
 
-- Key cannot start with an underscore \_. (For compatibility with CouchDB/PouchDB)
+- Key cannot start with an underscore \_.
 

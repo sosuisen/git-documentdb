@@ -16,6 +16,7 @@ export interface SyncResultResolveConflictsAndPushError
 |  --- | --- | --- |
 |  [action](./git-documentdb.syncresultresolveconflictsandpusherror.action.md) | 'resolve conflicts and push error' |  |
 |  [changes](./git-documentdb.syncresultresolveconflictsandpusherror.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultresolveconflictsandpusherror.commits.md) | { local: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
+|  [commits?](./git-documentdb.syncresultresolveconflictsandpusherror.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 |  [conflicts](./git-documentdb.syncresultresolveconflictsandpusherror.conflicts.md) | [AcceptedConflict](./git-documentdb.acceptedconflict.md)<!-- -->\[\] |  |
+|  [error](./git-documentdb.syncresultresolveconflictsandpusherror.error.md) | Error |  |
 

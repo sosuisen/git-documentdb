@@ -16,5 +16,5 @@ export interface SyncResultPush
 |  --- | --- | --- |
 |  [action](./git-documentdb.syncresultpush.action.md) | 'push' |  |
 |  [changes](./git-documentdb.syncresultpush.changes.md) | { remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultpush.commits.md) | { remote: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
+|  [commits?](./git-documentdb.syncresultpush.commits.md) | { remote: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

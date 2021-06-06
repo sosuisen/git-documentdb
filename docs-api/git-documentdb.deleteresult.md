@@ -21,7 +21,7 @@ export declare type DeleteResult = {
 
 - ok: ok shows always true. Exception is thrown when error occurs.
 
-- id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used. This is a custom of PouchDB/CouchDB.)
+- id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used.)
 
 - file\_sha: SHA-1 hash of Git blob (40 characters)
 

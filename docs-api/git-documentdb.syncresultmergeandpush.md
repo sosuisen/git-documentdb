@@ -16,5 +16,5 @@ export interface SyncResultMergeAndPush
 |  --- | --- | --- |
 |  [action](./git-documentdb.syncresultmergeandpush.action.md) | 'merge and push' |  |
 |  [changes](./git-documentdb.syncresultmergeandpush.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultmergeandpush.commits.md) | { local: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; remote: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
+|  [commits?](./git-documentdb.syncresultmergeandpush.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; remote: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

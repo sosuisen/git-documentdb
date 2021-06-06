@@ -16,5 +16,5 @@ export interface SyncResultFastForwardMerge
 |  --- | --- | --- |
 |  [action](./git-documentdb.syncresultfastforwardmerge.action.md) | 'fast-forward merge' |  |
 |  [changes](./git-documentdb.syncresultfastforwardmerge.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultfastforwardmerge.commits.md) | { local: [CommitInfo](./git-documentdb.commitinfo.md)<!-- -->\[\]; } | <i>(Optional)</i> |
+|  [commits?](./git-documentdb.syncresultfastforwardmerge.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

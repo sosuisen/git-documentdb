@@ -4,12 +4,23 @@
 
 ## DatabaseInfo type
 
-Database information
+Database info
 
 <b>Signature:</b>
 
 ```typescript
-export declare type DatabaseInfo = DatabaseInfoSuccess | DatabaseInfoError;
+export declare type DatabaseInfo = {
+    db_id: string;
+    creator: string;
+    version: string;
+};
 ```
-<b>References:</b> [DatabaseInfoSuccess](./git-documentdb.databaseinfosuccess.md)<!-- -->, [DatabaseInfoError](./git-documentdb.databaseinfoerror.md)
+
+## Remarks
+
+- db\_id: ULID of the database. (See https://github.com/ulid/spec for ULID)
+
+- creator: Creator of the database. Default is 'GitDocumentDB'.
+
+- version: Version of the GitDocumentDB specification.
 
