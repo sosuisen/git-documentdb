@@ -228,15 +228,15 @@ https://github.com/sosuisen/inventory-manager
   - Synchronization with GitHub :feet:
   - Revisions :feet:
   - Automated conflict resolution :feet:
-  - Automated JSON diff and patch :dog2:(Here now)
-- v0.4 Backup general data types by Git
-  - GitHub with SSH key pair
+  - Automated JSON diff and patch :feet:
+  - Automated combine inconsistent repositories :dog2:(Here now)
+- v0.4 Work on both Node.js and browser
+  - Connect with SSH key pair
+  - Connect to GitHub with OAuth
+
+- until v1.0
   - Operate other data types
   - Replication
-- v0.5 Work on both Node.js and browser
-  - OAuth
-
-- v1.0
   - Grep
   - Transaction (bulk)
   - Tag (Redo/Undo)
