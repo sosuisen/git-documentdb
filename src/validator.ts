@@ -308,16 +308,7 @@ export class Validator {
    *
    * _id = collectionPath + fileName (not including postfix '.json')
    *
-   * @remarks
-   *```
-   * * It must have an '_id' key that shows id of a document
-   *   - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
-   *   - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
-   *   - _id cannot start or end with a slash.
-   *   - _id can include paths separated by slashes.
-   *   - A directory name in paths cannot end with a period or a white space.
-   *   - A directory name in paths does not allow '.' and '..'.
-   *```
+   * @remarks Spec of _id is described at {@link JsonDoc}.
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
