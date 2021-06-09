@@ -184,8 +184,8 @@ export class JsonPatchOT implements IJsonPatch {
 
   // eslint-disable-next-line complexity
   resolveConflict (
-    _opOurs: JSONOp,
-    _opTheirs: JSONOp,
+    opOurs: JSONOp,
+    opTheirs: JSONOp,
     strategy: ConflictResolutionStrategyLabels
   ): [JSONOp, JSONOp, JSONOp | undefined] {
     let transformedOp;
@@ -193,10 +193,10 @@ export class JsonPatchOT implements IJsonPatch {
       // console.log('trying ours: ' + JSON.stringify(_opOurs));
       // console.log('trying theirs: ' + JSON.stringify(_opTheirs));
       if (strategy.startsWith('ours')) {
-        transformedOp = type.transform(_opTheirs, _opOurs, 'right');
+        transformedOp = type.transform(opTheirs, opOurs, 'right');
       }
       else {
-        transformedOp = type.transform(_opOurs, _opTheirs, 'right');
+        transformedOp = type.transform(opOurs, opTheirs, 'right');
       }
     } catch (err) {
       if (err.conflict) {
@@ -209,11 +209,11 @@ export class JsonPatchOT implements IJsonPatch {
         if (strategy.startsWith('ours')) {
           // NOTE: op1 is opTheirs, op2 is opOurs
           conflictedOperation = conflict.op1;
-          targetOperations = JSON.parse(JSON.stringify(_opTheirs));
+          targetOperations = JSON.parse(JSON.stringify(opTheirs));
         }
         else {
           conflictedOperation = conflict.op2;
-          targetOperations = JSON.parse(JSON.stringify(_opOurs));
+          targetOperations = JSON.parse(JSON.stringify(opOurs));
         }
         // Location is array.
         const conflictedLocation = conflictedOperation.slice(0, -1);
@@ -265,15 +265,15 @@ export class JsonPatchOT implements IJsonPatch {
           }
         }
         if (strategy.startsWith('ours')) {
-          return [JSON.parse(JSON.stringify(_opOurs)), targetOperations, undefined];
+          return [JSON.parse(JSON.stringify(opOurs)), targetOperations, undefined];
         }
-        return [targetOperations, JSON.parse(JSON.stringify(_opTheirs)), undefined];
+        return [targetOperations, JSON.parse(JSON.stringify(opTheirs)), undefined];
       }
       throw err;
     }
     return [
-      JSON.parse(JSON.stringify(_opOurs)),
-      JSON.parse(JSON.stringify(_opTheirs)),
+      JSON.parse(JSON.stringify(opOurs)),
+      JSON.parse(JSON.stringify(opTheirs)),
       transformedOp,
     ];
   }

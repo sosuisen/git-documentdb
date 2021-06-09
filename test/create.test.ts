@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -18,8 +19,9 @@ import {
   UndefinedDatabaseNameError,
   WorkingDirectoryExistsError,
 } from '../src/error';
-import { DATABASE_CREATOR, DATABASE_VERSION, GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/index';
 import { Validator } from '../src/validator';
+import { DATABASE_CREATOR, DATABASE_VERSION } from '../src/const';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs_module = require('fs-extra');
 
@@ -51,7 +53,7 @@ describe('<index>', () => {
     it('new', () => {
       expect(() => {
         // eslint-disable-next-line no-new
-        new GitDocumentDB({ db_name: 'db', local_dir: 'C:\\dir01\\dir02' });
+        new GitDocumentDB({ dbName: 'db', localDir: 'C:\\dir01\\dir02' });
       }).not.toThrowError();
     });
 
@@ -77,8 +79,8 @@ describe('<index>', () => {
       let gitddb: GitDocumentDB;
       expect(() => {
         gitddb = new GitDocumentDB({
-          db_name: dbName,
-          local_dir: localDir,
+          dbName,
+          localDir,
         });
       }).not.toThrowError();
       // @ts-ignore
@@ -90,8 +92,8 @@ describe('<index>', () => {
       expect(() => {
         // eslint-disable-next-line no-new
         new GitDocumentDB({
-          db_name: dbName,
-          local_dir: localDir,
+          dbName,
+          localDir,
         });
       }).toThrowError(InvalidWorkingDirectoryPathLengthError);
     });
@@ -100,9 +102,9 @@ describe('<index>', () => {
       expect(() => {
         /* eslint-disable-next-line no-new */ // @ts-ignore
         new GitDocumentDB({
-          db_name:
+          dbName:
             '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
-          local_dir:
+          localDir:
             '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
         });
       }).toThrowError(InvalidWorkingDirectoryPathLengthError);
@@ -128,8 +130,8 @@ describe('<index>', () => {
         });
       }
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: readonlyDir + 'database',
+        dbName,
+        localDir: readonlyDir + 'database',
       });
       // You don't have permission
       await expect(gitDDB.createDB()).rejects.toThrowError(CannotCreateDirectoryError);
@@ -142,8 +144,8 @@ describe('<index>', () => {
       const dbName = monoId();
 
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       // Create db
@@ -159,8 +161,8 @@ describe('<index>', () => {
       const dbName = monoId();
 
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       // Create working directory
@@ -180,8 +182,8 @@ describe('<index>', () => {
       const dbName = monoId();
 
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       // Create working directory
@@ -201,8 +203,8 @@ describe('<index>', () => {
       const dbName = monoId();
 
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       // Create working directory
@@ -220,7 +222,7 @@ describe('<index>', () => {
         is_valid_version: true,
       });
 
-      expect((dbOpenResult as DatabaseInfo).db_id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
+      expect((dbOpenResult as DatabaseInfo).dbId).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
 
       // Remove working directory
       await gitDDB.destroy();
@@ -230,8 +232,8 @@ describe('<index>', () => {
       const dbName = monoId();
 
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       // Create db
@@ -246,7 +248,7 @@ describe('<index>', () => {
         is_valid_version: true,
       });
 
-      expect((dbOpenResult as DatabaseInfo).db_id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
+      expect((dbOpenResult as DatabaseInfo).dbId).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
 
       // Check if working directory exists
       expect(fs.existsSync(path.resolve(localDir, dbName))).toBeTruthy();
@@ -265,7 +267,7 @@ describe('<index>', () => {
       const dbName = monoId();
 
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
+        dbName,
       });
       const defaultLocalDir = './git-documentdb/';
       // Create db

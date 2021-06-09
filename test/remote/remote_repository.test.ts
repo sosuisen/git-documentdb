@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -69,7 +70,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -77,7 +78,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     // Remove remote
@@ -89,7 +90,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
       expect(() => {
         const repo = new RemoteRepository({
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           connection: {
             // @ts-ignore
             type: 'gitlab',
@@ -108,10 +109,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const repo = urlArray[urlArray.length - 1];
 
       await new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       }).create();
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
@@ -128,10 +129,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       remoteURL += '.git';
       await new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       }).create();
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
@@ -147,10 +148,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const repo = urlArray[urlArray.length - 1];
 
       await new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
           private: true,
         },
       }).create();
@@ -168,10 +169,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const repo = urlArray[urlArray.length - 1];
 
       await new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       }).create();
       const repos = await octokit.repos.get({ owner, repo });
@@ -188,10 +189,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const repo = urlArray[urlArray.length - 1];
 
       await new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
           private: false,
         },
       }).create();
@@ -204,10 +205,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       await expect(
         new RemoteRepository({
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           connection: {
             type: 'github',
-            personal_access_token: undefined,
+            personalAccessToken: undefined,
           },
         }).create()
       ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
@@ -218,10 +219,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       await expect(
         new RemoteRepository({
-          remote_url: readonlyURL,
+          remoteUrl: readonlyURL,
           connection: {
             type: 'github',
-            personal_access_token: token, // This is valid but for another account.
+            personalAccessToken: token, // This is valid but for another account.
           },
         }).create()
       ).rejects.toThrowError(PersonalAccessTokenForAnotherAccountError);
@@ -232,10 +233,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       await createRemoteRepository(remoteURL);
 
       const error = await new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       })
         .create()
@@ -250,7 +251,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       await expect(
         new RemoteRepository({
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           connection: {
             type: 'none',
           },
@@ -281,10 +282,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       await expect(
         new RemoteRepository({
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           connection: {
             type: 'github',
-            personal_access_token: undefined,
+            personalAccessToken: undefined,
           },
         }).destroy()
       ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
@@ -294,10 +295,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
 
       const error = await new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       })
         .destroy()
@@ -311,7 +312,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       await expect(
         new RemoteRepository({
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           connection: {
             type: 'none',
           },
@@ -325,12 +326,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -347,12 +348,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -373,12 +374,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -401,12 +402,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -416,10 +417,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
       await createRemoteRepository(remoteURL);
       const cred = createCredential({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       });
       // eslint-disable-next-line dot-notation
@@ -432,12 +433,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = 'git@github.com/xyz/' + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -447,10 +448,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
 
       const cred = createCredential({
-        remote_url: remoteURLBase + serialId(),
+        remoteUrl: remoteURLBase + serialId(),
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       });
 
@@ -466,12 +467,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = 'xttp://github.com/xyz/' + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -481,10 +482,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
 
       const cred = createCredential({
-        remote_url: remoteURLBase + serialId(),
+        remoteUrl: remoteURLBase + serialId(),
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       });
 
@@ -500,12 +501,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = 'http://github.test/xyz/' + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -515,10 +516,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
 
       const cred = createCredential({
-        remote_url: remoteURLBase + serialId(),
+        remoteUrl: remoteURLBase + serialId(),
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       });
 
@@ -534,12 +535,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = 'http://github.com/xyz/' + monoId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -549,10 +550,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
 
       const cred = createCredential({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       });
 
@@ -568,12 +569,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = 'http://github.com/xyz/' + monoId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -583,11 +584,11 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
 
       const cred = createCredential({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'ssh',
-          private_key_path: '/not/exist',
-          public_key_path: '/not/exist',
+          privateKeyPath: '/not/exist',
+          publicKeyPath: '/not/exist',
         },
       });
 
@@ -609,12 +610,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -624,10 +625,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
       await createRemoteRepository(remoteURL);
       const cred = createCredential({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       });
       // eslint-disable-next-line dot-notation
@@ -636,16 +637,16 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       destroyDBs([gitDDB]);
     });
 
-    it('throws PushPermissionDeniedError when personal_access_token is invalid', async () => {
+    it('throws PushPermissionDeniedError when personalAccessToken is invalid', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -655,10 +656,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       );
       await createRemoteRepository(remoteURL);
       const cred = createCredential({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token + '_invalid',
+          personalAccessToken: token + '_invalid',
         },
       });
       // eslint-disable-next-line dot-notation
@@ -673,12 +674,12 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = 'https://github.com/sosuisen/git-documentdb';
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
       const remoteRepos = new RemoteRepository({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
       });
       // You can test private members by array access.
       // eslint-disable-next-line dot-notation
@@ -687,10 +688,10 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         remoteURL
       );
       const cred = createCredential({
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       });
       // eslint-disable-next-line dot-notation
@@ -707,16 +708,16 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       };
       // @ts-ignore
@@ -734,16 +735,16 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const readonlyURL = 'https://github.com/sosuisen/git-documentdb';
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
-        remote_url: readonlyURL,
+        remoteUrl: readonlyURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       };
       // @ts-ignore
@@ -761,16 +762,16 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const readonlyURL = 'https://github.test/invalid/host';
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
-        remote_url: readonlyURL,
+        remoteUrl: readonlyURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       };
       // @ts-ignore
@@ -788,16 +789,16 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const readonlyURL = 'https://github.com/sosuisen/' + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
-        remote_url: readonlyURL,
+        remoteUrl: readonlyURL,
         connection: {
           type: 'github',
-          personal_access_token: token, // It is valid but for another account
+          personalAccessToken: token, // It is valid but for another account
         },
       };
       // @ts-ignore
@@ -815,16 +816,16 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const readonlyURL = 'https://github.com/sosuisen/git-documentdb';
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
 
       const remoteOptions: RemoteOptions = {
-        remote_url: readonlyURL,
+        remoteUrl: readonlyURL,
         connection: {
           type: 'github',
-          personal_access_token: token,
+          personalAccessToken: token,
         },
       };
       // @ts-ignore

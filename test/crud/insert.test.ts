@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -32,8 +33,8 @@ describe('<crud/insert> insert(JsonDoc)', () => {
   it('throws SameIdExistsError when a document which has the same id exists.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.insert({ _id: 'prof01' });
@@ -46,8 +47,8 @@ describe('<crud/insert> insert(JsonDoc)', () => {
   it('inserts a document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const json01 = { _id: 'prof01', name: 'Shirase' };
@@ -61,8 +62,8 @@ describe('<crud/insert> insert(id, document)', () => {
   it('throws SameIdExistsError when a document which has the same id exists.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.insert('prof01', { name: 'Shirase' });
@@ -75,8 +76,8 @@ describe('<crud/insert> insert(id, document)', () => {
   it('inserts a document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const json01 = { _id: 'prof01', name: 'Shirase' };

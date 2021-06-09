@@ -24,32 +24,32 @@ export async function allDocsImpl (
   if (this.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
-  const _currentRepository = this.repository();
-  if (_currentRepository === undefined) {
+  const currentRepository = this.repository();
+  if (currentRepository === undefined) {
     return Promise.reject(new RepositoryNotOpenError());
   }
 
   options ??= {
-    include_docs: undefined,
+    includeDocs: undefined,
     descending: undefined,
     recursive: undefined,
     prefix: undefined,
   };
-  options.include_docs ??= true;
+  options.includeDocs ??= true;
   options.descending ??= false;
   options.recursive ??= true;
   options.prefix ??= '';
 
   // Calling nameToId() for HEAD throws error when there is not a commit object yet.
-  const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
+  const head = await nodegit.Reference.nameToId(currentRepository, 'HEAD').catch(
     e => false
   ); // get HEAD
   if (!head) {
-    return { total_rows: 0, rows: [] };
+    return { totalRows: 0, rows: [] };
   }
 
-  const commit_sha = (head as nodegit.Oid).tostrS();
-  const commit = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+  const commitSha = (head as nodegit.Oid).tostrS();
+  const commit = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
 
   const rows: JsonDocWithMetadata[] = [];
 
@@ -82,7 +82,7 @@ export async function allDocsImpl (
       directories.push(specifiedTree);
     }
     else {
-      return { total_rows: 0, commit_sha, rows: [] };
+      return { totalRows: 0, commitSha, rows: [] };
     }
   }
   else {
@@ -137,10 +137,10 @@ export async function allDocsImpl (
         const _id = entry!.path().replace(new RegExp(JSON_EXT + '$'), '');
         const documentInBatch: JsonDocWithMetadata = {
           id: _id,
-          file_sha: entry!.id().tostrS(),
+          fileSha: entry!.id().tostrS(),
         };
 
-        if (options.include_docs) {
+        if (options.includeDocs) {
           // eslint-disable-next-line no-await-in-loop
           const blob = await entry!.getBlob();
           // eslint-disable-next-line max-depth
@@ -158,8 +158,8 @@ export async function allDocsImpl (
   }
 
   return {
-    total_rows: rows.length,
-    commit_sha,
+    totalRows: rows.length,
+    commitSha,
     rows,
   };
 }

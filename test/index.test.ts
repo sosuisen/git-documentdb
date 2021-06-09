@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -31,8 +32,8 @@ describe('<index>', () => {
   it('GitDocumentDB#dbName', () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     expect(gitDDB.dbName()).toBe(dbName);
   });

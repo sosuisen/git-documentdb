@@ -33,9 +33,9 @@ const sync_example = async () => {
   // Set options for synchronization
   const remoteOptions: RemoteOptions = {
     live: true,
-    remote_url: github_repository,
+    remoteUrl: github_repository,
     interval: 10000, // Sync every 10,000 msec
-    connection: { type: 'github', personal_access_token: your_github_personal_access_token },
+    connection: { type: 'github', personalAccessToken: your_github_personal_access_token },
   };
 
   /**
@@ -55,7 +55,7 @@ const sync_example = async () => {
   };
   // Create local database A.
   let dbA = new GitDocumentDB({
-    db_name: 'dbA',
+    dbName: 'dbA',
     schema,
   });
   /**
@@ -79,7 +79,7 @@ const sync_example = async () => {
 
   // Create local database B
   let dbB = new GitDocumentDB({
-    db_name: 'dbB',
+    dbName: 'dbB',
     schema,
   });
   const resultB = await dbB.open();

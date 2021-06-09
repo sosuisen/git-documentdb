@@ -14,7 +14,9 @@ import { DocMetadata, NormalizedCommit } from './types';
 /**
  * @internal
  */
-export const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve, msec));
+export function sleep (msec: number) {
+  return new Promise(resolve => setTimeout(resolve, msec));
+}
 
 /**
  * Returns JSON string which properties are sorted.
@@ -24,10 +26,10 @@ export const sleep = (msec: number) => new Promise(resolve => setTimeout(resolve
  * NOTE: Heading underscore cannot be the first because replacing '\uffff' with '\u0000' does not effect to sorting order.
  *
  */
-export const toSortedJSONString = (obj: Record<string, any>) => {
+export function toSortedJSONString (obj: Record<string, any>) {
   return JSON.stringify(
     obj,
-    (_k, v) =>
+    (key, v) =>
       !(Array.isArray(v) || v === null) && typeof v === 'object'
         ? Object.keys(v)
           .sort((a, b) => {
@@ -43,7 +45,7 @@ export const toSortedJSONString = (obj: Record<string, any>) => {
         : v,
     2
   );
-};
+}
 
 /**
  * Get metadata of all files from current Git index
@@ -80,7 +82,7 @@ export async function getAllMetadata (repos: nodegit.Repository) {
 
           const docMetadata: DocMetadata = {
             id,
-            file_sha: entry!.id().tostrS(),
+            fileSha: entry!.id().tostrS(),
             type: ext === '.json' ? 'json' : 'raw',
           };
           files.push(docMetadata);
@@ -94,7 +96,7 @@ export async function getAllMetadata (repos: nodegit.Repository) {
 /**
  * Get normalized commit
  */
-export function NormalizeCommit (commit: ReadCommitResult): NormalizedCommit {
+export function normalizeCommit (commit: ReadCommitResult): NormalizedCommit {
   const normalized: NormalizedCommit = {
     sha: commit.oid,
     message: commit.commit.message.trimEnd(),
@@ -124,8 +126,8 @@ export function NormalizeCommit (commit: ReadCommitResult): NormalizedCommit {
  */
 class ConsoleStyleClass {
   private _style = '';
-  constructor (_style?: string) {
-    this._style = _style ?? '';
+  constructor (style?: string) {
+    this._style = style ?? '';
   }
 
   tag = () => {
@@ -141,31 +143,37 @@ class ConsoleStyleClass {
       return result;
     };
   };
+  /*
+  bright = () => new ConsoleStyleClass(this._style + '\x1b[1m');
+  dim = () => new ConsoleStyleClass(this._style + '\x1b[2m');
+  underscore = () => new ConsoleStyleClass(this._style + '\x1b[4m');
+  blink = () => new ConsoleStyleClass(this._style + '\x1b[5m');
+  reverse = () => new ConsoleStyleClass(this._style + '\x1b[7m');
+  hidden = () => new ConsoleStyleClass(this._style + '\x1b[8m');
+  */
 
-  Bright = () => new ConsoleStyleClass(this._style + '\x1b[1m');
-  Dim = () => new ConsoleStyleClass(this._style + '\x1b[2m');
-  Underscore = () => new ConsoleStyleClass(this._style + '\x1b[4m');
-  Blink = () => new ConsoleStyleClass(this._style + '\x1b[5m');
-  Reverse = () => new ConsoleStyleClass(this._style + '\x1b[7m');
-  Hidden = () => new ConsoleStyleClass(this._style + '\x1b[8m');
+  fgBlack = () => new ConsoleStyleClass(this._style + '\x1b[30m');
+  bgWhite = () => new ConsoleStyleClass(this._style + '\x1b[47m');
 
-  FgBlack = () => new ConsoleStyleClass(this._style + '\x1b[30m');
-  FgRed = () => new ConsoleStyleClass(this._style + '\x1b[31m');
-  FgGreen = () => new ConsoleStyleClass(this._style + '\x1b[32m');
-  FgYellow = () => new ConsoleStyleClass(this._style + '\x1b[33m');
-  FgBlue = () => new ConsoleStyleClass(this._style + '\x1b[34m');
-  FgMagenta = () => new ConsoleStyleClass(this._style + '\x1b[35m');
-  FgCyan = () => new ConsoleStyleClass(this._style + '\x1b[36m');
-  FgWhite = () => new ConsoleStyleClass(this._style + '\x1b[37m');
+  fgRed = () => new ConsoleStyleClass(this._style + '\x1b[31m');
+  bgRed = () => new ConsoleStyleClass(this._style + '\x1b[41m');
+  bgGreen = () => new ConsoleStyleClass(this._style + '\x1b[42m');
+  bgYellow = () => new ConsoleStyleClass(this._style + '\x1b[43m');
 
-  BgBlack = () => new ConsoleStyleClass(this._style + '\x1b[40m');
-  BgRed = () => new ConsoleStyleClass(this._style + '\x1b[41m');
-  BgGreen = () => new ConsoleStyleClass(this._style + '\x1b[42m');
-  BgYellow = () => new ConsoleStyleClass(this._style + '\x1b[43m');
-  BgBlue = () => new ConsoleStyleClass(this._style + '\x1b[44m');
-  BgMagenta = () => new ConsoleStyleClass(this._style + '\x1b[45m');
-  BgCyan = () => new ConsoleStyleClass(this._style + '\x1b[46m');
-  BgWhite = () => new ConsoleStyleClass(this._style + '\x1b[47m');
+  /*
+  fgGreen = () => new ConsoleStyleClass(this._style + '\x1b[32m');
+  fgYellow = () => new ConsoleStyleClass(this._style + '\x1b[33m');
+  fgBlue = () => new ConsoleStyleClass(this._style + '\x1b[34m');
+  fgMagenta = () => new ConsoleStyleClass(this._style + '\x1b[35m');
+  fgCyan = () => new ConsoleStyleClass(this._style + '\x1b[36m');
+  fgWhite = () => new ConsoleStyleClass(this._style + '\x1b[37m');
+
+  bgBlack = () => new ConsoleStyleClass(this._style + '\x1b[40m');
+
+  bgBlue = () => new ConsoleStyleClass(this._style + '\x1b[44m');
+  bgMagenta = () => new ConsoleStyleClass(this._style + '\x1b[45m');
+  bgCyan = () => new ConsoleStyleClass(this._style + '\x1b[46m');
+  */
 }
 
-export const ConsoleStyle = new ConsoleStyleClass('');
+export const CONSOLE_STYLE = new ConsoleStyleClass('');

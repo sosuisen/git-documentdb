@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -39,7 +40,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -47,7 +48,7 @@ maybe('<remote/clone> cloneRepository', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     // Remove remote
@@ -57,8 +58,6 @@ maybe('<remote/clone> cloneRepository', () => {
   it('returns undefined when invalid RemoteOptions', async () => {
     // @ts-ignore
     await expect(cloneRepository('tmp')).resolves.toBeUndefined();
-    await expect(
-      cloneRepository('tmp', { remote_url: undefined })
-    ).resolves.toBeUndefined();
+    await expect(cloneRepository('tmp', { remoteUrl: undefined })).resolves.toBeUndefined();
   });
 });

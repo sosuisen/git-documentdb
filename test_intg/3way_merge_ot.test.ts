@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -58,9 +59,9 @@ afterAll(() => {
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
-//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
+//  - GITDDB_personalAccessToken: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -68,7 +69,7 @@ maybe('intg: <3way_merge_ot>', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -91,7 +92,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir,
       serialId,
       {
-        conflict_resolution_strategy: 'ours-diff',
+        conflictResolutionStrategy: 'ours-diff',
       }
     );
 
@@ -122,12 +123,12 @@ maybe('intg: <3way_merge_ot>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(2);
@@ -135,9 +136,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect.arrayContaining([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.file_sha,
+          putResultB1.fileSha,
           mergedJson,
-          mergedDoc!.file_sha
+          mergedDoc!.fileSha
         ),
         getChangedFileInsert(jsonA2, putResultA2),
       ])
@@ -148,9 +149,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect.arrayContaining([
         getChangedFileUpdateBySHA(
           jsonA1,
-          putResultA1.file_sha,
+          putResultA1.fileSha,
           mergedJson,
-          mergedDoc!.file_sha
+          mergedDoc!.fileSha
         ),
         getChangedFileInsert(jsonB3, putResultB3),
       ])
@@ -161,7 +162,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           id: '1',
-          file_sha: mergedDoc!.file_sha,
+          fileSha: mergedDoc!.fileSha,
         },
         strategy: 'ours-diff',
         operation: 'insert-merge',
@@ -195,7 +196,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir,
       serialId,
       {
-        conflict_resolution_strategy: 'theirs-diff',
+        conflictResolutionStrategy: 'theirs-diff',
       }
     );
 
@@ -219,14 +220,14 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(
           0,
           7
         )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(
           0,
           7
         )},theirs-diff)`,
@@ -236,9 +237,9 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.changes.local).toEqual([
       getChangedFileUpdateBySHA(
         jsonB1,
-        putResultB1!.file_sha,
+        putResultB1!.fileSha,
         mergedJson,
-        mergedDoc!.file_sha
+        mergedDoc!.fileSha
       ),
     ]);
 
@@ -249,7 +250,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           id: '1',
-          file_sha: mergedDoc!.file_sha,
+          fileSha: mergedDoc!.fileSha,
         },
         strategy: 'theirs-diff',
         operation: 'insert-merge',
@@ -277,7 +278,7 @@ maybe('intg: <3way_merge_ot>', () => {
    */
   it('resolves case 8 - Conflict. Accept ours (delete)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours-diff',
+      conflictResolutionStrategy: 'ours-diff',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -286,8 +287,8 @@ maybe('intg: <3way_merge_ot>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir: localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -306,11 +307,11 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -325,7 +326,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           id: '1',
-          file_sha: deleteResultB1.file_sha,
+          fileSha: deleteResultB1.fileSha,
         },
         strategy: 'ours-diff',
         operation: 'delete',
@@ -357,7 +358,7 @@ maybe('intg: <3way_merge_ot>', () => {
    */
   it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (insert), ', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours-diff',
+      conflictResolutionStrategy: 'ours-diff',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -366,8 +367,8 @@ maybe('intg: <3way_merge_ot>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir: localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -389,11 +390,11 @@ maybe('intg: <3way_merge_ot>', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -407,7 +408,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours-diff',
         operation: 'update',
@@ -445,7 +446,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir,
       serialId,
       {
-        conflict_resolution_strategy: 'theirs-diff',
+        conflictResolutionStrategy: 'theirs-diff',
       },
       schema
     );
@@ -456,14 +457,14 @@ maybe('intg: <3way_merge_ot>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir: localDir,
       schema,
     });
     // Clone dbA
     await dbB.createDB({
       ...remoteA.options(),
-      conflict_resolution_strategy: 'theirs-diff',
+      conflictResolutionStrategy: 'theirs-diff',
     });
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
@@ -487,14 +488,14 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileSha.substr(
           0,
           7
         )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.file_sha.substr(
+        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileSha.substr(
           0,
           7
         )},theirs-diff)`,
@@ -504,9 +505,9 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.changes.local).toEqual([
       getChangedFileUpdateBySHA(
         jsonB1,
-        putResultB1.file_sha,
+        putResultB1.fileSha,
         mergedJson,
-        mergedDoc!.file_sha
+        mergedDoc!.fileSha
       ),
     ]);
 
@@ -514,9 +515,9 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.changes.remote).toEqual([
       getChangedFileUpdateBySHA(
         jsonA1dash,
-        putResultA1dash.file_sha,
+        putResultA1dash.fileSha,
         mergedJson,
-        mergedDoc!.file_sha
+        mergedDoc!.fileSha
       ),
     ]);
 
@@ -525,7 +526,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           id: '1',
-          file_sha: mergedDoc!.file_sha,
+          fileSha: mergedDoc!.fileSha,
         },
         strategy: 'theirs-diff',
         operation: 'update-merge',
@@ -563,7 +564,7 @@ maybe('intg: <3way_merge_ot>', () => {
         localDir,
         serialId,
         {
-          conflict_resolution_strategy: 'ours-diff',
+          conflictResolutionStrategy: 'ours-diff',
         },
         schema
       );
@@ -575,14 +576,14 @@ maybe('intg: <3way_merge_ot>', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir: localDir,
         schema,
       });
       // Clone dbA
       await dbB.createDB({
         ...remoteA.options(),
-        conflict_resolution_strategy: 'ours-diff',
+        conflictResolutionStrategy: 'ours-diff',
       });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
@@ -605,9 +606,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.file_sha,
+          putResultB1.fileSha,
           mergedJson,
-          mergedDoc!.file_sha
+          mergedDoc!.fileSha
         ),
       ]);
       await destroyDBs([dbA, dbB]);
@@ -631,7 +632,7 @@ maybe('intg: <3way_merge_ot>', () => {
         localDir,
         serialId,
         {
-          conflict_resolution_strategy: 'ours-diff',
+          conflictResolutionStrategy: 'ours-diff',
         },
         schema
       );
@@ -643,14 +644,14 @@ maybe('intg: <3way_merge_ot>', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir: localDir,
         schema,
       });
       // Clone dbA
       await dbB.createDB({
         ...remoteA.options(),
-        conflict_resolution_strategy: 'ours-diff',
+        conflictResolutionStrategy: 'ours-diff',
       });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
@@ -673,9 +674,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.file_sha,
+          putResultB1.fileSha,
           mergedJson,
-          mergedDoc!.file_sha
+          mergedDoc!.fileSha
         ),
       ]);
       await destroyDBs([dbA, dbB]);
@@ -699,7 +700,7 @@ maybe('intg: <3way_merge_ot>', () => {
         localDir,
         serialId,
         {
-          conflict_resolution_strategy: 'ours-diff',
+          conflictResolutionStrategy: 'ours-diff',
         },
         schema
       );
@@ -711,14 +712,14 @@ maybe('intg: <3way_merge_ot>', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir: localDir,
         schema,
       });
       // Clone dbA
       await dbB.createDB({
         ...remoteA.options(),
-        conflict_resolution_strategy: 'ours-diff',
+        conflictResolutionStrategy: 'ours-diff',
       });
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
@@ -742,9 +743,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.file_sha,
+          putResultB1.fileSha,
           mergedJson,
-          mergedDoc!.file_sha
+          mergedDoc!.fileSha
         ),
       ]);
       await destroyDBs([dbA, dbB]);

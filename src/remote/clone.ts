@@ -35,8 +35,8 @@ export async function cloneRepository (
   });
   if (
     remoteOptions !== undefined &&
-    remoteOptions.remote_url !== undefined &&
-    remoteOptions.remote_url !== ''
+    remoteOptions.remoteUrl !== undefined &&
+    remoteOptions.remoteUrl !== ''
   ) {
     /**
      * Retry if network errors.
@@ -51,30 +51,28 @@ export async function cloneRepository (
     let retry = 0;
     for (; retry < NETWORK_RETRY; retry++) {
       // eslint-disable-next-line no-await-in-loop
-      result = await checkHTTP(remoteOptions.remote_url!, NETWORK_TIMEOUT).catch(
-        err => err
-      );
+      result = await checkHTTP(remoteOptions.remoteUrl!, NETWORK_TIMEOUT).catch(err => err);
       if (result.ok) {
         break;
       }
       else {
-        logger.debug(`NetworkError in cloning: ${remoteOptions.remote_url}, ` + result);
+        logger.debug(`NetworkError in cloning: ${remoteOptions.remoteUrl}, ` + result);
       }
       // eslint-disable-next-line no-await-in-loop
       await sleep(NETWORK_RETRY_INTERVAL);
     }
     if (!result.ok) {
       // Set retry number for code test
-      throw new CannotConnectError(retry, remoteOptions.remote_url, result.toString());
+      throw new CannotConnectError(retry, remoteOptions.remoteUrl, result.toString());
     }
 
-    return await nodegit.Clone.clone(remoteOptions.remote_url, workingDir, {
+    return await nodegit.Clone.clone(remoteOptions.remoteUrl, workingDir, {
       fetchOpts: {
         callbacks: createCredential(remoteOptions),
       },
     }).catch(err => {
       // Errors except CannotConnectError are handled in sync().
-      logger!.debug(`Error in cloning: ${remoteOptions.remote_url}, ` + err);
+      logger!.debug(`Error in cloning: ${remoteOptions.remoteUrl}, ` + err);
       // The db will try to create remote repository in sync() if 'undefined' is returned.
       return undefined;
     });

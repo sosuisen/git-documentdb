@@ -30,11 +30,11 @@ export class JsonDiff {
     });
   }
 
-  diff (_oldDoc: JsonDoc | undefined, _newDoc: JsonDoc): { [key: string]: any } {
-    if (_oldDoc === undefined) _oldDoc = {};
-    const oldDoc = JSON.parse(JSON.stringify(_oldDoc));
-    const newDoc = JSON.parse(JSON.stringify(_newDoc));
-    const diff = (this._jsonDiffPatch.diff(oldDoc, newDoc) as unknown) as {
+  diff (oldDoc: JsonDoc | undefined, newDoc: JsonDoc): { [key: string]: any } {
+    if (oldDoc === undefined) oldDoc = {};
+    const oldDocClone = JSON.parse(JSON.stringify(oldDoc));
+    const newDocClone = JSON.parse(JSON.stringify(newDoc));
+    const diff = (this._jsonDiffPatch.diff(oldDocClone, newDocClone) as unknown) as {
       [key: string]: any;
     };
     return diff;

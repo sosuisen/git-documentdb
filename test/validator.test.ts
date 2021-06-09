@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -39,8 +40,8 @@ afterAll(() => {
 describe('<validator>', () => {
   const dbName = 'test_repos_1';
   const gitDDB: GitDocumentDB = new GitDocumentDB({
-    db_name: dbName,
-    local_dir: localDir,
+    dbName,
+    localDir,
   });
   const validator = new Validator(gitDDB.workingDir());
 
@@ -267,33 +268,33 @@ describe('<validator>', () => {
     expect(validator.testWindowsInvalidFileNameCharacter('C:¥dir01¥dir02')).toBeFalsy();
 
     expect(
-      validator.testWindowsInvalidFileNameCharacter('dir01/dir02', { allow_slash: true })
+      validator.testWindowsInvalidFileNameCharacter('dir01/dir02', { allowSlash: true })
     ).toBeTruthy();
     expect(
-      validator.testWindowsInvalidFileNameCharacter('dir01\\dir02', { allow_slash: true })
+      validator.testWindowsInvalidFileNameCharacter('dir01\\dir02', { allowSlash: true })
     ).toBeTruthy();
     expect(
       validator.testWindowsInvalidFileNameCharacter('C:/dir01', {
-        allow_drive_letter: true,
-        allow_slash: true,
+        allowDriveLetter: true,
+        allowSlash: true,
       })
     ).toBeTruthy();
     expect(
       validator.testWindowsInvalidFileNameCharacter('C:/dir01/dir02', {
-        allow_drive_letter: true,
-        allow_slash: true,
+        allowDriveLetter: true,
+        allowSlash: true,
       })
     ).toBeTruthy();
     expect(
       validator.testWindowsInvalidFileNameCharacter('C:\\dir01\\dir02', {
-        allow_drive_letter: true,
-        allow_slash: true,
+        allowDriveLetter: true,
+        allowSlash: true,
       })
     ).toBeTruthy();
     expect(
       validator.testWindowsInvalidFileNameCharacter('C:¥dir01¥dir02', {
-        allow_drive_letter: true,
-        allow_slash: true,
+        allowDriveLetter: true,
+        allowSlash: true,
       })
     ).toBeTruthy();
 

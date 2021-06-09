@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -46,8 +47,8 @@ describe('<task_queue>', () => {
   it('increments statistics: put', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.put({ _id: '01' });
@@ -62,8 +63,8 @@ describe('<task_queue>', () => {
   it('increments statistics: insert', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.insert({ _id: '01' });
@@ -78,8 +79,8 @@ describe('<task_queue>', () => {
   it('increments statistics: update', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.insert({ _id: '01' });
@@ -93,8 +94,8 @@ describe('<task_queue>', () => {
   it('increments statistics: delete', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.insert({ _id: '01' });
@@ -113,8 +114,8 @@ describe('<task_queue>', () => {
   it('returns length', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     gitDDB.insert({ _id: '01' });
@@ -128,8 +129,8 @@ describe('<task_queue>', () => {
   it('returns currentTaskId', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     gitDDB.insert(
@@ -172,8 +173,8 @@ describe('<task_queue>', () => {
   it('clear() statistics', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.insert({ _id: '01' });
@@ -207,8 +208,8 @@ describe('<task_queue>', () => {
   it('sets ordered enqueueTime', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const promiseList: Promise<TaskMetadata>[] = [];
@@ -248,8 +249,8 @@ describe('<task_queue>', () => {
   it('invokes enqueueCallback with ordered enqueueTime', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const promiseList: Promise<TaskMetadata>[] = [];
@@ -291,7 +292,7 @@ describe('<task_queue>', () => {
 });
 
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -299,7 +300,7 @@ maybe('<task_queue> remote', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);

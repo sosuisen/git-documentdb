@@ -9,7 +9,7 @@
 import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
-import { ConsoleStyle } from '../utils';
+import { CONSOLE_STYLE } from '../utils';
 import { GitPushError, SyncWorkerFetchError, UnfetchedCommitExistsError } from '../error';
 import { IDocumentDB } from '../types_gitddb';
 import { NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
@@ -28,7 +28,7 @@ async function push (gitDDB: IDocumentDB, sync: ISync): Promise<void> {
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
     .push(['refs/heads/main:refs/heads/main'], {
-      callbacks: sync.credential_callbacks,
+      callbacks: sync.credentialCallbacks,
     })
     .catch((err: Error) => {
       if (
@@ -40,7 +40,7 @@ async function push (gitDDB: IDocumentDB, sync: ISync): Promise<void> {
       }
       throw new GitPushError(err.message);
     });
-  // gitDDB.logger.debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
+  // gitDDB.logger.debug(CONSOLE_STYLE.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
   await validatePushResult(gitDDB, sync);
 }
 
@@ -55,7 +55,7 @@ async function validatePushResult (gitDDB: IDocumentDB, sync: ISync): Promise<vo
   const repos = gitDDB.repository()!;
   await repos
     .fetch('origin', {
-      callbacks: sync.credential_callbacks,
+      callbacks: sync.credentialCallbacks,
     })
     .catch(err => {
       throw new SyncWorkerFetchError(err.message);
@@ -77,8 +77,8 @@ async function validatePushResult (gitDDB: IDocumentDB, sync: ISync): Promise<vo
     gitDDB
       .getLogger()
       .debug(
-        ConsoleStyle.BgWhite()
-          .FgBlack()
+        CONSOLE_STYLE.bgWhite()
+          .fgBlack()
           .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
       );
 
@@ -95,7 +95,7 @@ async function validatePushResult (gitDDB: IDocumentDB, sync: ISync): Promise<vo
  * @throws {@link InvalidJsonObjectError} (from getChanges())
  * @throws Error (Other errors from NodeGit.Remote.push())
  */
-export async function push_worker (
+export async function pushWorker (
   gitDDB: IDocumentDB,
   sync: ISync,
   taskMetadata: TaskMetadata,
@@ -187,7 +187,7 @@ export async function push_worker (
 
   // Get a list of commits which will be pushed to remote.
   let commitListRemote: NormalizedCommit[] | undefined;
-  if (sync.options().include_commits) {
+  if (sync.options().includeCommits) {
     commitListRemote = await getCommitLogs(
       gitDDB.workingDir(),
       headCommitOid,

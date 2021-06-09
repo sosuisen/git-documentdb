@@ -41,7 +41,7 @@ export class RemoteRepository {
    * @throws {@link InvalidAuthenticationTypeError}
    */
   constructor (options: RemoteOptions) {
-    if (options.remote_url === undefined || options.remote_url === '') {
+    if (options.remoteUrl === undefined || options.remoteUrl === '') {
       throw new UndefinedRemoteURLError();
     }
     this._options = (JSON.parse(JSON.stringify(options)) as unknown) as RemoteOptions;
@@ -52,7 +52,7 @@ export class RemoteRepository {
     if (this._options.connection.type === 'github') {
       this._options.connection.private ??= true;
       this._octokit = new Octokit({
-        auth: this._options.connection.personal_access_token,
+        auth: this._options.connection.personalAccessToken,
       });
     }
     else if (this._options.connection.type === 'none') {
@@ -91,7 +91,7 @@ export class RemoteRepository {
       if (this._options.connection.personal_access_token === undefined) {
         throw new UndefinedPersonalAccessTokenError();
       }
-      const urlArray = this._options.remote_url!.split('/');
+      const urlArray = this._options.remoteUrl!.split('/');
       const owner = urlArray[urlArray.length - 2];
       let repo = urlArray[urlArray.length - 1];
       if (repo.endsWith('.git')) {
@@ -111,7 +111,7 @@ export class RemoteRepository {
           return err;
         });
         if (result instanceof Error) {
-          // console.log(`NetworkError in creating remote repository: ${this._options.remote_url}, ` + result);
+          // console.log(`NetworkError in creating remote repository: ${this._options.remoteUrl}, ` + result);
         }
         else {
           // Check owner name because personal access token does not check owner
@@ -124,7 +124,7 @@ export class RemoteRepository {
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new CannotConnectError(retry, this._options.remote_url!, result.message);
+        throw new CannotConnectError(retry, this._options.remoteUrl!, result.message);
       }
     }
     else {
@@ -161,7 +161,7 @@ export class RemoteRepository {
       if (this._options.connection?.personal_access_token === undefined) {
         throw new UndefinedPersonalAccessTokenError();
       }
-      const urlArray = this._options.remote_url!.split('/');
+      const urlArray = this._options.remoteUrl!.split('/');
       const owner = urlArray[urlArray.length - 2];
       let repo = urlArray[urlArray.length - 1];
       if (repo.endsWith('.git')) {
@@ -178,7 +178,7 @@ export class RemoteRepository {
           return err;
         });
         if (result instanceof Error) {
-          // console.log(`NetworkError in creating remote repository: ${this._options.remote_url}, ` + result);
+          // console.log(`NetworkError in creating remote repository: ${this._options.remoteUrl}, ` + result);
         }
         else {
           break;
@@ -187,7 +187,7 @@ export class RemoteRepository {
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new CannotConnectError(retry, this._options.remote_url!, result.message);
+        throw new CannotConnectError(retry, this._options.remoteUrl!, result.message);
       }
     }
     else {
@@ -240,12 +240,12 @@ export class RemoteRepository {
   // eslint-disable-next-line complexity
   private async _checkFetch (
     remote: nodegit.Remote,
-    credential_callbacks: { [key: string]: any }
+    credentialCallbacks: { [key: string]: any }
   ): Promise<'exist'> {
     const remoteURL = remote.url();
     const error = String(
       await remote
-        .connect(nodegit.Enums.DIRECTION.FETCH, credential_callbacks)
+        .connect(nodegit.Enums.DIRECTION.FETCH, credentialCallbacks)
         .catch(err => err)
     );
     await remote.disconnect();
@@ -286,12 +286,12 @@ export class RemoteRepository {
   // eslint-disable-next-line complexity
   private async _checkPush (
     remote: nodegit.Remote,
-    credential_callbacks: { [key: string]: any }
+    credentialCallbacks: { [key: string]: any }
   ) {
     const remoteURL = remote.url();
     const error = String(
       await remote
-        .connect(nodegit.Enums.DIRECTION.PUSH, credential_callbacks)
+        .connect(nodegit.Enums.DIRECTION.PUSH, credentialCallbacks)
         .catch(err => err)
     );
     await remote.disconnect();
@@ -339,19 +339,19 @@ export class RemoteRepository {
    */
   async connect (
     repos: nodegit.Repository,
-    credential_callbacks: { [key: string]: any },
+    credentialCallbacks: { [key: string]: any },
     onlyFetch?: boolean
   ): Promise<[GitRemoteAction, 'exist' | 'create']> {
     // Get NodeGit.Remote
     const [gitResult, remote] = await this._getOrCreateGitRemote(
       repos,
-      this._options.remote_url!
+      this._options.remoteUrl!
     );
 
     // Check fetch and push by NodeGit.Remote
     const remoteResult: 'exist' | 'create' = await this._checkFetch(
       remote,
-      credential_callbacks
+      credentialCallbacks
     ).catch(err => {
       if (
         err instanceof RemoteRepositoryNotFoundError &&
@@ -371,7 +371,7 @@ export class RemoteRepository {
     }
 
     if (!onlyFetch) {
-      await this._checkPush(remote, credential_callbacks).catch(err => {
+      await this._checkPush(remote, credentialCallbacks).catch(err => {
         throw new PushConnectionFailedError(err.message);
       });
     }

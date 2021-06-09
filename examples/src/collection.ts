@@ -10,7 +10,7 @@ import { GitDocumentDB } from 'git-documentdb';
 
 const collection_example = async () => {
   const gitDDB = new GitDocumentDB({
-    db_name: 'db_collection',
+    dbName: 'db_collection',
   });
   // Open
   const result = await gitDDB.open(); // Open a repository if exists. (/your/path/to/the/example/git-documentdb/db_collection/.git)

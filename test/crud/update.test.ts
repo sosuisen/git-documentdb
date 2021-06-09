@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -32,8 +33,8 @@ describe('<crud/update> update(JsonDoc)', () => {
   it('throws DocumentNotFoundError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await expect(gitDDB.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
@@ -45,8 +46,8 @@ describe('<crud/update> update(JsonDoc)', () => {
   it('update a document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const json01 = { _id: 'prof01', name: 'Shirase' };
@@ -62,8 +63,8 @@ describe('<crud/insert> update(id, document)', () => {
   it('throws DocumentNotFoundError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await expect(gitDDB.update('prof01', { name: 'Shirase' })).rejects.toThrowError(
@@ -75,8 +76,8 @@ describe('<crud/insert> update(id, document)', () => {
   it('update a document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const json01 = { _id: 'prof01', name: 'Shirase' };

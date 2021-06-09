@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -7,7 +8,6 @@
  */
 
 import path from 'path';
-import { deepStrictEqual } from 'assert';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
@@ -59,8 +59,8 @@ describe('<crud/get> get()', () => {
   it('returns JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
@@ -74,8 +74,8 @@ describe('<crud/get> get()', () => {
   it('returns JsonDoc in subdirectory', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
@@ -89,8 +89,8 @@ describe('<crud/get> get()', () => {
   it('throws DatabaseClosingError', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -111,8 +111,8 @@ describe('<crud/get> get()', () => {
   it('throws RepositoryNotOpenError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.close();
@@ -122,8 +122,8 @@ describe('<crud/get> get()', () => {
   it('throws UndefinedDocumentIdError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const _id = 'prof01';
@@ -135,8 +135,8 @@ describe('<crud/get> get()', () => {
   it('throws InvalidIdCharacterError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
@@ -148,8 +148,8 @@ describe('<crud/get> get()', () => {
   it('returns undefined if db does not have commits.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     // Create db without the first commit
@@ -171,8 +171,8 @@ describe('<crud/get> get()', () => {
   it('returns undefined if a document is not put.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await expect(gitDDB.get('prof01')).resolves.toBeUndefined();
@@ -182,8 +182,8 @@ describe('<crud/get> get()', () => {
   it('throws CannotGetEntryError if error occurs while reading a document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -196,13 +196,13 @@ describe('<crud/get> get()', () => {
   it('throws InvalidJsonObjectError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
     const _id = 'invalidJSON';
-    let file_sha: string;
+    let fileSha: string;
     const data = 'invalid data'; // JSON.parse() will throw error
 
     // Put data
@@ -245,8 +245,8 @@ describe('<crud/get> get()', () => {
   it('returns a document by non-ASCII _id', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
@@ -261,8 +261,8 @@ describe('<crud/get> get()', () => {
     it('throws InvalidBackNumberError when back_number is less than 0.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -278,8 +278,8 @@ describe('<crud/get> get()', () => {
     it('returns undefined when get deleted document with backNumber #0.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -299,8 +299,8 @@ describe('<crud/get> get()', () => {
     it('returns one revision before when get back number #1 of the deleted document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -319,8 +319,8 @@ describe('<crud/get> get()', () => {
     it('returns two revisions before when get back number #2 of the deleted document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -339,8 +339,8 @@ describe('<crud/get> get()', () => {
     it('returns an old revision after a document was deleted and created again.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -360,8 +360,8 @@ describe('<crud/get> get()', () => {
     it('returns undefined when get document with backNumber that does not exist (1)', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -381,8 +381,8 @@ describe('<crud/get> get()', () => {
     it('returns undefined when get document with backNumber that does not exist (2)', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -401,8 +401,8 @@ describe('<crud/get> get()', () => {
     it('throws CannotGetEntryError when error occurs while reading a document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -421,8 +421,8 @@ describe('<crud/get> get()', () => {
     it('throws CorruptedRepositoryError when target blob does not exist.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -432,8 +432,8 @@ describe('<crud/get> get()', () => {
       const jsonA02 = { _id: _idA, name: 'v02' };
       await gitDDB.put(jsonA02);
 
-      const dirName = putResult.file_sha.substr(0, 2);
-      const fileName = putResult.file_sha.substr(2);
+      const dirName = putResult.fileSha.substr(0, 2);
+      const fileName = putResult.fileSha.substr(2);
       const fullPath = path.resolve(gitDDB.workingDir(), '.git/objects', dirName, fileName);
       fs.removeSync(fullPath);
 
@@ -448,15 +448,15 @@ describe('<crud/get> getByRevision()', () => {
   it('returns the specified document', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
     const _id = 'prof01';
     const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get by revision
-    await expect(gitDDB.getByRevision(putResult.file_sha)).resolves.toEqual({
+    await expect(gitDDB.getByRevision(putResult.fileSha)).resolves.toEqual({
       _id: _id,
       name: 'shirase',
     });
@@ -466,8 +466,8 @@ describe('<crud/get> getByRevision()', () => {
   it('throws DatabaseClosingError', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -491,8 +491,8 @@ describe('<crud/get> getByRevision()', () => {
   it('throws RepositoryNotOpenError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.close();
@@ -504,8 +504,8 @@ describe('<crud/get> getByRevision()', () => {
   it('throws UndefinedFileSHAError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     // @ts-ignore
@@ -518,8 +518,8 @@ describe('<crud/get> getByRevision()', () => {
   it('throws InvalidFileSHAFormatError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     // @ts-ignore
@@ -532,8 +532,8 @@ describe('<crud/get> getByRevision()', () => {
   it('returns undefined', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
@@ -549,8 +549,8 @@ describe('<crud/get> getByRevision()', () => {
   it('throws CannotGetEntryError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -565,13 +565,13 @@ describe('<crud/get> getByRevision()', () => {
   it('throws InvalidJsonObjectError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
     const _id = 'invalidJSON';
-    let file_sha: string;
+    let fileSha: string;
     const data = 'invalid data'; // JSON.parse() will throw error
 
     // Put data
@@ -622,8 +622,8 @@ describe('<crud/get> getByRevision()', () => {
     it('returns JsonDoc with metadata', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -632,7 +632,7 @@ describe('<crud/get> getByRevision()', () => {
       // Get
       await expect(gitDDB.getDocWithMetaData(_id)).resolves.toEqual({
         id: _id,
-        file_sha: putResult.file_sha,
+        fileSha: putResult.fileSha,
         doc: { _id: _id, name: 'shirase' },
       });
       await gitDDB.destroy();
@@ -641,8 +641,8 @@ describe('<crud/get> getByRevision()', () => {
     it('returns backNumber#1 with metadata', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -652,7 +652,7 @@ describe('<crud/get> getByRevision()', () => {
       // Get
       await expect(gitDDB.getDocWithMetaData(_id, 1)).resolves.toEqual({
         id: _id,
-        file_sha: putResult.file_sha,
+        fileSha: putResult.fileSha,
         doc: { _id: _id, name: '1' },
       });
       await gitDDB.destroy();

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -11,16 +12,15 @@ import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
 import { CannotOpenRepositoryError, RepositoryNotFoundError } from '../src/error';
+import { generateDatabaseId, GitDocumentDB } from '../src/index';
+import { putWorker } from '../src/crud/put';
+import { DatabaseInfo, DatabaseInfoError, DatabaseOpenResult } from '../src/types';
 import {
   DATABASE_CREATOR,
   DATABASE_VERSION,
-  generateDatabaseId,
   GIT_DOCUMENTDB_INFO_ID,
-  GitDocumentDB,
-} from '../src/index';
-import { put_worker } from '../src/crud/put';
-import { DatabaseInfo, DatabaseInfoError, DatabaseOpenResult } from '../src/types';
-import { JSON_EXT } from '../src/const';
+  JSON_EXT,
+} from '../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -46,8 +46,8 @@ describe('<index> open()', () => {
   it('throws RepositoryNotFoundError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     const dbOpenResult: DatabaseOpenResult = await gitDDB.open();
     expect((dbOpenResult as DatabaseInfoError).error).toBeInstanceOf(
@@ -58,8 +58,8 @@ describe('<index> open()', () => {
   it('throws CannotOpenRepositoryError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     // Create empty .git directory
     await fs.ensureDir(gitDDB.workingDir() + '/.git/');
@@ -72,8 +72,8 @@ describe('<index> open()', () => {
   it('opens an existing repository.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     // Create db
@@ -86,7 +86,7 @@ describe('<index> open()', () => {
     const dbOpenResult = await gitDDB.open();
     expect(dbOpenResult).toEqual({
       ok: true,
-      db_id: oldResult.db_id,
+      db_id: oldResult.dbId,
       creator: DATABASE_CREATOR,
       version: DATABASE_VERSION,
       is_new: false,
@@ -104,8 +104,8 @@ describe('<index> open()', () => {
   it('opens a repository created by another app.', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await fs.ensureDir(gitDDB.workingDir());
 
@@ -116,7 +116,7 @@ describe('<index> open()', () => {
     await gitDDB.open();
     // put another app
     const creator = 'Another App';
-    await put_worker(
+    await putWorker(
       gitDDB,
       GIT_DOCUMENTDB_INFO_ID,
       JSON_EXT,
@@ -130,7 +130,7 @@ describe('<index> open()', () => {
     const dbOpenResult = await gitDDB.open();
     expect(dbOpenResult).toEqual({
       ok: true,
-      db_id: (dbOpenResult as DatabaseInfo).db_id,
+      db_id: (dbOpenResult as DatabaseInfo).dbId,
       creator,
       version: '',
       is_new: false,
@@ -144,8 +144,8 @@ describe('<index> open()', () => {
   it('opens a repository created by another version.', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     // Create empty repository
@@ -154,7 +154,7 @@ describe('<index> open()', () => {
     });
     await gitDDB.open();
     // First commit with another db version
-    await put_worker(
+    await putWorker(
       gitDDB,
       GIT_DOCUMENTDB_INFO_ID,
       JSON_EXT,
@@ -170,7 +170,7 @@ describe('<index> open()', () => {
     const dbOpenResult = await gitDDB.open();
     expect(dbOpenResult).toMatchObject({
       ok: true,
-      db_id: (dbOpenResult as DatabaseInfo).db_id,
+      db_id: (dbOpenResult as DatabaseInfo).dbId,
       creator: DATABASE_CREATOR,
       version: '0.01',
       is_new: false,
@@ -184,8 +184,8 @@ describe('<index> open()', () => {
   it('returns new db_id when opens db without db_id.', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     // Create empty repository
     await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
@@ -196,7 +196,7 @@ describe('<index> open()', () => {
 
     const prevDbId = gitDDB.dbId();
     // First commit with another db version
-    await put_worker(
+    await putWorker(
       gitDDB,
       GIT_DOCUMENTDB_INFO_ID,
       JSON_EXT,
@@ -210,7 +210,7 @@ describe('<index> open()', () => {
     await gitDDB.close();
 
     const dbOpenResult = await gitDDB.open();
-    const newDbId = (dbOpenResult as DatabaseInfo).db_id;
+    const newDbId = (dbOpenResult as DatabaseInfo).dbId;
 
     expect(newDbId).not.toBe(prevDbId);
     expect(dbOpenResult).toMatchObject({
@@ -228,8 +228,8 @@ describe('<index> open()', () => {
   it('opens db twice.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     // Create db

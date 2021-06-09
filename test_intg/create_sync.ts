@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -44,7 +45,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -52,7 +53,7 @@ maybe('intg: <create_sync>: create DB with Sync: ', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     // Remove remote
@@ -66,12 +67,12 @@ maybe('intg: <create_sync>: create DB with Sync: ', () => {
       const dbNameA = serialId();
 
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
+        dbName: dbNameA,
+        localDir: localDir,
       });
       const options: RemoteOptions = {
-        remote_url: remoteURL,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        connection: { type: 'github', personalAccessToken: token },
       };
       // Check dbInfo
       await expect(dbA.createDB(options)).resolves.toMatchObject({
@@ -96,13 +97,13 @@ maybe('intg: <create_sync>: create DB with Sync: ', () => {
     it('throws CannotConnectError and retries in cloning', async () => {
       const remoteURL = 'https://xyz.invalid/xyz/https_repos';
       const options: RemoteOptions = {
-        remote_url: remoteURL,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        connection: { type: 'github', personalAccessToken: token },
       };
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
+        dbName: dbNameA,
+        localDir: localDir,
       });
       await expect(dbA.createDB(options)).rejects.toThrowError(CannotConnectError);
       await dbA.destroy();

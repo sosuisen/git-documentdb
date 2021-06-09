@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -37,8 +38,8 @@ describe('<index> destroy()', () => {
     const dbName = monoId();
 
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const workingDir = gitDDB.workingDir();
@@ -54,8 +55,8 @@ describe('<index> destroy()', () => {
     const dbName = monoId();
 
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     // Create db
@@ -73,8 +74,8 @@ describe('<index> destroy()', () => {
   it('throws DatabaseCloseTimeoutError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 

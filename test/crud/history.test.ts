@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -54,8 +55,8 @@ describe('<crud/history> getDocHistory()', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
@@ -88,8 +89,8 @@ describe('<crud/history> getDocHistory()', () => {
   it('gets empty revision', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     await gitDDB.createDB();
@@ -106,8 +107,8 @@ describe('<crud/history> getDocHistory()', () => {
   it('throws DatabaseClosingError', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -129,8 +130,8 @@ describe('<crud/history> getDocHistory()', () => {
   it('throws RepositoryNotOpenError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.close();
@@ -140,8 +141,8 @@ describe('<crud/history> getDocHistory()', () => {
   it('throws UndefinedDocumentIdError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     // @ts-ignore
@@ -153,8 +154,8 @@ describe('<crud/history> getDocHistory()', () => {
   it('throws DocumentNotFoundError if db does not have commits.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
 
     // Create db without the first commit
@@ -176,8 +177,8 @@ describe('<crud/history> getDocHistory()', () => {
   it('throws CannotGetEntryError if error occurs while reading a document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -192,8 +193,8 @@ describe('<crud/history> getBackNumber()', () => {
   it('throws RepositoryNotOpenError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     await gitDDB.close();
@@ -205,8 +206,8 @@ describe('<crud/history> getBackNumber()', () => {
   it('throws CannotGetEntryError if error occurs while reading a document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -219,8 +220,8 @@ describe('<crud/history> getBackNumber()', () => {
   it('returns undefined when the backNumber#0 does not exist', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -232,8 +233,8 @@ describe('<crud/history> getBackNumber()', () => {
   it('returns undefined when the backNumber#1 does not exist', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -245,33 +246,33 @@ describe('<crud/history> getBackNumber()', () => {
   it('returns backNumber#0', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const putResult = await gitDDB.put({ _id: 'tmp', name: 0 });
-    await expect(getBackNumber(gitDDB, 'tmp.json', 0)).resolves.toBe(putResult.file_sha);
+    await expect(getBackNumber(gitDDB, 'tmp.json', 0)).resolves.toBe(putResult.fileSha);
     await gitDDB.destroy();
   });
 
   it('returns backNumber#1', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const putResult = await gitDDB.put({ _id: 'tmp', name: 0 });
     await gitDDB.put({ _id: 'tmp', name: 1 });
-    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.file_sha);
+    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.fileSha);
     await gitDDB.destroy();
   });
 
   it('returns correct backNumber when the same document is created after deleting', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const json = { _id: 'tmp', name: 0 };
@@ -279,7 +280,7 @@ describe('<crud/history> getBackNumber()', () => {
     await gitDDB.delete('tmp');
     // Create the same document again
     await gitDDB.put(json);
-    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.file_sha);
+    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.fileSha);
     await gitDDB.destroy();
   });
 });

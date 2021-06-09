@@ -11,7 +11,7 @@
  */
 import { clearInterval, setInterval } from 'timers';
 import nodegit from '@sosuisen/nodegit';
-import { ConsoleStyle, sleep } from '../utils';
+import { CONSOLE_STYLE, sleep } from '../utils';
 import {
   CombineDatabaseError,
   IntervalTooSmallError,
@@ -46,8 +46,8 @@ import {
 } from '../types';
 import { ISync } from '../types_sync';
 import { IDocumentDB } from '../types_gitddb';
-import { sync_worker } from './sync_worker';
-import { push_worker } from './push_worker';
+import { syncWorker } from './sync_worker';
+import { pushWorker } from './push_worker';
 import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
@@ -163,9 +163,9 @@ export class Sync implements ISync {
     error: [],
   };
 
-  upstream_branch = '';
+  upstreamBranch = '';
 
-  credential_callbacks: { [key: string]: any };
+  credentialCallbacks: { [key: string]: any };
   author: nodegit.Signature;
   committer: nodegit.Signature;
 
@@ -186,60 +186,60 @@ export class Sync implements ISync {
    * @throws {@link IntervalTooSmallError}
    * @throws {@link InvalidAuthenticationTypeError}
    */
-  constructor (_gitDDB: IDocumentDB, _options?: RemoteOptions) {
-    this._gitDDB = _gitDDB;
+  constructor (gitDDB: IDocumentDB, options?: RemoteOptions) {
+    this._gitDDB = gitDDB;
 
-    _options ??= {
-      remote_url: undefined,
+    options ??= {
+      remoteUrl: undefined,
       live: undefined,
-      sync_direction: undefined,
+      syncDirection: undefined,
       interval: undefined,
       retry: undefined,
-      retry_interval: undefined,
+      retryInterval: undefined,
       connection: undefined,
-      combine_db_strategy: undefined,
-      include_commits: undefined,
-      conflict_resolution_strategy: undefined,
+      combineDbStrategy: undefined,
+      includeCommits: undefined,
+      conflictResolutionStrategy: undefined,
     };
     // Deep clone
-    this._options = JSON.parse(JSON.stringify(_options));
+    this._options = JSON.parse(JSON.stringify(options));
     // Set function again
-    this._options.conflict_resolution_strategy = _options.conflict_resolution_strategy;
+    this._options.conflictResolutionStrategy = options.conflictResolutionStrategy;
 
-    if (this._options.remote_url === undefined || this._options.remote_url === '') {
+    if (this._options.remoteUrl === undefined || this._options.remoteUrl === '') {
       /**
        * TODO: Check upstream branch of this repository
-       * Set remote_url to the upstream branch and cloneRepository() if exists.
+       * Set remoteUrl to the upstream branch and cloneRepository() if exists.
        */
       throw new UndefinedRemoteURLError();
     }
 
     this._options.live ??= false;
-    this._options.sync_direction ??= 'both';
+    this._options.syncDirection ??= 'both';
     this._options.interval ??= DEFAULT_SYNC_INTERVAL;
-    this._options.retry_interval ??= NETWORK_RETRY_INTERVAL;
+    this._options.retryInterval ??= NETWORK_RETRY_INTERVAL;
 
     if (this._options.interval < MINIMUM_SYNC_INTERVAL) {
       throw new IntervalTooSmallError(MINIMUM_SYNC_INTERVAL, this._options.interval);
     }
-    if (this._options.interval <= this._options.retry_interval) {
+    if (this._options.interval <= this._options.retryInterval) {
       throw new SyncIntervalLessThanOrEqualToRetryIntervalError(
         this._options.interval,
-        this._options.retry_interval
+        this._options.retryInterval
       );
     }
 
     this._options.retry ??= NETWORK_RETRY;
-    this._options.combine_db_strategy ??= 'combine-head-with-theirs';
-    this._options.include_commits ??= false;
-    this._options.conflict_resolution_strategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
+    this._options.combineDbStrategy ??= 'combine-head-with-theirs';
+    this._options.includeCommits ??= false;
+    this._options.conflictResolutionStrategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
 
-    this.jsonDiff = new JsonDiff(_gitDDB.schema.json);
+    this.jsonDiff = new JsonDiff(gitDDB.schema.json);
     this.jsonPatch = new JsonPatchOT();
 
-    this.credential_callbacks = createCredential(this._options);
+    this.credentialCallbacks = createCredential(this._options);
 
-    this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
+    this.upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
 
     this.author = nodegit.Signature.now(
       this._gitDDB.gitAuthor.name,
@@ -256,7 +256,7 @@ export class Sync implements ISync {
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
     this.remoteRepository = new RemoteRepository({
-      remote_url: this._options.remote_url,
+      remoteUrl: this._options.remoteUrl,
       connection: this._options.connection,
     });
   }
@@ -268,7 +268,7 @@ export class Sync implements ISync {
    */
   async canNetworkConnection (): Promise<boolean> {
     const okOrNetworkError = await checkHTTP(
-      this._options.remote_url!,
+      this._options.remoteUrl!,
       NETWORK_TIMEOUT
     ).catch(() => {
       return { ok: false };
@@ -289,16 +289,16 @@ export class Sync implements ISync {
    *
    */
   async init (repos: nodegit.Repository): Promise<SyncResult> {
-    const onlyFetch = this._options.sync_direction === 'pull';
+    const onlyFetch = this._options.syncDirection === 'pull';
     const [gitResult, remoteResult] = await this.remoteRepository
-      .connect(this._gitDDB.repository()!, this.credential_callbacks, onlyFetch)
+      .connect(this._gitDDB.repository()!, this.credentialCallbacks, onlyFetch)
       .catch(err => {
         throw new RemoteRepositoryConnectError(err.message);
       });
     this._gitDDB.getLogger().debug('git remote: ' + gitResult);
     this._gitDDB.getLogger().debug('remote repository: ' + remoteResult);
     if (remoteResult === 'create') {
-      this.upstream_branch = '';
+      this.upstreamBranch = '';
     }
     let syncResult: SyncResult = {
       action: 'nop',
@@ -308,7 +308,7 @@ export class Sync implements ISync {
        * TODO: Implement case when sync_direction is 'pull'.
        */
     }
-    else if (this.upstream_branch === '') {
+    else if (this.upstreamBranch === '') {
       this._gitDDB.getLogger().debug('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
@@ -320,13 +320,13 @@ export class Sync implements ISync {
         await repos.getBranch(this._gitDDB.defaultBranch),
         `origin/${this._gitDDB.defaultBranch}`
       );
-      this.upstream_branch = `origin/${this._gitDDB.defaultBranch}`;
+      this.upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
     }
-    else if (this._options.sync_direction === 'push') {
+    else if (this._options.syncDirection === 'push') {
       this._gitDDB.getLogger().debug('upstream_branch exists. tryPush..');
       syncResult = await this.tryPush();
     }
-    else if (this._options.sync_direction === 'both') {
+    else if (this._options.syncDirection === 'both') {
       this._gitDDB.getLogger().debug('upstream_branch exists. trySync..');
       syncResult = await this.trySync();
     }
@@ -349,7 +349,7 @@ export class Sync implements ISync {
    *
    */
   remoteURL () {
-    return this._options.remote_url!;
+    return this._options.remoteUrl!;
   }
 
   /**
@@ -358,7 +358,7 @@ export class Sync implements ISync {
   options (): Required<RemoteOptions> {
     const newOptions: Required<RemoteOptions> = JSON.parse(JSON.stringify(this._options));
     // options include function.
-    newOptions.conflict_resolution_strategy = this._options.conflict_resolution_strategy!;
+    newOptions.conflictResolutionStrategy = this._options.conflictResolutionStrategy!;
     return newOptions;
   }
 
@@ -441,8 +441,8 @@ export class Sync implements ISync {
    */
   // eslint-disable-next-line complexity
   async tryPush (): Promise<SyncResultPush | SyncResultCancel> {
-    if (this._options.sync_direction === 'pull') {
-      throw new PushNotAllowedError(this._options.sync_direction);
+    if (this._options.syncDirection === 'pull') {
+      throw new PushNotAllowedError(this._options.syncDirection);
     }
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
@@ -462,8 +462,8 @@ export class Sync implements ISync {
       }
 
       if (error instanceof UnfetchedCommitExistsError) {
-        if (this._options.sync_direction === 'push') {
-          if (this._options.combine_db_strategy === 'replace-with-ours') {
+        if (this._options.syncDirection === 'push') {
+          if (this._options.combineDbStrategy === 'replace-with-ours') {
             // TODO: Exec replace-with-ours instead of throw error
           }
           else {
@@ -495,10 +495,10 @@ export class Sync implements ISync {
         this._gitDDB
           .getLogger()
           .debug(
-            ConsoleStyle.BgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
+            CONSOLE_STYLE.bgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
           );
         // eslint-disable-next-line no-await-in-loop
-        await sleep(this._options.retry_interval!);
+        await sleep(this._options.retryInterval!);
       }
       else {
         this._retrySyncCounter = 0;
@@ -521,8 +521,8 @@ export class Sync implements ISync {
    */
   // eslint-disable-next-line complexity
   async trySync (): Promise<SyncResult> {
-    if (this._options.sync_direction === 'pull') {
-      throw new PushNotAllowedError(this._options.sync_direction);
+    if (this._options.syncDirection === 'pull') {
+      throw new PushNotAllowedError(this._options.syncDirection);
     }
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
@@ -549,10 +549,10 @@ export class Sync implements ISync {
       }
 
       if (error instanceof NoMergeBaseFoundError) {
-        if (this._options.combine_db_strategy === 'throw-error') {
+        if (this._options.combineDbStrategy === 'throw-error') {
           throw error;
         }
-        else if (this._options.combine_db_strategy === 'combine-head-with-theirs') {
+        else if (this._options.combineDbStrategy === 'combine-head-with-theirs') {
           // return SyncResultCombineDatabase
           // eslint-disable-next-line no-await-in-loop
           const syncResultCombineDatabase = await combineDatabaseWithTheirs(
@@ -601,10 +601,10 @@ export class Sync implements ISync {
         this._gitDDB
           .getLogger()
           .debug(
-            ConsoleStyle.BgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
+            CONSOLE_STYLE.bgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
           );
         // eslint-disable-next-line no-await-in-loop
-        await sleep(this._options.retry_interval!);
+        await sleep(this._options.retryInterval!);
       }
       else {
         // Throw error
@@ -626,8 +626,8 @@ export class Sync implements ISync {
    * @throws {@link PushNotAllowedError}
    */
   enqueuePushTask (): Promise<SyncResultPush | SyncResultCancel> {
-    if (this._options.sync_direction === 'pull') {
-      throw new PushNotAllowedError(this._options.sync_direction);
+    if (this._options.syncDirection === 'pull') {
+      throw new PushNotAllowedError(this._options.syncDirection);
     }
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
@@ -638,12 +638,12 @@ export class Sync implements ISync {
       beforeReject: () => void,
       taskMetadata: TaskMetadata
     ) =>
-      push_worker(this._gitDDB, this, taskMetadata)
+      pushWorker(this._gitDDB, this, taskMetadata)
         .then((syncResultPush: SyncResultPush) => {
           this._gitDDB
             .getLogger()
             .debug(
-              ConsoleStyle.BgWhite().FgBlack().tag()`push_worker: ${JSON.stringify(
+              CONSOLE_STYLE.bgWhite().fgBlack().tag()`push_worker: ${JSON.stringify(
                 syncResultPush
               )}`
             );
@@ -706,8 +706,8 @@ export class Sync implements ISync {
    * @throws {@link PushNotAllowedError}
    */
   enqueueSyncTask (): Promise<SyncResult> {
-    if (this._options.sync_direction === 'pull') {
-      throw new PushNotAllowedError(this._options.sync_direction);
+    if (this._options.syncDirection === 'pull') {
+      throw new PushNotAllowedError(this._options.syncDirection);
     }
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
@@ -718,13 +718,13 @@ export class Sync implements ISync {
       beforeReject: () => void,
       taskMetadata: TaskMetadata
     ) =>
-      sync_worker(this._gitDDB, this, taskMetadata)
+      syncWorker(this._gitDDB, this, taskMetadata)
         // eslint-disable-next-line complexity
         .then(syncResult => {
           this._gitDDB
             .getLogger()
             .debug(
-              ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${JSON.stringify(
+              CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: ${JSON.stringify(
                 syncResult
               )}`
             );

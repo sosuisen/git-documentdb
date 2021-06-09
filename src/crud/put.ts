@@ -98,14 +98,14 @@ export function putImpl (
   data = toSortedJSONString(clone);
 
   options ??= {
-    commit_message: undefined,
+    commitMessage: undefined,
     insertOrUpdate: undefined,
     taskId: undefined,
     enqueueCallback: undefined,
   };
 
-  const commit_message =
-    options.commit_message ?? `<%insertOrUpdate%>: ${_id}${JSON_EXT}(<%file_sha%>)`;
+  const commitMessage =
+    options.commitMessage ?? `<%insertOrUpdate%>: ${_id}${JSON_EXT}(<%file_sha%>)`;
 
   const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // put() must be serial.
@@ -115,7 +115,7 @@ export function putImpl (
       taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        put_worker(this, _id, JSON_EXT, data, commit_message!, options!.insertOrUpdate)
+        putWorker(this, _id, JSON_EXT, data, commitMessage!, options!.insertOrUpdate)
           .then(result => {
             beforeResolve();
             resolve(result);
@@ -139,7 +139,7 @@ export function putImpl (
  * @throws {@link CannotCreateDirectoryError}
  * @throws {@link CannotWriteDataError}
  */
-export async function put_worker (
+export async function putWorker (
   gitDDB: IDocumentDB,
   name: string,
   extension: string,
@@ -151,12 +151,12 @@ export async function put_worker (
     throw new UndefinedDBError();
   }
 
-  const _currentRepository = gitDDB.repository();
-  if (_currentRepository === undefined) {
+  const currentRepository = gitDDB.repository();
+  if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
 
-  let file_sha, commit_sha: string;
+  let fileSha, commitSha: string;
 
   const filename = name + extension;
   const filePath = path.resolve(gitDDB.workingDir(), filename);
@@ -197,16 +197,16 @@ export async function put_worker (
     await git.add({ fs, dir: gitDDB.workingDir(), filepath: filename });
 
     const { oid } = await git.hashBlob({ object: data });
-    file_sha = oid;
+    fileSha = oid;
 
     // isomorphic-git automatically adds trailing LF to commitMessage.
     // (Trailing LFs are usually ignored when displaying git log.)
     commitMessage = commitMessage
       .replace(/<%insertOrUpdate%>/, insertOrUpdate)
-      .replace(/<%file_sha%>/, file_sha.substr(0, SHORT_SHA_LENGTH));
+      .replace(/<%file_sha%>/, fileSha.substr(0, SHORT_SHA_LENGTH));
 
     // Default ref is HEAD
-    commit_sha = await git.commit({
+    commitSha = await git.commit({
       fs,
       dir: gitDDB.workingDir(),
       author: {
@@ -226,7 +226,7 @@ export async function put_worker (
   return {
     ok: true,
     id: name,
-    file_sha: file_sha,
-    commit_sha: commit_sha,
+    fileSha,
+    commitSha,
   };
 }

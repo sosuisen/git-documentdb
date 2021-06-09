@@ -10,12 +10,8 @@ import { monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
 import AsyncLock from 'async-lock';
 import { Task, TaskMetadata, TaskStatistics } from './types';
-import { ConsoleStyle, sleep } from './utils';
+import { CONSOLE_STYLE, sleep } from './utils';
 import { ConsecutiveSyncSkippedError } from './error';
-
-// Monotonic counter
-const ulid = monotonicFactory();
-const lock = new AsyncLock();
 
 /**
  * TaskQueue
@@ -23,6 +19,10 @@ const lock = new AsyncLock();
  * @internal
  */
 export class TaskQueue {
+  // Monotonic counter
+  private _ulid = monotonicFactory();
+  private _lock = new AsyncLock();
+
   private _logger: Logger;
 
   // @ts-ignore
@@ -70,7 +70,7 @@ export class TaskQueue {
    * @remarks ID monotonically increases. It does not ensures the task order in _taskQueue.
    */
   newTaskId () {
-    return ulid(Date.now());
+    return this._ulid(Date.now());
   }
 
   /**
@@ -79,7 +79,7 @@ export class TaskQueue {
    * @remarks It ensures the task order in _taskQueue.
    */
   getEnqueueTime () {
-    return ulid(Date.now());
+    return this._ulid(Date.now());
   }
 
   /**
@@ -88,7 +88,7 @@ export class TaskQueue {
   // eslint-disable-next-line complexity
   pushToTaskQueue (task: Task) {
     // Critical section
-    lock
+    this._lock
       // eslint-disable-next-line complexity
       .acquire('taskQueue', () => {
         // Skip consecutive sync/push events
@@ -122,8 +122,8 @@ export class TaskQueue {
             task.enqueueCallback(taskMetadata);
           } catch (e) {
             this._logger.debug(
-              ConsoleStyle.BgGreen()
-                .FgRed()
+              CONSOLE_STYLE.bgGreen()
+                .fgRed()
                 .tag()`Error in enqueueCallback (id: ${task.targetId}) ${e}`
             );
           }
@@ -132,7 +132,7 @@ export class TaskQueue {
       })
       .catch(e => {
         if (e instanceof ConsecutiveSyncSkippedError) {
-          this._logger.debug(ConsoleStyle.BgGreen().FgRed().tag()`${e.message}`);
+          this._logger.debug(CONSOLE_STYLE.bgGreen().fgRed().tag()`${e.message}`);
         }
         else {
           throw e;
@@ -163,7 +163,7 @@ export class TaskQueue {
   clear () {
     // Clear not queued jobs
     // @ts-ignore
-    lock.queues.taskQueue = null;
+    this._lock.queues.taskQueue = null;
 
     // Cancel queued tasks
     this._taskQueue.forEach(task => task.cancel());
@@ -212,12 +212,12 @@ export class TaskQueue {
 
         this._isTaskQueueWorking = true;
         this._logger.debug(
-          ConsoleStyle.BgYellow().FgBlack().tag()`Start: ${label}(${targetId || ''})`
+          CONSOLE_STYLE.bgYellow().fgBlack().tag()`Start: ${label}(${targetId || ''})`
         );
 
         const beforeResolve = () => {
           this._logger.debug(
-            ConsoleStyle.BgGreen().FgBlack().tag()`End: ${label}(${targetId || ''})`
+            CONSOLE_STYLE.bgGreen().fgBlack().tag()`End: ${label}(${targetId || ''})`
           );
           this._statistics[label]++;
           this._isTaskQueueWorking = false;
@@ -225,7 +225,7 @@ export class TaskQueue {
         };
         const beforeReject = () => {
           this._logger.debug(
-            ConsoleStyle.BgGreen().FgRed().tag()`End with error: ${label}(${
+            CONSOLE_STYLE.bgGreen().fgRed().tag()`End with error: ${label}(${
               targetId || ''
             })`
           );

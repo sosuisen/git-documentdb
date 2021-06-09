@@ -37,8 +37,8 @@ export interface ISync {
   };
   jsonDiff: JsonDiff;
   jsonPatch: IJsonPatch;
-  upstream_branch: string;
-  credential_callbacks: { [key: string]: any };
+  upstreamBranch: string;
+  credentialCallbacks: { [key: string]: any };
   author: nodegit.Signature;
   committer: nodegit.Signature;
   remoteURL(): string;

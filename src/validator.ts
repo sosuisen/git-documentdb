@@ -25,8 +25,8 @@ import { CollectionPath, JsonDoc } from './types';
  */
 export class Validator {
   private _workingDirectory: string;
-  constructor (_workingDir: string) {
-    this._workingDirectory = _workingDir;
+  constructor (workingDir: string) {
+    this._workingDirectory = workingDir;
   }
 
   static byteLengthOf = (str: string) => {
@@ -107,13 +107,13 @@ export class Validator {
   testWindowsReservedFileName (
     name: string,
     options?: {
-      allow_directory_dot?: boolean;
+      allowDirectoryDot?: boolean;
     }
   ) {
     options ??= {
-      allow_directory_dot: undefined,
+      allowDirectoryDot: undefined,
     };
-    options.allow_directory_dot ??= false;
+    options.allowDirectoryDot ??= false;
 
     if (
       name.match(
@@ -122,7 +122,7 @@ export class Validator {
     ) {
       return false;
     }
-    if (!options.allow_directory_dot && (name === '.' || name === '..')) {
+    if (!options.allowDirectoryDot && (name === '.' || name === '..')) {
       return false;
     }
 
@@ -136,35 +136,35 @@ export class Validator {
   testWindowsInvalidFileNameCharacter (
     name: string,
     options?: {
-      allow_slash?: boolean;
-      allow_drive_letter?: boolean;
-      allow_directory_dot?: boolean;
-      allow_dot?: boolean;
-      allow_last_space?: boolean;
+      allowSlash?: boolean;
+      allowDriveLetter?: boolean;
+      allowDirectoryDot?: boolean;
+      allowDot?: boolean;
+      allowLastSpace?: boolean;
     }
   ) {
     options ??= {
-      allow_slash: undefined,
-      allow_drive_letter: undefined,
-      allow_directory_dot: undefined,
-      allow_dot: undefined,
-      allow_last_space: undefined,
+      allowSlash: undefined,
+      allowDriveLetter: undefined,
+      allowDirectoryDot: undefined,
+      allowDot: undefined,
+      allowLastSpace: undefined,
     };
-    options.allow_slash ??= false;
-    options.allow_drive_letter ??= false;
-    options.allow_directory_dot ??= false;
-    options.allow_dot ??= false;
-    options.allow_last_space ??= false;
+    options.allowSlash ??= false;
+    options.allowDriveLetter ??= false;
+    options.allowDirectoryDot ??= false;
+    options.allowDot ??= false;
+    options.allowLastSpace ??= false;
 
     let regStr = `<>:"|?*\0`;
-    if (!options.allow_slash) {
+    if (!options.allowSlash) {
       regStr += `/`;
       regStr += `\\\\`;
       regStr += `¥`;
     }
     const regExp = new RegExp(`[${regStr}]`);
 
-    if (options.allow_drive_letter) {
+    if (options.allowDriveLetter) {
       name = name.replace(/^[A-Za-z]:/, '');
     }
 
@@ -173,10 +173,10 @@ export class Validator {
     }
 
     // Do not end with space or period.
-    if (options.allow_dot) {
+    if (options.allowDot) {
       // nop
     }
-    else if (options.allow_directory_dot) {
+    else if (options.allowDirectoryDot) {
       if (name !== '.' && name !== '..' && name.endsWith('.')) {
         return false;
       }
@@ -185,7 +185,7 @@ export class Validator {
       return false;
     }
 
-    if (!options.allow_last_space && name.endsWith(' ')) {
+    if (!options.allowLastSpace && name.endsWith(' ')) {
       return false;
     }
     return true;
@@ -223,10 +223,10 @@ export class Validator {
       // allowDirectoryDot
       // '/./a/b/c','a/b/c/.', 'a/b/c/./' are all valid.
       if (
-        !this.testWindowsReservedFileName(part, { allow_directory_dot: true }) ||
+        !this.testWindowsReservedFileName(part, { allowDirectoryDot: true }) ||
         !this.testWindowsInvalidFileNameCharacter(part, {
-          allow_drive_letter: true,
-          allow_directory_dot: true,
+          allowDriveLetter: true,
+          allowDirectoryDot: true,
         })
       ) {
         throw new InvalidLocalDirCharacterError(part);
@@ -329,8 +329,8 @@ export class Validator {
 
     if (
       !this.testWindowsInvalidFileNameCharacter(baseName, {
-        allow_dot: true,
-        allow_last_space: true,
+        allowDot: true,
+        allowLastSpace: true,
       })
     ) {
       throw new InvalidIdCharacterError(_id);
@@ -372,22 +372,7 @@ export class Validator {
 
     const reservedKeys: { [key: string]: true } = {
       _id: true,
-      _deleted: true,
     };
-    /**
-     * NOTE: Keys which starts with underscore
-     * https://docs.couchdb.org/en/latest/api/document/common.html
-     *
-     * const reservedKeysInResponse = {
-     *  _rev: true,
-     *  _attachments: true,
-     *  _conflicts: true,
-     *  _deleted_conflicts: true,
-     *  _local_seq: true,
-     *  _revs_info: true,
-     *  _revisions: true,
-     * };
-     */
     Object.keys(doc).forEach(key => {
       if (!reservedKeys[key] && key.startsWith('_')) {
         throw new InvalidPropertyNameInDocumentError(key);

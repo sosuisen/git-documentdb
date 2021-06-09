@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -60,9 +61,9 @@ afterAll(() => {
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
-//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
+//  - GITDDB_personalAccessToken: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -70,7 +71,7 @@ maybe('<remote/3way_merge>', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -82,12 +83,12 @@ maybe('<remote/3way_merge>', () => {
       localDir,
       serialId,
       {
-        conflict_resolution_strategy: 'ours',
+        conflictResolutionStrategy: 'ours',
       }
     );
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    const commit = putResultA1.commit_sha;
+    const commit = putResultA1.commitSha;
     const index = await dbA.repository()?.refreshIndex();
     await expect(
       threeWayMerge(dbA, remoteA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
@@ -111,7 +112,7 @@ maybe('<remote/3way_merge>', () => {
       localDir,
       serialId,
       {
-        conflict_resolution_strategy: 'ours',
+        conflictResolutionStrategy: 'ours',
       }
     );
 
@@ -137,12 +138,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -161,7 +162,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -196,7 +197,7 @@ maybe('<remote/3way_merge>', () => {
       localDir,
       serialId,
       {
-        conflict_resolution_strategy: 'ours',
+        conflictResolutionStrategy: 'ours',
       }
     );
 
@@ -221,12 +222,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -241,7 +242,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -275,7 +276,7 @@ maybe('<remote/3way_merge>', () => {
       localDir,
       serialId,
       {
-        conflict_resolution_strategy: 'theirs',
+        conflictResolutionStrategy: 'theirs',
       }
     );
 
@@ -294,11 +295,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${JSON_EXT}(insert,${putResultA1.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultA1.fileSha.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(insert,${putResultA1.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultA1.fileSha.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -313,7 +314,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultA1.file_sha,
+          fileSha: putResultA1.fileSha,
         },
         strategy: 'theirs',
         operation: 'insert',
@@ -342,7 +343,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 6 - Accept both (delete), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -351,8 +352,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -379,12 +380,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         deleteResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -399,7 +400,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -430,7 +431,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 7 - Accept ours (delete), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -439,8 +440,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -464,12 +465,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -487,7 +488,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -519,7 +520,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 8 - Conflict. Accept ours (delete)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -528,8 +529,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -548,11 +549,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -567,7 +568,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: deleteResultB1.file_sha,
+          fileSha: deleteResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'delete',
@@ -600,7 +601,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 9 - Conflict. Accept ours (delete)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'theirs',
+      conflictResolutionStrategy: 'theirs',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -609,8 +610,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -629,11 +630,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
       ]),
     });
 
@@ -649,7 +650,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultA1dash.file_sha,
+          fileSha: putResultA1dash.fileSha,
         },
         strategy: 'theirs',
         operation: 'update',
@@ -678,7 +679,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 10 - Accept theirs (delete), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -687,8 +688,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -711,11 +712,11 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         deleteResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -733,7 +734,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -764,7 +765,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (insert), ', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -773,8 +774,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -796,11 +797,11 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -814,7 +815,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'update',
@@ -846,7 +847,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 12 - accept theirs (delete), case 1 - Accept theirs (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -855,11 +856,11 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
-    await dbB.createDB({ ...remoteA.options(), conflict_resolution_strategy: 'theirs' });
+    await dbB.createDB({ ...remoteA.options(), conflictResolutionStrategy: 'theirs' });
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.remove(jsonA1);
@@ -878,11 +879,11 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.fileSha.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.fileSha.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(2);
@@ -900,7 +901,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: deleteResultA1.file_sha,
+          fileSha: deleteResultA1.fileSha,
         },
         strategy: 'theirs',
         operation: 'delete',
@@ -928,7 +929,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 13 - Accept both (update), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -937,8 +938,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -965,12 +966,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2dash,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -985,7 +986,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1017,7 +1018,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 14 - Accept theirs (update), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -1026,8 +1027,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -1054,12 +1055,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2dash,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -1077,7 +1078,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1108,7 +1109,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 15 - Accept ours (update), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
@@ -1117,8 +1118,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -1146,12 +1147,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2dash,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1167,7 +1168,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1197,7 +1198,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 16 - Conflict. Accept ours (update)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1206,8 +1207,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -1228,11 +1229,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1247,7 +1248,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'update',
@@ -1277,7 +1278,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves case 17 - Conflict. Accept theirs (update)', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'theirs',
+      conflictResolutionStrategy: 'theirs',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1286,11 +1287,11 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
-    await dbB.createDB({ ...remoteA.options(), conflict_resolution_strategy: 'theirs' });
+    await dbB.createDB({ ...remoteA.options(), conflictResolutionStrategy: 'theirs' });
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -1308,11 +1309,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -1327,7 +1328,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultA1dash.file_sha,
+          fileSha: putResultA1dash.fileSha,
         },
         strategy: 'theirs',
         operation: 'update',
@@ -1357,7 +1358,7 @@ maybe('<remote/3way_merge>', () => {
    */
   it('resolves many conflicts', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: 'ours',
+      conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1370,8 +1371,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -1410,25 +1411,25 @@ maybe('<remote/3way_merge>', () => {
         putResultA3dash,
         putResultA1dash,
         deleteResultA2,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(
           0,
           7
-        )},ours), 2${JSON_EXT}(update,${putResultB2.file_sha.substr(
+        )},ours), 2${JSON_EXT}(update,${putResultB2.fileSha.substr(
           0,
           7
-        )},ours), 3${JSON_EXT}(update,${putResultB3.file_sha.substr(0, 7)},ours)`,
+        )},ours), 3${JSON_EXT}(update,${putResultB3.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB3,
         deleteResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.file_sha.substr(
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(
           0,
           7
-        )},ours), 2${JSON_EXT}(update,${putResultB2.file_sha.substr(
+        )},ours), 2${JSON_EXT}(update,${putResultB2.fileSha.substr(
           0,
           7
-        )},ours), 3${JSON_EXT}(update,${putResultB3.file_sha.substr(0, 7)},ours)`,
+        )},ours), 3${JSON_EXT}(update,${putResultB3.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1447,7 +1448,7 @@ maybe('<remote/3way_merge>', () => {
         {
           target: {
             id: '1',
-            file_sha: deleteResultB1.file_sha,
+            fileSha: deleteResultB1.fileSha,
           },
           strategy: 'ours',
           operation: 'delete',
@@ -1455,7 +1456,7 @@ maybe('<remote/3way_merge>', () => {
         {
           target: {
             id: '2',
-            file_sha: putResultB2.file_sha,
+            fileSha: putResultB2.fileSha,
           },
           strategy: 'ours',
           operation: 'update',
@@ -1463,7 +1464,7 @@ maybe('<remote/3way_merge>', () => {
         {
           target: {
             id: '3',
-            file_sha: putResultB3.file_sha,
+            fileSha: putResultB3.fileSha,
           },
           strategy: 'ours',
           operation: 'update',
@@ -1505,7 +1506,7 @@ maybe('<remote/3way_merge>', () => {
     };
 
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: userStrategyByDate,
+      conflictResolutionStrategy: userStrategyByDate,
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1514,8 +1515,8 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
     await dbB.createDB(remoteA.options());
@@ -1536,11 +1537,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.file_sha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1555,7 +1556,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultB1.file_sha,
+          fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
         operation: 'update',
@@ -1594,7 +1595,7 @@ maybe('<remote/3way_merge>', () => {
       return 'theirs';
     };
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      conflict_resolution_strategy: userStrategyByDate,
+      conflictResolutionStrategy: userStrategyByDate,
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1603,11 +1604,11 @@ maybe('<remote/3way_merge>', () => {
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     // Clone dbA
-    await dbB.createDB({ ...remoteA.options(), conflict_resolution_strategy: 'theirs' });
+    await dbB.createDB({ ...remoteA.options(), conflictResolutionStrategy: 'theirs' });
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A puts and pushes
@@ -1625,11 +1626,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.file_sha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -1644,7 +1645,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           id: '1',
-          file_sha: putResultA1dash.file_sha,
+          fileSha: putResultA1dash.fileSha,
         },
         strategy: 'theirs',
         operation: 'update',

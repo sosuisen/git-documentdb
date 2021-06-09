@@ -9,7 +9,7 @@
 import nodePath from 'path';
 import git, { ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { NormalizeCommit } from '../utils';
+import { normalizeCommit } from '../utils';
 import { JSON_EXT } from '../const';
 import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
 import { ChangedFile, JsonDoc, NormalizedCommit } from '../types';
@@ -45,11 +45,11 @@ export function getDocumentFromBuffer (filepath: string, buffer: Uint8Array) {
   return document;
 }
 
-export async function getDocument (workingDir: string, filepath: string, file_sha: string) {
+export async function getDocument (workingDir: string, filepath: string, fileSha: string) {
   const { blob } = await git.readBlob({
     fs,
     dir: workingDir,
-    oid: file_sha,
+    oid: fileSha,
   });
   return getDocumentFromBuffer(filepath, blob);
 }
@@ -72,7 +72,7 @@ export async function getChanges (
     trees: [git.TREE({ ref: oldCommitOid }), git.TREE({ ref: newCommitOid })],
     // @ts-ignore
     // eslint-disable-next-line complexity
-    map: async function (filepath, [A, B]) {
+    map: async function (filepath, [a, b]) {
       // ignore directories
       if (filepath === '.') {
         return;
@@ -86,53 +86,53 @@ export async function getChanges (
         id = id.replace(new RegExp(JSON_EXT + '$'), '');
       }
 
-      const Atype = A === null ? undefined : await A.type();
-      const Btype = B === null ? undefined : await B.type();
+      const aType = a === null ? undefined : await a.type();
+      const bType = b === null ? undefined : await b.type();
 
-      if (Atype === 'tree' || Btype === 'tree') {
+      if (aType === 'tree' || bType === 'tree') {
         return;
       }
       // generate ids
-      const Aoid = A === null ? undefined : await A.oid();
-      const Boid = B === null ? undefined : await B.oid();
+      const aOid = a === null ? undefined : await a.oid();
+      const bOid = b === null ? undefined : await b.oid();
 
       let change: ChangedFile;
-      if (Boid === undefined) {
+      if (bOid === undefined) {
         change = {
           operation: 'delete',
           old: {
             id,
-            file_sha: Aoid,
+            fileSha: aOid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, Aoid),
+            doc: await getDocument(workingDir, filepath, aOid),
           },
         };
       }
-      else if (Aoid === undefined) {
+      else if (aOid === undefined) {
         change = {
           operation: 'insert',
           new: {
             id,
-            file_sha: Boid,
+            fileSha: bOid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, Boid),
+            doc: await getDocument(workingDir, filepath, bOid),
           },
         };
       }
-      else if (Aoid !== Boid) {
+      else if (aOid !== bOid) {
         change = {
           operation: 'update',
           old: {
             id,
-            file_sha: Aoid,
+            fileSha: aOid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, Aoid),
+            doc: await getDocument(workingDir, filepath, aOid),
           },
           new: {
             id,
-            file_sha: Boid,
+            fileSha: bOid,
             // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, Boid),
+            doc: await getDocument(workingDir, filepath, bOid),
           },
         };
       }
@@ -175,15 +175,15 @@ export async function getCommitLogs (
 
     if (commit!.oid === walkToCommitOid || commit!.oid === walkToCommitOid2) continue;
 
-    commits.push(NormalizeCommit(commit!));
+    commits.push(normalizeCommit(commit!));
 
     // Add the parents of this commit to the queue
     for (const oid of commit!.commit.parent) {
       // eslint-disable-next-line no-await-in-loop
-      const parent_commit = await git.readCommit({ fs, dir: workingDir, oid });
-      if (!history.map(my_commit => my_commit.oid).includes(parent_commit.oid)) {
-        history.push(parent_commit);
-        parents.push(parent_commit);
+      const parentCommit = await git.readCommit({ fs, dir: workingDir, oid });
+      if (!history.map(myCommit => myCommit.oid).includes(parentCommit.oid)) {
+        history.push(parentCommit);
+        parents.push(parentCommit);
       }
     }
   }

@@ -21,58 +21,58 @@ import { ConnectionSettingsGitHub, ConnectionSettingsSSH, RemoteOptions } from '
  *
  * @internal
  */
-const createCredentialForGitHub = (options: RemoteOptions) => {
-  if (!options.remote_url!.match(/^https?:\/\//)) {
-    throw new HttpProtocolRequiredError(options.remote_url!);
+function createCredentialForGitHub (options: RemoteOptions) {
+  if (!options.remoteUrl!.match(/^https?:\/\//)) {
+    throw new HttpProtocolRequiredError(options.remoteUrl!);
   }
   const connection = options.connection as ConnectionSettingsGitHub;
-  if (options.sync_direction !== 'pull' && !connection.personal_access_token) {
+  if (options.syncDirection !== 'pull' && !connection.personalAccessToken) {
     throw new UndefinedPersonalAccessTokenError();
   }
-  const urlArray = options.remote_url!.replace(/^https?:\/\//, '').split('/');
+  const urlArray = options.remoteUrl!.replace(/^https?:\/\//, '').split('/');
   // github.com/account_name/repository_name
   if (urlArray.length !== 3) {
-    throw new InvalidRepositoryURLError(options.remote_url!);
+    throw new InvalidRepositoryURLError(options.remoteUrl!);
   }
   const owner = urlArray[urlArray.length - 2];
   const credentials = () => {
-    return nodegit.Cred.userpassPlaintextNew(owner, connection.personal_access_token!);
+    return nodegit.Cred.userpassPlaintextNew(owner, connection.personalAccessToken!);
   };
   return credentials;
-};
+}
 
 /**
  * Create credential options for SSH
  *
  * @internal
  */
-const createCredentialForSSH = (options: RemoteOptions) => {
+function createCredentialForSSH (options: RemoteOptions) {
   const connection = options.connection as ConnectionSettingsSSH;
-  if (connection.private_key_path === undefined || connection.private_key_path === '') {
+  if (connection.privateKeyPath === undefined || connection.privateKeyPath === '') {
     throw new InvalidSSHKeyPathError();
   }
-  if (connection.public_key_path === undefined || connection.public_key_path === '') {
+  if (connection.publicKeyPath === undefined || connection.publicKeyPath === '') {
     throw new InvalidSSHKeyPathError();
   }
-  connection.pass_phrase ??= '';
+  connection.passPhrase ??= '';
 
   const credentials = (url: string, userName: string) => {
     return nodegit.Cred.sshKeyNew(
       userName,
-      connection.public_key_path,
-      connection.private_key_path,
-      connection.pass_phrase!
+      connection.publicKeyPath,
+      connection.privateKeyPath,
+      connection.passPhrase!
     );
   };
   return credentials;
-};
+}
 
 /**
  * Create credential options
  *
  * @internal
  */
-export const createCredential = (options: RemoteOptions) => {
+export function createCredential (options: RemoteOptions) {
   options.connection ??= { type: 'none' };
   let cred: any;
   if (options.connection.type === 'github') {
@@ -98,4 +98,4 @@ export const createCredential = (options: RemoteOptions) => {
     callbacks.certificateCheck = () => 0;
   }
   return callbacks;
-};
+}

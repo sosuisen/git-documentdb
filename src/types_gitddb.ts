@@ -88,6 +88,6 @@ export interface IDocumentDB {
   loadDbInfo(): void;
   open(): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
-  sync(options: RemoteOptions, get_sync_result: boolean): Promise<[ISync, SyncResult]>;
+  sync(options: RemoteOptions, getSyncResult: boolean): Promise<[ISync, SyncResult]>;
   sync(options: RemoteOptions): Promise<ISync>;
 }

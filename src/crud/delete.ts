@@ -58,12 +58,11 @@ export function deleteImpl (
   }
 
   options ??= {
-    commit_message: undefined,
+    commitMessage: undefined,
     taskId: undefined,
     enqueueCallback: undefined,
   };
-  const commit_message =
-    options.commit_message ?? `delete: ${_id}${JSON_EXT}(<%file_sha%>)`;
+  const commitMessage = options.commitMessage ?? `delete: ${_id}${JSON_EXT}(<%file_sha%>)`;
 
   const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // delete() must be serial.
@@ -73,7 +72,7 @@ export function deleteImpl (
       taskId: taskId,
       targetId: _id,
       func: (beforeResolve, beforeReject) =>
-        delete_worker(this, _id, JSON_EXT, commit_message!)
+        deleteWorker(this, _id, JSON_EXT, commitMessage!)
           .then((result: DeleteResult) => {
             beforeResolve();
             resolve(result);
@@ -97,7 +96,7 @@ export function deleteImpl (
  * @throws {@link DocumentNotFoundError}
  * @throws {@link CannotDeleteDataError}
  */
-export async function delete_worker (
+export async function deleteWorker (
   gitDDB: IDocumentDB,
   _id: string,
   extension: string,
@@ -107,9 +106,9 @@ export async function delete_worker (
     return Promise.reject(new UndefinedDBError());
   }
 
-  const _currentRepository = gitDDB.repository();
+  const currentRepository = gitDDB.repository();
 
-  if (_currentRepository === undefined) {
+  if (currentRepository === undefined) {
     return Promise.reject(new RepositoryNotOpenError());
   }
 
@@ -117,18 +116,18 @@ export async function delete_worker (
     return Promise.reject(new DocumentNotFoundError());
   }
 
-  let file_sha, commit_sha: string;
+  let fileSha, commitSha: string;
   const filename = _id + extension;
   const filePath = path.resolve(gitDDB.workingDir(), filename);
 
   let index;
   try {
-    index = await _currentRepository.refreshIndex();
+    index = await currentRepository.refreshIndex();
     const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
     if (entry === undefined) {
       return Promise.reject(new DocumentNotFoundError());
     }
-    file_sha = entry.id.tostrS();
+    fileSha = entry.id.tostrS();
 
     await index.removeByPath(filename); // stage
     await index.write(); // flush changes to index
@@ -139,7 +138,7 @@ export async function delete_worker (
   try {
     commitMessage = commitMessage.replace(
       /<%file_sha%>/,
-      file_sha.substr(0, SHORT_SHA_LENGTH)
+      fileSha.substr(0, SHORT_SHA_LENGTH)
     );
 
     const changes = await index.writeTree(); // get reference to a set of changes
@@ -147,9 +146,9 @@ export async function delete_worker (
     const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
     const committer = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
 
-    const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD');
-    const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    const commit = await _currentRepository.createCommit(
+    const head = await nodegit.Reference.nameToId(currentRepository, 'HEAD');
+    const parent = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+    const commit = await currentRepository.createCommit(
       'HEAD',
       author,
       committer,
@@ -158,7 +157,7 @@ export async function delete_worker (
       [parent]
     );
 
-    commit_sha = commit.tostrS();
+    commitSha = commit.tostrS();
 
     await fs.remove(filePath);
 
@@ -182,7 +181,7 @@ export async function delete_worker (
   return {
     ok: true,
     id: _id,
-    file_sha,
-    commit_sha,
+    fileSha,
+    commitSha,
   };
 }

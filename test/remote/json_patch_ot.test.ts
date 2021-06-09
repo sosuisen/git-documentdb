@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { editOp, type } from 'ot-json1';
 import { JsonDiff } from '../../src/remote/json_diff';
 import { JsonPatchOT } from '../../src/remote/json_patch_ot';

@@ -43,7 +43,7 @@ export async function combineDatabaseWithTheirs (
     if (remoteRepository === undefined) {
       // Remote repository not found.
       // This will not occur after NoBaseMergeFoundError.
-      throw new RemoteRepositoryNotFoundError(remoteOptions.remote_url!);
+      throw new RemoteRepositoryNotFoundError(remoteOptions.remoteUrl!);
     }
     const index = await remoteRepository.refreshIndex();
 
@@ -98,12 +98,12 @@ export async function combineDatabaseWithTheirs (
         duplicates.push({
           original: {
             id: meta.id,
-            file_sha: remoteFile!.file_sha,
+            fileSha: remoteFile!.fileSha,
             type: duplicatedFileExt === '.json' ? 'json' : 'raw',
           },
           duplicate: {
             id: duplicatedFileId,
-            file_sha: duplicatedFileSha,
+            fileSha: duplicatedFileSha,
             type: duplicatedFileExt === '.json' ? 'json' : 'raw',
           },
         });

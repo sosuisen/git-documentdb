@@ -12,7 +12,7 @@ import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
-import { ConsoleStyle, NormalizeCommit } from '../utils';
+import { CONSOLE_STYLE, normalizeCommit } from '../utils';
 import {
   CannotDeleteDataError,
   GitMergeBranchError,
@@ -33,7 +33,7 @@ import {
   TaskMetadata,
 } from '../types';
 import { ISync } from '../types_sync';
-import { push_worker } from './push_worker';
+import { pushWorker } from './push_worker';
 import { calcDistance, getChanges, getCommitLogs, writeBlobToFile } from './worker_utils';
 import { threeWayMerge } from './3way_merge';
 
@@ -45,11 +45,13 @@ import { threeWayMerge } from './3way_merge';
 async function fetch (gitDDB: IDocumentDB, sync: ISync) {
   gitDDB
     .getLogger()
-    .debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`);
+    .debug(
+      CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: fetch: ${sync.remoteURL()}`
+    );
   await gitDDB
     .repository()!
     .fetch('origin', {
-      callbacks: sync.credential_callbacks,
+      callbacks: sync.credentialCallbacks,
     })
     .catch(err => {
       throw new SyncWorkerFetchError(err.message);
@@ -73,7 +75,7 @@ async function fetch (gitDDB: IDocumentDB, sync: ISync) {
  * @internal
  */
 // eslint-disable-next-line complexity
-export async function sync_worker (
+export async function syncWorker (
   gitDDB: IDocumentDB,
   sync: ISync,
   taskMetadata: TaskMetadata
@@ -146,7 +148,7 @@ export async function sync_worker (
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
-    return await push_worker(gitDDB, sync, taskMetadata, true).catch(err => {
+    return await pushWorker(gitDDB, sync, taskMetadata, true).catch(err => {
       throw err;
     });
   }
@@ -161,7 +163,7 @@ export async function sync_worker (
 
     // When a local file is removed and the same remote file is removed,
     // they cannot be merged by fast-forward. They are merged as usual.
-    const distance_again = await calcDistance(
+    const distanceAgain = await calcDistance(
       gitDDB.workingDir(),
       newCommitOid!,
       await git.resolveRef({
@@ -171,32 +173,32 @@ export async function sync_worker (
       })
     );
 
-    if (distance_again.ahead === 0) {
+    if (distanceAgain.ahead === 0) {
       const localChanges = await getChanges(
         gitDDB.workingDir(),
         oldCommitOid,
         newCommitOid!
       );
 
-      const SyncResultFastForwardMerge: SyncResult = {
+      const syncResultFastForwardMerge: SyncResult = {
         action: 'fast-forward merge',
         changes: {
           local: localChanges,
         },
       };
 
-      if (sync.options().include_commits) {
+      if (sync.options().includeCommits) {
         // Get list of commits which has been merged to local
         const commitsFromRemote = await getCommitLogs(
           gitDDB.workingDir(),
           oldRemoteCommitOid,
           oldCommitOid
         );
-        SyncResultFastForwardMerge.commits = {
+        syncResultFastForwardMerge.commits = {
           local: commitsFromRemote,
         };
       }
-      return SyncResultFastForwardMerge;
+      return syncResultFastForwardMerge;
     }
 
     // distance_again.ahead > 0
@@ -270,7 +272,7 @@ export async function sync_worker (
     let localCommits: NormalizedCommit[] | undefined;
 
     // Get list of commits which has been added to local
-    if (sync.options().include_commits) {
+    if (sync.options().includeCommits) {
       const amendedNewCommit = await git.readCommit({
         fs,
         dir: gitDDB.workingDir(),
@@ -289,10 +291,10 @@ export async function sync_worker (
         baseCommitOid
       );
       // Add merge commit
-      localCommits = [...commitsFromRemote, NormalizeCommit(amendedNewCommit)];
+      localCommits = [...commitsFromRemote, normalizeCommit(amendedNewCommit)];
     }
     // Need push because it is merged normally.
-    const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(
+    const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true).catch(
       (err: Error) => {
         return err;
       }
@@ -341,7 +343,9 @@ export async function sync_worker (
     const stage = nodegit.Index.entryStage(entry);
     gitDDB
       .getLogger()
-      .debug(ConsoleStyle.BgWhite().FgBlack().tag()`sync_worker: ${stage} : ${entry.path}`);
+      .debug(
+        CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: ${stage} : ${entry.path}`
+      );
 
     // entries() returns all files in stage 0, 1, 2 and 3.
     // A file may exist in multiple stages.
@@ -370,7 +374,7 @@ export async function sync_worker (
   });
 
   const resolvers: Promise<void>[] = [];
-  const strategy = sync.options().conflict_resolution_strategy;
+  const strategy = sync.options().conflictResolutionStrategy;
   // eslint-disable-next-line complexity
   Object.keys(allFileObj).forEach(path => {
     resolvers.push(
@@ -406,7 +410,7 @@ export async function sync_worker (
       conflict.target.type === undefined || conflict.target.type === 'json'
         ? conflict.target.id + JSON_EXT
         : conflict.target.id;
-    commitMessage += `${fileName}(${conflict.operation},${conflict.target.file_sha.substr(
+    commitMessage += `${fileName}(${conflict.operation},${conflict.target.fileSha.substr(
       0,
       SHORT_SHA_LENGTH
     )},${conflict.strategy}), `;
@@ -451,7 +455,7 @@ export async function sync_worker (
 
   // Get list of commits which has been added to local
   let localCommits: NormalizedCommit[] | undefined;
-  if (sync.options().include_commits) {
+  if (sync.options().includeCommits) {
     const commitsFromRemote = await getCommitLogs(
       gitDDB.workingDir(),
       oldRemoteCommitOid,
@@ -463,7 +467,7 @@ export async function sync_worker (
       oid: overwriteCommitOid,
     });
     // Add merge commit
-    localCommits = [...commitsFromRemote, NormalizeCommit(overwriteCommit)];
+    localCommits = [...commitsFromRemote, normalizeCommit(overwriteCommit)];
   }
 
   const opt = new nodegit.CheckoutOptions();
@@ -471,7 +475,7 @@ export async function sync_worker (
   await nodegit.Checkout.head(repos, opt);
 
   // Push
-  const syncResultPush = await push_worker(gitDDB, sync, taskMetadata, true).catch(
+  const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true).catch(
     (err: Error) => {
       return err;
     }

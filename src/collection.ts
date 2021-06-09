@@ -53,9 +53,9 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  constructor (_gitDDB: CRUDInterface & IDocumentDB, _collectionPath: CollectionPath) {
-    this._gitDDB = _gitDDB;
-    this._collectionPath = Validator.normalizeCollectionPath(_collectionPath);
+  constructor (gitDDB: CRUDInterface & IDocumentDB, collectionPath: CollectionPath) {
+    this._gitDDB = gitDDB;
+    this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
     const validator = new Validator(this._gitDDB.workingDir());
     validator.validateCollectionPath(this._collectionPath);
   }
@@ -514,7 +514,7 @@ export class Collection implements CRUDInterface {
    */
   async allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
     options ??= {
-      include_docs: undefined,
+      includeDocs: undefined,
       descending: undefined,
       recursive: undefined,
       prefix: undefined,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -43,8 +44,8 @@ describe('<close> GitDocumentDB#close()', () => {
   it('waits queued operations', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -58,7 +59,7 @@ describe('<close> GitDocumentDB#close()', () => {
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
       total_rows: 50,
-      commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
     await gitDDB.destroy();
@@ -67,8 +68,8 @@ describe('<close> GitDocumentDB#close()', () => {
   it('throws DatabaseCloseTimeoutError when timeout is 1', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -92,8 +93,8 @@ describe('<close> GitDocumentDB#close()', () => {
   it('catches TaskCancelError from put() when timeout is 1', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -117,8 +118,8 @@ describe('<close> GitDocumentDB#close()', () => {
   it('catches TaskCancelError from delete() when timeout is 1', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -147,8 +148,8 @@ describe('<close> GitDocumentDB#close()', () => {
   it('closes database by force', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 
@@ -172,8 +173,8 @@ describe('<close> GitDocumentDB#close()', () => {
   it('causes DatabaseClosingError in CRUD methods by isClosing flag', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
 

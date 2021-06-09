@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
 import sinon from 'sinon';
@@ -18,7 +19,7 @@ import { GitDocumentDB } from '../src/index';
 import { FILE_REMOVE_TIMEOUT, JSON_EXT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
-const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+const token = process.env.GITDDB_personalAccessToken!;
 
 /**
  * Get CommitInfo Object Array from args
@@ -52,7 +53,7 @@ export function getCommitInfo (
 
 /**
  * Get ChangedFile Object from args
- * @remarks 'result' must includes file_sha of 'doc'
+ * @remarks 'result' must includes fileSha of 'doc'
  */
 export function getChangedFileInsert (
   newDoc: JsonDoc,
@@ -62,7 +63,7 @@ export function getChangedFileInsert (
     operation: 'insert',
     new: {
       id: newDoc!._id,
-      file_sha: newResult!.file_sha,
+      fileSha: newResult!.fileSha,
       doc: newDoc,
     },
   };
@@ -78,12 +79,12 @@ export function getChangedFileUpdate (
     operation: 'update',
     old: {
       id: oldDoc!._id,
-      file_sha: oldResult!.file_sha,
+      fileSha: oldResult!.fileSha,
       doc: oldDoc!,
     },
     new: {
       id: newDoc!._id,
-      file_sha: newResult!.file_sha,
+      fileSha: newResult!.fileSha,
       doc: newDoc,
     },
   };
@@ -97,7 +98,7 @@ export function getChangedFileDelete (
     operation: 'delete',
     old: {
       id: oldDoc!._id,
-      file_sha: oldResult!.file_sha,
+      fileSha: oldResult!.fileSha,
       doc: oldDoc,
     },
   };
@@ -111,7 +112,7 @@ export function getChangedFileInsertBySHA (
     operation: 'insert',
     new: {
       id: newDoc!._id,
-      file_sha: newFileSHA,
+      fileSha: newFileSHA,
       doc: newDoc,
     },
   };
@@ -127,12 +128,12 @@ export function getChangedFileUpdateBySHA (
     operation: 'update',
     old: {
       id: oldDoc!._id,
-      file_sha: oldFileSHA,
+      fileSha: oldFileSHA,
       doc: oldDoc!,
     },
     new: {
       id: newDoc!._id,
-      file_sha: newFileSHA,
+      fileSha: newFileSHA,
       doc: newDoc,
     },
   };
@@ -146,7 +147,7 @@ export function getChangedFileDeleteBySHA (
     operation: 'delete',
     old: {
       id: oldDoc!._id,
-      file_sha: oldFileSHA,
+      fileSha: oldFileSHA,
       doc: oldDoc,
     },
   };
@@ -164,18 +165,18 @@ export async function createDatabase (
   const dbNameA = serialId();
 
   const dbA: GitDocumentDB = new GitDocumentDB({
-    db_name: dbNameA,
-    local_dir: localDir,
+    dbName: dbNameA,
+    localDir,
     schema,
   });
   options ??= {
-    remote_url: remoteURL,
-    connection: { type: 'github', personal_access_token: token },
-    include_commits: true,
+    remoteUrl: remoteURL,
+    connection: { type: 'github', personalAccessToken: token },
+    includeCommits: true,
   };
-  options.remote_url ??= remoteURL;
-  options.connection ??= { type: 'github', personal_access_token: token };
-  options.include_commits ??= true;
+  options.remoteUrl ??= remoteURL;
+  options.connection ??= { type: 'github', personalAccessToken: token };
+  options.includeCommits ??= true;
 
   await dbA.createDB(options);
   const remoteA = dbA.getSynchronizer(remoteURL);
@@ -188,33 +189,33 @@ export async function createClonedDatabases (
   localDir: string,
   serialId: () => string,
   options?: RemoteOptions,
-  log_level?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 ): Promise<[GitDocumentDB, GitDocumentDB, ISync, ISync]> {
   const remoteURL = remoteURLBase + serialId();
 
   const dbNameA = serialId();
 
   const dbA: GitDocumentDB = new GitDocumentDB({
-    db_name: dbNameA,
-    local_dir: localDir,
-    log_level: log_level ?? 'info',
+    dbName: dbNameA,
+    localDir,
+    logLevel: logLevel ?? 'info',
   });
   options ??= {
-    remote_url: remoteURL,
-    connection: { type: 'github', personal_access_token: token },
-    include_commits: true,
+    remoteUrl: remoteURL,
+    connection: { type: 'github', personalAccessToken: token },
+    includeCommits: true,
   };
-  options.remote_url ??= remoteURL;
-  options.connection ??= { type: 'github', personal_access_token: token };
-  options.include_commits ??= true;
+  options.remoteUrl ??= remoteURL;
+  options.connection ??= { type: 'github', personalAccessToken: token };
+  options.includeCommits ??= true;
 
   await dbA.createDB(options);
 
   const dbNameB = serialId();
   const dbB: GitDocumentDB = new GitDocumentDB({
-    db_name: dbNameB,
-    local_dir: localDir,
-    log_level: log_level ?? 'info',
+    dbName: dbNameB,
+    localDir,
+    logLevel: logLevel ?? 'info',
   });
   // Clone dbA
   await dbB.createDB(options);
@@ -227,10 +228,10 @@ export async function createClonedDatabases (
 
 export const createRemoteRepository = async (remoteURL: string) => {
   await new RemoteRepository({
-    remote_url: remoteURL,
+    remoteUrl: remoteURL,
     connection: {
       type: 'github',
-      personal_access_token: token,
+      personalAccessToken: token,
     },
   })
     .create()
@@ -242,10 +243,10 @@ export const createRemoteRepository = async (remoteURL: string) => {
 
 export const destroyRemoteRepository = async (remoteURL: string) => {
   await new RemoteRepository({
-    remote_url: remoteURL,
+    remoteUrl: remoteURL,
     connection: {
       type: 'github',
-      personal_access_token: token,
+      personalAccessToken: token,
     },
   })
     .destroy()

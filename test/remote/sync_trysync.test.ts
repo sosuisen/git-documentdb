@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -61,9 +62,9 @@ afterAll(() => {
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
-//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
+//  - GITDDB_personalAccessToken: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -71,7 +72,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -110,7 +111,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
-      expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1.commit_sha);
+      expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1.commitSha);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileInsert(jsonA1, putResultA1),
@@ -141,7 +142,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
-      expect(syncResult1.commits!.remote[0].sha).toBe(deleteResultA1.commit_sha);
+      expect(syncResult1.commits!.remote[0].sha).toBe(deleteResultA1.commitSha);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileDelete(jsonA1, deleteResultA1),
@@ -172,7 +173,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
-      expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1dash.commit_sha);
+      expect(syncResult1.commits!.remote[0].sha).toBe(putResultA1dash.commitSha);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileUpdate(jsonA1, putResultA1, jsonA1dash, putResultA1dash),
@@ -209,7 +210,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const syncResult1 = (await remoteB.trySync()) as SyncResultFastForwardMerge;
       expect(syncResult1.action).toBe('fast-forward merge');
       expect(syncResult1.commits!.local.length).toBe(1);
-      expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commit_sha);
+      expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commitSha);
       expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
 
@@ -249,8 +250,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
       expect(syncResult1.action).toBe('fast-forward merge');
       expect(syncResult1.commits!.local.length).toBe(2);
-      expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commit_sha);
-      expect(syncResult1.commits!.local[1].sha).toBe(putResult2.commit_sha);
+      expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commitSha);
+      expect(syncResult1.commits!.local[1].sha).toBe(putResult2.commitSha);
       expect(syncResult1.changes.local.length).toBe(2);
       expect(syncResult1.changes.local).toEqual(
         expect.arrayContaining([
@@ -300,9 +301,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.commits!.local.length).toBe(2); // put commit and merge commit
       expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
-      expect(syncResult1.commits!.local[0].sha).toBe(putResultA1.commit_sha);
+      expect(syncResult1.commits!.local[0].sha).toBe(putResultA1.commitSha);
       expect(syncResult1.commits!.local[1].message).toBe('merge');
-      expect(syncResult1.commits!.remote[0].sha).toBe(putResultB2.commit_sha);
+      expect(syncResult1.commits!.remote[0].sha).toBe(putResultB2.commitSha);
       expect(syncResult1.commits!.remote[1].message).toBe('merge');
 
       expect(syncResult1.changes.local).toEqual([
@@ -444,8 +445,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       // Clone
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir,
       });
       // Clone dbA
       await dbB.createDB(remoteA.options());
@@ -494,8 +495,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir,
       });
       // Clone dbA
       await dbB.createDB(remoteA.options());
@@ -555,8 +556,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir,
       });
       // Clone dbA
       await dbB.createDB(remoteA.options());
@@ -615,8 +616,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir,
       });
       // Clone dbA
       await dbB.createDB(remoteA.options());
@@ -714,13 +715,13 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
   it('throws UnfetchedCommitExistError for [push] direction', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
-      sync_direction: 'push',
+      syncDirection: 'push',
     });
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbNameB,
-      local_dir: localDir,
+      dbName: dbNameB,
+      localDir,
     });
     await dbB.createDB();
 

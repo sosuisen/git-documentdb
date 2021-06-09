@@ -10,7 +10,7 @@ import { GitDocumentDB, Sync } from 'git-documentdb';
 
 const gitddb_example = async () => {
   let gitDDB = new GitDocumentDB({
-    db_name: 'db01', // Git working directory
+    dbName: 'db01', // Git working directory
   });
 
   // Open a repository at /your/path/to/the/example/git-documentdb/db01/.git
@@ -81,8 +81,8 @@ const gitddb_example = async () => {
     console.log('\n# Initialize sync..');
     sync = await gitDDB.sync({
       live: true,
-      remote_url: github_repository,
-      connection: { type: 'github', personal_access_token: your_github_personal_access_token },
+      remoteUrl: github_repository,
+      connection: { type: 'github', personalAccessToken: your_github_personal_access_token },
     });
     // git-documentdb-example.git is automatically created in your GitHub account.
     // The data will be synchronized every 30 seconds(default).

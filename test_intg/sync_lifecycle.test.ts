@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -30,12 +31,12 @@ import {
   removeRemoteRepositories,
 } from '../test/remote_utils';
 import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
-import { push_worker } from '../src/remote/push_worker';
-import { sync_worker } from '../src/remote/sync_worker';
+import { pushWorker } from '../src/remote/push_worker';
+import { syncWorker } from '../src/remote/sync_worker';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const push_worker_module = require('../src/remote/push_worker');
+const pushWorker_module = require('../src/remote/push_worker');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const sync_worker_module = require('../src/remote/sync_worker');
+const syncWorker_module = require('../src/remote/sync_worker');
 
 const reposPrefix = 'test_sync_lifecycle___';
 const localDir = `./test_intg/database_sync_lifecycle`;
@@ -69,7 +70,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -78,7 +79,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -86,19 +87,19 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
   /**
    * Initialize synchronization by createDB() with remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
+   * Initialize means creating local and remote repositories by using a remoteUrl
    */
   describe('initialized by createDB():', () => {
     it('getSynchronizer() returns an instance of Sync.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
+        dbName: dbNameA,
+        localDir: localDir,
       });
       const options: RemoteOptions = {
-        remote_url: remoteURL,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        connection: { type: 'github', personalAccessToken: token },
       };
       await dbA.createDB(options);
       const syncA = dbA.getSynchronizer(remoteURL);
@@ -110,12 +111,12 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
+        dbName: dbNameA,
+        localDir: localDir,
       });
       const options: RemoteOptions = {
-        remote_url: remoteURL,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        connection: { type: 'github', personalAccessToken: token },
       };
       await dbA.createDB(options);
       dbA.unregisterRemote(remoteURL);
@@ -127,19 +128,19 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
-        log_level: 'trace',
+        dbName: dbNameA,
+        localDir: localDir,
+        logLevel: 'trace',
       });
       const options: RemoteOptions = {
-        remote_url: remoteURL,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        connection: { type: 'github', personalAccessToken: token },
       };
       await dbA.createDB(options);
       const remoteURL2 = remoteURLBase + serialId();
       const options2: RemoteOptions = {
-        remote_url: remoteURL2,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL2,
+        connection: { type: 'github', personalAccessToken: token },
       };
       await dbA.sync(options2);
       expect(dbA.getRemoteURLs()).toEqual([remoteURL, remoteURL2]);
@@ -156,12 +157,12 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -171,8 +172,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
+          dbName: dbNameB,
+          localDir: localDir,
         });
         await dbB.createDB(options);
 
@@ -187,12 +188,12 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -201,8 +202,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
+          dbName: dbNameB,
+          localDir: localDir,
         });
         await dbB.createDB(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
@@ -222,12 +223,12 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -236,8 +237,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
+          dbName: dbNameB,
+          localDir: localDir,
         });
         await dbB.createDB(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
@@ -256,19 +257,19 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
+          dbName: dbNameB,
+          localDir: localDir,
         });
         await dbB.createDB(options);
 
@@ -292,7 +293,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
             {
               target: {
                 id: jsonB1._id,
-                file_sha: putResultB1.file_sha,
+                fileSha: putResultB1.fileSha,
               },
               operation: 'insert-merge',
               strategy: 'ours-diff',
@@ -314,16 +315,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           live: true,
-          sync_direction: 'both',
+          syncDirection: 'both',
           interval,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
 
@@ -342,8 +343,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
+          dbName: dbNameB,
+          localDir: localDir,
         });
         await dbB.createDB(options);
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
@@ -356,16 +357,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           live: true,
-          sync_direction: 'both',
+          syncDirection: 'both',
           interval,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
 
@@ -385,16 +386,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           live: true,
-          sync_direction: 'both',
+          syncDirection: 'both',
           interval,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
 
@@ -422,16 +423,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           live: true,
-          sync_direction: 'both',
+          syncDirection: 'both',
           interval,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
 
@@ -454,16 +455,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           live: true,
-          sync_direction: 'both',
+          syncDirection: 'both',
           interval,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
 
@@ -500,16 +501,16 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
-          remote_url: remoteURL,
+          remoteUrl: remoteURL,
           live: true,
-          sync_direction: 'both',
+          syncDirection: 'both',
           interval,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
         await dbA.createDB(options);
 
@@ -530,22 +531,22 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'push',
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          syncDirection: 'push',
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         const sync = new Sync(dbA, options);
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
@@ -559,22 +560,22 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'push',
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          syncDirection: 'push',
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         const sync = new Sync(dbA, options);
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.onFirstCall().rejects();
         const syncResultPush: SyncResultPush = {
           action: 'push',
@@ -583,10 +584,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
           },
         };
 
-        // Call push_worker which is not spied by Sinon
+        // Call pushWorker which is not spied by Sinon
         stubPush.onSecondCall().callsFake(async () => {
           stubPush.restore();
-          return await push_worker(dbA, sync, {
+          return await pushWorker(dbA, sync, {
             label: 'sync',
             taskId: 'myTaskId',
           });
@@ -603,26 +604,26 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'push',
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          syncDirection: 'push',
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         const sync = new Sync(dbA, options);
 
-        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
-        // Call push_worker which is not spied by Sinon
+        // Call pushWorker which is not spied by Sinon
         stubPush.onSecondCall().callsFake(async () => {
           stubPush.restore();
-          return await push_worker(dbA, sync, {
+          return await pushWorker(dbA, sync, {
             label: 'sync',
             taskId: 'myTaskId',
           });
@@ -639,15 +640,15 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'both',
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          syncDirection: 'both',
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         await dbA.sync(options);
@@ -656,7 +657,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubSync = sandbox.stub(sync_worker_module, 'sync_worker');
+        const stubSync = sandbox.stub(syncWorker_module, 'syncWorker');
         stubSync.rejects();
 
         // sync has already been initialized, so will run trySync()
@@ -671,15 +672,15 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'both',
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          syncDirection: 'both',
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         await dbA.sync(options);
@@ -688,13 +689,13 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubSync = sandbox.stub(sync_worker_module, 'sync_worker');
+        const stubSync = sandbox.stub(syncWorker_module, 'syncWorker');
         stubSync.onFirstCall().rejects();
 
-        // Call push_worker which is not spied by Sinon
+        // Call pushWorker which is not spied by Sinon
         stubSync.onSecondCall().callsFake(async () => {
           stubSync.restore();
-          return await sync_worker(dbA, sync, {
+          return await syncWorker(dbA, sync, {
             label: 'sync',
             taskId: 'myTaskId',
           });
@@ -726,14 +727,14 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         // Set retry interval to 0ms
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          connection: { type: 'github', personal_access_token: token },
-          retry_interval: 0,
+          remoteUrl: remoteURL,
+          connection: { type: 'github', personalAccessToken: token },
+          retryInterval: 0,
         };
         await dbA.createDB(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -742,8 +743,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameB,
-          local_dir: localDir,
+          dbName: dbNameB,
+          localDir: localDir,
         });
         await dbB.createDB(options);
         const jsonB1 = { _id: '2', name: 'fromB' };
@@ -759,7 +760,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           errorOnB = true;
         });
 
-        const spySync = sandbox.spy(sync_worker_module, 'sync_worker');
+        const spySync = sandbox.spy(syncWorker_module, 'syncWorker');
 
         // Either dbA or dbB will get UnfetchedCommitExistsError
         // and retry automatically.
@@ -792,21 +793,21 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'both',
-          connection: { type: 'github', personal_access_token: token },
+          remoteUrl: remoteURL,
+          syncDirection: 'both',
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         await dbA.sync(options);
         const sync = dbA.getSynchronizer(remoteURL);
 
-        const stubSync = sandbox.stub(sync_worker_module, 'sync_worker');
+        const stubSync = sandbox.stub(syncWorker_module, 'syncWorker');
         stubSync.rejects();
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
@@ -820,24 +821,24 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'push',
-          retry_interval: 0,
+          remoteUrl: remoteURL,
+          syncDirection: 'push',
+          retryInterval: 0,
           retry: 0,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         const sync = new Sync(dbA, options);
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
         await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
@@ -851,39 +852,39 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
-          db_name: dbNameA,
-          local_dir: localDir,
+          dbName: dbNameA,
+          localDir: localDir,
         });
         await dbA.createDB();
 
         const interval = 100000;
-        const retry_interval = 5000;
+        const retryInterval = 5000;
 
         const options: RemoteOptions = {
-          remote_url: remoteURL,
-          sync_direction: 'push',
+          remoteUrl: remoteURL,
+          syncDirection: 'push',
           interval,
-          retry_interval,
+          retryInterval,
           retry: 2,
-          connection: { type: 'github', personal_access_token: token },
+          connection: { type: 'github', personalAccessToken: token },
         };
 
         const sync = new Sync(dbA, options);
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
 
-        const stubPush = sandbox.stub(push_worker_module, 'push_worker');
+        const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
         sync.init(dbA.repository()!).catch(() => {});
 
-        await sleep(retry_interval - 500);
+        await sleep(retryInterval - 500);
         expect(stubPush.callCount).toBe(1);
-        await sleep(retry_interval);
+        await sleep(retryInterval);
         expect(stubPush.callCount).toBe(2);
-        await sleep(retry_interval);
+        await sleep(retryInterval);
         expect(stubPush.callCount).toBe(3);
-        await sleep(retry_interval);
+        await sleep(retryInterval);
 
         await destroyDBs([dbA]);
       });
@@ -892,7 +893,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
   /**
    * Initialize synchronization by sync() with remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
+   * Initialize means creating local and remote repositories by using a remoteUrl
    */
   describe('initialized by sync():', () => {
     it('throws RemoteAlreadyRegisteredError when sync() the same url twice.', async () => {
@@ -900,15 +901,15 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const dbNameA = serialId();
 
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
+        dbName: dbNameA,
+        localDir: localDir,
       });
 
       await dbA.createDB();
 
       const options: RemoteOptions = {
-        remote_url: remoteURL,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        connection: { type: 'github', personalAccessToken: token },
       };
       const remoteA = await dbA.sync(options);
       await expect(dbA.sync(options)).rejects.toThrowError(RemoteAlreadyRegisteredError);
@@ -920,15 +921,15 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const dbNameA = serialId();
 
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
+        dbName: dbNameA,
+        localDir: localDir,
       });
 
       await dbA.createDB();
       const options: RemoteOptions = {
-        remote_url: remoteURL,
-        sync_direction: 'both',
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        syncDirection: 'both',
+        connection: { type: 'github', personalAccessToken: token },
       };
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -937,8 +938,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir: localDir,
       });
       await dbB.createDB(options);
       await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
@@ -951,17 +952,17 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const dbNameA = serialId();
 
       const dbA: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameA,
-        local_dir: localDir,
+        dbName: dbNameA,
+        localDir: localDir,
       });
 
       await dbA.createDB();
       const options: RemoteOptions = {
-        remote_url: remoteURL,
+        remoteUrl: remoteURL,
         live: true,
         interval: MINIMUM_SYNC_INTERVAL,
-        sync_direction: 'both',
-        connection: { type: 'github', personal_access_token: token },
+        syncDirection: 'both',
+        connection: { type: 'github', personalAccessToken: token },
       };
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -970,8 +971,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbNameB,
-        local_dir: localDir,
+        dbName: dbNameB,
+        localDir: localDir,
       });
       await dbB.createDB(options);
       await dbB.close();

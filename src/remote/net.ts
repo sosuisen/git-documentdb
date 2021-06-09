@@ -61,11 +61,11 @@ export const ping = (
  *
  * @internal
  */
-export const checkHTTP = (
+export function checkHTTP (
   url: string,
   requestTimeout: number,
   socketTimeout?: number
-): Promise<{ ok: boolean; code?: number }> => {
+): Promise<{ ok: boolean; code?: number }> {
   // timeout must be greater than 0
   socketTimeout ??= requestTimeout;
   if (requestTimeout === 0) {
@@ -123,8 +123,8 @@ export const checkHTTP = (
     }
 
     if (socketTimeout! > 0) {
-      req.on('socket', function (_socket: Socket) {
-        socket = _socket;
+      req.on('socket', function (mySocket: Socket) {
+        socket = mySocket;
         socket.setTimeout(socketTimeout!);
         socket.on('timeout', () => {
           req.removeAllListeners();
@@ -140,4 +140,4 @@ export const checkHTTP = (
 
     req.end();
   });
-};
+}

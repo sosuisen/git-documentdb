@@ -24,8 +24,8 @@ import { getBackNumber } from './history';
 import { JSON_EXT } from '../const';
 
 type GetOptions = {
-  back_number?: number;
-  with_metadata?: boolean;
+  backNumber?: number;
+  withMetadata?: boolean;
 };
 
 // eslint-disable-next-line complexity
@@ -38,8 +38,8 @@ export async function getImpl (
   if (this.isClosing) {
     throw new DatabaseClosingError();
   }
-  const _currentRepository = this.repository();
-  if (_currentRepository === undefined) {
+  const currentRepository = this.repository();
+  if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
 
@@ -51,7 +51,7 @@ export async function getImpl (
   this.validator.validateId(_id);
 
   // Calling nameToId() for HEAD throws error when this is first commit.
-  const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
+  const head = await nodegit.Reference.nameToId(currentRepository, 'HEAD').catch(
     e => false
   ); // get HEAD
   let document;
@@ -61,8 +61,8 @@ export async function getImpl (
 
   const filename = _id + JSON_EXT;
 
-  if (!options.back_number || options.back_number === 0) {
-    const commit = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
+  if (!options.backNumber || options.backNumber === 0) {
+    const commit = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
     const entry = await commit.getEntry(filename).catch(err => {
       if (err.errno === -3) {
         // -3 shows requested object could not be found error.
@@ -91,26 +91,26 @@ export async function getImpl (
       throw new InvalidJsonObjectError(_id);
     }
 
-    if (options.with_metadata) {
+    if (options.withMetadata) {
       return {
         id: document._id,
-        file_sha: blob.id().tostrS(),
+        fileSha: blob.id().tostrS(),
         doc: document,
       };
     }
     return document;
   }
-  else if (options.back_number > 0) {
-    const fileSHA = await getBackNumber(this, filename, options.back_number);
+  else if (options.backNumber > 0) {
+    const fileSHA = await getBackNumber(this, filename, options.backNumber);
     if (fileSHA === undefined) {
       return undefined;
     }
     const doc = await getByRevisionImpl.call(this, fileSHA);
     if (doc) {
-      if (options.with_metadata) {
+      if (options.withMetadata) {
         return {
           id: doc._id,
-          file_sha: fileSHA,
+          fileSha: fileSHA,
           doc,
         };
       }
@@ -130,8 +130,8 @@ export async function getByRevisionImpl (
   if (this.isClosing) {
     throw new DatabaseClosingError();
   }
-  const _currentRepository = this.repository();
-  if (_currentRepository === undefined) {
+  const currentRepository = this.repository();
+  if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
 
@@ -143,7 +143,7 @@ export async function getByRevisionImpl (
     throw new InvalidFileSHAFormatError();
   }
 
-  const blob = await _currentRepository.getBlob(fileSHA).catch(err => {
+  const blob = await currentRepository.getBlob(fileSHA).catch(err => {
     if (err.errno === -3) {
       // -3 shows requested object could not be found error.
       // It is a generic return code of libgit2

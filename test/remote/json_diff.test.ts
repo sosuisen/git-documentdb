@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { JsonDiff } from '../../src/remote/json_diff';
 
 const primitiveDiff = new JsonDiff();

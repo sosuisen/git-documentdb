@@ -31,9 +31,9 @@ import { TLogLevelName } from 'tslog';
  * ```
  */
 export type DatabaseOption = {
-  local_dir?: string;
-  db_name: string;
-  log_level?: TLogLevelName;
+  localDir?: string;
+  dbName: string;
+  logLevel?: TLogLevelName;
   schema?: Schema;
 };
 
@@ -74,7 +74,7 @@ export type DatabaseOpenResult = (DatabaseInfo & DatabaseInfoSuccess) | Database
  * - version: Version of the GitDocumentDB specification.
  */
 export type DatabaseInfo = {
-  db_id: string;
+  dbId: string;
   creator: string;
   version: string;
 };
@@ -97,10 +97,10 @@ export type DatabaseInfo = {
  */
 export type DatabaseInfoSuccess = {
   ok: true;
-  is_new: boolean;
-  is_clone: boolean;
-  is_created_by_gitddb: boolean;
-  is_valid_version: boolean;
+  isNew: boolean;
+  isClone: boolean;
+  isCreatedByGitddb: boolean;
+  isValidVersion: boolean;
 };
 /**
  * Database information (failure)
@@ -181,7 +181,7 @@ export type CollectionPath = string;
  * - insertOrUpdate: Change behavior of put(). Don't use it. Use insert() or update() instead.
  */
 export type PutOptions = {
-  commit_message?: string;
+  commitMessage?: string;
   insertOrUpdate?: 'insert' | 'update';
   taskId?: string;
   enqueueCallback?: (taskMetadata: TaskMetadata) => void;
@@ -194,7 +194,7 @@ export type PutOptions = {
  * - commit_message: internal commit message. default is 'delete: path/to/the/file'
  */
 export type DeleteOptions = {
-  commit_message?: string;
+  commitMessage?: string;
   taskId?: string;
   enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
@@ -213,7 +213,7 @@ export type DeleteOptions = {
  *
  */
 export type AllDocsOptions = {
-  include_docs?: boolean;
+  includeDocs?: boolean;
   descending?: boolean;
   recursive?: boolean;
   prefix?: string;
@@ -235,8 +235,8 @@ export type AllDocsOptions = {
 export type PutResult = {
   ok: true;
   id: string;
-  file_sha: string;
-  commit_sha: string;
+  fileSha: string;
+  commitSha: string;
 };
 
 /**
@@ -255,8 +255,8 @@ export type PutResult = {
 export type DeleteResult = {
   ok: true;
   id: string;
-  file_sha: string;
-  commit_sha: string;
+  fileSha: string;
+  commitSha: string;
 };
 
 /**
@@ -271,8 +271,8 @@ export type DeleteResult = {
  *
  */
 export type AllDocsResult = {
-  total_rows: number;
-  commit_sha?: string;
+  totalRows: number;
+  commitSha?: string;
   rows: JsonDocWithMetadata[];
 };
 
@@ -303,7 +303,7 @@ export type JsonDocWithMetadata = DocMetadata & {
  */
 export type DocMetadata = {
   id: string;
-  file_sha: string;
+  fileSha: string;
   type?: 'json' | 'raw';
 };
 
@@ -344,7 +344,7 @@ export type SyncDirection = 'pull' | 'push' | 'both';
  */
 export type ConnectionSettingsGitHub = {
   type: 'github';
-  personal_access_token?: string;
+  personalAccessToken?: string;
   private?: boolean;
 };
 
@@ -353,9 +353,9 @@ export type ConnectionSettingsGitHub = {
  */
 export type ConnectionSettingsSSH = {
   type: 'ssh';
-  private_key_path: string;
-  public_key_path: string;
-  pass_phrase?: string;
+  privateKeyPath: string;
+  publicKeyPath: string;
+  passPhrase?: string;
 };
 
 /**
@@ -445,7 +445,7 @@ export type AcceptedConflict = {
  * @remarks
  * [network]
  *
- * - remote_url: Connection destination
+ * - remoteUrl: Connection destination
  *
  * - sync_direction: Default is 'both'.
  *
@@ -473,22 +473,22 @@ export type AcceptedConflict = {
  */
 export type RemoteOptions = {
   /* network */
-  remote_url?: string;
-  sync_direction?: SyncDirection;
+  remoteUrl?: string;
+  syncDirection?: SyncDirection;
   connection?: ConnectionSettings;
 
   /* automation */
   live?: boolean;
   interval?: number; // msec
   retry?: number; // Retry does not occurred if retry is 0.
-  retry_interval?: number; // msec
+  retryInterval?: number; // msec
 
   /* merge */
-  conflict_resolution_strategy?: ConflictResolutionStrategies;
-  combine_db_strategy?: CombineDbStrategies;
+  conflictResolutionStrategy?: ConflictResolutionStrategies;
+  combineDbStrategy?: CombineDbStrategies;
 
   /* results */
-  include_commits?: boolean;
+  includeCommits?: boolean;
 };
 
 /**

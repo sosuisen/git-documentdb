@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -54,7 +55,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
     ? describe
     : describe.skip;
 
@@ -62,7 +63,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     // Remove remote
@@ -78,15 +79,15 @@ maybe('<remote/sync> Sync#constructor()', () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     const sync = new Sync(gitDDB, options);
@@ -95,86 +96,86 @@ maybe('<remote/sync> Sync#constructor()', () => {
     destroyDBs([gitDDB]);
   });
 
-  it('set sync_direction to both by default', async () => {
+  it('set syncDirection to both by default', async () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().sync_direction).toBe('both');
+    expect(sync.options().syncDirection).toBe('both');
 
     destroyDBs([gitDDB]);
   });
 
-  it('set combine_db_strategy to combine-head-with-theirs by default', async () => {
+  it('set combineDbStrategy to combine-head-with-theirs by default', async () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().combine_db_strategy).toBe('combine-head-with-theirs');
+    expect(sync.options().combineDbStrategy).toBe('combine-head-with-theirs');
 
     destroyDBs([gitDDB]);
   });
 
-  it('set include_commits to false by default', async () => {
+  it('set includeCommits to false by default', async () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().include_commits).toBe(false);
+    expect(sync.options().includeCommits).toBe(false);
 
     destroyDBs([gitDDB]);
   });
 
-  it('set conflict_resolution_strategy to ours-diff by default', async () => {
+  it('set conflictResolutionStrategy to ours-diff by default', async () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().conflict_resolution_strategy).toBe('ours-diff');
+    expect(sync.options().conflictResolutionStrategy).toBe('ours-diff');
 
     destroyDBs([gitDDB]);
   });
@@ -183,15 +184,15 @@ maybe('<remote/sync> Sync#constructor()', () => {
     const remoteURL = remoteURLBase + serialId() + '.git';
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     expect(() => new Sync(gitDDB, options)).not.toThrowError();
@@ -202,14 +203,14 @@ maybe('<remote/sync> Sync#constructor()', () => {
   it('throws UndefinedRemoteURLError when remoteURL is undefined.', async () => {
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
       connection: {
         type: 'github',
-        personal_access_token: '',
+        personalAccessToken: '',
       },
     };
     expect(() => new Sync(gitDDB, options)).toThrowError(UndefinedRemoteURLError);
@@ -220,15 +221,15 @@ maybe('<remote/sync> Sync#constructor()', () => {
     const dbName = serialId();
     const remoteURL = 'ssh://github.com/';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: 'foobar',
+        personalAccessToken: 'foobar',
       },
     };
     expect(() => new Sync(gitDDB, options)).toThrowError(HttpProtocolRequiredError);
@@ -239,35 +240,35 @@ maybe('<remote/sync> Sync#constructor()', () => {
     const dbName = serialId();
     const remoteURL = remoteURLBase + serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: '',
+        personalAccessToken: '',
       },
     };
     expect(() => new Sync(gitDDB, options)).toThrowError(UndefinedPersonalAccessTokenError);
     await gitDDB.destroy();
   });
 
-  it('does not throw UndefinedPersonalAccessTokenError when sync_directions is "pull" ', async () => {
+  it('does not throw UndefinedPersonalAccessTokenError when syncDirections is "pull" ', async () => {
     const dbName = serialId();
     const remoteURL = remoteURLBase + serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
-      sync_direction: 'pull',
+      remoteUrl: remoteURL,
+      syncDirection: 'pull',
       connection: {
         type: 'github',
-        personal_access_token: '',
+        personalAccessToken: '',
       },
     };
     expect(() => new Sync(gitDDB, options)).not.toThrowError(
@@ -280,15 +281,15 @@ maybe('<remote/sync> Sync#constructor()', () => {
     const dbName = serialId();
     const remoteURL = 'https://github.com/';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: 'foobar',
+        personalAccessToken: 'foobar',
       },
     };
     expect(() => new Sync(gitDDB, options)).toThrowError(InvalidRepositoryURLError);
@@ -299,16 +300,16 @@ maybe('<remote/sync> Sync#constructor()', () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const invalid_options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       interval: MINIMUM_SYNC_INTERVAL - 1,
       connection: {
         type: 'github',
-        personal_access_token: '',
+        personalAccessToken: '',
       },
     };
     expect(() => new Sync(gitDDB, invalid_options)).toThrowError(IntervalTooSmallError);
@@ -316,11 +317,11 @@ maybe('<remote/sync> Sync#constructor()', () => {
 
     await gitDDB.createDB();
     const valid_options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       interval: MINIMUM_SYNC_INTERVAL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     expect(() => new Sync(gitDDB, valid_options)).not.toThrowError();
@@ -332,18 +333,18 @@ maybe('<remote/sync> Sync#constructor()', () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
-    const retry_interval = 5000;
+    const retryInterval = 5000;
     const options: RemoteOptions = {
-      remote_url: remoteURL,
-      interval: retry_interval - 1,
-      retry_interval,
+      remoteUrl: remoteURL,
+      interval: retryInterval - 1,
+      retryInterval,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
     };
     // less than
@@ -354,7 +355,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
 
     // equal to
     await gitDDB.createDB();
-    options.interval = retry_interval;
+    options.interval = retryInterval;
     expect(() => new Sync(gitDDB, options)).toThrowError(
       SyncIntervalLessThanOrEqualToRetryIntervalError
     );
@@ -363,7 +364,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     // more than
     await gitDDB.createDB();
     // eslint-disable-next-line require-atomic-updates
-    options.interval = retry_interval + 1;
+    options.interval = retryInterval + 1;
     expect(() => new Sync(gitDDB, options)).not.toThrowError();
 
     await gitDDB.destroy();
@@ -374,7 +375,7 @@ maybe('<remote/sync> init()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     // Remove remote
@@ -386,15 +387,15 @@ maybe('<remote/sync> init()', () => {
     const remoteURL =
       'https://github.com/sosuisen/foobar_test_for_remote_repository_connect_error';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: 'foo',
+        personalAccessToken: 'foo',
       },
     };
     const sync = new Sync(gitDDB, options);
@@ -410,7 +411,7 @@ maybe('<remote/sync> syncImpl()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     // Remove remote
@@ -421,13 +422,13 @@ maybe('<remote/sync> syncImpl()', () => {
     const dbName = serialId();
     const remoteURL = remoteURLBase + serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await expect(
       syncImpl.call(gitDDB, {
-        remote_url: remoteURL,
-        connection: { type: 'github', personal_access_token: token },
+        remoteUrl: remoteURL,
+        connection: { type: 'github', personalAccessToken: token },
       })
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
@@ -438,7 +439,7 @@ maybe('<remote/sync> tryPush()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+  const token = process.env.GITDDB_personalAccessToken!;
 
   beforeAll(async () => {
     // Remove remote
@@ -449,17 +450,17 @@ maybe('<remote/sync> tryPush()', () => {
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const options: RemoteOptions = {
-      remote_url: remoteURL,
+      remoteUrl: remoteURL,
       connection: {
         type: 'github',
-        personal_access_token: token,
+        personalAccessToken: token,
       },
-      sync_direction: 'pull',
+      syncDirection: 'pull',
     };
     const sync = new Sync(gitDDB, options);
     await await expect(sync.init(gitDDB.repository()!)).rejects.toThrowError(

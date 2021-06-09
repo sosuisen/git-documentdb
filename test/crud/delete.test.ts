@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -19,7 +20,7 @@ import {
   UndefinedDocumentIdError,
 } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
-import { delete_worker } from '../../src/crud/delete';
+import { deleteWorker } from '../../src/crud/delete';
 import { TaskMetadata } from '../../src/types';
 import { sleep } from '../../src/utils';
 
@@ -47,8 +48,8 @@ describe('<crud/delete>', () => {
     it('deletes a document by id.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -61,10 +62,10 @@ describe('<crud/delete>', () => {
       expect(deleteResult).toMatchObject({
         ok: true,
         id: expect.stringMatching('^' + _id + '$'),
-        file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
-      const short_sha = deleteResult.file_sha.substr(0, SHORT_SHA_LENGTH);
+      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -80,8 +81,8 @@ describe('<crud/delete>', () => {
     it('deletes a document by JsonDoc.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -93,8 +94,8 @@ describe('<crud/delete>', () => {
       await expect(gitDDB.delete(doc)).resolves.toMatchObject({
         ok: true,
         id: expect.stringMatching('^' + _id + '$'),
-        file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
 
       await gitDDB.destroy();
@@ -103,8 +104,8 @@ describe('<crud/delete>', () => {
     it('deletes a document which _id is non-ASCII.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -117,10 +118,10 @@ describe('<crud/delete>', () => {
       expect(deleteResult).toMatchObject({
         ok: true,
         id: expect.stringMatching('^' + _id + '$'),
-        file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
-      const short_sha = deleteResult.file_sha.substr(0, SHORT_SHA_LENGTH);
+      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -136,8 +137,8 @@ describe('<crud/delete>', () => {
     it('throws UndefinedDocumentIdError', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -151,12 +152,12 @@ describe('<crud/delete>', () => {
     it('throws RepositoryNotOpenError.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await expect(gitDDB.remove('prof01')).rejects.toThrowError(RepositoryNotOpenError);
       await expect(
-        delete_worker(gitDDB, 'prof01', JSON_EXT, 'message')
+        deleteWorker(gitDDB, 'prof01', JSON_EXT, 'message')
       ).rejects.toThrowError(RepositoryNotOpenError);
       await gitDDB.destroy();
     });
@@ -165,8 +166,8 @@ describe('<crud/delete>', () => {
       const dbName = monoId();
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -186,8 +187,8 @@ describe('<crud/delete>', () => {
     it('deletes from sub-directory.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -219,10 +220,10 @@ describe('<crud/delete>', () => {
       expect(deleteResult).toMatchObject({
         ok: true,
         id: expect.stringMatching('^' + _id1 + '$'),
-        file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
-      const short_sha = deleteResult.file_sha.substr(0, SHORT_SHA_LENGTH);
+      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -292,8 +293,8 @@ describe('<crud/delete>', () => {
     it('modifies a commit message.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -301,7 +302,7 @@ describe('<crud/delete>', () => {
       await gitDDB.put({ _id: _id, name: 'shirase' });
 
       // Delete
-      await gitDDB.remove(_id, { commit_message: 'my commit message' });
+      await gitDDB.remove(_id, { commitMessage: 'my commit message' });
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -317,8 +318,8 @@ describe('<crud/delete>', () => {
     it('deletes a document by JsonObject.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
 
       await gitDDB.createDB();
@@ -330,8 +331,8 @@ describe('<crud/delete>', () => {
       await expect(gitDDB.remove(doc)).resolves.toMatchObject({
         ok: true,
         id: expect.stringMatching('^' + _id + '$'),
-        file_sha: expect.stringMatching(/^[\da-z]{40}$/),
-        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
 
       await gitDDB.destroy();
@@ -356,8 +357,8 @@ describe('<crud/delete>', () => {
     it('deletes all at once', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
 
@@ -380,11 +381,11 @@ describe('<crud/delete>', () => {
 
       await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
         total_rows: 1,
-        commit_sha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             id: expect.stringMatching('^' + _id_p + '$'),
-            file_sha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
           },
         ],
       });
@@ -395,8 +396,8 @@ describe('<crud/delete>', () => {
     it('called concurrently throws an error.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
-        db_name: dbName,
-        local_dir: localDir,
+        dbName,
+        localDir,
       });
       await gitDDB.createDB();
 
@@ -411,11 +412,11 @@ describe('<crud/delete>', () => {
 
       await expect(
         Promise.all([
-          delete_worker(gitDDB, _id_a, JSON_EXT, 'message'),
-          delete_worker(gitDDB, _id_b, JSON_EXT, 'message'),
-          delete_worker(gitDDB, _id_c01, JSON_EXT, 'message'),
-          delete_worker(gitDDB, _id_c02, JSON_EXT, 'message'),
-          delete_worker(gitDDB, _id_d, JSON_EXT, 'message'),
+          deleteWorker(gitDDB, _id_a, JSON_EXT, 'message'),
+          deleteWorker(gitDDB, _id_b, JSON_EXT, 'message'),
+          deleteWorker(gitDDB, _id_c01, JSON_EXT, 'message'),
+          deleteWorker(gitDDB, _id_c02, JSON_EXT, 'message'),
+          deleteWorker(gitDDB, _id_d, JSON_EXT, 'message'),
         ])
       ).rejects.toThrowError();
 
@@ -426,8 +427,8 @@ describe('<crud/delete>', () => {
   it('set taskId', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
-      db_name: dbName,
-      local_dir: localDir,
+      dbName,
+      localDir,
     });
     await gitDDB.createDB();
     const enqueueEvent: TaskMetadata[] = [];

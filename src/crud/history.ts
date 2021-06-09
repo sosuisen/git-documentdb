@@ -24,8 +24,8 @@ export async function getDocHistoryImpl (
   if (this.isClosing) {
     throw new DatabaseClosingError();
   }
-  const _currentRepository = this.repository();
-  if (_currentRepository === undefined) {
+  const currentRepository = this.repository();
+  if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
 
@@ -37,7 +37,7 @@ export async function getDocHistoryImpl (
   this.validator.validateId(_id);
 
   // Calling nameToId() for HEAD throws error when this is first commit.
-  await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(() => {
+  await nodegit.Reference.nameToId(currentRepository, 'HEAD').catch(() => {
     // throw new DocumentNotFoundError();
     return [];
   }); // get HEAD
@@ -46,7 +46,7 @@ export async function getDocHistoryImpl (
 
   const fileSHAArray: string[] = [];
   const fileSHAHash: { [key: string]: boolean } = {};
-  const walk = _currentRepository.createRevWalk();
+  const walk = currentRepository.createRevWalk();
 
   walk.pushHead();
   walk.sorting(nodegit.Revwalk.SORT.TOPOLOGICAL, nodegit.Revwalk.SORT.TIME);
@@ -57,7 +57,7 @@ export async function getDocHistoryImpl (
     if (oid == null) {
       return;
     }
-    const commit = await nodegit.Commit.lookup(_currentRepository, oid);
+    const commit = await nodegit.Commit.lookup(currentRepository, oid);
     let entry = null;
     try {
       entry = await commit.getEntry(fileName);
@@ -92,12 +92,12 @@ export async function getBackNumber (
   fileName: string,
   backNumber: number
 ): Promise<string | undefined> {
-  const _currentRepository = gitDDB.repository();
-  if (_currentRepository === undefined) {
+  const currentRepository = gitDDB.repository();
+  if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
 
-  const walk = _currentRepository.createRevWalk();
+  const walk = currentRepository.createRevWalk();
 
   let headFlag = true;
   let fileSHA = '';
@@ -115,7 +115,7 @@ export async function getBackNumber (
     if (oid == null) {
       return 'failure';
     }
-    const commit = await nodegit.Commit.lookup(_currentRepository!, oid);
+    const commit = await nodegit.Commit.lookup(currentRepository!, oid);
     let entry = null;
     try {
       entry = await commit.getEntry(fileName);

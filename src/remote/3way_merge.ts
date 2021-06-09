@@ -16,7 +16,7 @@ import {
   JsonDoc,
 } from '../types';
 import { IDocumentDB } from '../types_gitddb';
-import { getDocument, getDocumentFromBuffer, writeBlobToFile } from './worker_utils';
+import { getDocumentFromBuffer, writeBlobToFile } from './worker_utils';
 import { toSortedJSONString } from '../utils';
 import { JsonDiff } from './json_diff';
 import { ISync } from '../types_sync';
@@ -96,7 +96,7 @@ function getMergedDocument (
 export async function threeWayMerge (
   gitDDB: IDocumentDB,
   sync: ISync,
-  conflict_resolution_strategy: ConflictResolutionStrategies,
+  conflictResolutionStrategy: ConflictResolutionStrategies,
   resolvedIndex: nodegit.Index,
   path: string,
   mergeBaseOid: string,
@@ -168,7 +168,7 @@ export async function threeWayMerge (
     else {
       // ! Conflict
       const strategy = await getStrategy(
-        conflict_resolution_strategy,
+        conflictResolutionStrategy,
         getDocumentFromBuffer(path, ours.blob),
         getDocumentFromBuffer(path, theirs.blob)
       );
@@ -188,11 +188,11 @@ export async function threeWayMerge (
 
         await resolvedIndex.addByPath(path);
         const entry = await resolvedIndex.getByPath(path);
-        const file_sha = entry.id.tostrS();
+        const fileSha = entry.id.tostrS();
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha,
+            fileSha,
           },
           strategy: strategy,
           operation: strategy === 'ours' ? 'insert' : 'insert-merge',
@@ -213,12 +213,12 @@ export async function threeWayMerge (
 
         await resolvedIndex.addByPath(path);
         const entry = await resolvedIndex.getByPath(path);
-        const file_sha = entry.id.tostrS();
+        const fileSha = entry.id.tostrS();
 
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha,
+            fileSha,
           },
           strategy: strategy,
           operation: strategy === 'theirs' ? 'insert' : 'insert-merge',
@@ -240,7 +240,7 @@ export async function threeWayMerge (
     else {
       // ! Conflict
       const strategy = await getStrategy(
-        conflict_resolution_strategy,
+        conflictResolutionStrategy,
         undefined,
         getDocumentFromBuffer(path, theirs.blob)
       );
@@ -250,7 +250,7 @@ export async function threeWayMerge (
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha: base.oid,
+            fileSha: base.oid,
           },
           strategy: strategy,
           operation: 'delete',
@@ -263,7 +263,7 @@ export async function threeWayMerge (
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha: theirs.oid,
+            fileSha: theirs.oid,
           },
           strategy: strategy,
           operation: 'update',
@@ -289,7 +289,7 @@ export async function threeWayMerge (
     else {
       // ! Conflict
       const strategy = await getStrategy(
-        conflict_resolution_strategy,
+        conflictResolutionStrategy,
         getDocumentFromBuffer(path, ours.blob),
         undefined
       );
@@ -299,7 +299,7 @@ export async function threeWayMerge (
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha: ours.oid,
+            fileSha: ours.oid,
           },
           strategy: strategy,
           operation: 'update',
@@ -317,7 +317,7 @@ export async function threeWayMerge (
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha: base.oid,
+            fileSha: base.oid,
           },
           strategy: strategy,
           operation: 'delete',
@@ -351,7 +351,7 @@ export async function threeWayMerge (
     else {
       // ! Conflict
       const strategy = await getStrategy(
-        conflict_resolution_strategy,
+        conflictResolutionStrategy,
         getDocumentFromBuffer(path, ours.blob),
         getDocumentFromBuffer(path, theirs.blob)
       );
@@ -371,12 +371,12 @@ export async function threeWayMerge (
 
         await resolvedIndex.addByPath(path);
         const entry = await resolvedIndex.getByPath(path);
-        const file_sha = entry.id.tostrS();
+        const fileSha = entry.id.tostrS();
 
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha,
+            fileSha,
           },
           strategy: strategy,
           operation: strategy === 'ours' ? 'update' : 'update-merge',
@@ -398,12 +398,12 @@ export async function threeWayMerge (
 
         await resolvedIndex.addByPath(path);
         const entry = await resolvedIndex.getByPath(path);
-        const file_sha = entry.id.tostrS();
+        const fileSha = entry.id.tostrS();
 
         acceptedConflicts.push({
           target: {
             id: docId,
-            file_sha,
+            fileSha,
           },
           strategy: strategy,
           operation: strategy === 'theirs' ? 'update' : 'update-merge',
