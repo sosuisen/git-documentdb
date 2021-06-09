@@ -223,7 +223,7 @@ export async function syncWorker (
     // Cannot use await in forEach. Use for-of.
     for (const change of localChanges) {
       if (change.operation === 'delete') {
-        const filename = change.old.id + JSON_EXT;
+        const filename = change.old._id + JSON_EXT;
         const path = nodePath.resolve(repos.workdir(), filename);
         await fs.remove(path).catch(() => {
           throw new CannotDeleteDataError();
@@ -231,11 +231,11 @@ export async function syncWorker (
         await currentIndex.removeByPath(filename);
       }
       else if (change.operation === 'update') {
-        const filename = change.old.id + JSON_EXT;
+        const filename = change.old._id + JSON_EXT;
         const { blob } = await git.readBlob({
           fs,
           dir: gitDDB.workingDir(),
-          oid: change.old.id,
+          oid: change.old._id,
         });
         const data = Buffer.from(blob).toString('utf-8');
         await writeBlobToFile(gitDDB, filename, data);

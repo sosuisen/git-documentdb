@@ -88,7 +88,7 @@ export class RemoteRepository {
   async create () {
     if (this._options.connection?.type === 'github') {
       // @ts-ignore
-      if (this._options.connection.personal_access_token === undefined) {
+      if (this._options.connection.personalAccessToken === undefined) {
         throw new UndefinedPersonalAccessTokenError();
       }
       const urlArray = this._options.remoteUrl!.split('/');
@@ -158,7 +158,7 @@ export class RemoteRepository {
   async destroy () {
     if (this._options.connection?.type === 'github') {
       // @ts-ignore
-      if (this._options.connection?.personal_access_token === undefined) {
+      if (this._options.connection?.personalAccessToken === undefined) {
         throw new UndefinedPersonalAccessTokenError();
       }
       const urlArray = this._options.remoteUrl!.split('/');

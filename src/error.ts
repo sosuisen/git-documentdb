@@ -457,7 +457,7 @@ export class CannotCreateRepositoryError extends BaseError {
 
 /**
  */
- export class CannotCreateRemoteRepositoryError extends BaseError {
+export class CannotCreateRemoteRepositoryError extends BaseError {
   constructor (reason: string) {
     super(`Cannot create remote repository: ${reason}`);
   }

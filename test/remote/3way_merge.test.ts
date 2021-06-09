@@ -61,9 +61,9 @@ afterAll(() => {
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
-//  - GITDDB_personalAccessToken: A personal access token of your GitHub account
+//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -71,14 +71,14 @@ maybe('<remote/3way_merge>', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
   it('throws InvalidConflictsStateError', async () => {
-    const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+    const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
       serialId,
@@ -91,7 +91,7 @@ maybe('<remote/3way_merge>', () => {
     const commit = putResultA1.commitSha;
     const index = await dbA.repository()?.refreshIndex();
     await expect(
-      threeWayMerge(dbA, remoteA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
+      threeWayMerge(dbA, syncA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
     ).rejects.toThrowError(InvalidConflictStateError);
   });
 
@@ -107,7 +107,7 @@ maybe('<remote/3way_merge>', () => {
    *   jsonB3: 2 - Accept ours (insert)
    */
   it('resolves case 1 - Accept theirs (insert), case 2 - Accept ours (insert), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+    const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
       serialId,
@@ -121,7 +121,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultA1 = await dbA.put(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -132,7 +132,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultB3 = await dbB.put(jsonB3);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -161,7 +161,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -172,7 +172,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA2, jsonB3]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonA2, jsonB3]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -192,7 +192,7 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2: 3 - Accept both (insert)
    */
   it('resolves case 3 - Accept both (insert), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+    const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
       serialId,
@@ -206,7 +206,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultA1 = await dbA.put(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -216,7 +216,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultB2 = await dbB.put(jsonA2);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -241,7 +241,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -252,7 +252,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA2]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonA2]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -271,7 +271,7 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA1: 5 - Conflict. Accept theirs (insert)
    */
   it('resolves case 5 - Conflict. Accept theirs (insert)', async () => {
-    const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+    const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
       serialId,
@@ -283,14 +283,14 @@ maybe('<remote/3way_merge>', () => {
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -313,7 +313,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultA1.fileSha,
         },
         strategy: 'theirs',
@@ -342,13 +342,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2: 6 - Accept both (delete)
    */
   it('resolves case 6 - Accept both (delete), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
     await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -356,15 +356,15 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts, removes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
 
     const deleteResultA2 = await dbA.remove(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -374,7 +374,7 @@ maybe('<remote/3way_merge>', () => {
     const deleteResultB2 = await dbB.remove(jsonA2);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -399,7 +399,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -410,7 +410,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -430,13 +430,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2: 7 - Accept ours (delete)
    */
   it('resolves case 7 - Accept ours (delete), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
     await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -444,13 +444,13 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -460,7 +460,7 @@ maybe('<remote/3way_merge>', () => {
     const deleteResultB2 = await dbB.remove(jsonA2);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -487,7 +487,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -498,7 +498,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -519,13 +519,13 @@ maybe('<remote/3way_merge>', () => {
    *  jsonA1: 8 - Conflict. Accept ours (delete)
    */
   it('resolves case 8 - Conflict. Accept ours (delete)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -533,18 +533,18 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A updates and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
     const putResultA1dash = await dbA.put(jsonA1dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B removes and syncs
     const deleteResultB1 = await dbB.remove(jsonA1);
 
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -567,7 +567,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: deleteResultB1.fileSha,
         },
         strategy: 'ours',
@@ -579,7 +579,7 @@ maybe('<remote/3way_merge>', () => {
     expect(getWorkingDirDocs(dbB)).toEqual([]);
 
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -600,13 +600,13 @@ maybe('<remote/3way_merge>', () => {
    *  jsonA1: 9 - Conflict. Accept theirs (update)
    */
   it('resolves case 9 - Conflict. Accept ours (delete)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'theirs',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -614,18 +614,18 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A updates and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
     const putResultA1dash = await dbA.put(jsonA1dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B removes and syncs
     const deleteResultB1 = await dbB.remove(jsonA1);
 
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -649,7 +649,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultA1dash.fileSha,
         },
         strategy: 'theirs',
@@ -678,13 +678,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2:10 - Accept theirs (delete)
    */
   it('resolves case 10 - Accept theirs (delete), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
     await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -692,21 +692,21 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts, removes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
     const deleteResultA2 = await dbA.remove(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -733,7 +733,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -744,7 +744,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -764,13 +764,13 @@ maybe('<remote/3way_merge>', () => {
    *  jsonA2:  1 - Accept theirs (insert)
    */
   it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (insert), ', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -778,20 +778,20 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.remove(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    await remoteA.tryPush();
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await syncA.tryPush();
 
     // B updates the old file and syncs
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -814,7 +814,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -826,7 +826,7 @@ maybe('<remote/3way_merge>', () => {
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA2]);
 
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonA2]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -846,13 +846,13 @@ maybe('<remote/3way_merge>', () => {
    *  jsonA2:  1 - Accept theirs (insert)
    */
   it('resolves case 12 - accept theirs (delete), case 1 - Accept theirs (insert)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -860,20 +860,23 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open({ ...remoteA.options(), conflictResolutionStrategy: 'theirs' });
+    await dbB.open();
+    const syncB = await dbB.sync({
+      ...syncA.options(),
+      conflictResolutionStrategy: 'theirs',
+    });
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.remove(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    await remoteA.tryPush();
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await syncA.tryPush();
 
     // B updates the old file and syncs
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -900,7 +903,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: deleteResultA1.fileSha,
         },
         strategy: 'theirs',
@@ -928,13 +931,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2:13 - Accept both (update)
    */
   it('resolves case 13 - Accept both (update), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -942,15 +945,15 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
     const jsonA2dash = { _id: '2', name: 'updated' };
     const putResultA2dash = await dbA.put(jsonA2dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -960,7 +963,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultB2 = await dbB.put(jsonA2dash);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -985,7 +988,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -996,7 +999,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA2dash]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonA2dash]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -1017,13 +1020,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2:14 - Accept theirs (update)
    */
   it('resolves case 14 - Accept theirs (update), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -1031,15 +1034,15 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
     const jsonA2dash = { _id: '2', name: 'updated' };
     const putResultA2dash = await dbA.put(jsonA2dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -1049,7 +1052,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultB2 = await dbB.put(jsonA2);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -1077,7 +1080,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -1088,7 +1091,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA2dash]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonA2dash]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -1108,13 +1111,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2:15 - Accept ours (update)
    */
   it('resolves case 15 - Accept ours (update), case 4 - Conflict. Accept ours (insert)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -1122,15 +1125,15 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
     // A puts the previous file and pushes
     const putResultA2dash = await dbA.put(jsonA2);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
@@ -1141,7 +1144,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultB2 = await dbB.put(jsonB2);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -1167,7 +1170,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -1178,7 +1181,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonB2]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonB2]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -1197,13 +1200,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonB1:16 - Conflict. Accept ours (update)
    */
   it('resolves case 16 - Conflict. Accept ours (update)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -1211,20 +1214,20 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
     const putResultA1dash = await dbA.put(jsonA1dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -1247,7 +1250,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -1258,7 +1261,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -1277,13 +1280,13 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA1:17 - Conflict. Accept theirs (update)
    */
   it('resolves case 17 - Conflict. Accept theirs (update)', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'theirs',
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -1291,20 +1294,23 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open({ ...remoteA.options(), conflictResolutionStrategy: 'theirs' });
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync({
+      ...syncA.options(),
+      conflictResolutionStrategy: 'theirs',
+    });
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
     const putResultA1dash = await dbA.put(jsonA1dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -1327,7 +1333,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultA1dash.fileSha,
         },
         strategy: 'theirs',
@@ -1357,7 +1363,7 @@ maybe('<remote/3way_merge>', () => {
    *  jsonB3:11 - Conflict. Accept ours (update)
    */
   it('resolves many conflicts', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: 'ours',
     });
     // A puts and pushes
@@ -1367,7 +1373,7 @@ maybe('<remote/3way_merge>', () => {
     const putResultA2 = await dbA.put(jsonA2);
     const jsonA3 = { _id: '3', name: 'fromA' };
     const putResultA3 = await dbA.put(jsonA3);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -1375,8 +1381,8 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A updates, deletes, updates, and pushes
 
@@ -1390,7 +1396,7 @@ maybe('<remote/3way_merge>', () => {
 
     const deleteResultA2 = await dbA.remove(jsonA2);
 
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B deletes, updates, updates, and syncs
 
@@ -1404,7 +1410,7 @@ maybe('<remote/3way_merge>', () => {
     const jsonB2 = { _id: '2', name: 'fromB' };
     const putResultB2 = await dbB.put(jsonB2);
 
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -1447,7 +1453,7 @@ maybe('<remote/3way_merge>', () => {
       expect.arrayContaining([
         {
           target: {
-            id: '1',
+            _id: '1',
             fileSha: deleteResultB1.fileSha,
           },
           strategy: 'ours',
@@ -1455,7 +1461,7 @@ maybe('<remote/3way_merge>', () => {
         },
         {
           target: {
-            id: '2',
+            _id: '2',
             fileSha: putResultB2.fileSha,
           },
           strategy: 'ours',
@@ -1463,7 +1469,7 @@ maybe('<remote/3way_merge>', () => {
         },
         {
           target: {
-            id: '3',
+            _id: '3',
             fileSha: putResultB3.fileSha,
           },
           strategy: 'ours',
@@ -1476,7 +1482,7 @@ maybe('<remote/3way_merge>', () => {
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB2, jsonB3]);
 
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB2, jsonB3]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -1505,13 +1511,13 @@ maybe('<remote/3way_merge>', () => {
       return 'theirs';
     };
 
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: userStrategyByDate,
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -1519,20 +1525,20 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open(remoteA.options());
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options());
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated', date: '2021/05/16' };
     const putResultA1dash = await dbA.put(jsonA1dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts
     const jsonB1 = { _id: '1', name: 'fromB', date: '2021/06/16' };
     const putResultB1 = await dbB.put(jsonB1);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -1555,7 +1561,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours',
@@ -1566,7 +1572,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1]);
     // Sync dbA
-    const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -1594,13 +1600,13 @@ maybe('<remote/3way_merge>', () => {
       }
       return 'theirs';
     };
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       conflictResolutionStrategy: userStrategyByDate,
     });
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
@@ -1608,20 +1614,23 @@ maybe('<remote/3way_merge>', () => {
       localDir,
     });
     // Clone dbA
-    await dbB.open({ ...remoteA.options(), conflictResolutionStrategy: 'theirs' });
-    const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+    await dbB.open();
+    const syncB = await dbB.sync({
+      ...syncA.options(),
+      conflictResolutionStrategy: 'theirs',
+    });
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated', date: '2021/06/16' };
     const putResultA1dash = await dbA.put(jsonA1dash);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // B puts
     const jsonB1 = { _id: '1', name: 'fromB', date: '2021/05/16' };
     const putResultB1 = await dbB.put(jsonB1);
 
     // It will occur conflict on id 1.json.
-    const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+    const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
@@ -1644,7 +1653,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultA1dash.fileSha,
         },
         strategy: 'theirs',

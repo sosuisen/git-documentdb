@@ -193,9 +193,7 @@ describe('<validator>', () => {
   });
 
   it('validateDocument', () => {
-    expect(() =>
-      validator.validateDocument({ _id: 'id', _deleted: true })
-    ).not.toThrowError();
+    expect(() => validator.validateDocument({ _id: 'id' })).not.toThrowError();
 
     expect(() => validator.validateDocument({ _id: undefined })).toThrowError(
       UndefinedDocumentIdError

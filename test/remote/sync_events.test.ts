@@ -64,7 +64,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -72,7 +72,7 @@ maybe('<remote/sync> [event]', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -83,7 +83,7 @@ maybe('<remote/sync> [event]', () => {
    */
   describe('change', () => {
     it('occurs once', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -92,22 +92,22 @@ maybe('<remote/sync> [event]', () => {
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResult1 = await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B syncs
       let result: SyncResultFastForwardMerge | undefined;
       let changeTaskId = '';
-      remoteB.on('change', (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+      syncB.on('change', (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
         result = syncResult as SyncResultFastForwardMerge;
         changeTaskId = taskMetadata.taskId;
       });
       let complete = false;
       let endTaskId = '';
-      remoteB.on('complete', (taskMetadata: TaskMetadata) => {
+      syncB.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
         endTaskId = taskMetadata.taskId;
       });
-      await remoteB.trySync();
+      await syncB.trySync();
 
       // eslint-disable-next-line no-unmodified-loop-condition
       while (!complete) {
@@ -129,7 +129,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('is propagated between local and remote sites', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -138,7 +138,7 @@ maybe('<remote/sync> [event]', () => {
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       // B puts and pushes
       const jsonB1 = { _id: '1', name: 'fromB' };
@@ -146,7 +146,7 @@ maybe('<remote/sync> [event]', () => {
 
       let resultA: SyncResultFastForwardMerge | undefined;
       let completeA = false;
-      remoteA.on('change', (syncResult: SyncResult) => {
+      syncA.on('change', (syncResult: SyncResult) => {
         resultA = syncResult as SyncResultFastForwardMerge;
         console.log('A: ' + resultA.action);
         if (resultA.action === 'fast-forward merge') {
@@ -155,17 +155,17 @@ maybe('<remote/sync> [event]', () => {
       });
 
       let resultB: SyncResultFastForwardMerge | undefined;
-      remoteB.on('change', (syncResult: SyncResult) => {
+      syncB.on('change', (syncResult: SyncResult) => {
         resultB = syncResult as SyncResultFastForwardMerge;
         console.log('B: ' + resultB.action);
       });
       let completeB = false;
-      remoteB.on('complete', () => {
+      syncB.on('complete', () => {
         completeB = true;
       });
 
-      remoteA.resume({ ...remoteA.options(), interval: 3000 });
-      remoteB.resume({ ...remoteA.options(), interval: 3000 });
+      syncA.resume({ ...syncA.options(), interval: 3000 });
+      syncB.resume({ ...syncA.options(), interval: 3000 });
 
       // eslint-disable-next-line no-unmodified-loop-condition
       while (!completeA || !completeB) {
@@ -199,7 +199,7 @@ maybe('<remote/sync> [event]', () => {
      * after :                 jsonB3
      */
     it('occurs with every retry', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -210,21 +210,21 @@ maybe('<remote/sync> [event]', () => {
       const putResult1 = await dbA.put(jsonA1);
       const jsonA2 = { _id: '2', name: 'fromA' };
       const putResult2 = await dbA.put(jsonA2);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
-      await remoteB.trySync();
+      await syncB.trySync();
 
-      remoteA.on('change', (result: SyncResult) => {
+      syncA.on('change', (result: SyncResult) => {
         // console.log('A: ' + JSON.stringify(result));
       });
       const resultsB: SyncResult[] = [];
-      remoteB.on('change', (result: SyncResult) => {
+      syncB.on('change', (result: SyncResult) => {
         // console.log('B: ' + JSON.stringify(result));
         resultsB.push(result);
       });
 
       await dbA.delete(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       await dbA.delete(jsonA2);
 
@@ -232,8 +232,8 @@ maybe('<remote/sync> [event]', () => {
       dbB
         .put(jsonB3)
         .then(() => {
-          remoteB.trySync(); // merge and push
-          remoteA.trySync(); // will invoke transactional conflict and retry on remoteB
+          syncB.trySync(); // merge and push
+          syncA.trySync(); // will invoke transactional conflict and retry on syncB
         })
         .catch(err => {
           console.log(err);
@@ -249,7 +249,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('is followed by localChange', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -258,25 +258,22 @@ maybe('<remote/sync> [event]', () => {
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResult1 = await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B syncs
       let changes: ChangedFile[] = [];
       let changeTaskId = '';
-      remoteB.on(
-        'localChange',
-        (localChanges: ChangedFile[], taskMetadata: TaskMetadata) => {
-          changes = localChanges;
-          changeTaskId = taskMetadata.taskId;
-        }
-      );
+      syncB.on('localChange', (localChanges: ChangedFile[], taskMetadata: TaskMetadata) => {
+        changes = localChanges;
+        changeTaskId = taskMetadata.taskId;
+      });
       let complete = false;
       let endTaskId = '';
-      remoteB.on('complete', (taskMetadata: TaskMetadata) => {
+      syncB.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
         endTaskId = taskMetadata.taskId;
       });
-      await remoteB.trySync();
+      await syncB.trySync();
 
       // eslint-disable-next-line no-unmodified-loop-condition
       while (!complete) {
@@ -299,7 +296,7 @@ maybe('<remote/sync> [event]', () => {
      * after :                 jsonB3
      */
     it('occurs localChanges with every retry', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -310,28 +307,28 @@ maybe('<remote/sync> [event]', () => {
       const putResult1 = await dbA.put(jsonA1);
       const jsonA2 = { _id: '2', name: 'fromA' };
       const putResult2 = await dbA.put(jsonA2);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
-      await remoteB.trySync();
+      await syncB.trySync();
 
-      remoteA.on('localChange', (changes: ChangedFile[]) => {
+      syncA.on('localChange', (changes: ChangedFile[]) => {
         // console.log('A local: ' + JSON.stringify(changes));
       });
       const localChangesB: ChangedFile[][] = [];
-      remoteB.on('localChange', (changes: ChangedFile[]) => {
+      syncB.on('localChange', (changes: ChangedFile[]) => {
         // console.log('B local: ' + JSON.stringify(changes));
         localChangesB.push(changes);
       });
       /*
-      remoteA.on('remoteChange', (remoteChanges: ChangedFile[]) => {
+      syncA.on('remoteChange', (remoteChanges: ChangedFile[]) => {
         console.log('A remote: ' + JSON.stringify(remoteChanges));
       });
-      remoteB.on('remoteChange', (remoteChanges: ChangedFile[]) => {
+      syncB.on('remoteChange', (remoteChanges: ChangedFile[]) => {
         console.log('B remote: ' + JSON.stringify(remoteChanges));
       });
 */
       await dbA.delete(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       await dbA.delete(jsonA2);
 
@@ -339,8 +336,8 @@ maybe('<remote/sync> [event]', () => {
       dbB
         .put(jsonB3)
         .then(() => {
-          remoteB.trySync(); // merge and push
-          remoteA.trySync(); // will invoke transactional conflict and retry on remoteB
+          syncB.trySync(); // merge and push
+          syncA.trySync(); // will invoke transactional conflict and retry on syncB
         })
         .catch(err => {
           console.log(err);
@@ -354,7 +351,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('is followed by remoteChange', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -362,7 +359,7 @@ maybe('<remote/sync> [event]', () => {
 
       let changes: ChangedFile[] = [];
       let changeTaskId = '';
-      remoteB.on(
+      syncB.on(
         'remoteChange',
         (remoteChanges: ChangedFile[], taskMetadata: TaskMetadata) => {
           changes = remoteChanges;
@@ -371,7 +368,7 @@ maybe('<remote/sync> [event]', () => {
       );
       let complete = false;
       let endTaskId = '';
-      remoteB.on('complete', (taskMetadata: TaskMetadata) => {
+      syncB.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
         endTaskId = taskMetadata.taskId;
       });
@@ -379,7 +376,7 @@ maybe('<remote/sync> [event]', () => {
       // B puts and syncs
       const jsonB1 = { _id: '1', name: 'fromB' };
       const putResult1 = await dbB.put(jsonB1);
-      await remoteB.trySync();
+      await syncB.trySync();
 
       // eslint-disable-next-line no-unmodified-loop-condition
       while (!complete) {
@@ -403,7 +400,7 @@ maybe('<remote/sync> [event]', () => {
      * after :                 jsonB3
      */
     it('occurs remoteChanges with every retry', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -414,21 +411,21 @@ maybe('<remote/sync> [event]', () => {
       const putResult1 = await dbA.put(jsonA1);
       const jsonA2 = { _id: '2', name: 'fromA' };
       const putResult2 = await dbA.put(jsonA2);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
-      await remoteB.trySync();
+      await syncB.trySync();
 
       const remoteChangesA: ChangedFile[][] = [];
-      remoteA.on('remoteChange', (changes: ChangedFile[]) => {
+      syncA.on('remoteChange', (changes: ChangedFile[]) => {
         // console.log('A remote: ' + JSON.stringify(remoteChanges));
         remoteChangesA.push(changes);
       });
-      remoteB.on('remoteChange', (changes: ChangedFile[]) => {
+      syncB.on('remoteChange', (changes: ChangedFile[]) => {
         // console.log('B remote: ' + JSON.stringify(changes));
       });
 
       await dbA.delete(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       await dbA.delete(jsonA2);
 
@@ -436,8 +433,8 @@ maybe('<remote/sync> [event]', () => {
       dbB
         .put(jsonB3)
         .then(() => {
-          remoteB.trySync(); // merge and push
-          remoteA.trySync(); // will invoke transactional conflict and retry on remoteB
+          syncB.trySync(); // merge and push
+          syncA.trySync(); // will invoke transactional conflict and retry on syncB
         })
         .catch(err => {
           console.log(err);
@@ -451,7 +448,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('paused and activates', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId,
@@ -464,15 +461,15 @@ maybe('<remote/sync> [event]', () => {
       );
 
       let active = false;
-      remoteB.on('active', () => {
+      syncB.on('active', () => {
         active = true;
       });
       let paused = false;
-      remoteB.on('paused', () => {
+      syncB.on('paused', () => {
         paused = true;
       });
       let complete = false;
-      remoteB.on('complete', () => {
+      syncB.on('complete', () => {
         complete = true;
       });
 
@@ -486,10 +483,10 @@ maybe('<remote/sync> [event]', () => {
         sleepTime += 1000;
       }
 
-      remoteB.pause();
+      syncB.pause();
       expect(paused).toBe(true);
       expect(active).toBe(false);
-      expect(remoteB.options().live).toBe(false);
+      expect(syncB.options().live).toBe(false);
 
       // Check second complete event
       complete = false; // reset
@@ -498,9 +495,9 @@ maybe('<remote/sync> [event]', () => {
 
       expect(complete).toBe(false); // complete will not happen because synchronization is paused.
 
-      remoteB.resume();
+      syncB.resume();
       expect(active).toBe(true);
-      expect(remoteB.options().live).toBe(true);
+      expect(syncB.options().live).toBe(true);
 
       // Check third complete event
       complete = false; // reset
@@ -540,7 +537,7 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('starts once', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personalAccessToken: token },
         includeCommits: true,
         live: true,
@@ -548,7 +545,7 @@ maybe('<remote/sync> [event]', () => {
       });
 
       let start = false;
-      remoteA.on('start', () => {
+      syncA.on('start', () => {
         start = true;
       });
 
@@ -570,7 +567,7 @@ maybe('<remote/sync> [event]', () => {
 
     it('starts repeatedly', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personalAccessToken: token },
         includeCommits: true,
         live: true,
@@ -578,7 +575,7 @@ maybe('<remote/sync> [event]', () => {
       });
 
       let counter = 0;
-      remoteA.on('start', () => {
+      syncA.on('start', () => {
         counter++;
       });
 
@@ -591,7 +588,7 @@ maybe('<remote/sync> [event]', () => {
 
     it('starts event returns taskMetaData and current retries', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personalAccessToken: token },
         includeCommits: true,
         live: true,
@@ -601,7 +598,7 @@ maybe('<remote/sync> [event]', () => {
       let counter = 0;
       let taskId = '';
       let currentRetries = -1;
-      remoteA.on('start', (taskMetadata: TaskMetadata, _currentRetries: number) => {
+      syncA.on('start', (taskMetadata: TaskMetadata, _currentRetries: number) => {
         counter++;
         taskId = taskMetadata.taskId;
         currentRetries = _currentRetries;
@@ -618,7 +615,7 @@ maybe('<remote/sync> [event]', () => {
 
     it('completes once', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personalAccessToken: token },
         includeCommits: true,
         live: true,
@@ -626,13 +623,13 @@ maybe('<remote/sync> [event]', () => {
       });
 
       let startTaskId = '';
-      remoteA.on('start', (taskMetadata: TaskMetadata) => {
+      syncA.on('start', (taskMetadata: TaskMetadata) => {
         startTaskId = taskMetadata.taskId;
       });
 
       let complete = false;
       let endTaskId = '';
-      remoteA.on('complete', (taskMetadata: TaskMetadata) => {
+      syncA.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
         endTaskId = taskMetadata.taskId;
       });
@@ -656,7 +653,7 @@ maybe('<remote/sync> [event]', () => {
 
     it('completes repeatedly', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection: { type: 'github', personalAccessToken: token },
         includeCommits: true,
         live: true,
@@ -664,7 +661,7 @@ maybe('<remote/sync> [event]', () => {
       });
 
       let counter = 0;
-      remoteA.on('complete', () => {
+      syncA.on('complete', () => {
         counter++;
       });
 
@@ -676,34 +673,34 @@ maybe('<remote/sync> [event]', () => {
     });
 
     it('error', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
       await dbA.put({ _id: '1', name: 'fromA' });
-      await remoteA.trySync();
+      await syncA.trySync();
 
-      await destroyRemoteRepository(remoteA.remoteURL());
+      await destroyRemoteRepository(syncA.remoteURL());
       // Create different repository with the same repository name.
-      const [dbB, remoteB] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbB, syncB] = await createDatabase(remoteURLBase, localDir, serialId);
       await dbB.put({ _id: '1', name: 'fromB' });
-      await remoteB.trySync();
+      await syncB.trySync();
 
       let startTaskId = '';
-      remoteA.on('start', (taskMetadata: TaskMetadata) => {
+      syncA.on('start', (taskMetadata: TaskMetadata) => {
         startTaskId = taskMetadata.taskId;
       });
 
       let error = false;
       let errorTaskId = '';
-      remoteA.on('error', (e: Error, taskMetadata: TaskMetadata) => {
+      syncA.on('error', (e: Error, taskMetadata: TaskMetadata) => {
         error = true;
         errorTaskId = taskMetadata.taskId;
       });
-      await expect(remoteA.trySync()).rejects.toThrowError(SyncWorkerError);
+      await expect(syncA.trySync()).rejects.toThrowError(SyncWorkerError);
 
       expect(error).toBe(true);
       expect(startTaskId).toBe(errorTaskId);
 
       error = false;
-      await expect(remoteA.tryPush()).rejects.toThrowError(Error); // request failed with status code: 404
+      await expect(syncA.tryPush()).rejects.toThrowError(Error); // request failed with status code: 404
 
       expect(error).toBe(true);
 
@@ -713,7 +710,7 @@ maybe('<remote/sync> [event]', () => {
 
   it('on and off', async () => {
     const interval = MINIMUM_SYNC_INTERVAL;
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       connection: { type: 'github', personalAccessToken: token },
       includeCommits: true,
       live: true,
@@ -724,14 +721,14 @@ maybe('<remote/sync> [event]', () => {
     const increment = () => {
       counter++;
     };
-    remoteA.on('start', increment);
+    syncA.on('start', increment);
 
     await sleep(interval * 3);
 
     expect(counter).toBeGreaterThanOrEqual(1);
     expect(counter).toBeLessThanOrEqual(3);
 
-    remoteA.off('start', increment);
+    syncA.off('start', increment);
 
     await sleep(interval * 3);
 
