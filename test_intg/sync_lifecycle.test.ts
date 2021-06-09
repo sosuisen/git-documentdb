@@ -995,26 +995,5 @@ maybe('intg <sync_lifecycle> Sync', () => {
     });
   });
 
-  /**
-   * Initialize synchronization by createDB() with remoteURL, close(), open() again with another remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
-   */
-  describe('Init sync by createDB() with remote_url, close(), open() again with another remote_url: ', () => {
-    it.skip('Open() again with the same repository with another remote_url');
-    it.skip('Open() again with a different repository with another remote_url', () => {
-      // no merge base
-    });
-  });
-  /**
-   * Initialize synchronization by createDB() with remoteURL, close(), open() again with no remoteURL, following sync() with another remoteURL
-   * Initialize means creating local and remote repositories by using a remote_url
-   */
-  describe('Init sync by createDB() with remote_url, close(), open() again with no remoteURL, following sync() with another remote_url: ', () => {
-    it.skip('Open() again with the same repository with another remote_url');
-    it.skip('Open() again with a different repository with another remote_url', () => {
-      // no merge base
-    });
-  });
-
   it.skip('Multiple Sync object');
 });

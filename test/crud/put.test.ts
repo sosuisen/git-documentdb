@@ -13,6 +13,7 @@ import sinon from 'sinon';
 import { monotonicFactory } from 'ulid';
 import {
   CannotWriteDataError,
+  InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,
   InvalidIdLengthError,
   InvalidJsonObjectError,
@@ -100,18 +101,28 @@ describe('<crud/put> put(JsonDoc)', () => {
       local_dir: localDir,
     });
     await gitDDB.createDB();
+
     await expect(
       gitDDB.put({ _id: '<angleBrackets>', name: 'shirase' })
     ).rejects.toThrowError(InvalidIdCharacterError);
     await expect(
-      gitDDB.put({ _id: '_headingUnderscore', name: 'shirase' })
-    ).rejects.toThrowError(InvalidIdCharacterError);
-    await expect(
-      gitDDB.put({ _id: 'trailingPeriod.', name: 'shirase' })
-    ).rejects.toThrowError(InvalidIdCharacterError);
-    await expect(
       gitDDB.put({ _id: 'trailing/Slash/', name: 'shirase' })
     ).rejects.toThrowError(InvalidIdCharacterError);
+
+    await gitDDB.destroy();
+  });
+
+  it('throws InvalidCollectionPathCharacterError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      db_name: dbName,
+      local_dir: localDir,
+    });
+
+    await gitDDB.createDB();
+    await expect(
+      gitDDB.put({ _id: '/headingSlash', name: 'shirase' })
+    ).rejects.toThrowError(InvalidCollectionPathCharacterError);
 
     await gitDDB.destroy();
   });

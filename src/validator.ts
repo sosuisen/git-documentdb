@@ -10,7 +10,6 @@ import path from 'path';
 import { MAX_FILE_PATH_LENGTH } from './const';
 import {
   InvalidCollectionPathCharacterError,
-  InvalidCollectionPathError,
   InvalidCollectionPathLengthError,
   InvalidDbNameCharacterError,
   InvalidIdCharacterError,
@@ -133,22 +132,29 @@ export class Validator {
   /**
    * Return false if given name includes Windows invalid filename character
    */
+  // eslint-disable-next-line complexity
   testWindowsInvalidFileNameCharacter (
     name: string,
     options?: {
       allow_slash?: boolean;
       allow_drive_letter?: boolean;
       allow_directory_dot?: boolean;
+      allow_dot?: boolean;
+      allow_last_space?: boolean;
     }
   ) {
     options ??= {
       allow_slash: undefined,
       allow_drive_letter: undefined,
       allow_directory_dot: undefined,
+      allow_dot: undefined,
+      allow_last_space: undefined,
     };
     options.allow_slash ??= false;
     options.allow_drive_letter ??= false;
     options.allow_directory_dot ??= false;
+    options.allow_dot ??= false;
+    options.allow_last_space ??= false;
 
     let regStr = `<>:"|?*\0`;
     if (!options.allow_slash) {
@@ -167,7 +173,10 @@ export class Validator {
     }
 
     // Do not end with space or period.
-    if (options.allow_directory_dot) {
+    if (options.allow_dot) {
+      // nop
+    }
+    else if (options.allow_directory_dot) {
       if (name !== '.' && name !== '..' && name.endsWith('.')) {
         return false;
       }
@@ -176,7 +185,7 @@ export class Validator {
       return false;
     }
 
-    if (name.endsWith(' ')) {
+    if (!options.allow_last_space && name.endsWith(' ')) {
       return false;
     }
     return true;
@@ -186,14 +195,12 @@ export class Validator {
    * Validate localDir
    *
    * @remarks
+   *```
    * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
-   *
    * - A colon is generally disallowed, but a drive letter followed by a colon is allowed.
-   *
    * - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
-   *
    * - A trailing slash could be omitted.
-   *
+   *```
    * @throws {@link InvalidLocalDirCharacterError}
    */
   validateLocalDir (localDir: string) {
@@ -231,12 +238,11 @@ export class Validator {
    * Validate dbName
    *
    * @remarks
+   *```
    * - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \\0
-   *
    * - dbName cannot end with a period or a white space.
-   *
    * - dbName does not allow '.' and '..'.
-   *
+   *```
    * @throws {@link InvalidDbNameCharacterError}
    */
   validateDbName (dbName: string) {
@@ -251,27 +257,20 @@ export class Validator {
   /**
    * Validate collectionPath
    *
-   * @remarks
-   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
-   *
-   * - A directory name cannot end with a period or a white space.
-   *
-   * - A directory name does not allow '.' and '..'.
-   *
-   * - collectionPath cannot start with a slash / or an underscore _.
-   *
-   * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection.
-   *
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
+   * @remarks CollectionPath must be paths that match the following conditions:
+   *```
+   * - CollectionPath can include paths separated by slashes.
+   * - A directory name in paths allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
+   * - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
+   * - A directory name in paths cannot end with a period or a white space.
+   * - A directory name in paths does not allow '.' and '..'.
+   * - CollectionPath cannot start with a slash.
+   * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
+   *```
    */
   validateCollectionPath (collectionPath: string) {
     if (collectionPath === '') {
       return;
-    }
-
-    if (collectionPath.startsWith('_')) {
-      throw new InvalidCollectionPathCharacterError('_');
     }
 
     if (collectionPath.startsWith('/')) {
@@ -305,35 +304,20 @@ export class Validator {
   }
 
   /**
-   * Validate file name
-   *
-   * @remarks
-   * - file name allows Unicode characters excluding following characters: \< \> : " ¥ / \\ | ? * \\0
-   *
-   * - file name cannot start with an underscore _.
-   *
-   * @throws {@link InvalidIdCharacterError}
-   */
-  private _validateFileName (id: string) {
-    if (!this.testWindowsInvalidFileNameCharacter(id) || id.startsWith('_')) {
-      throw new InvalidIdCharacterError(id);
-    }
-  }
-
-  /**
    * Validate _id
    *
-   * _id = collectionPath + fileName
+   * _id = collectionPath + fileName (not including postfix '.json')
    *
    * @remarks
-   * - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
-   *
-   * - _id cannot start with a slash and an underscore _.
-   *
-   * - A directory name cannot end with a period or a white space.
-   *
-   * - A directory name does not allow '.' and '..'.
-   *
+   *```
+   * * It must have an '_id' key that shows id of a document
+   *   - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+   *   - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
+   *   - _id cannot start or end with a slash.
+   *   - _id can include paths separated by slashes.
+   *   - A directory name in paths cannot end with a period or a white space.
+   *   - A directory name in paths does not allow '.' and '..'.
+   *```
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
@@ -352,7 +336,15 @@ export class Validator {
       throw new InvalidIdCharacterError(_id);
     }
 
-    this._validateFileName(path.basename(_id));
+    if (
+      !this.testWindowsInvalidFileNameCharacter(baseName, {
+        allow_dot: true,
+        allow_last_space: true,
+      })
+    ) {
+      throw new InvalidIdCharacterError(_id);
+    }
+
     const dirName = path.dirname(_id);
     // dirname returns '.' if _id does not include slashes.
     // dirname also returns '.' if _id is './xxx'

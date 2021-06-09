@@ -51,11 +51,7 @@ export class CannotDeleteDataError extends BaseError {
  */
 export class InvalidCollectionPathCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid collectionPath character '${name}': 
-A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0
-A directory name cannot end with a period or a white space.
-A directory name does not allow '.' and '..'.
-collectionPath cannot start with a slash or an underscore.`;
+    const e = `Invalid collectionPath character '${name}'`;
     super(e);
   }
 }
@@ -94,12 +90,7 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
  */
 export class InvalidIdCharacterError extends BaseError {
   constructor (id: string) {
-    const e = `Invalid ID character '${id}':
-id allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0
-id cannot start with a slash and an underscore _.
-id cannot end with a slash.
-A directory name cannot end with a period or a white space.
-A directory name does not allow '.' and '..'.`;
+    const e = `Invalid ID character '${id}'`;
     super(e);
   }
 }
@@ -207,10 +198,7 @@ export class InvalidPropertyNameInDocumentError extends BaseError {
  */
 export class InvalidDbNameCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid dbName '${name}': 
-dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \\ | ? * \0.
-dbName cannot end with a period or a white space.
-dbName does not allow '.' and '..'.`;
+    const e = `Invalid dbName '${name}'`;
     super(e);
   }
 }
@@ -219,10 +207,7 @@ dbName does not allow '.' and '..'.`;
  */
 export class InvalidLocalDirCharacterError extends BaseError {
   constructor (name: string) {
-    const e = `Invalid localDir character '${name}': 
-A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0.
-A colon is generally not allowed, but a drive letter followed by a colon is allowed.
-A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.`;
+    const e = `Invalid localDir character '${name}'`;
     super(e);
   }
 }

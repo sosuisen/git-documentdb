@@ -137,19 +137,18 @@ export type TaskStatistics = {
  * * It must have an '_id' key that shows id of a document
  *   - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
  *   - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
- *   - _id cannot start with a slash and an underscore _.
- *   - _id cannot end with a slash.
- *   - A directory name cannot end with a period or a white space.
- *   - A directory name does not allow '.' and '..'.
+ *   - _id cannot start or end with a slash.
+ *   - _id can include paths separated by slashes.
+ *   - A directory name in paths cannot end with a period or a white space.
+ *   - A directory name in paths does not allow '.' and '..'.
  *
- * * Property name of a document cannot start with an underscore except _id and _deleted.
+ * * Property name of a document cannot start with an underscore except _id.
  *```
  * @example
  * ```
  * {
- *   _id: 'profile01',
- *   location: 'Sapporo',
- *   age: '16'
+ *   _id: 'nara/nara_park',
+ *   flower: 'double cherry blossoms'
  * }
  * ```
  */
@@ -160,18 +159,16 @@ export type JsonDoc = {
 /**
  * CollectionPath
  *
- * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
- *
+ * @remarks CollectionPath must be paths that match the following conditions:
+ *```
+ * - CollectionPath can include paths separated by slashes.
+ * - A directory name in paths allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
  * - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
- *
- * - A directory name cannot end with a period or a white space.
- *
- * - A directory name does not allow '.' and '..'.
- *
- * - collectionPath cannot start with a slash.
- *
- * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same collection.
- *
+ * - A directory name in paths cannot end with a period or a white space.
+ * - A directory name in paths does not allow '.' and '..'.
+ * - CollectionPath cannot start with a slash.
+ * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
+ *```
  */
 export type CollectionPath = string;
 

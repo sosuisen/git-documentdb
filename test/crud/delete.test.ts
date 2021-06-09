@@ -171,7 +171,7 @@ describe('<crud/delete>', () => {
 
       await gitDDB.createDB();
 
-      await expect(gitDDB.remove('_underscore')).rejects.toThrowError(
+      await expect(gitDDB.remove('<invalid>')).rejects.toThrowError(
         InvalidIdCharacterError
       );
 

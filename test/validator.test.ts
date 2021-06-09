@@ -12,7 +12,6 @@ import { Validator } from '../src/validator';
 import { GitDocumentDB } from '../src';
 import {
   InvalidCollectionPathCharacterError,
-  InvalidCollectionPathError,
   InvalidCollectionPathLengthError,
   InvalidDbNameCharacterError,
   InvalidIdCharacterError,
@@ -67,9 +66,9 @@ describe('<validator>', () => {
 
   it('validateId()', () => {
     /**
-     * '_id' only allows **a to z, A to Z, 0 to 9, and these 8 punctuation marks _ - . ( ) [ ]**.
-     * '_id' cannot start with an underscore _.
-     * '_id' cannot end with a period . (For compatibility with the file system of Windows)
+     * _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+     * _id cannot start or end with a slash.
+     * _id cannot end with a period . (For compatibility with the file system of Windows)
      */
     // Punctuations
     const disallowedPunctuations = [
@@ -114,10 +113,10 @@ describe('<validator>', () => {
       ',',
     ];
     allowedPunctuations.forEach(p => expect(validator.validateId(p)).toBeUndefined());
-    expect(() => validator.validateId('abc.')).toThrowError(InvalidIdCharacterError);
-    expect(() => validator.validateId('abc ')).toThrowError(InvalidIdCharacterError);
+    expect(() => validator.validateId('abc.')).not.toThrowError(InvalidIdCharacterError);
+    expect(() => validator.validateId('abc ')).not.toThrowError(InvalidIdCharacterError);
 
-    expect(() => validator.validateId('_abc')).toThrowError(InvalidIdCharacterError);
+    expect(() => validator.validateId('_abc')).not.toThrowError(InvalidIdCharacterError);
     expect(() => validator.validateId('/abc')).toThrowError(
       InvalidCollectionPathCharacterError
     );
@@ -158,7 +157,7 @@ describe('<validator>', () => {
     expect(() => validator.validateCollectionPath('foo¥bar')).not.toThrowError();
     expect(() => validator.validateCollectionPath('春はあけぼの')).not.toThrowError();
 
-    expect(() => validator.validateCollectionPath('_')).toThrowError(
+    expect(() => validator.validateCollectionPath('_')).not.toThrowError(
       InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('/')).toThrowError(

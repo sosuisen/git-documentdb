@@ -22,7 +22,6 @@ import {
   InvalidWorkingDirectoryPathLengthError,
   RemoteAlreadyRegisteredError,
   RepositoryNotFoundError,
-  RepositoryNotOpenError,
   UndefinedDatabaseNameError,
   WorkingDirectoryExistsError,
 } from './error';
@@ -45,7 +44,6 @@ import {
   PutResult,
   RemoteOptions,
   Schema,
-  SyncRemoteChangeCallback,
   SyncResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';

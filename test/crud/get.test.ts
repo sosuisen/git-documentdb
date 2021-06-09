@@ -141,7 +141,7 @@ describe('<crud/get> get()', () => {
 
     await gitDDB.createDB();
     const _id = 'prof01';
-    await expect(gitDDB.get('_prof01')).rejects.toThrowError(InvalidIdCharacterError);
+    await expect(gitDDB.get('<prof01>')).rejects.toThrowError(InvalidIdCharacterError);
     await gitDDB.destroy();
   });
 
