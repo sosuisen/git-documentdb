@@ -141,12 +141,7 @@ export async function pushWorker (
 
   if (headCommit.commit.parent.length === 2) {
     // HEAD is a merge commit.
-    if (headCommit.commit.parent[0] === remoteCommitOid) {
-      localCommitOid = headCommit.commit.parent[1];
-    }
-    else {
-      localCommitOid = headCommit.commit.parent[0];
-    }
+    localCommitOid = headCommit.commit.parent[0];
   }
   else {
     localCommitOid = headCommitOid;
@@ -171,7 +166,6 @@ export async function pushWorker (
 
   // Push
   await push(gitDDB, sync);
-
   const remoteChanges = await getChanges(
     gitDDB.workingDir(),
     remoteCommitOid,

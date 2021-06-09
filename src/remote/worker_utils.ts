@@ -97,7 +97,7 @@ export async function getChanges (
       const bOid = b === null ? undefined : await b.oid();
 
       let change: ChangedFile;
-      if (bOid === undefined) {
+      if (bOid === undefined && aOid !== undefined) {
         change = {
           operation: 'delete',
           old: {
@@ -108,7 +108,7 @@ export async function getChanges (
           },
         };
       }
-      else if (aOid === undefined) {
+      else if (aOid === undefined && bOid !== undefined) {
         change = {
           operation: 'insert',
           new: {
@@ -119,7 +119,7 @@ export async function getChanges (
           },
         };
       }
-      else if (aOid !== bOid) {
+      else if (aOid !== undefined && bOid !== undefined && aOid !== bOid) {
         change = {
           operation: 'update',
           old: {

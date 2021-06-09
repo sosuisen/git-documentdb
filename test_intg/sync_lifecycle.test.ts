@@ -101,8 +101,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       };
-      await dbA.open(options);
-      const syncA = dbA.getSynchronizer(remoteURL);
+      await dbA.open();
+      const syncA = await dbA.sync(options);
       expect(syncA.remoteURL()).toBe(remoteURL);
       destroyDBs([dbA]);
     });
@@ -118,7 +118,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       };
-      await dbA.open(options);
+      await dbA.open();
+      await dbA.sync(options);
       dbA.unregisterRemote(remoteURL);
       expect(dbA.getSynchronizer(remoteURL)).toBeUndefined();
       destroyDBs([dbA]);
@@ -136,7 +137,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       };
-      await dbA.open(options);
+      await dbA.open();
+      await dbA.sync(options);
       const remoteURL2 = remoteURLBase + serialId();
       const options2: RemoteOptions = {
         remoteUrl: remoteURL2,
@@ -164,18 +166,19 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getSynchronizer(remoteURL);
-        await remoteA.tryPush();
+        await syncA.tryPush();
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.open(options);
+        await dbB.open();
+        await dbB.sync(options);
 
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
@@ -195,24 +198,24 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getSynchronizer(remoteURL);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.open(options);
+        await dbB.open();
+        const syncB = await dbB.sync(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
-        const remoteB = dbB.getSynchronizer(remoteURL);
 
-        await expect(
-          Promise.all([remoteA.tryPush(), remoteB.tryPush()])
-        ).rejects.toThrowError(UnfetchedCommitExistsError);
+        await expect(Promise.all([syncA.tryPush(), syncB.tryPush()])).rejects.toThrowError(
+          UnfetchedCommitExistsError
+        );
 
         await destroyDBs([dbA, dbB]);
       });
@@ -230,23 +233,23 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getSynchronizer(remoteURL);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.open(options);
+        await dbB.open();
+        const syncB = await dbB.sync(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
-        const remoteB = dbB.getSynchronizer(remoteURL);
 
-        await remoteA.tryPush();
-        await expect(remoteB.tryPush()).rejects.toThrowError(UnfetchedCommitExistsError);
+        await syncA.tryPush();
+        await expect(syncB.tryPush()).rejects.toThrowError(UnfetchedCommitExistsError);
 
         await destroyDBs([dbA, dbB]);
       });
@@ -264,26 +267,26 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.open(options);
+        await dbB.open();
+        const syncB = await dbB.sync(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
-        const remoteA = dbA.getSynchronizer(remoteURL);
-        await remoteA.tryPush();
+        await syncA.tryPush();
 
         // The same id
         const jsonB1 = { _id: '1', name: 'fromB' };
         const putResultB1 = await dbB.put(jsonB1);
-        const remoteB = dbB.getSynchronizer(remoteURL);
 
-        await expect(remoteB.trySync()).resolves.toMatchObject({
+        await expect(syncB.trySync()).resolves.toMatchObject({
           action: 'resolve conflicts and push',
           changes: {
             local: [],
@@ -326,14 +329,14 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
 
-        const remoteA = dbA.getSynchronizer(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
-        expect(remoteA.options().interval).toBe(interval);
+        expect(syncA.options().live).toBeTruthy();
+        expect(syncA.options().interval).toBe(interval);
 
         // Wait live sync()
         while (dbA.taskQueue.currentStatistics().sync === 0) {
@@ -346,7 +349,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.open(options);
+        await dbB.open();
+        await dbB.sync(options);
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
         await destroyDBs([dbA, dbB]);
@@ -368,14 +372,14 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
 
-        const remoteA = dbA.getSynchronizer(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
+        expect(syncA.options().live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
-        remoteA.cancel();
+        syncA.cancel();
         await sleep(interval * 2);
-        expect(remoteA.options().live).toBeFalsy();
+        expect(syncA.options().live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         await destroyDBs([dbA]);
@@ -397,22 +401,22 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
 
-        const remoteA = dbA.getSynchronizer(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
+        expect(syncA.options().live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
-        expect(remoteA.pause()).toBeTruthy();
-        expect(remoteA.pause()).toBeFalsy(); // ignored
+        expect(syncA.pause()).toBeTruthy();
+        expect(syncA.pause()).toBeFalsy(); // ignored
 
         await sleep(interval * 2);
-        expect(remoteA.options().live).toBeFalsy();
+        expect(syncA.options().live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
-        expect(remoteA.resume()).toBeTruthy();
-        expect(remoteA.resume()).toBeFalsy(); // ignored
+        expect(syncA.resume()).toBeTruthy();
+        expect(syncA.resume()).toBeFalsy(); // ignored
         await sleep(interval * 2);
-        expect(remoteA.options().live).toBeTruthy();
+        expect(syncA.options().live).toBeTruthy();
         expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThan(count);
 
         await destroyDBs([dbA]);
@@ -434,17 +438,17 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
 
-        const remoteA = dbA.getSynchronizer(remoteURL);
-        expect(remoteA.options().live).toBeTruthy();
+        expect(syncA.options().live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
         await dbA.close();
 
-        remoteA.resume(); // resume() must be ignored after close();
+        syncA.resume(); // resume() must be ignored after close();
 
         await sleep(interval * 2);
-        expect(remoteA.options().live).toBeFalsy();
+        expect(syncA.options().live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         await destroyDBs([dbA]);
@@ -466,10 +470,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
 
-        const remoteA = dbA.getSynchronizer(remoteURL);
-        expect(remoteA.options().interval).toBe(interval);
+        expect(syncA.options().interval).toBe(interval);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -478,17 +482,17 @@ maybe('intg <sync_lifecycle> Sync', () => {
           // eslint-disable-next-line no-await-in-loop
           await sleep(500);
         }
-        remoteA.pause();
+        syncA.pause();
 
         const jsonA2 = { _id: '2', name: 'fromA' };
         await dbA.put(jsonA2);
 
         const currentCount = dbA.taskQueue.currentStatistics().sync;
         // Change interval
-        remoteA.resume({
+        syncA.resume({
           interval: interval * 3,
         });
-        expect(remoteA.options().interval).toBe(interval * 3);
+        expect(syncA.options().interval).toBe(interval * 3);
         await sleep(interval);
         // Check count before next sync()
         expect(dbA.taskQueue.currentStatistics().sync).toBe(currentCount);
@@ -512,9 +516,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.open(options);
-
-        const remoteA = dbA.getSynchronizer(remoteURL);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
 
         await sleep(interval * 5);
         expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(3);
@@ -651,8 +654,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           connection: { type: 'github', personalAccessToken: token },
         };
 
-        await dbA.sync(options);
-        const sync = dbA.getSynchronizer(remoteURL);
+        const sync = await dbA.sync(options);
 
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
@@ -683,8 +685,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           connection: { type: 'github', personalAccessToken: token },
         };
 
-        await dbA.sync(options);
-        const sync = dbA.getSynchronizer(remoteURL);
+        const sync = await dbA.sync(options);
 
         const stubNet = sandbox.stub(sync, 'canNetworkConnection');
         stubNet.resolves(false);
@@ -736,27 +737,27 @@ maybe('intg <sync_lifecycle> Sync', () => {
           connection: { type: 'github', personalAccessToken: token },
           retryInterval: 0,
         };
-        await dbA.open(options);
+        await dbA.open();
+        const syncA = await dbA.sync(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
-        const remoteA = dbA.getSynchronizer(remoteURL);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.open(options);
+        await dbB.open();
+        const syncB = await dbB.sync(options);
         const jsonB1 = { _id: '2', name: 'fromB' };
         await dbB.put(jsonB1);
-        const remoteB = dbB.getSynchronizer(remoteURL);
 
         let errorOnA = false;
         let errorOnB = false;
-        remoteA.on('error', () => {
+        syncA.on('error', () => {
           errorOnA = true;
         });
-        remoteB.on('error', () => {
+        syncB.on('error', () => {
           errorOnB = true;
         });
 
@@ -764,13 +765,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         // Either dbA or dbB will get UnfetchedCommitExistsError
         // and retry automatically.
-        const [resultA, resultB] = await Promise.all([
-          remoteA.trySync(),
-          remoteB.trySync(),
-        ]);
+        const [resultA, resultB] = await Promise.all([syncA.trySync(), syncB.trySync()]);
 
-        const nextResultA = await remoteA.trySync();
-        const nextResultB = await remoteB.trySync();
+        const nextResultA = await syncA.trySync();
+        const nextResultB = await syncB.trySync();
 
         if (errorOnA) {
           expect(resultA.action).toBe('merge and push');
@@ -804,8 +802,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           connection: { type: 'github', personalAccessToken: token },
         };
 
-        await dbA.sync(options);
-        const sync = dbA.getSynchronizer(remoteURL);
+        const sync = await dbA.sync(options);
 
         const stubSync = sandbox.stub(syncWorker_module, 'syncWorker');
         stubSync.rejects();
@@ -911,7 +908,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       };
-      const remoteA = await dbA.sync(options);
+      const syncA = await dbA.sync(options);
       await expect(dbA.sync(options)).rejects.toThrowError(RemoteAlreadyRegisteredError);
       dbA.destroy();
     });
@@ -934,14 +931,15 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
 
-      const remoteA = await dbA.sync(options);
+      const syncA = await dbA.sync(options);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameB,
         localDir: localDir,
       });
-      await dbB.open(options);
+      await dbB.open();
+      await dbB.sync(options);
       await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
       await destroyDBs([dbA, dbB]);
@@ -967,14 +965,15 @@ maybe('intg <sync_lifecycle> Sync', () => {
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
 
-      const remoteA = await dbA.sync(options);
+      const syncA = await dbA.sync(options);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameB,
         localDir: localDir,
       });
-      await dbB.open(options);
+      await dbB.open();
+      await dbB.sync(options);
       await dbB.close();
 
       await dbB.open();

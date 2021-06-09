@@ -19,11 +19,6 @@ import { removeRemoteRepositories } from '../remote_utils';
 const reposPrefix = 'test_clone___';
 const localDir = `./test/database_clone`;
 
-let idCounter = 0;
-const serialId = () => {
-  return `${reposPrefix}${idCounter++}`;
-};
-
 beforeEach(function () {
   // @ts-ignore
   console.log(`... ${this.currentTest.fullTitle()}`);
@@ -40,7 +35,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -48,7 +43,7 @@ maybe('<remote/clone> cloneRepository', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     // Remove remote

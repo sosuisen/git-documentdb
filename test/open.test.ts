@@ -14,6 +14,7 @@ import fs from 'fs-extra';
 import sinon from 'sinon';
 import {
   CannotCreateDirectoryError,
+  CannotCreateRepositoryError,
   CannotOpenRepositoryError,
   InvalidWorkingDirectoryPathLengthError,
   RepositoryNotFoundError,
@@ -148,6 +149,18 @@ describe('<index>', () => {
       }
     });
 
+    it('throws CannotCreateRepositoryError when tries to create a new repository on a readonly filesystem.', async () => {
+      const dbName = monoId();
+      const stubEnsureDir = sandbox.stub(fs_module, 'ensureDir');
+      stubEnsureDir.onFirstCall().resolves().onSecondCall().rejects();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir: readonlyDir + 'database',
+      });
+      // You don't have permission
+      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateRepositoryError);
+    });
+
     it('creates a new repository.', async () => {
       const dbName = monoId();
 
@@ -205,7 +218,9 @@ describe('<index>', () => {
       dbName,
       localDir,
     });
-    await expect(gitDDB.open()).rejects.toThrowError(RepositoryNotFoundError);
+    await expect(gitDDB.open({ createIfNotExists: false })).rejects.toThrowError(
+      RepositoryNotFoundError
+    );
   });
 
   it('throws CannotOpenRepositoryError.', async () => {
@@ -325,7 +340,7 @@ describe('<index>', () => {
     await gitDDB.destroy();
   });
 
-  it('returns new db_id when opens db without db_id.', async () => {
+  it('returns new dbId when opens db without dbId.', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
       dbName,
@@ -362,7 +377,7 @@ describe('<index>', () => {
       creator: DATABASE_CREATOR,
       version: DATABASE_VERSION,
       isNew: false,
-      isCreated_by_gitddb: true,
+      isCreatedByGitddb: true,
       isValidVersion: true,
     });
   });

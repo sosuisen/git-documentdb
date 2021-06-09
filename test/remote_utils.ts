@@ -19,7 +19,7 @@ import { GitDocumentDB } from '../src/index';
 import { FILE_REMOVE_TIMEOUT, JSON_EXT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
-const token = process.env.GITDDB_personalAccessToken!;
+const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
 /**
  * Get CommitInfo Object Array from args
@@ -178,7 +178,8 @@ export async function createDatabase (
   options.connection ??= { type: 'github', personalAccessToken: token };
   options.includeCommits ??= true;
 
-  await dbA.open(options);
+  await dbA.open();
+  await dbA.sync(options);
   const remoteA = dbA.getSynchronizer(remoteURL);
 
   return [dbA, remoteA];
@@ -209,7 +210,8 @@ export async function createClonedDatabases (
   options.connection ??= { type: 'github', personalAccessToken: token };
   options.includeCommits ??= true;
 
-  await dbA.open(options);
+  await dbA.open();
+  await dbA.sync(options);
 
   const dbNameB = serialId();
   const dbB: GitDocumentDB = new GitDocumentDB({
@@ -218,7 +220,8 @@ export async function createClonedDatabases (
     logLevel: logLevel ?? 'info',
   });
   // Clone dbA
-  await dbB.open(options);
+  await dbB.open();
+  await dbB.sync(options);
 
   const remoteA = dbA.getSynchronizer(remoteURL);
   const remoteB = dbB.getSynchronizer(remoteURL);

@@ -68,7 +68,7 @@ describe('<collection>', () => {
       const doc = { _id: 'prof01', name: 'Kimari' };
       await expect(users.put(doc)).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^prof01$'),
+        _id: expect.stringMatching('^prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -99,7 +99,7 @@ describe('<collection>', () => {
       const putResult = await users.put(doc);
       expect(putResult).toMatchObject({
         ok: true,
-        id: expect.stringMatching('^prof01/page01$'),
+        _id: expect.stringMatching('^prof01/page01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -140,7 +140,7 @@ describe('<collection>', () => {
       const doc = { _id: 'prof01', name: 'Kimari' };
       await expect(users.put(doc, { commitMessage: 'message' })).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^prof01$'),
+        _id: expect.stringMatching('^prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -168,7 +168,7 @@ describe('<collection>', () => {
         users.put('prof01', doc, { commitMessage: 'message' })
       ).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^prof01$'),
+        _id: expect.stringMatching('^prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -448,7 +448,7 @@ describe('<collection>', () => {
       const deleteResult = await users.delete(_id);
       expect(deleteResult).toMatchObject({
         ok: true,
-        id: expect.stringMatching('^test/prof01$'),
+        _id: expect.stringMatching('^test/prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -498,7 +498,7 @@ describe('<collection>', () => {
       const sameDoc = { _id: _id, name: 'shirase' };
       await expect(users.delete(sameDoc)).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^test/prof01$'),
+        _id: expect.stringMatching('^test/prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -537,7 +537,7 @@ describe('<collection>', () => {
       await users.put(doc);
       await expect(users.remove(_id)).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^test/prof01$'),
+        _id: expect.stringMatching('^test/prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -601,7 +601,7 @@ describe('<collection>', () => {
       // Delete
       await expect(users.remove(doc)).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^test/prof01$'),
+        _id: expect.stringMatching('^test/prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -709,11 +709,11 @@ describe('<collection>', () => {
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
-            id: expect.stringMatching('^' + _id_a + '$'),
+            _id: expect.stringMatching('^' + _id_a + '$'),
             fileSha: expect.stringMatching(/^[\da-z]{40}$/),
           },
           {
-            id: expect.stringMatching('^' + _id_b + '$'),
+            _id: expect.stringMatching('^' + _id_b + '$'),
             fileSha: expect.stringMatching(/^[\da-z]{40}$/),
           },
         ],
@@ -746,7 +746,7 @@ describe('<collection>', () => {
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
-            id: expect.stringMatching('^' + _id_p + '$'),
+            _id: expect.stringMatching('^' + _id_p + '$'),
             fileSha: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_p + '$'),

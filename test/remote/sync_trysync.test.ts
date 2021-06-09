@@ -62,9 +62,9 @@ afterAll(() => {
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
-//  - GITDDB_personalAccessToken: A personal access token of your GitHub account
+//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -72,7 +72,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -84,9 +84,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
    * after :
    */
   it('returns SyncResultNop when no commit', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
-    const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
+    const syncResult1 = (await syncA.trySync()) as SyncResultPush;
 
     expect(syncResult1.action).toBe('nop');
 
@@ -102,12 +102,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1
      */
     it('which includes one remote creation when a local db creates a document', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
+      const syncResult1 = (await syncA.trySync()) as SyncResultPush;
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
@@ -130,15 +130,15 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :
      */
     it('which includes one remote delete when a local db deletes a document', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       const deleteResultA1 = await dbA.delete(jsonA1);
-      const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
+      const syncResult1 = (await syncA.trySync()) as SyncResultPush;
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
@@ -161,15 +161,15 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1
      */
     it('which includes one remote update when a local db a document', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       const jsonA1dash = { _id: '1', name: 'updated' };
       const putResultA1dash = await dbA.put(jsonA1dash);
-      const syncResult1 = (await remoteA.trySync()) as SyncResultPush;
+      const syncResult1 = (await syncA.trySync()) as SyncResultPush;
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
@@ -195,7 +195,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1
      */
     it('which includes one local creation when a remote db creates a document', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -204,10 +204,10 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResult1 = await dbA.put(jsonA1);
 
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B syncs
-      const syncResult1 = (await remoteB.trySync()) as SyncResultFastForwardMerge;
+      const syncResult1 = (await syncB.trySync()) as SyncResultFastForwardMerge;
       expect(syncResult1.action).toBe('fast-forward merge');
       expect(syncResult1.commits!.local.length).toBe(1);
       expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commitSha);
@@ -217,7 +217,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1]);
 
       // Sync dbA
-      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -233,7 +233,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1  jsonA2
      */
     it('which includes two local creations when a remote db creates two documents', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -244,10 +244,10 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const jsonA2 = { _id: '2', name: 'fromA' };
       const putResult1 = await dbA.put(jsonA1);
       const putResult2 = await dbA.put(jsonA2);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B syncs
-      const syncResult1 = (await remoteB.trySync()) as SyncResultResolveConflictsAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
       expect(syncResult1.action).toBe('fast-forward merge');
       expect(syncResult1.commits!.local.length).toBe(2);
       expect(syncResult1.commits!.local[0].sha).toBe(putResult1.commitSha);
@@ -263,7 +263,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonA2]);
 
       // Sync dbA
-      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonA2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -281,7 +281,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1  jsonB2
      */
     it('which includes local and remote creations when a remote db creates a document and a local db creates another document', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -289,14 +289,14 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B syncs
       const jsonB2 = { _id: '2', name: 'fromB' };
       const putResultB2 = await dbB.put(jsonB2);
 
       // Sync dbB
-      const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
 
       expect(syncResult1.commits!.local.length).toBe(2); // put commit and merge commit
@@ -317,7 +317,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonB2]);
 
       // Sync dbA
-      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -333,7 +333,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1  jsonA2  jsonB3  jsonB4
      */
     it('which includes two local creations and two remote creations when a remote db creates two documents and a local db creates two different documents', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -344,7 +344,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const putResultA1 = await dbA.put(jsonA1);
       const jsonA2 = { _id: '2', name: 'fromA' };
       const putResultA2 = await dbA.put(jsonA2);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B syncs
       const jsonB3 = { _id: '3', name: 'fromB' };
@@ -352,7 +352,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const jsonB4 = { _id: '4', name: 'fromB' };
       const putResultB4 = await dbB.put(jsonB4);
 
-      const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([putResultA1, putResultA2, 'merge']),
@@ -378,7 +378,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
 
       // Sync dbA
-      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonA2, jsonB3, jsonB4]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -394,7 +394,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1
      */
     it('which does not include changes after a remote db creates a document and a local db creates exactly the same document', async () => {
-      const [dbA, dbB, remoteA, remoteB] = await createClonedDatabases(
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
@@ -403,12 +403,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B puts the same file with exactly the same contents
       const putResultB1 = await dbB.put(jsonA1);
 
-      const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
 
       expect(syncResult1.commits).toMatchObject({
@@ -435,12 +435,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :  jsonA1
      */
     it('which does not include changes after a remote db updates a document and a local db updates exactly the same update', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // Clone
       const dbNameB = serialId();
@@ -449,18 +449,18 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         localDir,
       });
       // Clone dbA
-      await dbB.open(remoteA.options());
-      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+      await dbB.open();
+      const syncB = await dbB.sync(syncA.options());
 
       // A updates and pushes
       const jsonA1dash = { _id: '1', name: 'updated' };
       const putResultA1dash = await dbA.put(jsonA1dash);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B updates the same file with exactly the same contents
       const putResultB1dash = await dbB.put(jsonA1dash);
 
-      const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
 
       expect(syncResult1.commits).toMatchObject({
@@ -487,11 +487,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :          jsonA2
      */
     it('which include a local create and a remote delete when a remote db creates a document and a local db deletes another document', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -499,18 +499,18 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         localDir,
       });
       // Clone dbA
-      await dbB.open(remoteA.options());
-      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+      await dbB.open();
+      const syncB = await dbB.sync(syncA.options());
 
       // A puts and pushes
       const jsonA2 = { _id: '2', name: 'fromA' };
       const putResultA2 = await dbA.put(jsonA2);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B removes and syncs
       const deleteResultB1 = await dbB.remove(jsonA1);
 
-      const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
 
       expect(syncResult1.commits).toMatchObject({
@@ -531,7 +531,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA2]);
 
       // Sync dbA
-      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -547,31 +547,32 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :          jsonB2
      */
     it('which include a remote create and a local delete when a remote db deletes a document and a local db creates another document', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameB,
         localDir,
       });
+
       // Clone dbA
-      await dbB.open(remoteA.options());
-      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+      await dbB.open();
+      const syncB = await dbB.sync(syncA.options());
 
       // A removes and pushes
       const deleteResultA1 = await dbA.remove(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B put another file and syncs
       const jsonB2 = { _id: '2', name: 'fromB' };
       const putResultB2 = await dbB.put(jsonB2);
 
-      const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
 
       expect(syncResult1.commits).toMatchObject({
@@ -592,7 +593,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(getWorkingDirDocs(dbB)).toEqual([jsonB2]);
 
       // Sync dbA
-      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -608,11 +609,11 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * after :
      */
     it('which does not include changes when a remote db deletes a document and a local db deletes the same document', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -620,17 +621,17 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         localDir,
       });
       // Clone dbA
-      await dbB.open(remoteA.options());
-      const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
+      await dbB.open();
+      const syncB = await dbB.sync(syncA.options());
 
       // A removes and pushes
       const deleteResultA1 = await dbA.remove(jsonA1);
-      await remoteA.tryPush();
+      await syncA.tryPush();
 
       // B remove the same file and syncs
       const deleteResultB1 = await dbB.remove(jsonA1);
 
-      const syncResult1 = (await remoteB.trySync()) as SyncResultMergeAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
 
       expect(syncResult1.commits).toMatchObject({
@@ -644,7 +645,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       expect(getWorkingDirDocs(dbB)).toEqual([]);
 
       // Sync dbA
-      const syncResult2 = (await remoteA.trySync()) as SyncResultMergeAndPush;
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -655,12 +656,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   });
 
   it('skips consecutive sync tasks', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     // dbA.setLogLevel('trace');
     const results: SyncResult[] = [];
     for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line promise/catch-or-return
-      remoteA.trySync().then(result => results.push(result));
+      syncA.trySync().then(result => results.push(result));
     }
     await sleep(5000);
 
@@ -682,7 +683,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   });
 
   it('skips consecutive sync tasks after crud tasks', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     // dbA.setLogLevel('trace');
 
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -692,7 +693,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     const results: SyncResult[] = [];
     for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line promise/catch-or-return
-      remoteA.trySync().then(result => results.push(result));
+      syncA.trySync().then(result => results.push(result));
     }
     await sleep(10000);
 
@@ -714,7 +715,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   });
 
   it('throws UnfetchedCommitExistError for [push] direction', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
       syncDirection: 'push',
     });
 
@@ -726,7 +727,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await dbB.open();
 
     // tryPush throws UnfetchedCommitExistsError
-    await expect(dbB.sync(remoteA.options())).rejects.toThrowError(
+    await expect(dbB.sync(syncA.options())).rejects.toThrowError(
       UnfetchedCommitExistsError
     );
 

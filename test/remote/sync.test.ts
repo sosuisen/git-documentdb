@@ -14,10 +14,12 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
+import { Octokit } from '@octokit/rest';
+import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../../src/const';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
 import {
+  CannotConnectError,
   HttpProtocolRequiredError,
   IntervalTooSmallError,
   InvalidRepositoryURLError,
@@ -55,7 +57,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -63,7 +65,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     // Remove remote
@@ -375,7 +377,7 @@ maybe('<remote/sync> init()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     // Remove remote
@@ -411,7 +413,7 @@ maybe('<remote/sync> syncImpl()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     // Remove remote
@@ -433,13 +435,65 @@ maybe('<remote/sync> syncImpl()', () => {
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
+
+  it.only('throws CannotConnectError and retries in cloning', async () => {
+    const remoteURL = 'https://xyz.invalid/xyz/https_repos';
+    const options: RemoteOptions = {
+      remoteUrl: remoteURL,
+      connection: { type: 'github', personalAccessToken: token },
+    };
+    const dbNameA = serialId();
+    const dbA: GitDocumentDB = new GitDocumentDB({
+      dbName: dbNameA,
+      localDir: localDir,
+    });
+    await dbA.open();
+    await expect(dbA.sync(options)).rejects.toThrowError(RemoteRepositoryConnectError);
+    await dbA.destroy();
+
+    const retry = await dbA.sync(options).catch((err: CannotConnectError) => {
+      return err.retry;
+    });
+    expect(retry).toBe(NETWORK_RETRY);
+
+    await dbA.destroy();
+  });
+
+  it('creates a remote repository on GitHub by using personal access token', async () => {
+    const remoteURL = remoteURLBase + serialId();
+
+    const dbNameA = serialId();
+
+    const dbA: GitDocumentDB = new GitDocumentDB({
+      dbName: dbNameA,
+      localDir: localDir,
+    });
+    const options: RemoteOptions = {
+      remoteUrl: remoteURL,
+      connection: { type: 'github', personalAccessToken: token },
+    };
+    await dbA.open();
+    // Check dbInfo
+    await dbA.sync(options);
+
+    // Check remote
+    const octokit = new Octokit({
+      auth: token,
+    });
+    const urlArray = remoteURL.split('/');
+    const owner = urlArray[urlArray.length - 2];
+    const repo = urlArray[urlArray.length - 1];
+    await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
+
+    destroyDBs([dbA]);
+  });
 });
 
 maybe('<remote/sync> tryPush()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     // Remove remote

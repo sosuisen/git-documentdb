@@ -53,9 +53,9 @@ afterAll(() => {
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
-//  - GITDDB_personalAccessToken: A personal access token of your GitHub account
+//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -63,7 +63,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -75,12 +75,12 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1
    */
   it('changes one remote creation when pushes after one put()', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     // Put and push
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResult = await dbA.put(jsonA1);
-    const syncResult = await remoteA.tryPush();
+    const syncResult = await syncA.tryPush();
     expect(syncResult.action).toBe('push');
     if (syncResult.action !== 'push') {
       // Check discriminated union
@@ -107,16 +107,16 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1
    */
   it('does not change remote when pushes after put() the same document again', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // This document is same as the previous document
     // while put() creates a new commit.
     // (This is valid behavior of put() API.)
     const putResult = await dbA.put(jsonA1);
-    const syncResult = await remoteA.tryPush();
+    const syncResult = await syncA.tryPush();
     expect(syncResult.action).toBe('push');
     if (syncResult.action !== 'push') {
       // Check discriminated union
@@ -143,15 +143,15 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1
    */
   it('changes one remote update when pushes after put() updated document', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // Put and push an updated document
     const jsonA1dash = { _id: '1', name: 'updated' };
     const putResult = await dbA.put(jsonA1dash);
-    const syncResult = await remoteA.tryPush();
+    const syncResult = await syncA.tryPush();
     expect(syncResult.action).toBe('push');
     if (syncResult.action !== 'push') {
       // Check discriminated union
@@ -181,15 +181,15 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1  jsonA2
    */
   it('changes one remote creation when pushes after put() another document', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     // Put and push another document
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
-    const syncResult = await remoteA.tryPush();
+    const syncResult = await syncA.tryPush();
     expect(syncResult.action).toBe('push');
     if (syncResult.action !== 'push') {
       // Check discriminated union
@@ -221,14 +221,14 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after2:  jsonA1  jsonA2  jsonA3
    */
   it('changes two remote creations when pushes after put() two documents', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     // Two put commands and push
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResult1 = await dbA.put(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResult2 = await dbA.put(jsonA2);
-    const syncResult = await remoteA.tryPush();
+    const syncResult = await syncA.tryPush();
     expect(syncResult.action).toBe('push');
     if (syncResult.action !== 'push') {
       // Check discriminated union
@@ -259,17 +259,17 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after : +jsonA1  jsonA2
    */
   it('changes one remote creation and one remote update when pushes after put() updated document and another document', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResult1 = await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const jsonA1dash = { _id: '1', name: 'updated' };
     const putResult1dash = await dbA.put(jsonA1dash);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResult2 = await dbA.put(jsonA2);
-    const syncResult = await remoteA.tryPush();
+    const syncResult = await syncA.tryPush();
     expect(syncResult.action).toBe('push');
     if (syncResult.action !== 'push') {
       // Check discriminated union
@@ -300,15 +300,15 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :
    */
   it('changes one remote delete when pushes after one delete()', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
-    await remoteA.tryPush();
+    await syncA.tryPush();
 
     const deleteResult1 = await dbA.delete(jsonA1);
 
-    const syncResult1 = await remoteA.tryPush();
+    const syncResult1 = await syncA.tryPush();
     expect(syncResult1.action).toBe('push');
     if (syncResult1.action !== 'push') {
       // Check discriminated union
@@ -339,14 +339,14 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :
    */
   it('does not change remote when pushes after put() and delete()', async function () {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     // Put and delete the same document
     const putResult1 = await dbA.put(jsonA1);
     const deleteResult1 = await dbA.delete(jsonA1);
 
-    const syncResult1 = await remoteA.tryPush();
+    const syncResult1 = await syncA.tryPush();
     expect(syncResult1.action).toBe('push');
     if (syncResult1.action !== 'push') {
       // Check discriminated union
@@ -368,14 +368,14 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
   });
 
   it('skips consecutive push tasks', async () => {
-    const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
     const results: (SyncResultPush | SyncResultCancel)[] = [];
     for (let i = 0; i < 10; i++) {
       // eslint-disable-next-line promise/catch-or-return
-      remoteA.tryPush().then(result => results.push(result));
+      syncA.tryPush().then(result => results.push(result));
     }
     await sleep(5000);
 

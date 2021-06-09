@@ -413,13 +413,13 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    */
   get (_id: string, backNumber?: number): Promise<JsonDoc | undefined> {
-    const id = this._collectionPath + _id;
+    const colId = this._collectionPath + _id;
 
-    return this._gitDDB.get(_id, backNumber).then(doc => {
+    return this._gitDDB.get(colId, backNumber).then(doc => {
       if (doc === undefined) {
         return undefined;
       }
-      doc._id = id;
+      doc._id = _id;
       return doc;
     });
   }

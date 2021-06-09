@@ -53,9 +53,9 @@ afterAll(() => {
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
-//  - GITDDB_personalAccessToken: A personal access token of your GitHub account
+//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -63,7 +63,7 @@ maybe('<remote/combine>', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -74,7 +74,7 @@ maybe('<remote/combine>', () => {
    */
   describe('Combining database', () => {
     it('throws NoMergeBaseFoundError when combineDbStrategy is throw-error in [both] direction', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'throw-error',
         syncDirection: 'both',
       });
@@ -87,7 +87,7 @@ maybe('<remote/combine>', () => {
       await dbB.open();
 
       // trySync throws NoMergeBaseFoundError
-      await expect(dbB.sync(remoteA.options())).rejects.toThrowError(NoMergeBaseFoundError);
+      await expect(dbB.sync(syncA.options())).rejects.toThrowError(NoMergeBaseFoundError);
 
       //      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       //      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -96,7 +96,7 @@ maybe('<remote/combine>', () => {
     });
 
     it('commits with valid commit message for combine-head-with-theirs', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
@@ -113,7 +113,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB1);
 
       // Combine with remote db
-      await expect(dbB.sync(remoteA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
       const repository = dbB.repository();
@@ -125,7 +125,7 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds when combine-head-with-theirs with empty local and empty remote', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
@@ -138,7 +138,7 @@ maybe('<remote/combine>', () => {
       await dbB.open();
 
       // Combine with remote db
-      await expect(dbB.sync(remoteA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
@@ -156,14 +156,14 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds combine-head-with-theirs with empty local and not empty remote', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -173,7 +173,7 @@ maybe('<remote/combine>', () => {
       await dbB.open();
 
       // Combine with remote db
-      await expect(dbB.sync(remoteA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
@@ -191,7 +191,7 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds when combine-head-with-theirs with not empty local and empty remote', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
@@ -207,7 +207,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB1);
 
       // Combine with remote db
-      await expect(dbB.sync(remoteA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
@@ -225,13 +225,13 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
       const jsonA1 = { _id: 'deep/one', name: 'fromA' };
       await dbA.put(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -247,7 +247,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Combine with remote db
-      await dbB.sync(remoteA.options());
+      await dbB.sync(syncA.options());
 
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonB2]);
@@ -259,7 +259,7 @@ maybe('<remote/combine>', () => {
     });
 
     it('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
@@ -267,7 +267,7 @@ maybe('<remote/combine>', () => {
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -286,7 +286,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Combine with remote db
-      const [sync, syncResult] = await dbB.sync(remoteA.options(), true);
+      const [sync, syncResult] = await dbB.sync(syncA.options(), true);
 
       expect(dbB.dbId()).toBe(dbIdA);
 
@@ -304,12 +304,12 @@ maybe('<remote/combine>', () => {
         duplicates: [
           {
             original: {
-              id: jsonA1._id,
+              _id: jsonA1._id,
               fileSha: putResultA1.fileSha,
               type: 'json',
             },
             duplicate: {
-              id: jsonB1._id,
+              _id: jsonB1._id,
               fileSha: duplicatedB1?.fileSha,
               type: 'json',
             },
@@ -325,7 +325,7 @@ maybe('<remote/combine>', () => {
     });
 
     it('returns SyncResult with duplicates when combine-head-with-theirs with deep local and deep remote', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
@@ -333,7 +333,7 @@ maybe('<remote/combine>', () => {
 
       const jsonA1 = { _id: 'deep/one', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
-      await remoteA.trySync();
+      await syncA.trySync();
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -352,7 +352,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Combine with remote db
-      const [sync, syncResult] = await dbB.sync(remoteA.options(), true);
+      const [sync, syncResult] = await dbB.sync(syncA.options(), true);
 
       expect(dbB.dbId()).toBe(dbIdA);
 
@@ -370,12 +370,12 @@ maybe('<remote/combine>', () => {
         duplicates: [
           {
             original: {
-              id: jsonA1._id,
+              _id: jsonA1._id,
               fileSha: putResultA1.fileSha,
               type: 'json',
             },
             duplicate: {
-              id: jsonB1._id,
+              _id: jsonB1._id,
               fileSha: duplicatedB1?.fileSha,
               type: 'json',
             },
@@ -394,12 +394,12 @@ maybe('<remote/combine>', () => {
     });
 
     it('invokes combine event with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
-      const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
       let duplicatedFiles: DuplicatedFile[] = [];
-      remoteA.on('combine', (duplicates: DuplicatedFile[]) => {
+      syncA.on('combine', (duplicates: DuplicatedFile[]) => {
         console.log('### combine');
         duplicatedFiles = [...duplicates];
       });
@@ -410,7 +410,7 @@ maybe('<remote/combine>', () => {
       const putResultA1 = await dbA.put(jsonA1);
 
       // Delete remote repository
-      await destroyRemoteRepository(remoteA.remoteURL());
+      await destroyRemoteRepository(syncA.remoteURL());
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -428,9 +428,9 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Create and push to new remote repository
-      const remoteB = await dbB.sync(remoteA.options());
+      const syncB = await dbB.sync(syncA.options());
       // Combine database on A
-      await remoteA.trySync().catch(async () => {
+      await syncA.trySync().catch(async () => {
         await dbA.destroy();
       });
 
@@ -447,12 +447,12 @@ maybe('<remote/combine>', () => {
       expect(duplicatedFiles).toEqual([
         {
           original: {
-            id: jsonB1._id,
+            _id: jsonB1._id,
             fileSha: putResultB1.fileSha,
             type: 'json',
           },
           duplicate: {
-            id: jsonA1._id,
+            _id: jsonA1._id,
             fileSha: duplicatedA1?.fileSha,
             type: 'json',
           },
@@ -460,9 +460,9 @@ maybe('<remote/combine>', () => {
       ]);
 
       // Push combined db
-      await remoteA.trySync();
+      await syncA.trySync();
       // Pull combined db
-      await remoteB.trySync();
+      await syncB.trySync();
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonB1, jsonB2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
