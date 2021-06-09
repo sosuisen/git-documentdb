@@ -291,7 +291,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir: localDir,
     });
     // Clone dbA
-    await dbB.createDB(remoteA.options());
+    await dbB.open(remoteA.options());
     const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
     // A updates and pushes
@@ -371,7 +371,7 @@ maybe('intg: <3way_merge_ot>', () => {
       localDir: localDir,
     });
     // Clone dbA
-    await dbB.createDB(remoteA.options());
+    await dbB.open(remoteA.options());
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.remove(jsonA1);
@@ -462,7 +462,7 @@ maybe('intg: <3way_merge_ot>', () => {
       schema,
     });
     // Clone dbA
-    await dbB.createDB({
+    await dbB.open({
       ...remoteA.options(),
       conflictResolutionStrategy: 'theirs-diff',
     });
@@ -581,7 +581,7 @@ maybe('intg: <3way_merge_ot>', () => {
         schema,
       });
       // Clone dbA
-      await dbB.createDB({
+      await dbB.open({
         ...remoteA.options(),
         conflictResolutionStrategy: 'ours-diff',
       });
@@ -649,7 +649,7 @@ maybe('intg: <3way_merge_ot>', () => {
         schema,
       });
       // Clone dbA
-      await dbB.createDB({
+      await dbB.open({
         ...remoteA.options(),
         conflictResolutionStrategy: 'ours-diff',
       });
@@ -717,7 +717,7 @@ maybe('intg: <3way_merge_ot>', () => {
         schema,
       });
       // Clone dbA
-      await dbB.createDB({
+      await dbB.open({
         ...remoteA.options(),
         conflictResolutionStrategy: 'ours-diff',
       });

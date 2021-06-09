@@ -84,7 +84,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       // trySync throws NoMergeBaseFoundError
       await expect(dbB.sync(remoteA.options())).rejects.toThrowError(NoMergeBaseFoundError);
@@ -106,7 +106,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       // Need local commit to combine dbs with commit message.
       const jsonB1 = { _id: '1', name: 'fromB' };
@@ -135,7 +135,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       // Combine with remote db
       await expect(dbB.sync(remoteA.options())).resolves.not.toThrowError(
@@ -170,7 +170,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       // Combine with remote db
       await expect(dbB.sync(remoteA.options())).resolves.not.toThrowError(
@@ -201,7 +201,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       const jsonB1 = { _id: '1', name: 'fromB' };
       await dbB.put(jsonB1);
@@ -238,7 +238,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       const jsonB2 = {
         _id: 'item/box01F76SNGYBWA5PBAYR0GNNT3Y4/item01F76SP8HNANY5QAXZ53DEHXBJ',
@@ -274,7 +274,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       const dbIdB = dbB.dbId();
       expect(dbIdB).not.toBe(dbIdA);
@@ -340,7 +340,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       const dbIdB = dbB.dbId();
       expect(dbIdB).not.toBe(dbIdA);
@@ -417,7 +417,7 @@ maybe('<remote/combine>', () => {
         dbName: dbNameB,
         localDir,
       });
-      await dbB.createDB();
+      await dbB.open();
 
       const dbIdB = dbB.dbId();
 

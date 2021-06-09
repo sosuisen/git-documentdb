@@ -17,6 +17,7 @@ import {
   DeleteOptions,
   DeleteResult,
   JsonDoc,
+  OpenOptions,
   PutOptions,
   PutResult,
   RemoteOptions,
@@ -86,7 +87,7 @@ export interface IDocumentDB {
   setRepository(repos: nodegit.Repository): void;
   getLogger(): Logger;
   loadDbInfo(): void;
-  open(): Promise<DatabaseOpenResult>;
+  open(options?: OpenOptions): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
   sync(options: RemoteOptions, getSyncResult: boolean): Promise<[ISync, SyncResult]>;
   sync(options: RemoteOptions): Promise<ISync>;

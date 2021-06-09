@@ -329,7 +329,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -351,7 +351,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -377,7 +377,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -405,7 +405,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -436,7 +436,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -470,7 +470,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -504,7 +504,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -538,7 +538,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -572,7 +572,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -613,7 +613,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -644,7 +644,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -677,7 +677,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
       const remoteRepos = new RemoteRepository({
         remoteUrl: remoteURL,
       });
@@ -711,7 +711,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       const remoteOptions: RemoteOptions = {
         remoteUrl: remoteURL,
@@ -738,7 +738,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       const remoteOptions: RemoteOptions = {
         remoteUrl: readonlyURL,
@@ -765,7 +765,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       const remoteOptions: RemoteOptions = {
         remoteUrl: readonlyURL,
@@ -792,7 +792,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       const remoteOptions: RemoteOptions = {
         remoteUrl: readonlyURL,
@@ -819,7 +819,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       const remoteOptions: RemoteOptions = {
         remoteUrl: readonlyURL,

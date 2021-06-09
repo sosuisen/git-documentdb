@@ -86,10 +86,10 @@ maybe('intg <sync_lifecycle> Sync', () => {
   });
 
   /**
-   * Initialize synchronization by createDB() with remoteURL
+   * Initialize synchronization by open() with remoteURL
    * Initialize means creating local and remote repositories by using a remoteUrl
    */
-  describe('initialized by createDB():', () => {
+  describe('initialized by open():', () => {
     it('getSynchronizer() returns an instance of Sync.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
@@ -101,7 +101,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       };
-      await dbA.createDB(options);
+      await dbA.open(options);
       const syncA = dbA.getSynchronizer(remoteURL);
       expect(syncA.remoteURL()).toBe(remoteURL);
       destroyDBs([dbA]);
@@ -118,7 +118,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       };
-      await dbA.createDB(options);
+      await dbA.open(options);
       dbA.unregisterRemote(remoteURL);
       expect(dbA.getSynchronizer(remoteURL)).toBeUndefined();
       destroyDBs([dbA]);
@@ -136,7 +136,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       };
-      await dbA.createDB(options);
+      await dbA.open(options);
       const remoteURL2 = remoteURLBase + serialId();
       const options2: RemoteOptions = {
         remoteUrl: remoteURL2,
@@ -164,7 +164,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getSynchronizer(remoteURL);
@@ -175,7 +175,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.createDB(options);
+        await dbB.open(options);
 
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
@@ -195,7 +195,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getSynchronizer(remoteURL);
@@ -205,7 +205,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.createDB(options);
+        await dbB.open(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
         const remoteB = dbB.getSynchronizer(remoteURL);
@@ -230,7 +230,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getSynchronizer(remoteURL);
@@ -240,7 +240,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.createDB(options);
+        await dbB.open(options);
         const jsonB1 = { _id: '1', name: 'fromB' };
         await dbB.put(jsonB1);
         const remoteB = dbB.getSynchronizer(remoteURL);
@@ -264,14 +264,14 @@ maybe('intg <sync_lifecycle> Sync', () => {
           remoteUrl: remoteURL,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.createDB(options);
+        await dbB.open(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
@@ -309,7 +309,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
      * Repetitive Sync (live)
      */
     describe('Repetitive Sync (live)', () => {
-      it('starts and pushes after interval when called from createDB() with live option.', async () => {
+      it('starts and pushes after interval when called from open() with live option.', async () => {
         const remoteURL = remoteURLBase + serialId();
 
         const dbNameA = serialId();
@@ -326,7 +326,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -346,7 +346,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.createDB(options);
+        await dbB.open(options);
         await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
         await destroyDBs([dbA, dbB]);
@@ -368,7 +368,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
 
         const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
@@ -397,7 +397,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
 
         const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
@@ -434,7 +434,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
 
         const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().live).toBeTruthy();
@@ -466,7 +466,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
 
         const remoteA = dbA.getSynchronizer(remoteURL);
         expect(remoteA.options().interval).toBe(interval);
@@ -512,7 +512,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           interval,
           connection: { type: 'github', personalAccessToken: token },
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
 
         const remoteA = dbA.getSynchronizer(remoteURL);
 
@@ -534,7 +534,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const options: RemoteOptions = {
           remoteUrl: remoteURL,
@@ -563,7 +563,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const options: RemoteOptions = {
           remoteUrl: remoteURL,
@@ -607,7 +607,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const options: RemoteOptions = {
           remoteUrl: remoteURL,
@@ -643,7 +643,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const options: RemoteOptions = {
           remoteUrl: remoteURL,
@@ -675,7 +675,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const options: RemoteOptions = {
           remoteUrl: remoteURL,
@@ -736,7 +736,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           connection: { type: 'github', personalAccessToken: token },
           retryInterval: 0,
         };
-        await dbA.createDB(options);
+        await dbA.open(options);
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
         const remoteA = dbA.getSynchronizer(remoteURL);
@@ -746,7 +746,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameB,
           localDir: localDir,
         });
-        await dbB.createDB(options);
+        await dbB.open(options);
         const jsonB1 = { _id: '2', name: 'fromB' };
         await dbB.put(jsonB1);
         const remoteB = dbB.getSynchronizer(remoteURL);
@@ -796,7 +796,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const options: RemoteOptions = {
           remoteUrl: remoteURL,
@@ -824,7 +824,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const options: RemoteOptions = {
           remoteUrl: remoteURL,
@@ -855,7 +855,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           dbName: dbNameA,
           localDir: localDir,
         });
-        await dbA.createDB();
+        await dbA.open();
 
         const interval = 100000;
         const retryInterval = 5000;
@@ -905,7 +905,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         localDir: localDir,
       });
 
-      await dbA.createDB();
+      await dbA.open();
 
       const options: RemoteOptions = {
         remoteUrl: remoteURL,
@@ -916,7 +916,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
       dbA.destroy();
     });
 
-    it('After dbA#sync() created remote repository, dbB#createDB() clones it.', async () => {
+    it('After dbA#sync() created remote repository, dbB#open() clones it.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
 
@@ -925,7 +925,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         localDir: localDir,
       });
 
-      await dbA.createDB();
+      await dbA.open();
       const options: RemoteOptions = {
         remoteUrl: remoteURL,
         syncDirection: 'both',
@@ -941,13 +941,13 @@ maybe('intg <sync_lifecycle> Sync', () => {
         dbName: dbNameB,
         localDir: localDir,
       });
-      await dbB.createDB(options);
+      await dbB.open(options);
       await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
       await destroyDBs([dbA, dbB]);
     });
 
-    it('After dbA#sync() created remote repository, dbB#createDB() clones it, close(), open() again with no remote, following sync().', async () => {
+    it('After dbA#sync() created remote repository, dbB#open() clones it, close(), open() again with no remote, following sync().', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
 
@@ -956,7 +956,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         localDir: localDir,
       });
 
-      await dbA.createDB();
+      await dbA.open();
       const options: RemoteOptions = {
         remoteUrl: remoteURL,
         live: true,
@@ -974,7 +974,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         dbName: dbNameB,
         localDir: localDir,
       });
-      await dbB.createDB(options);
+      await dbB.open(options);
       await dbB.close();
 
       await dbB.open();

@@ -36,7 +36,7 @@ describe('<crud/update> update(JsonDoc)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await expect(gitDDB.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
       DocumentNotFoundError
     );
@@ -49,7 +49,7 @@ describe('<crud/update> update(JsonDoc)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     const json01 = { _id: 'prof01', name: 'Shirase' };
     await gitDDB.insert(json01);
     const json01dash = { _id: 'prof01', name: 'updated' };
@@ -66,7 +66,7 @@ describe('<crud/insert> update(id, document)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await expect(gitDDB.update('prof01', { name: 'Shirase' })).rejects.toThrowError(
       DocumentNotFoundError
     );
@@ -79,7 +79,7 @@ describe('<crud/insert> update(id, document)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     const json01 = { _id: 'prof01', name: 'Shirase' };
     await gitDDB.insert(json01);
     const json01dash = { _id: 'prof01', name: 'updated' };

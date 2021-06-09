@@ -449,7 +449,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         localDir,
       });
       // Clone dbA
-      await dbB.createDB(remoteA.options());
+      await dbB.open(remoteA.options());
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A updates and pushes
@@ -499,7 +499,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         localDir,
       });
       // Clone dbA
-      await dbB.createDB(remoteA.options());
+      await dbB.open(remoteA.options());
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A puts and pushes
@@ -560,7 +560,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         localDir,
       });
       // Clone dbA
-      await dbB.createDB(remoteA.options());
+      await dbB.open(remoteA.options());
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A removes and pushes
@@ -620,7 +620,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
         localDir,
       });
       // Clone dbA
-      await dbB.createDB(remoteA.options());
+      await dbB.open(remoteA.options());
       const remoteB = dbB.getSynchronizer(remoteA.remoteURL());
 
       // A removes and pushes
@@ -723,7 +723,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       dbName: dbNameB,
       localDir,
     });
-    await dbB.createDB();
+    await dbB.open();
 
     // tryPush throws UnfetchedCommitExistsError
     await expect(dbB.sync(remoteA.options())).rejects.toThrowError(

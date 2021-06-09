@@ -9,7 +9,7 @@
 import { TLogLevelName } from 'tslog';
 
 /**
- * Database Option
+ * Database Options
  *
  * @remarks
  * localDir and dbName are OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
@@ -30,11 +30,21 @@ import { TLogLevelName } from 'tslog';
  * * logLevel: Default is 'info'.
  * ```
  */
-export type DatabaseOption = {
+export type DatabaseOptions = {
   localDir?: string;
   dbName: string;
   logLevel?: TLogLevelName;
   schema?: Schema;
+};
+
+/**
+ * Database open options
+ *
+ * @remarks
+ * createIfNotExists: Default is true.
+ */
+export type OpenOptions = {
+  createIfNotExists?: boolean;
 };
 
 /**
@@ -58,10 +68,24 @@ export type JsonDiffOptions = {
   idOfSubtree?: string[];
   plainTextProperties?: { [key: string]: any };
 };
+
 /**
  * Result of opening database
+ *
+ * @remarks
+ * - isNew: Whether a repository is newly created or existing.
+ *
+ * - isCreatedByGitddb: Whether a repository is created by GitDocumentDB or other means.
+ *
+ * - isValidVersion: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
+ *   The version is described in .git/description.
+ *
  */
-export type DatabaseOpenResult = (DatabaseInfo & DatabaseInfoSuccess) | DatabaseInfoError;
+export type DatabaseOpenResult = DatabaseInfo & {
+  isNew: boolean;
+  isCreatedByGitddb: boolean;
+  isValidVersion: boolean;
+};
 
 /**
  * Database info
@@ -79,42 +103,6 @@ export type DatabaseInfo = {
   version: string;
 };
 
-/**
- * Database information (success)
- *
- * @remarks
- * - ok: Boolean which shows if a database is successfully opened.
- *
- * - isNew: Whether a repository is newly created or existing.
- *
- * - isClone: Whether a repository is cloned from a remote repository or not.
- *
- * - isCreatedByGitddb: Whether a repository is created by GitDocumentDB or other means.
- *
- * - isValidVersion: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
- *   The version is described in .git/description.
- *
- */
-export type DatabaseInfoSuccess = {
-  ok: true;
-  isNew: boolean;
-  isClone: boolean;
-  isCreatedByGitddb: boolean;
-  isValidVersion: boolean;
-};
-/**
- * Database information (failure)
- *
- * @remarks
- * - ok: Boolean which shows if a database is successfully opened.
- *
- * - error: Error object is assigned if a database cannot be opened.
- *
- */
-export type DatabaseInfoError = {
-  ok: false;
-  error: Error;
-};
 /**
  * Task Statistics
  */

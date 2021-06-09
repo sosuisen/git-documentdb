@@ -36,7 +36,7 @@ describe('<crud/insert> insert(JsonDoc)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await gitDDB.insert({ _id: 'prof01' });
     await expect(gitDDB.insert({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
       SameIdExistsError
@@ -50,7 +50,7 @@ describe('<crud/insert> insert(JsonDoc)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     const json01 = { _id: 'prof01', name: 'Shirase' };
     await gitDDB.insert(json01);
     await expect(gitDDB.get('prof01')).resolves.toEqual(json01);
@@ -65,7 +65,7 @@ describe('<crud/insert> insert(id, document)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await gitDDB.insert('prof01', { name: 'Shirase' });
     await expect(gitDDB.insert('prof01', { name: 'Shirase' })).rejects.toThrowError(
       SameIdExistsError
@@ -79,7 +79,7 @@ describe('<crud/insert> insert(id, document)', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     const json01 = { _id: 'prof01', name: 'Shirase' };
     await gitDDB.insert('prof01', json01);
     await expect(gitDDB.get('prof01')).resolves.toEqual(json01);

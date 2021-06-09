@@ -17,7 +17,6 @@ import {
   TaskCancelError,
 } from '../src/error';
 import { GitDocumentDB } from '../src/index';
-import { DatabaseInfoError } from '../src/types';
 import { destroyDBs } from './remote_utils';
 
 const ulid = monotonicFactory();
@@ -47,7 +46,7 @@ describe('<close> GitDocumentDB#close()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     for (let i = 0; i < 50; i++) {
       gitDDB.put({ _id: i.toString(), name: i.toString() });
@@ -71,7 +70,7 @@ describe('<close> GitDocumentDB#close()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     for (let i = 0; i < 100; i++) {
       gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
@@ -96,7 +95,7 @@ describe('<close> GitDocumentDB#close()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     const errors: any[] = [];
     for (let i = 0; i < 100; i++) {
@@ -121,7 +120,7 @@ describe('<close> GitDocumentDB#close()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     for (let i = 0; i < 100; i++) {
       // eslint-disable-next-line no-await-in-loop
@@ -151,7 +150,7 @@ describe('<close> GitDocumentDB#close()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -176,7 +175,7 @@ describe('<close> GitDocumentDB#close()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -184,8 +183,7 @@ describe('<close> GitDocumentDB#close()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    const dbInfo = await gitDDB.open();
-    expect((dbInfo as DatabaseInfoError).error).toBeInstanceOf(DatabaseClosingError);
+    await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(
       DatabaseClosingError

@@ -399,25 +399,9 @@ export class InvalidConflictStateError extends BaseError {
 
 /**
  */
-export class DatabaseExistsError extends BaseError {
-  constructor () {
-    super('Database already exists');
-  }
-}
-
-/**
- */
-export class WorkingDirectoryExistsError extends BaseError {
-  constructor () {
-    super('Working directory already exists');
-  }
-}
-
-/**
- */
 export class CannotOpenRepositoryError extends BaseError {
   constructor (err: string) {
-    super(`Cannot open repository: ${err}`);
+    super(`Cannot open repository though .git directory exists. : ${err}`);
   }
 }
 
@@ -465,7 +449,15 @@ export class HTTPNetworkError extends BaseError {
 
 /**
  */
-export class CannotCreateRemoteRepositoryError extends BaseError {
+export class CannotCreateRepositoryError extends BaseError {
+  constructor (reason: string) {
+    super(`Cannot create repository: ${reason}`);
+  }
+}
+
+/**
+ */
+ export class CannotCreateRemoteRepositoryError extends BaseError {
   constructor (reason: string) {
     super(`Cannot create remote repository: ${reason}`);
   }

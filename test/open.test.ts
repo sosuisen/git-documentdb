@@ -11,16 +11,27 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
-import { CannotOpenRepositoryError, RepositoryNotFoundError } from '../src/error';
+import sinon from 'sinon';
+import {
+  CannotCreateDirectoryError,
+  CannotOpenRepositoryError,
+  InvalidWorkingDirectoryPathLengthError,
+  RepositoryNotFoundError,
+  UndefinedDatabaseNameError,
+} from '../src/error';
 import { generateDatabaseId, GitDocumentDB } from '../src/index';
 import { putWorker } from '../src/crud/put';
-import { DatabaseInfo, DatabaseInfoError, DatabaseOpenResult } from '../src/types';
+import { DatabaseInfo, DatabaseOpenResult } from '../src/types';
 import {
   DATABASE_CREATOR,
   DATABASE_VERSION,
   GIT_DOCUMENTDB_INFO_ID,
   JSON_EXT,
 } from '../src/const';
+import { Validator } from '../src/validator';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fs_module = require('fs-extra');
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -29,30 +40,172 @@ const monoId = () => {
 
 const localDir = `./test/database_open`;
 
+// Use sandbox to restore stub and spy in parallel mocha tests
+let sandbox: sinon.SinonSandbox;
 beforeEach(function () {
   // @ts-ignore
   console.log(`... ${this.currentTest.fullTitle()}`);
+  sandbox = sinon.createSandbox();
 });
 
-beforeAll(() => {
-  fs.removeSync(path.resolve(localDir));
+afterEach(function () {
+  sandbox.restore();
 });
 
 afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<index> open()', () => {
+describe('<index>', () => {
+  describe('GitDocumentDB#constructor', () => {
+    it('new', () => {
+      expect(() => {
+        // eslint-disable-next-line no-new
+        new GitDocumentDB({ dbName: 'db', localDir: 'C:\\dir01\\dir02' });
+      }).not.toThrowError();
+    });
+
+    it('throws UndefinedDatabaseNameError.', () => {
+      // Code must be wrapped by () => {} to test exception
+      // https://jestjs.io/docs/en/expect#tothrowerror
+      expect(() => {
+        /* eslint-disable-next-line no-new */ // @ts-ignore
+        new GitDocumentDB({});
+      }).toThrowError(UndefinedDatabaseNameError);
+    });
+
+    it('throws InvalidWorkingDirectoryPathLengthError when tries to create a long name repository.', async () => {
+      const maxWorkingDirLen = Validator.maxWorkingDirectoryLength();
+      let dbName = 'tmp';
+      const workingDirectory = path.resolve(localDir, dbName);
+      for (let i = 0; i < maxWorkingDirLen - workingDirectory.length; i++) {
+        dbName += '0';
+      }
+
+      // Code must be wrapped by () => {} to test exception
+      // https://jestjs.io/docs/en/expect#tothrowerror
+      let gitddb: GitDocumentDB;
+      expect(() => {
+        gitddb = new GitDocumentDB({
+          dbName,
+          localDir,
+        });
+      }).not.toThrowError();
+      // @ts-ignore
+      if (gitddb !== undefined) {
+        await gitddb.destroy();
+      }
+
+      dbName += '0';
+      expect(() => {
+        // eslint-disable-next-line no-new
+        new GitDocumentDB({
+          dbName,
+          localDir,
+        });
+      }).toThrowError(InvalidWorkingDirectoryPathLengthError);
+    });
+
+    it('throws InvalidWorkingDirectoryPathLengthError when working directory path is too long.', () => {
+      expect(() => {
+        /* eslint-disable-next-line no-new */ // @ts-ignore
+        new GitDocumentDB({
+          dbName:
+            '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+          localDir:
+            '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+        });
+      }).toThrowError(InvalidWorkingDirectoryPathLengthError);
+    });
+  });
+
+  describe('create', () => {
+    const readonlyDir = './test/_readonly/';
+
+    it('throws CannotCreateDirectoryError when tries to create a new repository on a readonly filesystem.', async () => {
+      const dbName = monoId();
+      // Windows does not support permission option of fs.ensureDir(). Use stub.
+      if (process.platform === 'win32') {
+        const stubEnsureDir = sandbox.stub(fs_module, 'ensureDir');
+        stubEnsureDir.rejects();
+      }
+      else {
+        if (!fs.existsSync('test')) {
+          await fs.mkdir('test');
+        }
+        await fs.ensureDir(readonlyDir, { mode: 0o400 }).catch((err: Error) => {
+          console.error(err);
+        });
+      }
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir: readonlyDir + 'database',
+      });
+      // You don't have permission
+      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
+      if (process.platform !== 'win32') {
+        fs.chmodSync(readonlyDir, 0o644);
+      }
+    });
+
+    it('creates a new repository.', async () => {
+      const dbName = monoId();
+
+      const gitDDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      // Create db
+      const dbOpenResult = (await gitDDB.open()) as DatabaseOpenResult;
+      expect(dbOpenResult).toEqual({
+        dbId: dbOpenResult.dbId,
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+        isNew: true,
+        isCreatedByGitddb: true,
+        isValidVersion: true,
+      });
+
+      expect((dbOpenResult as DatabaseInfo).dbId).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
+
+      // Check if working directory exists
+      expect(fs.existsSync(path.resolve(localDir, dbName))).toBeTruthy();
+
+      // Check path of working directory
+      expect(gitDDB.workingDir()).toBe(path.resolve(`${localDir}/${dbName}`));
+      // Destroy db
+      await gitDDB.destroy().catch(e => console.error(e));
+      // fs.access() throw error when a file cannot be accessed.
+      await expect(fs.access(path.resolve(localDir, dbName))).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
+    });
+
+    it('creates a new repository by default localDir.', async () => {
+      const dbName = monoId();
+
+      const gitDDB = new GitDocumentDB({
+        dbName,
+      });
+      const defaultLocalDir = './git-documentdb/';
+      // Create db
+      await gitDDB.open();
+
+      expect(gitDDB.workingDir()).toBe(path.resolve(defaultLocalDir, dbName));
+      // Destroy db
+      await gitDDB.destroy().catch(e => console.error(e));
+      fs.removeSync(path.resolve(defaultLocalDir));
+    });
+  });
+
   it('throws RepositoryNotFoundError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
-    const dbOpenResult: DatabaseOpenResult = await gitDDB.open();
-    expect((dbOpenResult as DatabaseInfoError).error).toBeInstanceOf(
-      RepositoryNotFoundError
-    );
+    await expect(gitDDB.open()).rejects.toThrowError(RepositoryNotFoundError);
   });
 
   it('throws CannotOpenRepositoryError.', async () => {
@@ -63,10 +216,7 @@ describe('<index> open()', () => {
     });
     // Create empty .git directory
     await fs.ensureDir(gitDDB.workingDir() + '/.git/');
-    const dbOpenResult: DatabaseOpenResult = await gitDDB.open();
-    expect((dbOpenResult as DatabaseInfoError).error).toBeInstanceOf(
-      CannotOpenRepositoryError
-    );
+    await expect(gitDDB.open()).rejects.toThrowError(CannotOpenRepositoryError);
   });
 
   it('opens an existing repository.', async () => {
@@ -77,7 +227,7 @@ describe('<index> open()', () => {
     });
 
     // Create db
-    const oldResult = (await gitDDB.createDB()) as DatabaseInfo;
+    const oldResult = (await gitDDB.open()) as DatabaseInfo;
 
     // Close created db
     await expect(gitDDB.close()).resolves.toBeUndefined();
@@ -85,14 +235,12 @@ describe('<index> open()', () => {
     // Open existing db
     const dbOpenResult = await gitDDB.open();
     expect(dbOpenResult).toEqual({
-      ok: true,
-      db_id: oldResult.dbId,
+      dbId: oldResult.dbId,
       creator: DATABASE_CREATOR,
       version: DATABASE_VERSION,
-      is_new: false,
-      is_clone: false,
-      is_created_by_gitddb: true,
-      is_valid_version: true,
+      isNew: false,
+      isCreatedByGitddb: true,
+      isValidVersion: true,
     });
     expect(gitDDB.isOpened()).toBeTruthy();
 
@@ -129,14 +277,12 @@ describe('<index> open()', () => {
 
     const dbOpenResult = await gitDDB.open();
     expect(dbOpenResult).toEqual({
-      ok: true,
-      db_id: (dbOpenResult as DatabaseInfo).dbId,
+      dbId: (dbOpenResult as DatabaseInfo).dbId,
       creator,
       version: '',
-      is_new: false,
-      is_clone: false,
-      is_created_by_gitddb: false,
-      is_valid_version: false,
+      isNew: false,
+      isCreatedByGitddb: false,
+      isValidVersion: false,
     });
     await gitDDB.destroy();
   });
@@ -159,7 +305,7 @@ describe('<index> open()', () => {
       GIT_DOCUMENTDB_INFO_ID,
       JSON_EXT,
       JSON.stringify({
-        db_id: generateDatabaseId(),
+        dbId: generateDatabaseId(),
         creator: DATABASE_CREATOR,
         version: '0.01',
       }),
@@ -168,15 +314,13 @@ describe('<index> open()', () => {
     await gitDDB.close();
 
     const dbOpenResult = await gitDDB.open();
-    expect(dbOpenResult).toMatchObject({
-      ok: true,
-      db_id: (dbOpenResult as DatabaseInfo).dbId,
+    expect(dbOpenResult).toEqual({
+      dbId: (dbOpenResult as DatabaseInfo).dbId,
       creator: DATABASE_CREATOR,
       version: '0.01',
-      is_new: false,
-      is_clone: false,
-      is_created_by_gitddb: true,
-      is_valid_version: false,
+      isNew: false,
+      isCreatedByGitddb: true,
+      isValidVersion: false,
     });
     await gitDDB.destroy();
   });
@@ -201,7 +345,7 @@ describe('<index> open()', () => {
       GIT_DOCUMENTDB_INFO_ID,
       JSON_EXT,
       JSON.stringify({
-        db_id: '',
+        dbId: '',
         creator: DATABASE_CREATOR,
         version: DATABASE_VERSION,
       }),
@@ -213,15 +357,13 @@ describe('<index> open()', () => {
     const newDbId = (dbOpenResult as DatabaseInfo).dbId;
 
     expect(newDbId).not.toBe(prevDbId);
-    expect(dbOpenResult).toMatchObject({
-      ok: true,
-      db_id: newDbId,
+    expect(dbOpenResult).toEqual({
+      dbId: newDbId,
       creator: DATABASE_CREATOR,
       version: DATABASE_VERSION,
-      is_new: false,
-      is_clone: false,
-      is_created_by_gitddb: true,
-      is_valid_version: true,
+      isNew: false,
+      isCreated_by_gitddb: true,
+      isValidVersion: true,
     });
   });
 
@@ -233,13 +375,17 @@ describe('<index> open()', () => {
     });
 
     // Create db
-    await gitDDB.createDB();
+    await gitDDB.open();
+
+    const dbOpenResult = await gitDDB.open();
+    const newDbId = (dbOpenResult as DatabaseInfo).dbId;
     await expect(gitDDB.open()).resolves.toMatchObject({
-      ok: true,
-      is_new: false,
-      is_clone: false,
-      is_created_by_gitddb: true,
-      is_valid_version: true,
+      dbId: newDbId,
+      creator: DATABASE_CREATOR,
+      version: DATABASE_VERSION,
+      isNew: false,
+      isCreatedByGitddb: true,
+      isValidVersion: true,
     });
     await gitDDB.destroy();
   });

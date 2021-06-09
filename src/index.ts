@@ -14,16 +14,15 @@ import { Logger, TLogLevelName } from 'tslog';
 import { ulid } from 'ulid';
 import {
   CannotCreateDirectoryError,
+  CannotCreateRepositoryError,
   CannotOpenRepositoryError,
   DatabaseCloseTimeoutError,
   DatabaseClosingError,
-  DatabaseExistsError,
   FileRemoveTimeoutError,
   InvalidWorkingDirectoryPathLengthError,
   RemoteAlreadyRegisteredError,
   RepositoryNotFoundError,
   UndefinedDatabaseNameError,
-  WorkingDirectoryExistsError,
 } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -33,13 +32,13 @@ import {
   CollectionPath,
   DatabaseCloseOption,
   DatabaseInfo,
-  DatabaseInfoSuccess,
   DatabaseOpenResult,
-  DatabaseOption,
+  DatabaseOptions,
   DeleteOptions,
   DeleteResult,
   JsonDoc,
   JsonDocWithMetadata,
+  OpenOptions,
   PutOptions,
   PutResult,
   RemoteOptions,
@@ -122,12 +121,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   private _synchronizers: { [url: string]: Sync } = {};
 
   private _dbOpenResult: DatabaseOpenResult = {
-    ok: true,
     dbId: '',
     creator: '',
     version: '',
     isNew: false,
-    isClone: false,
     isCreatedByGitddb: true,
     isValidVersion: true,
   };
@@ -184,7 +181,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDatabaseNameError}
    *
    */
-  constructor (options: DatabaseOption) {
+  constructor (options: DatabaseOptions) {
     if (options.dbName === undefined || options.dbName === '') {
       throw new UndefinedDatabaseNameError();
     }
@@ -223,36 +220,32 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Create and open a repository
+   * Open or create a Git repository
    *
    * @remarks
-   *  - If localDir does not exist, create it.
-   *
-   *  - createDB() also opens the repository. createDB() followed by open() has no effect.
+   *  - GitDocumentDB can load a git repository that is not created by the git-documentdb module.
+   *  However, correct behavior is not guaranteed.
    *
    * @returns Database information
-   *
    * @throws {@link DatabaseClosingError}
-   * @throws {@link DatabaseExistsError}
-   * @throws {@link WorkingDirectoryExistsError}
    * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link CannotConnectError}
-   *
+   * @throws {@link CannotOpenRepositoryError}
+   * @throws {@link RepositoryNotFoundError} may occurs when openOptions.createIfNotExists is false.
    */
-  async createDB (remoteOptions?: RemoteOptions): Promise<DatabaseOpenResult> {
+  async open (openOptions?: OpenOptions): Promise<DatabaseOpenResult> {
     if (this.isClosing) {
       throw new DatabaseClosingError();
     }
     if (this.isOpened()) {
-      throw new DatabaseExistsError();
+      this._dbOpenResult.isNew = false;
+      return this._dbOpenResult;
     }
-
-    if (fs.existsSync(this._workingDirectory)) {
-      // Throw exception if not empty
-      if (fs.readdirSync(this._workingDirectory).length !== 0) {
-        throw new WorkingDirectoryExistsError();
-      }
+    if (openOptions === undefined) {
+      openOptions = {
+        createIfNotExists: undefined,
+      };
     }
+    openOptions.createIfNotExists ??= true;
 
     /**
      * Create directory
@@ -261,101 +254,15 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       throw new CannotCreateDirectoryError(err.message);
     });
 
-    this._dbOpenResult = {
-      ok: true,
-      dbId: '',
-      creator: '',
-      version: '',
-      isNew: false,
-      isClone: false,
-      isCreatedByGitddb: true,
-      isValidVersion: true,
-    };
-
-    if (remoteOptions?.remoteUrl === undefined) {
-      this._dbOpenResult = await this._createRepository();
-      return this._dbOpenResult;
-    }
-
-    // Clone repository if remoteURL exists
-    this._currentRepository = await cloneRepository(
-      this.workingDir(),
-      remoteOptions,
-      this.getLogger()
-    ).catch((err: Error) => {
-      throw err;
-    });
-
-    if (this._currentRepository === undefined) {
-      // Clone failed. Try to create remote repository in sync().
-      // Please check is_clone flag if you would like to know whether clone is succeeded or not.
-      this._dbOpenResult = await this._createRepository();
-    }
-    else {
-      // this.logger.warn('Clone succeeded.');
-      /**
-       * TODO: validate db
-       */
-      (this._dbOpenResult as DatabaseInfoSuccess).isClone = true;
-    }
-
-    /**
-     * Check and sync repository if exists
-     */
-
-    await this.loadDbInfo();
-
-    if (remoteOptions?.remoteUrl !== undefined) {
-      if (
-        (this._dbOpenResult as DatabaseInfoSuccess).isCreatedByGitddb &&
-        (this._dbOpenResult as DatabaseInfoSuccess).isValidVersion
-      ) {
-        // Can synchronize
-        await this.sync(remoteOptions);
-      }
-    }
-
-    return this._dbOpenResult;
-  }
-
-  /**
-   * Open an existing repository
-   *
-   * @remarks
-   *  - GitDocumentDB can load a git repository that is not created by the git-documentdb module.
-   *  However, correct behavior is not guaranteed.
-   *
-   * @returns Database information
-   *
-   */
-  async open (): Promise<DatabaseOpenResult> {
-    const dbInfoError = (err: Error) => {
-      this._dbOpenResult = {
-        ok: false,
-        error: err,
-      };
-      return this._dbOpenResult;
-    };
-
-    if (this.isClosing) {
-      return dbInfoError(new DatabaseClosingError());
-    }
-    if (this.isOpened()) {
-      (this._dbOpenResult as DatabaseInfoSuccess).isNew = false;
-      return this._dbOpenResult;
-    }
-
     /**
      * Reset
      */
     this._synchronizers = {};
     this._dbOpenResult = {
-      ok: true,
       dbId: '',
       creator: '',
       version: '',
       isNew: false,
-      isClone: false,
       isCreatedByGitddb: true,
       isValidVersion: true,
     };
@@ -369,10 +276,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       this._currentRepository = await nodegit.Repository.open(this._workingDirectory);
     } catch (err) {
       const gitDir = this._workingDirectory + '/.git/';
-      if (!fs.existsSync(gitDir)) {
-        return dbInfoError(new RepositoryNotFoundError(gitDir));
+      if (fs.existsSync(gitDir)) {
+        // Cannot open though .git directory exists.
+        throw new CannotOpenRepositoryError(this._workingDirectory);
       }
-      return dbInfoError(new CannotOpenRepositoryError(err));
+      if (openOptions.createIfNotExists) {
+        await this._createRepository().catch(e => {
+          throw new CannotCreateRepositoryError(e.message);
+        });
+      }
+      else {
+        throw new RepositoryNotFoundError(gitDir);
+      }
     }
 
     await this.loadDbInfo();
@@ -386,7 +301,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     const options: RepositoryInitOptions = {
       initialHead: this.defaultBranch,
     };
-    (this._dbOpenResult as DatabaseInfoSuccess).isNew = true;
+    this._dbOpenResult.isNew = true;
 
     this._currentRepository = await nodegit.Repository.initExt(
       this._workingDirectory,
@@ -411,7 +326,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       FIRST_COMMIT_MESSAGE
     );
     this._dbOpenResult = { ...this._dbOpenResult, ...info };
-    return this._dbOpenResult;
   }
 
   /**
@@ -446,25 +360,25 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       );
     }
 
-    (this._dbOpenResult as DatabaseInfo).dbId = info.dbId;
-    (this._dbOpenResult as DatabaseInfo).creator = info.creator;
-    (this._dbOpenResult as DatabaseInfo).version = info.version;
+    this._dbOpenResult.dbId = info.dbId;
+    this._dbOpenResult.creator = info.creator;
+    this._dbOpenResult.version = info.version;
 
     if (new RegExp('^' + DATABASE_CREATOR).test(info.creator)) {
-      (this._dbOpenResult as DatabaseInfoSuccess).isCreatedByGitddb = true;
+      this._dbOpenResult.isCreatedByGitddb = true;
       if (new RegExp('^' + DATABASE_VERSION).test(info.version)) {
-        (this._dbOpenResult as DatabaseInfoSuccess).isValidVersion = true;
+        this._dbOpenResult.isValidVersion = true;
       }
       else {
-        (this._dbOpenResult as DatabaseInfoSuccess).isValidVersion = false;
+        this._dbOpenResult.isValidVersion = false;
         /**
          * TODO: Need migration
          */
       }
     }
     else {
-      (this._dbOpenResult as DatabaseInfoSuccess).isCreatedByGitddb = false;
-      (this._dbOpenResult as DatabaseInfoSuccess).isValidVersion = false;
+      this._dbOpenResult.isCreatedByGitddb = false;
+      this._dbOpenResult.isValidVersion = false;
     }
   }
 
@@ -481,10 +395,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    */
   dbId () {
-    if (this._dbOpenResult.ok === true) {
-      return this._dbOpenResult.dbId;
-    }
-    return '';
+    return this._dbOpenResult.dbId;
   }
 
   /**
@@ -955,8 +866,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    * @throws {@link CannotGetEntryError}
    */
-  getDocHistory (docID: string): Promise<string[]> {
-    return getDocHistoryImpl.call(this, docID);
+  getDocHistory (_id: string): Promise<string[]> {
+    return getDocHistoryImpl.call(this, _id);
   }
 
   /**
@@ -977,7 +888,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Remove a document
    *
-   * @param jsonDoc - Target document
+   * @param jsonDoc - Target document. Only _id property is referred.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}

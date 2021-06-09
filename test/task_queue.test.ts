@@ -50,7 +50,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await gitDDB.put({ _id: '01' });
     expect(gitDDB.taskQueue.currentStatistics().put).toBe(1);
     await gitDDB.put({ _id: '02' });
@@ -66,7 +66,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await gitDDB.insert({ _id: '01' });
     expect(gitDDB.taskQueue.currentStatistics().insert).toBe(1);
     await gitDDB.insert({ _id: '02' });
@@ -82,7 +82,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await gitDDB.insert({ _id: '01' });
     await gitDDB.update({ _id: '01' });
     expect(gitDDB.taskQueue.currentStatistics().update).toBe(1);
@@ -97,7 +97,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await gitDDB.insert({ _id: '01' });
     await gitDDB.insert({ _id: '02' });
     await gitDDB.insert({ _id: '03' });
@@ -117,7 +117,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     gitDDB.insert({ _id: '01' });
     gitDDB.insert({ _id: '02' });
     expect(gitDDB.taskQueue.length()).toBe(1);
@@ -132,7 +132,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     gitDDB.insert(
       { _id: '01' },
       {
@@ -176,7 +176,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     await gitDDB.insert({ _id: '01' });
     await gitDDB.put({ _id: '01' });
     await gitDDB.update({ _id: '01' });
@@ -211,7 +211,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     const promiseList: Promise<TaskMetadata>[] = [];
     const maxNumber = 30;
     for (let i = 0; i < maxNumber; i++) {
@@ -252,7 +252,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
     const promiseList: Promise<TaskMetadata>[] = [];
     const rand = [0, 3, 2, 1, 4, 5, 8, 7, 9, 6];
     for (let i = 0; i < 10; i++) {
@@ -309,7 +309,7 @@ maybe('<task_queue> remote', () => {
   test('increments statistics: push', async () => {
     const [dbA, remoteA] = await createDatabase(remoteURLBase, localDir, serialId);
 
-    // The first push in createDB()
+    // The first push in open()
     expect(dbA.taskQueue.currentStatistics().push).toBe(1);
 
     const jsonA1 = { _id: '1', name: 'fromA' };

@@ -91,7 +91,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
     await expect(gitDDB.allDocs()).rejects.toThrowError(RepositoryNotOpenError);
 
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       totalRows: 0,
@@ -137,7 +137,7 @@ describe('<crud/allDocs> allDocs()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -174,7 +174,7 @@ describe('<crud/allDocs> allDocs()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -211,7 +211,7 @@ describe('<crud/allDocs> allDocs()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -276,7 +276,7 @@ describe('<crud/allDocs> allDocs()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
@@ -319,7 +319,7 @@ describe('<crud/allDocs> allDocs()', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       await gitDDB.put({ _id: _id_b, name: name_b });
       await gitDDB.put({ _id: _id_a, name: name_a });
@@ -363,7 +363,7 @@ describe('<crud/allDocs> allDocs()', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       await gitDDB.put({ _id: _id_b, name: name_b });
       await gitDDB.put({ _id: _id_a, name: name_a });
@@ -409,7 +409,7 @@ describe('<crud/allDocs> allDocs()', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       await gitDDB.put({ _id: _id_b, name: name_b });
       await gitDDB.put({ _id: _id_a, name: name_a });
@@ -469,7 +469,7 @@ describe('<crud/allDocs> allDocs()', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       await gitDDB.put({ _id: _id_b, name: name_b });
       await gitDDB.put({ _id: _id_a, name: name_a });
@@ -505,7 +505,7 @@ describe('<crud/allDocs> allDocs()', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       await gitDDB.put({ _id: _id_b, name: name_b });
       await gitDDB.put({ _id: _id_a, name: name_a });
@@ -532,7 +532,7 @@ describe('<crud/allDocs> allDocs()', () => {
         dbName,
         localDir,
       });
-      await gitDDB.createDB();
+      await gitDDB.open();
 
       await gitDDB.put({ _id: _id_p, name: name_p });
 
@@ -587,7 +587,7 @@ describe('<crud/allDocs> allDocs()', () => {
       dbName,
       localDir,
     });
-    await gitDDB.createDB();
+    await gitDDB.open();
 
     const _id = 'invalidJSON';
     let fileSha, commitSha: string;
