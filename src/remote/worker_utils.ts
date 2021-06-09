@@ -149,7 +149,7 @@ export async function getChanges (
  *
  * @remarks
  *
- * - Logs are sorted by commit date from old to new. Ancestors are placed before descendants if the dates are the same.
+ * - Logs are sorted by topology. Ancestors are placed before descendants. Topic branches are placed before the main branch.
  *
  * - Walking stops when it reaches to walkToCommitOid or walkToCommitOid2.
  *
@@ -167,18 +167,6 @@ export async function getCommitLogs (
 ): Promise<NormalizedCommit[]> {
   // Return partial logs.
   // See https://github.com/isomorphic-git/isomorphic-git/blob/main/src/commands/log.js
-  const tree: { [child: string]: string[] } = {};
-  const isDescendent = (child: string, target: string): boolean => {
-    const nodes = [...tree[child]];
-    while (nodes.length > 0) {
-      const parent = nodes.pop();
-      if (parent === target) return true;
-      if (tree[parent!] !== undefined) {
-        nodes.push(...tree[parent!]);
-      }
-    }
-    return false;
-  };
   const parents = [await git.readCommit({ fs, dir: workingDir, oid: walkFromCommitOid })];
   const history: ReadCommitResult[] = [];
   const commits: NormalizedCommit[] = [];
@@ -189,7 +177,6 @@ export async function getCommitLogs (
 
     commits.push(NormalizeCommit(commit!));
 
-    tree[commit!.oid] = commit!.commit.parent;
     // Add the parents of this commit to the queue
     for (const oid of commit!.commit.parent) {
       // eslint-disable-next-line no-await-in-loop
@@ -200,29 +187,8 @@ export async function getCommitLogs (
       }
     }
   }
-  // The list is sorted from old to new.
-  return commits.sort((a, b) => {
-    /*
-    console.log(
-      'isDescendent:' +
-        a.sha +
-        '# ' +
-        a.committer.timestamp.getTime() +
-        ', ' +
-        b.sha +
-        '# ' +
-        b.committer.timestamp.getTime() +
-        ': ' +
-        isDescendent(a.sha, b.sha)
-    );
-    */
-    if (a.committer.timestamp.getTime() > b.committer.timestamp.getTime()) return 1;
-    if (a.committer.timestamp.getTime() < b.committer.timestamp.getTime()) return -1;
-
-    // Ancestors are placed before descendants if the dates are the same.
-    if (isDescendent(a.sha, b.sha)) return 1;
-    return -1;
-  });
+  // The list is sorted by topology.
+  return commits.reverse();
 }
 
 /**
