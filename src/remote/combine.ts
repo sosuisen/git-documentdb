@@ -49,18 +49,18 @@ export async function combineDatabaseWithTheirs (
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.repository()!);
     const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteRepository);
-    const remoteIds = remoteMetadataList.map(meta => meta.id);
+    const remoteIds = remoteMetadataList.map(meta => meta._id);
 
     for (let i = 0; i < localMetadataList.length; i++) {
       const meta = localMetadataList[i];
-      const filename = meta.id + (meta.type === 'json' ? '.json' : '');
+      const filename = meta._id + (meta.type === 'json' ? '.json' : '');
       const localFilePath = path.resolve(gitDDB.workingDir(), filename);
       const remoteFilePath = path.resolve(remoteDir, filename);
       const dir = path.dirname(remoteFilePath);
 
       await fs.ensureDir(dir);
 
-      if (remoteIds.includes(meta.id)) {
+      if (remoteIds.includes(meta._id)) {
         // Add postfix and copy localFilePath to remoteFilePath if remoteFilePath exists
 
         let duplicatedFileName = '';
@@ -71,9 +71,9 @@ export async function combineDatabaseWithTheirs (
 
         if (remoteFilePath.endsWith(JSON_EXT)) {
           const doc = fs.readJSONSync(localFilePath);
-          doc._id = path.basename(meta.id + postfix);
-          duplicatedFileName = meta.id + postfix + JSON_EXT;
-          duplicatedFileId = meta.id + postfix;
+          doc._id = path.basename(meta._id + postfix);
+          duplicatedFileName = meta._id + postfix + JSON_EXT;
+          duplicatedFileId = meta._id + postfix;
           duplicatedFileExt = JSON_EXT;
           fs.writeFileSync(
             path.resolve(remoteDir, duplicatedFileName),
@@ -82,7 +82,7 @@ export async function combineDatabaseWithTheirs (
         }
         else {
           // Add postfix before extension.
-          duplicatedFileId = meta.id + postfix;
+          duplicatedFileId = meta._id + postfix;
           duplicatedFileExt = path.extname(localFilePath);
           duplicatedFileName = duplicatedFileId + duplicatedFileExt;
 
@@ -94,15 +94,15 @@ export async function combineDatabaseWithTheirs (
         const entry = index.getByPath(duplicatedFileName, 0); // https://www.nodegit.org/api/index/#STAGE
         duplicatedFileSha = entry.id.tostrS();
 
-        const remoteFile = remoteMetadataList.find(data => data.id === meta.id);
+        const remoteFile = remoteMetadataList.find(data => data._id === meta._id);
         duplicates.push({
           original: {
-            id: meta.id,
+            _id: meta._id,
             fileSha: remoteFile!.fileSha,
             type: duplicatedFileExt === '.json' ? 'json' : 'raw',
           },
           duplicate: {
-            id: duplicatedFileId,
+            _id: duplicatedFileId,
             fileSha: duplicatedFileSha,
             type: duplicatedFileExt === '.json' ? 'json' : 'raw',
           },

@@ -62,7 +62,7 @@ export function getChangedFileInsert (
   return {
     operation: 'insert',
     new: {
-      id: newDoc!._id,
+      _id: newDoc!._id,
       fileSha: newResult!.fileSha,
       doc: newDoc,
     },
@@ -78,12 +78,12 @@ export function getChangedFileUpdate (
   return {
     operation: 'update',
     old: {
-      id: oldDoc!._id,
+      _id: oldDoc!._id,
       fileSha: oldResult!.fileSha,
       doc: oldDoc!,
     },
     new: {
-      id: newDoc!._id,
+      _id: newDoc!._id,
       fileSha: newResult!.fileSha,
       doc: newDoc,
     },
@@ -97,7 +97,7 @@ export function getChangedFileDelete (
   return {
     operation: 'delete',
     old: {
-      id: oldDoc!._id,
+      _id: oldDoc!._id,
       fileSha: oldResult!.fileSha,
       doc: oldDoc,
     },
@@ -111,7 +111,7 @@ export function getChangedFileInsertBySHA (
   return {
     operation: 'insert',
     new: {
-      id: newDoc!._id,
+      _id: newDoc!._id,
       fileSha: newFileSHA,
       doc: newDoc,
     },
@@ -127,12 +127,12 @@ export function getChangedFileUpdateBySHA (
   return {
     operation: 'update',
     old: {
-      id: oldDoc!._id,
+      _id: oldDoc!._id,
       fileSha: oldFileSHA,
       doc: oldDoc!,
     },
     new: {
-      id: newDoc!._id,
+      _id: newDoc!._id,
       fileSha: newFileSHA,
       doc: newDoc,
     },
@@ -146,7 +146,7 @@ export function getChangedFileDeleteBySHA (
   return {
     operation: 'delete',
     old: {
-      id: oldDoc!._id,
+      _id: oldDoc!._id,
       fileSha: oldFileSHA,
       doc: oldDoc,
     },

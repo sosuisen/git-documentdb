@@ -136,7 +136,7 @@ export async function allDocsImpl (
       else {
         const _id = entry!.path().replace(new RegExp(JSON_EXT + '$'), '');
         const documentInBatch: JsonDocWithMetadata = {
-          id: _id,
+          _id,
           fileSha: entry!.id().tostrS(),
         };
 

@@ -171,7 +171,7 @@ export class Collection implements CRUDInterface {
       const _id = this._collectionPath + orgId;
       const document = docOrOptions as { [key: string]: any };
       return this._gitDDB.put(_id, document, options).then(res => {
-        res.id = orgId;
+        res._id = orgId;
         return res;
       });
     }
@@ -182,7 +182,7 @@ export class Collection implements CRUDInterface {
         const document = idOrDoc as JsonDoc;
         options = docOrOptions;
         return this._gitDDB.put(_id, document, options).then(res => {
-          res.id = orgId;
+          res._id = orgId;
           return res;
         });
       }
@@ -199,7 +199,7 @@ export class Collection implements CRUDInterface {
    * This is 'overload 1' referred to in test/insert.test.ts
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
    * - create() does not check a write permission of your file system (unlike open()).
    *
@@ -268,7 +268,7 @@ export class Collection implements CRUDInterface {
           insertOrUpdate: 'insert',
         })
         .then(res => {
-          res.id = orgId;
+          res._id = orgId;
           return res;
         });
     }
@@ -284,7 +284,7 @@ export class Collection implements CRUDInterface {
             insertOrUpdate: 'insert',
           })
           .then(res => {
-            res.id = orgId;
+            res._id = orgId;
             return res;
           });
       }
@@ -372,7 +372,7 @@ export class Collection implements CRUDInterface {
           insertOrUpdate: 'update',
         })
         .then(res => {
-          res.id = orgId;
+          res._id = orgId;
           return res;
         });
     }
@@ -388,7 +388,7 @@ export class Collection implements CRUDInterface {
             insertOrUpdate: 'update',
           })
           .then(res => {
-            res.id = orgId;
+            res._id = orgId;
             return res;
           });
       }
@@ -398,7 +398,7 @@ export class Collection implements CRUDInterface {
   /**
    * Get a document
    *
-   * @param docId - id of a target document
+   * @param _id - _id of a target document
    *
    * @returns
    *  - JsonDoc if exists.
@@ -412,14 +412,14 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
    */
-  get (docId: string, backNumber?: number): Promise<JsonDoc | undefined> {
-    const _id = this._collectionPath + docId;
+  get (_id: string, backNumber?: number): Promise<JsonDoc | undefined> {
+    const id = this._collectionPath + _id;
 
     return this._gitDDB.get(_id, backNumber).then(doc => {
       if (doc === undefined) {
         return undefined;
       }
-      doc._id = docId;
+      doc._id = id;
       return doc;
     });
   }
@@ -427,7 +427,7 @@ export class Collection implements CRUDInterface {
   /**
    * This is an alias of delete()
    */
-  remove (id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  remove (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   /**
    * This is an alias of delete()
    */
@@ -445,7 +445,7 @@ export class Collection implements CRUDInterface {
   /**
    * Delete a document
    *
-   * @param id - id of a target document
+   * @param _id - _id of a target document
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -457,7 +457,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  delete (id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  delete (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   /**
    * Remove a document
    *
@@ -479,7 +479,7 @@ export class Collection implements CRUDInterface {
       const orgId = idOrDoc;
       const _id = this._collectionPath + orgId;
       return this._gitDDB.delete(_id, options).then(res => {
-        res.id = orgId;
+        res._id = orgId;
         return res;
       });
     }
@@ -490,7 +490,7 @@ export class Collection implements CRUDInterface {
         return this._gitDDB
           .delete(_id, options)
           .then(res => {
-            res.id = orgId;
+            res._id = orgId;
             return res;
           })
           .finally(() => {
@@ -525,9 +525,9 @@ export class Collection implements CRUDInterface {
     const docs = await this._gitDDB.allDocs(options);
     const reg = new RegExp('^' + this._collectionPath);
     docs.rows?.forEach(docWithMetadata => {
-      docWithMetadata.id = docWithMetadata.id.replace(reg, '');
+      docWithMetadata._id = docWithMetadata._id.replace(reg, '');
       if (docWithMetadata.doc) {
-        docWithMetadata.doc._id = docWithMetadata.id;
+        docWithMetadata.doc._id = docWithMetadata._id;
       }
     });
 

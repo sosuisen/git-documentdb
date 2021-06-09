@@ -311,10 +311,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
         (this._dbOpenResult as DatabaseInfoSuccess).isValidVersion
       ) {
         // Can synchronize
-        /**
-         * TODO:
-         * Handle combine_db_strategy in sync()
-         */
         await this.sync(remoteOptions);
       }
     }
@@ -437,7 +433,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     info.creator ??= '';
     info.version ??= '';
 
-    // Set db_id if not exists.
+    // Set dbId if not exists.
     if (info.dbId === '') {
       info.dbId = generateDatabaseId();
       // Do not use this.put() because it increments TaskQueue.statistics.put.
@@ -616,7 +612,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - The Git repository and the working directory are removed from the filesystem.
    *
-   * - local_dir (which is specified in constructor) is not removed.
+   * - localDir (which is specified in constructor) is not removed.
    *
    * - destroy() can remove a database that has not been created yet if a working directory exists.
    *
@@ -698,7 +694,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     
     * - A put operation is not skipped when no change occurred on a specified document.
     *
-    * @param id - _id property of a document
+    * @param _id - _id property of a document
     * @param document - This is a {@link JsonDoc}, but _id property is ignored.
     *
     * @throws {@link DatabaseClosingError}
@@ -712,7 +708,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     * 
        */
   put (
-    id: string,
+    _id: string,
     document: { [key: string]: any },
     options?: PutOptions
   ): Promise<PutResult>;
@@ -729,7 +725,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * Insert a document
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
    * - insert() does not check a write permission of your file system (unlike open()).
    *
@@ -753,13 +749,13 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * Insert a document
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
    * - insert() does not check a write permission of your file system (unlike open()).
    *
    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
    *
-   * @param id - _id property of a document
+   * @param _id - _id property of a document
    * @param document - This is a {@link JsonDoc}, but _id property is ignored.
    *
    * @throws {@link DatabaseClosingError}
@@ -774,7 +770,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    */
   insert (
-    id: string,
+    _id: string,
     document: { [key: string]: any },
     options?: PutOptions
   ): Promise<PutResult>;
@@ -832,7 +828,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - A update operation is not skipped when no change occurred on a specified document.
    *
-   * @param id - _id property of a document
+   * @param _id - _id property of a document
    * @param document - This is a {@link JsonDoc}, but _id property is ignored.
    *
    * @throws {@link DatabaseClosingError}
@@ -847,7 +843,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    */
   update (
-    id: string,
+    _id: string,
     document: { [key: string]: any },
     options?: PutOptions
   ): Promise<PutResult>;
@@ -870,7 +866,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Get a document
    *
-   * @param docId - id of a target document
+   * @param _id - _id of a target document
    * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned.
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
    *
@@ -888,15 +884,15 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CorruptedRepositoryError}
    * @throws {@link InvalidBackNumberError}
    */
-  get (docId: string, backNumber?: number): Promise<JsonDoc | undefined> {
+  get (_id: string, backNumber?: number): Promise<JsonDoc | undefined> {
     // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
-    return getImpl.call(this, docId, { backNumber, withMetadata: false });
+    return getImpl.call(this, _id, { backNumber, withMetadata: false });
   }
 
   /**
    * Get a document with metadata
    *
-   * @param docId - id of a target document
+   * @param _id - _id of a target document
    * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned.
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
    *
@@ -915,10 +911,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidBackNumberError}
    */
   getDocWithMetaData (
-    docId: string,
+    _id: string,
     backNumber?: number
   ): Promise<JsonDocWithMetadata | undefined> {
-    return (getImpl.call(this, docId, {
+    return (getImpl.call(this, _id, {
       backNumber,
       withMetadata: true,
     }) as unknown) as Promise<JsonDocWithMetadata>;
@@ -947,7 +943,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Get revision history of a file from new to old
    *
-   * @param - docId - id of a target document
+   * @param - _id - _id of a target document
    * @returns Array of fileSHA (NOTE: getDocHistory returns empty array if document does not exist in history.)
    *
    * @throws {@link DatabaseClosingError}
@@ -966,7 +962,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Remove a document
    *
-   * @param id - id of a target document
+   * @param _id - _id of a target document
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -977,7 +973,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidIdLengthError}
    *
    */
-  delete (id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  delete (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   /**
    * Remove a document
    *
@@ -1001,7 +997,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * This is an alias of remove()
    */
 
-  remove (id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  remove (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   /**
    * This is an alias of remove()
    */

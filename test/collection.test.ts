@@ -697,7 +697,7 @@ describe('<collection>', () => {
       await gitDDB.createDB();
       const users = gitDDB.collection('users');
       await expect(users.allDocs()).resolves.toMatchObject({
-        total_rows: 0,
+        totalRows: 0,
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
 
@@ -705,7 +705,7 @@ describe('<collection>', () => {
       await users.put({ _id: _id_a, name: name_a });
 
       await expect(users.allDocs({ includeDocs: false })).resolves.toMatchObject({
-        total_rows: 2,
+        totalRows: 2,
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
@@ -742,7 +742,7 @@ describe('<collection>', () => {
       await expect(
         users.allDocs({ prefix: 'pear/Japan', includeDocs: true })
       ).resolves.toMatchObject({
-        total_rows: 1,
+        totalRows: 1,
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {

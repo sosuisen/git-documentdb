@@ -144,7 +144,7 @@ describe('<crud/put> put(JsonDoc)', () => {
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching(id),
+      _id: expect.stringMatching(id),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -173,7 +173,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     const _id = '-.()[]_';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching(/^-.\(\)\[]_$/),
+      _id: expect.stringMatching(/^-.\(\)\[]_$/),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -242,7 +242,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     const obj1 = { func: () => {}, symbol: Symbol('foo'), undef: undefined };
     await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).resolves.toMatchObject({
       ok: true,
-      id: 'prof01',
+      _id: 'prof01',
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -260,7 +260,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
     expect(putResult).toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + _id + '$'),
+      _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -296,7 +296,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
     expect(putResult).toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + _id + '$'),
+      _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -360,7 +360,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
       expect(putResult).toMatchObject({
         ok: true,
-        id: expect.stringMatching('^' + _id + '$'),
+        _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -424,7 +424,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       validResults.push(i);
       gitDDB
         .put({ _id: i.toString(), name: i.toString() })
-        .then(res => results.push(Number.parseInt(res.id, 10)))
+        .then(res => results.push(Number.parseInt(res._id, 10)))
         .catch(() => {});
     }
     // close() can wait results of all Promises if timeout is set to large number.
@@ -462,7 +462,6 @@ describe('<crud/put> put(JsonDoc)', () => {
       'b': 'b',
       'c': 'c',
       '_id': 'id',
-      '_deleted': true,
       'array': ['item2', 'item1'],
       'z': { ZZ: 'ZZ', ZA: 'ZA' },
       'a': 'a',
@@ -486,7 +485,6 @@ describe('<crud/put> put(JsonDoc)', () => {
     "ZA": "ZA",
     "ZZ": "ZZ"
   },
-  "_deleted": true,
   "_id": "id"
 }`);
 
@@ -506,7 +504,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     // Update
     await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + _id + '$'),
+      _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -549,31 +547,31 @@ describe('<crud/put> put(JsonDoc)', () => {
     ]);
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
-      total_rows: 6,
+      totalRows: 6,
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
-          id: expect.stringMatching('^' + _id_a + '$'),
+          _id: expect.stringMatching('^' + _id_a + '$'),
           fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringMatching('^' + _id_b + '$'),
+          _id: expect.stringMatching('^' + _id_b + '$'),
           fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringMatching('^' + _id_c01 + '$'),
+          _id: expect.stringMatching('^' + _id_c01 + '$'),
           fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringMatching('^' + _id_c02 + '$'),
+          _id: expect.stringMatching('^' + _id_c02 + '$'),
           fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringMatching('^' + _id_d + '$'),
+          _id: expect.stringMatching('^' + _id_d + '$'),
           fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
-          id: expect.stringMatching('^' + _id_p + '$'),
+          _id: expect.stringMatching('^' + _id_p + '$'),
           fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         },
       ],
@@ -597,7 +595,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     await expect(Promise.all(workers)).resolves.toHaveLength(100);
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
-      total_rows: 100,
+      totalRows: 100,
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
@@ -620,7 +618,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     }
     // The last put() with await keyword is resolved after all preceding (queued) Promises
     await gitDDB.put({ _id: '99', name: '99' });
-    await expect(gitDDB.allDocs()).resolves.toMatchObject({ total_rows: 100 });
+    await expect(gitDDB.allDocs()).resolves.toMatchObject({ totalRows: 100 });
 
     await gitDDB.destroy();
   });
@@ -722,7 +720,7 @@ describe('<crud/put> put(id, document)', () => {
     const putResult = await gitDDB.put(_id, { name: 'Shirase' });
     expect(putResult).toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + _id + '$'),
+      _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -783,7 +781,7 @@ describe('<crud/put> put(id, document)', () => {
     const putResult = await gitDDB.put(_id, doc);
     expect(putResult).toMatchObject({
       ok: true,
-      id: expect.stringMatching('^' + _id + '$'),
+      _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -845,7 +843,7 @@ describe('<crud/put> put(id, document)', () => {
   });
 });
 
-describe('<crud/put> put_worker', () => {
+describe('<crud/put> putWorker', () => {
   it('throws UndefinedDBError when Undefined DB', async () => {
     const dbName = monoId();
 
@@ -855,7 +853,7 @@ describe('<crud/put> put_worker', () => {
     });
     await gitDDB.createDB();
     // @ts-ignore
-    await expect(put_worker(undefined)).rejects.toThrowError(UndefinedDBError);
+    await expect(putWorker(undefined)).rejects.toThrowError(UndefinedDBError);
     await gitDDB.destroy();
   });
 
@@ -877,7 +875,7 @@ describe('<crud/put> put_worker', () => {
     await gitDDB.destroy();
   });
 
-  it('Concurrent calls of _put_worker() succeeds.', async () => {
+  it('Concurrent calls of putWorker() succeeds.', async () => {
     const _id_a = 'apple';
     const name_a = 'Apple woman';
     const _id_b = 'banana';

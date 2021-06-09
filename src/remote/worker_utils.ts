@@ -81,9 +81,9 @@ export async function getChanges (
         return;
       }
 
-      let id = filepath;
-      if (id.endsWith(JSON_EXT)) {
-        id = id.replace(new RegExp(JSON_EXT + '$'), '');
+      let _id = filepath;
+      if (_id.endsWith(JSON_EXT)) {
+        _id = _id.replace(new RegExp(JSON_EXT + '$'), '');
       }
 
       const aType = a === null ? undefined : await a.type();
@@ -101,7 +101,7 @@ export async function getChanges (
         change = {
           operation: 'delete',
           old: {
-            id,
+            _id,
             fileSha: aOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, aOid),
@@ -112,7 +112,7 @@ export async function getChanges (
         change = {
           operation: 'insert',
           new: {
-            id,
+            _id,
             fileSha: bOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, bOid),
@@ -123,13 +123,13 @@ export async function getChanges (
         change = {
           operation: 'update',
           old: {
-            id,
+            _id,
             fileSha: aOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, aOid),
           },
           new: {
-            id,
+            _id,
             fileSha: bOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, bOid),

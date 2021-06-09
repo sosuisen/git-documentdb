@@ -61,7 +61,7 @@ describe('<crud/delete>', () => {
       const deleteResult = await gitDDB.delete(_id);
       expect(deleteResult).toMatchObject({
         ok: true,
-        id: expect.stringMatching('^' + _id + '$'),
+        _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -93,7 +93,7 @@ describe('<crud/delete>', () => {
       // Delete
       await expect(gitDDB.delete(doc)).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^' + _id + '$'),
+        _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -117,7 +117,7 @@ describe('<crud/delete>', () => {
       const deleteResult = await gitDDB.delete(_id);
       expect(deleteResult).toMatchObject({
         ok: true,
-        id: expect.stringMatching('^' + _id + '$'),
+        _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -219,7 +219,7 @@ describe('<crud/delete>', () => {
       const deleteResult = await gitDDB.remove(_id1);
       expect(deleteResult).toMatchObject({
         ok: true,
-        id: expect.stringMatching('^' + _id1 + '$'),
+        _id: expect.stringMatching('^' + _id1 + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -243,9 +243,9 @@ describe('<crud/delete>', () => {
       await expect(gitDDB.get(_id1)).resolves.toBeUndefined();
       await expect(gitDDB.remove(_id1)).rejects.toThrowError(DocumentNotFoundError);
       // @ts-ignore
-      await expect(delete_worker(undefined)).rejects.toThrowError(UndefinedDBError);
+      await expect(deleteWorker(undefined)).rejects.toThrowError(UndefinedDBError);
       // @ts-ignore
-      await expect(delete_worker(gitDDB, undefined)).rejects.toThrowError(
+      await expect(deleteWorker(gitDDB, undefined)).rejects.toThrowError(
         DocumentNotFoundError
       );
 
@@ -330,7 +330,7 @@ describe('<crud/delete>', () => {
       // Delete
       await expect(gitDDB.remove(doc)).resolves.toMatchObject({
         ok: true,
-        id: expect.stringMatching('^' + _id + '$'),
+        _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -339,7 +339,7 @@ describe('<crud/delete>', () => {
     });
   });
 
-  describe('delete_worker', () => {
+  describe('deleteWorker', () => {
     const _id_a = 'apple';
     const name_a = 'Apple woman';
     const _id_b = 'banana';
@@ -380,11 +380,11 @@ describe('<crud/delete>', () => {
       ]);
 
       await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
-        total_rows: 1,
+        totalRows: 1,
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
-            id: expect.stringMatching('^' + _id_p + '$'),
+            _id: expect.stringMatching('^' + _id_p + '$'),
             fileSha: expect.stringMatching(/^[\da-z]{40}$/),
           },
         ],

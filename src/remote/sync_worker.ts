@@ -399,7 +399,7 @@ export async function syncWorker (
   await resolvedIndex.writeTree();
 
   acceptedConflicts.sort((a, b) => {
-    return a.target.id === b.target.id ? 0 : a.target.id > b.target.id ? 1 : -1;
+    return a.target._id === b.target._id ? 0 : a.target._id > b.target._id ? 1 : -1;
   });
   // console.log(acceptedConflicts);
 
@@ -408,8 +408,8 @@ export async function syncWorker (
     // e.g.) put-ours: myID
     const fileName =
       conflict.target.type === undefined || conflict.target.type === 'json'
-        ? conflict.target.id + JSON_EXT
-        : conflict.target.id;
+        ? conflict.target._id + JSON_EXT
+        : conflict.target._id;
     commitMessage += `${fileName}(${conflict.operation},${conflict.target.fileSha.substr(
       0,
       SHORT_SHA_LENGTH

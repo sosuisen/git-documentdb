@@ -78,10 +78,10 @@ export async function getAllMetadata (repos: nodegit.Repository) {
         else {
           const entryPath = entry!.path();
           const ext = path.extname(entryPath);
-          const id = entryPath.replace(new RegExp(ext + '$'), '');
+          const _id = entryPath.replace(new RegExp(ext + '$'), '');
 
           const docMetadata: DocMetadata = {
-            id,
+            _id,
             fileSha: entry!.id().tostrS(),
             type: ext === '.json' ? 'json' : 'raw',
           };

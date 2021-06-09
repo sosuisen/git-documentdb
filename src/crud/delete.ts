@@ -180,7 +180,7 @@ export async function deleteWorker (
 
   return {
     ok: true,
-    id: _id,
+    _id,
     fileSha,
     commitSha,
   };

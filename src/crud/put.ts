@@ -225,7 +225,7 @@ export async function putWorker (
 
   return {
     ok: true,
-    id: name,
+    _id: name,
     fileSha,
     commitSha,
   };

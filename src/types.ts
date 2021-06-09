@@ -12,22 +12,22 @@ import { TLogLevelName } from 'tslog';
  * Database Option
  *
  * @remarks
- * local_dir and db_name are OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
+ * localDir and dbName are OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
  *
  * ```
- * * local_dir: Local directory path that stores repositories of GitDocumentDB.
+ * * localDir: Local directory path that stores repositories of GitDocumentDB.
  *   - Default is './gitddb'.
  *   - A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0.
  *   - A colon : is generally not allowed, but a drive letter followed by a colon is allowed. e.g.) C: D:
  *   - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
  *   - A trailing slash / could be omitted.
  *
- * * db_name: Name of a git repository
+ * * dbName: Name of a git repository
  *   - dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \ | ? * \0.
  *   - dbName cannot end with a period or a white space.
  *   - dbName does not allow '.' and '..'.
  *
- * * log_level: Default is 'info'.
+ * * logLevel: Default is 'info'.
  * ```
  */
 export type DatabaseOption = {
@@ -67,7 +67,7 @@ export type DatabaseOpenResult = (DatabaseInfo & DatabaseInfoSuccess) | Database
  * Database info
  *
  * @remarks
- * - db_id: ULID of the database. (See https://github.com/ulid/spec for ULID)
+ * - dbId: ULID of the database. (See https://github.com/ulid/spec for ULID)
  *
  * - creator: Creator of the database. Default is 'GitDocumentDB'.
  *
@@ -85,13 +85,13 @@ export type DatabaseInfo = {
  * @remarks
  * - ok: Boolean which shows if a database is successfully opened.
  *
- * - is_new: Whether a repository is newly created or existing.
+ * - isNew: Whether a repository is newly created or existing.
  *
- * - is_clone: Whether a repository is cloned from a remote repository or not.
+ * - isClone: Whether a repository is cloned from a remote repository or not.
  *
- * - is_created_by_gitddb: Whether a repository is created by GitDocumentDB or other means.
+ * - isCreatedByGitddb: Whether a repository is created by GitDocumentDB or other means.
  *
- * - is_valid_version: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
+ * - isValidVersion: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
  *   The version is described in .git/description.
  *
  */
@@ -176,7 +176,7 @@ export type CollectionPath = string;
  * Options for put()
  *
  * @remarks
- * - commit_message: Internal commit message. default is 'put: path/to/the/file'
+ * - commitMessage: Internal commit message. default is 'put: path/to/the/file'
  *
  * - insertOrUpdate: Change behavior of put(). Don't use it. Use insert() or update() instead.
  */
@@ -191,7 +191,7 @@ export type PutOptions = {
  * Options for delete()
  *
  * @remarks
- * - commit_message: internal commit message. default is 'delete: path/to/the/file'
+ * - commitMessage: internal commit message. default is 'delete: path/to/the/file'
  */
 export type DeleteOptions = {
   commitMessage?: string;
@@ -203,7 +203,7 @@ export type DeleteOptions = {
  * Options for allDocs()
  *
  * @remarks
- * - include_docs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'file_sha' properties. Default is true.
+ * - includeDocs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'fileSha' properties. Default is true.
  *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
@@ -225,16 +225,16 @@ export type AllDocsOptions = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
+ * - _id: _id of a document.
  *
- * - file_sha: SHA-1 hash of Git object (40 characters)
+ * - fileSha: SHA-1 hash of Git object (40 characters)
  *
- * - commit_sha: SHA-1 hash of Git commit (40 characters)
+ * - commitSha: SHA-1 hash of Git commit (40 characters)
  *
  */
 export type PutResult = {
   ok: true;
-  id: string;
+  _id: string;
   fileSha: string;
   commitSha: string;
 };
@@ -245,16 +245,16 @@ export type PutResult = {
  * @remarks
  * - ok: ok shows always true. Exception is thrown when error occurs.
  *
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
+ * - _id: _id of a document.
  *
- * - file_sha: SHA-1 hash of Git blob (40 characters)
+ * - fileSha: SHA-1 hash of Git blob (40 characters)
  *
- * - commit_sha: SHA-1 hash of Git commit (40 characters)
+ * - commitSha: SHA-1 hash of Git commit (40 characters)
  *
  */
 export type DeleteResult = {
   ok: true;
-  id: string;
+  _id: string;
   fileSha: string;
   commitSha: string;
 };
@@ -263,11 +263,11 @@ export type DeleteResult = {
  * Result of allDocs()
  *
  * @remarks
- * - total_rows: number of documents
+ * - totalRows: number of documents
  *
- * - commit_sha: SHA-1 hash of the last Git commit (40 characters). 'commit_sha' is undefined if total_rows equals 0.
+ * - commitSha: SHA-1 hash of the last Git commit (40 characters). 'commitSha' is undefined if totalRows equals 0.
  *
- * - rows: Array of documents. 'rows' is undefined if total_rows equals 0.
+ * - rows: Array of documents. 'rows' is undefined if totalRows equals 0.
  *
  */
 export type AllDocsResult = {
@@ -280,12 +280,7 @@ export type AllDocsResult = {
  * Type for a JSON document with metadata
  *
  * @remarks
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
- *
- * - file_sha: SHA-1 hash of Git object (40 characters)
- *
- * - doc: JsonDoc which has a '_id' value. The value of 'id' and 'doc._id' are the same.
- *
+ * - doc: JsonDoc which has a '_id' value. The value of '_id' and 'doc._id' are the same.
  */
 export type JsonDocWithMetadata = DocMetadata & {
   doc?: JsonDoc;
@@ -295,14 +290,14 @@ export type JsonDocWithMetadata = DocMetadata & {
  * Type for a document metadata
  *
  * @remarks
- * - id: id of a document. (You might be confused. Underscored '_id' is used only in a {@link JsonDoc} type. In other cases, 'id' is used.)
+ * - _id: _id of a document.
  *
- * - file_sha: SHA-1 hash of Git object (40 characters)
+ * - fileSha: SHA-1 hash of Git object (40 characters)
  *
  * - type: Default is 'json'.
  */
 export type DocMetadata = {
-  id: string;
+  _id: string;
   fileSha: string;
   type?: 'json' | 'raw';
 };
@@ -338,7 +333,7 @@ export type SyncDirection = 'pull' | 'push' | 'both';
  * Connection settings for GitHub
  *
  * @remarks
- * - personal_access_token: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+ * - personalAccessToken: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
  *
  * - private: Whether automatically created repository is private or not. Default is true.
  */
@@ -447,7 +442,7 @@ export type AcceptedConflict = {
  *
  * - remoteUrl: Connection destination
  *
- * - sync_direction: Default is 'both'.
+ * - syncDirection: Default is 'both'.
  *
  * - connection: Authentication and other settings on remote site
  *
@@ -459,17 +454,17 @@ export type AcceptedConflict = {
  *
  * - retry: Number of network retries
  *
- * - retry_interval: Retry interval  (milliseconds)
+ * - retryInterval: Retry interval  (milliseconds)
  *
  * [merge]
  *
- * - conflict_resolution_strategy: Default is 'ours'.
+ * - conflictResolutionStrategy: Default is 'ours'.
  *
- * - combine_db_strategy:
+ * - combineDbStrategy:
  *
  * [result]
  *
- * - include_commits: (Beta version: It will leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
+ * - includeCommits: Whether SyncResult includes 'commits' property or not. Default is false.
  */
 export type RemoteOptions = {
   /* network */
@@ -592,7 +587,7 @@ export type NormalizedCommit = {
 };
 
 /**
- * Result from sync_worker()
+ * Result from syncWorker()
  *
  * @remarks
  * - commits are sorted from old to new.

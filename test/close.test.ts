@@ -58,7 +58,7 @@ describe('<close> GitDocumentDB#close()', () => {
     await gitDDB.open();
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
-      total_rows: 50,
+      totalRows: 50,
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
@@ -82,9 +82,9 @@ describe('<close> GitDocumentDB#close()', () => {
     );
 
     await gitDDB.open();
-    // total_rows is less than 100
+    // totalRows is less than 100
     await expect(gitDDB.allDocs({ recursive: true })).resolves.not.toMatchObject({
-      total_rows: 100,
+      totalRows: 100,
     });
 
     await gitDDB.destroy();
@@ -162,9 +162,9 @@ describe('<close> GitDocumentDB#close()', () => {
 
     await gitDDB.open();
 
-    // total_rows is less than 100
+    // totalRows is less than 100
     await expect(gitDDB.allDocs({ recursive: true })).resolves.not.toMatchObject({
-      total_rows: 100,
+      totalRows: 100,
     });
 
     await gitDDB.destroy();

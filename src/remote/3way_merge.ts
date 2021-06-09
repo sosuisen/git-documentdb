@@ -191,7 +191,7 @@ export async function threeWayMerge (
         const fileSha = entry.id.tostrS();
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha,
           },
           strategy: strategy,
@@ -217,7 +217,7 @@ export async function threeWayMerge (
 
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha,
           },
           strategy: strategy,
@@ -249,7 +249,7 @@ export async function threeWayMerge (
         // console.log(' #case 8 - Conflict. Accept ours (delete): ' + path);
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha: base.oid,
           },
           strategy: strategy,
@@ -262,7 +262,7 @@ export async function threeWayMerge (
         // console.log(' #case 9 - Conflict. Accept theirs (update): ' + path);
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha: theirs.oid,
           },
           strategy: strategy,
@@ -298,7 +298,7 @@ export async function threeWayMerge (
         // console.log(' #case 11 - Conflict. Accept ours (update): ' + path);
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha: ours.oid,
           },
           strategy: strategy,
@@ -316,7 +316,7 @@ export async function threeWayMerge (
         // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + path);
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha: base.oid,
           },
           strategy: strategy,
@@ -375,7 +375,7 @@ export async function threeWayMerge (
 
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha,
           },
           strategy: strategy,
@@ -402,7 +402,7 @@ export async function threeWayMerge (
 
         acceptedConflicts.push({
           target: {
-            id: docId,
+            _id: docId,
             fileSha,
           },
           strategy: strategy,
