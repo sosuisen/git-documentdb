@@ -59,9 +59,6 @@ export interface CRUDInterface {
   delete(_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 
-  remove(id: string, options?: DeleteOptions): Promise<DeleteResult>;
-  remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
-
   allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
 }
 

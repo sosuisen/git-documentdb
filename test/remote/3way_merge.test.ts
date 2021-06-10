@@ -359,19 +359,19 @@ maybe('<remote/3way_merge>', () => {
     await dbB.open();
     const syncB = await dbB.sync(syncA.options());
 
-    // A puts, removes, and pushes
+    // A puts, deletes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
 
-    const deleteResultA2 = await dbA.remove(jsonA2);
+    const deleteResultA2 = await dbA.delete(jsonA2);
     await syncA.tryPush();
 
     // B puts the same file
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
-    // B remove the same file
-    const deleteResultB2 = await dbB.remove(jsonA2);
+    // B deletes the same file
+    const deleteResultB2 = await dbB.delete(jsonA2);
 
     // It will occur conflict on id 1.json.
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
@@ -456,8 +456,8 @@ maybe('<remote/3way_merge>', () => {
     const jsonB1 = { _id: '1', name: 'fromB' };
     const putResultB1 = await dbB.put(jsonB1);
 
-    // B remove the same file
-    const deleteResultB2 = await dbB.remove(jsonA2);
+    // B deletes the same file
+    const deleteResultB2 = await dbB.delete(jsonA2);
 
     // It will occur conflict on id 1.json.
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
@@ -541,8 +541,8 @@ maybe('<remote/3way_merge>', () => {
     const putResultA1dash = await dbA.put(jsonA1dash);
     await syncA.tryPush();
 
-    // B removes and syncs
-    const deleteResultB1 = await dbB.remove(jsonA1);
+    // B deletes and syncs
+    const deleteResultB1 = await dbB.delete(jsonA1);
 
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
@@ -622,8 +622,8 @@ maybe('<remote/3way_merge>', () => {
     const putResultA1dash = await dbA.put(jsonA1dash);
     await syncA.tryPush();
 
-    // B removes and syncs
-    const deleteResultB1 = await dbB.remove(jsonA1);
+    // B deletes and syncs
+    const deleteResultB1 = await dbB.delete(jsonA1);
 
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
@@ -695,10 +695,10 @@ maybe('<remote/3way_merge>', () => {
     await dbB.open();
     const syncB = await dbB.sync(syncA.options());
 
-    // A puts, removes, and pushes
+    // A puts, deletes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    const deleteResultA2 = await dbA.remove(jsonA2);
+    const deleteResultA2 = await dbA.delete(jsonA2);
     await syncA.tryPush();
 
     // B puts the same file
@@ -781,8 +781,8 @@ maybe('<remote/3way_merge>', () => {
     await dbB.open();
     const syncB = await dbB.sync(syncA.options());
 
-    // A removes the old file and puts a new file
-    const deleteResultA1 = await dbA.remove(jsonA1);
+    // A deletes the old file and puts a new file
+    const deleteResultA1 = await dbA.delete(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
     await syncA.tryPush();
@@ -866,8 +866,8 @@ maybe('<remote/3way_merge>', () => {
       conflictResolutionStrategy: 'theirs',
     });
 
-    // A removes the old file and puts a new file
-    const deleteResultA1 = await dbA.remove(jsonA1);
+    // A deletes the old file and puts a new file
+    const deleteResultA1 = await dbA.delete(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
     await syncA.tryPush();
@@ -1394,7 +1394,7 @@ maybe('<remote/3way_merge>', () => {
     const jsonA1dash = { _id: '1', name: 'updated' };
     const putResultA1dash = await dbA.put(jsonA1dash);
 
-    const deleteResultA2 = await dbA.remove(jsonA2);
+    const deleteResultA2 = await dbA.delete(jsonA2);
 
     await syncA.tryPush();
 
@@ -1405,7 +1405,7 @@ maybe('<remote/3way_merge>', () => {
     const jsonB3 = { _id: '3', name: 'fromB' };
     const putResultB3 = await dbB.put(jsonB3);
 
-    const deleteResultB1 = await dbB.remove(jsonA1);
+    const deleteResultB1 = await dbB.delete(jsonA1);
 
     const jsonB2 = { _id: '2', name: 'fromB' };
     const putResultB2 = await dbB.put(jsonB2);

@@ -507,8 +507,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const putResultA2 = await dbA.put(jsonA2);
       await syncA.tryPush();
 
-      // B removes and syncs
-      const deleteResultB1 = await dbB.remove(jsonA1);
+      // B deletes and syncs
+      const deleteResultB1 = await dbB.delete(jsonA1);
 
       const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');
@@ -564,8 +564,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await dbB.open();
       const syncB = await dbB.sync(syncA.options());
 
-      // A removes and pushes
-      const deleteResultA1 = await dbA.remove(jsonA1);
+      // A deletes and pushes
+      const deleteResultA1 = await dbA.delete(jsonA1);
       await syncA.tryPush();
 
       // B put another file and syncs
@@ -624,12 +624,12 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await dbB.open();
       const syncB = await dbB.sync(syncA.options());
 
-      // A removes and pushes
-      const deleteResultA1 = await dbA.remove(jsonA1);
+      // A deletes and pushes
+      const deleteResultA1 = await dbA.delete(jsonA1);
       await syncA.tryPush();
 
-      // B remove the same file and syncs
-      const deleteResultB1 = await dbB.remove(jsonA1);
+      // B deletes the same file and syncs
+      const deleteResultB1 = await dbB.delete(jsonA1);
 
       const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
       expect(syncResult1.action).toBe('merge and push');

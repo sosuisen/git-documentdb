@@ -905,19 +905,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * This is an alias of remove()
-   */
-
-  remove (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
-  /**
-   * This is an alias of remove()
-   */
-  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
-  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
-    return deleteImpl.call(this, idOrDoc, options);
-  }
-
-  /**
    * Get all the documents
    *
    * @remarks

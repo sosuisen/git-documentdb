@@ -300,7 +300,7 @@ maybe('intg: <3way_merge_ot>', () => {
     await syncA.tryPush();
 
     // B removes and syncs
-    const deleteResultB1 = await dbB.remove(jsonA1);
+    const deleteResultB1 = await dbB.delete(jsonA1);
 
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
     expect(syncResult1.action).toBe('resolve conflicts and push');
@@ -375,7 +375,7 @@ maybe('intg: <3way_merge_ot>', () => {
     const syncB = await dbB.sync(syncA.options());
 
     // A removes the old file and puts a new file
-    const deleteResultA1 = await dbA.remove(jsonA1);
+    const deleteResultA1 = await dbA.delete(jsonA1);
     const jsonA2 = { _id: '2', name: 'fromA' };
     const putResultA2 = await dbA.put(jsonA2);
     await syncA.tryPush();

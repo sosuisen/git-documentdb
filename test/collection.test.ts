@@ -522,7 +522,7 @@ describe('<collection>', () => {
     });
   });
 
-  describe('remove()', () => {
+  describe('delete()', () => {
     it('deletes a document by id.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -535,7 +535,7 @@ describe('<collection>', () => {
       const users = gitDDB.collection('users');
       const doc = { _id: _id, name: 'shirase' };
       await users.put(doc);
-      await expect(users.remove(_id)).resolves.toMatchObject({
+      await expect(users.delete(_id)).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^test/prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -557,7 +557,7 @@ describe('<collection>', () => {
       await users.put({ _id: _id, name: 'shirase' });
 
       // Delete
-      await users.remove(_id, { commitMessage: 'my commit message' });
+      await users.delete(_id, { commitMessage: 'my commit message' });
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -580,7 +580,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const users = gitDDB.collection('users');
       // @ts-ignore
-      await expect(users.remove()).rejects.toThrowError(UndefinedDocumentIdError);
+      await expect(users.delete()).rejects.toThrowError(UndefinedDocumentIdError);
 
       await gitDDB.destroy();
     });
@@ -599,7 +599,7 @@ describe('<collection>', () => {
       await users.put(doc);
 
       // Delete
-      await expect(users.remove(doc)).resolves.toMatchObject({
+      await expect(users.delete(doc)).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^test/prof01$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
