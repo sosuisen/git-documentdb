@@ -72,7 +72,7 @@ describe('<crud/delete>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})\n`);
       }
 
       await gitDDB.destroy();
@@ -128,7 +128,7 @@ describe('<crud/delete>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})`);
+        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})\n`);
       }
 
       await gitDDB.destroy();
@@ -198,36 +198,6 @@ describe('<crud/delete>', () => {
           },
         ],
       });
-
-      await gitDDB.destroy();
-    });
-
-    it('called concurrently throws an error.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-
-      await Promise.all([
-        gitDDB.put({ _id: _id_a, name: name_a }),
-        gitDDB.put({ _id: _id_b, name: name_b }),
-        gitDDB.put({ _id: _id_c01, name: name_c01 }),
-        gitDDB.put({ _id: _id_c02, name: name_c02 }),
-        gitDDB.put({ _id: _id_d, name: name_d }),
-        gitDDB.put({ _id: _id_p, name: name_p }),
-      ]);
-
-      await expect(
-        Promise.all([
-          deleteWorker(gitDDB, _id_a, JSON_EXT, 'message'),
-          deleteWorker(gitDDB, _id_b, JSON_EXT, 'message'),
-          deleteWorker(gitDDB, _id_c01, JSON_EXT, 'message'),
-          deleteWorker(gitDDB, _id_c02, JSON_EXT, 'message'),
-          deleteWorker(gitDDB, _id_d, JSON_EXT, 'message'),
-        ])
-      ).rejects.toThrowError();
 
       await gitDDB.destroy();
     });

@@ -8,7 +8,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
 import { IDocumentDB } from '../types_gitddb';
 import {
@@ -116,48 +116,51 @@ export async function deleteWorker (
     return Promise.reject(new DocumentNotFoundError());
   }
 
-  let fileSha, commitSha: string;
+  let commitSha: string;
   const filename = _id + extension;
   const filePath = path.resolve(gitDDB.workingDir(), filename);
 
   let index;
-  try {
-    index = await currentRepository.refreshIndex();
-    const entry = index.getByPath(filename, 0); // https://www.nodegit.org/api/index/#STAGE
-    if (entry === undefined) {
-      return Promise.reject(new DocumentNotFoundError());
-    }
-    fileSha = entry.id.tostrS();
 
-    await index.removeByPath(filename); // stage
-    await index.write(); // flush changes to index
-  } catch (err) {
-    return Promise.reject(new CannotDeleteDataError(err.message));
+  const headCommit = await git
+    .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' })
+    .catch(() => undefined);
+  if (headCommit === undefined) {
+    return Promise.reject(new DocumentNotFoundError());
   }
+  const { oid } = await git
+    .readBlob({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: headCommit,
+      filepath: filename,
+    })
+    .catch(() => {
+      return Promise.reject(new DocumentNotFoundError());
+    });
+  const fileSha = oid;
+  await git.remove({ fs, dir: gitDDB.workingDir(), filepath: filename });
+
+  commitMessage = commitMessage.replace(
+    /<%file_sha%>/,
+    fileSha.substr(0, SHORT_SHA_LENGTH)
+  );
 
   try {
-    commitMessage = commitMessage.replace(
-      /<%file_sha%>/,
-      fileSha.substr(0, SHORT_SHA_LENGTH)
-    );
-
-    const changes = await index.writeTree(); // get reference to a set of changes
-
-    const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
-    const committer = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
-
-    const head = await nodegit.Reference.nameToId(currentRepository, 'HEAD');
-    const parent = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    const commit = await currentRepository.createCommit(
-      'HEAD',
-      author,
-      committer,
-      commitMessage,
-      changes,
-      [parent]
-    );
-
-    commitSha = commit.tostrS();
+    // Default ref is HEAD
+    commitSha = await git.commit({
+      fs,
+      dir: gitDDB.workingDir(),
+      author: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      committer: {
+        name: gitDDB.gitAuthor.name,
+        email: gitDDB.gitAuthor.email,
+      },
+      message: commitMessage,
+    });
 
     await fs.remove(filePath);
 
