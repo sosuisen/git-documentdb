@@ -143,7 +143,6 @@ describe('<crud/put> put(JsonDoc)', () => {
     }
 
     await expect(gitDDB.put({ _id: id, name: 'shirase' })).resolves.toMatchObject({
-      ok: true,
       _id: expect.stringMatching(id),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -172,7 +171,6 @@ describe('<crud/put> put(JsonDoc)', () => {
     await gitDDB.open();
     const _id = '-.()[]_';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
-      ok: true,
       _id: expect.stringMatching(/^-.\(\)\[]_$/),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -241,7 +239,6 @@ describe('<crud/put> put(JsonDoc)', () => {
     // JSON.stringify() throws error if an object has a bigint value
     const obj1 = { func: () => {}, symbol: Symbol('foo'), undef: undefined };
     await expect(gitDDB.put({ _id: 'prof01', obj: obj1 })).resolves.toMatchObject({
-      ok: true,
       _id: 'prof01',
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -258,13 +255,13 @@ describe('<crud/put> put(JsonDoc)', () => {
     await gitDDB.open();
     const _id = '春はあけぼの';
     const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
+    const short_sha = putResult.fileSha.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toMatchObject({
-      ok: true,
       _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage: `insert: ${_id}${JSON_EXT}(${short_sha})`,
     });
-    const short_sha = putResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
     const repository = gitDDB.repository();
     if (repository !== undefined) {
@@ -295,7 +292,6 @@ describe('<crud/put> put(JsonDoc)', () => {
     // Check put operation
     const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
     expect(putResult).toMatchObject({
-      ok: true,
       _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -315,6 +311,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
 
     const short_sha = putResult.fileSha.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult.commitMessage).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})`);
 
     const repository = gitDDB.repository();
     if (repository !== undefined) {
@@ -359,7 +356,6 @@ describe('<crud/put> put(JsonDoc)', () => {
       // Check put operation
       const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
       expect(putResult).toMatchObject({
-        ok: true,
         _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -379,6 +375,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
 
       const short_sha = putResult.fileSha.substr(0, SHORT_SHA_LENGTH);
+      expect(putResult.commitMessage).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})`);
 
       const repository = gitDDB.repository();
       const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
@@ -443,7 +440,11 @@ describe('<crud/put> put(JsonDoc)', () => {
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
-    await gitDDB.put({ _id: _id, name: 'Shirase' }, { commitMessage: 'my commit message' });
+    const putResult = await gitDDB.put(
+      { _id: _id, name: 'Shirase' },
+      { commitMessage: 'my commit message' }
+    );
+    expect(putResult.commitMessage).toEqual(`my commit message`);
     const repository = gitDDB.repository();
     const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
     const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
@@ -503,7 +504,6 @@ describe('<crud/put> put(JsonDoc)', () => {
     await gitDDB.put({ _id: _id, name: 'Shirase' });
     // Update
     await expect(gitDDB.put({ _id: _id, name: 'mari' })).resolves.toMatchObject({
-      ok: true,
       _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -719,7 +719,6 @@ describe('<crud/put> put(id, document)', () => {
     const _id = 'prof01';
     const putResult = await gitDDB.put(_id, { name: 'Shirase' });
     expect(putResult).toMatchObject({
-      ok: true,
       _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
@@ -739,6 +738,7 @@ describe('<crud/put> put(id, document)', () => {
     const putResult = await gitDDB.put(_id, { name: 'Shirase' });
 
     const short_sha = putResult.fileSha.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult.commitMessage).toEqual(`insert: ${_id}${JSON_EXT}(${short_sha})`);
 
     const repository = gitDDB.repository();
     const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
@@ -779,13 +779,13 @@ describe('<crud/put> put(id, document)', () => {
     const _id = 'id-in-the-first-argument';
     const doc = { _id: 'id-in-doc', name: 'Shirase' };
     const putResult = await gitDDB.put(_id, doc);
+    const short_sha = putResult.fileSha.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toMatchObject({
-      ok: true,
       _id: expect.stringMatching('^' + _id + '$'),
       fileSha: expect.stringMatching(/^[\da-z]{40}$/),
       commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage: `insert: ${_id}${JSON_EXT}(${short_sha})`,
     });
-    const short_sha = putResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
     expect(doc._id).toBe('id-in-doc');
 
@@ -814,7 +814,14 @@ describe('<crud/put> put(id, document)', () => {
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
-    await gitDDB.put(_id, { name: 'Shirase' }, { commitMessage: 'my commit message' });
+    const putResult = await gitDDB.put(
+      _id,
+      { name: 'Shirase' },
+      { commitMessage: 'my commit message' }
+    );
+
+    expect(putResult.commitMessage).toEqual(`my commit message`);
+
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
@@ -832,7 +839,9 @@ describe('<crud/put> put(id, document)', () => {
     });
     await gitDDB.open();
     const _id = 'dir01/prof01';
-    await gitDDB.put(_id, { name: 'Shirase' }, { commitMessage: '' });
+    const putResult = await gitDDB.put(_id, { name: 'Shirase' }, { commitMessage: '' });
+    expect(putResult.commitMessage).toEqual('');
+
     const repository = gitDDB.repository();
     if (repository !== undefined) {
       const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD

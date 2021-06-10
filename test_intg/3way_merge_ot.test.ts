@@ -61,7 +61,7 @@ afterAll(() => {
 // e.g.) https://github.com/foo/
 //  - GITDDB_personalAccessToken: A personal access token of your GitHub account
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -69,7 +69,7 @@ maybe('intg: <3way_merge_ot>', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -161,7 +161,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: mergedDoc!.fileSha,
         },
         strategy: 'ours-diff',
@@ -249,7 +249,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: mergedDoc!.fileSha,
         },
         strategy: 'theirs-diff',
@@ -325,7 +325,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: deleteResultB1.fileSha,
         },
         strategy: 'ours-diff',
@@ -407,7 +407,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: putResultB1.fileSha,
         },
         strategy: 'ours-diff',
@@ -525,7 +525,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts).toEqual([
       {
         target: {
-          id: '1',
+          _id: '1',
           fileSha: mergedDoc!.fileSha,
         },
         strategy: 'theirs-diff',

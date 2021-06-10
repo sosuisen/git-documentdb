@@ -149,6 +149,7 @@ describe('<crud/history> getDocHistory()', () => {
     await expect(gitDDB.getDocHistory(undefined)).rejects.toThrowError(
       UndefinedDocumentIdError
     );
+    await gitDDB.destroy();
   });
 
   it('throws DocumentNotFoundError if db does not have commits.', async () => {

@@ -70,7 +70,7 @@ afterAll(() => {
 // GITDDB_GITHUB_USER_URL: URL of your GitHub account
 // e.g.) https://github.com/foo/
 const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_personalAccessToken
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
     ? describe
     : describe.skip;
 
@@ -79,7 +79,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_personalAccessToken!;
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
   beforeAll(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -295,7 +295,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           conflicts: [
             {
               target: {
-                id: jsonB1._id,
+                _id: jsonB1._id,
                 fileSha: putResultB1.fileSha,
               },
               operation: 'insert-merge',

@@ -15,11 +15,10 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
-import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../../src/const';
+import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
 import {
-  CannotConnectError,
   HttpProtocolRequiredError,
   IntervalTooSmallError,
   InvalidRepositoryURLError,
@@ -434,29 +433,6 @@ maybe('<remote/sync> syncImpl()', () => {
       })
     ).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
-  });
-
-  it.only('throws CannotConnectError and retries in cloning', async () => {
-    const remoteURL = 'https://xyz.invalid/xyz/https_repos';
-    const options: RemoteOptions = {
-      remoteUrl: remoteURL,
-      connection: { type: 'github', personalAccessToken: token },
-    };
-    const dbNameA = serialId();
-    const dbA: GitDocumentDB = new GitDocumentDB({
-      dbName: dbNameA,
-      localDir: localDir,
-    });
-    await dbA.open();
-    await expect(dbA.sync(options)).rejects.toThrowError(RemoteRepositoryConnectError);
-    await dbA.destroy();
-
-    const retry = await dbA.sync(options).catch((err: CannotConnectError) => {
-      return err.retry;
-    });
-    expect(retry).toBe(NETWORK_RETRY);
-
-    await dbA.destroy();
   });
 
   it('creates a remote repository on GitHub by using personal access token', async () => {

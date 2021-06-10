@@ -59,13 +59,13 @@ describe('<crud/delete>', () => {
 
       // Delete
       const deleteResult = await gitDDB.delete(_id);
+      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
       expect(deleteResult).toMatchObject({
-        ok: true,
         _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitMessage: `delete: ${_id}${JSON_EXT}(${short_sha})`,
       });
-      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -92,10 +92,10 @@ describe('<crud/delete>', () => {
 
       // Delete
       await expect(gitDDB.delete(doc)).resolves.toMatchObject({
-        ok: true,
         _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitMessage: expect.stringMatching('.+'),
       });
 
       await gitDDB.destroy();
@@ -115,13 +115,13 @@ describe('<crud/delete>', () => {
 
       // Delete
       const deleteResult = await gitDDB.delete(_id);
+      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
       expect(deleteResult).toMatchObject({
-        ok: true,
         _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitMessage: `delete: ${_id}${JSON_EXT}(${short_sha})`,
       });
-      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -217,13 +217,13 @@ describe('<crud/delete>', () => {
 
       // Delete document#1
       const deleteResult = await gitDDB.remove(_id1);
+      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);      
       expect(deleteResult).toMatchObject({
-        ok: true,
         _id: expect.stringMatching('^' + _id1 + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitMessage: `delete: ${_id1}${JSON_EXT}(${short_sha})`,
       });
-      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -302,7 +302,9 @@ describe('<crud/delete>', () => {
       await gitDDB.put({ _id: _id, name: 'shirase' });
 
       // Delete
-      await gitDDB.remove(_id, { commitMessage: 'my commit message' });
+      const deleteResult = await gitDDB.remove(_id, { commitMessage: 'my commit message' });
+
+      expect(deleteResult.commitMessage).toEqual(`my commit message`);
 
       // Check commit message
       const repository = gitDDB.repository();
@@ -329,10 +331,10 @@ describe('<crud/delete>', () => {
 
       // Delete
       await expect(gitDDB.remove(doc)).resolves.toMatchObject({
-        ok: true,
         _id: expect.stringMatching('^' + _id + '$'),
         fileSha: expect.stringMatching(/^[\da-z]{40}$/),
         commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitMessage: expect.stringMatching('.+'),
       });
 
       await gitDDB.destroy();

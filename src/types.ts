@@ -211,8 +211,6 @@ export type AllDocsOptions = {
  * Result of put()
  *
  * @remarks
- * - ok: ok shows always true. Exception is thrown when error occurs.
- *
  * - _id: _id of a document.
  *
  * - fileSha: SHA-1 hash of Git object (40 characters)
@@ -221,18 +219,16 @@ export type AllDocsOptions = {
  *
  */
 export type PutResult = {
-  ok: true;
   _id: string;
   fileSha: string;
   commitSha: string;
+  commitMessage: string;
 };
 
 /**
  * Result of remove()
  *
  * @remarks
- * - ok: ok shows always true. Exception is thrown when error occurs.
- *
  * - _id: _id of a document.
  *
  * - fileSha: SHA-1 hash of Git blob (40 characters)
@@ -241,10 +237,10 @@ export type PutResult = {
  *
  */
 export type DeleteResult = {
-  ok: true;
   _id: string;
   fileSha: string;
   commitSha: string;
+  commitMessage: string;
 };
 
 /**

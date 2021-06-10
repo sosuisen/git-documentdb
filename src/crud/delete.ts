@@ -179,9 +179,9 @@ export async function deleteWorker (
   }
 
   return {
-    ok: true,
     _id,
     fileSha,
     commitSha,
+    commitMessage,
   };
 }
