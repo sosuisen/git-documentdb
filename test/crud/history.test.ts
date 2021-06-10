@@ -9,15 +9,19 @@
 
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
-import { destroyDBs } from '../remote_utils';
+import {
+  createClonedDatabases,
+  destroyDBs,
+  removeRemoteRepositories,
+} from '../remote_utils';
 import { GitDocumentDB } from '../../src/index';
 import {
   CannotGetEntryError,
   DatabaseClosingError,
-  DocumentNotFoundError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
 } from '../../src/error';
@@ -283,5 +287,99 @@ describe('<crud/history> getBackNumber()', () => {
     await gitDDB.put(json);
     await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.fileSha);
     await gitDDB.destroy();
+  });
+});
+
+const reposPrefix = 'test_history___';
+
+let idCounter = 0;
+const serialId = () => {
+  return `${reposPrefix}${idCounter++}`;
+};
+
+beforeEach(function () {
+  // @ts-ignore
+  console.log(`... ${this.currentTest.fullTitle()}`);
+});
+
+beforeAll(() => {
+  fs.removeSync(path.resolve(localDir));
+});
+
+afterAll(() => {
+  // It may throw error due to memory leak of getCommitLogs()
+  // fs.removeSync(path.resolve(localDir));
+});
+
+// This test needs environment variables:
+//  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
+// e.g.) https://github.com/foo/
+//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
+const maybe =
+  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
+    ? describe
+    : describe.skip;
+
+maybe('<crud/history>', () => {
+  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
+    ? process.env.GITDDB_GITHUB_USER_URL
+    : process.env.GITDDB_GITHUB_USER_URL + '/';
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+
+  beforeAll(async () => {
+    await removeRemoteRepositories(reposPrefix);
+  });
+
+  it.only('gets all revisions from merged commit', async () => {
+    const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+      remoteURLBase,
+      localDir,
+      serialId,
+      {
+        conflictResolutionStrategy: 'ours',
+      }
+    );
+
+    const _id = 'prof';
+    const jsonA1 = { _id, name: 'A-1' };
+    const jsonA2 = { _id, name: 'A-2' };
+    const jsonA3 = { _id, name: 'A-3' };
+    const jsonB1 = { _id, name: 'B-1' };
+    const jsonB2 = { _id, name: 'B-2' };
+    const putResultA1 = await dbA.put(jsonA1);
+    const putResultB1 = await dbB.put(jsonB1);
+    const putResultA2 = await dbA.put(jsonA2);
+    const putResultB2 = await dbB.put(jsonB2);
+    const putResultA3 = await dbA.put(jsonA3);
+
+    console.log(putResultA1.fileSha);
+    console.log(putResultA2.fileSha);
+    console.log(putResultA3.fileSha);
+    console.log(putResultB1.fileSha);
+    console.log(putResultB2.fileSha);
+
+    await syncA.trySync();
+    await syncB.trySync();
+
+    // Get
+    // const history = await dbB.getDocHistory(_id);
+    const commits = await git.log({
+      fs,
+      dir: dbB.workingDir(),
+      ref: 'main',
+    });
+    console.log(commits);
+
+    /*
+    console.log(history);
+
+    await expect(dbB.getByRevision(history[0])).resolves.toMatchObject(jsonA3);
+    await expect(dbB.getByRevision(history[1])).resolves.toMatchObject(jsonA2);
+    await expect(dbB.getByRevision(history[2])).resolves.toMatchObject(jsonA1);
+    await expect(dbB.getByRevision(history[3])).resolves.toMatchObject(jsonB2);
+    await expect(dbB.getByRevision(history[4])).resolves.toMatchObject(jsonB1);
+*/
+
+//    await destroyDBs([dbA, dbB]);
   });
 });

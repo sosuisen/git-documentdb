@@ -852,7 +852,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get revision history of a file from new to old
+   * Get revision history of a file
+   *
+   * @remarks By default, the history is shown in reverse chronological and topological order.
+   * See --topo-order in https://git-scm.com/docs/git-log#_commit_ordering.
    *
    * @param - _id - _id of a target document
    * @returns Array of fileSHA (NOTE: getDocHistory returns empty array if document does not exist in history.)
