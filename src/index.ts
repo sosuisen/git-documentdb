@@ -23,6 +23,7 @@ import {
   RemoteAlreadyRegisteredError,
   RepositoryNotFoundError,
   UndefinedDatabaseNameError,
+  UndefinedDocumentIdError,
 } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -37,7 +38,7 @@ import {
   DeleteOptions,
   DeleteResult,
   JsonDoc,
-  JsonDocWithMetadata,
+  DocWithMetadata,
   OpenOptions,
   PutOptions,
   PutResult,
@@ -808,7 +809,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
    *
    * @returns
-   *  - JsonDocWithMetadata if exists.
+   *  - DocWithMetadata if exists.
    *
    *  - undefined if not exists.
    *
@@ -824,11 +825,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   getDocWithMetaData (
     _id: string,
     backNumber?: number
-  ): Promise<JsonDocWithMetadata | undefined> {
+  ): Promise<DocWithMetadata | undefined> {
     return (getImpl.call(this, _id, {
       backNumber,
       withMetadata: true,
-    }) as unknown) as Promise<JsonDocWithMetadata>;
+    }) as unknown) as Promise<DocWithMetadata>;
   }
 
   /**
@@ -852,13 +853,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get revision history of a file
+   * Get revision history
    *
-   * @remarks By default, the history is shown in reverse chronological and topological order.
-   * See --topo-order in https://git-scm.com/docs/git-log#_commit_ordering.
+   * @remarks
+   * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
-   * @param - _id - _id of a target document
-   * @returns Array of fileSHA (NOTE: getDocHistory returns empty array if document does not exist in history.)
+   * @returns Array of DocWithMetadata or undefined. Undefined shows the document is deleted or does not exist. An empty array shows the document does not exist in history.)
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -867,10 +867,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    * @throws {@link InvalidIdLengthError}
+   * @throws {@link InvalidJsonObjectError}
    * @throws {@link CannotGetEntryError}
    */
-  getDocHistory (_id: string): Promise<string[]> {
-    return getDocHistoryImpl.call(this, _id);
+  getDocHistory (_id: string): Promise<(DocWithMetadata | undefined)[]> {
+    if (_id === undefined) {
+      throw new UndefinedDocumentIdError();
+    }
+    // May throw errors
+    this.validator.validateId(_id);
+
+    const fileName = _id + JSON_EXT;
+    return getDocHistoryImpl.call(this, fileName);
   }
 
   /**

@@ -10,7 +10,6 @@ import nodegit from '@sosuisen/nodegit';
 import { IDocumentDB } from '../types_gitddb';
 import {
   CannotGetEntryError,
-  CorruptedRepositoryError,
   DatabaseClosingError,
   InvalidBackNumberError,
   InvalidFileSHAFormatError,
@@ -19,7 +18,7 @@ import {
   UndefinedDocumentIdError,
   UndefinedFileSHAError,
 } from '../error';
-import { JsonDoc, JsonDocWithMetadata } from '../types';
+import { DocWithMetadata, JsonDoc } from '../types';
 import { getBackNumber } from './history';
 import { JSON_EXT } from '../const';
 
@@ -33,7 +32,7 @@ export async function getImpl (
   this: IDocumentDB,
   docId: string,
   options: GetOptions
-): Promise<JsonDoc | JsonDocWithMetadata | undefined> {
+): Promise<JsonDoc | DocWithMetadata | undefined> {
   const _id = docId;
   if (this.isClosing) {
     throw new DatabaseClosingError();
@@ -54,7 +53,6 @@ export async function getImpl (
   const head = await nodegit.Reference.nameToId(currentRepository, 'HEAD').catch(
     e => false
   ); // get HEAD
-  let document;
   if (!head) {
     return undefined;
   }
@@ -82,42 +80,32 @@ export async function getImpl (
     const blob = await entry.getBlob();
 
     try {
-      document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
+      const document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
       // _id in a document may differ from _id in a filename by mistake.
       // _id in a file is SSOT.
       // Overwrite _id in a document by _id in arguments
       document._id = _id;
+      if (options.withMetadata) {
+        return {
+          id: document._id,
+          fileSha: blob.id().tostrS(),
+          doc: document,
+        };
+      }
+      return document;
     } catch (e) {
       throw new InvalidJsonObjectError(_id);
     }
-
-    if (options.withMetadata) {
-      return {
-        id: document._id,
-        fileSha: blob.id().tostrS(),
-        doc: document,
-      };
-    }
-    return document;
   }
   else if (options.backNumber > 0) {
-    const fileSHA = await getBackNumber(this, filename, options.backNumber);
-    if (fileSHA === undefined) {
+    const docWithMetadata = await getBackNumber(this, filename, options.backNumber);
+    if (docWithMetadata === undefined) {
       return undefined;
     }
-    const doc = await getByRevisionImpl.call(this, fileSHA);
-    if (doc) {
-      if (options.withMetadata) {
-        return {
-          id: doc._id,
-          fileSha: fileSHA,
-          doc,
-        };
-      }
-      return doc;
+    if (options.withMetadata) {
+      return docWithMetadata;
     }
-    // The document exists in index, but not found.
-    throw new CorruptedRepositoryError();
+    return docWithMetadata.doc;
   }
 
   throw new InvalidBackNumberError();

@@ -13,7 +13,7 @@ import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
 } from '../error';
-import { AllDocsOptions, AllDocsResult, JsonDocWithMetadata } from '../types';
+import { AllDocsOptions, AllDocsResult, DocWithMetadata } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 
 // eslint-disable-next-line complexity
@@ -30,12 +30,10 @@ export async function allDocsImpl (
   }
 
   options ??= {
-    includeDocs: undefined,
     descending: undefined,
     recursive: undefined,
     prefix: undefined,
   };
-  options.includeDocs ??= true;
   options.descending ??= false;
   options.recursive ??= true;
   options.prefix ??= '';
@@ -51,7 +49,7 @@ export async function allDocsImpl (
   const commitSha = (head as nodegit.Oid).tostrS();
   const commit = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
 
-  const rows: JsonDocWithMetadata[] = [];
+  const rows: DocWithMetadata[] = [];
 
   // Breadth-first search
   const directories: nodegit.Tree[] = [];
@@ -135,24 +133,21 @@ export async function allDocsImpl (
       }
       else {
         const _id = entry!.path().replace(new RegExp(JSON_EXT + '$'), '');
-        const documentInBatch: JsonDocWithMetadata = {
-          _id,
-          fileSha: entry!.id().tostrS(),
-        };
 
-        if (options.includeDocs) {
-          // eslint-disable-next-line no-await-in-loop
-          const blob = await entry!.getBlob();
-          // eslint-disable-next-line max-depth
-          try {
-            const doc = JSON.parse(blob.toString());
-            doc._id = _id;
-            documentInBatch.doc = doc;
-          } catch (err) {
-            return Promise.reject(new InvalidJsonObjectError(err.message));
-          }
+        // eslint-disable-next-line no-await-in-loop
+        const blob = await entry!.getBlob();
+        // eslint-disable-next-line max-depth
+        try {
+          const doc = JSON.parse(blob.toString());
+          doc._id = _id;
+          rows.push({
+            _id,
+            fileSha: entry!.id().tostrS(),
+            doc,
+          });
+        } catch (err) {
+          return Promise.reject(new InvalidJsonObjectError(err.message));
         }
-        rows.push(documentInBatch);
       }
     }
   }

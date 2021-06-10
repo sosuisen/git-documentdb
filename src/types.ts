@@ -191,8 +191,6 @@ export type DeleteOptions = {
  * Options for allDocs()
  *
  * @remarks
- * - includeDocs: Include JSON document in each row as 'doc' property. Otherwise you only get 'id' and 'fileSha' properties. Default is true.
- *
  * - descending: Sort results in rows by descendant. Default is false (ascendant).
  *
  * - recursive: Get documents recursively from all sub directories. Default is true.
@@ -201,7 +199,6 @@ export type DeleteOptions = {
  *
  */
 export type AllDocsOptions = {
-  includeDocs?: boolean;
   descending?: boolean;
   recursive?: boolean;
   prefix?: string;
@@ -257,17 +254,14 @@ export type DeleteResult = {
 export type AllDocsResult = {
   totalRows: number;
   commitSha?: string;
-  rows: JsonDocWithMetadata[];
+  rows: DocWithMetadata[];
 };
 
 /**
- * Type for a JSON document with metadata
- *
- * @remarks
- * - doc: JsonDoc which has a '_id' value. The value of '_id' and 'doc._id' are the same.
+ * Type for a document with a metadata
  */
-export type JsonDocWithMetadata = DocMetadata & {
-  doc?: JsonDoc;
+export type DocWithMetadata = DocMetadata & {
+  doc: JsonDoc;
 };
 
 /**
@@ -523,18 +517,18 @@ export type SyncEvent =
 
 export type ChangedFileInsert = {
   operation: 'insert';
-  new: JsonDocWithMetadata;
+  new: DocWithMetadata;
 };
 
 export type ChangedFileUpdate = {
   operation: 'update';
-  old: JsonDocWithMetadata;
-  new: JsonDocWithMetadata;
+  old: DocWithMetadata;
+  new: DocWithMetadata;
 };
 
 export type ChangedFileDelete = {
   operation: 'delete';
-  old: JsonDocWithMetadata;
+  old: DocWithMetadata;
 };
 
 /**

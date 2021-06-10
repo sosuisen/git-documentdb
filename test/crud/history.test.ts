@@ -330,7 +330,7 @@ maybe('<crud/history>', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  it.only('gets all revisions from merged commit', async () => {
+  it.only('gets all revisions sorted by date from merged commit', async () => {
     const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -347,39 +347,28 @@ maybe('<crud/history>', () => {
     const jsonB1 = { _id, name: 'B-1' };
     const jsonB2 = { _id, name: 'B-2' };
     const putResultA1 = await dbA.put(jsonA1);
+    await sleep(1500);
     const putResultB1 = await dbB.put(jsonB1);
+    await sleep(1500);
     const putResultA2 = await dbA.put(jsonA2);
+    await sleep(1500);
     const putResultB2 = await dbB.put(jsonB2);
+    await sleep(1500);
     const putResultA3 = await dbA.put(jsonA3);
-
-    console.log(putResultA1.fileSha);
-    console.log(putResultA2.fileSha);
-    console.log(putResultA3.fileSha);
-    console.log(putResultB1.fileSha);
-    console.log(putResultB2.fileSha);
+    await sleep(1500);
 
     await syncA.trySync();
-    await syncB.trySync();
+    await syncB.trySync(); // Resolve conflict. jsonB2 wins.
 
     // Get
-    // const history = await dbB.getDocHistory(_id);
-    const commits = await git.log({
-      fs,
-      dir: dbB.workingDir(),
-      ref: 'main',
-    });
-    console.log(commits);
+    const history = await dbB.getDocHistory(_id);
 
-    /*
-    console.log(history);
+    await expect(dbB.getByRevision(history[0])).resolves.toMatchObject(jsonB2);
+    await expect(dbB.getByRevision(history[1])).resolves.toMatchObject(jsonA3);
+    await expect(dbB.getByRevision(history[2])).resolves.toMatchObject(jsonA2);
+    await expect(dbB.getByRevision(history[3])).resolves.toMatchObject(jsonB1);
+    await expect(dbB.getByRevision(history[4])).resolves.toMatchObject(jsonA1);
 
-    await expect(dbB.getByRevision(history[0])).resolves.toMatchObject(jsonA3);
-    await expect(dbB.getByRevision(history[1])).resolves.toMatchObject(jsonA2);
-    await expect(dbB.getByRevision(history[2])).resolves.toMatchObject(jsonA1);
-    await expect(dbB.getByRevision(history[3])).resolves.toMatchObject(jsonB2);
-    await expect(dbB.getByRevision(history[4])).resolves.toMatchObject(jsonB1);
-*/
-
-//    await destroyDBs([dbA, dbB]);
+    await destroyDBs([dbA, dbB]);
   });
 });

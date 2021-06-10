@@ -6,21 +6,21 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import nodegit from '@sosuisen/nodegit';
+import git, { ReadBlobResult } from 'isomorphic-git';
+import fs from 'fs-extra';
+import { DocWithMetadata, JsonDoc } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import {
-  CannotGetEntryError,
   DatabaseClosingError,
+  InvalidJsonObjectError,
   RepositoryNotOpenError,
-  UndefinedDocumentIdError,
 } from '../error';
 import { JSON_EXT } from '../const';
 
 export async function getDocHistoryImpl (
   this: IDocumentDB,
-  docId: string
-): Promise<string[]> {
-  const _id = docId;
+  fileName: string
+): Promise<(DocWithMetadata | undefined)[]> {
   if (this.isClosing) {
     throw new DatabaseClosingError();
   }
@@ -29,56 +29,58 @@ export async function getDocHistoryImpl (
     throw new RepositoryNotOpenError();
   }
 
-  if (_id === undefined) {
-    throw new UndefinedDocumentIdError();
-  }
+  const docArray: (DocWithMetadata | undefined)[] = [];
 
-  // May throw errors
-  this.validator.validateId(_id);
+  const commits = await git.log({
+    fs,
+    dir: this.workingDir(),
+    ref: 'main',
+  });
 
-  // Calling nameToId() for HEAD throws error when this is first commit.
-  await nodegit.Reference.nameToId(currentRepository, 'HEAD').catch(() => {
-    // throw new DocumentNotFoundError();
-    return [];
-  }); // get HEAD
+  let prevSha: string | undefined = '';
 
-  const fileName = _id + JSON_EXT;
+  for (let i = 0; i < commits.length; i++) {
+    const commitOid = commits[i].oid;
+    // eslint-disable-next-line no-await-in-loop
+    const readBlobResult = await git
+      .readBlob({
+        fs,
+        dir: this.workingDir(),
+        oid: commitOid,
+        filepath: fileName,
+      })
+      .catch(() => undefined);
+    const sha = readBlobResult === undefined ? undefined : readBlobResult.oid;
+    // Skip consecutive same SHAs
+    if (prevSha !== sha) {
+      prevSha = sha;
 
-  const fileSHAArray: string[] = [];
-  const fileSHAHash: { [key: string]: boolean } = {};
-  const walk = currentRepository.createRevWalk();
-
-  walk.pushHead();
-  walk.sorting(nodegit.Revwalk.SORT.TOPOLOGICAL, nodegit.Revwalk.SORT.TIME);
-  await (async function step () {
-    const oid = await walk.next().catch(() => {
-      return null;
-    });
-    if (oid == null) {
-      return;
-    }
-    const commit = await nodegit.Commit.lookup(currentRepository, oid);
-    let entry = null;
-    try {
-      entry = await commit.getEntry(fileName);
-    } catch (err) {
-      if (err.errno !== -3) {
-        // -3 shows requested object could not be found error.
-        // It is a generic return code of libgit2
-        // https://github.com/libgit2/libgit2/blob/main/include/git2/errors.h
-        // GIT_ERROR      = -1,		/**< Generic error */
-        // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
-        throw new CannotGetEntryError(err.message);
+      if (readBlobResult === undefined) {
+        docArray.push(undefined);
+      }
+      else {
+        const blob = Buffer.from(readBlobResult.blob).toString('utf-8');
+        const docId = fileName.replace(new RegExp(JSON_EXT + '$'), '');
+        try {
+          const doc = (JSON.parse(blob) as unknown) as JsonDoc;
+          doc._id = docId;
+          docArray.push({
+            _id: docId,
+            fileSha: readBlobResult.oid,
+            doc,
+          });
+        } catch (e) {
+          throw new InvalidJsonObjectError(docId);
+        }
       }
     }
-    if (entry != null && !fileSHAHash[entry.sha()]) {
-      fileSHAArray.push(entry.sha());
-      fileSHAHash[entry.sha()] = true;
-    }
-    await step();
-  })();
+  }
 
-  return fileSHAArray;
+  if (docArray.length === 1 && docArray[0] === undefined) {
+    docArray.splice(0);
+  }
+
+  return docArray;
 }
 
 /**
@@ -86,95 +88,68 @@ export async function getDocHistoryImpl (
  *
  * @param fileName e.g.) foo.json
  * @param backNumber 0 or greater
+ * @returns DocWithMetadata type or undefined. Undefined shows the document is deleted or does not exist.
  */
+// eslint-disable-next-line complexity
 export async function getBackNumber (
   gitDDB: IDocumentDB,
   fileName: string,
   backNumber: number
-): Promise<string | undefined> {
+): Promise<DocWithMetadata | undefined> {
   const currentRepository = gitDDB.repository();
   if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
 
-  const walk = currentRepository.createRevWalk();
-
-  let headFlag = true;
-  let fileSHA = '';
-  walk.pushHead();
-  walk.sorting(nodegit.Revwalk.SORT.TOPOLOGICAL, nodegit.Revwalk.SORT.TIME);
-  let prevSHA = '';
+  let prevSHA: string | undefined = '';
   let shaCounter = 0;
-  // eslint-disable-next-line complexity
 
-  // eslint-disable-next-line complexity
-  async function step (): Promise<'success' | 'failure' | 'next'> {
-    const oid = await walk.next().catch(() => {
-      return null;
-    });
-    if (oid == null) {
-      return 'failure';
-    }
-    const commit = await nodegit.Commit.lookup(currentRepository!, oid);
-    let entry = null;
-    try {
-      entry = await commit.getEntry(fileName);
-    } catch (err) {
-      if (err.errno !== -3) {
-        // -3 shows requested object could not be found error.
-        // It is a generic return code of libgit2
-        // https://github.com/libgit2/libgit2/blob/main/include/git2/errors.h
-        // GIT_ERROR      = -1,		/**< Generic error */
-        // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
-        throw new CannotGetEntryError(err.message);
-      }
-    }
+  const commits = await git.log({
+    fs,
+    dir: gitDDB.workingDir(),
+    ref: 'main',
+  });
 
-    if (headFlag) {
-      if (backNumber === 0) {
-        if (entry != null) {
-          // The file is not deleted when headFlag equals true and entry exists.
-          fileSHA = entry.sha();
-          return 'success';
-        }
-        // The file is deleted.
-        return 'failure';
-      }
-      // Go next step
-      if (entry != null) {
-        prevSHA = entry.sha();
-        shaCounter++;
-        backNumber++;
-      }
-      headFlag = false;
-      return 'next';
-    }
+  let readBlobResult: ReadBlobResult | undefined;
 
-    if (entry != null) {
-      // Skip consecutive same SHAs
-      const sha = entry.sha();
-      if (prevSHA !== sha) {
-        prevSHA = sha;
-        shaCounter++;
-        if (shaCounter >= backNumber) {
-          // console.log(entry.sha());
-          fileSHA = sha;
-          return 'success';
-        }
-      }
+  for (let i = 0; i < commits.length; i++) {
+    const commitOid = commits[i].oid;
+
+    // eslint-disable-next-line no-await-in-loop
+    readBlobResult = await git
+      .readBlob({
+        fs,
+        dir: gitDDB.workingDir(),
+        oid: commitOid,
+        filepath: fileName,
+      })
+      .catch(() => undefined);
+
+    if (shaCounter >= backNumber) {
+      // console.log(entry.sha());
+      break;
     }
-    else {
-      // Reset check for consecutive SHAs
-      prevSHA = '';
+    const sha = readBlobResult === undefined ? undefined : readBlobResult.oid;
+    // Skip consecutive same SHAs
+    if (prevSHA !== sha) {
+      prevSHA = sha;
+      shaCounter++;
     }
-    return 'next';
   }
-  // eslint-disable-next-line no-await-in-loop
-  while ((await step()) === 'next') {}
 
-  if (fileSHA !== '') {
-    return fileSHA;
+  if (readBlobResult === undefined) return undefined;
+
+  const docId = fileName.replace(new RegExp(JSON_EXT + '$'), '');
+  const blob = Buffer.from(readBlobResult.blob).toString('utf-8');
+  try {
+    const doc = (JSON.parse(blob) as unknown) as JsonDoc;
+    doc._id = docId;
+    return {
+      _id: docId,
+      fileSha: readBlobResult.oid,
+      doc,
+    };
+  } catch (e) {
+    throw new InvalidJsonObjectError(docId);
   }
-  // throw new DocumentNotFoundError();
-  return undefined;
 }
