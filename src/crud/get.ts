@@ -6,34 +6,39 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import nodegit from '@sosuisen/nodegit';
+import { log, readBlob, ReadBlobResult, resolveRef } from 'isomorphic-git';
+import fs from 'fs-extra';
 import { IDocumentDB } from '../types_gitddb';
 import {
-  CannotGetEntryError,
   DatabaseClosingError,
-  InvalidBackNumberError,
-  InvalidFileSHAFormatError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
-  UndefinedDocumentIdError,
-  UndefinedFileSHAError,
 } from '../error';
-import { FatDoc, JsonDoc } from '../types';
-import { getBackNumber } from './history';
-import { JSON_EXT } from '../const';
+import {
+  Doc,
+  FatBinaryDoc,
+  FatDoc,
+  FatJsonDoc,
+  FatTextDoc,
+  GetInternalOptions,
+  JsonDoc,
+} from '../types';
+import { Collection } from '../collection';
 
-type GetOptions = {
-  backNumber?: number;
-  withMetadata?: boolean;
-};
-
+/**
+ * getImpl
+ *
+ * Common implementation of get-like commands
+ *
+ * @throws {@link InvalidJsonObjectError}
+ */
 // eslint-disable-next-line complexity
 export async function getImpl (
   this: IDocumentDB,
-  docId: string,
-  options: GetOptions
-): Promise<JsonDoc | FatDoc | undefined> {
-  const _id = docId;
+  shortId: string,
+  collection: Collection,
+  internalOptions?: GetInternalOptions
+): Promise<Doc | FatDoc | undefined> {
   if (this.isClosing) {
     throw new DatabaseClosingError();
   }
@@ -42,119 +47,185 @@ export async function getImpl (
     throw new RepositoryNotOpenError();
   }
 
-  if (_id === undefined) {
-    throw new UndefinedDocumentIdError();
+  internalOptions ??= {
+    withMetadata: undefined,
+    backNumber: undefined,
+    oid: undefined,
+  };
+  internalOptions.withMetadata ??= false;
+  internalOptions.backNumber ??= 0;
+  internalOptions.oid ??= '';
+
+  let fullDocPath = collection.collectionPath() + shortId;
+  if (collection.collectionType() === 'json') {
+    fullDocPath += '.json';
   }
 
   // May throw error
-  this.validator.validateId(_id);
+  this.validator.validateId(fullDocPath);
 
-  // Calling nameToId() for HEAD throws error when this is first commit.
-  const head = await nodegit.Reference.nameToId(currentRepository, 'HEAD').catch(
-    e => false
-  ); // get HEAD
-  if (!head) {
+  let readBlobResult: ReadBlobResult | undefined;
+  if (internalOptions.oid !== '') {
+    readBlobResult = await readBlobByOid(this.workingDir(), internalOptions.oid);
+  }
+  else if (!internalOptions.backNumber || internalOptions.backNumber === 0) {
+    readBlobResult = await readLatestBlob(this.workingDir(), fullDocPath);
+  }
+  else if (internalOptions.backNumber > 0) {
+    readBlobResult = await readOldBlob(
+      this.workingDir(),
+      fullDocPath,
+      internalOptions.backNumber
+    );
+  }
+  else {
     return undefined;
   }
 
-  const filename = _id + JSON_EXT;
+  if (readBlobResult === undefined) return undefined;
 
-  if (!options.backNumber || options.backNumber === 0) {
-    const commit = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    const entry = await commit.getEntry(filename).catch(err => {
-      if (err.errno === -3) {
-        // -3 shows requested object could not be found error.
-        // It is a generic return code of libgit2
-        // https://github.com/libgit2/libgit2/blob/main/include/git2/errors.h
-        // GIT_ERROR      = -1,		/**< Generic error */
-        // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
-
-        return undefined;
-      }
-
-      throw new CannotGetEntryError(err.message);
-    });
-    if (entry === undefined) {
-      return undefined;
-    }
-    const blob = await entry.getBlob();
-
-    try {
-      const document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
-      // _id in a document may differ from _id in a filename by mistake.
-      // _id in a file is SSOT.
-      // Overwrite _id in a document by _id in arguments
-      document._id = _id;
-      if (options.withMetadata) {
-        return {
-          id: document._id,
-          fileSha: blob.id().tostrS(),
-          doc: document,
-        };
-      }
-      return document;
-    } catch (e) {
-      throw new InvalidJsonObjectError(_id);
-    }
+  if (collection.collectionType() === 'json' || fullDocPath.endsWith('.json')) {
+    return blobToJsonDoc(shortId, readBlobResult, internalOptions.withMetadata);
   }
-  else if (options.backNumber > 0) {
-    const FatDoc = await getBackNumber(this, filename, options.backNumber);
-    if (FatDoc === undefined) {
-      return undefined;
-    }
-    if (options.withMetadata) {
-      return FatDoc;
-    }
-    return FatDoc.doc;
+  else if (collection.collectionType() === 'file') {
+    // TODO: select binary or text by .gitattribtues
+    // Return text
+    return blobToText(shortId, readBlobResult, internalOptions.withMetadata);
+    // Return binary
+    // blobToBinary(shortId, readBlobResult, internalOptions.withMetadata);
   }
-
-  throw new InvalidBackNumberError();
 }
 
-export async function getByRevisionImpl (
-  this: IDocumentDB,
-  fileSHA: string
-): Promise<JsonDoc | undefined> {
-  if (this.isClosing) {
-    throw new DatabaseClosingError();
-  }
-  const currentRepository = this.repository();
-  if (currentRepository === undefined) {
-    throw new RepositoryNotOpenError();
-  }
-
-  if (fileSHA === undefined) {
-    throw new UndefinedFileSHAError();
-  }
-
-  if (!fileSHA.match(/^[\da-z]{40}$/)) {
-    throw new InvalidFileSHAFormatError();
-  }
-
-  const blob = await currentRepository.getBlob(fileSHA).catch(err => {
-    if (err.errno === -3) {
-      // -3 shows requested object could not be found error.
-      // It is a generic return code of libgit2
-      // https://github.com/libgit2/libgit2/blob/main/include/git2/errors.h
-      // GIT_ERROR      = -1,		/**< Generic error */
-      // GIT_ENOTFOUND  = -3,		/**< Requested object could not be found */
-
-      return undefined;
-    }
-
-    // Other errors
-    // e.g.) "unable to parse OID - contains invalid characters"
-    throw new CannotGetEntryError(err.message);
-  });
-  let document;
+/**
+ * blobToJsonDoc
+ *
+ * @throws {@link InvalidJsonObjectError}
+ */
+function blobToJsonDoc (
+  shortId: string,
+  readBlobResult: ReadBlobResult,
+  withMetadata: boolean
+): FatJsonDoc | JsonDoc {
   try {
-    if (blob === undefined) {
-      return undefined;
+    const text = Buffer.from(readBlobResult.blob).toString('utf-8');
+    const jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
+    jsonDoc._id = shortId;
+    if (withMetadata) {
+      const fatJsonDoc: FatJsonDoc = {
+        _id: shortId,
+        fileSha: readBlobResult.oid,
+        type: 'json',
+        doc: jsonDoc,
+      };
+      return fatJsonDoc;
     }
-    document = (JSON.parse(blob.toString()) as unknown) as JsonDoc;
+    return jsonDoc;
   } catch (e) {
-    throw new InvalidJsonObjectError('file_sha: ' + fileSHA);
+    throw new InvalidJsonObjectError(shortId);
   }
+}
 
-  return document;
+/**
+ * blobToText
+ */
+function blobToText (
+  shortId: string,
+  readBlobResult: ReadBlobResult,
+  withMetadata: boolean
+): FatTextDoc | string {
+  const text = Buffer.from(readBlobResult.blob).toString('utf-8');
+  if (withMetadata) {
+    const fatTextDoc: FatTextDoc = {
+      _id: shortId,
+      fileSha: readBlobResult.oid,
+      type: 'text',
+      doc: text,
+    };
+    return fatTextDoc;
+  }
+  return text;
+}
+
+/**
+ * blobToBinary
+ */
+function blobToBinary (
+  shortId: string,
+  readBlobResult: ReadBlobResult,
+  withMetadata: boolean
+): FatBinaryDoc | Buffer {
+  const buffer = Buffer.from(readBlobResult.blob);
+  if (withMetadata) {
+    const fatBinaryDoc: FatBinaryDoc = {
+      _id: shortId,
+      fileSha: readBlobResult.oid,
+      type: 'binary',
+      doc: buffer,
+    };
+    return fatBinaryDoc;
+  }
+  return buffer;
+}
+
+/**
+ * readBlobByOid
+ */
+async function readBlobByOid (workingDir: string, oid: string) {
+  return await readBlob({
+    fs,
+    dir: workingDir,
+    oid,
+  }).catch(() => undefined);
+}
+
+/**
+ * readLatestBlob
+ */
+async function readLatestBlob (workingDir: string, fullDocPath: string) {
+  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'main' });
+  return await readBlob({
+    fs,
+    dir: workingDir,
+    oid: commitOid,
+    filepath: fullDocPath,
+  }).catch(() => undefined);
+}
+
+/**
+ * readOldBlob
+ */
+async function readOldBlob (workingDir: string, fullDocPath: string, backNumber: number) {
+  let readBlobResult: ReadBlobResult | undefined;
+  let prevSHA: string | undefined = '';
+  let shaCounter = 0;
+
+  const commits = await log({
+    fs,
+    dir: workingDir,
+    ref: 'main',
+  });
+
+  for (let i = 0; i < commits.length; i++) {
+    const commitOid = commits[i].oid;
+
+    // eslint-disable-next-line no-await-in-loop
+    readBlobResult = await readBlob({
+      fs,
+      dir: workingDir,
+      oid: commitOid,
+      filepath: fullDocPath,
+    }).catch(() => undefined);
+
+    if (shaCounter >= backNumber) {
+      // console.log(entry.sha());
+      break;
+    }
+    const sha = readBlobResult === undefined ? undefined : readBlobResult.oid;
+    // Skip consecutive same SHAs
+    if (prevSHA !== sha) {
+      prevSHA = sha;
+      shaCounter++;
+    }
+  }
+  return readBlobResult;
 }

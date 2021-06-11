@@ -145,38 +145,40 @@ export type JsonDoc = {
 };
 
 /**
- * Type of a document
- *
- * @remarks
- * - A document type is the same as a file extension if exists.
- *
- * - A document type is '' if a file extension does not exist.
+ * Type of a document in a collection
  */
-export type DocTypes = 'json' | 'md' | 'txt' | '';
+export type CollectionType = 'json' | 'file';
+
+/**
+ * Doc
+ */
+export type Doc = JsonDoc | string | Buffer;
 
 /**
  * Type for a document with a metadata
  */
-export type FatDoc = FatJsonDoc | FatTextDoc | FatUint8ArrayDoc;
+export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
 export type FatJsonDoc = JsonDocMetadata & {
   doc: JsonDoc;
 };
 export type FatTextDoc = TextDocMetadata & {
   doc: string;
 };
-export type FatUint8ArrayDoc = Uint8ArrayDocMetadata & {
-  doc: Uint8Array;
+export type FatBinaryDoc = BinaryDocMetadata & {
+  doc: Buffer;
 };
 
 /**
- * Type for a document metadata
+ * Document metadata
  *
  * @remarks
  * - _id: _id of a document.
  *
  * - fileSha: SHA-1 hash of Git object (40 characters)
+ *
+ * - type: DocMetadataType
  */
-export type DocMetadata = JsonDocMetadata | TextDocMetadata | Uint8ArrayDocMetadata;
+export type DocMetadata = JsonDocMetadata | TextDocMetadata | BinaryDocMetadata;
 export type JsonDocMetadata = {
   _id: string;
   fileSha: string;
@@ -185,13 +187,25 @@ export type JsonDocMetadata = {
 export type TextDocMetadata = {
   _id: string;
   fileSha: string;
-  type: 'md' | 'txt';
+  type: 'text';
 };
-export type Uint8ArrayDocMetadata = {
+export type BinaryDocMetadata = {
   _id: string;
   fileSha: string;
-  type: '';
+  type: 'binary';
 };
+
+/**
+ * DocMetadataType
+ *
+ * @remarks
+ * - json: JsonDoc
+ *
+ * - text: utf8 string
+ *
+ * - binary: Buffer
+ */
+export type DocMetadataType = 'json' | 'text' | 'binary';
 
 /**
  * CollectionPath
@@ -226,9 +240,15 @@ export type PutOptions = {
 
 /**
  * Options for get-like methods.
+ *
+ * @remarks
+ * backNumber and oid are mutually exclusive options. oid has priority.
+ * @internal
  */
-export type GetOptions = {
-  type?: DocTypes;
+export type GetInternalOptions = {
+  backNumber?: number;
+  oid?: string;
+  withMetadata?: boolean;
 };
 
 /**
@@ -312,7 +332,6 @@ export type AllDocsResult = {
   commitSha?: string;
   rows: FatDoc[];
 };
-
 
 /**
  * How to close database
