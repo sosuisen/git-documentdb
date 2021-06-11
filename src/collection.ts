@@ -63,15 +63,15 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get collections whose path start with specified path
+   * Get collections whose collectionPath start with specified root.
    *
-   * @param rootPath Default is '/'.
-   * @returns Collection[]
+   * @param rootCollectionPath - Default is ''.
+   * @returns Array of Collections which does not include ''
    * @throws {@link RepositoryNotOpenError}
    */
   static async getCollections (
     gitDDB: CRUDInterface & IDocumentDB,
-    rootPath = '/'
+    rootCollectionPath = ''
   ): Promise<Collection[]> {
     const repos = gitDDB.repository();
     if (repos === undefined) {
@@ -85,8 +85,8 @@ export class Collection implements CRUDInterface {
     let rootTree = await commit.getTree();
 
     const collections: Collection[] = [];
-    if (rootPath !== '/') {
-      const rootEntry = await rootTree.getEntry(rootPath).catch(e => null);
+    if (rootCollectionPath !== '') {
+      const rootEntry = await rootTree.getEntry(rootCollectionPath).catch(e => null);
       if (rootEntry === null || !rootEntry.isTree()) {
         return [];
       }
