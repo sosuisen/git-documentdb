@@ -13,6 +13,7 @@ import {
   AllDocsOptions,
   AllDocsResult,
   CollectionPath,
+  CollectionType,
   DeleteOptions,
   DeleteResult,
   JsonDoc,
@@ -47,6 +48,7 @@ import { Validator } from './validator';
  */
 export class Collection implements CRUDInterface {
   private _collectionPath: CollectionPath = '';
+  private _collectionType: CollectionType = 'json';
   private _gitDDB: CRUDInterface & IDocumentDB;
 
   /**
@@ -109,6 +111,13 @@ export class Collection implements CRUDInterface {
    */
   collectionPath () {
     return this._collectionPath;
+  }
+
+  /**
+   * Get collectionType
+   */
+  collectionType () {
+    return this._collectionType;
   }
 
   /**
