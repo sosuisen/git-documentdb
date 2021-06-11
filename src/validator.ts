@@ -257,7 +257,7 @@ export class Validator {
   /**
    * Validate collectionPath
    *
-   * @remarks CollectionPath must be paths that match the following conditions:
+   * @remarks CollectionPath must be NULL string or paths that match the following conditions:
    *```
    * - CollectionPath can include paths separated by slashes.
    * - A directory name in paths allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
