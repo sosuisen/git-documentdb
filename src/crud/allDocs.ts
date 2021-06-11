@@ -13,7 +13,7 @@ import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
 } from '../error';
-import { AllDocsOptions, AllDocsResult, DocWithMetadata } from '../types';
+import { AllDocsOptions, AllDocsResult, FatDoc } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 
 // eslint-disable-next-line complexity
@@ -49,7 +49,7 @@ export async function allDocsImpl (
   const commitSha = (head as nodegit.Oid).tostrS();
   const commit = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
 
-  const rows: DocWithMetadata[] = [];
+  const rows: FatDoc[] = [];
 
   // Breadth-first search
   const directories: nodegit.Tree[] = [];

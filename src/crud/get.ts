@@ -18,7 +18,7 @@ import {
   UndefinedDocumentIdError,
   UndefinedFileSHAError,
 } from '../error';
-import { DocWithMetadata, JsonDoc } from '../types';
+import { FatDoc, JsonDoc } from '../types';
 import { getBackNumber } from './history';
 import { JSON_EXT } from '../const';
 
@@ -32,7 +32,7 @@ export async function getImpl (
   this: IDocumentDB,
   docId: string,
   options: GetOptions
-): Promise<JsonDoc | DocWithMetadata | undefined> {
+): Promise<JsonDoc | FatDoc | undefined> {
   const _id = docId;
   if (this.isClosing) {
     throw new DatabaseClosingError();
@@ -98,14 +98,14 @@ export async function getImpl (
     }
   }
   else if (options.backNumber > 0) {
-    const docWithMetadata = await getBackNumber(this, filename, options.backNumber);
-    if (docWithMetadata === undefined) {
+    const FatDoc = await getBackNumber(this, filename, options.backNumber);
+    if (FatDoc === undefined) {
       return undefined;
     }
     if (options.withMetadata) {
-      return docWithMetadata;
+      return FatDoc;
     }
-    return docWithMetadata.doc;
+    return FatDoc.doc;
   }
 
   throw new InvalidBackNumberError();

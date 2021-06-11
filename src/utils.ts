@@ -9,13 +9,20 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { ReadCommitResult } from 'isomorphic-git';
-import { DocMetadata, NormalizedCommit } from './types';
+import { DocMetadata, DocTypes, NormalizedCommit } from './types';
 
 /**
  * @internal
  */
 export function sleep (msec: number) {
   return new Promise(resolve => setTimeout(resolve, msec));
+}
+
+export function getDocName (_id: string, type: DocTypes) {
+  if (type === 'raw') {
+    return _id;
+  }
+  return `${_id}.${type}`;
 }
 
 /**

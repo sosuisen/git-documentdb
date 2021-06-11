@@ -8,8 +8,6 @@
  */
 
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
-import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
@@ -55,7 +53,7 @@ afterAll(() => {
   // fs.removeSync(path.resolve(localDir));
 });
 
-describe('<crud/history> getDocHistory()', () => {
+describe('<crud/history> getHistory()', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -77,15 +75,15 @@ describe('<crud/history> getDocHistory()', () => {
     await gitDDB.put(jsonB01);
     await gitDDB.put(jsonB02);
     // Get
-    const historyA = await gitDDB.getDocHistory(_idA);
+    const historyA = await gitDDB.getHistory(_idA);
     expect(historyA.length).toBe(3);
-    await expect(gitDDB.getByRevision(historyA[0])).resolves.toMatchObject(jsonA03);
-    await expect(gitDDB.getByRevision(historyA[1])).resolves.toMatchObject(jsonA02);
-    await expect(gitDDB.getByRevision(historyA[2])).resolves.toMatchObject(jsonA01);
-    const historyB = await gitDDB.getDocHistory(_idB);
+    await expect(historyA[0]?.doc).resolves.toMatchObject(jsonA03);
+    await expect(historyA[1]?.doc).resolves.toMatchObject(jsonA02);
+    await expect(historyA[2]?.doc).resolves.toMatchObject(jsonA01);
+    const historyB = await gitDDB.getHistory(_idB);
     expect(historyB.length).toBe(2);
-    await expect(gitDDB.getByRevision(historyB[0])).resolves.toMatchObject(jsonB02);
-    await expect(gitDDB.getByRevision(historyB[1])).resolves.toMatchObject(jsonB01);
+    await expect(historyB[0]?.doc).resolves.toMatchObject(jsonB02);
+    await expect(historyB[1]?.doc).resolves.toMatchObject(jsonB01);
 
     await destroyDBs([gitDDB]);
   });
@@ -102,8 +100,40 @@ describe('<crud/history> getDocHistory()', () => {
     const jsonA01 = { _id: _idA, name: 'v01' };
     await gitDDB.put(jsonA01);
     // Get
-    const historyA = await gitDDB.getDocHistory('invalid_id');
+    const historyA = await gitDDB.getHistory('invalid_id');
     expect(historyA.length).toBe(0);
+
+    await destroyDBs([gitDDB]);
+  });
+
+  it('gets deleted revisions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const _idA = 'profA';
+    const jsonA01 = { _id: _idA, name: 'v01' };
+    const jsonA02 = { _id: _idA, name: 'v02' };
+    const jsonA03 = { _id: _idA, name: 'v03' };
+    await gitDDB.put(jsonA01);
+    await gitDDB.delete(jsonA01);
+    await gitDDB.put(jsonA02);
+    await gitDDB.delete(jsonA02);
+    await gitDDB.put(jsonA03);
+    await gitDDB.delete(jsonA03);
+
+    // Get
+    const historyA = await gitDDB.getHistory(_idA);
+    expect(historyA.length).toBe(3);
+    await expect(historyA[0]).resolves.toBe(undefined);
+    await expect(historyA[1]?.doc).resolves.toMatchObject(jsonA03);
+    await expect(historyA[2]).resolves.toBe(undefined);
+    await expect(historyA[3]?.doc).resolves.toMatchObject(jsonA02);
+    await expect(historyA[4]).resolves.toBe(undefined);
+    await expect(historyA[5]?.doc).resolves.toMatchObject(jsonA01);
 
     await destroyDBs([gitDDB]);
   });
@@ -122,7 +152,7 @@ describe('<crud/history> getDocHistory()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(gitDDB.getDocHistory('0')).rejects.toThrowError(DatabaseClosingError);
+    await expect(gitDDB.getHistory('0')).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -139,7 +169,7 @@ describe('<crud/history> getDocHistory()', () => {
     });
     await gitDDB.open();
     await gitDDB.close();
-    await expect(gitDDB.getDocHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB.getHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
   });
 
   it('throws UndefinedDocumentIdError', async () => {
@@ -150,7 +180,7 @@ describe('<crud/history> getDocHistory()', () => {
     });
     await gitDDB.open();
     // @ts-ignore
-    await expect(gitDDB.getDocHistory(undefined)).rejects.toThrowError(
+    await expect(gitDDB.getHistory(undefined)).rejects.toThrowError(
       UndefinedDocumentIdError
     );
     await gitDDB.destroy();
@@ -173,7 +203,7 @@ describe('<crud/history> getDocHistory()', () => {
         initialHead: gitDDB.defaultBranch,
       }
     );
-    const history = await gitDDB.getDocHistory('tmp');
+    const history = await gitDDB.getHistory('tmp');
     expect(history.length).toBe(0);
 
     await gitDDB.destroy();
@@ -189,7 +219,7 @@ describe('<crud/history> getDocHistory()', () => {
 
     const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
     stub.rejects(new Error());
-    await expect(gitDDB.getDocHistory('prof01')).rejects.toThrowError(CannotGetEntryError);
+    await expect(gitDDB.getHistory('prof01')).rejects.toThrowError(CannotGetEntryError);
     await gitDDB.destroy();
   });
 });
@@ -361,7 +391,7 @@ maybe('<crud/history>', () => {
     await syncB.trySync(); // Resolve conflict. jsonB2 wins.
 
     // Get
-    const history = await dbB.getDocHistory(_id);
+    const history = await dbB.getHistory(_id);
 
     await expect(dbB.getByRevision(history[0])).resolves.toMatchObject(jsonB2);
     await expect(dbB.getByRevision(history[1])).resolves.toMatchObject(jsonA3);

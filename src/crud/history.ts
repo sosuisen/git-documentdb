@@ -8,7 +8,7 @@
 
 import git, { ReadBlobResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { DocWithMetadata, JsonDoc } from '../types';
+import { DocTypes, FatDoc, FatJsonDoc, FatTextDoc, FatUint8ArrayDoc, JsonDoc } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import {
   DatabaseClosingError,
@@ -16,11 +16,14 @@ import {
   RepositoryNotOpenError,
 } from '../error';
 import { JSON_EXT } from '../const';
+import { getDocName } from '../utils';
 
-export async function getDocHistoryImpl (
+// eslint-disable-next-line complexity
+export async function getHistoryImpl (
   this: IDocumentDB,
-  fileName: string
-): Promise<(DocWithMetadata | undefined)[]> {
+  _id: string,
+  type: DocTypes
+): Promise<(FatDoc | undefined)[]> {
   if (this.isClosing) {
     throw new DatabaseClosingError();
   }
@@ -28,8 +31,9 @@ export async function getDocHistoryImpl (
   if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();
   }
+  const docName = getDocName(_id, type);
 
-  const docArray: (DocWithMetadata | undefined)[] = [];
+  const docArray: (FatDoc | undefined)[] = [];
 
   const commits = await git.log({
     fs,
@@ -47,7 +51,7 @@ export async function getDocHistoryImpl (
         fs,
         dir: this.workingDir(),
         oid: commitOid,
-        filepath: fileName,
+        filepath: docName,
       })
       .catch(() => undefined);
     const sha = readBlobResult === undefined ? undefined : readBlobResult.oid;
@@ -58,20 +62,42 @@ export async function getDocHistoryImpl (
       if (readBlobResult === undefined) {
         docArray.push(undefined);
       }
-      else {
-        const blob = Buffer.from(readBlobResult.blob).toString('utf-8');
-        const docId = fileName.replace(new RegExp(JSON_EXT + '$'), '');
+      else if (type === 'json') {
+        const txt = Buffer.from(readBlobResult.blob).toString('utf-8');
+        // eslint-disable-next-line max-depth
         try {
-          const doc = (JSON.parse(blob) as unknown) as JsonDoc;
-          doc._id = docId;
-          docArray.push({
-            _id: docId,
+          const jsonDoc = (JSON.parse(txt) as unknown) as JsonDoc;
+          jsonDoc._id = _id;
+          const fatDoc: FatJsonDoc = {
+            _id,
             fileSha: readBlobResult.oid,
-            doc,
-          });
+            type: 'json',
+            doc: jsonDoc,
+          };
+          docArray.push(fatDoc);
         } catch (e) {
-          throw new InvalidJsonObjectError(docId);
+          throw new InvalidJsonObjectError(_id);
         }
+      }
+      else if (type === 'md' || type === 'txt') {
+        const txt = Buffer.from(readBlobResult.blob).toString('utf-8');
+        const fatDoc: FatTextDoc = {
+          _id,
+          fileSha: readBlobResult.oid,
+          type,
+          doc: txt,
+        };
+        docArray.push(fatDoc);
+      }
+      else if (type === '') {
+        const uint8Array = readBlobResult.blob;
+        const fatDoc: FatUint8ArrayDoc = {
+          _id,
+          fileSha: readBlobResult.oid,
+          type,
+          doc: uint8Array,
+        };
+        docArray.push(fatDoc);
       }
     }
   }
@@ -88,14 +114,14 @@ export async function getDocHistoryImpl (
  *
  * @param fileName e.g.) foo.json
  * @param backNumber 0 or greater
- * @returns DocWithMetadata type or undefined. Undefined shows the document is deleted or does not exist.
+ * @returns FatDoc type or undefined. Undefined shows the document is deleted or does not exist.
  */
 // eslint-disable-next-line complexity
 export async function getBackNumber (
   gitDDB: IDocumentDB,
   fileName: string,
   backNumber: number
-): Promise<DocWithMetadata | undefined> {
+): Promise<FatDoc | undefined> {
   const currentRepository = gitDDB.repository();
   if (currentRepository === undefined) {
     throw new RepositoryNotOpenError();

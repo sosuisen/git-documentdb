@@ -145,6 +145,55 @@ export type JsonDoc = {
 };
 
 /**
+ * Type of a document
+ *
+ * @remarks
+ * - A document type is the same as a file extension if exists.
+ *
+ * - A document type is '' if a file extension does not exist.
+ */
+export type DocTypes = 'json' | 'md' | 'txt' | '';
+
+/**
+ * Type for a document with a metadata
+ */
+export type FatDoc = FatJsonDoc | FatTextDoc | FatUint8ArrayDoc;
+export type FatJsonDoc = JsonDocMetadata & {
+  doc: JsonDoc;
+};
+export type FatTextDoc = TextDocMetadata & {
+  doc: string;
+};
+export type FatUint8ArrayDoc = Uint8ArrayDocMetadata & {
+  doc: Uint8Array;
+};
+
+/**
+ * Type for a document metadata
+ *
+ * @remarks
+ * - _id: _id of a document.
+ *
+ * - fileSha: SHA-1 hash of Git object (40 characters)
+ */
+export type DocMetadata = JsonDocMetadata | TextDocMetadata | Uint8ArrayDocMetadata;
+export type JsonDocMetadata = {
+  _id: string;
+  fileSha: string;
+  type: 'json';
+};
+export type TextDocMetadata = {
+  _id: string;
+  fileSha: string;
+  type: 'md' | 'txt';
+};
+export type Uint8ArrayDocMetadata = {
+  _id: string;
+  fileSha: string;
+  type: '';
+};
+
+/**
  * CollectionPath
  *
  * @remarks CollectionPath must be paths that match the following conditions:
@@ -173,6 +222,13 @@ export type PutOptions = {
   insertOrUpdate?: 'insert' | 'update';
   taskId?: string;
   enqueueCallback?: (taskMetadata: TaskMetadata) => void;
+};
+
+/**
+ * Options for get-like methods.
+ */
+export type GetOptions = {
+  type?: DocTypes;
 };
 
 /**
@@ -254,31 +310,9 @@ export type DeleteResult = {
 export type AllDocsResult = {
   totalRows: number;
   commitSha?: string;
-  rows: DocWithMetadata[];
+  rows: FatDoc[];
 };
 
-/**
- * Type for a document with a metadata
- */
-export type DocWithMetadata = DocMetadata & {
-  doc: JsonDoc;
-};
-
-/**
- * Type for a document metadata
- *
- * @remarks
- * - _id: _id of a document.
- *
- * - fileSha: SHA-1 hash of Git object (40 characters)
- *
- * - type: Default is 'json'.
- */
-export type DocMetadata = {
-  _id: string;
-  fileSha: string;
-  type?: 'json' | 'raw';
-};
 
 /**
  * How to close database
@@ -517,18 +551,18 @@ export type SyncEvent =
 
 export type ChangedFileInsert = {
   operation: 'insert';
-  new: DocWithMetadata;
+  new: FatDoc;
 };
 
 export type ChangedFileUpdate = {
   operation: 'update';
-  old: DocWithMetadata;
-  new: DocWithMetadata;
+  old: FatDoc;
+  new: FatDoc;
 };
 
 export type ChangedFileDelete = {
   operation: 'delete';
-  old: DocWithMetadata;
+  old: FatDoc;
 };
 
 /**

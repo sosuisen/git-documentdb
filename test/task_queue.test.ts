@@ -280,7 +280,7 @@ describe('<task_queue>', () => {
       return 0;
     });
 
-    const revisions = await gitDDB.getDocHistory('foo');
+    const revisions = await gitDDB.getHistory('foo');
     for (let i = 0; i < revisions.length; i++) {
       // eslint-disable-next-line no-await-in-loop
       const doc = await gitDDB.getByRevision(revisions[i]);

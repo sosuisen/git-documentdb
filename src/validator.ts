@@ -267,6 +267,9 @@ export class Validator {
    * - CollectionPath cannot start with a slash.
    * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
    *```
+   *
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * @throws {@link InvalidCollectionPathLengthError}
    */
   validateCollectionPath (collectionPath: string) {
     if (collectionPath === '') {

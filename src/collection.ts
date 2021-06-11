@@ -524,10 +524,10 @@ export class Collection implements CRUDInterface {
 
     const docs = await this._gitDDB.allDocs(options);
     const reg = new RegExp('^' + this._collectionPath);
-    docs.rows?.forEach(docWithMetadata => {
-      docWithMetadata._id = docWithMetadata._id.replace(reg, '');
-      if (docWithMetadata.doc) {
-        docWithMetadata.doc._id = docWithMetadata._id;
+    docs.rows?.forEach(FatDoc => {
+      FatDoc._id = FatDoc._id.replace(reg, '');
+      if (FatDoc.doc) {
+        FatDoc.doc._id = FatDoc._id;
       }
     });
 

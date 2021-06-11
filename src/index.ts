@@ -37,8 +37,9 @@ import {
   DatabaseOptions,
   DeleteOptions,
   DeleteResult,
+  FatDoc,
+  GetOptions,
   JsonDoc,
-  DocWithMetadata,
   OpenOptions,
   PutOptions,
   PutResult,
@@ -64,8 +65,7 @@ import {
   JSON_EXT,
   SET_DATABASE_ID_MESSAGE,
 } from './const';
-import { cloneRepository } from './remote/clone';
-import { getDocHistoryImpl } from './crud/history';
+import { getHistoryImpl } from './crud/history';
 import { toSortedJSONString } from './utils';
 
 interface RepositoryInitOptions {
@@ -809,7 +809,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
    *
    * @returns
-   *  - DocWithMetadata if exists.
+   *  - FatDoc if exists.
    *
    *  - undefined if not exists.
    *
@@ -822,14 +822,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CorruptedRepositoryError}
    * @throws {@link InvalidBackNumberError}
    */
-  getDocWithMetaData (
-    _id: string,
-    backNumber?: number
-  ): Promise<DocWithMetadata | undefined> {
+  getFatDoc (_id: string, backNumber?: number): Promise<FatDoc | undefined> {
     return (getImpl.call(this, _id, {
       backNumber,
       withMetadata: true,
-    }) as unknown) as Promise<DocWithMetadata>;
+    }) as unknown) as Promise<FatDoc>;
   }
 
   /**
@@ -853,32 +850,36 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get revision history
+   * Get revision history of a document
+   *
+   * @param _id - _id of a target document
    *
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
-   * @returns Array of DocWithMetadata or undefined. Undefined shows the document is deleted or does not exist. An empty array shows the document does not exist in history.)
+   * @returns Array of FatDoc or undefined. Undefined shows the document is deleted or does not exist. An empty array shows the document does not exist in history.)
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
-   * @throws {@link InvalidIdLengthError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotGetEntryError}
    */
-  getDocHistory (_id: string): Promise<(DocWithMetadata | undefined)[]> {
-    if (_id === undefined) {
-      throw new UndefinedDocumentIdError();
+  getHistory (_id: string, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]> {
+    /**
+     * Don't use _id validator for getting because it is redundant.
+     * Getting by invalid _id is not critical compared to putting.
+     */
+    // if (_id === undefined) {
+    //  throw new UndefinedDocumentIdError();
+    // }
+    // this.validator.validateId(_id);
+    if (_id === undefined) _id = '';
+    if (getOptions === undefined) {
+      getOptions = {
+        type: undefined,
+      };
     }
-    // May throw errors
-    this.validator.validateId(_id);
-
-    const fileName = _id + JSON_EXT;
-    return getDocHistoryImpl.call(this, fileName);
+    getOptions.type ??= 'json';
+    return getHistoryImpl.call(this, _id, getOptions.type);
   }
 
   /**
