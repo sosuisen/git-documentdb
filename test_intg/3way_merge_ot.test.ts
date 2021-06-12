@@ -123,12 +123,12 @@ maybe('intg: <3way_merge_ot>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(2);
@@ -136,9 +136,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect.arrayContaining([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.fileSha,
+          putResultB1.fileOid,
           mergedJson,
-          mergedDoc!.fileSha
+          mergedDoc!.fileOid
         ),
         getChangedFileInsert(jsonA2, putResultA2),
       ])
@@ -149,9 +149,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect.arrayContaining([
         getChangedFileUpdateBySHA(
           jsonA1,
-          putResultA1.fileSha,
+          putResultA1.fileOid,
           mergedJson,
-          mergedDoc!.fileSha
+          mergedDoc!.fileOid
         ),
         getChangedFileInsert(jsonB3, putResultB3),
       ])
@@ -162,7 +162,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           _id: '1',
-          fileSha: mergedDoc!.fileSha,
+          fileOid: mergedDoc!.fileOid,
         },
         strategy: 'ours-diff',
         operation: 'insert-merge',
@@ -220,14 +220,14 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(
           0,
           7
         )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileSha.substr(
+        `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(
           0,
           7
         )},theirs-diff)`,
@@ -237,9 +237,9 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.changes.local).toEqual([
       getChangedFileUpdateBySHA(
         jsonB1,
-        putResultB1!.fileSha,
+        putResultB1!.fileOid,
         mergedJson,
-        mergedDoc!.fileSha
+        mergedDoc!.fileOid
       ),
     ]);
 
@@ -250,7 +250,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           _id: '1',
-          fileSha: mergedDoc!.fileSha,
+          fileOid: mergedDoc!.fileOid,
         },
         strategy: 'theirs-diff',
         operation: 'insert-merge',
@@ -307,11 +307,11 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -326,7 +326,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           _id: '1',
-          fileSha: deleteResultB1.fileSha,
+          fileOid: deleteResultB1.fileOid,
         },
         strategy: 'ours-diff',
         operation: 'delete',
@@ -390,11 +390,11 @@ maybe('intg: <3way_merge_ot>', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours-diff)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours-diff)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -408,7 +408,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours-diff',
         operation: 'update',
@@ -488,14 +488,14 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileSha.substr(
+        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileOid.substr(
           0,
           7
         )},theirs-diff)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileSha.substr(
+        `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileOid.substr(
           0,
           7
         )},theirs-diff)`,
@@ -505,9 +505,9 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.changes.local).toEqual([
       getChangedFileUpdateBySHA(
         jsonB1,
-        putResultB1.fileSha,
+        putResultB1.fileOid,
         mergedJson,
-        mergedDoc!.fileSha
+        mergedDoc!.fileOid
       ),
     ]);
 
@@ -515,9 +515,9 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.changes.remote).toEqual([
       getChangedFileUpdateBySHA(
         jsonA1dash,
-        putResultA1dash.fileSha,
+        putResultA1dash.fileOid,
         mergedJson,
-        mergedDoc!.fileSha
+        mergedDoc!.fileOid
       ),
     ]);
 
@@ -526,7 +526,7 @@ maybe('intg: <3way_merge_ot>', () => {
       {
         target: {
           _id: '1',
-          fileSha: mergedDoc!.fileSha,
+          fileOid: mergedDoc!.fileOid,
         },
         strategy: 'theirs-diff',
         operation: 'update-merge',
@@ -606,9 +606,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.fileSha,
+          putResultB1.fileOid,
           mergedJson,
-          mergedDoc!.fileSha
+          mergedDoc!.fileOid
         ),
       ]);
       await destroyDBs([dbA, dbB]);
@@ -674,9 +674,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.fileSha,
+          putResultB1.fileOid,
           mergedJson,
-          mergedDoc!.fileSha
+          mergedDoc!.fileOid
         ),
       ]);
       await destroyDBs([dbA, dbB]);
@@ -743,9 +743,9 @@ maybe('intg: <3way_merge_ot>', () => {
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
           jsonB1,
-          putResultB1.fileSha,
+          putResultB1.fileOid,
           mergedJson,
-          mergedDoc!.fileSha
+          mergedDoc!.fileOid
         ),
       ]);
       await destroyDBs([dbA, dbB]);

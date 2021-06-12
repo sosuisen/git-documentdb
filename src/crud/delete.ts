@@ -62,7 +62,7 @@ export function deleteImpl (
     taskId: undefined,
     enqueueCallback: undefined,
   };
-  const commitMessage = options.commitMessage ?? `delete: ${_id}${JSON_EXT}(<%file_sha%>)`;
+  const commitMessage = options.commitMessage ?? `delete: ${_id}${JSON_EXT}(<%file_oid%>)`;
 
   const taskId = options.taskId ?? this.taskQueue.newTaskId();
   // delete() must be serial.
@@ -116,7 +116,7 @@ export async function deleteWorker (
     return Promise.reject(new DocumentNotFoundError());
   }
 
-  let commitSha: string;
+  let commitOid: string;
   const filename = _id + extension;
   const filePath = path.resolve(gitDDB.workingDir(), filename);
 
@@ -138,17 +138,17 @@ export async function deleteWorker (
     .catch(() => {
       return Promise.reject(new DocumentNotFoundError());
     });
-  const fileSha = oid;
+  const fileOid = oid;
   await git.remove({ fs, dir: gitDDB.workingDir(), filepath: filename });
 
   commitMessage = commitMessage.replace(
-    /<%file_sha%>/,
-    fileSha.substr(0, SHORT_SHA_LENGTH)
+    /<%file_oid%>/,
+    fileOid.substr(0, SHORT_SHA_LENGTH)
   );
 
   try {
     // Default ref is HEAD
-    commitSha = await git.commit({
+    commitOid = await git.commit({
       fs,
       dir: gitDDB.workingDir(),
       author: {
@@ -183,8 +183,8 @@ export async function deleteWorker (
 
   return {
     _id,
-    fileSha,
-    commitSha,
+    fileOid,
+    commitOid,
     commitMessage,
   };
 }

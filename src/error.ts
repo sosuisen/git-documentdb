@@ -195,15 +195,6 @@ export class DatabaseCloseTimeoutError extends BaseError {
 
 /**
  */
-export class InvalidPropertyNameInDocumentError extends BaseError {
-  constructor (name: string) {
-    const e = `Invalid property name '${name}': A property name cannot start with an underscore _ except _id and _deleted.`;
-    super(e);
-  }
-}
-
-/**
- */
 export class InvalidDbNameCharacterError extends BaseError {
   constructor (name: string) {
     const e = `Invalid dbName '${name}'`;

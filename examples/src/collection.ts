@@ -45,16 +45,16 @@ const collection_example = async () => {
   /* flowersInNaraCollection = 
   {
     total_rows: 2,
-    commit_sha: 'xxxxx_commit_sha_of_your_head_commit_xxxxx',
+    commitOid: 'xxxxx_commitOid_of_your_head_commit_xxxxx',
     rows: [
       {
         id: 'nara_park',
-        file_sha: '7448ca2f7f79d6bb585421c6c29446acb97e4a8c',
+        fileOid: '7448ca2f7f79d6bb585421c6c29446acb97e4a8c',
         doc: { flower: 'double cherry blossoms', _id: 'nara_park' }
       },
       {
         id: 'tsukigase',
-        file_sha: '1241d69c4e9cd7a27f592affce94ec60d3b2207c',
+        fileOid: '1241d69c4e9cd7a27f592affce94ec60d3b2207c',
         doc: { flower: 'Japanese apricot', _id: 'tsukigase' }
       }
     ]

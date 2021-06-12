@@ -74,7 +74,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
     await expect(gitDDB.allDocs()).resolves.toMatchObject({
       totalRows: 0,
-      commitSha: /^.+$/,
+      commitOid: /^.+$/,
       rows: [],
     });
 
@@ -96,7 +96,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await expect(gitDDB.allDocs()).resolves.toStrictEqual({
       totalRows: 0,
       rows: [],
-      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
     await gitDDB.put({ _id: _id_b, name: name_b });
@@ -106,23 +106,23 @@ describe('<crud/allDocs> allDocs()', () => {
 
     await expect(gitDDB.allDocs({ includeDocs: false })).resolves.toMatchObject({
       totalRows: 4,
-      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
           _id: expect.stringMatching('^' + _id_1 + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
           _id: expect.stringMatching('^' + _id_a + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
           _id: expect.stringMatching('^' + _id_b + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
           _id: expect.stringMatching('^' + _id_c + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         },
       ],
     });
@@ -147,19 +147,19 @@ describe('<crud/allDocs> allDocs()', () => {
       gitDDB.allDocs({ descending: true, includeDocs: false })
     ).resolves.toMatchObject({
       totalRows: 3,
-      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
           _id: expect.stringMatching('^' + _id_c + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
           _id: expect.stringMatching('^' + _id_b + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         },
         {
           _id: expect.stringMatching('^' + _id_a + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         },
       ],
     });
@@ -181,11 +181,11 @@ describe('<crud/allDocs> allDocs()', () => {
 
     await expect(gitDDB.allDocs({ includeDocs: true })).resolves.toMatchObject({
       totalRows: 2,
-      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
           _id: expect.stringMatching('^' + _id_a + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_a + '$'),
             name: name_a,
@@ -193,7 +193,7 @@ describe('<crud/allDocs> allDocs()', () => {
         },
         {
           _id: expect.stringMatching('^' + _id_b + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_b + '$'),
             name: name_b,
@@ -221,11 +221,11 @@ describe('<crud/allDocs> allDocs()', () => {
 
     await expect(gitDDB.allDocs({ includeDocs: true })).resolves.toMatchObject({
       totalRows: 5,
-      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
           _id: expect.stringMatching('^' + _id_a + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_a + '$'),
             name: name_a,
@@ -233,7 +233,7 @@ describe('<crud/allDocs> allDocs()', () => {
         },
         {
           _id: expect.stringMatching('^' + _id_b + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_b + '$'),
             name: name_b,
@@ -241,7 +241,7 @@ describe('<crud/allDocs> allDocs()', () => {
         },
         {
           _id: expect.stringMatching('^' + _id_c01 + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_c01 + '$'),
             name: name_c01,
@@ -249,7 +249,7 @@ describe('<crud/allDocs> allDocs()', () => {
         },
         {
           _id: expect.stringMatching('^' + _id_c02 + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_c02 + '$'),
             name: name_c02,
@@ -257,7 +257,7 @@ describe('<crud/allDocs> allDocs()', () => {
         },
         {
           _id: expect.stringMatching('^' + _id_d + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_d + '$'),
             name: name_d,
@@ -288,11 +288,11 @@ describe('<crud/allDocs> allDocs()', () => {
       gitDDB.allDocs({ includeDocs: true, recursive: false })
     ).resolves.toMatchObject({
       totalRows: 2,
-      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
         {
           _id: expect.stringMatching('^' + _id_a + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_a + '$'),
             name: name_a,
@@ -300,7 +300,7 @@ describe('<crud/allDocs> allDocs()', () => {
         },
         {
           _id: expect.stringMatching('^' + _id_b + '$'),
-          fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           doc: {
             _id: expect.stringMatching('^' + _id_b + '$'),
             name: name_b,
@@ -333,11 +333,11 @@ describe('<crud/allDocs> allDocs()', () => {
 
       await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 2,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_c01 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c01 + '$'),
               name: name_c01,
@@ -345,7 +345,7 @@ describe('<crud/allDocs> allDocs()', () => {
           },
           {
             _id: expect.stringMatching('^' + _id_c02 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c02 + '$'),
               name: name_c02,
@@ -379,11 +379,11 @@ describe('<crud/allDocs> allDocs()', () => {
         gitDDB.allDocs({ prefix, includeDocs: true, recursive: false })
       ).resolves.toMatchObject({
         totalRows: 2,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_c001 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c001 + '$'),
               name: name_c001,
@@ -391,7 +391,7 @@ describe('<crud/allDocs> allDocs()', () => {
           },
           {
             _id: expect.stringMatching('^' + _id_c000 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c000 + '$'),
               name: name_c000,
@@ -423,11 +423,11 @@ describe('<crud/allDocs> allDocs()', () => {
 
       await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 4,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_c001 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c001 + '$'),
               name: name_c001,
@@ -435,7 +435,7 @@ describe('<crud/allDocs> allDocs()', () => {
           },
           {
             _id: expect.stringMatching('^' + _id_c000 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c000 + '$'),
               name: name_c000,
@@ -443,7 +443,7 @@ describe('<crud/allDocs> allDocs()', () => {
           },
           {
             _id: expect.stringMatching('^' + _id_c01 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c01 + '$'),
               name: name_c01,
@@ -451,7 +451,7 @@ describe('<crud/allDocs> allDocs()', () => {
           },
           {
             _id: expect.stringMatching('^' + _id_c02 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c02 + '$'),
               name: name_c02,
@@ -483,11 +483,11 @@ describe('<crud/allDocs> allDocs()', () => {
 
       await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 1,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_c02 + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_c02 + '$'),
               name: name_c02,
@@ -520,7 +520,7 @@ describe('<crud/allDocs> allDocs()', () => {
       await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 0,
         rows: [],
-        commitSha: expect.stringMatching(/^[\da-z]{40}/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}/),
       });
 
       await gitDDB.destroy();
@@ -548,11 +548,11 @@ describe('<crud/allDocs> allDocs()', () => {
         gitDDB.allDocs({ prefix: 'pear/Japan', includeDocs: true })
       ).resolves.toMatchObject({
         totalRows: 1,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_p + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_p + '$'),
               name: name_p,
@@ -565,11 +565,11 @@ describe('<crud/allDocs> allDocs()', () => {
         gitDDB.allDocs({ prefix: 'pear', includeDocs: true })
       ).resolves.toMatchObject({
         totalRows: 1,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_p + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_p + '$'),
               name: name_p,
@@ -590,7 +590,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.open();
 
     const _id = 'invalidJSON';
-    let fileSha, commitSha: string;
+    let fileOid, commitOid: string;
     const data = 'invalid data'; // JSON.parse() will throw error
     const _currentRepository = gitDDB.repository();
     if (_currentRepository) {
@@ -607,7 +607,7 @@ describe('<crud/allDocs> allDocs()', () => {
         const changes = await index.writeTree(); // get reference to a set of changes
 
         const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
-        fileSha = entry.id.tostrS();
+        fileOid = entry.id.tostrS();
 
         const gitAuthor = {
           name: 'GitDocumentDB',

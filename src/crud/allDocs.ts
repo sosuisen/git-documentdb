@@ -46,7 +46,7 @@ export async function allDocsImpl (
     return { totalRows: 0, rows: [] };
   }
 
-  const commitSha = (head as nodegit.Oid).tostrS();
+  const commitOid = (head as nodegit.Oid).tostrS();
   const commit = await currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
 
   const rows: FatDoc[] = [];
@@ -80,7 +80,7 @@ export async function allDocsImpl (
       directories.push(specifiedTree);
     }
     else {
-      return { totalRows: 0, commitSha, rows: [] };
+      return { totalRows: 0, commitOid, rows: [] };
     }
   }
   else {
@@ -142,7 +142,7 @@ export async function allDocsImpl (
           doc._id = _id;
           rows.push({
             _id,
-            fileSha: entry!.id().tostrS(),
+            fileOid: entry!.id().tostrS(),
             doc,
           });
         } catch (err) {
@@ -154,7 +154,7 @@ export async function allDocsImpl (
 
   return {
     totalRows: rows.length,
-    commitSha,
+    commitOid,
     rows,
   };
 }

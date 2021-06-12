@@ -9,7 +9,7 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { ReadCommitResult } from 'isomorphic-git';
-import { DocMetadata, DocTypes, NormalizedCommit } from './types';
+import { CollectionType, DocMetadata, NormalizedCommit } from './types';
 
 /**
  * @internal
@@ -18,8 +18,8 @@ export function sleep (msec: number) {
   return new Promise(resolve => setTimeout(resolve, msec));
 }
 
-export function getDocName (_id: string, type: DocTypes) {
-  if (type === 'raw') {
+export function getDocName (_id: string, type: CollectionType) {
+  if (type === 'file') {
     return _id;
   }
   return `${_id}.${type}`;
@@ -89,8 +89,8 @@ export async function getAllMetadata (repos: nodegit.Repository) {
 
           const docMetadata: DocMetadata = {
             _id,
-            fileSha: entry!.id().tostrS(),
-            type: ext === '.json' ? 'json' : 'raw',
+            fileOid: entry!.id().tostrS(),
+            type: ext === '.json' ? 'json' : 'text',
           };
           files.push(docMetadata);
         }
@@ -105,7 +105,7 @@ export async function getAllMetadata (repos: nodegit.Repository) {
  */
 export function normalizeCommit (commit: ReadCommitResult): NormalizedCommit {
   const normalized: NormalizedCommit = {
-    sha: commit.oid,
+    oid: commit.oid,
     message: commit.commit.message.trimEnd(),
     parent: commit.commit.parent,
     author: {

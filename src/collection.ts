@@ -11,7 +11,6 @@ import nodegit from '@sosuisen/nodegit';
 import { putImpl } from './crud/put';
 
 import {
-  InvalidDocumentTypeError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
@@ -22,6 +21,10 @@ import {
   CollectionPath,
   DeleteOptions,
   DeleteResult,
+  Doc,
+  FatDoc,
+  GetOptions,
+  HistoryOptions,
   JsonDoc,
   PutOptions,
   PutResult,
@@ -31,6 +34,8 @@ import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { Validator } from './validator';
 import { toSortedJSONString } from './utils';
 import { JSON_EXT } from './const';
+import { getImpl } from './crud/get';
+import { getHistoryImpl } from './crud/history';
 
 /**
  * Documents are gathered together in collections.
@@ -53,7 +58,7 @@ import { JSON_EXT } from './const';
  */
 export class Collection implements CRUDInterface {
   private _collectionPath: CollectionPath = '';
-  private _defaultReadMethod: ReadMethod;
+  private _readMethod: ReadMethod;
   private _gitDDB: CRUDInterface & IDocumentDB;
 
   /**
@@ -63,12 +68,12 @@ export class Collection implements CRUDInterface {
   constructor (
     gitDDB: CRUDInterface & IDocumentDB,
     collectionPath?: CollectionPath,
-    defaultReadMethod: ReadMethod = 'json'
+    readMethod: ReadMethod = 'json'
   ) {
     this._gitDDB = gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
     this._gitDDB.validator.validateCollectionPath(this._collectionPath);
-    this._defaultReadMethod = defaultReadMethod;
+    this._readMethod = readMethod;
   }
 
   /**
@@ -123,10 +128,10 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get defaultReadMethod
+   * Get readMethod
    */
-  defaultReadMethod () {
-    return this._defaultReadMethod;
+  readMethod () {
+    return this._readMethod;
   }
 
   /**
@@ -140,7 +145,6 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -169,7 +173,6 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -274,7 +277,6 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -311,7 +313,6 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -361,7 +362,6 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -398,7 +398,6 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -430,32 +429,124 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get a document
+   * Get a JSON document or data
    *
-   * @param _id - _id of a target document
+   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
    *
    * @returns
-   *  - JsonDoc if exists.
-   *
    *  - undefined if not exists.
+   *
+   *  - JsonDoc if the collection's readMethod is 'json'(default is 'json')
+   *     or the file extension is '.json'.
+   *
+   *  - Buffer or string if the collections. readMethods is 'file'.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
    */
-  get (_id: string, backNumber?: number): Promise<JsonDoc | undefined> {
-    const colId = this._collectionPath + _id;
+  get (_id: string, getOptions?: GetOptions): Promise<Doc | undefined> {
+    return getImpl(this._gitDDB, _id, this._collectionPath, this._readMethod, getOptions);
+  }
 
-    return this._gitDDB.get(colId, backNumber).then(doc => {
-      if (doc === undefined) {
-        return undefined;
-      }
-      doc._id = _id;
-      return doc;
-    });
+  /**
+   * Get a FatDoc
+   *
+   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
+   *
+   * @returns
+   *  - undefined if not exists.
+   *
+   *  - FatJsonDoc if the collection's readMethod is 'json'(default is 'json')
+   *     or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if the collections. readMethods is 'file'.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getFatDoc (_id: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
+    return getImpl(this._gitDDB, _id, this._collectionPath, this._readMethod, getOptions, {
+      withMetadata: true,
+    }) as Promise<FatDoc | undefined>;
+  }
+
+  /**
+   * Get a FatDoc which has specified oid
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getByOid (
+    _id: string,
+    fileOid: string,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined> {
+    return getImpl(this._gitDDB, _id, this._collectionPath, this._readMethod, getOptions, {
+      withMetadata: true,
+      oid: fileOid,
+    }) as Promise<FatDoc | undefined>;
+  }
+
+  /**
+   * Get a back number of a document
+   *
+   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned.
+   * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getBackNumber (
+    _id: string,
+    backNumber: number,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined> {
+    return getImpl(
+      this._gitDDB,
+      _id,
+      this._collectionPath,
+      this._readMethod,
+      getOptions,
+      {
+        withMetadata: true,
+        backNumber: backNumber,
+      },
+      historyOptions
+    ) as Promise<FatDoc | undefined>;
+  }
+
+  /**
+   * Get revision history of a document
+   *
+   * @remarks
+   * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getHistory (
+    _id: string,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<(FatDoc | undefined)[]> {
+    return getHistoryImpl(
+      this._gitDDB,
+      _id,
+      this._collectionPath,
+      this._readMethod,
+      historyOptions,
+      getOptions
+    );
   }
 
   /**

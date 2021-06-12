@@ -18,7 +18,6 @@ import {
   InvalidIdCharacterError,
   InvalidIdLengthError,
   InvalidLocalDirCharacterError,
-  InvalidPropertyNameInDocumentError,
   UndefinedDocumentIdError,
 } from '../src/error';
 
@@ -198,9 +197,6 @@ describe('<validator>', () => {
     expect(() => validator.validateDocument({ _id: undefined })).toThrowError(
       UndefinedDocumentIdError
     );
-    expect(() =>
-      validator.validateDocument({ _id: 'prof01', _underscore: 'underscore' })
-    ).toThrowError(InvalidPropertyNameInDocumentError);
   });
 
   it('validateDbName', () => {

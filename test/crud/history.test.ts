@@ -286,7 +286,7 @@ describe('<crud/history> getBackNumber()', () => {
     });
     await gitDDB.open();
     const putResult = await gitDDB.put({ _id: 'tmp', name: 0 });
-    await expect(getBackNumber(gitDDB, 'tmp.json', 0)).resolves.toBe(putResult.fileSha);
+    await expect(getBackNumber(gitDDB, 'tmp.json', 0)).resolves.toBe(putResult.fileOid);
     await gitDDB.destroy();
   });
 
@@ -299,7 +299,7 @@ describe('<crud/history> getBackNumber()', () => {
     await gitDDB.open();
     const putResult = await gitDDB.put({ _id: 'tmp', name: 0 });
     await gitDDB.put({ _id: 'tmp', name: 1 });
-    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.fileSha);
+    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.fileOid);
     await gitDDB.destroy();
   });
 
@@ -315,7 +315,7 @@ describe('<crud/history> getBackNumber()', () => {
     await gitDDB.delete('tmp');
     // Create the same document again
     await gitDDB.put(json);
-    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.fileSha);
+    await expect(getBackNumber(gitDDB, 'tmp.json', 1)).resolves.toBe(putResult.fileOid);
     await gitDDB.destroy();
   });
 });

@@ -15,7 +15,6 @@ import {
   InvalidIdCharacterError,
   InvalidIdLengthError,
   InvalidLocalDirCharacterError,
-  InvalidPropertyNameInDocumentError,
   UndefinedDocumentIdError,
 } from './error';
 import { CollectionPath, JsonDoc } from './types';
@@ -359,10 +358,6 @@ export class Validator {
   /**
    * Validate document
    *
-   * @remarks
-   * - Key cannot start with an underscore _.
-   *
-   * @throws {@link InvalidPropertyNameInDocumentError}
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidIdCharacterError}
    * @throws {@link InvalidIdLengthError}
@@ -372,14 +367,5 @@ export class Validator {
       throw new UndefinedDocumentIdError();
     }
     this.validateId(doc._id);
-
-    const reservedKeys: { [key: string]: true } = {
-      _id: true,
-    };
-    Object.keys(doc).forEach(key => {
-      if (!reservedKeys[key] && key.startsWith('_')) {
-        throw new InvalidPropertyNameInDocumentError(key);
-      }
-    });
   }
 }

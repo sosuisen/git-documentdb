@@ -59,12 +59,12 @@ describe('<crud/delete>', () => {
 
       // Delete
       const deleteResult = await gitDDB.delete(_id);
-      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
+      const shortOid = deleteResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(deleteResult).toMatchObject({
         _id: expect.stringMatching('^' + _id + '$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitMessage: `delete: ${_id}${JSON_EXT}(${short_sha})`,
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitMessage: `delete: ${_id}${JSON_EXT}(${shortOid})`,
       });
 
       // Check commit message
@@ -72,7 +72,7 @@ describe('<crud/delete>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})\n`);
+        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
       }
 
       await gitDDB.destroy();
@@ -93,8 +93,8 @@ describe('<crud/delete>', () => {
       // Delete
       await expect(gitDDB.delete(doc)).resolves.toMatchObject({
         _id: expect.stringMatching('^' + _id + '$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         commitMessage: expect.stringMatching('.+'),
       });
 
@@ -115,12 +115,12 @@ describe('<crud/delete>', () => {
 
       // Delete
       const deleteResult = await gitDDB.delete(_id);
-      const short_sha = deleteResult.fileSha.substr(0, SHORT_SHA_LENGTH);
+      const shortOid = deleteResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(deleteResult).toMatchObject({
         _id: expect.stringMatching('^' + _id + '$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitMessage: `delete: ${_id}${JSON_EXT}(${short_sha})`,
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitMessage: `delete: ${_id}${JSON_EXT}(${shortOid})`,
       });
 
       // Check commit message
@@ -128,7 +128,7 @@ describe('<crud/delete>', () => {
       if (repository !== undefined) {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${short_sha})\n`);
+        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
       }
 
       await gitDDB.destroy();
@@ -190,11 +190,11 @@ describe('<crud/delete>', () => {
 
       await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
         totalRows: 1,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_p + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           },
         ],
       });

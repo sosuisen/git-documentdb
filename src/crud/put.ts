@@ -24,7 +24,7 @@ import {
 } from '../error';
 
 /**
- * Implementation of put()
+ * Common implementation of put-like commands.
  *
  * @throws {@link DatabaseClosingError}
  * @throws {@link TaskCancelError}
@@ -43,7 +43,7 @@ export function putImpl (
   fullDocPath: string,
   data: Buffer | string,
   options?: PutOptions
-): Promise<Pick<PutResult, 'commitMessage' | 'commitSha' | 'fileSha'>> {
+): Promise<Pick<PutResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
@@ -56,7 +56,7 @@ export function putImpl (
   };
 
   const commitMessage =
-    options.commitMessage ?? `<%insertOrUpdate%>: ${fullDocPath}(<%file_sha%>)`;
+    options.commitMessage ?? `<%insertOrUpdate%>: ${fullDocPath}(<%file_oid%>)`;
 
   const taskId = options.taskId ?? gitDDB.taskQueue.newTaskId();
   // put() must be serial.
@@ -99,7 +99,7 @@ export async function putWorker (
   data: Buffer | string,
   commitMessage: string,
   insertOrUpdate?: 'insert' | 'update'
-): Promise<Pick<PutResult, 'commitMessage' | 'commitSha' | 'fileSha'>> {
+): Promise<Pick<PutResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
   if (gitDDB === undefined) {
     throw new UndefinedDBError();
   }
@@ -109,7 +109,7 @@ export async function putWorker (
     throw new RepositoryNotOpenError();
   }
 
-  let fileSha, commitSha: string;
+  let fileOid, commitOid: string;
 
   const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
   await fs.ensureDir(path.dirname(filePath)).catch((err: Error) => {
@@ -147,16 +147,16 @@ export async function putWorker (
     await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
 
     const { oid } = await git.hashBlob({ object: data });
-    fileSha = oid;
+    fileOid = oid;
 
     // isomorphic-git automatically adds trailing LF to commitMessage.
     // (Trailing LFs are usually ignored when displaying git log.)
     commitMessage = commitMessage
       .replace(/<%insertOrUpdate%>/, insertOrUpdate)
-      .replace(/<%file_sha%>/, fileSha.substr(0, SHORT_SHA_LENGTH));
+      .replace(/<%file_oid%>/, fileOid.substr(0, SHORT_SHA_LENGTH));
 
     // Default ref is HEAD
-    commitSha = await git.commit({
+    commitOid = await git.commit({
       fs,
       dir: gitDDB.workingDir(),
       author: {
@@ -174,8 +174,8 @@ export async function putWorker (
   }
 
   return {
-    fileSha,
-    commitSha,
+    fileOid,
+    commitOid,
     commitMessage,
   };
 }

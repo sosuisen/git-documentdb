@@ -202,7 +202,7 @@ describe('<crud/get> get()', () => {
     await gitDDB.open();
 
     const _id = 'invalidJSON';
-    let fileSha: string;
+    let fileOid: string;
     const data = 'invalid data'; // JSON.parse() will throw error
 
     // Put data
@@ -432,8 +432,8 @@ describe('<crud/get> get()', () => {
       const jsonA02 = { _id: _idA, name: 'v02' };
       await gitDDB.put(jsonA02);
 
-      const dirName = putResult.fileSha.substr(0, 2);
-      const fileName = putResult.fileSha.substr(2);
+      const dirName = putResult.fileOid.substr(0, 2);
+      const fileName = putResult.fileOid.substr(2);
       const fullPath = path.resolve(gitDDB.workingDir(), '.git/objects', dirName, fileName);
       fs.removeSync(fullPath);
 
@@ -456,7 +456,7 @@ describe('<crud/get> getByRevision()', () => {
     const _id = 'prof01';
     const putResult = await gitDDB.put({ _id: _id, name: 'shirase' });
     // Get by revision
-    await expect(gitDDB.getByRevision(putResult.fileSha)).resolves.toEqual({
+    await expect(gitDDB.getByRevision(putResult.fileOid)).resolves.toEqual({
       _id: _id,
       name: 'shirase',
     });
@@ -571,7 +571,7 @@ describe('<crud/get> getByRevision()', () => {
     await gitDDB.open();
 
     const _id = 'invalidJSON';
-    let fileSha: string;
+    let fileOid: string;
     const data = 'invalid data'; // JSON.parse() will throw error
 
     // Put data
@@ -632,7 +632,7 @@ describe('<crud/get> getByRevision()', () => {
       // Get
       await expect(gitDDB.getDocWithMetaData(_id)).resolves.toEqual({
         id: _id,
-        fileSha: putResult.fileSha,
+        fileOid: putResult.fileOid,
         doc: { _id: _id, name: 'shirase' },
       });
       await gitDDB.destroy();
@@ -652,7 +652,7 @@ describe('<crud/get> getByRevision()', () => {
       // Get
       await expect(gitDDB.getDocWithMetaData(_id, 1)).resolves.toEqual({
         id: _id,
-        fileSha: putResult.fileSha,
+        fileOid: putResult.fileOid,
         doc: { _id: _id, name: '1' },
       });
       await gitDDB.destroy();

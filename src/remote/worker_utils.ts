@@ -45,11 +45,11 @@ export function getDocumentFromBuffer (filepath: string, buffer: Uint8Array) {
   return document;
 }
 
-export async function getDocument (workingDir: string, filepath: string, fileSha: string) {
+export async function getDocument (workingDir: string, filepath: string, fileOid: string) {
   const { blob } = await git.readBlob({
     fs,
     dir: workingDir,
-    oid: fileSha,
+    oid: fileOid,
   });
   return getDocumentFromBuffer(filepath, blob);
 }
@@ -102,7 +102,7 @@ export async function getChanges (
           operation: 'delete',
           old: {
             _id,
-            fileSha: aOid,
+            fileOid: aOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, aOid),
           },
@@ -113,7 +113,7 @@ export async function getChanges (
           operation: 'insert',
           new: {
             _id,
-            fileSha: bOid,
+            fileOid: bOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, bOid),
           },
@@ -124,13 +124,13 @@ export async function getChanges (
           operation: 'update',
           old: {
             _id,
-            fileSha: aOid,
+            fileOid: aOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, aOid),
           },
           new: {
             _id,
-            fileSha: bOid,
+            fileOid: bOid,
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, bOid),
           },

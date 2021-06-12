@@ -410,7 +410,7 @@ export async function syncWorker (
       conflict.target.type === undefined || conflict.target.type === 'json'
         ? conflict.target._id + JSON_EXT
         : conflict.target._id;
-    commitMessage += `${fileName}(${conflict.operation},${conflict.target.fileSha.substr(
+    commitMessage += `${fileName}(${conflict.operation},${conflict.target.fileOid.substr(
       0,
       SHORT_SHA_LENGTH
     )},${conflict.strategy}), `;

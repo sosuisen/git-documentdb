@@ -88,7 +88,7 @@ maybe('<remote/3way_merge>', () => {
     );
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    const commit = putResultA1.commitSha;
+    const commit = putResultA1.commitOid;
     const index = await dbA.repository()?.refreshIndex();
     await expect(
       threeWayMerge(dbA, syncA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
@@ -138,12 +138,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB3,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -162,7 +162,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -222,12 +222,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -242,7 +242,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -295,11 +295,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${JSON_EXT}(insert,${putResultA1.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultA1.fileOid.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(insert,${putResultA1.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultA1.fileOid.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -314,7 +314,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultA1.fileSha,
+          fileOid: putResultA1.fileOid,
         },
         strategy: 'theirs',
         operation: 'insert',
@@ -380,12 +380,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         deleteResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -400,7 +400,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -465,12 +465,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         deleteResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -488,7 +488,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -549,11 +549,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -568,7 +568,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: deleteResultB1.fileSha,
+          fileOid: deleteResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'delete',
@@ -630,11 +630,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         deleteResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
       ]),
     });
 
@@ -650,7 +650,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultA1dash.fileSha,
+          fileOid: putResultA1dash.fileOid,
         },
         strategy: 'theirs',
         operation: 'update',
@@ -712,11 +712,11 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         deleteResultA2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -734,7 +734,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -797,11 +797,11 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -815,7 +815,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'update',
@@ -882,11 +882,11 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         deleteResultA1,
         putResultA2,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.fileOid.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(delete,${deleteResultA1.fileOid.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(2);
@@ -904,7 +904,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: deleteResultA1.fileSha,
+          fileOid: deleteResultA1.fileOid,
         },
         strategy: 'theirs',
         operation: 'delete',
@@ -969,12 +969,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2dash,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -989,7 +989,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1058,12 +1058,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2dash,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -1081,7 +1081,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1150,12 +1150,12 @@ maybe('<remote/3way_merge>', () => {
       local: getCommitInfo([
         putResultA1,
         putResultA2dash,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1171,7 +1171,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1232,11 +1232,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1251,7 +1251,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'update',
@@ -1315,11 +1315,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -1334,7 +1334,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultA1dash.fileSha,
+          fileOid: putResultA1dash.fileOid,
         },
         strategy: 'theirs',
         operation: 'update',
@@ -1417,25 +1417,25 @@ maybe('<remote/3way_merge>', () => {
         putResultA3dash,
         putResultA1dash,
         deleteResultA2,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(
           0,
           7
-        )},ours), 2${JSON_EXT}(update,${putResultB2.fileSha.substr(
+        )},ours), 2${JSON_EXT}(update,${putResultB2.fileOid.substr(
           0,
           7
-        )},ours), 3${JSON_EXT}(update,${putResultB3.fileSha.substr(0, 7)},ours)`,
+        )},ours), 3${JSON_EXT}(update,${putResultB3.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB3,
         deleteResultB1,
         putResultB2,
-        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileSha.substr(
+        `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(
           0,
           7
-        )},ours), 2${JSON_EXT}(update,${putResultB2.fileSha.substr(
+        )},ours), 2${JSON_EXT}(update,${putResultB2.fileOid.substr(
           0,
           7
-        )},ours), 3${JSON_EXT}(update,${putResultB3.fileSha.substr(0, 7)},ours)`,
+        )},ours), 3${JSON_EXT}(update,${putResultB3.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1454,7 +1454,7 @@ maybe('<remote/3way_merge>', () => {
         {
           target: {
             _id: '1',
-            fileSha: deleteResultB1.fileSha,
+            fileOid: deleteResultB1.fileOid,
           },
           strategy: 'ours',
           operation: 'delete',
@@ -1462,7 +1462,7 @@ maybe('<remote/3way_merge>', () => {
         {
           target: {
             _id: '2',
-            fileSha: putResultB2.fileSha,
+            fileOid: putResultB2.fileOid,
           },
           strategy: 'ours',
           operation: 'update',
@@ -1470,7 +1470,7 @@ maybe('<remote/3way_merge>', () => {
         {
           target: {
             _id: '3',
-            fileSha: putResultB3.fileSha,
+            fileOid: putResultB3.fileOid,
           },
           strategy: 'ours',
           operation: 'update',
@@ -1543,11 +1543,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultB1.fileSha.substr(0, 7)},ours)`,
+        `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(0);
@@ -1562,7 +1562,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultB1.fileSha,
+          fileOid: putResultB1.fileOid,
         },
         strategy: 'ours',
         operation: 'update',
@@ -1635,11 +1635,11 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.commits).toMatchObject({
       local: getCommitInfo([
         putResultA1dash,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
       ]),
       remote: getCommitInfo([
         putResultB1,
-        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileSha.substr(0, 7)},theirs)`,
+        `resolve: 1${JSON_EXT}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
       ]),
     });
     expect(syncResult1.changes.local.length).toBe(1);
@@ -1654,7 +1654,7 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
-          fileSha: putResultA1dash.fileSha,
+          fileOid: putResultA1dash.fileOid,
         },
         strategy: 'theirs',
         operation: 'update',

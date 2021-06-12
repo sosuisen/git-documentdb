@@ -305,12 +305,12 @@ maybe('<remote/combine>', () => {
           {
             original: {
               _id: jsonA1._id,
-              fileSha: putResultA1.fileSha,
+              fileOid: putResultA1.fileOid,
               type: 'json',
             },
             duplicate: {
               _id: jsonB1._id,
-              fileSha: duplicatedB1?.fileSha,
+              fileOid: duplicatedB1?.fileOid,
               type: 'json',
             },
           },
@@ -371,12 +371,12 @@ maybe('<remote/combine>', () => {
           {
             original: {
               _id: jsonA1._id,
-              fileSha: putResultA1.fileSha,
+              fileOid: putResultA1.fileOid,
               type: 'json',
             },
             duplicate: {
               _id: jsonB1._id,
-              fileSha: duplicatedB1?.fileSha,
+              fileOid: duplicatedB1?.fileOid,
               type: 'json',
             },
           },
@@ -448,12 +448,12 @@ maybe('<remote/combine>', () => {
         {
           original: {
             _id: jsonB1._id,
-            fileSha: putResultB1.fileSha,
+            fileOid: putResultB1.fileOid,
             type: 'json',
           },
           duplicate: {
             _id: jsonA1._id,
-            fileSha: duplicatedA1?.fileSha,
+            fileOid: duplicatedA1?.fileOid,
             type: 'json',
           },
         },

@@ -69,8 +69,8 @@ describe('<collection>', () => {
       await expect(users.put(doc)).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^prof01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
       expect(doc._id).toBe('prof01');
 
@@ -100,8 +100,8 @@ describe('<collection>', () => {
       expect(putResult).toMatchObject({
         ok: true,
         _id: expect.stringMatching('^prof01/page01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
       expect(doc._id).toBe('prof01/page01');
       // Check filename
@@ -119,7 +119,7 @@ describe('<collection>', () => {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
         expect(commit.message()).toEqual(
-          `insert: users/Gunma/prof01/page01${JSON_EXT}(${putResult.fileSha.substr(
+          `insert: users/Gunma/prof01/page01${JSON_EXT}(${putResult.fileOid.substr(
             0,
             SHORT_SHA_LENGTH
           )})\n`
@@ -141,8 +141,8 @@ describe('<collection>', () => {
       await expect(users.put(doc, { commitMessage: 'message' })).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^prof01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
 
       const repository = gitDDB.repository();
@@ -169,8 +169,8 @@ describe('<collection>', () => {
       ).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^prof01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
       // doc._id is ignored.
       expect(doc._id).toBe('id-in-document');
@@ -449,8 +449,8 @@ describe('<collection>', () => {
       expect(deleteResult).toMatchObject({
         ok: true,
         _id: expect.stringMatching('^test/prof01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
 
       // Check commit message
@@ -459,7 +459,7 @@ describe('<collection>', () => {
         const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
         const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
         expect(commit.message()).toEqual(
-          `delete: users/${_id}${JSON_EXT}(${deleteResult.fileSha.substr(
+          `delete: users/${_id}${JSON_EXT}(${deleteResult.fileOid.substr(
             0,
             SHORT_SHA_LENGTH
           )})`
@@ -499,8 +499,8 @@ describe('<collection>', () => {
       await expect(users.delete(sameDoc)).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^test/prof01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
       expect(sameDoc._id).toBe(_id);
       await gitDDB.destroy();
@@ -538,8 +538,8 @@ describe('<collection>', () => {
       await expect(users.delete(_id)).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^test/prof01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
       await gitDDB.destroy();
     });
@@ -602,8 +602,8 @@ describe('<collection>', () => {
       await expect(users.delete(doc)).resolves.toMatchObject({
         ok: true,
         _id: expect.stringMatching('^test/prof01$'),
-        fileSha: expect.stringMatching(/^[\da-z]{40}$/),
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
       expect(doc._id).toBe('test/prof01');
 
@@ -632,7 +632,7 @@ describe('<collection>', () => {
       await expect(cols[1].get('item02')).resolves.toEqual({ _id: 'item02' });
       await expect(cols[2].get('item03')).resolves.toEqual({ _id: 'item03' });
 
-      const cols2 = await gitDDB.getCollections('/');
+      const cols2 = await gitDDB.getCollections('');
       expect(cols2.length).toBe(3);
     });
 
@@ -698,23 +698,23 @@ describe('<collection>', () => {
       const users = gitDDB.collection('users');
       await expect(users.allDocs()).resolves.toMatchObject({
         totalRows: 0,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
 
       await users.put({ _id: _id_b, name: name_b });
       await users.put({ _id: _id_a, name: name_a });
 
-      await expect(users.allDocs({ includeDocs: false })).resolves.toMatchObject({
+      await expect(users.allDocs()).resolves.toMatchObject({
         totalRows: 2,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_a + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           },
           {
             _id: expect.stringMatching('^' + _id_b + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           },
         ],
       });
@@ -739,15 +739,13 @@ describe('<collection>', () => {
       await users.put({ _id: _id_c01, name: name_c01 });
       await users.put({ _id: _id_c02, name: name_c02 });
 
-      await expect(
-        users.allDocs({ prefix: 'pear/Japan', includeDocs: true })
-      ).resolves.toMatchObject({
+      await expect(users.allDocs({ prefix: 'pear/Japan' })).resolves.toMatchObject({
         totalRows: 1,
-        commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
           {
             _id: expect.stringMatching('^' + _id_p + '$'),
-            fileSha: expect.stringMatching(/^[\da-z]{40}$/),
+            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
             doc: {
               _id: expect.stringMatching('^' + _id_p + '$'),
               name: name_p,

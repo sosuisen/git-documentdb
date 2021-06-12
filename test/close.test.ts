@@ -58,7 +58,7 @@ describe('<close> GitDocumentDB#close()', () => {
 
     await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
       totalRows: 50,
-      commitSha: expect.stringMatching(/^[\da-z]{40}$/),
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
     });
 
     await gitDDB.destroy();

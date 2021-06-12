@@ -32,7 +32,7 @@ export function getCommitInfo (
     if (typeof current === 'string') message = current;
     else message = expect.stringMatching(/^.+$/);
     const commit: NormalizedCommit = {
-      sha: expect.any(String),
+      oid: expect.any(String),
       message,
       parent: expect.any(Array),
       author: {
@@ -53,7 +53,7 @@ export function getCommitInfo (
 
 /**
  * Get ChangedFile Object from args
- * @remarks 'result' must includes fileSha of 'doc'
+ * @remarks 'result' must includes fileOid of 'doc'
  */
 export function getChangedFileInsert (
   newDoc: JsonDoc,
@@ -63,7 +63,7 @@ export function getChangedFileInsert (
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      fileSha: newResult!.fileSha,
+      fileOid: newResult!.fileOid,
       doc: newDoc,
     },
   };
@@ -79,12 +79,12 @@ export function getChangedFileUpdate (
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      fileSha: oldResult!.fileSha,
+      fileOid: oldResult!.fileOid,
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      fileSha: newResult!.fileSha,
+      fileOid: newResult!.fileOid,
       doc: newDoc,
     },
   };
@@ -98,7 +98,7 @@ export function getChangedFileDelete (
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      fileSha: oldResult!.fileSha,
+      fileOid: oldResult!.fileOid,
       doc: oldDoc,
     },
   };
@@ -112,7 +112,7 @@ export function getChangedFileInsertBySHA (
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      fileSha: newFileSHA,
+      fileOid: newFileSHA,
       doc: newDoc,
     },
   };
@@ -128,12 +128,12 @@ export function getChangedFileUpdateBySHA (
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      fileSha: oldFileSHA,
+      fileOid: oldFileSHA,
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      fileSha: newFileSHA,
+      fileOid: newFileSHA,
       doc: newDoc,
     },
   };
@@ -147,7 +147,7 @@ export function getChangedFileDeleteBySHA (
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      fileSha: oldFileSHA,
+      fileOid: oldFileSHA,
       doc: oldDoc,
     },
   };

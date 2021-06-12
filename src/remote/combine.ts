@@ -98,12 +98,12 @@ export async function combineDatabaseWithTheirs (
         duplicates.push({
           original: {
             _id: meta._id,
-            fileSha: remoteFile!.fileSha,
+            fileOid: remoteFile!.fileOid,
             type: duplicatedFileExt === '.json' ? 'json' : '',
           },
           duplicate: {
             _id: duplicatedFileId,
-            fileSha: duplicatedFileSha,
+            fileOid: duplicatedFileSha,
             type: duplicatedFileExt === '.json' ? 'json' : '',
           },
         });
