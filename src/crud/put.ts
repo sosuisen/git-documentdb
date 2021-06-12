@@ -3,99 +3,50 @@
  * Copyright (c) Hidekazu Kubota
  *
  * This source code is licensed under the Mozilla Public License Version 2.0
- * found in the LICENSE file in the root directory of this source tree.
+ * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
 import path from 'path';
 import fs from 'fs-extra';
 import git from 'isomorphic-git';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
-import { JsonDoc, PutOptions, PutResult } from '../types';
+import { SHORT_SHA_LENGTH } from '../const';
+import { PutOptions, PutResult } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import {
   CannotCreateDirectoryError,
   CannotWriteDataError,
   DatabaseClosingError,
   DocumentNotFoundError,
-  InvalidJsonObjectError,
   RepositoryNotOpenError,
   SameIdExistsError,
   TaskCancelError,
   UndefinedDBError,
-  UndefinedDocumentIdError,
 } from '../error';
-import { toSortedJSONString } from '../utils';
 
 /**
  * Implementation of put()
+ *
+ * @throws {@link DatabaseClosingError}
+ * @throws {@link TaskCancelError}
+ *
+ * @throws {@link RepositoryNotOpenError} (from putWorker)
+ * @throws {@link CannotCreateDirectoryError} (from putWorker)
+ * @throws {@link SameIdExistsError} (from putWorker)
+ * @throws {@link DocumentNotFoundError} (from putWorker)
+ * @throws {@link CannotWriteDataError} (from putWorker)
  *
  * @internal
  */
 // eslint-disable-next-line complexity
 export function putImpl (
-  this: IDocumentDB,
-  idOrDoc: string | JsonDoc,
-  docOrOptions: { [key: string]: any } | PutOptions,
+  gitDDB: IDocumentDB,
+  fullDocPath: string,
+  data: Buffer | string,
   options?: PutOptions
-): Promise<PutResult> {
-  if (this.isClosing) {
+): Promise<Pick<PutResult, 'commitMessage' | 'commitSha' | 'fileSha'>> {
+  if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
-
-  if (this.repository() === undefined) {
-    return Promise.reject(new RepositoryNotOpenError());
-  }
-
-  let _id = '';
-  let document: JsonDoc = {};
-  if (typeof idOrDoc === 'string') {
-    _id = idOrDoc;
-    if (typeof docOrOptions === 'object') {
-      document = docOrOptions;
-    }
-    else {
-      return Promise.reject(new InvalidJsonObjectError(_id));
-    }
-  }
-  else if (typeof idOrDoc === 'object') {
-    _id = idOrDoc._id;
-    document = idOrDoc;
-    options = docOrOptions;
-
-    if (_id === undefined) {
-      return Promise.reject(new UndefinedDocumentIdError());
-    }
-  }
-  else {
-    return Promise.reject(new UndefinedDocumentIdError());
-  }
-
-  try {
-    this.validator.validateId(_id);
-  } catch (err) {
-    return Promise.reject(err);
-  }
-
-  let data = '';
-  try {
-    data = JSON.stringify(document);
-  } catch (err) {
-    // not json
-    return Promise.reject(new InvalidJsonObjectError(_id));
-  }
-
-  // Must clone doc before rewriting _id
-  const clone = JSON.parse(data);
-  // _id of JSON document in Git repository includes just a filename.
-  clone._id = path.basename(_id);
-
-  try {
-    this.validator.validateDocument(clone);
-  } catch (err) {
-    return Promise.reject(err);
-  }
-
-  data = toSortedJSONString(clone);
 
   options ??= {
     commitMessage: undefined,
@@ -105,17 +56,17 @@ export function putImpl (
   };
 
   const commitMessage =
-    options.commitMessage ?? `<%insertOrUpdate%>: ${_id}${JSON_EXT}(<%file_sha%>)`;
+    options.commitMessage ?? `<%insertOrUpdate%>: ${fullDocPath}(<%file_sha%>)`;
 
-  const taskId = options.taskId ?? this.taskQueue.newTaskId();
+  const taskId = options.taskId ?? gitDDB.taskQueue.newTaskId();
   // put() must be serial.
   return new Promise((resolve, reject) => {
-    this.taskQueue.pushToTaskQueue({
+    gitDDB.taskQueue.pushToTaskQueue({
       label: options!.insertOrUpdate === undefined ? 'put' : options!.insertOrUpdate,
       taskId: taskId,
-      targetId: _id,
+      targetId: fullDocPath,
       func: (beforeResolve, beforeReject) =>
-        putWorker(this, _id, JSON_EXT, data, commitMessage!, options!.insertOrUpdate)
+        putWorker(gitDDB, fullDocPath, data, commitMessage!, options!.insertOrUpdate)
           .then(result => {
             beforeResolve();
             resolve(result);
@@ -135,18 +86,20 @@ export function putImpl (
 /**
  * Add and commit a file
  *
+ * @throws {@link UndefinedDBError}
  * @throws {@link RepositoryNotOpenError}
  * @throws {@link CannotCreateDirectoryError}
+ * @throws {@link SameIdExistsError}
+ * @throws {@link DocumentNotFoundError}
  * @throws {@link CannotWriteDataError}
  */
 export async function putWorker (
   gitDDB: IDocumentDB,
-  name: string,
-  extension: string,
-  data: string,
+  fullDocPath: string,
+  data: Buffer | string,
   commitMessage: string,
   insertOrUpdate?: 'insert' | 'update'
-): Promise<PutResult> {
+): Promise<Pick<PutResult, 'commitMessage' | 'commitSha' | 'fileSha'>> {
   if (gitDDB === undefined) {
     throw new UndefinedDBError();
   }
@@ -158,15 +111,12 @@ export async function putWorker (
 
   let fileSha, commitSha: string;
 
-  const filename = name + extension;
-  const filePath = path.resolve(gitDDB.workingDir(), filename);
-  const dir = path.dirname(filePath);
+  const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
+  await fs.ensureDir(path.dirname(filePath)).catch((err: Error) => {
+    throw new CannotCreateDirectoryError(err.message);
+  });
 
   try {
-    await fs.ensureDir(dir).catch((err: Error) => {
-      throw new CannotCreateDirectoryError(err.message);
-    });
-    // 1. Write a file to disk
     await fs.writeFile(filePath, data);
 
     const headCommit = await git
@@ -181,7 +131,7 @@ export async function putWorker (
             fs,
             dir: gitDDB.workingDir(),
             oid: headCommit,
-            filepath: filename,
+            filepath: fullDocPath,
           })
           .catch(() => undefined);
 
@@ -194,7 +144,7 @@ export async function putWorker (
       insertOrUpdate ??= 'insert';
     }
 
-    await git.add({ fs, dir: gitDDB.workingDir(), filepath: filename });
+    await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
 
     const { oid } = await git.hashBlob({ object: data });
     fileSha = oid;
@@ -224,7 +174,6 @@ export async function putWorker (
   }
 
   return {
-    _id: name,
     fileSha,
     commitSha,
     commitMessage,

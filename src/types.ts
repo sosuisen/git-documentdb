@@ -145,9 +145,26 @@ export type JsonDoc = {
 };
 
 /**
- * Type of a document in a collection
+ * Default read method in a collection
+ *
+ * @remarks
+ * - json(default): Read JSON objects by _id whose .json extension is omitted. The _id value is, for example, 'foo', 'bar'.
+ *
+ * - file: Read files by _id which is full filename with extension. The _id value is, for example, 'foo.json', 'baz.jpg', 'README.md'.
  */
-export type CollectionType = 'json' | 'file';
+export type ReadMethod = 'json' | 'file';
+
+/**
+ * Doc type
+ *
+ * @remarks
+ * - json: JsonDoc
+ *
+ * - text: utf8 string
+ *
+ * - binary: Buffer
+ */
+export type DocType = 'json' | 'text' | 'binary';
 
 /**
  * Doc
@@ -196,18 +213,6 @@ export type BinaryDocMetadata = {
 };
 
 /**
- * DocMetadataType
- *
- * @remarks
- * - json: JsonDoc
- *
- * - text: utf8 string
- *
- * - binary: Buffer
- */
-export type DocMetadataType = 'json' | 'text' | 'binary';
-
-/**
  * CollectionPath
  *
  * @remarks CollectionPath must be paths that match the following conditions:
@@ -239,7 +244,7 @@ export type PutOptions = {
 };
 
 /**
- * Options for get-like methods.
+ * Internal options for get-like methods.
  *
  * @remarks
  * backNumber and oid are mutually exclusive options. oid has priority.
@@ -249,6 +254,13 @@ export type GetInternalOptions = {
   backNumber?: number;
   oid?: string;
   withMetadata?: boolean;
+};
+
+/**
+ * GetOptions
+ */
+export type GetOptions = {
+  forceDocType?: DocType;
 };
 
 /**

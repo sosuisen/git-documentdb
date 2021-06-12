@@ -23,7 +23,6 @@ import {
   RemoteAlreadyRegisteredError,
   RepositoryNotFoundError,
   UndefinedDatabaseNameError,
-  UndefinedDocumentIdError,
 } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -49,7 +48,7 @@ import {
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { putImpl, putWorker } from './crud/put';
-import { getByRevisionImpl, getImpl } from './crud/get';
+import { getImpl } from './crud/get';
 import { deleteImpl } from './crud/delete';
 import { allDocsImpl } from './crud/allDocs';
 import { Sync, syncAndGetResultImpl, syncImpl } from './remote/sync';
@@ -131,6 +130,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   };
 
   private _logLevel: TLogLevelName;
+
+  private _fullCollection: Collection;
 
   /**
    * Schema
@@ -218,6 +219,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     }
     this.setLogLevel(this._logLevel);
     this.taskQueue = new TaskQueue(this.getLogger());
+
+    this._fullCollection = new Collection(this);
   }
 
   /**
@@ -321,8 +324,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     // Do not use this.put() because it increments TaskQueue.statistics.put.
     await putWorker(
       this,
-      GIT_DOCUMENTDB_INFO_ID,
-      JSON_EXT,
+      GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
       toSortedJSONString(info),
       FIRST_COMMIT_MESSAGE
     );
@@ -354,8 +356,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       // Do not use this.put() because it increments TaskQueue.statistics.put.
       await putWorker(
         this,
-        GIT_DOCUMENTDB_INFO_ID,
-        JSON_EXT,
+        GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
         toSortedJSONString(info),
         SET_DATABASE_ID_MESSAGE
       );
@@ -574,205 +575,242 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Insert a document if not exists. Otherwise, update it.
+   * Insert a JSON document if not exists. Otherwise, update it.
    *
    * @remarks
-   * - put() does not check a write permission of your file system (unlike open()).
+   * - The document will be saved to `${workingDir()}/${jsonDoc._id}.json` on the file system.
    *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
-   * - A put operation is not skipped when no change occurred on a specified document.
-   *
-   * @param jsonDoc - See {@link JsonDoc} for restriction
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
    *
+   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
+   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
+   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   *
+   * @throws {@link DatabaseClosingError} (fromm putImpl)
+   * @throws {@link TaskCancelError} (from putImpl)
+   *
+   * @throws {@link UndefinedDBError} (fromm putWorker)
+   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link CannotWriteDataError} (from putWorker)
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+
   /**
-    * Insert a document if not exists. Otherwise, update it.
-    *
-    * @remarks
-    * - put() does not check a write permission of your file system (unlike open()).
-    *
-    * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
-    
-    * - A put operation is not skipped when no change occurred on a specified document.
-    *
-    * @param _id - _id property of a document
-    * @param document - This is a {@link JsonDoc}, but _id property is ignored.
-    *
-    * @throws {@link DatabaseClosingError}
-    * @throws {@link RepositoryNotOpenError}
-    * @throws {@link UndefinedDocumentIdError}
-    * @throws {@link InvalidJsonObjectError}
-    * @throws {@link CannotWriteDataError}
-    * @throws {@link CannotCreateDirectoryError}
-    * @throws {@link InvalidIdCharacterError}
-    * @throws {@link InvalidIdLengthError}
-    * 
-       */
+   * Insert a data if not exists. Otherwise, update it.
+   *
+   * @remarks
+   * - The data will be saved to `${workingDir()}/${_id}` on the file system.
+   *
+   * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
+   *
+   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
+   * @param data - {@link JsonDoc} or Buffer or string. _id property of JsonDoc is ignored.
+   *
+   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link InvalidJsonObjectError}
+   *
+   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
+   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
+   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   *
+   * @throws {@link DatabaseClosingError} (fromm putImpl)
+   * @throws {@link TaskCancelError} (from putImpl)
+   *
+   * @throws {@link UndefinedDBError} (fromm putWorker)
+   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link CannotWriteDataError} (from putWorker)
+   */
   put (
     _id: string,
-    document: { [key: string]: any },
+    data: JsonDoc | Buffer | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   put (
-    idOrDoc: string | JsonDoc,
-    docOrOptions: { [key: string]: any } | PutOptions,
+    shortIdOrDoc: string | JsonDoc,
+    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
     options?: PutOptions
-  ) {
-    return putImpl.call(this, idOrDoc, docOrOptions, options);
+  ): Promise<PutResult> {
+    return this._fullCollection.put(shortIdOrDoc, dataOrOptions, options);
   }
 
   /**
-   * Insert a document
+   * Insert a JSON document
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 1' referred to in test/insert.test.ts
    *
    * @remarks
    * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - insert() does not check a write permission of your file system (unlike open()).
+   * - The document will be saved to `${workingDir()}/${jsonDoc._id}.json` on the file system.
    *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
-   * @param jsonDoc - See {@link JsonDoc} for restriction
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   * @throws {@link SameIdExistsError}
    *
+   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
+   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
+   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   *
+   * @throws {@link DatabaseClosingError} (fromm putImpl)
+   * @throws {@link TaskCancelError} (from putImpl)
+   *
+   * @throws {@link UndefinedDBError} (fromm putWorker)
+   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @throws {@link SameIdExistsError} (from putWorker)
    */
   insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+
   /**
-   * Insert a document
+   * Insert a data
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 2' referred to in test/insert.test.ts
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a data which has the same id exists. It might be better to use put() instead of insert().
    *
-   * - insert() does not check a write permission of your file system (unlike open()).
+   * - The data will be saved to `${workingDir()}/${_id}` on the file system.
    *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * @param _id - _id property of a document
-   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
+   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
+   * @param data - {@link JsonDoc} or Buffer or string. _id property of JsonDoc is ignored.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   * @throws {@link SameIdExistsError}
    *
+   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
+   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
+   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   *
+   * @throws {@link DatabaseClosingError} (fromm putImpl)
+   * @throws {@link TaskCancelError} (from putImpl)
+   *
+   * @throws {@link UndefinedDBError} (fromm putWorker)
+   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @throws {@link SameIdExistsError} (from putWorker)
    */
   insert (
     _id: string,
-    document: { [key: string]: any },
+    data: JsonDoc | Buffer | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   insert (
-    idOrDoc: string | JsonDoc,
-    docOrOptions: { [key: string]: any } | PutOptions,
+    shortIdOrDoc: string | JsonDoc,
+    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
     options?: PutOptions
-  ) {
-    if (typeof idOrDoc === 'object') {
-      docOrOptions = { ...docOrOptions, insertOrUpdate: 'insert' };
-    }
-
-    return putImpl.call(this, idOrDoc, docOrOptions, {
-      ...options,
-      insertOrUpdate: 'insert',
-    });
+  ): Promise<PutResult> {
+    options ??= {};
+    options.insertOrUpdate = 'insert';
+    return this._fullCollection.put(shortIdOrDoc, dataOrOptions, options);
   }
 
   /**
-   * Update a document
+   * Update a JSON document
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 1' referred to in test/update.test.ts
    *
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
    *
-   * - update() does not check a write permission of your file system (unlike open()).
+   * - The document will be saved to `${workingDir()}/${jsonDoc._id}.json` on the file system.
    *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
-   *
-   * - A update operation is not skipped when no change occurred on a specified document.
+   * - A update operation is not skipped even if no change occurred on a specified document.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
+   *
+   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
+   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
+   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   *
+   * @throws {@link DatabaseClosingError} (fromm putImpl)
+   * @throws {@link TaskCancelError} (from putImpl)
+   *
+   * @throws {@link UndefinedDBError} (fromm putWorker)
+   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link CannotWriteDataError} (from putWorker)
+   *
    * @throws {@link DocumentNotFoundError}
    *
    */
   update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   /**
-   * Update a document
+   * Update a data
+   *
+   * @privateRemarks
+   *
+   * This is 'overload 2' referred to in test/put.test.ts
    *
    * @remarks
-   * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
+   * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - update() does not check a write permission of your file system (unlike open()).
+   * - The data will be saved to `${workingDir()}/${_id}` on the file system.
    *
-   * - Saved file path is `${workingDir()}/${document._id}.json`. {@link InvalidIdLengthError} will be thrown if the path length exceeds the maximum length of a filepath on the device.
+   * - A update operation is not skipped even if no change occurred on a specified data.
    *
-   * - A update operation is not skipped when no change occurred on a specified document.
-   *
-   * @param _id - _id property of a document
+   * @param id - _id property of a document
    * @param document - This is a {@link JsonDoc}, but _id property is ignored.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotWriteDataError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   * @throws {@link DocumentNotFoundError}
    *
+   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
+   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
+   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   *
+   * @throws {@link DatabaseClosingError} (fromm putImpl)
+   * @throws {@link TaskCancelError} (from putImpl)
+   *
+   * @throws {@link UndefinedDBError} (fromm putWorker)
+   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @throws {@link DocumentNotFoundError}
    */
   update (
     _id: string,
-    document: { [key: string]: any },
+    data: JsonDoc | Buffer | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   update (
-    idOrDoc: string | JsonDoc,
-    docOrOptions: { [key: string]: any } | PutOptions,
+    shortIdOrDoc: string | JsonDoc,
+    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
     options?: PutOptions
-  ) {
-    if (typeof idOrDoc === 'object') {
-      docOrOptions = { ...docOrOptions, insertOrUpdate: 'update' };
-    }
-
-    return putImpl.call(this, idOrDoc, docOrOptions, {
-      ...options,
-      insertOrUpdate: 'update',
-    });
+  ): Promise<PutResult> {
+    options ??= {};
+    options.insertOrUpdate = 'update';
+    return this._fullCollection.put(shortIdOrDoc, dataOrOptions, options);
   }
 
   /**

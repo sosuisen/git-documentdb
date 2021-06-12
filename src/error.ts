@@ -115,6 +115,14 @@ export class InvalidJsonObjectError extends BaseError {
 
 /**
  */
+export class InvalidDocumentTypeError extends BaseError {
+  constructor (id: string) {
+    super(`Invalid Document type: ${id}`);
+  }
+}
+
+/**
+ */
 export class UndefinedDocumentIdError extends BaseError {
   constructor (e = `Document id is undefined: A document must have an '_id' key`) {
     super(e);
