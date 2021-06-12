@@ -36,8 +36,10 @@ import {
   DatabaseOptions,
   DeleteOptions,
   DeleteResult,
+  Doc,
   FatDoc,
   GetOptions,
+  HistoryOptions,
   JsonDoc,
   OpenOptions,
   PutOptions,
@@ -585,7 +587,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -614,7 +615,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -658,7 +658,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -695,7 +694,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -745,7 +743,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -782,7 +779,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link InvalidPropertyNameInDocumentError} (from validateDocument)
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -814,110 +810,101 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get a document
+   * Get a JSON document or data
    *
-   * @param _id - _id of a target document
+   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
+   *
+   * @returns
+   *  - undefined if not exists.
+   *
+   *  - JsonDoc if the collection's readMethod is 'json'(default is 'json')
+   *     or the file extension is '.json'.
+   *
+   *  - Buffer or string if the collections. readMethods is 'file'.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  get (_id: string, getOptions?: GetOptions): Promise<Doc | undefined> {
+    return this._fullCollection.get(_id, getOptions);
+  }
+
+  /**
+   * Get a FatDoc
+   *
+   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
+   *
+   * @returns
+   *  - undefined if not exists.
+   *
+   *  - FatJsonDoc if the collection's readMethod is 'json'(default is 'json')
+   *     or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if the collections. readMethods is 'file'.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getFatDoc (_id: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
+    return this._fullCollection.getFatDoc(_id, getOptions);
+  }
+
+  /**
+   * Get a FatDoc which has specified oid
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getByOid (
+    _id: string,
+    fileOid: string,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined> {
+    return this._fullCollection.getByOid(_id, fileOid, getOptions);
+  }
+
+  /**
+   * Get a back number of a document
+   *
    * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned.
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
    *
-   * @returns
-   *  - JsonDoc if exists.
-   *
-   *  - undefined if not exists.
-   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   * @throws {@link CorruptedRepositoryError}
-   * @throws {@link InvalidBackNumberError}
    */
-  get (_id: string, backNumber?: number): Promise<JsonDoc | undefined> {
-    // Do not use 'get = getImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
-    return getImpl.call(this, _id, { backNumber, withMetadata: false });
-  }
-
-  /**
-   * Get a document with metadata
-   *
-   * @param _id - _id of a target document
-   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber is 0, a document in the current DB is returned.
-   * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
-   *
-   * @returns
-   *  - FatDoc if exists.
-   *
-   *  - undefined if not exists.
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidJsonObjectError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   * @throws {@link CorruptedRepositoryError}
-   * @throws {@link InvalidBackNumberError}
-   */
-  getFatDoc (_id: string, backNumber?: number): Promise<FatDoc | undefined> {
-    return (getImpl.call(this, _id, {
-      backNumber,
-      withMetadata: true,
-    }) as unknown) as Promise<FatDoc>;
-  }
-
-  /**
-   * Get a specific revision of a document
-   *
-   * @param - fileSHA SHA-1 hash of Git object (40 characters)
-   *
-   * @returns
-   *  - JsonDoc if exists.
-   *
-   *  - undefined if not exists.
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedFileSHAError}
-   * @throws {@link InvalidJsonObjectError}
-   * @throws {@link CannotGetEntryError}
-   */
-  getByRevision (fileSHA: string): Promise<JsonDoc | undefined> {
-    return getByRevisionImpl.call(this, fileSHA);
+  getBackNumber (
+    _id: string,
+    backNumber: number,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined> {
+    return this._fullCollection.getBackNumber(_id, backNumber, historyOptions, getOptions);
   }
 
   /**
    * Get revision history of a document
    *
-   * @param _id - _id of a target document
-   *
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
-   *
-   * @returns Array of FatDoc or undefined. Undefined shows the document is deleted or does not exist. An empty array shows the document does not exist in history.)
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getHistory (_id: string, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]> {
-    /**
-     * Don't use _id validator for getting because it is redundant.
-     * Getting by invalid _id is not critical compared to putting.
-     */
-    // if (_id === undefined) {
-    //  throw new UndefinedDocumentIdError();
-    // }
-    // this.validator.validateId(_id);
-    if (_id === undefined) _id = '';
-    if (getOptions === undefined) {
-      getOptions = {
-        type: undefined,
-      };
-    }
-    getOptions.type ??= 'json';
-    return getHistoryImpl.call(this, _id, getOptions.type);
+  getHistory (
+    _id: string,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<(FatDoc | undefined)[]> {
+    return this._fullCollection.getHistory(_id, historyOptions, getOptions);
   }
 
   /**

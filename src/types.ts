@@ -191,24 +191,24 @@ export type FatBinaryDoc = BinaryDocMetadata & {
  * @remarks
  * - _id: _id of a document.
  *
- * - fileSha: SHA-1 hash of Git object (40 characters)
+ * - fileOid: SHA-1 hash of Git object (40 characters)
  *
  * - type: DocMetadataType
  */
 export type DocMetadata = JsonDocMetadata | TextDocMetadata | BinaryDocMetadata;
 export type JsonDocMetadata = {
   _id: string;
-  fileSha: string;
+  fileOid: string;
   type: 'json';
 };
 export type TextDocMetadata = {
   _id: string;
-  fileSha: string;
+  fileOid: string;
   type: 'text';
 };
 export type BinaryDocMetadata = {
   _id: string;
-  fileSha: string;
+  fileOid: string;
   type: 'binary';
 };
 
@@ -258,9 +258,33 @@ export type GetInternalOptions = {
 
 /**
  * GetOptions
+ *
+ * @remarks
+ * - forceDocType: Force return type.
  */
 export type GetOptions = {
   forceDocType?: DocType;
+};
+
+/**
+ * HistoryOptions
+ */
+export type HistoryOptions = {
+  filter: HistoryFilter[];
+};
+
+/**
+ * HistoryFilter
+ */
+export type HistoryFilter = {
+  author?: {
+    name?: string;
+    email?: string;
+  };
+  committer?: {
+    name?: string;
+    email?: string;
+  };
 };
 
 /**
@@ -298,15 +322,15 @@ export type AllDocsOptions = {
  * @remarks
  * - _id: _id of a document.
  *
- * - fileSha: SHA-1 hash of Git object (40 characters)
+ * - fileOid: SHA-1 hash of Git object (40 characters)
  *
- * - commitSha: SHA-1 hash of Git commit (40 characters)
+ * - commitOid: SHA-1 hash of Git commit (40 characters)
  *
  */
 export type PutResult = {
   _id: string;
-  fileSha: string;
-  commitSha: string;
+  fileOid: string;
+  commitOid: string;
   commitMessage: string;
 };
 
@@ -316,15 +340,15 @@ export type PutResult = {
  * @remarks
  * - _id: _id of a document.
  *
- * - fileSha: SHA-1 hash of Git blob (40 characters)
+ * - fileOid: SHA-1 hash of Git blob (40 characters)
  *
- * - commitSha: SHA-1 hash of Git commit (40 characters)
+ * - commitOid: SHA-1 hash of Git commit (40 characters)
  *
  */
 export type DeleteResult = {
   _id: string;
-  fileSha: string;
-  commitSha: string;
+  fileOid: string;
+  commitOid: string;
   commitMessage: string;
 };
 
@@ -334,14 +358,14 @@ export type DeleteResult = {
  * @remarks
  * - totalRows: number of documents
  *
- * - commitSha: SHA-1 hash of the last Git commit (40 characters). 'commitSha' is undefined if totalRows equals 0.
+ * - commitOid: SHA-1 hash of the last Git commit (40 characters). 'commitOid' is undefined if totalRows equals 0.
  *
  * - rows: Array of documents. 'rows' is undefined if totalRows equals 0.
  *
  */
 export type AllDocsResult = {
   totalRows: number;
-  commitSha?: string;
+  commitOid?: string;
   rows: FatDoc[];
 };
 
@@ -613,7 +637,7 @@ export type DuplicatedFile = {
  * Normalized Commit
  */
 export type NormalizedCommit = {
-  sha: string;
+  oid: string;
   message: string;
   parent: string[];
   author: {

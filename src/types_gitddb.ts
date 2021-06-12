@@ -16,6 +16,8 @@ import {
   DatabaseOpenResult,
   DeleteOptions,
   DeleteResult,
+  Doc,
+  GetOptions,
   JsonDoc,
   OpenOptions,
   PutOptions,
@@ -36,25 +38,25 @@ export interface CRUDInterface {
   put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   put(
     _id: string,
-    document: { [key: string]: any },
+    data: JsonDoc | Buffer | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   insert(
     _id: string,
-    document: { [key: string]: any },
+    data: JsonDoc | Buffer | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   update(
     _id: string,
-    document: { [key: string]: any },
+    data: JsonDoc | Buffer | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
-  get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+  get(_id: string, getOptions?: GetOptions): Promise<Doc | undefined>;
 
   delete(_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
