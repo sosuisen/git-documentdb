@@ -51,7 +51,7 @@ afterEach(function () {
   sandbox.restore();
 });
 
-afterAll(() => {
+after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 

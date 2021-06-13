@@ -24,7 +24,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-afterAll(() => {
+after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 

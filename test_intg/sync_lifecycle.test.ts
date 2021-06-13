@@ -62,7 +62,7 @@ beforeAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-afterAll(() => {
+after(() => {
   // It may throw error due to memory leak with UnfetchedCommitExistsError
   // fs.removeSync(path.resolve(localDir));
 });

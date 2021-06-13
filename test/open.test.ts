@@ -8,6 +8,7 @@
  */
 
 import path from 'path';
+import expect from 'expect';
 import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
@@ -53,7 +54,7 @@ afterEach(function () {
   sandbox.restore();
 });
 
-afterAll(() => {
+after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -72,7 +73,7 @@ describe('<index>', () => {
       expect(() => {
         /* eslint-disable-next-line no-new */ // @ts-ignore
         new GitDocumentDB({});
-      }).toThrowError(UndefinedDatabaseNameError);
+      }).toBeInstanceOf(UndefinedDatabaseNameError);
     });
 
     it('throws InvalidWorkingDirectoryPathLengthError when tries to create a long name repository.', async () => {
@@ -104,7 +105,7 @@ describe('<index>', () => {
           dbName,
           localDir,
         });
-      }).toThrowError(InvalidWorkingDirectoryPathLengthError);
+      }).toBeInstanceOf(InvalidWorkingDirectoryPathLengthError);
     });
 
     it('throws InvalidWorkingDirectoryPathLengthError when working directory path is too long.', () => {
@@ -116,7 +117,7 @@ describe('<index>', () => {
           localDir:
             '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
         });
-      }).toThrowError(InvalidWorkingDirectoryPathLengthError);
+      }).toBeInstanceOf(InvalidWorkingDirectoryPathLengthError);
     });
   });
 
@@ -143,7 +144,7 @@ describe('<index>', () => {
         localDir: readonlyDir + 'database',
       });
       // You don't have permission
-      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
+      await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotCreateDirectoryError);
       if (process.platform !== 'win32') {
         fs.chmodSync(readonlyDir, 0o644);
       }
@@ -158,7 +159,7 @@ describe('<index>', () => {
         localDir: readonlyDir + 'database',
       });
       // You don't have permission
-      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateRepositoryError);
+      await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotCreateRepositoryError);
     });
 
     it('creates a new repository.', async () => {
@@ -218,7 +219,7 @@ describe('<index>', () => {
       dbName,
       localDir,
     });
-    await expect(gitDDB.open({ createIfNotExists: false })).rejects.toThrowError(
+    await expect(gitDDB.open({ createIfNotExists: false })).rejects.toBeInstanceOf(
       RepositoryNotFoundError
     );
   });
@@ -231,7 +232,7 @@ describe('<index>', () => {
     });
     // Create empty .git directory
     await fs.ensureDir(gitDDB.workingDir() + '/.git/');
-    await expect(gitDDB.open()).rejects.toThrowError(CannotOpenRepositoryError);
+    await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotOpenRepositoryError);
   });
 
   it('opens an existing repository.', async () => {
@@ -281,8 +282,7 @@ describe('<index>', () => {
     const creator = 'Another App';
     await putWorker(
       gitDDB,
-      GIT_DOCUMENTDB_INFO_ID,
-      JSON_EXT,
+      GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
       JSON.stringify({
         creator,
       }),
@@ -317,8 +317,7 @@ describe('<index>', () => {
     // First commit with another db version
     await putWorker(
       gitDDB,
-      GIT_DOCUMENTDB_INFO_ID,
-      JSON_EXT,
+      GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
       JSON.stringify({
         dbId: generateDatabaseId(),
         creator: DATABASE_CREATOR,
@@ -357,8 +356,7 @@ describe('<index>', () => {
     // First commit with another db version
     await putWorker(
       gitDDB,
-      GIT_DOCUMENTDB_INFO_ID,
-      JSON_EXT,
+      GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
       JSON.stringify({
         dbId: '',
         creator: DATABASE_CREATOR,

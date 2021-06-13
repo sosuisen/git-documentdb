@@ -28,7 +28,7 @@ beforeAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-afterAll(() => {
+after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 

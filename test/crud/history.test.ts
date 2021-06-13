@@ -49,7 +49,7 @@ beforeAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-afterAll(() => {
+after(() => {
   // fs.removeSync(path.resolve(localDir));
 });
 
@@ -336,7 +336,7 @@ beforeAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-afterAll(() => {
+after(() => {
   // It may throw error due to memory leak of getCommitLogs()
   // fs.removeSync(path.resolve(localDir));
 });
