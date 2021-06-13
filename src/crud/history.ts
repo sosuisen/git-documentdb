@@ -8,14 +8,7 @@
 
 import { log, readBlob, ReadBlobResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import {
-  DocType,
-  FatDoc,
-  GetOptions,
-  HistoryFilter,
-  HistoryOptions,
-  ReadMethod,
-} from '../types';
+import { DocType, FatDoc, GetOptions, HistoryFilter, HistoryOptions } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
 import { JSON_EXT } from '../const';
@@ -33,7 +26,7 @@ export async function getHistoryImpl (
   gitDDB: IDocumentDB,
   shortId: string,
   collectionPath: string,
-  readMethod: ReadMethod,
+  isJsonDocCollection: boolean,
   historyOptions?: HistoryOptions,
   options?: GetOptions
 ): Promise<(FatDoc | undefined)[]> {
@@ -50,14 +43,14 @@ export async function getHistoryImpl (
   };
 
   let fullDocPath = collectionPath + shortId;
-  if (options.forceDocType === 'json' || readMethod === 'json') {
+  if (options.forceDocType === 'json' || isJsonDocCollection) {
     if (!fullDocPath.endsWith(JSON_EXT)) {
       fullDocPath += JSON_EXT;
     }
   }
   const docType: DocType =
     options.forceDocType ??
-    (readMethod === 'json' || fullDocPath.endsWith('.json') ? 'json' : 'text');
+    (isJsonDocCollection || fullDocPath.endsWith('.json') ? 'json' : 'text');
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
