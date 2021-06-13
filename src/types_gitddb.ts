@@ -70,7 +70,11 @@ export interface CRUDInterface {
  * @internal
  */
 export interface IDocumentDB {
-  gitAuthor: {
+  author: {
+    name: string;
+    email: string;
+  };
+  committer: {
     name: string;
     email: string;
   };

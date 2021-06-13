@@ -151,14 +151,8 @@ export async function deleteWorker (
     commitOid = await git.commit({
       fs,
       dir: gitDDB.workingDir(),
-      author: {
-        name: gitDDB.gitAuthor.name,
-        email: gitDDB.gitAuthor.email,
-      },
-      committer: {
-        name: gitDDB.gitAuthor.name,
-        email: gitDDB.gitAuthor.email,
-      },
+      author: gitDDB.author,
+      committer: gitDDB.committer,
       message: commitMessage,
     });
 

@@ -7,6 +7,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 import path from 'path';
+import git from 'isomorphic-git';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { ulid } from 'ulid';
@@ -120,26 +121,14 @@ export async function combineDatabaseWithTheirs (
       const treeOid = await index.writeTree();
 
       const commitMessage = 'combine database head with theirs';
-      const author = nodegit.Signature.now(gitDDB.gitAuthor.name, gitDDB.gitAuthor.email);
-      const committer = nodegit.Signature.now(
-        gitDDB.gitAuthor.name,
-        gitDDB.gitAuthor.email
-      );
 
-      const head = await remoteRepository.getHeadCommit();
-      const parentCommits: nodegit.Commit[] = [];
-      if (head !== null) {
-        parentCommits.push(head);
-      }
-
-      await remoteRepository.createCommit(
-        'HEAD',
-        author,
-        committer,
-        commitMessage,
-        treeOid,
-        parentCommits
-      );
+      await git.commit({
+        fs,
+        dir: gitDDB.workingDir(),
+        author: gitDDB.author,
+        committer: gitDDB.committer,
+        message: commitMessage,
+      });
     }
 
     gitDDB.repository()!.cleanup();

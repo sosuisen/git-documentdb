@@ -166,8 +166,6 @@ export class Sync implements ISync {
   upstreamBranch = '';
 
   credentialCallbacks: { [key: string]: any };
-  author: nodegit.Signature;
-  committer: nodegit.Signature;
 
   /**
    * JsonDiff
@@ -240,15 +238,6 @@ export class Sync implements ISync {
     this.credentialCallbacks = createCredential(this._options);
 
     this.upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
-
-    this.author = nodegit.Signature.now(
-      this._gitDDB.gitAuthor.name,
-      this._gitDDB.gitAuthor.email
-    );
-    this.committer = nodegit.Signature.now(
-      this._gitDDB.gitAuthor.name,
-      this._gitDDB.gitAuthor.email
-    );
 
     this._checkoutOptions = new nodegit.CheckoutOptions();
     // nodegit.Checkout.STRATEGY.USE_OURS: For unmerged files, checkout stage 2 from index

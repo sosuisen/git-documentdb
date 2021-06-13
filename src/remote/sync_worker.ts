@@ -257,14 +257,8 @@ export async function syncWorker (
     const amendedNewCommitOid = await git.commit({
       fs,
       dir: gitDDB.workingDir(),
-      author: {
-        name: gitDDB.gitAuthor.name,
-        email: gitDDB.gitAuthor.email,
-      },
-      committer: {
-        name: gitDDB.gitAuthor.name,
-        email: gitDDB.gitAuthor.email,
-      },
+      author: gitDDB.author,
+      committer: gitDDB.committer,
       message: 'merge',
       parent: mergeParents,
     });
@@ -422,14 +416,8 @@ export async function syncWorker (
   const overwriteCommitOid = await git.commit({
     fs,
     dir: gitDDB.workingDir(),
-    author: {
-      name: sync.author.name(),
-      email: sync.author.email(),
-    },
-    committer: {
-      name: sync.committer.name(),
-      email: sync.committer.email(),
-    },
+    author: gitDDB.author,
+    committer: gitDDB.committer,
     parent: [
       await git.resolveRef({
         fs,

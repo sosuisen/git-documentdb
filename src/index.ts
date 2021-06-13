@@ -107,10 +107,15 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Author name and email
    */
-  readonly gitAuthor = {
+  author = {
     name: 'GitDocumentDB',
     email: 'gitddb@example.com',
-  } as const;
+  };
+
+  committer = {
+    name: 'GitDocumentDB',
+    email: 'gitddb@example.com',
+  };
 
   readonly defaultBranch = 'main';
 

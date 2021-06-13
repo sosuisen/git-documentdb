@@ -39,8 +39,6 @@ export interface ISync {
   jsonPatch: IJsonPatch;
   upstreamBranch: string;
   credentialCallbacks: { [key: string]: any };
-  author: nodegit.Signature;
-  committer: nodegit.Signature;
   remoteURL(): string;
   options(): RemoteOptions;
   tryPush(): Promise<SyncResultPush | SyncResultCancel>;
