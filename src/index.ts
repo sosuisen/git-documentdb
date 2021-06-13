@@ -27,8 +27,6 @@ import {
 import { Collection } from './collection';
 import { Validator } from './validator';
 import {
-  AllDocsOptions,
-  AllDocsResult,
   CollectionPath,
   DatabaseCloseOption,
   DatabaseInfo,
@@ -38,6 +36,7 @@ import {
   DeleteResult,
   Doc,
   FatDoc,
+  FindOptions,
   GetOptions,
   HistoryOptions,
   JsonDoc,
@@ -49,10 +48,7 @@ import {
   SyncResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
-import { putImpl, putWorker } from './crud/put';
-import { getImpl } from './crud/get';
-import { deleteImpl } from './crud/delete';
-import { allDocsImpl } from './crud/allDocs';
+import { putWorker } from './crud/put';
 import { Sync, syncAndGetResultImpl, syncImpl } from './remote/sync';
 import { TaskQueue } from './task_queue';
 import {
@@ -66,7 +62,6 @@ import {
   JSON_EXT,
   SET_DATABASE_ID_MESSAGE,
 } from './const';
-import { getHistoryImpl } from './crud/history';
 import { toSortedJSONString } from './utils';
 
 interface RepositoryInitOptions {
@@ -943,7 +938,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
   delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
-    return deleteImpl.call(this, idOrDoc, options);
+    return this._fullCollection.delete(idOrDoc, options);
   }
 
   /**
@@ -956,13 +951,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
-   *
    */
-  allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
-    // Do not use 'allDocs = allDocsImpl;' because api-extractor(TsDoc) recognizes this not as a function but a property.
-    return allDocsImpl.call(this, options);
+  find (options?: FindOptions): Promise<FatDoc[]> {
+    return this._fullCollection.find(options);
   }
 
   /**

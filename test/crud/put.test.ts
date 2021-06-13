@@ -529,7 +529,7 @@ describe('<crud/put> put(JsonDoc)', () => {
       gitDDB.put({ _id: _id_p, name: name_p }),
     ]);
 
-    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
+    await expect(gitDDB.find({ recursive: true })).resolves.toMatchObject({
       totalRows: 6,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -577,7 +577,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     }
     await expect(Promise.all(workers)).resolves.toHaveLength(100);
 
-    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
+    await expect(gitDDB.find({ recursive: true })).resolves.toMatchObject({
       totalRows: 100,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -601,7 +601,7 @@ describe('<crud/put> put(JsonDoc)', () => {
     }
     // The last put() with await keyword is resolved after all preceding (queued) Promises
     await gitDDB.put({ _id: '99', name: '99' });
-    await expect(gitDDB.allDocs()).resolves.toMatchObject({ totalRows: 100 });
+    await expect(gitDDB.find()).resolves.toMatchObject({ totalRows: 100 });
 
     await gitDDB.destroy();
   });

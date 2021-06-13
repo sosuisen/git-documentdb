@@ -10,8 +10,8 @@ import nodegit from '@sosuisen/nodegit';
 import { Logger } from 'tslog';
 import { TaskQueue } from './task_queue';
 import {
-  AllDocsOptions,
-  AllDocsResult,
+  FindOptions,
+  FindResult,
   DatabaseCloseOption,
   DatabaseOpenResult,
   DeleteOptions,
@@ -61,7 +61,7 @@ export interface CRUDInterface {
   delete(_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 
-  allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
+  find(options?: FindOptions): Promise<FindResult>;
 }
 
 /**

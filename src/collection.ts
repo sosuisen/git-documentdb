@@ -16,13 +16,12 @@ import {
   UndefinedDocumentIdError,
 } from './error';
 import {
-  AllDocsOptions,
-  AllDocsResult,
   CollectionPath,
   DeleteOptions,
   DeleteResult,
   Doc,
   FatDoc,
+  FindOptions,
   GetOptions,
   HistoryOptions,
   JsonDoc,
@@ -36,6 +35,7 @@ import { JSON_EXT } from './const';
 import { getImpl } from './crud/get';
 import { getHistoryImpl } from './crud/history';
 import { deleteImpl } from './crud/delete';
+import { findImpl } from './crud/find';
 
 /**
  * Documents are gathered together in collections.
@@ -632,6 +632,9 @@ export class Collection implements CRUDInterface {
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
   delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+
+  delete (shortIdOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+
   delete (shortIdOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
     let shortId: string;
     let fullDocPath: string;
@@ -659,32 +662,11 @@ export class Collection implements CRUDInterface {
   /**
    * Get all the documents
    *
-   * @remarks
-   *
-   * @param options - The options specify how to get documents.
-   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  async allDocs (options?: AllDocsOptions): Promise<AllDocsResult> {
-    options ??= {
-      descending: undefined,
-      recursive: undefined,
-      prefix: undefined,
-    };
-    options.prefix ??= '';
-    options.prefix = this._collectionPath + options.prefix;
-
-    const docs = await this._gitDDB.allDocs(options);
-    const reg = new RegExp('^' + this._collectionPath);
-    docs.rows?.forEach(fatDoc => {
-      fatDoc._id = fatDoc._id.replace(reg, '');
-      if (fatDoc.doc && fatDoc.type === 'json') {
-        fatDoc.doc._id = fatDoc._id;
-      }
-    });
-
-    return docs;
+  find (options?: FindOptions): Promise<FatDoc[]> {
+    return findImpl(this._gitDDB, this._collectionPath, this._isJsonDocCollection, options);
   }
 }

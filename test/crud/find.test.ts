@@ -18,7 +18,7 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const localDir = `./test/database_allDocs`;
+const localDir = `./test/database_find`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -33,7 +33,7 @@ afterAll(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<crud/allDocs> allDocs()', () => {
+describe('<crud/find> find()', () => {
   const _id_1 = '1';
   const name_1 = 'one';
   const _id_a = 'apple';
@@ -72,7 +72,7 @@ describe('<crud/allDocs> allDocs()', () => {
     });
     await gitDDB.open();
 
-    await expect(gitDDB.allDocs()).resolves.toMatchObject({
+    await expect(gitDDB.find()).resolves.toMatchObject({
       totalRows: 0,
       commitOid: /^.+$/,
       rows: [],
@@ -89,11 +89,11 @@ describe('<crud/allDocs> allDocs()', () => {
       localDir,
     });
 
-    await expect(gitDDB.allDocs()).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB.find()).rejects.toThrowError(RepositoryNotOpenError);
 
     await gitDDB.open();
 
-    await expect(gitDDB.allDocs()).resolves.toStrictEqual({
+    await expect(gitDDB.find()).resolves.toStrictEqual({
       totalRows: 0,
       rows: [],
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -104,7 +104,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.put({ _id: _id_1, name: name_1 });
     await gitDDB.put({ _id: _id_c, name: name_c });
 
-    await expect(gitDDB.allDocs({ includeDocs: false })).resolves.toMatchObject({
+    await expect(gitDDB.find({ includeDocs: false })).resolves.toMatchObject({
       totalRows: 4,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -144,7 +144,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.put({ _id: _id_c, name: name_c });
 
     await expect(
-      gitDDB.allDocs({ descending: true, includeDocs: false })
+      gitDDB.find({ descending: true, includeDocs: false })
     ).resolves.toMatchObject({
       totalRows: 3,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -179,7 +179,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.put({ _id: _id_b, name: name_b });
     await gitDDB.put({ _id: _id_a, name: name_a });
 
-    await expect(gitDDB.allDocs({ includeDocs: true })).resolves.toMatchObject({
+    await expect(gitDDB.find({ includeDocs: true })).resolves.toMatchObject({
       totalRows: 2,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -219,7 +219,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.put({ _id: _id_c01, name: name_c01 });
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
-    await expect(gitDDB.allDocs({ includeDocs: true })).resolves.toMatchObject({
+    await expect(gitDDB.find({ includeDocs: true })).resolves.toMatchObject({
       totalRows: 5,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       rows: [
@@ -285,7 +285,7 @@ describe('<crud/allDocs> allDocs()', () => {
     await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
     await expect(
-      gitDDB.allDocs({ includeDocs: true, recursive: false })
+      gitDDB.find({ includeDocs: true, recursive: false })
     ).resolves.toMatchObject({
       totalRows: 2,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -331,7 +331,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
       const prefix = 'citrus/';
 
-      await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
+      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 2,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
@@ -376,7 +376,7 @@ describe('<crud/allDocs> allDocs()', () => {
       const prefix = 'cit';
 
       await expect(
-        gitDDB.allDocs({ prefix, includeDocs: true, recursive: false })
+        gitDDB.find({ prefix, includeDocs: true, recursive: false })
       ).resolves.toMatchObject({
         totalRows: 2,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -421,7 +421,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
       const prefix = 'citrus';
 
-      await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
+      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 4,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
@@ -481,7 +481,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
       const prefix = 'citrus/y';
 
-      await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
+      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 1,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
@@ -517,7 +517,7 @@ describe('<crud/allDocs> allDocs()', () => {
 
       const prefix = 'not_exist/';
 
-      await expect(gitDDB.allDocs({ prefix, includeDocs: true })).resolves.toMatchObject({
+      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
         totalRows: 0,
         rows: [],
         commitOid: expect.stringMatching(/^[\da-z]{40}/),
@@ -545,7 +545,7 @@ describe('<crud/allDocs> allDocs()', () => {
       await gitDDB.put({ _id: _id_c02, name: name_c02 });
 
       await expect(
-        gitDDB.allDocs({ prefix: 'pear/Japan', includeDocs: true })
+        gitDDB.find({ prefix: 'pear/Japan', includeDocs: true })
       ).resolves.toMatchObject({
         totalRows: 1,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -562,7 +562,7 @@ describe('<crud/allDocs> allDocs()', () => {
       });
 
       await expect(
-        gitDDB.allDocs({ prefix: 'pear', includeDocs: true })
+        gitDDB.find({ prefix: 'pear', includeDocs: true })
       ).resolves.toMatchObject({
         totalRows: 1,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -648,7 +648,7 @@ describe('<crud/allDocs> allDocs()', () => {
         console.error(e);
       }
 
-      await expect(gitDDB.allDocs({ includeDocs: true })).rejects.toThrowError(
+      await expect(gitDDB.find({ includeDocs: true })).rejects.toThrowError(
         InvalidJsonObjectError
       );
     }

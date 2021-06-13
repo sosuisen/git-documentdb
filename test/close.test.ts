@@ -56,7 +56,7 @@ describe('<close> GitDocumentDB#close()', () => {
 
     await gitDDB.open();
 
-    await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
+    await expect(gitDDB.find({ recursive: true })).resolves.toMatchObject({
       totalRows: 50,
       commitOid: expect.stringMatching(/^[\da-z]{40}$/),
     });
@@ -82,7 +82,7 @@ describe('<close> GitDocumentDB#close()', () => {
 
     await gitDDB.open();
     // totalRows is less than 100
-    await expect(gitDDB.allDocs({ recursive: true })).resolves.not.toMatchObject({
+    await expect(gitDDB.find({ recursive: true })).resolves.not.toMatchObject({
       totalRows: 100,
     });
 
@@ -162,7 +162,7 @@ describe('<close> GitDocumentDB#close()', () => {
     await gitDDB.open();
 
     // totalRows is less than 100
-    await expect(gitDDB.allDocs({ recursive: true })).resolves.not.toMatchObject({
+    await expect(gitDDB.find({ recursive: true })).resolves.not.toMatchObject({
       totalRows: 100,
     });
 
@@ -192,7 +192,7 @@ describe('<close> GitDocumentDB#close()', () => {
     await expect(gitDDB.delete(_id)).rejects.toThrowError(DatabaseClosingError);
     await expect(gitDDB.close()).rejects.toThrowError(DatabaseClosingError);
     await expect(gitDDB.destroy()).rejects.toThrowError(DatabaseClosingError);
-    await expect(gitDDB.allDocs()).rejects.toThrowError(DatabaseClosingError);
+    await expect(gitDDB.find()).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop

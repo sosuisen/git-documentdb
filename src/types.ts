@@ -290,20 +290,22 @@ export type DeleteOptions = {
 };
 
 /**
- * Options for allDocs()
+ * Options for find()
  *
  * @remarks
- * - descending: Sort results in rows by descendant. Default is false (ascendant).
+ * - descending: Sort _id by descendant. Default is false (ascendant).
  *
  * - recursive: Get documents recursively from all sub directories. Default is true.
  *
- * - prefix: Get documents whose IDs start with the prefix.
+ * - prefix: Get documents whose _ids start with the prefix.
  *
+ * - forceDocType: Force return type.
  */
-export type AllDocsOptions = {
+export type FindOptions = {
   descending?: boolean;
   recursive?: boolean;
   prefix?: string;
+  forceDocType?: DocType;
 };
 
 /**
@@ -340,23 +342,6 @@ export type DeleteResult = {
   fileOid: string;
   commitOid: string;
   commitMessage: string;
-};
-
-/**
- * Result of allDocs()
- *
- * @remarks
- * - totalRows: number of documents
- *
- * - commitOid: SHA-1 hash of the last Git commit (40 characters). 'commitOid' is undefined if totalRows equals 0.
- *
- * - rows: Array of documents. 'rows' is undefined if totalRows equals 0.
- *
- */
-export type AllDocsResult = {
-  totalRows: number;
-  commitOid?: string;
-  rows: FatDoc[];
 };
 
 /**

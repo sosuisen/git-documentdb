@@ -669,7 +669,7 @@ describe('<collection>', () => {
     });
   });
 
-  describe('allDocs()', () => {
+  describe('find()', () => {
     const _id_a = 'apple';
     const name_a = 'Apple woman';
     const _id_b = 'banana';
@@ -692,11 +692,11 @@ describe('<collection>', () => {
         localDir,
       });
 
-      await expect(gitDDB.allDocs()).rejects.toThrowError(RepositoryNotOpenError);
+      await expect(gitDDB.find()).rejects.toThrowError(RepositoryNotOpenError);
 
       await gitDDB.open();
       const users = gitDDB.collection('users');
-      await expect(users.allDocs()).resolves.toMatchObject({
+      await expect(users.find()).resolves.toMatchObject({
         totalRows: 0,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
       });
@@ -704,7 +704,7 @@ describe('<collection>', () => {
       await users.put({ _id: _id_b, name: name_b });
       await users.put({ _id: _id_a, name: name_a });
 
-      await expect(users.allDocs()).resolves.toMatchObject({
+      await expect(users.find()).resolves.toMatchObject({
         totalRows: 2,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
@@ -739,7 +739,7 @@ describe('<collection>', () => {
       await users.put({ _id: _id_c01, name: name_c01 });
       await users.put({ _id: _id_c02, name: name_c02 });
 
-      await expect(users.allDocs({ prefix: 'pear/Japan' })).resolves.toMatchObject({
+      await expect(users.find({ prefix: 'pear/Japan' })).resolves.toMatchObject({
         totalRows: 1,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [

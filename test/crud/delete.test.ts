@@ -188,7 +188,7 @@ describe('<crud/delete>', () => {
         gitDDB.delete(_id_d),
       ]);
 
-      await expect(gitDDB.allDocs({ recursive: true })).resolves.toMatchObject({
+      await expect(gitDDB.find({ recursive: true })).resolves.toMatchObject({
         totalRows: 1,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         rows: [
