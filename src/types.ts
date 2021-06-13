@@ -270,7 +270,7 @@ export type GetOptions = {
  * HistoryOptions
  */
 export type HistoryOptions = {
-  filter: HistoryFilter[];
+  filter?: HistoryFilter[];
 };
 
 /**

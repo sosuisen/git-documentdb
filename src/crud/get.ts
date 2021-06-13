@@ -86,7 +86,8 @@ export async function getImpl (
     readBlobResult = await readOldBlob(
       gitDDB.workingDir(),
       fullDocPath,
-      internalOptions.backNumber
+      internalOptions.backNumber,
+      historyOptions
     );
   }
   else {

@@ -8,7 +8,14 @@
 
 import { log, readBlob, ReadBlobResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { DocType, FatDoc, GetOptions, HistoryOptions, ReadMethod } from '../types';
+import {
+  DocType,
+  FatDoc,
+  GetOptions,
+  HistoryFilter,
+  HistoryOptions,
+  ReadMethod,
+} from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
 import { JSON_EXT } from '../const';
@@ -65,8 +72,8 @@ export async function getHistoryImpl (
 
   let prevOid: string | undefined = '';
 
-  for (let i = 0; i < commits.length; i++) {
-    const commitOid = commits[i].oid;
+  for (const commit of commits) {
+    const commitOid = commit.oid;
     // eslint-disable-next-line no-await-in-loop
     const readBlobResult = await readBlob({
       fs,
@@ -79,17 +86,26 @@ export async function getHistoryImpl (
     if (prevOid !== oid) {
       prevOid = oid;
 
-      if (readBlobResult === undefined) {
-        docArray.push(undefined);
-      }
-      else if (docType === 'json') {
-        docArray.push(blobToJsonDoc(shortId, readBlobResult, true) as FatDoc);
-      }
-      else if (docType === 'text') {
-        docArray.push(blobToText(shortId, readBlobResult, true) as FatDoc);
-      }
-      else if (docType === 'binary') {
-        docArray.push(blobToBinary(shortId, readBlobResult, true) as FatDoc);
+      if (
+        historyOptions?.filter === undefined ||
+        matchHistoryFilter(
+          commit.commit.author,
+          commit.commit.committer,
+          historyOptions.filter
+        )
+      ) {
+        if (readBlobResult === undefined) {
+          docArray.push(undefined);
+        }
+        else if (docType === 'json') {
+          docArray.push(blobToJsonDoc(shortId, readBlobResult, true) as FatDoc);
+        }
+        else if (docType === 'text') {
+          docArray.push(blobToText(shortId, readBlobResult, true) as FatDoc);
+        }
+        else if (docType === 'binary') {
+          docArray.push(blobToBinary(shortId, readBlobResult, true) as FatDoc);
+        }
       }
     }
   }
@@ -107,11 +123,12 @@ export async function getHistoryImpl (
 export async function readOldBlob (
   workingDir: string,
   fullDocPath: string,
-  backNumber: number
+  backNumber: number,
+  historyOptions: HistoryOptions
 ) {
   let readBlobResult: ReadBlobResult | undefined;
   let prevSHA: string | undefined = '';
-  let oidCounter = 0;
+  let oidCounter = -1;
 
   const commits = await log({
     fs,
@@ -119,8 +136,8 @@ export async function readOldBlob (
     ref: 'main',
   });
 
-  for (let i = 0; i < commits.length; i++) {
-    const commitOid = commits[i].oid;
+  for (const commit of commits) {
+    const commitOid = commit.oid;
 
     // eslint-disable-next-line no-await-in-loop
     readBlobResult = await readBlob({
@@ -130,16 +147,45 @@ export async function readOldBlob (
       filepath: fullDocPath,
     }).catch(() => undefined);
 
-    if (oidCounter >= backNumber) {
-      // console.log(entry.oid());
-      break;
-    }
     const oid = readBlobResult === undefined ? undefined : readBlobResult.oid;
     // Skip consecutive same SHAs
     if (prevSHA !== oid) {
       prevSHA = oid;
-      oidCounter++;
+
+      if (
+        historyOptions?.filter === undefined ||
+        matchHistoryFilter(
+          commit.commit.author,
+          commit.commit.committer,
+          historyOptions.filter
+        )
+      ) {
+        oidCounter++;
+      }
+    }
+    if (oidCounter >= backNumber) {
+      break;
     }
   }
   return readBlobResult;
+}
+
+/**
+ * matchHistoryFilter
+ */
+function matchHistoryFilter (
+  author: { name: string; email: string },
+  committer: { name: string; email: string },
+  historyFilter: HistoryFilter[]
+) {
+  for (const filter of historyFilter) {
+    if (
+      (filter.author?.name && filter.author.name !== author.name) ||
+      (filter.author?.email && filter.author.email !== author.email) ||
+      (filter.committer?.name && filter.committer.name !== committer.name) ||
+      (filter.committer?.email && filter.committer.name !== committer.email)
+    )
+      return false;
+  }
+  return true;
 }
