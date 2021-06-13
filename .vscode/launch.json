@@ -15,10 +15,6 @@
           "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
           "preLaunchTask": "Compile tests",
           "args": [
-            "--require",
-            "mocha-ui-jest",
-            "--ui",
-            "jest",
             "--reporter",
             "list",
             "--parallel",

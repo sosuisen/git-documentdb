@@ -1,6 +1,5 @@
 {
-  "require": ["mocha-ui-jest", "ts-node/register"],
-  "ui": "jest",
+  "require": ["ts-node/register"],
   "reporter": "list",
   "parallel": true,
   "retries": 3,
