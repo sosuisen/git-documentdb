@@ -29,6 +29,7 @@ import {
  * @throws {@link DatabaseClosingError}
  * @throws {@link TaskCancelError}
  *
+ * @throws {@link UndefinedDBError} (from putWorker)
  * @throws {@link RepositoryNotOpenError} (from putWorker)
  * @throws {@link CannotCreateDirectoryError} (from putWorker)
  * @throws {@link SameIdExistsError} (from putWorker)

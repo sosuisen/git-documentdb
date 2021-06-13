@@ -124,7 +124,7 @@ export async function readOldBlob (
   workingDir: string,
   fullDocPath: string,
   backNumber: number,
-  historyOptions: HistoryOptions
+  historyOptions?: HistoryOptions
 ) {
   let readBlobResult: ReadBlobResult | undefined;
   let prevSHA: string | undefined = '';

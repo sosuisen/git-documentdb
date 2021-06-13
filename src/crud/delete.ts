@@ -3,13 +3,13 @@
  * Copyright (c) Hidekazu Kubota
  *
  * This source code is licensed under the Mozilla Public License Version 2.0
- * found in the LICENSE file in the root directory of this source tree.
+ * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
 import path from 'path';
 import fs from 'fs-extra';
-import git from 'isomorphic-git';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
+import { commit, readBlob, remove, resolveRef } from 'isomorphic-git';
+import { SHORT_SHA_LENGTH } from '../const';
 import { IDocumentDB } from '../types_gitddb';
 import {
   CannotDeleteDataError,
@@ -18,43 +18,29 @@ import {
   RepositoryNotOpenError,
   TaskCancelError,
   UndefinedDBError,
-  UndefinedDocumentIdError,
 } from '../error';
-import { DeleteOptions, DeleteResult, JsonDoc } from '../types';
+import { DeleteOptions, DeleteResult } from '../types';
 
 /**
  * Implementation of delete()
  *
+ * @throws {@link DatabaseClosingError}
+ * @throws {@link TaskCancelError}
+ *
+ * @throws {@link UndefinedDBError} (from deleteWorker)
+ * @throws {@link RepositoryNotOpenError} (deleteWorker)
+ * @throws {@link DocumentNotFoundError} (from deleteWorker)
+ * @throws {@link CannotDeleteDataError} (from deleteWorker)
+ *
  * @internal
  */
 export function deleteImpl (
-  this: IDocumentDB,
-  idOrDoc: string | JsonDoc,
+  gitDDB: IDocumentDB,
+  fullDocPath: string,
   options?: DeleteOptions
-): Promise<DeleteResult> {
-  let _id: string;
-  if (typeof idOrDoc === 'string') {
-    _id = idOrDoc;
-  }
-  else if (idOrDoc?._id) {
-    _id = idOrDoc._id;
-  }
-  else {
-    return Promise.reject(new UndefinedDocumentIdError());
-  }
-
-  if (this.isClosing) {
+): Promise<Pick<DeleteResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
+  if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
-  }
-
-  if (this.repository() === undefined) {
-    return Promise.reject(new RepositoryNotOpenError());
-  }
-
-  try {
-    this.validator.validateId(_id);
-  } catch (err) {
-    return Promise.reject(err);
   }
 
   options ??= {
@@ -62,18 +48,18 @@ export function deleteImpl (
     taskId: undefined,
     enqueueCallback: undefined,
   };
-  const commitMessage = options.commitMessage ?? `delete: ${_id}${JSON_EXT}(<%file_oid%>)`;
+  const commitMessage = options.commitMessage ?? `delete: ${fullDocPath}(<%file_oid%>)`;
 
-  const taskId = options.taskId ?? this.taskQueue.newTaskId();
+  const taskId = options.taskId ?? gitDDB.taskQueue.newTaskId();
   // delete() must be serial.
   return new Promise((resolve, reject) => {
-    this.taskQueue.pushToTaskQueue({
+    gitDDB.taskQueue.pushToTaskQueue({
       label: 'delete',
       taskId: taskId,
-      targetId: _id,
+      targetId: fullDocPath,
       func: (beforeResolve, beforeReject) =>
-        deleteWorker(this, _id, JSON_EXT, commitMessage!)
-          .then((result: DeleteResult) => {
+        deleteWorker(gitDDB, fullDocPath, commitMessage!)
+          .then(result => {
             beforeResolve();
             resolve(result);
           })
@@ -92,16 +78,16 @@ export function deleteImpl (
 /**
  * Remove and commit a file
  *
+ * @throws {@link UndefinedDBError}
  * @throws {@link RepositoryNotOpenError}
  * @throws {@link DocumentNotFoundError}
  * @throws {@link CannotDeleteDataError}
  */
 export async function deleteWorker (
   gitDDB: IDocumentDB,
-  _id: string,
-  extension: string,
+  fullDocPath: string,
   commitMessage: string
-): Promise<DeleteResult> {
+): Promise<Pick<DeleteResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
   if (gitDDB === undefined) {
     return Promise.reject(new UndefinedDBError());
   }
@@ -112,34 +98,24 @@ export async function deleteWorker (
     return Promise.reject(new RepositoryNotOpenError());
   }
 
-  if (_id === undefined || _id === '') {
+  if (fullDocPath === undefined || fullDocPath === '') {
     return Promise.reject(new DocumentNotFoundError());
   }
 
   let commitOid: string;
-  const filename = _id + extension;
-  const filePath = path.resolve(gitDDB.workingDir(), filename);
+  const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
 
-  let index;
-
-  const headCommit = await git
-    .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' })
-    .catch(() => undefined);
-  if (headCommit === undefined) {
+  const headCommit = await resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+  const { oid } = await readBlob({
+    fs,
+    dir: gitDDB.workingDir(),
+    oid: headCommit,
+    filepath: fullDocPath,
+  }).catch(() => {
     return Promise.reject(new DocumentNotFoundError());
-  }
-  const { oid } = await git
-    .readBlob({
-      fs,
-      dir: gitDDB.workingDir(),
-      oid: headCommit,
-      filepath: filename,
-    })
-    .catch(() => {
-      return Promise.reject(new DocumentNotFoundError());
-    });
+  });
   const fileOid = oid;
-  await git.remove({ fs, dir: gitDDB.workingDir(), filepath: filename });
+  await remove({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
 
   commitMessage = commitMessage.replace(
     /<%file_oid%>/,
@@ -148,7 +124,7 @@ export async function deleteWorker (
 
   try {
     // Default ref is HEAD
-    commitOid = await git.commit({
+    commitOid = await commit({
       fs,
       dir: gitDDB.workingDir(),
       author: gitDDB.author,
@@ -159,7 +135,7 @@ export async function deleteWorker (
     await fs.remove(filePath);
 
     // remove parent directory recursively if empty
-    const dirname = path.dirname(filename);
+    const dirname = path.dirname(fullDocPath);
     const dirs = dirname.split(/[/\\¥]/);
     for (let i = 0; i < dirs.length; i++) {
       const dirpath =
@@ -176,7 +152,6 @@ export async function deleteWorker (
   }
 
   return {
-    _id,
     fileOid,
     commitOid,
     commitMessage,

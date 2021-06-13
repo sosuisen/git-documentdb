@@ -28,7 +28,6 @@ import {
   JsonDoc,
   PutOptions,
   PutResult,
-  ReadMethod,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { Validator } from './validator';
@@ -36,6 +35,7 @@ import { toSortedJSONString } from './utils';
 import { JSON_EXT } from './const';
 import { getImpl } from './crud/get';
 import { getHistoryImpl } from './crud/history';
+import { deleteImpl } from './crud/delete';
 
 /**
  * Documents are gathered together in collections.
@@ -58,22 +58,33 @@ import { getHistoryImpl } from './crud/history';
  */
 export class Collection implements CRUDInterface {
   private _collectionPath: CollectionPath = '';
-  private _readMethod: ReadMethod;
+
   private _gitDDB: CRUDInterface & IDocumentDB;
 
+  private _isJsonDocCollection: boolean;
+
   /**
+   * @param isJsonDocCollection - (true) The collection manages only JsonDoc. (false) The collection manages any file types.
+   *
+   * @remarks
+   * - If isJsonDocCollection is true, JsonDoc id default type. There is no '.json' at the end of _id. e.g.) _id is 'foo', 'bar'.
+   *
+   * - If isJsonDocCollection is false, any file types are available. _id param must be a full filename if it has an extension. e.g) _id is 'foo.json', 'baz.jpg', 'README.md'.
+   *
+   * - Be careful that _id in JsonDoc does not always have trailing '.json'.
+   *
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
   constructor (
     gitDDB: CRUDInterface & IDocumentDB,
     collectionPath?: CollectionPath,
-    readMethod: ReadMethod = 'json'
+    isJsonDocCollection = true
   ) {
     this._gitDDB = gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
     this._gitDDB.validator.validateCollectionPath(this._collectionPath);
-    this._readMethod = readMethod;
+    this._isJsonDocCollection = isJsonDocCollection;
   }
 
   /**
@@ -128,17 +139,17 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get readMethod
+   * isJsonDocCollection
    */
-  readMethod () {
-    return this._readMethod;
+  isJsonDocCollection () {
+    return this._isJsonDocCollection;
   }
 
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
    * @remarks
-   * - The document will be saved to `${workingDir()}/${jsonDoc._id}.json` on the file system.
+   * - The saved file path is `${workingDir()}/${jsonDoc._id}.json`.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
@@ -163,12 +174,14 @@ export class Collection implements CRUDInterface {
    * Insert a data if not exists. Otherwise, update it.
    *
    * @remarks
-   * - The data will be saved to `${workingDir()}/${_id}` on the file system.
+   * - The saved file path is `${workingDir()}/${_id}`. If data is JsonDoc, trailing '.json' is added to the file path.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
-   * @param data - {@link JsonDoc} or Buffer or string. _id property of JsonDoc is ignored.
+   * - This overload method always accept JsonDoc, Buffer and string regardless of isJsonDocCollection.
+   *
+   * @param _id
+   * @param data - {@link JsonDoc} or Buffer or string.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -246,11 +259,7 @@ export class Collection implements CRUDInterface {
       }
     }
     else {
-      if (shortId === undefined) {
-        return Promise.reject(new UndefinedDocumentIdError());
-      }
       this._gitDDB.validator.validateId(shortId);
-
       bufferOrString = data;
     }
 
@@ -270,7 +279,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The document will be saved to `${workingDir()}/${jsonDoc._id}.json` on the file system.
+   * - The saved file path is `${workingDir()}/${jsonDoc._id}.json`.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
@@ -303,12 +312,14 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a data which has the same id exists. It might be better to use put() instead of insert().
    *
-   * - The data will be saved to `${workingDir()}/${_id}` on the file system.
+   * - The saved file path is `${workingDir()}/${_id}`. If data is JsonDoc, trailing '.json' is added to the file path.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
+   * - This overload method always accept JsonDoc, Buffer and string regardless of isJsonDocCollection.
+   *
    * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
-   * @param data - {@link JsonDoc} or Buffer or string. _id property of JsonDoc is ignored.
+   * @param data - {@link JsonDoc} or Buffer or string.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -353,7 +364,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
    *
-   * - The document will be saved to `${workingDir()}/${jsonDoc._id}.json` on the file system.
+   * - The saved file path is `${workingDir()}/${jsonDoc._id}.json`.
    *
    * - A update operation is not skipped even if no change occurred on a specified document.
    *
@@ -388,12 +399,14 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The data will be saved to `${workingDir()}/${_id}` on the file system.
+   * - The saved file path is `${workingDir()}/${_id}`. If data is JsonDoc, trailing '.json' is added to the file path.
    *
    * - A update operation is not skipped even if no change occurred on a specified data.
    *
+   * - This overload method always accept JsonDoc, Buffer and string regardless of isJsonDocCollection.
+   *
    * @param id - _id property of a document
-   * @param document - This is a {@link JsonDoc}, but _id property is ignored.
+   * @param data - {@link JsonDoc} or Buffer or string.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -431,15 +444,12 @@ export class Collection implements CRUDInterface {
   /**
    * Get a JSON document or data
    *
-   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
-   *
    * @returns
    *  - undefined if not exists.
    *
-   *  - JsonDoc if the collection's readMethod is 'json'(default is 'json')
-   *     or the file extension is '.json'.
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
    *
-   *  - Buffer or string if the collections. readMethods is 'file'.
+   *  - Buffer or string if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
@@ -448,21 +458,24 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   get (_id: string, getOptions?: GetOptions): Promise<Doc | undefined> {
-    return getImpl(this._gitDDB, _id, this._collectionPath, this._readMethod, getOptions);
+    return getImpl(
+      this._gitDDB,
+      _id,
+      this._collectionPath,
+      this.isJsonDocCollection(),
+      getOptions
+    );
   }
 
   /**
    * Get a FatDoc
    *
-   * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
-   *
    * @returns
    *  - undefined if not exists.
    *
-   *  - FatJsonDoc if the collection's readMethod is 'json'(default is 'json')
-   *     or the file extension is '.json'.
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
    *
-   *  - FatBinaryDoc or FatTextDoc if the collections. readMethods is 'file'.
+   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
@@ -471,13 +484,29 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   getFatDoc (_id: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
-    return getImpl(this._gitDDB, _id, this._collectionPath, this._readMethod, getOptions, {
-      withMetadata: true,
-    }) as Promise<FatDoc | undefined>;
+    return getImpl(
+      this._gitDDB,
+      _id,
+      this._collectionPath,
+      this.isJsonDocCollection(),
+      getOptions,
+      {
+        withMetadata: true,
+      }
+    ) as Promise<FatDoc | undefined>;
   }
 
   /**
    * Get a FatDoc which has specified oid
+   *
+   * @remarks
+   *  - undefined if not exists.
+   *
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -488,10 +517,17 @@ export class Collection implements CRUDInterface {
     fileOid: string,
     getOptions?: GetOptions
   ): Promise<FatDoc | undefined> {
-    return getImpl(this._gitDDB, _id, this._collectionPath, this._readMethod, getOptions, {
-      withMetadata: true,
-      oid: fileOid,
-    }) as Promise<FatDoc | undefined>;
+    return getImpl(
+      this._gitDDB,
+      _id,
+      this._collectionPath,
+      this.isJsonDocCollection(),
+      getOptions,
+      {
+        withMetadata: true,
+        oid: fileOid,
+      }
+    ) as Promise<FatDoc | undefined>;
   }
 
   /**
@@ -499,6 +535,15 @@ export class Collection implements CRUDInterface {
    *
    * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned.
    * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
+   *
+   * @remarks
+   *  - undefined if the document does not exists or the document is deleted.
+   *
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -514,7 +559,7 @@ export class Collection implements CRUDInterface {
       this._gitDDB,
       _id,
       this._collectionPath,
-      this._readMethod,
+      this.isJsonDocCollection(),
       getOptions,
       {
         withMetadata: true,
@@ -530,6 +575,15 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
+   *  @returns Array of FatDoc or undefined.
+   *  - undefined if the document does not exists or the document is deleted.
+   *
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
@@ -543,87 +597,63 @@ export class Collection implements CRUDInterface {
       this._gitDDB,
       _id,
       this._collectionPath,
-      this._readMethod,
+      this.isJsonDocCollection(),
       historyOptions,
       getOptions
     );
   }
 
   /**
-   * This is an alias of delete()
-   */
-  remove (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
-  /**
-   * This is an alias of delete()
-   */
-  remove (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
-  remove (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
-    if (typeof idOrDoc === 'string') {
-      return this.delete(idOrDoc, options);
-    }
-    else if (typeof idOrDoc === 'object') {
-      return this.delete(idOrDoc, options);
-    }
-    return Promise.reject(new UndefinedDocumentIdError());
-  }
-
-  /**
    * Delete a document
    *
-   * @param _id - _id of a target document
-   *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
-   * @throws {@link CannotDeleteDataError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError} (from deleteImpl, deleteWorker)
+   * @throws {@link TaskCancelError}
+   *
+   * @throws {@link UndefinedDBError} (from deleteWorker)
+   * @throws {@link DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
   delete (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
+
   /**
-   * Remove a document
+   * Delete a document by _id property in JsonDoc
    *
-   * @param jsonDoc - Target document
+   * @param jsonDoc - Only the _id property in JsonDoc is referenced.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
-   * @throws {@link CannotDeleteDataError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError} (from deleteImpl, deleteWorker)
+   * @throws {@link TaskCancelError}
+   *
+   * @throws {@link UndefinedDBError} (from deleteWorker)
+   * @throws {@link DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
   delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
-  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
-    if (typeof idOrDoc === 'string') {
-      const orgId = idOrDoc;
-      const _id = this._collectionPath + orgId;
-      return this._gitDDB.delete(_id, options).then(res => {
-        res._id = orgId;
-        return res;
-      });
-    }
-    else if (typeof idOrDoc === 'object') {
-      if (idOrDoc._id) {
-        const orgId = idOrDoc._id;
-        const _id = this._collectionPath + orgId;
-        return this._gitDDB
-          .delete(_id, options)
-          .then(res => {
-            res._id = orgId;
-            return res;
-          })
-          .finally(() => {
-            idOrDoc._id = orgId;
-          });
+  delete (shortIdOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
+    let shortId: string;
+    let fullDocPath: string;
+    if (typeof shortIdOrDoc === 'string') {
+      shortId = shortIdOrDoc;
+      fullDocPath = this._collectionPath + shortId;
+      if (this.isJsonDocCollection()) {
+        fullDocPath += JSON_EXT;
       }
     }
-    return Promise.reject(new UndefinedDocumentIdError());
+    else if (shortIdOrDoc._id) {
+      shortId = shortIdOrDoc._id;
+      fullDocPath = this._collectionPath + shortId;
+    }
+    else {
+      return Promise.reject(new UndefinedDocumentIdError());
+    }
+
+    return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {
+      const deleteResult = { ...res, _id: shortId };
+      return deleteResult;
+    });
   }
 
   /**

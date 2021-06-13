@@ -145,16 +145,6 @@ export type JsonDoc = {
 };
 
 /**
- * Default read method in a collection
- *
- * @remarks
- * - json(default): Read JSON objects by _id whose .json extension is omitted. The _id value is, for example, 'foo', 'bar'.
- *
- * - file: Read files by _id which is full filename with extension. The _id value is, for example, 'foo.json', 'baz.jpg', 'README.md'.
- */
-export type ReadMethod = 'json' | 'file';
-
-/**
  * Doc type
  *
  * @remarks

@@ -17,7 +17,6 @@ import {
   GetInternalOptions,
   GetOptions,
   HistoryOptions,
-  ReadMethod,
 } from '../types';
 import {
   blobToBinary,
@@ -40,7 +39,7 @@ export async function getImpl (
   gitDDB: IDocumentDB,
   shortId: string,
   collectionPath: string,
-  readMethod: ReadMethod,
+  isJsonCollection: boolean,
   options?: GetOptions,
   internalOptions?: GetInternalOptions,
   historyOptions?: HistoryOptions
@@ -67,7 +66,7 @@ export async function getImpl (
   internalOptions.oid ??= '';
 
   let fullDocPath = collectionPath + shortId;
-  if (options.forceDocType === 'json' || readMethod === 'json') {
+  if (options.forceDocType === 'json' || isJsonCollection) {
     if (!fullDocPath.endsWith(JSON_EXT)) {
       fullDocPath += JSON_EXT;
     }
@@ -98,7 +97,7 @@ export async function getImpl (
 
   const docType: DocType =
     options.forceDocType ??
-    (readMethod === 'json' || fullDocPath.endsWith('.json') ? 'json' : 'text');
+    (isJsonCollection || fullDocPath.endsWith('.json') ? 'json' : 'text');
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
