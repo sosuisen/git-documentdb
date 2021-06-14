@@ -46,7 +46,7 @@ after(() => {
 });
 
 describe('<collection>', () => {
-  describe('put(jsonDOc: JsonDoc)', () => {
+  describe('put(jsonDoc: JsonDoc)', () => {
     it('throws UndefinedDocumentIdError when JsonDoc is undefined', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
