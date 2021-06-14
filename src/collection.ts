@@ -14,6 +14,15 @@ import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
+  // Errors must be imported for TypeDoc
+  // eslint-disable-next-line sort-imports
+  InvalidIdCharacterError,
+  InvalidIdLengthError,
+  DatabaseClosingError,
+  TaskCancelError,
+  UndefinedDBError,
+  CannotCreateDirectoryError,
+  CannotWriteDataError,
 } from './error';
 import {
   CollectionPath,
@@ -153,10 +162,10 @@ export class Collection implements CRUDInterface {
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
-   * @throws {@link UndefinedDocumentIdError}
+   * @throws {@link UndefinedDocumentIdError} from
    * @throws {@link InvalidJsonObjectError}
-   *
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
+   *
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -186,10 +195,12 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
-   * @throws {@link InvalidCollectionPathCharacterError} (from validateDocument, validateId)
+   * @throws {@link UndefinedDocumentIdError} from validateDocument
+   * @throws {@link InvalidIdCharacterError} from validateDocument, validateId
+   * @throws {@link InvalidIdLengthError}
+   * (from validateDocument, validateId)
+   * @throws {@link InvalidCollectionPathCharacterError}
+   * (from validateDocument, validateId)
    *
    * @throws {@link DatabaseClosingError} (fromm putImpl)
    * @throws {@link TaskCancelError} (from putImpl)
@@ -215,6 +226,7 @@ export class Collection implements CRUDInterface {
     options?: PutOptions
   ): Promise<PutResult>;
 
+  // eslint-disable-next-line complexity
   put (
     shortIdOrDoc: string | JsonDoc,
     dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
@@ -237,7 +249,7 @@ export class Collection implements CRUDInterface {
         }
       }
     }
-    else if (shortIdOrDoc._id) {
+    else if (shortIdOrDoc?._id) {
       shortId = shortIdOrDoc._id;
       fullDocPath = this._collectionPath + shortId + JSON_EXT;
       data = shortIdOrDoc as JsonDoc;
@@ -250,7 +262,11 @@ export class Collection implements CRUDInterface {
     // Validate
     if (typeof data === 'object' && !(data instanceof Buffer)) {
       // JSON
-      this._gitDDB.validator.validateDocument(data);
+      try {
+        this._gitDDB.validator.validateDocument(data);
+      } catch (err) {
+        return Promise.reject(err);
+      }
       try {
         const clone = JSON.parse(JSON.stringify(data));
         clone._id = path.basename(shortId);
@@ -260,7 +276,12 @@ export class Collection implements CRUDInterface {
       }
     }
     else {
-      this._gitDDB.validator.validateId(shortId);
+      try {
+        this._gitDDB.validator.validateId(shortId);
+      } catch (err) {
+        return Promise.reject(err);
+      }
+
       bufferOrString = data;
     }
 
