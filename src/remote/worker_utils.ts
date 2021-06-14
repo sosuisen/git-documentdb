@@ -103,6 +103,7 @@ export async function getChanges (
           old: {
             _id,
             fileOid: aOid,
+            type: 'json',
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, aOid),
           },
@@ -114,6 +115,7 @@ export async function getChanges (
           new: {
             _id,
             fileOid: bOid,
+            type: 'json',
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, bOid),
           },
@@ -125,12 +127,14 @@ export async function getChanges (
           old: {
             _id,
             fileOid: aOid,
+            type: 'json',
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, aOid),
           },
           new: {
             _id,
             fileOid: bOid,
+            type: 'json',
             // eslint-disable-next-line no-await-in-loop
             doc: await getDocument(workingDir, filepath, bOid),
           },

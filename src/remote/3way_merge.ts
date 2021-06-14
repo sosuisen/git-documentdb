@@ -193,6 +193,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid,
+            type: 'json',
           },
           strategy: strategy,
           operation: strategy === 'ours' ? 'insert' : 'insert-merge',
@@ -219,6 +220,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid,
+            type: 'json',
           },
           strategy: strategy,
           operation: strategy === 'theirs' ? 'insert' : 'insert-merge',
@@ -251,6 +253,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid: base.oid,
+            type: 'json',
           },
           strategy: strategy,
           operation: 'delete',
@@ -264,6 +267,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid: theirs.oid,
+            type: 'json',
           },
           strategy: strategy,
           operation: 'update',
@@ -300,6 +304,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid: ours.oid,
+            type: 'json',
           },
           strategy: strategy,
           operation: 'update',
@@ -318,6 +323,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid: base.oid,
+            type: 'json',
           },
           strategy: strategy,
           operation: 'delete',
@@ -377,6 +383,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid,
+            type: 'json',
           },
           strategy: strategy,
           operation: strategy === 'ours' ? 'update' : 'update-merge',
@@ -404,6 +411,7 @@ export async function threeWayMerge (
           target: {
             _id: docId,
             fileOid,
+            type: 'json',
           },
           strategy: strategy,
           operation: strategy === 'theirs' ? 'update' : 'update-merge',

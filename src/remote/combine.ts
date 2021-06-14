@@ -96,16 +96,17 @@ export async function combineDatabaseWithTheirs (
         duplicatedFileSha = entry.id.tostrS();
 
         const remoteFile = remoteMetadataList.find(data => data._id === meta._id);
+        // TODO: check file types
         duplicates.push({
           original: {
             _id: meta._id,
             fileOid: remoteFile!.fileOid,
-            type: duplicatedFileExt === '.json' ? 'json' : '',
+            type: 'json',
           },
           duplicate: {
             _id: duplicatedFileId,
             fileOid: duplicatedFileSha,
-            type: duplicatedFileExt === '.json' ? 'json' : '',
+            type: 'json',
           },
         });
       }
