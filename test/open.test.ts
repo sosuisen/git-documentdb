@@ -29,6 +29,7 @@ import {
   GIT_DOCUMENTDB_INFO_ID,
   JSON_EXT,
 } from '../src/const';
+import { sleep } from '../src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs_module = require('fs-extra');
@@ -83,12 +84,15 @@ describe('<index>', () => {
       });
       await gitDDB.open();
 
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 50; i++) {
         gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
       }
       // Call close() without await
       gitDDB.close().catch(() => {});
       await expect(gitDDB.open()).rejects.toBeInstanceOf(DatabaseClosingError);
+
+      // wait close
+      await sleep(5000);
     });
 
     it('throws CannotCreateDirectoryError when tries to create a new repository on a readonly filesystem.', async () => {
