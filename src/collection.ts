@@ -189,6 +189,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link InvalidCollectionPathCharacterError} (from validateDocument, validateId)
    *
    * @throws {@link DatabaseClosingError} (fromm putImpl)
    * @throws {@link TaskCancelError} (from putImpl)
