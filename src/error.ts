@@ -7,8 +7,14 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+/**
+ * BaseError
+ *
+ * Use 'unknown' type assertion for constructor arguments in subclass of BaseError
+ * to use 'expect' in test. See https://github.com/facebook/jest/issues/8279
+ */
 class BaseError extends Error {
-  constructor (e?: string) {
+  constructor (e: string) {
     super(e);
     this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);
@@ -18,8 +24,8 @@ class BaseError extends Error {
 /**
  */
 export class UndefinedDatabaseNameError extends BaseError {
-  constructor (e = `Database name is undefined: Option must have dbName`) {
-    super(e);
+  constructor (e = `Database name is undefined: Option must have dbName` as unknown) {
+    super(e as string);
   }
 }
 
@@ -79,7 +85,7 @@ export class InvalidCollectionPathLengthError extends BaseError {
 /**
  */
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
-  constructor (path: string, minLength: number, maxLength: number) {
+  constructor (path: unknown, minLength: unknown, maxLength: unknown) {
     super(
       `Invalid working directory path length: A byte length of '${path}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
     );
