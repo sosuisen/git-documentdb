@@ -56,7 +56,7 @@ export class CannotDeleteDataError extends BaseError {
 /**
  */
 export class InvalidCollectionPathCharacterError extends BaseError {
-  constructor (name: string) {
+  constructor (name: unknown) {
     const e = `Invalid collectionPath character '${name}'`;
     super(e);
   }
@@ -95,7 +95,7 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
 /**
  */
 export class InvalidIdCharacterError extends BaseError {
-  constructor (id: string) {
+  constructor (id: unknown) {
     const e = `Invalid ID character '${id}'`;
     super(e);
   }
@@ -104,7 +104,7 @@ export class InvalidIdCharacterError extends BaseError {
 /**
  */
 export class InvalidIdLengthError extends BaseError {
-  constructor (id: string, minLength: number, maxLength: number) {
+  constructor (id: unknown, minLength: unknown, maxLength: unknown) {
     super(
       `Invalid id length: A byte length of '${id}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
     );
@@ -114,7 +114,7 @@ export class InvalidIdLengthError extends BaseError {
 /**
  */
 export class InvalidJsonObjectError extends BaseError {
-  constructor (idOrSha: string) {
+  constructor (idOrSha: unknown) {
     super(`Invalid JSON object: ${idOrSha}`);
   }
 }

@@ -9,6 +9,7 @@
 
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
+import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
@@ -34,7 +35,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -55,151 +56,6 @@ describe('<collection>', () => {
     );
     gitDDB.destroy();
   });
-
-  describe('put()', () => {
-    it('puts a JSON document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const doc = { _id: 'prof01', name: 'Kimari' };
-      await expect(users.put(doc)).resolves.toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^prof01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-      expect(doc._id).toBe('prof01');
-
-      // Check filename
-      // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(
-        gitDDB.workingDir(),
-        users.collectionPath() + 'prof01.json'
-      );
-      await expect(fs.access(filePath)).resolves.not.toThrowError();
-      // Read JSON and check doc._id
-      expect(fs.readJSONSync(filePath)._id).toBe('prof01');
-
-      gitDDB.destroy();
-    });
-
-    it('puts a sub-directory ID into sub-directory collection.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users/Gunma');
-      const doc = { _id: 'prof01/page01', name: 'Kimari' };
-      const putResult = await users.put(doc);
-      expect(putResult).toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^prof01/page01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-      expect(doc._id).toBe('prof01/page01');
-      // Check filename
-      // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(
-        gitDDB.workingDir(),
-        users.collectionPath() + 'prof01/page01.json'
-      );
-      await expect(fs.access(filePath)).resolves.not.toThrowError();
-      // Read JSON and check doc._id
-      expect(fs.readJSONSync(filePath)._id).toBe('page01'); // not 'prof01/page01'
-
-      const repository = gitDDB.repository();
-      if (repository !== undefined) {
-        const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-        const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(
-          `insert: users/Gunma/prof01/page01${JSON_EXT}(${putResult.fileOid.substr(
-            0,
-            SHORT_SHA_LENGTH
-          )})\n`
-        );
-      }
-
-      gitDDB.destroy();
-    });
-
-    it('puts with a commitMessage', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const doc = { _id: 'prof01', name: 'Kimari' };
-      await expect(users.put(doc, { commitMessage: 'message' })).resolves.toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^prof01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-
-      const repository = gitDDB.repository();
-      if (repository !== undefined) {
-        const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-        const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`message\n`);
-      }
-
-      gitDDB.destroy();
-    });
-
-    it('puts a JSON document with commitMessage (overload)', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const doc = { _id: 'id-in-document', name: 'Kimari' };
-      await expect(
-        users.put('prof01', doc, { commitMessage: 'message' })
-      ).resolves.toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^prof01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-      // doc._id is ignored.
-      expect(doc._id).toBe('id-in-document');
-
-      const repository = gitDDB.repository();
-      if (repository !== undefined) {
-        const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-        const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`message\n`);
-      }
-
-      gitDDB.destroy();
-    });
-
-    it('throws UndefinedDocumentIdError', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      // @ts-ignore
-      await expect(users.put()).rejects.toThrowError(UndefinedDocumentIdError);
-
-      gitDDB.destroy();
-    });
-  });
-
   describe('insert(JsonDoc)', () => {
     it('throws SameIdExistsError when a document which has the same id exists.', async () => {
       const dbName = monoId();
