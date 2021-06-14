@@ -92,9 +92,7 @@ export async function deleteWorker (
     return Promise.reject(new UndefinedDBError());
   }
 
-  const currentRepository = gitDDB.repository();
-
-  if (currentRepository === undefined) {
+  if (!gitDDB.isOpened()) {
     return Promise.reject(new RepositoryNotOpenError());
   }
 

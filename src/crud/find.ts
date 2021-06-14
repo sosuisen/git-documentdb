@@ -38,8 +38,8 @@ export async function findImpl (
   if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
-  const currentRepository = gitDDB.repository();
-  if (currentRepository === undefined) {
+
+  if (!gitDDB.isOpened()) {
     return Promise.reject(new RepositoryNotOpenError());
   }
 

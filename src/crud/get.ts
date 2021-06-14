@@ -47,8 +47,8 @@ export async function getImpl (
   if (gitDDB.isClosing) {
     throw new DatabaseClosingError();
   }
-  const currentRepository = gitDDB.repository();
-  if (currentRepository === undefined) {
+
+  if (!gitDDB.isOpened()) {
     throw new RepositoryNotOpenError();
   }
 

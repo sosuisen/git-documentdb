@@ -105,8 +105,7 @@ export async function putWorker (
     throw new UndefinedDBError();
   }
 
-  const currentRepository = gitDDB.repository();
-  if (currentRepository === undefined) {
+  if (!gitDDB.isOpened()) {
     throw new RepositoryNotOpenError();
   }
 

@@ -83,6 +83,7 @@ export interface IDocumentDB {
   isClosing: boolean;
   validator: Validator;
   taskQueue: TaskQueue;
+  isOpened(): boolean;
   dbName(): string;
   dbId(): string;
   workingDir(): string;
