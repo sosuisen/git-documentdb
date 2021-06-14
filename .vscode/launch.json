@@ -4,8 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/remote/sync_trysync.test.js"],
-    "default": "test/remote/sync_trysync.test.js"
+    "options": ["test/open.test.js"],
   }],
   "configurations": [
       {
@@ -18,7 +17,7 @@
             "--reporter",
             "list",
             "--parallel",
-            "true",
+            "false",
             "--retries",
             "3",
             "--timeout",
