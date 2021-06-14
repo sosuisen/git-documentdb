@@ -89,7 +89,7 @@ describe('<index>', () => {
       }
       // Call close() without await
       gitDDB.close().catch(() => {});
-      await expect(gitDDB.open()).rejects.toBeInstanceOf(DatabaseClosingError);
+      await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
 
       // wait close
       await sleep(5000);
@@ -107,7 +107,7 @@ describe('<index>', () => {
         localDir,
       });
       // You don't have permission
-      await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotCreateDirectoryError);
+      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
       if (process.platform !== 'win32') {
         fs.chmodSync(readonlyDir, 0o644);
       }
@@ -123,7 +123,7 @@ describe('<index>', () => {
         localDir,
       });
       // You don't have permission
-      await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotCreateRepositoryError);
+      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateRepositoryError);
     });
 
     it('creates a new repository.', async () => {
@@ -184,7 +184,7 @@ describe('<index>', () => {
         dbName,
         localDir,
       });
-      await expect(gitDDB.open({ createIfNotExists: false })).rejects.toBeInstanceOf(
+      await expect(gitDDB.open({ createIfNotExists: false })).rejects.toThrowError(
         RepositoryNotFoundError
       );
     });
@@ -197,7 +197,7 @@ describe('<index>', () => {
       });
       // Create empty .git directory
       await fs.ensureDir(gitDDB.workingDir() + '/.git/');
-      await expect(gitDDB.open()).rejects.toBeInstanceOf(CannotOpenRepositoryError);
+      await expect(gitDDB.open()).rejects.toThrowError(CannotOpenRepositoryError);
     });
 
     it('opens an existing repository.', async () => {
