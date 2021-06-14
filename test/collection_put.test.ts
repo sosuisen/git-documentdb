@@ -12,6 +12,7 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import { toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/index';
 import {
@@ -68,6 +69,9 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       await expect(col.put({ name: 'Shirase' })).rejects.toThrowError(
+        UndefinedDocumentIdError
+      );
+      await expect(col.put({ _id: '', name: 'Shirase' })).rejects.toThrowError(
         UndefinedDocumentIdError
       );
       await gitDDB.destroy();
@@ -136,15 +140,12 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       await expect(
-        col.put({ _id: '<angleBrackets>', name: 'shirase' })
+        col.put({ _id: '<angleBrackets>', name: 'Shirase' })
       ).rejects.toThrowError(InvalidIdCharacterError);
       await expect(
-        col.put({ _id: 'trailing/Slash/', name: 'shirase' })
+        col.put({ _id: 'trailing/Slash/', name: 'Shirase' })
       ).rejects.toThrowError(InvalidIdCharacterError);
-      await expect(col.put({ _id: '', name: 'shirase' })).rejects.toThrowError(
-        InvalidIdCharacterError
-      );
-      await expect(col.put({ _id: '/', name: 'shirase' })).rejects.toThrowError(
+      await expect(col.put({ _id: '/', name: 'Shirase' })).rejects.toThrowError(
         InvalidIdCharacterError
       );
       await gitDDB.destroy();
@@ -164,7 +165,7 @@ describe('<collection>', () => {
       for (let i = 0; i < maxIdLen; i++) {
         _id += '0';
       }
-      await expect(col.put({ _id, name: 'shirase' })).resolves.toEqual({
+      await expect(col.put({ _id, name: 'Shirase' })).resolves.toEqual({
         _id,
         fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -172,7 +173,7 @@ describe('<collection>', () => {
       });
       _id += '0';
 
-      await expect(col.put({ _id, name: 'shirase' })).rejects.toThrowError(
+      await expect(col.put({ _id, name: 'Shirase' })).rejects.toThrowError(
         InvalidIdLengthError
       );
 
@@ -188,7 +189,7 @@ describe('<collection>', () => {
 
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
-      await expect(col.put({ _id: '/headingSlash', name: 'shirase' })).rejects.toThrowError(
+      await expect(col.put({ _id: '/headingSlash', name: 'Shirase' })).rejects.toThrowError(
         InvalidCollectionPathCharacterError
       );
 
@@ -204,7 +205,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       const _id = '-.()[]_';
-      await expect(col.put({ _id: _id, name: 'shirase' })).resolves.toMatchObject({
+      await expect(col.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
         _id: expect.stringMatching(/^-.\(\)\[]_$/),
         fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
@@ -222,13 +223,13 @@ describe('<collection>', () => {
       await gitDDB.open();
       const _id = '春はあけぼの';
       const col = new Collection(gitDDB, 'col01');
-      const putResult = await col.put({ _id: _id, name: 'shirase' });
+      const putResult = await col.put({ _id: _id, name: 'Shirase' });
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(putResult).toEqual({
         _id: expect.stringMatching('^' + _id + '$'),
         fileOid: expect.stringMatching(/^[\da-z]{40}$/),
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitMessage: `insert: ${_id}${JSON_EXT}(${shortOid})`,
+        commitMessage: `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
       });
 
       // Check commit directly
@@ -238,11 +239,17 @@ describe('<collection>', () => {
         dir: gitDDB.workingDir(),
         oid: commitOid,
       });
-      expect(commit.message).toEqual(`insert: ${_id}${JSON_EXT}(${shortOid})\n`);
+      expect(commit.message).toEqual(
+        `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})\n`
+      );
 
       // Check filename
       // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(gitDDB.workingDir(), _id + '.json');
+      const filePath = path.resolve(
+        gitDDB.workingDir(),
+        col.collectionPath(),
+        _id + '.json'
+      );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       // Read JSON and check doc._id
       expect(fs.readJSONSync(filePath)._id).toBe(_id);
@@ -260,18 +267,22 @@ describe('<collection>', () => {
       const col = new Collection(gitDDB, 'col01');
       const _id = 'prof01';
       // Check put operation
-      const json = { _id: _id, name: 'Shirase' };
+      const json = { _id, name: 'Shirase' };
       const putResult = await col.put(json);
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(putResult).toEqual({
         _id,
-        fileOid: (await git.hashBlob({ object: JSON.stringify(json) })).oid,
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json) })).oid,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitMessage: `insert: ${_id}${JSON_EXT}(${shortOid})`,
+        commitMessage: `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
       });
       // Check filename
       // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(gitDDB.workingDir(), _id + '.json');
+      const filePath = path.resolve(
+        gitDDB.workingDir(),
+        col.collectionPath(),
+        _id + '.json'
+      );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       // Read JSON and check doc._id
       expect(fs.readJSONSync(filePath)._id).toBe(_id);
@@ -291,12 +302,16 @@ describe('<collection>', () => {
         const _id = 'dir01/prof01';
         const json = { _id, name: 'Shirase' };
         const putResult = await col.put(json);
-        const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+        const internalJson = JSON.parse(JSON.stringify(json));
+        internalJson._id = 'prof01';
+        const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
+          .oid;
+        const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
         expect(putResult).toEqual({
           _id,
-          fileOid: (await git.hashBlob({ object: JSON.stringify(json) })).oid,
+          fileOid,
           commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-          commitMessage: `insert: ${_id}${JSON_EXT}(${shortOid})`,
+          commitMessage: `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
         });
         await gitDDB.destroy();
       });
@@ -338,11 +353,13 @@ describe('<collection>', () => {
         const json = { _id, name: 'Shirase' };
         const putResult = await col.put(json);
         const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+        const internalJson = JSON.parse(JSON.stringify(json));
+        internalJson._id = 'prof01';
         expect(putResult).toEqual({
           _id,
-          fileOid: (await git.hashBlob({ object: JSON.stringify(json) })).oid,
+          fileOid: (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid,
           commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-          commitMessage: `insert: ${_id}${JSON_EXT}(${shortOid})`,
+          commitMessage: `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
         });
 
         // Check filename
@@ -367,7 +384,8 @@ describe('<collection>', () => {
           oid: commitOid,
         });
         expect(commit.message).toEqual(
-          `insert: col01/col02/dir01/prof01${JSON_EXT}(${putResult.fileOid.substr(
+          `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${putResult.fileOid.substr(
+            0,
             SHORT_SHA_LENGTH
           )})\n`
         );
@@ -420,26 +438,27 @@ describe('<collection>', () => {
         const _id = 'prof01';
         await col.put({ _id, name: 'Shirase' });
         // Update
-        const updatedJson = { _id, name: 'Souya' };
-        const fileOid = (await git.hashBlob({ object: JSON.stringify(updatedJson) })).oid;
-        await expect(col.put(updatedJson)).resolves.toMatchObject({
+        const updatedJson = { _id, name: 'Soya' };
+        const fileOid = (await git.hashBlob({ object: toSortedJSONString(updatedJson) }))
+          .oid;
+        await expect(col.put(updatedJson)).resolves.toEqual({
           _id,
           fileOid,
           commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-          commitMessage: `update: ${_id}${JSON_EXT}(${fileOid.substr(
+          commitMessage: `update: ${col.collectionPath()}${_id}${JSON_EXT}(${fileOid.substr(
             0,
             SHORT_SHA_LENGTH
           )})`,
         });
 
         // Get
-        await expect(gitDDB.get(_id)).resolves.toEqual(updatedJson);
+        await expect(col.get(_id)).resolves.toEqual(updatedJson);
 
         await gitDDB.destroy();
       });
     });
   });
-/*
+  /*
   describe('<crud/put> put(id, document)', () => {
     it('throws UndefinedDocumentIdError when id is undefined', async () => {
       const dbName = monoId();
