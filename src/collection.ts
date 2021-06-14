@@ -14,7 +14,7 @@ import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
-  // Errors must be imported for TypeDoc
+  // Descendant's errors must be imported for TSDoc
   // eslint-disable-next-line sort-imports
   InvalidIdCharacterError,
   InvalidIdLengthError,
