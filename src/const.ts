@@ -8,6 +8,7 @@
 
 export const DATABASE_CREATOR = 'GitDocumentDB';
 export const DATABASE_VERSION = '1.0';
+export const GIT_DOCUMENTDB_METADATA_DIR = '.gitddb';
 export const GIT_DOCUMENTDB_INFO_ID = '.gitddb/info';
 export const DEFAULT_LOCAL_DIR = './git-documentdb';
 

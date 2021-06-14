@@ -31,7 +31,7 @@ import {
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { Validator } from './validator';
 import { toSortedJSONString } from './utils';
-import { JSON_EXT } from './const';
+import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from './const';
 import { getImpl } from './crud/get';
 import { getHistoryImpl } from './crud/history';
 import { deleteImpl } from './crud/delete';
@@ -121,7 +121,7 @@ export class Collection implements CRUDInterface {
     for (let i = 0; i < entries.length; i++) {
       const entry = entries[i];
       if (entry.isDirectory()) {
-        if (entry.path() !== '.gitddb') {
+        if (entry.path() !== GIT_DOCUMENTDB_METADATA_DIR) {
           collections.push(new Collection(gitDDB, entry.path()));
         }
       }

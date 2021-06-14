@@ -10,6 +10,7 @@ import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { ReadCommitResult } from 'isomorphic-git';
 import { DocMetadata, NormalizedCommit } from './types';
+import { GIT_DOCUMENTDB_METADATA_DIR } from './const';
 
 /**
  * @internal
@@ -69,7 +70,7 @@ export async function getAllMetadata (repos: nodegit.Repository) {
         const entry = entries.shift();
         if (entry?.isDirectory()) {
           // eslint-disable-next-line max-depth
-          if (entry.name() !== '.gitddb') {
+          if (entry.name() !== GIT_DOCUMENTDB_METADATA_DIR) {
             // eslint-disable-next-line no-await-in-loop
             const subtree = await entry.getTree();
             directories.push(subtree);

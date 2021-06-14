@@ -10,7 +10,7 @@ import nodePath from 'path';
 import git, { ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { normalizeCommit } from '../utils';
-import { JSON_EXT } from '../const';
+import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
 import { ChangedFile, JsonDoc, NormalizedCommit } from '../types';
 import { IDocumentDB } from '../types_gitddb';
@@ -77,7 +77,7 @@ export async function getChanges (
       if (filepath === '.') {
         return;
       }
-      if (filepath.startsWith('.gitddb/')) {
+      if (filepath.startsWith(GIT_DOCUMENTDB_METADATA_DIR)) {
         return;
       }
 
