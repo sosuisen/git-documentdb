@@ -32,16 +32,16 @@ export class UndefinedDatabaseNameError extends BaseError {
 /**
  */
 export class CannotCreateDirectoryError extends BaseError {
-  constructor (e = 'Cannot create directory') {
-    super(e);
+  constructor (e = 'Cannot create directory' as unknown) {
+    super(e as string);
   }
 }
 
 /**
  */
 export class CannotWriteDataError extends BaseError {
-  constructor (e = 'Cannot write data') {
-    super(e);
+  constructor (e = 'Cannot write data' as unknown) {
+    super(e as string);
   }
 }
 
@@ -130,8 +130,10 @@ export class InvalidDocumentTypeError extends BaseError {
 /**
  */
 export class UndefinedDocumentIdError extends BaseError {
-  constructor (e = `Document id is undefined: A document must have an '_id' key`) {
-    super(e);
+  constructor (
+    e = `Document id is undefined: A document must have an '_id' key` as unknown
+  ) {
+    super(e as string);
   }
 }
 
@@ -162,32 +164,32 @@ export class CannotGetEntryError extends BaseError {
 /**
  */
 export class RepositoryNotOpenError extends BaseError {
-  constructor (e = 'Repository not opened') {
-    super(e);
+  constructor (e = 'Repository not opened' as unknown) {
+    super(e as string);
   }
 }
 
 /**
  */
 export class DocumentNotFoundError extends BaseError {
-  constructor (e = 'Document not found') {
-    super(e);
+  constructor (e = 'Document not found' as unknown) {
+    super(e as string);
   }
 }
 
 /**
  */
 export class SameIdExistsError extends BaseError {
-  constructor (e = 'The same id exists') {
-    super(e);
+  constructor (e = 'The same id exists' as unknown) {
+    super(e as string);
   }
 }
 
 /**
  */
 export class DatabaseClosingError extends BaseError {
-  constructor (e = 'Database is closing') {
-    super(e);
+  constructor (e = 'Database is closing' as unknown) {
+    super(e as string);
   }
 }
 
@@ -405,7 +407,7 @@ export class InvalidConflictStateError extends BaseError {
 /**
  */
 export class CannotOpenRepositoryError extends BaseError {
-  constructor (err: string) {
+  constructor (err: unknown) {
     super(`Cannot open repository though .git directory exists. : ${err}`);
   }
 }
@@ -413,7 +415,7 @@ export class CannotOpenRepositoryError extends BaseError {
 /**
  */
 export class RepositoryNotFoundError extends BaseError {
-  constructor (path: string) {
+  constructor (path: unknown) {
     super(
       `Repository does not exist, or you do not have permission to access the directory: ${path}`
     );
@@ -455,7 +457,7 @@ export class HTTPNetworkError extends BaseError {
 /**
  */
 export class CannotCreateRepositoryError extends BaseError {
-  constructor (reason: string) {
+  constructor (reason: unknown) {
     super(`Cannot create repository: ${reason}`);
   }
 }
@@ -471,7 +473,7 @@ export class CannotCreateRemoteRepositoryError extends BaseError {
 /**
  */
 export class TaskCancelError extends BaseError {
-  constructor (taskId: string) {
+  constructor (taskId: unknown) {
     super(`Task is canceled: ${taskId}`);
   }
 }

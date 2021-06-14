@@ -14,9 +14,12 @@ import fs from 'fs-extra';
 import sinon from 'sinon';
 import { monotonicFactory } from 'ulid';
 import {
+  CannotCreateDirectoryError,
   CannotWriteDataError,
   DatabaseClosingError,
+  DocumentNotFoundError,
   RepositoryNotOpenError,
+  SameIdExistsError,
   TaskCancelError,
   UndefinedDBError,
 } from '../../src/error';
@@ -380,19 +383,11 @@ describe('<crud/put> put', () => {
     await gitDDB.destroy();
   });
 });
-/*
+
 describe('<crud/put> putWorker', () => {
   it('throws UndefinedDBError when Undefined DB', async () => {
-    const dbName = monoId();
-
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
     // @ts-ignore
     await expect(putWorker(undefined)).rejects.toThrowError(UndefinedDBError);
-    await gitDDB.destroy();
   });
 
   it('throws RepositoryNotOpenError when a repository is not opened.', async () => {
@@ -404,8 +399,7 @@ describe('<crud/put> putWorker', () => {
     await expect(
       putWorker(
         gitDDB,
-        'prof01',
-        JSON_EXT,
+        'prof01' + JSON_EXT,
         '{ "_id": "prof01", "name": "Shirase" }',
         'message'
       )
@@ -413,11 +407,73 @@ describe('<crud/put> putWorker', () => {
     await gitDDB.destroy();
   });
 
-  it('throws CannotCreateDirectoryError', async () => {});
+  it('throws CannotCreateDirectoryError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
 
-  it('throws SameIdExistsError', async () => {});
+    const stubEnsureDir = sandbox.stub(fs_module, 'ensureDir');
+    stubEnsureDir.rejects();
 
-  it('throws DocumentNotFoundError', async () => {});
+    await expect(
+      putWorker(
+        gitDDB,
+        'prof01' + JSON_EXT,
+        '{ "_id": "prof01", "name": "Shirase" }',
+        'message'
+      )
+    ).rejects.toThrowError(CannotCreateDirectoryError);
+    await gitDDB.destroy();
+  });
+
+  it('throws SameIdExistsError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const fullDocPath = 'prof01' + JSON_EXT;
+    await putWorker(
+      gitDDB,
+      fullDocPath,
+      '{ "_id": "prof01", "name": "Shirase" }',
+      'message'
+    );
+    await expect(
+      putWorker(
+        gitDDB,
+        fullDocPath,
+        '{ "_id": "prof01", "name": "Shirase" }',
+        'message',
+        'insert'
+      )
+    ).rejects.toThrowError(SameIdExistsError);
+    await gitDDB.destroy();
+  });
+
+  it('throws DocumentNotFoundError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const fullDocPath = 'prof01' + JSON_EXT;
+    await expect(
+      putWorker(
+        gitDDB,
+        fullDocPath,
+        '{ "_id": "prof01", "name": "Shirase" }',
+        'message',
+        'update'
+      )
+    ).rejects.toThrowError(DocumentNotFoundError);
+    await gitDDB.destroy();
+  });
 
   it('throws CannotWriteDataError', async () => {
     const dbName = monoId();
@@ -460,54 +516,63 @@ describe('<crud/put> putWorker', () => {
     });
     await gitDDB.open();
 
-    await expect(
-      Promise.all([
-        putWorker(
-          gitDDB,
-          _id_a,
-          JSON_EXT,
-          `{ "_id": "${_id_a}", "name": "${name_a}" }`,
-          'message'
-        ),
-        putWorker(
-          gitDDB,
-          _id_b,
-          JSON_EXT,
-          `{ "_id": "${_id_b}", "name": "${name_b}" }`,
-          'message'
-        ),
-        putWorker(
-          gitDDB,
-          _id_c01,
-          JSON_EXT,
-          `{ "_id": "${_id_c01}", "name": "${name_c01}" }`,
-          'message'
-        ),
-        putWorker(
-          gitDDB,
-          _id_c02,
-          JSON_EXT,
-          `{ "_id": "${_id_c02}", "name": "${name_c02}" }`,
-          'message'
-        ),
-        putWorker(
-          gitDDB,
-          _id_d,
-          JSON_EXT,
-          `{ "_id": "${_id_d}", "name": "${name_d}" }`,
-          'message'
-        ),
-        putWorker(
-          gitDDB,
-          _id_p,
-          JSON_EXT,
-          `{ "_id": "${_id_p}", "name": "${name_p}" }`,
-          'message'
-        ),
+    const json_a = { _id: _id_a, name: name_a };
+    const json_b = { _id: _id_b, name: name_b };
+    const json_c01 = { _id: _id_c01, name: name_c01 };
+    const json_c02 = { _id: _id_c02, name: name_c02 };
+    const json_d = { _id: _id_d, name: name_d };
+    const json_p = { _id: _id_p, name: name_p };
+
+    await Promise.all([
+      putWorker(gitDDB, _id_a + JSON_EXT, JSON.stringify(json_a), 'message'),
+      putWorker(gitDDB, _id_b + JSON_EXT, JSON.stringify(json_b), 'message'),
+      putWorker(gitDDB, _id_c01 + JSON_EXT, JSON.stringify(json_c01), 'message'),
+      putWorker(gitDDB, _id_c02 + JSON_EXT, JSON.stringify(json_c02), 'message'),
+      putWorker(gitDDB, _id_d + JSON_EXT, JSON.stringify(json_d), 'message'),
+      putWorker(gitDDB, _id_p + JSON_EXT, JSON.stringify(json_p), 'message'),
+    ]);
+
+    await expect(gitDDB.find()).resolves.toEqual(
+      expect.arrayContaining([
+        {
+          _id: _id_a,
+          fileOid: (await git.hashBlob({ object: JSON.stringify(json_a) })).oid,
+          type: 'json',
+          doc: json_a,
+        },
+        {
+          _id: _id_b,
+          fileOid: (await git.hashBlob({ object: JSON.stringify(json_b) })).oid,
+          type: 'json',
+          doc: json_b,
+        },
+        {
+          _id: _id_c01,
+          fileOid: (await git.hashBlob({ object: JSON.stringify(json_c01) })).oid,
+          type: 'json',
+          doc: json_c01,
+        },
+        {
+          _id: _id_c02,
+          fileOid: (await git.hashBlob({ object: JSON.stringify(json_c02) })).oid,
+          type: 'json',
+          doc: json_c02,
+        },
+        {
+          _id: _id_d,
+          fileOid: (await git.hashBlob({ object: JSON.stringify(json_d) })).oid,
+          type: 'json',
+          doc: json_d,
+        },
+        {
+          _id: _id_p,
+          fileOid: (await git.hashBlob({ object: JSON.stringify(json_p) })).oid,
+          type: 'json',
+          doc: json_p,
+        },
       ])
-    ).resolves.not.toThrowError();
+    );
 
     await gitDDB.destroy();
   });
 });
-*/
