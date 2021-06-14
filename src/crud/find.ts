@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import { readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
-import { JSON_EXT } from '../const';
+import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
 import {
   DocType,
@@ -60,7 +60,7 @@ export async function findImpl (
 
   // Normalize prefix and targetDir
   let prefix = options!.prefix;
-  let targetDir = '/';
+  let targetDir = '';
   const prefixArray = prefix.split('/'); // returns number which is equal or larger than 1
   if (prefixArray.length === 1) {
     // prefix equals '' or prefix includes no slash
@@ -78,7 +78,7 @@ export async function findImpl (
   }
 
   // Breadth-first search
-  const directories: TreeObject[] = []; // type TreeObject = Array<TreeEntry>
+  const directories: { path: string; entries: TreeObject }[] = []; // type TreeObject = Array<TreeEntry>
   const specifiedTreeResult = await readTree({
     fs,
     dir: gitDDB.workingDir(),
@@ -86,20 +86,20 @@ export async function findImpl (
     filepath: targetDir,
   }).catch(() => undefined);
   if (specifiedTreeResult) {
-    directories.push(specifiedTreeResult.tree);
+    directories.push({ path: targetDir, entries: specifiedTreeResult.tree });
   }
 
   while (directories.length > 0) {
-    const entries = directories.shift();
-    if (entries === undefined) break;
+    const directory = directories.shift();
+    if (directory === undefined) break;
     let filteredEntries: TreeEntry[];
     if (prefix === '') {
-      filteredEntries = entries;
+      filteredEntries = directory.entries;
     }
     else {
       filteredEntries = [];
       let matchPrefix = false;
-      for (const entry of entries) {
+      for (const entry of directory.entries) {
         if (entry.path.startsWith(prefix)) {
           filteredEntries.push(entry);
           matchPrefix = true;
@@ -124,17 +124,22 @@ export async function findImpl (
     }
 
     for (const entry of filteredEntries) {
+      const fullDocPath =
+        directory.path !== '' ? `${directory.path}/${entry.path}` : entry.path;
       if (entry.type === 'tree') {
-        if (options.recursive && entry.path !== '.gitddb') {
+        if (options.recursive && fullDocPath !== GIT_DOCUMENTDB_METADATA_DIR) {
           // eslint-disable-next-line no-await-in-loop
-          const { tree } = await readTree({ fs, dir: gitDDB.workingDir(), oid: entry.oid });
-          directories.push(tree);
+          const { tree } = await readTree({
+            fs,
+            dir: gitDDB.workingDir(),
+            oid: entry.oid,
+          });
+          directories.push({ path: fullDocPath, entries: tree });
 
           prefix = '';
         }
       }
       else {
-        const fullDocPath = entry.path;
         // eslint-disable-next-line no-await-in-loop
         const readBlobResult = await readLatestBlob(gitDDB.workingDir(), fullDocPath);
         // Skip if cannot read
