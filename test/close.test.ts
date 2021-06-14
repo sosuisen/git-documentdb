@@ -183,7 +183,6 @@ describe('<close> GitDocumentDB#close()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(
       DatabaseClosingError
