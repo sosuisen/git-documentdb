@@ -93,6 +93,7 @@ describe('<index>', () => {
 
       // wait close
       await sleep(5000);
+      await gitDDB.destroy();
     });
 
     it('throws CannotCreateDirectoryError when tries to create a new repository on a readonly filesystem.', async () => {
