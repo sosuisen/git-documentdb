@@ -353,7 +353,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     info.version ??= '';
 
     // Set dbId if not exists.
-    if (info.dbId === '') {
+    if (!info.dbId) {
       info.dbId = generateDatabaseId();
       // Do not use this.put() because it increments TaskQueue.statistics.put.
       await putWorker(
