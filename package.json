@@ -4,6 +4,9 @@
   "description": "Offline-first database that syncs with Git",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc --project src/tsconfig.json",
     "doc": "npm run build && npm run api-extractor && npm run crlf",
