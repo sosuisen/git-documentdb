@@ -243,16 +243,10 @@ export class Collection implements CRUDInterface {
       shortId = shortIdOrDoc;
       data = dataOrOptions as JsonDoc | Buffer | string;
       fullDocPath = this._collectionPath + shortId;
-      if (typeof data === 'object' && !(data instanceof Buffer)) {
-        // JSON
-        if (!fullDocPath.endsWith(JSON_EXT)) {
-          fullDocPath += JSON_EXT;
-        }
-      }
     }
     else if (shortIdOrDoc?._id) {
       shortId = shortIdOrDoc._id;
-      fullDocPath = this._collectionPath + shortId + JSON_EXT;
+      fullDocPath = this._collectionPath + shortId;
       data = shortIdOrDoc as JsonDoc;
       options = dataOrOptions as PutOptions;
     }
@@ -261,16 +255,31 @@ export class Collection implements CRUDInterface {
     }
 
     // Validate
+    if (
+      !this._isJsonDocCollection &&
+      typeof data === 'object' &&
+      !(data instanceof Buffer)
+    ) {
+      // Need .json
+      if (!shortId.endsWith(JSON_EXT)) {
+        return Promise.reject(new InvalidIdCharacterError(shortId));
+      }
+      shortId = shortId.replace(new RegExp(JSON_EXT + '$'), '');
+    }
+
     if (typeof data === 'object' && !(data instanceof Buffer)) {
       // JSON
       let clone;
       try {
         clone = JSON.parse(JSON.stringify(data));
-        clone._id = path.basename(shortId);
-        bufferOrString = toSortedJSONString(clone);
       } catch (err) {
         return Promise.reject(new InvalidJsonObjectError(shortId));
       }
+      if (this._isJsonDocCollection) {
+        fullDocPath += JSON_EXT;
+      }
+      clone._id = path.basename(shortId);
+      bufferOrString = toSortedJSONString(clone);
       try {
         this._gitDDB.validator.validateId(shortId);
         this._gitDDB.validator.validateDocument(clone);
