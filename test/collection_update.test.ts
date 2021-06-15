@@ -8,10 +8,15 @@
  */
 
 import path from 'path';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { DocumentNotFoundError } from '../../src/error';
-import { GitDocumentDB } from '../../src/index';
+import { DocumentNotFoundError } from '../src/error';
+import { GitDocumentDB } from '../src/index';
+import { Collection } from '../src/collection';
+import { toSortedJSONString } from '../src/utils';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -29,7 +34,7 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<crud/update> update(JsonDoc)', () => {
+describe('<collection> update(jsonDoc)', () => {
   it('throws DocumentNotFoundError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -37,29 +42,75 @@ describe('<crud/update> update(JsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    await expect(gitDDB.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
+    const col = new Collection(gitDDB, 'col01');
+    await expect(col.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
       DocumentNotFoundError
     );
     await gitDDB.destroy();
   });
 
-  it('update a document.', async () => {
+  it('update a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
     await gitDDB.open();
-    const json01 = { _id: 'prof01', name: 'Shirase' };
-    await gitDDB.insert(json01);
-    const json01dash = { _id: 'prof01', name: 'updated' };
-    await gitDDB.update(json01dash);
-    await expect(gitDDB.get('prof01')).resolves.toEqual(json01dash);
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await col.insert(json);
+    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const putResult = await col.update(jsonUpdated);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage: `update: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
+    });
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(
+      gitDDB.workingDir(),
+      col.collectionPath(),
+      _id + JSON_EXT
+    );
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
+
+    await gitDDB.destroy();
+  });
+
+  it('set commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await col.insert(json);
+    const commitMessage = 'message';
+    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const putResult = await col.update(jsonUpdated, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage,
+    });
     await gitDDB.destroy();
   });
 });
 
-describe('<crud/insert> update(id, document)', () => {
+describe('<collection> update(id, jsonDoc)', () => {
   it('throws DocumentNotFoundError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -67,24 +118,70 @@ describe('<crud/insert> update(id, document)', () => {
       localDir,
     });
     await gitDDB.open();
-    await expect(gitDDB.update('prof01', { name: 'Shirase' })).rejects.toThrowError(
-      DocumentNotFoundError
-    );
+    const col = new Collection(gitDDB, 'col01');
+    await expect(
+      col.update('prof01', { _id: 'prof01', name: 'Shirase' })
+    ).rejects.toThrowError(DocumentNotFoundError);
     await gitDDB.destroy();
   });
 
-  it('update a document.', async () => {
+  it('update a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
     await gitDDB.open();
-    const json01 = { _id: 'prof01', name: 'Shirase' };
-    await gitDDB.insert(json01);
-    const json01dash = { _id: 'prof01', name: 'updated' };
-    await gitDDB.update('prof01', json01dash);
-    await expect(gitDDB.get('prof01')).resolves.toEqual(json01dash);
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await col.insert(json);
+    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const putResult = await col.update('prof01', jsonUpdated);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage: `update: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
+    });
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(
+      gitDDB.workingDir(),
+      col.collectionPath(),
+      _id + JSON_EXT
+    );
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
+
+    await gitDDB.destroy();
+  });
+
+  it('set commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await col.insert(json);
+    const commitMessage = 'message';
+    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const putResult = await col.update('prof01', jsonUpdated, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage,
+    });
     await gitDDB.destroy();
   });
 });

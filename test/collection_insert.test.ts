@@ -9,9 +9,14 @@
 
 import path from 'path';
 import fs from 'fs-extra';
+import git from 'isomorphic-git';
+import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { SameIdExistsError } from '../../src/error';
-import { GitDocumentDB } from '../../src/index';
+import { Collection } from '../src/collection';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
+import { toSortedJSONString } from '../src/utils';
+import { GitDocumentDB } from '../src/index';
+import { SameIdExistsError } from '../src/error';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -29,7 +34,7 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<crud/insert> insert(JsonDoc)', () => {
+describe('<collection> insert(jsonDoc)', () => {
   it('throws SameIdExistsError when a document which has the same id exists.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -37,28 +42,73 @@ describe('<crud/insert> insert(JsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    await gitDDB.insert({ _id: 'prof01' });
-    await expect(gitDDB.insert({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
+    const col = new Collection(gitDDB, 'col01');
+    await col.insert({ _id: 'prof01' });
+    await expect(col.insert({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
       SameIdExistsError
     );
     await gitDDB.destroy();
   });
 
-  it('inserts a document.', async () => {
+  it('inserts a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
     await gitDDB.open();
-    const json01 = { _id: 'prof01', name: 'Shirase' };
-    await gitDDB.insert(json01);
-    await expect(gitDDB.get('prof01')).resolves.toEqual(json01);
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await col.insert(json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage: `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
+    });
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(
+      gitDDB.workingDir(),
+      col.collectionPath(),
+      _id + JSON_EXT
+    );
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
+    await gitDDB.destroy();
+  });
+
+  it('sets commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const commitMessage = 'message';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await col.insert(json, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage,
+    });
+
     await gitDDB.destroy();
   });
 });
 
-describe('<crud/insert> insert(id, document)', () => {
+describe('<collection> insert(id, jsonDoc)', () => {
   it('throws SameIdExistsError when a document which has the same id exists.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -66,23 +116,68 @@ describe('<crud/insert> insert(id, document)', () => {
       localDir,
     });
     await gitDDB.open();
-    await gitDDB.insert('prof01', { name: 'Shirase' });
-    await expect(gitDDB.insert('prof01', { name: 'Shirase' })).rejects.toThrowError(
+    const col = new Collection(gitDDB, 'col01');
+    await col.insert('prof01', { name: 'Shirase' });
+    await expect(col.insert('prof01', { name: 'Shirase' })).rejects.toThrowError(
       SameIdExistsError
     );
     await gitDDB.destroy();
   });
 
-  it('inserts a document.', async () => {
+  it('inserts a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
     await gitDDB.open();
-    const json01 = { _id: 'prof01', name: 'Shirase' };
-    await gitDDB.insert('prof01', json01);
-    await expect(gitDDB.get('prof01')).resolves.toEqual(json01);
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await col.insert(_id, json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage: `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
+    });
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(
+      gitDDB.workingDir(),
+      col.collectionPath(),
+      _id + JSON_EXT
+    );
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
+    await gitDDB.destroy();
+  });
+
+  it('sets commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01');
+    const _id = 'prof01';
+    const commitMessage = 'message';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await col.insert(_id, json, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult).toEqual({
+      _id,
+      fileOid,
+      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+      commitMessage,
+    });
+
     await gitDDB.destroy();
   });
 });

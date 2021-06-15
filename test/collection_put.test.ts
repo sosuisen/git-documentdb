@@ -46,7 +46,7 @@ after(() => {
 });
 
 describe('<collection>', () => {
-  describe('put(jsonDoc: JsonDoc)', () => {
+  describe('put(jsonDoc)', () => {
     it('throws UndefinedDocumentIdError when JsonDoc is undefined', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -249,7 +249,7 @@ describe('<collection>', () => {
       const filePath = path.resolve(
         gitDDB.workingDir(),
         col.collectionPath(),
-        _id + '.json'
+        _id + JSON_EXT
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       // Read JSON and check doc._id
@@ -270,23 +270,23 @@ describe('<collection>', () => {
       // Check put operation
       const json = { _id, name: 'Shirase' };
       const putResult = await col.put(json);
-      const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+      const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+      const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(putResult).toEqual({
         _id,
-        fileOid: (await git.hashBlob({ object: toSortedJSONString(json) })).oid,
+        fileOid,
         commitOid: expect.stringMatching(/^[\da-z]{40}$/),
         commitMessage: `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
       });
-      // Check filename
+
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(
         gitDDB.workingDir(),
         col.collectionPath(),
-        _id + '.json'
+        _id + JSON_EXT
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
-      // Read JSON and check doc._id
-      expect(fs.readJSONSync(filePath)._id).toBe(_id);
+      expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
       await gitDDB.destroy();
     });
@@ -339,9 +339,7 @@ describe('<collection>', () => {
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
         // Read JSON and check doc._id
-        await expect(fs.readFile(filePath, 'utf8')).resolves.toBe(
-          toSortedJSONString(internalJson)
-        );
+        expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
         gitDDB.destroy();
       });
@@ -374,8 +372,7 @@ describe('<collection>', () => {
           col.collectionPath() + _id + JSON_EXT
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
-        // Read JSON and check doc._id
-        expect(fs.readJSONSync(filePath)._id).toBe('prof01'); // not 'dir01/prof01'
+        expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
         // Check commit directly
         const commitOid = await git.resolveRef({
@@ -497,7 +494,7 @@ describe('<collection>', () => {
     });
   });
 
-  describe('<crud/put> put(id, document)', () => {
+  describe('<crud/put> put(id, jsonDoc)', () => {
     it('throws InvalidJsonObjectError', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -574,10 +571,7 @@ describe('<collection>', () => {
       const fullDocPath = col.collectionPath() + _id + JSON_EXT;
       const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
-      // Read JSON and check doc._id
-      await expect(fs.readFile(filePath, 'utf8')).resolves.toBe(
-        toSortedJSONString(internalJson)
-      );
+      expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
       await gitDDB.destroy();
     });
@@ -646,10 +640,7 @@ describe('<collection>', () => {
       const fullDocPath = col.collectionPath() + _id + JSON_EXT;
       const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
-      // Read JSON and check doc._id
-      await expect(fs.readFile(filePath, 'utf8')).resolves.toBe(
-        toSortedJSONString(internalJson)
-      );
+      expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
       await gitDDB.destroy();
     });
@@ -674,7 +665,10 @@ describe('<collection>', () => {
       'A': 'A',
     });
 
-    const filePath = path.resolve(gitDDB.workingDir(), col.collectionPath() + 'id.json');
+    const filePath = path.resolve(
+      gitDDB.workingDir(),
+      col.collectionPath() + 'id' + JSON_EXT
+    );
     const jsonStr = fs.readFileSync(filePath, 'utf8');
     expect(jsonStr).toBe(`{
   "1": 1,
