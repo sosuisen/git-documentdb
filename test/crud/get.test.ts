@@ -8,8 +8,8 @@
  */
 
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
 import { sleep } from '../../src/utils';
@@ -47,7 +47,7 @@ afterEach(function () {
   sandbox.restore();
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -55,7 +55,7 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<crud/get> get()', () => {
+describe('<crud/get> getImpl()', () => {
   it('returns JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
