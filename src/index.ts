@@ -610,7 +610,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
    * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
-   * @param data - {@link JsonDoc} or Buffer or string. _id property of JsonDoc is ignored.
+   * @param data - {@link JsonDoc} or Uint8Array or string. _id property of JsonDoc is ignored.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -629,13 +629,13 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   put (
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   put (
     shortIdOrDoc: string | JsonDoc,
-    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
     return this._fullCollection.put(shortIdOrDoc, dataOrOptions, options);
@@ -689,7 +689,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
    * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
-   * @param data - {@link JsonDoc} or Buffer or string. _id property of JsonDoc is ignored.
+   * @param data - {@link JsonDoc} or Uint8Array or string. _id property of JsonDoc is ignored.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -710,13 +710,13 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   insert (
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   insert (
     shortIdOrDoc: string | JsonDoc,
-    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
     options ??= {};
@@ -795,13 +795,13 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   update (
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   update (
     shortIdOrDoc: string | JsonDoc,
-    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
     options ??= {};
@@ -820,7 +820,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *  - JsonDoc if the collection's readMethod is 'json'(default is 'json')
    *     or the file extension is '.json'.
    *
-   *  - Buffer or string if the collections. readMethods is 'file'.
+   *  - Uint8Array or string if the collections. readMethods is 'file'.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *

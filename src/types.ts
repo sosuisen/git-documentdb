@@ -152,14 +152,14 @@ export type JsonDoc = {
  *
  * - text: utf8 string
  *
- * - binary: Buffer
+ * - binary: Uint8Array
  */
 export type DocType = 'json' | 'text' | 'binary';
 
 /**
  * Doc
  */
-export type Doc = JsonDoc | string | Buffer;
+export type Doc = JsonDoc | string | Uint8Array;
 
 /**
  * Type for a document with a metadata
@@ -172,7 +172,7 @@ export type FatTextDoc = TextDocMetadata & {
   doc: string;
 };
 export type FatBinaryDoc = BinaryDocMetadata & {
-  doc: Buffer;
+  doc: Uint8Array;
 };
 
 /**

@@ -19,6 +19,12 @@ export function sleep (msec: number) {
   return new Promise(resolve => setTimeout(resolve, msec));
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
+export function utf8decode (uint8array: Uint8Array) {
+  return decoder.decode(uint8array);
+}
+
 /**
  * Returns JSON string which properties are sorted.
  * The sorting follows the UTF-16 (Number < Uppercase < Lowercase), except that heading underscore _ is the last.

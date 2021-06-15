@@ -29,7 +29,7 @@ export class Validator {
   }
 
   static byteLengthOf = (str: string) => {
-    return Buffer.byteLength(str);
+    return new Blob([str], { type: 'text/plain' }).size;
   };
 
   /**

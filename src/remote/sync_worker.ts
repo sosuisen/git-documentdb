@@ -12,7 +12,7 @@ import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
-import { CONSOLE_STYLE, normalizeCommit } from '../utils';
+import { CONSOLE_STYLE, normalizeCommit, utf8decode } from '../utils';
 import {
   CannotDeleteDataError,
   GitMergeBranchError,
@@ -237,7 +237,7 @@ export async function syncWorker (
           dir: gitDDB.workingDir(),
           oid: change.old._id,
         });
-        const data = Buffer.from(blob).toString('utf-8');
+        const data = utf8decode(blob);
         await writeBlobToFile(gitDDB, filename, data);
         await currentIndex.addByPath(filename);
       }

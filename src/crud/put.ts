@@ -42,7 +42,7 @@ import {
 export function putImpl (
   gitDDB: IDocumentDB,
   fullDocPath: string,
-  data: Buffer | string,
+  data: Uint8Array | string,
   options?: PutOptions
 ): Promise<Pick<PutResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
   if (gitDDB.isClosing) {
@@ -97,7 +97,7 @@ export function putImpl (
 export async function putWorker (
   gitDDB: IDocumentDB,
   fullDocPath: string,
-  data: Buffer | string,
+  data: Uint8Array | string,
   commitMessage: string,
   insertOrUpdate?: 'insert' | 'update'
 ): Promise<Pick<PutResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {

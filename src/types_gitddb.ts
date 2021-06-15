@@ -38,21 +38,21 @@ export interface CRUDInterface {
   put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   put(
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   insert(
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   update(
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 

@@ -188,10 +188,10 @@ export class Collection implements CRUDInterface {
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * - This overload method always accept JsonDoc, Buffer and string regardless of isJsonDocCollection.
+   * - This overload method always accept JsonDoc, Uint8Array and string regardless of isJsonDocCollection.
    *
    * @param _id
-   * @param data - {@link JsonDoc} or Buffer or string.
+   * @param data - {@link JsonDoc} or Uint8Array or string.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -213,7 +213,7 @@ export class Collection implements CRUDInterface {
    */
   put (
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
@@ -223,25 +223,25 @@ export class Collection implements CRUDInterface {
    */
   put (
     shortIdOrDoc: string | JsonDoc,
-    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult>;
 
   // eslint-disable-next-line complexity
   put (
     shortIdOrDoc: string | JsonDoc,
-    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
     let shortId: string;
     let fullDocPath: string;
-    let data: JsonDoc | Buffer | string;
-    let bufferOrString: Buffer | string;
+    let data: JsonDoc | Uint8Array | string;
+    let bufferOrString: Uint8Array | string;
 
     // Resolve overloads
     if (typeof shortIdOrDoc === 'string') {
       shortId = shortIdOrDoc;
-      data = dataOrOptions as JsonDoc | Buffer | string;
+      data = dataOrOptions as JsonDoc | Uint8Array | string;
       fullDocPath = this._collectionPath + shortId;
     }
     else if (shortIdOrDoc?._id) {
@@ -258,7 +258,7 @@ export class Collection implements CRUDInterface {
     if (
       !this._isJsonDocCollection &&
       typeof data === 'object' &&
-      !(data instanceof Buffer)
+      !(data instanceof Uint8Array)
     ) {
       // Need .json
       if (!shortId.endsWith(JSON_EXT)) {
@@ -267,7 +267,7 @@ export class Collection implements CRUDInterface {
       shortId = shortId.replace(new RegExp(JSON_EXT + '$'), '');
     }
 
-    if (typeof data === 'object' && !(data instanceof Buffer)) {
+    if (typeof data === 'object' && !(data instanceof Uint8Array)) {
       // JSON
       let clone;
       try {
@@ -350,10 +350,10 @@ export class Collection implements CRUDInterface {
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * - This overload method always accept JsonDoc, Buffer and string regardless of isJsonDocCollection.
+   * - This overload method always accept JsonDoc, Uint8Array and string regardless of isJsonDocCollection.
    *
    * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
-   * @param data - {@link JsonDoc} or Buffer or string.
+   * @param data - {@link JsonDoc} or Uint8Array or string.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -374,13 +374,13 @@ export class Collection implements CRUDInterface {
    */
   insert (
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   insert (
     shortIdOrDoc: string | JsonDoc,
-    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
     // Resolve overloads
@@ -448,10 +448,10 @@ export class Collection implements CRUDInterface {
    *
    * - A update operation is not skipped even if no change occurred on a specified data.
    *
-   * - This overload method always accept JsonDoc, Buffer and string regardless of isJsonDocCollection.
+   * - This overload method always accept JsonDoc, Uint8Array and string regardless of isJsonDocCollection.
    *
    * @param id - _id property of a document
-   * @param data - {@link JsonDoc} or Buffer or string.
+   * @param data - {@link JsonDoc} or Uint8Array or string.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -472,13 +472,13 @@ export class Collection implements CRUDInterface {
    */
   update (
     _id: string,
-    data: JsonDoc | Buffer | string,
+    data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   update (
     shortIdOrDoc: string | JsonDoc,
-    dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
     // Resolve overloads
@@ -505,7 +505,7 @@ export class Collection implements CRUDInterface {
    *
    *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
    *
-   *  - Buffer or string if isJsonDocCollection is false.
+   *  - Uint8Array or string if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *

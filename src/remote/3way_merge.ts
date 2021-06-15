@@ -17,7 +17,7 @@ import {
 } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import { getDocumentFromBuffer, writeBlobToFile } from './worker_utils';
-import { toSortedJSONString } from '../utils';
+import { toSortedJSONString, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { ISync } from '../types_sync';
 
@@ -149,7 +149,7 @@ export async function threeWayMerge (
     // A new file has been inserted on theirs.
     // Write it to the file.
     // console.log(' #case 1 - Accept theirs (insert): ' + path);
-    await writeBlobToFile(gitDDB, path, Buffer.from(theirs!.blob).toString('utf-8'));
+    await writeBlobToFile(gitDDB, path, UTF8_DECODER.decode(theirs!.blob);
     await resolvedIndex.addByPath(path);
   }
   else if (!base && ours && !theirs) {
@@ -180,8 +180,8 @@ export async function threeWayMerge (
           sync.jsonPatch,
           strategy,
           undefined,
-          JSON.parse(Buffer.from(ours!.blob).toString('utf-8')),
-          JSON.parse(Buffer.from(theirs!.blob).toString('utf-8'))
+          JSON.parse(utf8decode(ours!.blob)),
+          JSON.parse(utf8decode(theirs!.blob))
         );
 
         await writeBlobToFile(gitDDB, path, data);
@@ -207,8 +207,8 @@ export async function threeWayMerge (
           sync.jsonPatch,
           strategy,
           undefined,
-          JSON.parse(Buffer.from(ours!.blob).toString('utf-8')),
-          JSON.parse(Buffer.from(theirs!.blob).toString('utf-8'))
+          JSON.parse(utf8decode(ours!.blob)),
+          JSON.parse(utf8decode(theirs!.blob))
         );
         await writeBlobToFile(gitDDB, path, data);
 
@@ -273,7 +273,7 @@ export async function threeWayMerge (
           operation: 'update',
         });
 
-        const data = Buffer.from(theirs!.blob).toString('utf-8');
+        const data = utf8decode(theirs!.blob);
 
         await writeBlobToFile(gitDDB, path, data);
 
@@ -310,7 +310,7 @@ export async function threeWayMerge (
           operation: 'update',
         });
 
-        const data = Buffer.from(ours!.blob).toString('utf-8');
+        const data = utf8decode(ours!.blob);
 
         await writeBlobToFile(gitDDB, path, data);
 
@@ -345,7 +345,7 @@ export async function threeWayMerge (
     else if (base.oid === ours.oid) {
       // Write theirs to the file.
       // console.log(' #case 14 - Accept theirs (update): ' + path);
-      const data = Buffer.from(theirs!.blob).toString('utf-8');
+      const data = utf8decode(theirs!.blob);
       await writeBlobToFile(gitDDB, path, data);
       await resolvedIndex.addByPath(path);
     }
@@ -368,9 +368,9 @@ export async function threeWayMerge (
           sync.jsonDiff,
           sync.jsonPatch,
           strategy,
-          JSON.parse(Buffer.from(base!.blob).toString('utf-8')),
-          JSON.parse(Buffer.from(ours!.blob).toString('utf-8')),
-          JSON.parse(Buffer.from(theirs!.blob).toString('utf-8'))
+          JSON.parse(utf8decode(base!.blob)),
+          JSON.parse(utf8decode(ours!.blob),
+          JSON.parse(utf8decode(theirs!.blob))
         );
 
         await writeBlobToFile(gitDDB, path, data);
@@ -396,9 +396,9 @@ export async function threeWayMerge (
           sync.jsonDiff,
           sync.jsonPatch,
           strategy,
-          JSON.parse(Buffer.from(base!.blob).toString('utf-8')),
-          JSON.parse(Buffer.from(ours!.blob).toString('utf-8')),
-          JSON.parse(Buffer.from(theirs!.blob).toString('utf-8'))
+          JSON.parse(utf8decode(base!.blob)),
+          JSON.parse(utf8decode(ours!.blob)),
+          JSON.parse(utf8decode(theirs!.blob))
         );
 
         await writeBlobToFile(gitDDB, path, data);
