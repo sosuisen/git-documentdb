@@ -34,7 +34,7 @@ export class Validator {
 
   /**
    * Normalized collectionPath is '' or path strings that has a trailing slash and no heading slash.
-   * '/' is not allowed.
+   * Root ('/') is not allowed.
    * Backslash \\ or yen ¥ is replaced with slash /.
    */
   static normalizeCollectionPath (
