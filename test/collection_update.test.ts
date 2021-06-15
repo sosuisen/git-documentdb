@@ -60,7 +60,7 @@ describe('<collection> update(jsonDoc)', () => {
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     await col.insert(json);
-    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const jsonUpdated = { _id, name: 'updated' };
     const putResult = await col.update(jsonUpdated);
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
@@ -84,7 +84,7 @@ describe('<collection> update(jsonDoc)', () => {
     await gitDDB.destroy();
   });
 
-  it('set commitMessage by PutOptions', async () => {
+  it('set a commitMessage by PutOptions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -99,7 +99,6 @@ describe('<collection> update(jsonDoc)', () => {
     const jsonUpdated = { _id: 'prof01', name: 'updated' };
     const putResult = await col.update(jsonUpdated, { commitMessage });
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
-    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,
       fileOid,
@@ -136,7 +135,7 @@ describe('<collection> update(id, jsonDoc)', () => {
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     await col.insert(json);
-    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const jsonUpdated = { _id, name: 'updated' };
     const putResult = await col.update('prof01', jsonUpdated);
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
@@ -160,7 +159,7 @@ describe('<collection> update(id, jsonDoc)', () => {
     await gitDDB.destroy();
   });
 
-  it('set commitMessage by PutOptions', async () => {
+  it('set a commitMessage by PutOptions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -175,7 +174,6 @@ describe('<collection> update(id, jsonDoc)', () => {
     const jsonUpdated = { _id: 'prof01', name: 'updated' };
     const putResult = await col.update('prof01', jsonUpdated, { commitMessage });
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
-    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,
       fileOid,

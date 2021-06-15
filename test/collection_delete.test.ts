@@ -50,7 +50,7 @@ describe('delete()', () => {
     await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
 
     await users.put({ _id: _id, name: 'shirase' });
-    await users.put({ _id: _id2, name: 'kimari' });
+    await users.put({ _id: _id2, name: 'Shirase' });
 
     // Delete
     const deleteResult = await users.delete(_id);

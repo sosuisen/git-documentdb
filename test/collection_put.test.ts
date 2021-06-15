@@ -403,10 +403,11 @@ describe('<collection>', () => {
         });
         await gitDDB.open();
         const col = gitDDB.collection('col01');
-        const json = { _id: 'prof01', name: 'Kimari' };
+        const _id = 'prof01';
+        const json = { _id, name: 'Shirase' };
         const commitMessage = 'message';
         await expect(col.put(json, { commitMessage })).resolves.toMatchObject({
-          _id: 'prof01',
+          _id,
           fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           commitOid: expect.stringMatching(/^[\da-z]{40}$/),
           commitMessage,
@@ -436,10 +437,11 @@ describe('<collection>', () => {
         });
         await gitDDB.open();
         const col = gitDDB.collection('col01');
-        const json = { _id: 'prof01', name: 'Kimari' };
+        const _id = 'prof01';
+        const json = { _id, name: 'Shirase' };
         const commitMessage = '';
         await expect(col.put(json, { commitMessage })).resolves.toMatchObject({
-          _id: 'prof01',
+          _id,
           fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           commitOid: expect.stringMatching(/^[\da-z]{40}$/),
           commitMessage,
@@ -585,7 +587,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       const _id = 'prof01';
-      const json = { _id, name: 'Kimari' };
+      const json = { _id, name: 'Shirase' };
       const commitMessage = 'message';
       await expect(col.put('prof01', json, { commitMessage })).resolves.toEqual({
         _id,
