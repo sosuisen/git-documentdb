@@ -8,20 +8,12 @@
  */
 
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/index';
-import {
-  DocumentNotFoundError,
-  InvalidCollectionPathCharacterError,
-  RepositoryNotOpenError,
-  SameIdExistsError,
-  UndefinedDocumentIdError,
-} from '../src/error';
-import { destroyDBs } from './remote_utils';
+import { InvalidCollectionPathCharacterError } from '../src/error';
+import { Collection } from '../src/collection';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -44,427 +36,66 @@ after(() => {
 });
 
 describe('<collection>', () => {
-  it('throws InvalidCollectionPathCharacterError', () => {
+  it('throws InvalidCollectionPathCharacterError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
-    gitDDB.open();
+    await gitDDB.open();
     expect(() => gitDDB.collection('users./')).toThrowError(
       InvalidCollectionPathCharacterError
     );
-    gitDDB.destroy();
-  });
-  describe('insert(JsonDoc)', () => {
-    it('throws SameIdExistsError when a document which has the same id exists.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      await users.insert({ _id: 'prof01' });
-      await expect(users.insert({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
-        SameIdExistsError
-      );
-      await gitDDB.destroy();
-    });
-
-    it('inserts a document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const json01 = { _id: 'prof01', name: 'Shirase' };
-      await users.insert(json01);
-      await expect(users.get('prof01')).resolves.toEqual(json01);
-      await gitDDB.destroy();
-    });
+    await gitDDB.destroy();
   });
 
-  describe('insert(id, document)', () => {
-    it('throws SameIdExistsError when a document which has the same id exists.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      await users.insert('prof01', { name: 'Shirase' });
-      await expect(users.insert('prof01', { name: 'Shirase' })).rejects.toThrowError(
-        SameIdExistsError
-      );
-      await gitDDB.destroy();
+  it('creates root collection', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
     });
+    await gitDDB.open();
+    const col = new Collection(gitDDB); // default
+    const col2 = new Collection(gitDDB, '');
+    expect(col.collectionPath()).toBe('');
+    expect(col2.collectionPath()).toBe('');
 
-    it('inserts a document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const json01 = { _id: 'prof01', name: 'Shirase' };
-      await users.insert('prof01', json01);
-      await expect(users.get('prof01')).resolves.toEqual(json01);
-      await gitDDB.destroy();
-    });
+    await gitDDB.destroy();
   });
 
-  describe('update(JsonDoc)', () => {
-    it('throws DocumentNotFoundError.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      await expect(users.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
-        DocumentNotFoundError
-      );
-      await gitDDB.destroy();
+  it('creates deep collection', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
     });
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'dir01/dir02/dir03');
+    const col2 = new Collection(gitDDB, 'dir01/dir02/dir03/');
+    expect(col.collectionPath()).toBe('dir01/dir02/dir03/');
+    expect(col2.collectionPath()).toBe('dir01/dir02/dir03/');
 
-    it('update a document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const json01 = { _id: 'prof01', name: 'Shirase' };
-      await users.insert(json01);
-      const json01dash = { _id: 'prof01', name: 'updated' };
-      await users.update(json01dash);
-      await expect(users.get('prof01')).resolves.toEqual(json01dash);
-      await gitDDB.destroy();
-    });
+    await gitDDB.destroy();
   });
 
-  describe('update(id, document)', () => {
-    it('throws DocumentNotFoundError.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      await expect(users.update('prof01', { name: 'Shirase' })).rejects.toThrowError(
-        DocumentNotFoundError
-      );
-      await gitDDB.destroy();
+  it('returns isJsonDocCollection', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
     });
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01', true);
+    expect(col.isJsonDocCollection()).toBe(true);
 
-    it('update a document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const json01 = { _id: 'prof01', name: 'Shirase' };
-      await users.insert(json01);
-      const json01dash = { _id: 'prof01', name: 'updated' };
-      await users.update('prof01', json01dash);
-      await expect(users.get('prof01')).resolves.toEqual(json01dash);
-      await gitDDB.destroy();
-    });
-  });
+    const col2 = new Collection(gitDDB, 'col02'); // default
+    expect(col2.isJsonDocCollection()).toBe(true);
 
-  describe('get()', () => {
-    it('reads an existing document', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
+    const col3 = new Collection(gitDDB, 'col03', false);
+    expect(col3.isJsonDocCollection()).toBe(false);
 
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _id = 'prof01';
-      await users.put({ _id: _id, name: 'shirase' });
-      // Get
-      await expect(users.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
-      await gitDDB.destroy();
-      // Check error
-      await expect(users.get(_id)).rejects.toThrowError(RepositoryNotOpenError);
-    });
-
-    it('reads an existing document in subdirectory', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _id = 'dir01/prof01';
-      await users.put({ _id: _id, name: 'shirase' });
-      // Get
-      await expect(users.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
-      await gitDDB.destroy();
-    });
-  });
-
-  describe('get() back number', () => {
-    it('returns undefined when get back number #0 of the deleted document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await users.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await users.put(jsonA02);
-      await users.delete(_idA);
-      // Get
-      await expect(users.get(_idA, 0)).resolves.toBeUndefined();
-
-      await destroyDBs([gitDDB]);
-    });
-
-    it('returns one revision before when get back number #1 of the deleted document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await users.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await users.put(jsonA02);
-      await users.delete(_idA);
-      // Get
-      await expect(users.get(_idA, 1)).resolves.toMatchObject(jsonA02);
-
-      await destroyDBs([gitDDB]);
-    });
-
-    it('returns two revision before when get back number #2 of the deleted document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await users.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await users.put(jsonA02);
-      await users.delete(_idA);
-      // Get
-      await expect(users.get(_idA, 2)).resolves.toMatchObject(jsonA01);
-
-      await destroyDBs([gitDDB]);
-    });
-  });
-
-  describe('delete()', () => {
-    it('deletes a document by id.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const _id = 'test/prof01';
-      const _id2 = 'test/prof02';
-      const users = gitDDB.collection('users');
-      await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
-
-      await users.put({ _id: _id, name: 'shirase' });
-      await users.put({ _id: _id2, name: 'kimari' });
-
-      // Delete
-      const deleteResult = await users.delete(_id);
-      expect(deleteResult).toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^test/prof01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-
-      // Check commit message
-      const repository = gitDDB.repository();
-      if (repository !== undefined) {
-        const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-        const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(
-          `delete: users/${_id}${JSON_EXT}(${deleteResult.fileOid.substr(
-            0,
-            SHORT_SHA_LENGTH
-          )})`
-        );
-      }
-
-      await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
-      await expect(users.get(_id)).resolves.toBeUndefined();
-
-      await users.delete(_id2);
-      // Directory is empty
-      await expect(
-        fs.access(
-          path.dirname(path.resolve(gitDDB.workingDir(), 'users', _id)),
-          fs.constants.F_OK
-        )
-      ).rejects.toThrowError();
-
-      await gitDDB.destroy();
-
-      await expect(users.delete(_id)).rejects.toThrowError(RepositoryNotOpenError);
-    });
-
-    it('deletes a document by JsonDoc.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const _id = 'test/prof01';
-      const users = gitDDB.collection('users');
-      const doc = { _id: _id, name: 'shirase' };
-      await users.put(doc);
-      const sameDoc = { _id: _id, name: 'shirase' };
-      await expect(users.delete(sameDoc)).resolves.toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^test/prof01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-      expect(sameDoc._id).toBe(_id);
-      await gitDDB.destroy();
-    });
-
-    it('throws UndefinedDocumentIdError', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      // @ts-ignore
-      await expect(users.delete()).rejects.toThrowError(UndefinedDocumentIdError);
-
-      await gitDDB.destroy();
-    });
-  });
-
-  describe('delete()', () => {
-    it('deletes a document by id.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const _id = 'test/prof01';
-      const users = gitDDB.collection('users');
-      const doc = { _id: _id, name: 'shirase' };
-      await users.put(doc);
-      await expect(users.delete(_id)).resolves.toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^test/prof01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-      await gitDDB.destroy();
-    });
-
-    it('modifies a commit message.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _id = 'test/prof01';
-      await users.put({ _id: _id, name: 'shirase' });
-
-      // Delete
-      await users.delete(_id, { commitMessage: 'my commit message' });
-
-      // Check commit message
-      const repository = gitDDB.repository();
-      if (repository !== undefined) {
-        const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-        const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`my commit message`);
-      }
-
-      await gitDDB.destroy();
-    });
-
-    it('throws UndefinedDocumentIdError', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      // @ts-ignore
-      await expect(users.delete()).rejects.toThrowError(UndefinedDocumentIdError);
-
-      await gitDDB.destroy();
-    });
-
-    it('deletes a document by JsonDoc.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _id = 'test/prof01';
-      const doc = { _id: _id, name: 'shirase' };
-      await users.put(doc);
-
-      // Delete
-      await expect(users.delete(doc)).resolves.toMatchObject({
-        ok: true,
-        _id: expect.stringMatching('^test/prof01$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-      expect(doc._id).toBe('test/prof01');
-
-      await gitDDB.destroy();
-    });
+    await gitDDB.destroy();
   });
 
   describe('getCollections()', () => {
@@ -490,6 +121,8 @@ describe('<collection>', () => {
 
       const cols2 = await gitDDB.getCollections('');
       expect(cols2.length).toBe(3);
+
+      await gitDDB.destroy();
     });
 
     it('returns sub directory collections', async () => {
@@ -522,93 +155,6 @@ describe('<collection>', () => {
       expect(cols3.length).toBe(2);
       await expect(cols3[0].get('item01')).resolves.toEqual({ _id: 'item01' });
       await expect(cols3[1].get('item02')).resolves.toEqual({ _id: 'item02' });
-    });
-  });
-
-  describe('find()', () => {
-    const _id_a = 'apple';
-    const name_a = 'Apple woman';
-    const _id_b = 'banana';
-    const name_b = 'Banana man';
-
-    const _id_c01 = 'citrus/amanatsu';
-    const name_c01 = 'Amanatsu boy';
-    const _id_c02 = 'citrus/yuzu';
-    const name_c02 = 'Yuzu girl';
-    const _id_d = 'durio/durian';
-    const name_d = 'Durian girls';
-    const _id_p = 'pear/Japan/21st';
-    const name_p = '21st century pear';
-
-    it('gets documents', async () => {
-      const dbName = monoId();
-
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await expect(gitDDB.find()).rejects.toThrowError(RepositoryNotOpenError);
-
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      await expect(users.find()).resolves.toMatchObject({
-        totalRows: 0,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      });
-
-      await users.put({ _id: _id_b, name: name_b });
-      await users.put({ _id: _id_a, name: name_a });
-
-      await expect(users.find()).resolves.toMatchObject({
-        totalRows: 2,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_a + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          },
-          {
-            _id: expect.stringMatching('^' + _id_b + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          },
-        ],
-      });
-
-      await gitDDB.destroy();
-    });
-
-    it('gets from deep directory', async () => {
-      const dbName = monoId();
-
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const users = gitDDB.collection('users');
-      await users.put({ _id: _id_p, name: name_p });
-
-      await users.put({ _id: _id_b, name: name_b });
-      await users.put({ _id: _id_a, name: name_a });
-      await users.put({ _id: _id_d, name: name_d });
-      await users.put({ _id: _id_c01, name: name_c01 });
-      await users.put({ _id: _id_c02, name: name_c02 });
-
-      await expect(users.find({ prefix: 'pear/Japan' })).resolves.toMatchObject({
-        totalRows: 1,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_p + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_p + '$'),
-              name: name_p,
-            },
-          },
-        ],
-      });
 
       await gitDDB.destroy();
     });

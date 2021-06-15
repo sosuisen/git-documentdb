@@ -23,7 +23,7 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const localDir = `./test/database_update`;
+const localDir = `./test/database_collection_update`;
 
 beforeEach(function () {
   // @ts-ignore

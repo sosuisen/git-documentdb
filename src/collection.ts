@@ -7,9 +7,9 @@
  */
 
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
-import { putImpl } from './crud/put';
+import fs from 'fs';
 
+import { readTree, resolveRef } from 'isomorphic-git';
 import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
@@ -45,6 +45,7 @@ import { getImpl } from './crud/get';
 import { getHistoryImpl } from './crud/history';
 import { deleteImpl } from './crud/delete';
 import { findImpl } from './crud/find';
+import { putImpl } from './crud/put';
 
 /**
  * Documents are gathered together in collections.
@@ -97,7 +98,7 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get collections whose collectionPath start with specified root.
+   * Get the collections directly under the specified path.
    *
    * @param rootCollectionPath - Default is ''.
    * @returns Array of Collections which does not include ''
@@ -107,31 +108,31 @@ export class Collection implements CRUDInterface {
     gitDDB: CRUDInterface & IDocumentDB,
     rootCollectionPath = ''
   ): Promise<Collection[]> {
-    const repos = gitDDB.repository();
-    if (repos === undefined) {
+    if (!gitDDB.isOpened()) {
       throw new RepositoryNotOpenError();
     }
-    const head = await nodegit.Reference.nameToId(repos, 'HEAD').catch(e => false); // get HEAD
-    if (!head) {
-      return [];
-    }
-    const commit = await repos.getCommit(head as nodegit.Oid); // get the commit of HEAD
-    let rootTree = await commit.getTree();
+    rootCollectionPath = Validator.normalizeCollectionPath(rootCollectionPath);
+    rootCollectionPath = rootCollectionPath.slice(0, -1);
+
+    const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'main' });
+
+    const treeResult = await readTree({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+      filepath: rootCollectionPath,
+    }).catch(() => undefined);
+
+    const rootTree = treeResult?.tree ?? [];
 
     const collections: Collection[] = [];
-    if (rootCollectionPath !== '') {
-      const rootEntry = await rootTree.getEntry(rootCollectionPath).catch(e => null);
-      if (rootEntry === null || !rootEntry.isTree()) {
-        return [];
-      }
-      rootTree = await rootEntry.getTree();
-    }
-    const entries = rootTree.entries(); // returns entry by alphabetical order
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
-      if (entry.isDirectory()) {
-        if (entry.path() !== GIT_DOCUMENTDB_METADATA_DIR) {
-          collections.push(new Collection(gitDDB, entry.path()));
+
+    for (const entry of rootTree) {
+      const fullDocPath =
+        rootCollectionPath !== '' ? `${rootCollectionPath}/${entry.path}` : entry.path;
+      if (entry.type === 'tree') {
+        if (fullDocPath !== GIT_DOCUMENTDB_METADATA_DIR) {
+          collections.push(new Collection(gitDDB, entry.path));
         }
       }
     }
