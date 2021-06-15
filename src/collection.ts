@@ -373,8 +373,19 @@ export class Collection implements CRUDInterface {
     dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
-    options ??= {};
-    options.insertOrUpdate = 'insert';
+    // Resolve overloads
+    if (typeof shortIdOrDoc === 'string') {
+      options ??= {};
+      options.insertOrUpdate = 'insert';
+    }
+    else if (shortIdOrDoc?._id) {
+      dataOrOptions ??= {};
+      (dataOrOptions as PutOptions).insertOrUpdate = 'insert';
+    }
+    else {
+      return Promise.reject(new UndefinedDocumentIdError());
+    }
+
     return this.put(shortIdOrDoc, dataOrOptions, options);
   }
 
@@ -460,8 +471,19 @@ export class Collection implements CRUDInterface {
     dataOrOptions?: JsonDoc | Buffer | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
-    options ??= {};
-    options.insertOrUpdate = 'update';
+    // Resolve overloads
+    if (typeof shortIdOrDoc === 'string') {
+      options ??= {};
+      options.insertOrUpdate = 'update';
+    }
+    else if (shortIdOrDoc?._id) {
+      dataOrOptions ??= {};
+      (dataOrOptions as PutOptions).insertOrUpdate = 'update';
+    }
+    else {
+      return Promise.reject(new UndefinedDocumentIdError());
+    }
+
     return this.put(shortIdOrDoc, dataOrOptions, options);
   }
 
