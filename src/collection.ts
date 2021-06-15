@@ -262,17 +262,19 @@ export class Collection implements CRUDInterface {
     // Validate
     if (typeof data === 'object' && !(data instanceof Buffer)) {
       // JSON
+      let clone;
       try {
-        this._gitDDB.validator.validateDocument(data);
-      } catch (err) {
-        return Promise.reject(err);
-      }
-      try {
-        const clone = JSON.parse(JSON.stringify(data));
+        clone = JSON.parse(JSON.stringify(data));
         clone._id = path.basename(shortId);
         bufferOrString = toSortedJSONString(clone);
       } catch (err) {
         return Promise.reject(new InvalidJsonObjectError(shortId));
+      }
+      try {
+        this._gitDDB.validator.validateId(shortId);
+        this._gitDDB.validator.validateDocument(clone);
+      } catch (err) {
+        return Promise.reject(err);
       }
     }
     else {
