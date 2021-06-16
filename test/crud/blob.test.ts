@@ -8,7 +8,7 @@
  */
 
 import path from 'path';
-import git, { ReadBlobResult, STAGE, WORKDIR } from 'isomorphic-git';
+import git, { ReadBlobResult } from 'isomorphic-git';
 import expect from 'expect';
 import fs from 'fs-extra';
 import sinon from 'sinon';
@@ -22,7 +22,6 @@ import {
 } from '../../src/crud/blob';
 import { InvalidJsonObjectError } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
-import { JSON_EXT } from '../../src/const';
 import { toSortedJSONString, utf8encode } from '../../src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
