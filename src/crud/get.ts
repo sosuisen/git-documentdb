@@ -72,7 +72,9 @@ export async function getImpl (
     }
   }
 
-  gitDDB.validator.validateId(fullDocPath);
+  // Do not use validateId for get()
+  // Just return undefined if not exists.
+  // gitDDB.validator.validateId(fullDocPath);
 
   let readBlobResult: ReadBlobResult | undefined;
   if (internalOptions.oid !== '') {
