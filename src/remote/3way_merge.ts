@@ -149,7 +149,7 @@ export async function threeWayMerge (
     // A new file has been inserted on theirs.
     // Write it to the file.
     // console.log(' #case 1 - Accept theirs (insert): ' + path);
-    await writeBlobToFile(gitDDB, path, UTF8_DECODER.decode(theirs!.blob);
+    await writeBlobToFile(gitDDB, path, utf8decode(theirs!.blob));
     await resolvedIndex.addByPath(path);
   }
   else if (!base && ours && !theirs) {
@@ -369,7 +369,7 @@ export async function threeWayMerge (
           sync.jsonPatch,
           strategy,
           JSON.parse(utf8decode(base!.blob)),
-          JSON.parse(utf8decode(ours!.blob),
+          JSON.parse(utf8decode(ours!.blob)),
           JSON.parse(utf8decode(theirs!.blob))
         );
 

@@ -9,7 +9,7 @@
 import nodePath from 'path';
 import git, { ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { normalizeCommit, UTF8_DECODER } from '../utils';
+import { normalizeCommit, utf8decode } from '../utils';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
 import { ChangedFile, JsonDoc, NormalizedCommit } from '../types';
@@ -37,7 +37,7 @@ export function getDocumentFromBuffer (filepath: string, buffer: Uint8Array) {
   const id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
   let document: JsonDoc | undefined;
   try {
-    document = (JSON.parse(UTF8_DECODER.decode(buffer)) as unknown) as JsonDoc;
+    document = (JSON.parse(utf8decode(buffer)) as unknown) as JsonDoc;
     document._id = id;
   } catch (e) {
     throw new InvalidJsonObjectError(id);
