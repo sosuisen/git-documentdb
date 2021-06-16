@@ -103,7 +103,7 @@ export async function readLatestBlob (
   workingDir: string,
   fullDocPath: string
 ): Promise<ReadBlobResult | undefined> {
-  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'main' }).catch(
+  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'HEAD' }).catch(
     () => undefined
   );
   if (commitOid === undefined) return undefined;
