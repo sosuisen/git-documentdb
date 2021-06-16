@@ -159,6 +159,24 @@ describe('<crud/get> getImpl()', () => {
     await gitDDB.destroy();
   });
 
+  it('returns latest JsonDoc under deep collectionPath', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const shortId = 'dir01/prof01';
+    const collectionPath = 'col01/col02/col03';
+    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const json = { _id: shortId, name: 'Shirase' };
+    await commitOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+
+    await gitDDB.destroy();
+  });
+
   it('returns undefined if db does not have commits.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -208,5 +226,28 @@ describe('<crud/get> getImpl()', () => {
     await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
 
     await gitDDB.destroy();
+  });
+
+  describe('with internalOptions', () => {
+    it('returns latest JsonDoc by oid', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json = { _id: shortId, name: 'Shirase' };
+      const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
+      await commitOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { oid })
+      ).resolves.toEqual(json);
+
+      await gitDDB.destroy();
+    });
   });
 });
