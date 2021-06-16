@@ -21,8 +21,13 @@ export function sleep (msec: number) {
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const encoder = new TextEncoder(); // default 'utf-8' or 'utf8'
 export function utf8decode (uint8array: Uint8Array) {
   return decoder.decode(uint8array);
+}
+export function utf8encode (utf8: string) {
+  return encoder.encode(utf8);
 }
 
 /**
