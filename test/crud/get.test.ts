@@ -249,5 +249,31 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.destroy();
     });
+
+    it('returns latest FatJsonDoc', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json = { _id: shortId, name: 'Shirase' };
+      const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
+      await commitOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { withMetadata: true })
+      ).resolves.toEqual({
+        _id: shortId,
+        fileOid: oid,
+        type: 'json',
+        doc: json,
+      });
+
+      await gitDDB.destroy();
+    });
   });
 });
