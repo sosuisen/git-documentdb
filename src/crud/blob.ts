@@ -85,7 +85,10 @@ export function blobToBinary (
 /**
  * readBlobByOid
  */
-export async function readBlobByOid (workingDir: string, oid: string) {
+export async function readBlobByOid (
+  workingDir: string,
+  oid: string
+): Promise<ReadBlobResult | undefined> {
   return await readBlob({
     fs,
     dir: workingDir,
@@ -96,8 +99,14 @@ export async function readBlobByOid (workingDir: string, oid: string) {
 /**
  * readLatestBlob
  */
-export async function readLatestBlob (workingDir: string, fullDocPath: string) {
-  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'main' });
+export async function readLatestBlob (
+  workingDir: string,
+  fullDocPath: string
+): Promise<ReadBlobResult | undefined> {
+  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'main' }).catch(
+    () => undefined
+  );
+  if (commitOid === undefined) return undefined;
   return await readBlob({
     fs,
     dir: workingDir,
