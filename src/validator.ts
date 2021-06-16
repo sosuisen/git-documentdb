@@ -7,6 +7,7 @@
  */
 
 import path from 'path';
+import Blob from 'cross-blob';
 import { MAX_FILE_PATH_LENGTH } from './const';
 import {
   InvalidCollectionPathCharacterError,
