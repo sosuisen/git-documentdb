@@ -24,6 +24,9 @@ import { GitDocumentDB } from '../../src/index';
 import { getImpl } from '../../src/crud/get';
 import { JSON_EXT } from '../../src/const';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const git_module = require('isomorphic-git');
+
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
@@ -221,6 +224,28 @@ describe('<crud/get> getImpl()', () => {
     await gitDDB.destroy();
   });
 
+  it('returns undefined if readBlob throws Error', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const shortId = 'prof01';
+    const collectionPath = '';
+    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const json = { _id: shortId, name: 'Shirase' };
+    await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+
+    const stubReadBlob = sandbox.stub(git_module, 'readBlob');
+    stubReadBlob.rejects();
+
+    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toBeUndefined();
+
+    await gitDDB.destroy();
+  });
+
   it('returns a document by non-ASCII _id', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -330,7 +355,6 @@ describe('<crud/get> getImpl()', () => {
       await gitDDB.destroy();
     });
 
-    /*
     it('returns one revision before when get back number #1 of the deleted document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -339,16 +363,18 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await gitDDB.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await gitDDB.put(jsonA02);
-      await gitDDB.delete(_idA);
-      // Get
-      await expect(gitDDB.get(_idA, 1)).resolves.toMatchObject(jsonA02);
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json = { _id: shortId, name: 'Shirase' };
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
-      await destroyDBs([gitDDB]);
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 1 })
+      ).resolves.toEqual(json);
+
+      await gitDDB.destroy();
     });
 
     it('returns two revisions before when get back number #2 of the deleted document.', async () => {
@@ -359,16 +385,20 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await gitDDB.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await gitDDB.put(jsonA02);
-      await gitDDB.delete(_idA);
-      // Get
-      await expect(gitDDB.get(_idA, 2)).resolves.toMatchObject(jsonA01);
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json01 = { _id: shortId, name: 'v01' };
+      const json02 = { _id: shortId, name: 'v02' };
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
+      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-      await destroyDBs([gitDDB]);
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 2 })
+      ).resolves.toEqual(json01);
+
+      await gitDDB.destroy();
     });
 
     it('returns an old revision after a document was deleted and created again.', async () => {
@@ -379,81 +409,23 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await gitDDB.put(jsonA01);
-      await gitDDB.delete(_idA);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await gitDDB.put(jsonA02);
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json01 = { _id: shortId, name: 'v01' };
+      const json02 = { _id: shortId, name: 'v02' };
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-      // Get
-      await expect(gitDDB.get(_idA, 1)).resolves.toMatchObject(jsonA01);
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 2 })
+      ).resolves.toEqual(json01);
 
-      await destroyDBs([gitDDB]);
-    });
-
-    it('returns undefined when get document with backNumber that does not exist (1)', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await gitDDB.put(jsonA01);
-      await gitDDB.delete(_idA);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await gitDDB.put(jsonA02);
-
-      // Get
-      await expect(gitDDB.get(_idA, 2)).resolves.toBeUndefined();
-
-      await destroyDBs([gitDDB]);
-    });
-
-    it('returns undefined when get document with backNumber that does not exist (2)', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await gitDDB.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await gitDDB.put(jsonA02);
-      await gitDDB.delete(_idA);
-      // Get
-      await expect(gitDDB.get(_idA, 3)).resolves.toBeUndefined();
-
-      await destroyDBs([gitDDB]);
-    });
-
-    it('throws CannotGetEntryError when error occurs while reading a document.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await gitDDB.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await gitDDB.put(jsonA02);
-
-      const stub = sandbox.stub(nodegit.Commit.prototype, 'getEntry');
-      stub.rejects(new Error());
-      await expect(gitDDB.get('prof01', 1)).rejects.toThrowError(CannotGetEntryError);
       await gitDDB.destroy();
     });
 
-    it('throws CorruptedRepositoryError when target blob does not exist.', async () => {
+    it('returns undefined when get document with backNumber that was deleted once', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -461,23 +433,23 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      const putResult = await gitDDB.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await gitDDB.put(jsonA02);
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json01 = { _id: shortId, name: 'v01' };
+      const json02 = { _id: shortId, name: 'v02' };
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-      const dirName = putResult.fileOid.substr(0, 2);
-      const fileName = putResult.fileOid.substr(2);
-      const fullPath = path.resolve(gitDDB.workingDir(), '.git/objects', dirName, fileName);
-      fs.removeSync(fullPath);
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 1 })
+      ).resolves.toBeUndefined();
 
-      await expect(gitDDB.get(_idA, 1)).rejects.toThrowError(CorruptedRepositoryError);
-
-      await destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
 
-    it('returns undefined when get back number #0 of the deleted document.', async () => {
+    it('returns undefined when get document with backNumber that does not exist', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -485,20 +457,23 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await users.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await users.put(jsonA02);
-      await users.delete(_idA);
-      // Get
-      await expect(users.get(_idA, 0)).resolves.toBeUndefined();
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json01 = { _id: shortId, name: 'v01' };
+      const json02 = { _id: shortId, name: 'v02' };
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-      await destroyDBs([gitDDB]);
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 3 })
+      ).resolves.toBeUndefined();
+
+      await gitDDB.destroy();
     });
 
-    it('returns one revision before when get back number #1 of the deleted document.', async () => {
+    it('returns undefined if a document is not put.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -506,20 +481,17 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await users.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await users.put(jsonA02);
-      await users.delete(_idA);
-      // Get
-      await expect(users.get(_idA, 1)).resolves.toMatchObject(jsonA02);
+      const shortId = 'prof01';
+      const collectionPath = '';
 
-      await destroyDBs([gitDDB]);
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 0 })
+      ).resolves.toBeUndefined();
+
+      await gitDDB.destroy();
     });
 
-    it('returns two revision before when get back number #2 of the deleted document.', async () => {
+    it('returns undefined if readBlob throws Error', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -527,18 +499,20 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const users = gitDDB.collection('users');
-      const _idA = 'profA';
-      const jsonA01 = { _id: _idA, name: 'v01' };
-      await users.put(jsonA01);
-      const jsonA02 = { _id: _idA, name: 'v02' };
-      await users.put(jsonA02);
-      await users.delete(_idA);
-      // Get
-      await expect(users.get(_idA, 2)).resolves.toMatchObject(jsonA01);
+      const shortId = 'prof01';
+      const collectionPath = '';
+      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const json = { _id: shortId, name: 'Shirase' };
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
-      await destroyDBs([gitDDB]);
+      const stubReadBlob = sandbox.stub(git_module, 'readBlob');
+      stubReadBlob.rejects();
+
+      await expect(
+        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 0 })
+      ).resolves.toBeUndefined();
+
+      await gitDDB.destroy();
     });
-  */
   });
 });
