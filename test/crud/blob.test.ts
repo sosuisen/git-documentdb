@@ -8,27 +8,16 @@
  */
 
 import path from 'path';
-import { readFileSync } from 'fs';
-import git from 'isomorphic-git';
+import git, { ReadBlobResult, STAGE, WORKDIR } from 'isomorphic-git';
 import expect from 'expect';
 import fs from 'fs-extra';
 import sinon from 'sinon';
 import { monotonicFactory } from 'ulid';
-import {
-  CannotCreateDirectoryError,
-  CannotWriteDataError,
-  DatabaseClosingError,
-  DocumentNotFoundError,
-  RepositoryNotOpenError,
-  SameIdExistsError,
-  TaskCancelError,
-  UndefinedDBError,
-} from '../../src/error';
+import { blobToJsonDoc } from '../../src/crud/blob';
+import { InvalidJsonObjectError } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
-import { putImpl, putWorker } from '../../src/crud/put';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
-import { sleep, toSortedJSONString } from '../../src/utils';
-import { TaskMetadata } from '../../src/types';
+import { JSON_EXT } from '../../src/const';
+import { toSortedJSONString, utf8encode } from '../../src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs_module = require('fs-extra');
@@ -56,28 +45,46 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<crud/put> put', () => {
-  it('causes DatabaseClosingError', async () => {
-    const dbName = monoId();
-    const gitDDB = new GitDocumentDB({
-      dbName,
-      localDir,
+describe('<crud/blob>', () => {
+  describe('blobToJsonDoc', () => {
+    it('throws InvalidJsonObjectError', async () => {
+      const shortId = 'foo';
+      const text = 'bar';
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(() => blobToJsonDoc(shortId, readBlobResult, false)).toThrowError(
+        InvalidJsonObjectError
+      );
     });
-    await gitDDB.open();
 
-    for (let i = 0; i < 50; i++) {
-      // put() will throw Error after the database is closed by force.
-      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
-    }
-    // Call close() without await
-    gitDDB.close().catch(() => {});
-    const _id = 'prof01';
-    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(
-      DatabaseClosingError
-    );
+    it('returns JsonDoc', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, name: 'bar' };
+      const text = toSortedJSONString(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDoc(shortId, readBlobResult, false)).toEqual(json);
+    });
 
-    // wait close
-    await sleep(5000);
-    await gitDDB.destroy();
+    it('returns FatJsonDoc', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, name: 'bar' };
+      const text = toSortedJSONString(json);
+      const fileOid = (await git.hashBlob({ object: text })).oid;
+      const readBlobResult: ReadBlobResult = {
+        oid: fileOid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDoc(shortId, readBlobResult, true)).toEqual({
+        _id: shortId,
+        fileOid,
+        type: 'json',
+        doc: json,
+      });
+    });
   });
 });
