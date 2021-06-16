@@ -54,7 +54,13 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-const addOneData = async (gitDDB: IDocumentDB, fullDocPath: string, data: string) => {
+const addOneData = async (
+  gitDDB: IDocumentDB,
+  fullDocPath: string,
+  data: string,
+  author?: { name?: string; email?: string },
+  committer?: { name?: string; email?: string }
+) => {
   fs.ensureDirSync(path.dirname(path.resolve(gitDDB.workingDir(), fullDocPath)));
   fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), data);
   await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
@@ -62,7 +68,8 @@ const addOneData = async (gitDDB: IDocumentDB, fullDocPath: string, data: string
     fs,
     dir: gitDDB.workingDir(),
     message: 'message',
-    author: gitDDB.author,
+    author: author ?? gitDDB.author,
+    committer: committer ?? gitDDB.committer,
   });
 };
 
@@ -513,6 +520,346 @@ describe('<crud/get> getImpl()', () => {
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
+    });
+  });
+
+  describe('returns a revision filtered by historyOptions', () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    const targetId = '01';
+    const collectionPath = '';
+    const fullDocPath = collectionPath + targetId + JSON_EXT;
+
+    const json01 = { _id: targetId, name: 'v01' };
+    const json02 = { _id: targetId, name: 'v02' };
+    const json03 = { _id: targetId, name: 'v03' };
+    const json04 = { _id: targetId, name: 'v04' };
+    const json05 = { _id: targetId, name: 'v05' };
+    const json06 = { _id: targetId, name: 'v06' };
+    const json07 = { _id: targetId, name: 'v07' };
+    const json08 = { _id: targetId, name: 'v08' };
+    const json09 = { _id: targetId, name: 'v09' };
+    const json10 = { _id: targetId, name: 'v10' };
+    const json11 = { _id: targetId, name: 'v11' };
+    const json12 = { _id: targetId, name: 'v12' };
+    const json13 = { _id: targetId, name: 'v13' };
+    const json14 = { _id: targetId, name: 'v14' };
+    const json15 = { _id: targetId, name: 'v15' };
+    const json16 = { _id: targetId, name: 'v16' };
+    const json17 = { _id: targetId, name: 'v17' };
+
+    before(async () => {
+      await gitDDB.open();
+
+      await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01)); // default
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json02),
+        {
+          name: 'authorA',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json03),
+        {
+          name: 'authorA',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailB',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json04),
+        {
+          name: 'authorA',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json05),
+        {
+          name: 'authorA',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailB',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json06),
+        {
+          name: 'authorA',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json07),
+        {
+          name: 'authorA',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailB',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json08),
+        {
+          name: 'authorA',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json09),
+        {
+          name: 'authorA',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailB',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json10),
+        {
+          name: 'authorB',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json11),
+        {
+          name: 'authorB',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailB',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json12),
+        {
+          name: 'authorB',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json13),
+        {
+          name: 'authorB',
+          email: 'authorEmailA',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailB',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json14),
+        {
+          name: 'authorB',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json15),
+        {
+          name: 'authorB',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerA',
+          email: 'committerEmailB',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json16),
+        {
+          name: 'authorB',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailA',
+        }
+      );
+
+      await addOneData(
+        gitDDB,
+        fullDocPath,
+        toSortedJSONString(json17),
+        {
+          name: 'authorB',
+          email: 'authorEmailB',
+        },
+        {
+          name: 'committerB',
+          email: 'committerEmailB',
+        }
+      );
+    });
+
+    after(async () => {
+      await gitDDB.destroy();
+    });
+
+    it('with author.name, author.email, committer.name, and committer.email', async () => {
+      await expect(
+        getImpl(
+          gitDDB,
+          targetId,
+          collectionPath,
+          true,
+          undefined,
+          { backNumber: 0 },
+          {
+            filter: [
+              {
+                author: { name: 'authorA', email: 'authorEmailA' },
+                committer: { name: 'committerA', email: 'committerEmailA' },
+              },
+            ],
+          }
+        )
+      ).resolves.toEqual(json02);
+
+      await expect(
+        getImpl(
+          gitDDB,
+          targetId,
+          collectionPath,
+          true,
+          undefined,
+          { backNumber: 1 },
+          {
+            filter: [
+              {
+                author: { name: 'authorA', email: 'authorEmailA' },
+                committer: { name: 'committerA', email: 'committerEmailA' },
+              },
+            ],
+          }
+        )
+      ).resolves.toBeUndefined();
+    });
+
+    it('with OR condition', async () => {
+      await expect(
+        getImpl(
+          gitDDB,
+          targetId,
+          collectionPath,
+          true,
+          undefined,
+          { backNumber: 0 },
+          {
+            filter: [
+              { committer: { name: 'committerA', email: 'committerEmailA' } },
+              { committer: { name: 'committerB', email: 'committerEmailB' } },
+            ],
+          }
+        )
+      ).resolves.toEqual(json17);
+
+      await expect(
+        getImpl(
+          gitDDB,
+          targetId,
+          collectionPath,
+          true,
+          undefined,
+          { backNumber: 1 },
+          {
+            filter: [
+              { committer: { name: 'committerA', email: 'committerEmailA' } },
+              { committer: { name: 'committerB', email: 'committerEmailB' } },
+            ],
+          }
+        )
+      ).resolves.toEqual(json14);
     });
   });
 });

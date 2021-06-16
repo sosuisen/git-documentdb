@@ -80,10 +80,13 @@ export async function getImpl (
   if (internalOptions.oid !== '') {
     readBlobResult = await readBlobByOid(gitDDB.workingDir(), internalOptions.oid);
   }
-  else if (!internalOptions.backNumber || internalOptions.backNumber === 0) {
+  else if (
+    historyOptions === undefined &&
+    (!internalOptions.backNumber || internalOptions.backNumber === 0)
+  ) {
     readBlobResult = await readLatestBlob(gitDDB.workingDir(), fullDocPath);
   }
-  else if (internalOptions.backNumber > 0) {
+  else if (internalOptions.backNumber >= 0) {
     readBlobResult = await readOldBlob(
       gitDDB.workingDir(),
       fullDocPath,

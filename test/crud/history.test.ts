@@ -13,18 +13,8 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
-import {
-  createClonedDatabases,
-  destroyDBs,
-  removeRemoteRepositories,
-} from '../remote_utils';
 import { GitDocumentDB } from '../../src/index';
-import {
-  DatabaseClosingError,
-  RepositoryNotOpenError,
-  UndefinedDocumentIdError,
-} from '../../src/error';
-import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
+import { toSortedJSONString, utf8encode } from '../../src/utils';
 import { readOldBlob } from '../../src/crud/history';
 import { IDocumentDB } from '../../src/types_gitddb';
 import { JSON_EXT } from '../../src/const';
