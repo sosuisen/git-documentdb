@@ -18,7 +18,7 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const localDir = `./test/database_find`;
+const localDir = `./test/database_crud_find`;
 
 beforeEach(function () {
   // @ts-ignore

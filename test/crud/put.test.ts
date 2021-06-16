@@ -38,7 +38,7 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const localDir = `./test/database_put`;
+const localDir = `./test/database_crud_put`;
 
 // Use sandbox to restore stub and spy in parallel mocha tests
 let sandbox: sinon.SinonSandbox;
