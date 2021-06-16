@@ -2,6 +2,7 @@
 import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
 import sinon from 'sinon';
+import expect from 'expect';
 import nodegit from '@sosuisen/nodegit';
 import {
   ChangedFileDelete,
