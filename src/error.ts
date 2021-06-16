@@ -155,14 +155,6 @@ export class InvalidBackNumberError extends BaseError {
 
 /**
  */
-export class CannotGetEntryError extends BaseError {
-  constructor (e = `Cannot get blob entry.`) {
-    super(e);
-  }
-}
-
-/**
- */
 export class RepositoryNotOpenError extends BaseError {
   constructor (e = 'Repository not opened' as unknown) {
     super(e as string);
