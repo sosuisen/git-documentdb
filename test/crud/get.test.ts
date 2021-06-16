@@ -13,7 +13,8 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
-import { sleep } from '../../src/utils';
+import { IDocumentDB } from '../../src/types_gitddb';
+import { sleep, toSortedJSONString } from '../../src/utils';
 import {
   DatabaseClosingError,
   InvalidJsonObjectError,
@@ -49,6 +50,18 @@ before(() => {
 after(() => {
   fs.removeSync(path.resolve(localDir));
 });
+
+const commitOneData = async (gitDDB: IDocumentDB, fullDocPath: string, data: string) => {
+  fs.ensureDirSync(path.dirname(path.resolve(gitDDB.workingDir(), fullDocPath)));
+  fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), data);
+  await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+  await git.commit({
+    fs,
+    dir: gitDDB.workingDir(),
+    message: 'message',
+    author: gitDDB.author,
+  });
+};
 
 describe('<crud/get> getImpl()', () => {
   it('throws DatabaseClosingError', async () => {
@@ -101,14 +114,7 @@ describe('<crud/get> getImpl()', () => {
     const collectionPath = '';
     const fullDocPath = collectionPath + shortId + JSON_EXT;
     const data = 'invalid data'; // JSON.parse() will throw error
-    fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), data);
-    await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
-    await git.commit({
-      fs,
-      dir: gitDDB.workingDir(),
-      message: 'message',
-      author: gitDDB.author,
-    });
+    await commitOneData(gitDDB, fullDocPath, data);
 
     await expect(getImpl(gitDDB, shortId, collectionPath, true)).rejects.toThrowError(
       InvalidJsonObjectError
@@ -116,8 +122,8 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.destroy();
   });
-  /*
-  it('returns JsonDoc', async () => {
+
+  it('returns latest JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -125,14 +131,17 @@ describe('<crud/get> getImpl()', () => {
     });
 
     await gitDDB.open();
-    const _id = 'prof01';
-    await gitDDB.put({ _id: _id, name: 'shirase' });
-    // Get
-    await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
+    const shortId = 'prof01';
+    const collectionPath = '';
+    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const json = { _id: shortId, name: 'Shirase' };
+    await commitOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+
     await gitDDB.destroy();
   });
 
-  it('returns JsonDoc in subdirectory', async () => {
+  it('returns latest JsonDoc in subdirectory', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -140,10 +149,13 @@ describe('<crud/get> getImpl()', () => {
     });
 
     await gitDDB.open();
-    const _id = 'dir01/prof01';
-    await gitDDB.put({ _id: _id, name: 'shirase' });
-    // Get
-    await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
+    const shortId = 'dir01/prof01';
+    const collectionPath = '';
+    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const json = { _id: shortId, name: 'Shirase' };
+    await commitOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+
     await gitDDB.destroy();
   });
 
@@ -153,19 +165,13 @@ describe('<crud/get> getImpl()', () => {
       dbName,
       localDir,
     });
+    await git.init({ fs, dir: gitDDB.workingDir() });
+    const stubIsOpened = sandbox.stub(gitDDB, 'isOpened');
+    stubIsOpened.returns(true);
 
-    // Create db without the first commit
-    await fs.ensureDir(gitDDB.workingDir());
-    // eslint-disable-next-line dot-notation
-    gitDDB['_currentRepository'] = await nodegit.Repository.initExt(
-      gitDDB.workingDir(),
-      // @ts-ignore
-      {
-        initialHead: gitDDB.defaultBranch,
-      }
-    );
-
-    await expect(gitDDB.get('prof01')).resolves.toBeUndefined();
+    const shortId = 'prof01';
+    const collectionPath = '';
+    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toBeUndefined();
 
     await gitDDB.destroy();
   });
@@ -177,7 +183,12 @@ describe('<crud/get> getImpl()', () => {
       localDir,
     });
     await gitDDB.open();
-    await expect(gitDDB.get('prof01')).resolves.toBeUndefined();
+
+    const shortId = 'dir01/prof01';
+    const collectionPath = '';
+
+    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toBeUndefined();
+
     await gitDDB.destroy();
   });
 
@@ -189,11 +200,13 @@ describe('<crud/get> getImpl()', () => {
     });
 
     await gitDDB.open();
-    const _id = '春はあけぼの';
-    await gitDDB.put({ _id: _id, name: 'shirase' });
-    // Get
-    await expect(gitDDB.get(_id)).resolves.toEqual({ _id: _id, name: 'shirase' });
+    const shortId = '枕草子/春はあけぼの';
+    const collectionPath = '';
+    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const json = { _id: shortId, name: 'Shirase' };
+    await commitOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+
     await gitDDB.destroy();
   });
-*/
 });
