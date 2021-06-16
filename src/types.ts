@@ -258,6 +258,9 @@ export type GetOptions = {
 
 /**
  * HistoryOptions
+ *
+ * @remarks
+ * - filter: Tha array of revisions is filtered by multiple HistoryFilters in OR condition.
  */
 export type HistoryOptions = {
   filter?: HistoryFilter[];

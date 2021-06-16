@@ -118,10 +118,14 @@ export async function readOldBlob (
   fullDocPath: string,
   backNumber: number,
   historyOptions?: HistoryOptions
-) {
+): Promise<ReadBlobResult | undefined> {
   let readBlobResult: ReadBlobResult | undefined;
   let prevSHA: string | undefined = '';
   let oidCounter = -1;
+
+  if (backNumber < 0) {
+    return undefined;
+  }
 
   const commits = await log({
     fs,
@@ -173,12 +177,12 @@ function matchHistoryFilter (
 ) {
   for (const filter of historyFilter) {
     if (
-      (filter.author?.name && filter.author.name !== author.name) ||
-      (filter.author?.email && filter.author.email !== author.email) ||
-      (filter.committer?.name && filter.committer.name !== committer.name) ||
-      (filter.committer?.email && filter.committer.name !== committer.email)
+      (!filter.author?.name || filter.author.name === author.name) &&
+      (!filter.author?.email || filter.author.email === author.email) &&
+      (!filter.committer?.name || filter.committer.name === committer.name) &&
+      (!filter.committer?.email || filter.committer.email === committer.email)
     )
-      return false;
+      return true;
   }
-  return true;
+  return false;
 }

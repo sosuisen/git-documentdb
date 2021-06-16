@@ -873,8 +873,20 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Get a back number of a document
    *
-   * @param backNumber - Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned.
-   * When backNumber is 0 and a document has been deleted in the current DB, it returns undefined.
+   * @param backNumber - Specify a number to go back to old revision. Default is 0.
+   * When backNumber equals 0, the latest revision is returned.
+   * See {@link getHistory} for the array of revisions.
+   *
+   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   *
+   * @remarks
+   *  - undefined if the document does not exists or the document is deleted.
+   *
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -894,6 +906,40 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
+   *
+   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   *
+   * @example
+   * ```
+   * commit 01 to 07 were committed in order. file_v1 and file_v2 are two revisions of a file.
+   *
+   * commit 07: not exists
+   * commit 06: deleted
+   * commit 05: file_v2
+   * commit 04: deleted
+   * commit 03: file_v2
+   * commit 02: file_v1
+   * commit 01: file_v1
+   *
+   * file_v1 was newly inserted in 01.
+   * The file was not changed in 02.
+   * The file was updated to file_v2 in 03
+   * The file was deleted in 04.
+   * The same file (file_v2) was inserted again in 05.
+   * The file was deleted again in 06, so the file does not exist in 07.
+   *
+   * Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1].
+   * Be careful that consecutive values are combined into one.
+   * (Thus, it will not return [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1].)
+   * ```
+   * @returns Array of FatDoc or undefined.
+   *  - undefined if the document does not exists or the document is deleted.
+   *
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
