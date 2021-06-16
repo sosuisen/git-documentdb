@@ -25,7 +25,7 @@ import { GitDocumentDB } from '../../src/index';
 import { toSortedJSONString, utf8encode } from '../../src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs_module = require('fs-extra');
+const git_module = require('isomorphic-git');
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -219,6 +219,33 @@ describe('<crud/blob>', () => {
       await expect(
         readLatestBlob(gitDDB.workingDir(), fullDocPath + 'bar')
       ).resolves.toBeUndefined();
+      await gitDDB.destroy();
+    });
+
+    it('returns undefined if readBlob throws Error', async () => {
+      const fullDocPath = 'foo';
+      const text = 'bar';
+
+      const oid = (await git.hashBlob({ object: text })).oid;
+      const blob = utf8encode(text);
+
+      const gitDDB = new GitDocumentDB({ localDir: localDir, dbName: monoId() });
+      await git.init({ fs, dir: gitDDB.workingDir(), defaultBranch: 'main' });
+      fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), text);
+      await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+      await git.commit({
+        fs,
+        dir: gitDDB.workingDir(),
+        message: 'test',
+        author: gitDDB.author,
+      });
+      const stubReadBlob = sandbox.stub(git_module, 'readBlob');
+      stubReadBlob.rejects();
+
+      await expect(
+        readLatestBlob(gitDDB.workingDir(), fullDocPath)
+      ).resolves.toBeUndefined();
+
       await gitDDB.destroy();
     });
   });
