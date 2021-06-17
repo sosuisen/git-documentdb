@@ -73,7 +73,7 @@ const addOneData = async (
   });
 };
 
-const removeOneData = async (gitDDB: IDocumentDB, fullDocPath: string, data: string) => {
+const removeOneData = async (gitDDB: IDocumentDB, fullDocPath: string) => {
   await git.remove({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
   fs.removeSync(path.resolve(gitDDB.workingDir(), fullDocPath));
   await git.commit({
@@ -271,7 +271,7 @@ describe('<crud/get> getImpl()', () => {
     await gitDDB.destroy();
   });
 
-  describe('with internalOptions', () => {
+  describe('with InternalOptions.oid', () => {
     it('returns latest JsonDoc by oid', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -292,7 +292,9 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.destroy();
     });
+  });
 
+  describe('with InternalOptions.withMetadata', () => {
     it('returns latest FatJsonDoc', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -339,7 +341,9 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.destroy();
     });
+  });
 
+  describe('with InternalOptions.backNumber', () => {
     it('returns undefined when get deleted document with backNumber #0.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -353,7 +357,7 @@ describe('<crud/get> getImpl()', () => {
       const fullDocPath = collectionPath + shortId + JSON_EXT;
       const json = { _id: shortId, name: 'Shirase' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+      await removeOneData(gitDDB, fullDocPath);
 
       await expect(
         getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 0 })
@@ -375,7 +379,7 @@ describe('<crud/get> getImpl()', () => {
       const fullDocPath = collectionPath + shortId + JSON_EXT;
       const json = { _id: shortId, name: 'Shirase' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+      await removeOneData(gitDDB, fullDocPath);
 
       await expect(
         getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 1 })
@@ -399,7 +403,7 @@ describe('<crud/get> getImpl()', () => {
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
-      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
+      await removeOneData(gitDDB, fullDocPath);
 
       await expect(
         getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 2 })
@@ -422,7 +426,7 @@ describe('<crud/get> getImpl()', () => {
       const json01 = { _id: shortId, name: 'v01' };
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await removeOneData(gitDDB, fullDocPath);
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
@@ -446,7 +450,7 @@ describe('<crud/get> getImpl()', () => {
       const json01 = { _id: shortId, name: 'v01' };
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await removeOneData(gitDDB, fullDocPath);
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
@@ -470,7 +474,7 @@ describe('<crud/get> getImpl()', () => {
       const json01 = { _id: shortId, name: 'v01' };
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-      await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+      await removeOneData(gitDDB, fullDocPath);
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
