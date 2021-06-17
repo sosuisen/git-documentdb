@@ -21,6 +21,7 @@ import {
 import {
   blobToBinary,
   blobToJsonDoc,
+  blobToJsonDocWithoutOverwrittenId,
   blobToText,
   readBlobByOid,
   readLatestBlob,
@@ -79,6 +80,9 @@ export async function getImpl (
   let readBlobResult: ReadBlobResult | undefined;
   if (internalOptions.oid !== '') {
     readBlobResult = await readBlobByOid(gitDDB.workingDir(), internalOptions.oid);
+    // Do not return FatDoc because _id is not specified.
+    // eslint-disable-next-line require-atomic-updates
+    internalOptions.withMetadata = false;
   }
   else if (
     historyOptions === undefined &&
@@ -108,6 +112,9 @@ export async function getImpl (
   }
 
   if (docType === 'json') {
+    if (internalOptions.oid !== '') {
+      return blobToJsonDocWithoutOverwrittenId(readBlobResult);
+    }
     return blobToJsonDoc(shortId, readBlobResult, internalOptions.withMetadata);
   }
   else if (docType === 'text') {

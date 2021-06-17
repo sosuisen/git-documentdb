@@ -38,7 +38,9 @@ export function getDocumentFromBuffer (filepath: string, buffer: Uint8Array) {
   let document: JsonDoc | undefined;
   try {
     document = (JSON.parse(utf8decode(buffer)) as unknown) as JsonDoc;
-    document._id = id;
+    if (document._id !== undefined) {
+      document._id = id;
+    }
   } catch (e) {
     throw new InvalidJsonObjectError(id);
   }

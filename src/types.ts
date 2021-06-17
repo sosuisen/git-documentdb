@@ -122,15 +122,13 @@ export type TaskStatistics = {
  *
  * @remarks A document must be a JSON Object that matches the following conditions:
  *```
- * * It must have an '_id' key that shows id of a document
+ * * It must have an '_id' key that shows the unique identifier of a document
  *   - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
  *   - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
  *   - _id cannot start or end with a slash.
  *   - _id can include paths separated by slashes.
  *   - A directory name in paths cannot end with a period or a white space.
  *   - A directory name in paths does not allow '.' and '..'.
- *
- * * Property name of a document cannot start with an underscore except _id.
  *```
  * @example
  * ```

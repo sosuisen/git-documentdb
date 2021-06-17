@@ -25,7 +25,10 @@ export function blobToJsonDoc (
   try {
     const text = utf8decode(readBlobResult.blob);
     const jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
-    jsonDoc._id = shortId;
+    if (jsonDoc._id !== undefined) {
+      // Overwrite _id property by shortId (_id without collectionPath) if JsonDoc is created by GitDocumentedDB (_id !== undefined).
+      jsonDoc._id = shortId;
+    }
     if (withMetadata) {
       const fatJsonDoc: FatJsonDoc = {
         _id: shortId,
@@ -38,6 +41,18 @@ export function blobToJsonDoc (
     return jsonDoc;
   } catch (e) {
     throw new InvalidJsonObjectError(shortId);
+  }
+}
+
+export function blobToJsonDocWithoutOverwrittenId (
+  readBlobResult: ReadBlobResult
+): FatJsonDoc | JsonDoc {
+  try {
+    const text = utf8decode(readBlobResult.blob);
+    const jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
+    return jsonDoc;
+  } catch (e) {
+    throw new InvalidJsonObjectError('');
   }
 }
 

@@ -72,7 +72,7 @@ export async function combineDatabaseWithTheirs (
 
         if (remoteFilePath.endsWith(JSON_EXT)) {
           const doc = fs.readJSONSync(localFilePath);
-          doc._id = path.basename(meta._id + postfix);
+          doc._id = meta._id + postfix;
           duplicatedFileName = meta._id + postfix + JSON_EXT;
           duplicatedFileId = meta._id + postfix;
           duplicatedFileExt = JSON_EXT;

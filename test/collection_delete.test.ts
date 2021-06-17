@@ -34,7 +34,6 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-
 describe('delete()', () => {
   it('deletes a document by id.', async () => {
     const dbName = monoId();
@@ -214,5 +213,5 @@ describe('delete()', () => {
     expect(doc._id).toBe('test/prof01');
 
     await gitDDB.destroy();
-  });  
+  });
 });

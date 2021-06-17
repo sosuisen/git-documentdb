@@ -249,9 +249,9 @@ describe('<collection> getFatDoc()', () => {
     await gitDDB.destroy();
   });
 });
-/*
+
 describe('<crud/get> getByOid()', () => {
-  it('returns the specified FatJsonDoc', async () => {
+  it('returns the specified JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -264,12 +264,7 @@ describe('<crud/get> getByOid()', () => {
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(col.getByOid(shortId, oid)).resolves.toEqual({
-      _id: shortId,
-      fileOid: oid,
-      type: 'json',
-      doc: json01,
-    });
+    await expect(col.getByOid(oid)).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 
@@ -285,11 +280,11 @@ describe('<crud/get> getByOid()', () => {
     const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await expect(col.getByOid(shortId, 'not exist')).resolves.toBeUndefined();
+    await expect(col.getByOid('not exist')).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 
-  it('returns undefined if _id does not exist', async () => {
+  it('returns JsonDoc without _id', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -299,11 +294,11 @@ describe('<crud/get> getByOid()', () => {
     const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
     const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
-    const json01 = { _id: shortId, name: 'v1' };
+    // JsonDoc without _id
+    const json01 = { name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(col.getByOid('not exist', oid)).resolves.toBeUndefined();
+    await expect(col.getByOid(oid)).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 });
-*/

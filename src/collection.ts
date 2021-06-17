@@ -132,7 +132,7 @@ export class Collection implements CRUDInterface {
         rootCollectionPath !== '' ? `${rootCollectionPath}/${entry.path}` : entry.path;
       if (entry.type === 'tree') {
         if (fullDocPath !== GIT_DOCUMENTDB_METADATA_DIR) {
-          collections.push(new Collection(gitDDB, entry.path));
+          collections.push(new Collection(gitDDB, fullDocPath));
         }
       }
     }
@@ -275,10 +275,10 @@ export class Collection implements CRUDInterface {
       } catch (err) {
         return Promise.reject(new InvalidJsonObjectError(shortId));
       }
+      clone._id = fullDocPath;
       if (this._isJsonDocCollection) {
         fullDocPath += JSON_EXT;
       }
-      clone._id = path.basename(shortId);
       bufferOrString = toSortedJSONString(clone);
       try {
         this._gitDDB.validator.validateId(shortId);
@@ -505,6 +505,8 @@ export class Collection implements CRUDInterface {
    *
    *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
    *
+   *  - JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *
    *  - Uint8Array or string if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
@@ -529,7 +531,7 @@ export class Collection implements CRUDInterface {
    * @returns
    *  - undefined if not exists.
    *
-   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'. Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
    *
    *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
    *
@@ -553,14 +555,14 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get a FatDoc which has specified oid
+   * Get a Doc which has specified oid
    *
    * @remarks
    *  - undefined if not exists.
    *
-   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'. Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
    *
-   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *  - Uint8Array or string if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
@@ -568,22 +570,18 @@ export class Collection implements CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getByOid (
-    _id: string,
-    fileOid: string,
-    getOptions?: GetOptions
-  ): Promise<FatDoc | undefined> {
+  getByOid (fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined> {
     return getImpl(
       this._gitDDB,
-      _id,
+      '',
       this._collectionPath,
       this.isJsonDocCollection(),
       getOptions,
       {
-        withMetadata: true,
+        withMetadata: false,
         oid: fileOid,
       }
-    ) as Promise<FatDoc | undefined>;
+    ) as Promise<Doc | undefined>;
   }
 
   /**
@@ -598,7 +596,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    *  - undefined if the document does not exists or the document is deleted.
    *
-   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
    *
    *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
    *
@@ -662,7 +660,7 @@ export class Collection implements CRUDInterface {
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
    *
-   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
    *
    *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
    *

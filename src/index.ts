@@ -856,18 +856,24 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get a FatDoc which has specified oid
+  /**
+   * Get a Doc which has specified oid
+   *
+   * @remarks
+   *  - undefined if not exists.
+   *
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'. Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *
+   *  - Uint8Array or string if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getByOid (
-    _id: string,
-    fileOid: string,
-    getOptions?: GetOptions
-  ): Promise<FatDoc | undefined> {
-    return this._fullCollection.getByOid(_id, fileOid, getOptions);
+  getByOid (fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined> {
+    return this._fullCollection.getByOid(fileOid, getOptions);
   }
 
   /**

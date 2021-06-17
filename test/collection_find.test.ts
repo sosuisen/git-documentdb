@@ -34,7 +34,6 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-
 describe('find()', () => {
   const _id_a = 'apple';
   const name_a = 'Apple woman';

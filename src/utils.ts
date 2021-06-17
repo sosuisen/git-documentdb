@@ -9,8 +9,8 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import { ReadCommitResult } from 'isomorphic-git';
-import { DocMetadata, NormalizedCommit } from './types';
-import { GIT_DOCUMENTDB_METADATA_DIR } from './const';
+import { DocMetadata, DocType, NormalizedCommit } from './types';
+import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from './const';
 
 /**
  * @internal
@@ -64,6 +64,7 @@ export function toSortedJSONString (obj: Record<string, any>) {
  *
  * @internal
  */
+// eslint-disable-next-line complexity
 export async function getAllMetadata (repos: nodegit.Repository) {
   const files: DocMetadata[] = [];
   const head = await nodegit.Reference.nameToId(repos, 'HEAD').catch(e => false);
@@ -89,13 +90,25 @@ export async function getAllMetadata (repos: nodegit.Repository) {
         }
         else {
           const entryPath = entry!.path();
-          const ext = path.extname(entryPath);
-          const _id = entryPath.replace(new RegExp(ext + '$'), '');
+
+          const docType: DocType = entryPath.endsWith('.json') ? 'json' : 'text';
+          // eslint-disable-next-line max-depth
+          if (docType === 'text') {
+            // TODO: select binary or text by .gitattribtues
+          }
+          let _id;
+          // eslint-disable-next-line max-depth
+          if (docType === 'json') {
+            _id = entryPath.replace(new RegExp(JSON_EXT + '$'), '');
+          }
+          else {
+            _id = entryPath;
+          }
 
           const docMetadata: DocMetadata = {
             _id,
             fileOid: entry!.id().tostrS(),
-            type: ext === '.json' ? 'json' : 'text',
+            type: docType,
           };
           files.push(docMetadata);
         }

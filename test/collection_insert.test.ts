@@ -61,7 +61,9 @@ describe('<collection> insert(jsonDoc)', () => {
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     const putResult = await col.insert(json);
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const internalJson = JSON.parse(JSON.stringify(json));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,
@@ -78,7 +80,7 @@ describe('<collection> insert(jsonDoc)', () => {
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
-    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
     await gitDDB.destroy();
   });
@@ -95,7 +97,9 @@ describe('<collection> insert(jsonDoc)', () => {
     const commitMessage = 'message';
     const json = { _id, name: 'Shirase' };
     const putResult = await col.insert(json, { commitMessage });
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const internalJson = JSON.parse(JSON.stringify(json));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,
@@ -134,8 +138,10 @@ describe('<collection> insert(id, jsonDoc)', () => {
     const col = new Collection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
+    const internalJson = JSON.parse(JSON.stringify(json));
+    internalJson._id = col.collectionPath() + _id;
     const putResult = await col.insert(_id, json);
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,
@@ -152,7 +158,7 @@ describe('<collection> insert(id, jsonDoc)', () => {
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
-    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
     await gitDDB.destroy();
   });
@@ -169,7 +175,9 @@ describe('<collection> insert(id, jsonDoc)', () => {
     const commitMessage = 'message';
     const json = { _id, name: 'Shirase' };
     const putResult = await col.insert(_id, json, { commitMessage });
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const internalJson = JSON.parse(JSON.stringify(json));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,

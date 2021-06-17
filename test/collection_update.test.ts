@@ -62,7 +62,9 @@ describe('<collection> update(jsonDoc)', () => {
     await col.insert(json);
     const jsonUpdated = { _id, name: 'updated' };
     const putResult = await col.update(jsonUpdated);
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,
@@ -79,7 +81,7 @@ describe('<collection> update(jsonDoc)', () => {
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
-    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
     await gitDDB.destroy();
   });
@@ -98,7 +100,9 @@ describe('<collection> update(jsonDoc)', () => {
     const commitMessage = 'message';
     const jsonUpdated = { _id: 'prof01', name: 'updated' };
     const putResult = await col.update(jsonUpdated, { commitMessage });
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     expect(putResult).toEqual({
       _id,
       fileOid,
@@ -137,7 +141,9 @@ describe('<collection> update(id, jsonDoc)', () => {
     await col.insert(json);
     const jsonUpdated = { _id, name: 'updated' };
     const putResult = await col.update('prof01', jsonUpdated);
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult).toEqual({
       _id,
@@ -154,7 +160,7 @@ describe('<collection> update(id, jsonDoc)', () => {
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
-    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
     await gitDDB.destroy();
   });
@@ -173,7 +179,9 @@ describe('<collection> update(id, jsonDoc)', () => {
     const commitMessage = 'message';
     const jsonUpdated = { _id: 'prof01', name: 'updated' };
     const putResult = await col.update('prof01', jsonUpdated, { commitMessage });
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     expect(putResult).toEqual({
       _id,
       fileOid,
