@@ -312,7 +312,7 @@ describe('<crud/put> put', () => {
       putImpl(gitDDB, _id_p, toSortedJSONString(json_p)),
     ]);
 
-    await expect(gitDDB.find()).resolves.toEqual(
+    await expect(gitDDB.findFatDoc()).resolves.toEqual(
       expect.arrayContaining([
         {
           _id: _id_a,
@@ -645,7 +645,7 @@ describe('<crud/put> putWorker', () => {
       putWorker(gitDDB, _id_p + JSON_EXT, toSortedJSONString(json_p), 'message'),
     ]);
 
-    await expect(gitDDB.find()).resolves.toEqual(
+    await expect(gitDDB.findFatDoc()).resolves.toEqual(
       expect.arrayContaining([
         {
           _id: _id_a,

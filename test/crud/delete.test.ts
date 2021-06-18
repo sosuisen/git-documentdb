@@ -280,7 +280,7 @@ describe('<crud/delete>', () => {
         deleteImpl(gitDDB, _id_d + JSON_EXT),
       ]);
 
-      await expect(gitDDB.find({ recursive: true })).resolves.toEqual([
+      await expect(gitDDB.findFatDoc({ recursive: true })).resolves.toEqual([
         {
           _id: _id_p,
           fileOid: expect.stringMatching(/^[\da-z]{40}$/),
