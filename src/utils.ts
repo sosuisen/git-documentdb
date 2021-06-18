@@ -129,12 +129,12 @@ export function normalizeCommit (commit: ReadCommitResult): NormalizedCommit {
     author: {
       name: commit.commit.author.name,
       email: commit.commit.author.email,
-      timestamp: new Date(commit.commit.author.timestamp),
+      timestamp: new Date(commit.commit.author.timestamp * 1000),
     },
     committer: {
       name: commit.commit.committer.name,
       email: commit.commit.committer.email,
-      timestamp: new Date(commit.commit.committer.timestamp),
+      timestamp: new Date(commit.commit.committer.timestamp * 1000),
     },
   };
   if (commit.commit.gpgsig !== undefined) {
