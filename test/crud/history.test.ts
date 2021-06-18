@@ -216,10 +216,60 @@ describe('<crud/history> getHistoryImpl', () => {
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
     expect(historyA[2]?.doc).toMatchObject(jsonA01);
-    const historyB = await gitDDB.getHistory(_idB);
+    const historyB = await getHistoryImpl(gitDDB, _idB, '', true);
     expect(historyB.length).toBe(2);
     expect(historyB[0]?.doc).toMatchObject(jsonB02);
     expect(historyB[1]?.doc).toMatchObject(jsonB01);
+
+    await destroyDBs([gitDDB]);
+  });
+
+  it('gets filtered revisions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const _idA = 'profA';
+    const jsonA01 = { _id: _idA, name: 'v01' };
+    const jsonA02 = { _id: _idA, name: 'v02' };
+    const jsonA03 = { _id: _idA, name: 'v03' };
+
+    gitDDB.author = { name: 'authorA', email: 'authorEmailA' };
+    gitDDB.committer = { name: 'committerA', email: 'committerEmailA' };
+    await gitDDB.put(jsonA01);
+
+    gitDDB.author = { name: 'authorB', email: 'authorEmailB' };
+    gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
+    await gitDDB.put(jsonA02);
+    await gitDDB.put(jsonA03);
+
+    const _idB = 'profB';
+    const jsonB01 = { _id: _idB, name: 'v01' };
+    const jsonB02 = { _id: _idB, name: 'v02' };
+
+    gitDDB.author = { name: 'authorA', email: 'authorEmailA' };
+    gitDDB.committer = { name: 'committerA', email: 'committerEmailA' };
+    await gitDDB.put(jsonB01);
+
+    gitDDB.author = { name: 'authorB', email: 'authorEmailB' };
+    gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
+    await gitDDB.put(jsonB02);
+
+    const historyA = await getHistoryImpl(gitDDB, _idA, '', true, {
+      filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
+    });
+    expect(historyA.length).toBe(2);
+    expect(historyA[0]?.doc).toMatchObject(jsonA03);
+    expect(historyA[1]?.doc).toMatchObject(jsonA02);
+
+    const historyB = await getHistoryImpl(gitDDB, _idB, '', true, {
+      filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
+    });
+    expect(historyB.length).toBe(1);
+    expect(historyB[0]?.doc).toMatchObject(jsonB02);
 
     await destroyDBs([gitDDB]);
   });
