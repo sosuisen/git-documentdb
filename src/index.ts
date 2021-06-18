@@ -1003,8 +1003,23 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  find (options?: FindOptions): Promise<FatDoc[]> {
+  find (options?: FindOptions): Promise<Doc[]> {
     return this._fullCollection.find(options);
+  }
+
+  /**
+   * Get all the documents
+   *
+   * @remarks
+   *
+   * @param options - The options specify how to get documents.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  findFatDoc (options?: FindOptions): Promise<FatDoc[]> {
+    return this._fullCollection.findFatDoc(options);
   }
 
   /**

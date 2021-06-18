@@ -752,7 +752,30 @@ export class Collection implements CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  find (options?: FindOptions): Promise<FatDoc[]> {
-    return findImpl(this._gitDDB, this._collectionPath, this._isJsonDocCollection, options);
+  find (options?: FindOptions): Promise<Doc[]> {
+    return findImpl(
+      this._gitDDB,
+      this._collectionPath,
+      this._isJsonDocCollection,
+      false,
+      options
+    ) as Promise<Doc[]>;
+  }
+
+  /**
+   * Get all the documents
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  findFatDoc (options?: FindOptions): Promise<FatDoc[]> {
+    return findImpl(
+      this._gitDDB,
+      this._collectionPath,
+      this._isJsonDocCollection,
+      true,
+      options
+    ) as Promise<FatDoc[]>;
   }
 }
