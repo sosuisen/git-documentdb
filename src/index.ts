@@ -960,33 +960,32 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Remove a document
+   * Delete a document
    *
-   * @param _id - _id of a target document
+   * @throws {@link UndefinedDocumentIdError} (from Collection#delete)
+   * @throws {@link DatabaseClosingError} (from deleteImpl)
+   * @throws {@link TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
-   * @throws {@link CannotDeleteDataError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
-   *
+   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link UndefinedDBError} (from deleteWorker)
+   * @throws {@link DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
   delete (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
+
   /**
-   * Remove a document
+   * Delete a document by _id property in JsonDoc
    *
-   * @param jsonDoc - Target document. Only _id property is referred.
+   * @param jsonDoc - Only the _id property in JsonDoc is referenced.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DocumentNotFoundError} when the specified document does not exist.
-   * @throws {@link CannotDeleteDataError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
+   * @throws {@link UndefinedDocumentIdError} (from Collection#delete)
+   * @throws {@link DatabaseClosingError} (from deleteImpl)
+   * @throws {@link TaskCancelError} (from deleteImpl)
    *
+   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link UndefinedDBError} (from deleteWorker)
+   * @throws {@link DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
   delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
   delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
