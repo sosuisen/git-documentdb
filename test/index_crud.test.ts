@@ -8,27 +8,26 @@
  */
 
 import path from 'path';
-import fs from 'fs-extra';
 import git from 'isomorphic-git';
-import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { JSON_EXT } from '../src/const';
-import { Collection } from '../src/collection';
-import { sleep, toSortedJSONString } from '../src/utils';
+import expect from 'expect';
+import fs from 'fs-extra';
 import { GitDocumentDB } from '../src/index';
+import { sleep, toSortedJSONString } from '../src/utils';
+import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
+import { IDocumentDB } from '../src/types_gitddb';
 import {
   DatabaseClosingError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
 } from '../src/error';
-import { IDocumentDB } from '../src/types_gitddb';
 
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
 };
 
-const localDir = `./test/database_collection_get`;
+const localDir = `./test/database_index`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -69,79 +68,304 @@ const removeOneData = async (gitDDB: IDocumentDB, fullDocPath: string) => {
   });
 };
 
-describe('<collection> get()', () => {
-  it('throws DatabaseClosingError', async () => {
-    const dbName = monoId();
-    const gitDDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    const col = new Collection(gitDDB);
-    for (let i = 0; i < 100; i++) {
-      // put() will throw Error after the database is closed by force.
-      col.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
-    }
-    // Call close() without await
-    gitDDB.close().catch(() => {});
-    await expect(col.get('99')).rejects.toThrowError(DatabaseClosingError);
-
-    while (gitDDB.isClosing) {
-      // eslint-disable-next-line no-await-in-loop
-      await sleep(100);
-    }
-    await gitDDB.destroy();
-  });
-
-  it('throws RepositoryNotOpenError', async () => {
+describe('<index> put(jsonDoc)', () => {
+  it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
-    await gitDDB.close();
-    await expect(col.get('prof01')).rejects.toThrowError(RepositoryNotOpenError);
+    const _id = 'prof01';
+    // Check put operation
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.put(json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
+    await gitDDB.destroy();
   });
 
-  it('throws InvalidJsonObjectError', async () => {
+  it('puts with a commitMessage', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    const commitMessage = 'message';
+    const putResult = await gitDDB.put(json, { commitMessage });
+    expect(putResult.commit.message).toBe(commitMessage);
 
-    const shortId = 'prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
-    await addOneData(gitDDB, fullDocPath, 'invalid data');
+    // Check commit directly
+    const commitOid = await git.resolveRef({
+      fs,
+      dir: gitDDB.workingDir(),
+      ref: 'HEAD',
+    });
+    const { commit } = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    expect(commit.message).toEqual(`${commitMessage}\n`);
 
-    await expect(col.get(shortId)).rejects.toThrowError(InvalidJsonObjectError);
-
-    await gitDDB.destroy();
+    gitDDB.destroy();
   });
+});
 
-  it('returns the latest JsonDoc', async () => {
+describe('<index> put(_id, jsonDoc)', () => {
+  it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
-    const shortId = 'prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
-    const json01 = { _id: shortId, name: 'v1' };
-    const json02 = { _id: shortId, name: 'v2' };
-    await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.put(_id, json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
 
-    await expect(col.get(shortId)).resolves.toEqual(json02);
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
     await gitDDB.destroy();
   });
 
+  it('puts with a commitMessage', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    const commitMessage = 'message';
+    const putResult = await gitDDB.put(_id, json, { commitMessage });
+    expect(putResult.commit.message).toBe(commitMessage);
+
+    // Check commit directly
+    const commitOid = await git.resolveRef({
+      fs,
+      dir: gitDDB.workingDir(),
+      ref: 'HEAD',
+    });
+    const { commit } = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    expect(commit.message).toEqual(`${commitMessage}\n`);
+
+    gitDDB.destroy();
+  });
+});
+
+describe('<index> insert(jsonDoc)', () => {
+  it('inserts a JSON file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.insert(json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
+    await gitDDB.destroy();
+  });
+
+  it('sets commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const commitMessage = 'message';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.insert(json, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult.commit.message).toBe(commitMessage);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('<index> insert(_id, jsonDoc)', () => {
+  it('inserts a JSON file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.insert(_id, json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
+    await gitDDB.destroy();
+  });
+
+  it('sets commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const commitMessage = 'message';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.insert(_id, json, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult.commit.message).toBe(commitMessage);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('<index> update(jsonDoc)', () => {
+  it('update a JSON file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await gitDDB.insert(json);
+    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const putResult = await gitDDB.update(jsonUpdated);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
+
+    await gitDDB.destroy();
+  });
+
+  it('set a commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await gitDDB.insert(json);
+    const commitMessage = 'message';
+    const jsonUpdated = { _id: 'prof01', name: 'updated' };
+    const putResult = await gitDDB.update(jsonUpdated, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    expect(putResult.commit.message).toBe(commitMessage);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('<index> update(_id, jsonDoc', () => {
+  it('update a JSON file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await gitDDB.insert(json);
+    const jsonUpdated = { _id, name: 'updated' };
+    const putResult = await gitDDB.update('prof01', jsonUpdated);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
+
+    await gitDDB.destroy();
+  });
+
+  it('set a commitMessage by PutOptions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+    await gitDDB.insert(json);
+    const commitMessage = 'message';
+    const jsonUpdated = { _id, name: 'updated' };
+    const putResult = await gitDDB.update('prof01', jsonUpdated, { commitMessage });
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    expect(putResult.commit.message).toBe(commitMessage);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('<index> get()', () => {
   it('returns undefined if not exists', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -149,28 +373,9 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
     const shortId = 'prof01';
 
-    await expect(col.get(shortId)).resolves.toBeUndefined();
-    await gitDDB.destroy();
-  });
-
-  it('returns undefined after deleted', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    const col = new Collection(gitDDB);
-    const shortId = 'prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
-    const json01 = { _id: shortId, name: 'v1' };
-    await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await removeOneData(gitDDB, fullDocPath);
-
-    await expect(col.get(shortId)).resolves.toBeUndefined();
+    await expect(gitDDB.get(shortId)).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 
@@ -181,13 +386,12 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
+    const fullDocPath = shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
 
-    await expect(col.get(shortId)).resolves.toEqual(json01);
+    await expect(gitDDB.get(shortId)).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 
@@ -198,19 +402,18 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'dir01/dir02/dir03');
     const shortId = 'prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
+    const fullDocPath = shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
 
     // @ts-ignore
-    await expect(col.get(shortId, 'invalid')).resolves.toEqual(json01);
+    await expect(gitDDB.get(shortId, 'invalid')).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 });
 
-describe('<collection> getFatDoc()', () => {
+describe('<index> getFatDoc()', () => {
   it('returns the latest FatJsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -218,15 +421,14 @@ describe('<collection> getFatDoc()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
     const shortId = 'prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
+    const fullDocPath = shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     const json02 = { _id: shortId, name: 'v2' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-    await expect(col.getFatDoc(shortId)).resolves.toEqual({
+    await expect(gitDDB.getFatDoc(shortId)).resolves.toEqual({
       _id: shortId,
       fileOid: await (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
       type: 'json',
@@ -242,15 +444,14 @@ describe('<collection> getFatDoc()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
     const shortId = 'prof01';
 
-    await expect(col.getFatDoc(shortId)).resolves.toBeUndefined();
+    await expect(gitDDB.getFatDoc(shortId)).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 });
 
-describe('<crud/get> getByOid()', () => {
+describe('<index> getByOid()', () => {
   it('returns the specified JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -258,13 +459,12 @@ describe('<crud/get> getByOid()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
+    const fullDocPath = shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(col.getByOid(oid)).resolves.toEqual(json01);
+    await expect(gitDDB.getByOid(oid)).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 
@@ -275,35 +475,16 @@ describe('<crud/get> getByOid()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
+    const fullDocPath = shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await expect(col.getByOid('not exist')).resolves.toBeUndefined();
-    await gitDDB.destroy();
-  });
-
-  it('returns JsonDoc without _id', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
-    const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
-    // JsonDoc without _id
-    const json01 = { name: 'v1' };
-    await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(col.getByOid(oid)).resolves.toEqual(json01);
+    await expect(gitDDB.getByOid('not exist')).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 });
 
-describe('<crud/get> getBackNumber()', () => {
+describe('<index> getBackNumber()', () => {
   const dbName = monoId();
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName,
@@ -311,45 +492,25 @@ describe('<crud/get> getBackNumber()', () => {
   });
 
   const targetId = '01';
-  const collectionPath = 'col01/';
-  const col = new Collection(gitDDB, collectionPath);
-  const fullDocPath = collectionPath + targetId + JSON_EXT;
+  const fullDocPath = targetId + JSON_EXT;
 
-  const json01 = { _id: collectionPath + targetId, name: 'v01' };
-  const json02 = { _id: collectionPath + targetId, name: 'v02' };
-  const json03 = { _id: collectionPath + targetId, name: 'v03' };
-  const json04 = { _id: collectionPath + targetId, name: 'v04' };
-  const json05 = { _id: collectionPath + targetId, name: 'v05' };
-  const json06 = { _id: collectionPath + targetId, name: 'v06' };
-  const json07 = { _id: collectionPath + targetId, name: 'v07' };
-  const json08 = { _id: collectionPath + targetId, name: 'v08' };
-  const json09 = { _id: collectionPath + targetId, name: 'v09' };
-  const json10 = { _id: collectionPath + targetId, name: 'v10' };
-  const json11 = { _id: collectionPath + targetId, name: 'v11' };
-  const json12 = { _id: collectionPath + targetId, name: 'v12' };
-  const json13 = { _id: collectionPath + targetId, name: 'v13' };
-  const json14 = { _id: collectionPath + targetId, name: 'v14' };
-  const json15 = { _id: collectionPath + targetId, name: 'v15' };
-  const json16 = { _id: collectionPath + targetId, name: 'v16' };
-  const json17 = { _id: collectionPath + targetId, name: 'v17' };
-
-  const json01_ = { _id: targetId, name: 'v01' };
-  const json02_ = { _id: targetId, name: 'v02' };
-  const json03_ = { _id: targetId, name: 'v03' };
-  const json04_ = { _id: targetId, name: 'v04' };
-  const json05_ = { _id: targetId, name: 'v05' };
-  const json06_ = { _id: targetId, name: 'v06' };
-  const json07_ = { _id: targetId, name: 'v07' };
-  const json08_ = { _id: targetId, name: 'v08' };
-  const json09_ = { _id: targetId, name: 'v09' };
-  const json10_ = { _id: targetId, name: 'v10' };
-  const json11_ = { _id: targetId, name: 'v11' };
-  const json12_ = { _id: targetId, name: 'v12' };
-  const json13_ = { _id: targetId, name: 'v13' };
-  const json14_ = { _id: targetId, name: 'v14' };
-  const json15_ = { _id: targetId, name: 'v15' };
-  const json16_ = { _id: targetId, name: 'v16' };
-  const json17_ = { _id: targetId, name: 'v17' };
+  const json01 = { _id: targetId, name: 'v01' };
+  const json02 = { _id: targetId, name: 'v02' };
+  const json03 = { _id: targetId, name: 'v03' };
+  const json04 = { _id: targetId, name: 'v04' };
+  const json05 = { _id: targetId, name: 'v05' };
+  const json06 = { _id: targetId, name: 'v06' };
+  const json07 = { _id: targetId, name: 'v07' };
+  const json08 = { _id: targetId, name: 'v08' };
+  const json09 = { _id: targetId, name: 'v09' };
+  const json10 = { _id: targetId, name: 'v10' };
+  const json11 = { _id: targetId, name: 'v11' };
+  const json12 = { _id: targetId, name: 'v12' };
+  const json13 = { _id: targetId, name: 'v13' };
+  const json14 = { _id: targetId, name: 'v14' };
+  const json15 = { _id: targetId, name: 'v15' };
+  const json16 = { _id: targetId, name: 'v16' };
+  const json17 = { _id: targetId, name: 'v17' };
 
   before(async () => {
     await gitDDB.open();
@@ -587,42 +748,42 @@ describe('<crud/get> getBackNumber()', () => {
 
   it('with author.name', async () => {
     await expect(
-      col.getBackNumber(targetId, 0, {
+      gitDDB.getBackNumber(targetId, 0, {
         filter: [{ author: { name: 'authorA' } }],
       })
     ).resolves.toEqual({
       _id: targetId,
       type: 'json',
       fileOid: (await git.hashBlob({ object: toSortedJSONString(json09) })).oid,
-      doc: json09_,
+      doc: json09,
     });
 
     await expect(
-      col.getBackNumber(targetId, 1, {
+      gitDDB.getBackNumber(targetId, 1, {
         filter: [{ author: { name: 'authorA' } }],
       })
     ).resolves.toEqual({
       _id: targetId,
       type: 'json',
       fileOid: (await git.hashBlob({ object: toSortedJSONString(json08) })).oid,
-      doc: json08_,
+      doc: json08,
     });
   });
 
   it('with committer.name', async () => {
     await expect(
-      col.getBackNumber(targetId, 0, {
+      gitDDB.getBackNumber(targetId, 0, {
         filter: [{ committer: { name: 'committerA' } }],
       })
     ).resolves.toEqual({
       _id: targetId,
       type: 'json',
       fileOid: (await git.hashBlob({ object: toSortedJSONString(json15) })).oid,
-      doc: json15_,
+      doc: json15,
     });
 
     await expect(
-      col.getBackNumber(targetId, 1, {
+      gitDDB.getBackNumber(targetId, 1, {
         filter: [{ committer: { name: 'committerA' } }],
       })
     ).resolves.toEqual({
@@ -630,13 +791,13 @@ describe('<crud/get> getBackNumber()', () => {
       type: 'json',
 
       fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
-      doc: json14_,
+      doc: json14,
     });
   });
 
   it('with author.name, author.email, committer.name, and committer.email', async () => {
     await expect(
-      col.getBackNumber(targetId, 0, {
+      gitDDB.getBackNumber(targetId, 0, {
         filter: [
           {
             author: { name: 'authorA', email: 'authorEmailA' },
@@ -648,11 +809,11 @@ describe('<crud/get> getBackNumber()', () => {
       _id: targetId,
       type: 'json',
       fileOid: (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
-      doc: json02_,
+      doc: json02,
     });
 
     await expect(
-      col.getBackNumber(targetId, 1, {
+      gitDDB.getBackNumber(targetId, 1, {
         filter: [
           {
             author: { name: 'authorA', email: 'authorEmailA' },
@@ -665,7 +826,7 @@ describe('<crud/get> getBackNumber()', () => {
 
   it('with OR condition', async () => {
     await expect(
-      col.getBackNumber(targetId, 0, {
+      gitDDB.getBackNumber(targetId, 0, {
         filter: [
           { committer: { name: 'committerA', email: 'committerEmailA' } },
           { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -675,11 +836,11 @@ describe('<crud/get> getBackNumber()', () => {
       _id: targetId,
       type: 'json',
       fileOid: (await git.hashBlob({ object: toSortedJSONString(json17) })).oid,
-      doc: json17_,
+      doc: json17,
     });
 
     await expect(
-      col.getBackNumber(targetId, 1, {
+      gitDDB.getBackNumber(targetId, 1, {
         filter: [
           { committer: { name: 'committerA', email: 'committerEmailA' } },
           { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -689,12 +850,12 @@ describe('<crud/get> getBackNumber()', () => {
       _id: targetId,
       type: 'json',
       fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
-      doc: json14_,
+      doc: json14,
     });
   });
 });
 
-describe('<crud/get> getHistory()', () => {
+describe('<index> getHistory()', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -703,27 +864,26 @@ describe('<crud/get> getHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
 
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
-    await col.put(jsonA01);
-    await col.put(jsonA02);
-    await col.put(jsonA03);
+    await gitDDB.put(jsonA01);
+    await gitDDB.put(jsonA02);
+    await gitDDB.put(jsonA03);
     const _idB = 'profB';
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
-    await col.put(jsonB01);
-    await col.put(jsonB02);
+    await gitDDB.put(jsonB01);
+    await gitDDB.put(jsonB02);
     // Get
-    const historyA = await col.getHistory(_idA);
+    const historyA = await gitDDB.getHistory(_idA);
     expect(historyA.length).toBe(3);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
     expect(historyA[2]?.doc).toMatchObject(jsonA01);
-    const historyB = await col.getHistory(_idB);
+    const historyB = await gitDDB.getHistory(_idB);
     expect(historyB.length).toBe(2);
     expect(historyB[0]?.doc).toMatchObject(jsonB02);
     expect(historyB[1]?.doc).toMatchObject(jsonB01);
@@ -739,7 +899,6 @@ describe('<crud/get> getHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
@@ -747,12 +906,12 @@ describe('<crud/get> getHistory()', () => {
 
     gitDDB.author = { name: 'authorA', email: 'authorEmailA' };
     gitDDB.committer = { name: 'committerA', email: 'committerEmailA' };
-    await col.put(jsonA01);
+    await gitDDB.put(jsonA01);
 
     gitDDB.author = { name: 'authorB', email: 'authorEmailB' };
     gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
-    await col.put(jsonA02);
-    await col.put(jsonA03);
+    await gitDDB.put(jsonA02);
+    await gitDDB.put(jsonA03);
 
     const _idB = 'profB';
     const jsonB01 = { _id: _idB, name: 'v01' };
@@ -760,20 +919,20 @@ describe('<crud/get> getHistory()', () => {
 
     gitDDB.author = { name: 'authorA', email: 'authorEmailA' };
     gitDDB.committer = { name: 'committerA', email: 'committerEmailA' };
-    await col.put(jsonB01);
+    await gitDDB.put(jsonB01);
 
     gitDDB.author = { name: 'authorB', email: 'authorEmailB' };
     gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
-    await col.put(jsonB02);
+    await gitDDB.put(jsonB02);
 
-    const historyA = await col.getHistory(_idA, {
+    const historyA = await gitDDB.getHistory(_idA, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyA.length).toBe(2);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
 
-    const historyB = await col.getHistory(_idB, {
+    const historyB = await gitDDB.getHistory(_idB, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyB.length).toBe(1);
@@ -790,12 +949,11 @@ describe('<crud/get> getHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
-    await col.put(jsonA01);
+    await gitDDB.put(jsonA01);
     // Get
-    const historyA = await col.getHistory('invalid_id');
+    const historyA = await gitDDB.getHistory('invalid_id');
     expect(historyA.length).toBe(0);
 
     await gitDDB.destroy();
@@ -808,15 +966,14 @@ describe('<crud/get> getHistory()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
-      col.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(col.getHistory('0')).rejects.toThrowError(DatabaseClosingError);
+    await expect(gitDDB.getHistory('0')).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -832,9 +989,8 @@ describe('<crud/get> getHistory()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
     await gitDDB.close();
-    await expect(col.getHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(gitDDB.getHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -845,10 +1001,9 @@ describe('<crud/get> getHistory()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
-    await col.put('1.json', 'invalid json');
+    await gitDDB.put('1.json', 'invalid json');
 
-    await expect(col.getHistory('1')).rejects.toThrowError(InvalidJsonObjectError);
+    await expect(gitDDB.getHistory('1')).rejects.toThrowError(InvalidJsonObjectError);
 
     await gitDDB.destroy();
   });
