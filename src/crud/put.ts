@@ -9,8 +9,9 @@
 import path from 'path';
 import fs from 'fs-extra';
 import git from 'isomorphic-git';
+import { normalizeCommit } from '../utils';
 import { SHORT_SHA_LENGTH } from '../const';
-import { PutOptions, PutResult } from '../types';
+import { NormalizedCommit, PutOptions, PutResult } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import {
   CannotCreateDirectoryError,
@@ -44,7 +45,7 @@ export function putImpl (
   fullDocPath: string,
   data: Uint8Array | string,
   options?: PutOptions
-): Promise<Pick<PutResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
+): Promise<Pick<PutResult, 'commit' | 'fileOid'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
@@ -100,7 +101,7 @@ export async function putWorker (
   data: Uint8Array | string,
   commitMessage: string,
   insertOrUpdate?: 'insert' | 'update'
-): Promise<Pick<PutResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
+): Promise<Pick<PutResult, 'commit' | 'fileOid'>> {
   if (gitDDB === undefined) {
     throw new UndefinedDBError();
   }
@@ -109,7 +110,8 @@ export async function putWorker (
     throw new RepositoryNotOpenError();
   }
 
-  let fileOid, commitOid: string;
+  let fileOid: string;
+  let commit: NormalizedCommit;
 
   const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
   await fs.ensureDir(path.dirname(filePath)).catch((err: Error) => {
@@ -156,20 +158,25 @@ export async function putWorker (
       .replace(/<%file_oid%>/, fileOid.substr(0, SHORT_SHA_LENGTH));
 
     // Default ref is HEAD
-    commitOid = await git.commit({
+    const commitOid = await git.commit({
       fs,
       dir: gitDDB.workingDir(),
       author: gitDDB.author,
       committer: gitDDB.committer,
       message: commitMessage,
     });
+    const readCommitResult = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    commit = normalizeCommit(readCommitResult);
   } catch (err) {
     throw new CannotWriteDataError(err.message);
   }
 
   return {
     fileOid,
-    commitOid,
-    commitMessage,
+    commit,
   };
 }

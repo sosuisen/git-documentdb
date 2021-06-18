@@ -323,12 +323,11 @@ export type FindOptions = {
 export type PutResult = {
   _id: string;
   fileOid: string;
-  commitOid: string;
-  commitMessage: string;
+  commit: NormalizedCommit;
 };
 
 /**
- * Result of remove()
+ * Result of delete()
  *
  * @remarks
  * - _id: _id of a document.
@@ -341,8 +340,7 @@ export type PutResult = {
 export type DeleteResult = {
   _id: string;
   fileOid: string;
-  commitOid: string;
-  commitMessage: string;
+  commit: NormalizedCommit;
 };
 
 /**
