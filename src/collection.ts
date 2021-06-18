@@ -636,26 +636,30 @@ export class Collection implements CRUDInterface {
    *
    * @example
    * ```
-   * commit 01 to 07 were committed in order. file_v1 and file_v2 are two revisions of a file.
+   * commit 01 to 08 were committed in order. file_v1 and file_v2 are two revisions of a file.
    *
-   * commit 07: not exists
-   * commit 06: deleted
-   * commit 05: file_v2
-   * commit 04: deleted
-   * commit 03: file_v2
+   * commit 08: not exists
+   * commit 07: deleted
+   * commit 06: file_v2
+   * commit 05: deleted
+   * commit 04: file_v2
+   * commit 03: file_v1
    * commit 02: file_v1
-   * commit 01: file_v1
+   * commit 01: not exists
    *
-   * file_v1 was newly inserted in 01.
-   * The file was not changed in 02.
-   * The file was updated to file_v2 in 03
-   * The file was deleted in 04.
-   * The same file (file_v2) was inserted again in 05.
-   * The file was deleted again in 06, so the file does not exist in 07.
+   * file_v1 was newly inserted in commit 02.
+   * The file was not changed in commit 03.
+   * The file was updated to file_v2 in commit 04
+   * The file was deleted in commit 05.
+   * The same file (file_v2) was inserted again in commit 06.
+   * The file was deleted again in commit 07, so the file does not exist in commit 08.
    *
    * Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1].
-   * Be careful that consecutive values are combined into one.
-   * (Thus, it will not return [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1].)
+   *
+   * NOTE:
+   * - Consecutive values are combined into one.
+   * - Commits before the first insert are ignored.
+   * Thus, the history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
    * ```
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
@@ -723,9 +727,6 @@ export class Collection implements CRUDInterface {
     if (typeof shortIdOrDoc === 'string') {
       shortId = shortIdOrDoc;
       fullDocPath = this._collectionPath + shortId;
-      if (this.isJsonDocCollection()) {
-        fullDocPath += JSON_EXT;
-      }
     }
     else if (shortIdOrDoc._id) {
       shortId = shortIdOrDoc._id;
@@ -733,6 +734,9 @@ export class Collection implements CRUDInterface {
     }
     else {
       return Promise.reject(new UndefinedDocumentIdError());
+    }
+    if (this.isJsonDocCollection()) {
+      fullDocPath += JSON_EXT;
     }
 
     return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {

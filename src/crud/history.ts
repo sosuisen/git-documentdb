@@ -19,7 +19,7 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
  *
  * @throws {@link DatabaseClosingError}
  * @throws {@link RepositoryNotOpenError}
- * @throws {@link InvalidJsonObjectError}
+ * @throws {@link InvalidJsonObjectError} (from blobToJsonDoc)
  */
 // eslint-disable-next-line complexity
 export async function getHistoryImpl (
@@ -43,10 +43,8 @@ export async function getHistoryImpl (
   };
 
   let fullDocPath = collectionPath + shortId;
-  if (options.forceDocType === 'json' || isJsonDocCollection) {
-    if (!fullDocPath.endsWith(JSON_EXT)) {
-      fullDocPath += JSON_EXT;
-    }
+  if (isJsonDocCollection) {
+    fullDocPath += JSON_EXT;
   }
   const docType: DocType =
     options.forceDocType ??
@@ -103,8 +101,8 @@ export async function getHistoryImpl (
     }
   }
 
-  if (docArray.length === 1 && docArray[0] === undefined) {
-    docArray.splice(0);
+  while (docArray.length > 0 && docArray[docArray.length - 1] === undefined) {
+    docArray.pop();
   }
 
   return docArray;

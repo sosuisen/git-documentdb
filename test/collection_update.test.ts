@@ -59,19 +59,49 @@ describe('<collection> update(jsonDoc)', () => {
     const col = new Collection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
-    await col.insert(json);
+    const insertResult = await col.insert(json);
+
+    const prevCommitOid = insertResult.commit.oid;
+
     const jsonUpdated = { _id, name: 'updated' };
+
+    const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
     const putResult = await col.update(jsonUpdated);
+    const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
+
+    const currentCommitOid = await git.resolveRef({
+      fs,
+      dir: gitDDB.workingDir(),
+      ref: 'HEAD',
+    });
+
     const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
     internalJson._id = col.collectionPath() + _id;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
-    expect(putResult).toEqual({
-      _id,
-      fileOid,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      commitMessage: `update: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
-    });
+
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.oid).toBe(currentCommitOid);
+    expect(putResult.commit.message).toBe(
+      `update: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+    );
+
+    expect(putResult.commit.parent).toEqual([prevCommitOid]);
+    expect(putResult.commit.author.name).toEqual(gitDDB.author.name);
+    expect(putResult.commit.author.email).toEqual(gitDDB.author.email);
+    expect(putResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(putResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(afterTimestamp);
+    expect(putResult.commit.committer.name).toEqual(gitDDB.author.name);
+    expect(putResult.commit.committer.email).toEqual(gitDDB.author.email);
+    expect(putResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(putResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
+      afterTimestamp
+    );
 
     // fs.access() throw error when a file cannot be accessed.
     const filePath = path.resolve(
@@ -103,12 +133,8 @@ describe('<collection> update(jsonDoc)', () => {
     const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
     internalJson._id = col.collectionPath() + _id;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
-    expect(putResult).toEqual({
-      _id,
-      fileOid,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      commitMessage,
-    });
+    expect(putResult.commit.message).toBe(commitMessage);
+
     await gitDDB.destroy();
   });
 });
@@ -138,19 +164,49 @@ describe('<collection> update(id, jsonDoc)', () => {
     const col = new Collection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
-    await col.insert(json);
+    const insertResult = await col.insert(json);
+
+    const prevCommitOid = insertResult.commit.oid;
+
     const jsonUpdated = { _id, name: 'updated' };
+
+    const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
     const putResult = await col.update('prof01', jsonUpdated);
+    const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
+
+    const currentCommitOid = await git.resolveRef({
+      fs,
+      dir: gitDDB.workingDir(),
+      ref: 'HEAD',
+    });
+
     const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
     internalJson._id = col.collectionPath() + _id;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
-    expect(putResult).toEqual({
-      _id,
-      fileOid,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      commitMessage: `update: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`,
-    });
+
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.oid).toBe(currentCommitOid);
+    expect(putResult.commit.message).toBe(
+      `update: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+    );
+
+    expect(putResult.commit.parent).toEqual([prevCommitOid]);
+    expect(putResult.commit.author.name).toEqual(gitDDB.author.name);
+    expect(putResult.commit.author.email).toEqual(gitDDB.author.email);
+    expect(putResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(putResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(afterTimestamp);
+    expect(putResult.commit.committer.name).toEqual(gitDDB.author.name);
+    expect(putResult.commit.committer.email).toEqual(gitDDB.author.email);
+    expect(putResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(putResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
+      afterTimestamp
+    );
 
     // fs.access() throw error when a file cannot be accessed.
     const filePath = path.resolve(
@@ -182,12 +238,8 @@ describe('<collection> update(id, jsonDoc)', () => {
     const internalJson = JSON.parse(JSON.stringify(jsonUpdated));
     internalJson._id = col.collectionPath() + _id;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
-    expect(putResult).toEqual({
-      _id,
-      fileOid,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      commitMessage,
-    });
+    expect(putResult.commit.message).toBe(commitMessage);
+
     await gitDDB.destroy();
   });
 });

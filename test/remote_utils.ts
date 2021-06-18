@@ -25,31 +25,31 @@ const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 /**
  * Get CommitInfo Object Array from args
  */
-export function getCommitInfo (
-  resultOrMessage: (PutResult | DeleteResult | string)[]
-): NormalizedCommit[] {
+export function getCommitInfo (resultOrMessage: (PutResult | DeleteResult | string)[]) {
   return resultOrMessage.reduce((acc, current) => {
-    let message = '';
-    if (typeof current === 'string') message = current;
-    else message = expect.stringMatching(/^.+$/);
-    const commit: NormalizedCommit = {
-      oid: expect.any(String),
-      message,
-      parent: expect.any(Array),
-      author: {
-        name: expect.any(String),
-        email: expect.any(String),
-        timestamp: expect.any(Date),
-      },
-      committer: {
-        name: expect.any(String),
-        email: expect.any(String),
-        timestamp: expect.any(Date),
-      },
-    };
-    acc.push(commit);
+    if (typeof current === 'string') {
+      const commit = {
+        oid: expect.any(String),
+        message: current,
+        parent: expect.any(Array),
+        author: {
+          name: expect.any(String),
+          email: expect.any(String),
+          timestamp: expect.any(Date),
+        },
+        committer: {
+          name: expect.any(String),
+          email: expect.any(String),
+          timestamp: expect.any(Date),
+        },
+      };
+      acc.push(commit);
+    }
+    else {
+      acc.push(current.commit);
+    }
     return acc;
-  }, [] as NormalizedCommit[]);
+  }, [] as any[]);
 }
 
 /**
@@ -65,6 +65,7 @@ export function getChangedFileInsert (
     new: {
       _id: newDoc!._id,
       fileOid: newResult!.fileOid,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -81,11 +82,13 @@ export function getChangedFileUpdate (
     old: {
       _id: oldDoc!._id,
       fileOid: oldResult!.fileOid,
+      type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
       fileOid: newResult!.fileOid,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -100,6 +103,7 @@ export function getChangedFileDelete (
     old: {
       _id: oldDoc!._id,
       fileOid: oldResult!.fileOid,
+      type: 'json',
       doc: oldDoc,
     },
   };
@@ -114,6 +118,7 @@ export function getChangedFileInsertBySHA (
     new: {
       _id: newDoc!._id,
       fileOid: newFileSHA,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -130,11 +135,13 @@ export function getChangedFileUpdateBySHA (
     old: {
       _id: oldDoc!._id,
       fileOid: oldFileSHA,
+      type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
       fileOid: newFileSHA,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -149,6 +156,7 @@ export function getChangedFileDeleteBySHA (
     old: {
       _id: oldDoc!._id,
       fileOid: oldFileSHA,
+      type: 'json',
       doc: oldDoc,
     },
   };

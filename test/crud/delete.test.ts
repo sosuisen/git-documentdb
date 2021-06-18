@@ -8,9 +8,10 @@
  */
 
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
+import git from 'isomorphic-git';
+import expect from 'expect';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
 import {
   DocumentNotFoundError,
@@ -20,9 +21,9 @@ import {
   UndefinedDocumentIdError,
 } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
-import { deleteWorker } from '../../src/crud/delete';
+import { deleteImpl, deleteWorker } from '../../src/crud/delete';
 import { TaskMetadata } from '../../src/types';
-import { sleep } from '../../src/utils';
+import { sleep, toSortedJSONString } from '../../src/utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -36,7 +37,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.title}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -54,26 +55,77 @@ describe('<crud/delete>', () => {
 
       await gitDDB.open();
       const _id = 'prof01';
-      const doc = { _id: _id, name: 'shirase' };
-      await gitDDB.put(doc);
+      const json = { _id: _id, name: 'shirase' };
+      const putResult = await gitDDB.put(json);
+
+      const prevCommitOid = putResult.commit.oid;
 
       // Delete
-      const deleteResult = await gitDDB.delete(_id);
-      const shortOid = deleteResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-      expect(deleteResult).toMatchObject({
-        _id: expect.stringMatching('^' + _id + '$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitMessage: `delete: ${_id}${JSON_EXT}(${shortOid})`,
+      const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
+      const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
+      const pickedDeleteResult = await deleteImpl(gitDDB, _id + JSON_EXT);
+      const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
+
+      const currentCommitOid = await git.resolveRef({
+        fs,
+        dir: gitDDB.workingDir(),
+        ref: 'HEAD',
       });
 
-      // Check commit message
-      const repository = gitDDB.repository();
-      if (repository !== undefined) {
-        const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-        const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
-      }
+      // Check NormalizedCommit
+      expect(pickedDeleteResult.commit.oid).toBe(currentCommitOid);
+      expect(pickedDeleteResult.commit.message).toBe(
+        `insert: ${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+      );
+      expect(pickedDeleteResult.commit.parent).toEqual([prevCommitOid]);
+      expect(pickedDeleteResult.commit.author.name).toEqual(gitDDB.author.name);
+      expect(pickedDeleteResult.commit.author.email).toEqual(gitDDB.author.email);
+      expect(pickedDeleteResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
+        beforeTimestamp
+      );
+      expect(pickedDeleteResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
+        afterTimestamp
+      );
+      expect(pickedDeleteResult.commit.committer.name).toEqual(gitDDB.author.name);
+      expect(pickedDeleteResult.commit.committer.email).toEqual(gitDDB.author.email);
+      expect(
+        pickedDeleteResult.commit.committer.timestamp.getTime()
+      ).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(pickedDeleteResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
+        afterTimestamp
+      );
+
+      await gitDDB.destroy();
+    });
+
+    it('deletes with a default commit message.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const _id = 'prof01';
+      const json = { _id: _id, name: 'shirase' };
+      const putResult = await gitDDB.put(json);
+
+      // Delete
+      const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+      const pickedDeleteResult = await deleteImpl(gitDDB, _id);
+
+      expect(pickedDeleteResult.commit.message).toEqual(
+        `delete: ${_id}${JSON_EXT}(${shortOid})`
+      );
+
+      // Check commit directly
+      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+      const { commit } = await git.readCommit({
+        fs,
+        dir: gitDDB.workingDir(),
+        oid: commitOid,
+      });
+      expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
 
       await gitDDB.destroy();
     });
@@ -123,13 +175,14 @@ describe('<crud/delete>', () => {
         commitMessage: `delete: ${_id}${JSON_EXT}(${shortOid})`,
       });
 
-      // Check commit message
-      const repository = gitDDB.repository();
-      if (repository !== undefined) {
-        const head = await nodegit.Reference.nameToId(repository, 'HEAD').catch(e => false); // get HEAD
-        const commit = await repository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-        expect(commit.message()).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
-      }
+      // Check commit directly
+      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+      const { commit } = await git.readCommit({
+        fs,
+        dir: gitDDB.workingDir(),
+        oid: commitOid,
+      });
+      expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
 
       await gitDDB.destroy();
     });

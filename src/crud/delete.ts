@@ -8,7 +8,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { commit, readBlob, remove, resolveRef } from 'isomorphic-git';
+import git from 'isomorphic-git';
 import { SHORT_SHA_LENGTH } from '../const';
 import { IDocumentDB } from '../types_gitddb';
 import {
@@ -19,7 +19,8 @@ import {
   TaskCancelError,
   UndefinedDBError,
 } from '../error';
-import { DeleteOptions, DeleteResult } from '../types';
+import { DeleteOptions, DeleteResult, NormalizedCommit } from '../types';
+import { normalizeCommit } from '../utils';
 
 /**
  * Implementation of delete()
@@ -38,7 +39,7 @@ export function deleteImpl (
   gitDDB: IDocumentDB,
   fullDocPath: string,
   options?: DeleteOptions
-): Promise<Pick<DeleteResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
+): Promise<Pick<DeleteResult, 'commit' | 'fileOid'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
@@ -87,33 +88,39 @@ export async function deleteWorker (
   gitDDB: IDocumentDB,
   fullDocPath: string,
   commitMessage: string
-): Promise<Pick<DeleteResult, 'commitMessage' | 'commitOid' | 'fileOid'>> {
+): Promise<Pick<DeleteResult, 'commit' | 'fileOid'>> {
   if (gitDDB === undefined) {
-    return Promise.reject(new UndefinedDBError());
+    throw new UndefinedDBError();
   }
 
   if (!gitDDB.isOpened()) {
-    return Promise.reject(new RepositoryNotOpenError());
+    throw new RepositoryNotOpenError();
   }
 
   if (fullDocPath === undefined || fullDocPath === '') {
-    return Promise.reject(new DocumentNotFoundError());
+    throw new DocumentNotFoundError();
   }
 
-  let commitOid: string;
+  let commit: NormalizedCommit;
   const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
 
-  const headCommit = await resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
-  const { oid } = await readBlob({
-    fs,
-    dir: gitDDB.workingDir(),
-    oid: headCommit,
-    filepath: fullDocPath,
-  }).catch(() => {
-    return Promise.reject(new DocumentNotFoundError());
-  });
+  const headCommit = await git
+    .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' })
+    .catch(() => undefined);
+  if (headCommit === undefined) throw new DocumentNotFoundError();
+
+  const { oid } = await git
+    .readBlob({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: headCommit,
+      filepath: fullDocPath,
+    })
+    .catch(() => {
+      throw new DocumentNotFoundError();
+    });
   const fileOid = oid;
-  await remove({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+  await git.remove({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
 
   commitMessage = commitMessage.replace(
     /<%file_oid%>/,
@@ -122,13 +129,19 @@ export async function deleteWorker (
 
   try {
     // Default ref is HEAD
-    commitOid = await commit({
+    const commitOid = await git.commit({
       fs,
       dir: gitDDB.workingDir(),
       author: gitDDB.author,
       committer: gitDDB.committer,
       message: commitMessage,
     });
+    const readCommitResult = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    commit = normalizeCommit(readCommitResult);
 
     await fs.remove(filePath);
 
@@ -151,7 +164,6 @@ export async function deleteWorker (
 
   return {
     fileOid,
-    commitOid,
-    commitMessage,
+    commit,
   };
 }

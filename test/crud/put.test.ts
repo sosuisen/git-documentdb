@@ -72,9 +72,9 @@ describe('<crud/put> put', () => {
     // Call close() without await
     gitDDB.close().catch(() => {});
     const _id = 'prof01';
-    await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(
-      DatabaseClosingError
-    );
+    await expect(
+      putImpl(gitDDB, _id + JSON_EXT, toSortedJSONString({ _id, name: 'shirase' }))
+    ).rejects.toThrowError(DatabaseClosingError);
 
     // wait close
     await sleep(5000);
@@ -88,18 +88,51 @@ describe('<crud/put> put', () => {
       localDir,
     });
     await gitDDB.open();
-    const _id = 'prof01';
-    const json = { _id: _id, name: 'Shirase' };
-    const pickedPutResult = await putImpl(gitDDB, _id + JSON_EXT, toSortedJSONString(json));
-
-    expect(pickedPutResult).toEqual({
-      fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      commitMessage: `insert: ${_id}${JSON_EXT}(${pickedPutResult.fileOid.substr(
-        0,
-        SHORT_SHA_LENGTH
-      )})`,
+    const prevCommitOid = await git.resolveRef({
+      fs,
+      dir: gitDDB.workingDir(),
+      ref: 'HEAD',
     });
+
+    const _id = 'prof01';
+    const json = { _id, name: 'Shirase' };
+
+    const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
+    const pickedPutResult = await putImpl(gitDDB, _id + JSON_EXT, toSortedJSONString(json));
+    const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
+
+    const currentCommitOid = await git.resolveRef({
+      fs,
+      dir: gitDDB.workingDir(),
+      ref: 'HEAD',
+    });
+
+    const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
+    expect(pickedPutResult.fileOid).toBe(oid);
+
+    // Check NormalizedCommit
+    expect(pickedPutResult.commit.oid).toBe(currentCommitOid);
+    expect(pickedPutResult.commit.message).toBe(
+      `insert: ${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+    );
+    expect(pickedPutResult.commit.parent).toEqual([prevCommitOid]);
+    expect(pickedPutResult.commit.author.name).toEqual(gitDDB.author.name);
+    expect(pickedPutResult.commit.author.email).toEqual(gitDDB.author.email);
+    expect(pickedPutResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(pickedPutResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
+      afterTimestamp
+    );
+    expect(pickedPutResult.commit.committer.name).toEqual(gitDDB.author.name);
+    expect(pickedPutResult.commit.committer.email).toEqual(gitDDB.author.email);
+    expect(pickedPutResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(pickedPutResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
+      afterTimestamp
+    );
+
     await gitDDB.destroy();
   });
 
@@ -115,7 +148,9 @@ describe('<crud/put> put', () => {
     const pickedPutResult = await putImpl(gitDDB, _id + JSON_EXT, toSortedJSONString(json));
 
     const shortOid = pickedPutResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-    expect(pickedPutResult.commitMessage).toEqual(`insert: ${_id}${JSON_EXT}(${shortOid})`);
+    expect(pickedPutResult.commit.message).toEqual(
+      `insert: ${_id}${JSON_EXT}(${shortOid})`
+    );
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
@@ -142,7 +177,9 @@ describe('<crud/put> put', () => {
     const pickedPutResult = await putImpl(gitDDB, _id + JSON_EXT, toSortedJSONString(json));
 
     const shortOid = pickedPutResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-    expect(pickedPutResult.commitMessage).toEqual(`update: ${_id}${JSON_EXT}(${shortOid})`);
+    expect(pickedPutResult.commit.message).toEqual(
+      `update: ${_id}${JSON_EXT}(${shortOid})`
+    );
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
@@ -167,7 +204,7 @@ describe('<crud/put> put', () => {
     const pickedPutResult = await putImpl(gitDDB, _id + JSON_EXT, toSortedJSONString(json));
     const shortOid = pickedPutResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     const defaultCommitMessage = `insert: ${_id}${JSON_EXT}(${shortOid})`;
-    expect(pickedPutResult.commitMessage).toEqual(defaultCommitMessage);
+    expect(pickedPutResult.commit.message).toEqual(defaultCommitMessage);
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
@@ -195,7 +232,7 @@ describe('<crud/put> put', () => {
       putImpl(gitDDB, i.toString + JSON_EXT, toSortedJSONString({ _id: i.toString() }), {
         commitMessage: `${i}`,
       })
-        .then(res => results.push(Number.parseInt(res.commitMessage, 10)))
+        .then(res => results.push(Number.parseInt(res.commit.message, 10)))
         .catch(() => {});
     }
     // close() can wait results of all Promises if timeout is set to large number.
@@ -225,7 +262,7 @@ describe('<crud/put> put', () => {
       }
     );
 
-    expect(pickedPutResult.commitMessage).toEqual(myCommitMessage);
+    expect(pickedPutResult.commit.message).toEqual(myCommitMessage);
 
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
     const { commit } = await git.readCommit({
