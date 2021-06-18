@@ -25,31 +25,31 @@ const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 /**
  * Get CommitInfo Object Array from args
  */
-export function getCommitInfo (
-  resultOrMessage: (PutResult | DeleteResult | string)[]
-): NormalizedCommit[] {
+export function getCommitInfo (resultOrMessage: (PutResult | DeleteResult | string)[]) {
   return resultOrMessage.reduce((acc, current) => {
-    let message = '';
-    if (typeof current === 'string') message = current;
-    else message = expect.stringMatching(/^.+$/);
-    const commit: NormalizedCommit = {
-      oid: expect.any(String),
-      message,
-      parent: expect.any(Array),
-      author: {
-        name: expect.any(String),
-        email: expect.any(String),
-        timestamp: expect.any(Date),
-      },
-      committer: {
-        name: expect.any(String),
-        email: expect.any(String),
-        timestamp: expect.any(Date),
-      },
-    };
-    acc.push(commit);
+    if (typeof current === 'string') {
+      const commit = {
+        oid: expect.any(String),
+        message: current,
+        parent: expect.any(Array),
+        author: {
+          name: expect.any(String),
+          email: expect.any(String),
+          timestamp: expect.any(Date),
+        },
+        committer: {
+          name: expect.any(String),
+          email: expect.any(String),
+          timestamp: expect.any(Date),
+        },
+      };
+      acc.push(commit);
+    }
+    else {
+      acc.push(current.commit);
+    }
     return acc;
-  }, [] as NormalizedCommit[]);
+  }, [] as any[]);
 }
 
 /**
