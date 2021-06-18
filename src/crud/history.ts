@@ -101,8 +101,8 @@ export async function getHistoryImpl (
     }
   }
 
-  if (docArray.length === 1 && docArray[0] === undefined) {
-    docArray.splice(0);
+  while (docArray.length > 0 && docArray[docArray.length - 1] === undefined) {
+    docArray.pop();
   }
 
   return docArray;
