@@ -966,4 +966,77 @@ describe('<crud/find> find()', () => {
       });
     });
   });
+
+  describe('with meta data', () => {
+    it('returns empty', async () => {
+      const dbName = monoId();
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+
+      await expect(findImpl(gitDDB, '', true, true)).resolves.toEqual([]);
+
+      await gitDDB.destroy();
+    });
+
+    it('returns docs by breadth-first search (recursive)', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+
+      const json_b = { _id: _id_b, name: name_b };
+      const json_a = { _id: _id_a, name: name_a };
+      const json_d = { _id: _id_d, name: name_d };
+      const json_c01 = { _id: _id_c01, name: name_c01 };
+      const json_c02 = { _id: _id_c02, name: name_c02 };
+
+      await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
+
+      await expect(findImpl(gitDDB, '', true, true)).resolves.toEqual([
+        {
+          _id: _id_a,
+          fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
+          type: 'json',
+          doc: json_a,
+        },
+        {
+          _id: _id_b,
+          fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
+          type: 'json',
+          doc: json_b,
+        },
+        {
+          _id: _id_c01,
+          fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
+          type: 'json',
+          doc: json_c01,
+        },
+        {
+          _id: _id_c02,
+          fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
+          type: 'json',
+          doc: json_c02,
+        },
+        {
+          _id: _id_d,
+          fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
+          type: 'json',
+          doc: json_d,
+        },
+      ]);
+
+      await gitDDB.destroy();
+    });
+  });
 });
