@@ -65,6 +65,7 @@ export function getChangedFileInsert (
     new: {
       _id: newDoc!._id,
       fileOid: newResult!.fileOid,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -81,11 +82,13 @@ export function getChangedFileUpdate (
     old: {
       _id: oldDoc!._id,
       fileOid: oldResult!.fileOid,
+      type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
       fileOid: newResult!.fileOid,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -100,6 +103,7 @@ export function getChangedFileDelete (
     old: {
       _id: oldDoc!._id,
       fileOid: oldResult!.fileOid,
+      type: 'json',
       doc: oldDoc,
     },
   };
@@ -114,6 +118,7 @@ export function getChangedFileInsertBySHA (
     new: {
       _id: newDoc!._id,
       fileOid: newFileSHA,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -130,11 +135,13 @@ export function getChangedFileUpdateBySHA (
     old: {
       _id: oldDoc!._id,
       fileOid: oldFileSHA,
+      type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
       fileOid: newFileSHA,
+      type: 'json',
       doc: newDoc,
     },
   };
@@ -149,6 +156,7 @@ export function getChangedFileDeleteBySHA (
     old: {
       _id: oldDoc!._id,
       fileOid: oldFileSHA,
+      type: 'json',
       doc: oldDoc,
     },
   };
