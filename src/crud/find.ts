@@ -11,12 +11,14 @@ import { readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
 import {
+  Doc,
   DocType,
   FatBinaryDoc,
   FatDoc,
   FatJsonDoc,
   FatTextDoc,
   FindOptions,
+  JsonDoc,
 } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import { blobToBinary, blobToJsonDoc, blobToText, readLatestBlob } from './blob';
@@ -33,8 +35,9 @@ export async function findImpl (
   gitDDB: IDocumentDB,
   collectionPath: string,
   isJsonCollection: boolean,
+  withMetadata: boolean,
   options?: FindOptions
-): Promise<FatDoc[]> {
+): Promise<(Doc | FatDoc)[]> {
   if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
@@ -56,8 +59,6 @@ export async function findImpl (
 
   const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'main' });
 
-  const docs: FatDoc[] = [];
-
   // Normalize prefix and targetDir
   let prefix = options!.prefix;
   let targetDir = '';
@@ -68,7 +69,7 @@ export async function findImpl (
   }
   else if (prefixArray[prefixArray.length - 1] === '') {
     // prefix ends with slash
-    targetDir = prefix;
+    targetDir = prefix.slice(0, -1); // remove trailing slash
     prefix = '';
   }
   else {
@@ -88,6 +89,8 @@ export async function findImpl (
   if (specifiedTreeResult) {
     directories.push({ path: targetDir, entries: specifiedTreeResult.tree });
   }
+
+  const docs: (Doc | FatDoc)[] = [];
 
   while (directories.length > 0) {
     const directory = directories.shift();
@@ -153,13 +156,28 @@ export async function findImpl (
           let shortId = fullDocPath.replace(new RegExp('^' + collectionPath), '');
           if (docType === 'json') {
             shortId = shortId.replace(new RegExp(JSON_EXT + '$'), '');
-            docs.push(blobToJsonDoc(shortId, readBlobResult, true) as FatJsonDoc);
+            if (withMetadata) {
+              docs.push(blobToJsonDoc(shortId, readBlobResult, true) as FatJsonDoc);
+            }
+            else {
+              docs.push(blobToJsonDoc(shortId, readBlobResult, false) as JsonDoc);
+            }
           }
           else if (docType === 'text') {
-            docs.push(blobToText(shortId, readBlobResult, true) as FatTextDoc);
+            if (withMetadata) {
+              docs.push(blobToText(shortId, readBlobResult, true) as FatTextDoc);
+            }
+            else {
+              docs.push(blobToText(shortId, readBlobResult, false) as string);
+            }
           }
           else if (docType === 'binary') {
-            docs.push(blobToBinary(shortId, readBlobResult, true) as FatBinaryDoc);
+            if (withMetadata) {
+              docs.push(blobToBinary(shortId, readBlobResult, true) as FatBinaryDoc);
+            }
+            else {
+              docs.push(blobToBinary(shortId, readBlobResult, false) as Uint8Array);
+            }
           }
         }
       }

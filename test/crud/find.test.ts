@@ -7,11 +7,20 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { InvalidJsonObjectError, RepositoryNotOpenError } from '../../src/error';
+import { IDocumentDB } from '../../src/types_gitddb';
+import { sleep, toSortedJSONString } from '../../src/utils';
+import {
+  DatabaseClosingError,
+  InvalidJsonObjectError,
+  RepositoryNotOpenError,
+} from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
+import { FIRST_COMMIT_MESSAGE, GIT_DOCUMENTDB_INFO_ID, JSON_EXT } from '../../src/const';
+import { findImpl } from '../../src/crud/find';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -25,13 +34,32 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
 after(() => {
   fs.removeSync(path.resolve(localDir));
 });
+
+const addOneData = async (
+  gitDDB: IDocumentDB,
+  fullDocPath: string,
+  data: string,
+  author?: { name?: string; email?: string },
+  committer?: { name?: string; email?: string }
+) => {
+  fs.ensureDirSync(path.dirname(path.resolve(gitDDB.workingDir(), fullDocPath)));
+  fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), data);
+  await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+  await git.commit({
+    fs,
+    dir: gitDDB.workingDir(),
+    message: 'message',
+    author: author ?? gitDDB.author,
+    committer: committer ?? gitDDB.committer,
+  });
+};
 
 describe('<crud/find> find()', () => {
   const _id_1 = '1';
@@ -43,10 +71,10 @@ describe('<crud/find> find()', () => {
   const _id_c = 'cherry';
   const name_c = 'Cherry cat';
 
-  const _id_c000 = 'citrus_celery';
-  const name_c000 = 'Citrus and celery';
-  const _id_c001 = 'citrus_carrot';
-  const name_c001 = 'Citrus and carrot';
+  const _id_c000 = 'citrus_carrot';
+  const name_c000 = 'Citrus and carrot';
+  const _id_c001 = 'citrus_celery';
+  const name_c001 = 'Citrus and celery';
 
   const _id_c01 = 'citrus/amanatsu';
   const name_c01 = 'Amanatsu boy';
@@ -57,6 +85,61 @@ describe('<crud/find> find()', () => {
   const _id_p = 'pear/Japan/21st';
   const name_p = '21st century pear';
 
+  it('throws DatabaseClosingError', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+
+    for (let i = 0; i < 100; i++) {
+      // put() will throw Error after the database is closed by force.
+      gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
+    }
+    // Call close() without await
+    gitDDB.close().catch(() => {});
+    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+      DatabaseClosingError
+    );
+    while (gitDDB.isClosing) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(100);
+    }
+    await gitDDB.destroy();
+  });
+
+  it('throws RepositoryNotOpenError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    await gitDDB.close();
+    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+      RepositoryNotOpenError
+    );
+    await gitDDB.destroy();
+  });
+
+  it('throws InvalidJsonObjectError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+
+    await addOneData(gitDDB, 'invalidJSON' + JSON_EXT, 'invalidJSON');
+
+    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+      InvalidJsonObjectError
+    );
+
+    await gitDDB.destroy();
+  });
+
   it('opens db which is not created by GitDocumentDB', async () => {
     const dbName = monoId();
 
@@ -65,18 +148,52 @@ describe('<crud/find> find()', () => {
       localDir,
     });
 
-    await fs.ensureDir(gitDDB.workingDir());
+    const infoPath = path.resolve(gitDDB.workingDir(), GIT_DOCUMENTDB_INFO_ID + JSON_EXT);
+    await fs.ensureDir(path.dirname(infoPath));
     // Create empty repository
-    await nodegit.Repository.init(gitDDB.workingDir(), 0).catch(err => {
-      return Promise.reject(err);
+    await git.init({ fs, dir: gitDDB.workingDir(), defaultBranch: 'main' });
+    await fs.writeFile(infoPath, {});
+    await git.add({
+      fs,
+      dir: gitDDB.workingDir(),
+      filepath: GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
     });
+    await git.commit({
+      fs,
+      dir: gitDDB.workingDir(),
+      author: {
+        name: 'test',
+        email: 'text@example.com',
+      },
+      message: FIRST_COMMIT_MESSAGE,
+    });
+
+    const _id = '1';
+    const json = { _id };
+    await addOneData(gitDDB, _id + JSON_EXT, toSortedJSONString(json));
+
     await gitDDB.open();
 
-    await expect(gitDDB.find()).resolves.toMatchObject({
-      totalRows: 0,
-      commitOid: /^.+$/,
-      rows: [],
+    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([json]);
+
+    await gitDDB.destroy();
+  });
+
+  it('returns empty', async () => {
+    const dbName = monoId();
+
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
     });
+
+    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+      RepositoryNotOpenError
+    );
+
+    await gitDDB.open();
+
+    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([]);
 
     await gitDDB.destroy();
   });
@@ -89,43 +206,28 @@ describe('<crud/find> find()', () => {
       localDir,
     });
 
-    await expect(gitDDB.find()).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+      RepositoryNotOpenError
+    );
 
     await gitDDB.open();
 
-    await expect(gitDDB.find()).resolves.toStrictEqual({
-      totalRows: 0,
-      rows: [],
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-    });
+    const json_b = { _id: _id_b, name: name_b };
+    const json_a = { _id: _id_a, name: name_a };
+    const json_1 = { _id: _id_1, name: name_1 };
+    const json_c = { _id: _id_c, name: name_c };
 
-    await gitDDB.put({ _id: _id_b, name: name_b });
-    await gitDDB.put({ _id: _id_a, name: name_a });
-    await gitDDB.put({ _id: _id_1, name: name_1 });
-    await gitDDB.put({ _id: _id_c, name: name_c });
+    await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_1 + JSON_EXT, toSortedJSONString(json_1));
+    await addOneData(gitDDB, _id_c + JSON_EXT, toSortedJSONString(json_c));
 
-    await expect(gitDDB.find({ includeDocs: false })).resolves.toMatchObject({
-      totalRows: 4,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          _id: expect.stringMatching('^' + _id_1 + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        },
-        {
-          _id: expect.stringMatching('^' + _id_a + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        },
-        {
-          _id: expect.stringMatching('^' + _id_b + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        },
-        {
-          _id: expect.stringMatching('^' + _id_c + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        },
-      ],
-    });
+    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([
+      json_1,
+      json_a,
+      json_b,
+      json_c,
+    ]);
 
     await gitDDB.destroy();
   });
@@ -139,68 +241,29 @@ describe('<crud/find> find()', () => {
     });
     await gitDDB.open();
 
-    await gitDDB.put({ _id: _id_b, name: name_b });
-    await gitDDB.put({ _id: _id_a, name: name_a });
-    await gitDDB.put({ _id: _id_c, name: name_c });
+    const json_b = { _id: _id_b, name: name_b };
+    const json_a = { _id: _id_a, name: name_a };
+    const json_1 = { _id: _id_1, name: name_1 };
+    const json_c = { _id: _id_c, name: name_c };
 
-    await expect(
-      gitDDB.find({ descending: true, includeDocs: false })
-    ).resolves.toMatchObject({
-      totalRows: 3,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          _id: expect.stringMatching('^' + _id_c + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        },
-        {
-          _id: expect.stringMatching('^' + _id_b + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        },
-        {
-          _id: expect.stringMatching('^' + _id_a + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        },
-      ],
-    });
+    await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_1 + JSON_EXT, toSortedJSONString(json_1));
+    await addOneData(gitDDB, _id_c + JSON_EXT, toSortedJSONString(json_c));
 
-    await gitDDB.destroy();
-  });
+    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([
+      json_1,
+      json_a,
+      json_b,
+      json_c,
+    ]);
 
-  it('returns entries including JsonDocs', async () => {
-    const dbName = monoId();
-
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-
-    await gitDDB.put({ _id: _id_b, name: name_b });
-    await gitDDB.put({ _id: _id_a, name: name_a });
-
-    await expect(gitDDB.find({ includeDocs: true })).resolves.toMatchObject({
-      totalRows: 2,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          _id: expect.stringMatching('^' + _id_a + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_a + '$'),
-            name: name_a,
-          },
-        },
-        {
-          _id: expect.stringMatching('^' + _id_b + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_b + '$'),
-            name: name_b,
-          },
-        },
-      ],
-    });
+    await expect(findImpl(gitDDB, '', true, false, { descending: true })).resolves.toEqual([
+      json_c,
+      json_b,
+      json_a,
+      json_1,
+    ]);
 
     await gitDDB.destroy();
   });
@@ -213,58 +276,25 @@ describe('<crud/find> find()', () => {
     });
     await gitDDB.open();
 
-    await gitDDB.put({ _id: _id_b, name: name_b });
-    await gitDDB.put({ _id: _id_a, name: name_a });
-    await gitDDB.put({ _id: _id_d, name: name_d });
-    await gitDDB.put({ _id: _id_c01, name: name_c01 });
-    await gitDDB.put({ _id: _id_c02, name: name_c02 });
+    const json_b = { _id: _id_b, name: name_b };
+    const json_a = { _id: _id_a, name: name_a };
+    const json_d = { _id: _id_d, name: name_d };
+    const json_c01 = { _id: _id_c01, name: name_c01 };
+    const json_c02 = { _id: _id_c02, name: name_c02 };
 
-    await expect(gitDDB.find({ includeDocs: true })).resolves.toMatchObject({
-      totalRows: 5,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          _id: expect.stringMatching('^' + _id_a + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_a + '$'),
-            name: name_a,
-          },
-        },
-        {
-          _id: expect.stringMatching('^' + _id_b + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_b + '$'),
-            name: name_b,
-          },
-        },
-        {
-          _id: expect.stringMatching('^' + _id_c01 + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_c01 + '$'),
-            name: name_c01,
-          },
-        },
-        {
-          _id: expect.stringMatching('^' + _id_c02 + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_c02 + '$'),
-            name: name_c02,
-          },
-        },
-        {
-          _id: expect.stringMatching('^' + _id_d + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_d + '$'),
-            name: name_d,
-          },
-        },
-      ],
-    });
+    await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+    await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+    await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
+
+    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([
+      json_a,
+      json_b,
+      json_c01,
+      json_c02,
+      json_d,
+    ]);
 
     await gitDDB.destroy();
   });
@@ -278,36 +308,22 @@ describe('<crud/find> find()', () => {
     });
     await gitDDB.open();
 
-    await gitDDB.put({ _id: _id_b, name: name_b });
-    await gitDDB.put({ _id: _id_a, name: name_a });
-    await gitDDB.put({ _id: _id_d, name: name_d });
-    await gitDDB.put({ _id: _id_c01, name: name_c01 });
-    await gitDDB.put({ _id: _id_c02, name: name_c02 });
+    const json_b = { _id: _id_b, name: name_b };
+    const json_a = { _id: _id_a, name: name_a };
+    const json_d = { _id: _id_d, name: name_d };
+    const json_c01 = { _id: _id_c01, name: name_c01 };
+    const json_c02 = { _id: _id_c02, name: name_c02 };
 
-    await expect(
-      gitDDB.find({ includeDocs: true, recursive: false })
-    ).resolves.toMatchObject({
-      totalRows: 2,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-      rows: [
-        {
-          _id: expect.stringMatching('^' + _id_a + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_a + '$'),
-            name: name_a,
-          },
-        },
-        {
-          _id: expect.stringMatching('^' + _id_b + '$'),
-          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          doc: {
-            _id: expect.stringMatching('^' + _id_b + '$'),
-            name: name_b,
-          },
-        },
-      ],
-    });
+    await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+    await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+    await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
+
+    await expect(findImpl(gitDDB, '', true, false, { recursive: false })).resolves.toEqual([
+      json_a,
+      json_b,
+    ]);
 
     await gitDDB.destroy();
   });
@@ -321,38 +337,28 @@ describe('<crud/find> find()', () => {
       });
       await gitDDB.open();
 
-      await gitDDB.put({ _id: _id_b, name: name_b });
-      await gitDDB.put({ _id: _id_a, name: name_a });
-      await gitDDB.put({ _id: _id_d, name: name_d });
-      await gitDDB.put({ _id: _id_c000, name: name_c000 });
-      await gitDDB.put({ _id: _id_c001, name: name_c001 });
-      await gitDDB.put({ _id: _id_c01, name: name_c01 });
-      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+      const json_b = { _id: _id_b, name: name_b };
+      const json_a = { _id: _id_a, name: name_a };
+      const json_d = { _id: _id_d, name: name_d };
+      const json_c000 = { _id: _id_c000, name: name_c000 };
+      const json_c001 = { _id: _id_c001, name: name_c001 };
+      const json_c01 = { _id: _id_c01, name: name_c01 };
+      const json_c02 = { _id: _id_c02, name: name_c02 };
+
+      await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_EXT, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_EXT, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
 
       const prefix = 'citrus/';
 
-      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
-        totalRows: 2,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_c01 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c01 + '$'),
-              name: name_c01,
-            },
-          },
-          {
-            _id: expect.stringMatching('^' + _id_c02 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c02 + '$'),
-              name: name_c02,
-            },
-          },
-        ],
-      });
+      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([
+        json_c01,
+        json_c02,
+      ]);
 
       await gitDDB.destroy();
     });
@@ -365,45 +371,32 @@ describe('<crud/find> find()', () => {
       });
       await gitDDB.open();
 
-      await gitDDB.put({ _id: _id_b, name: name_b });
-      await gitDDB.put({ _id: _id_a, name: name_a });
-      await gitDDB.put({ _id: _id_d, name: name_d });
-      await gitDDB.put({ _id: _id_c000, name: name_c000 });
-      await gitDDB.put({ _id: _id_c001, name: name_c001 });
-      await gitDDB.put({ _id: _id_c01, name: name_c01 });
-      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+      const json_b = { _id: _id_b, name: name_b };
+      const json_a = { _id: _id_a, name: name_a };
+      const json_d = { _id: _id_d, name: name_d };
+      const json_c000 = { _id: _id_c000, name: name_c000 };
+      const json_c001 = { _id: _id_c001, name: name_c001 };
+      const json_c01 = { _id: _id_c01, name: name_c01 };
+      const json_c02 = { _id: _id_c02, name: name_c02 };
+
+      await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_EXT, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_EXT, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
 
       const prefix = 'cit';
 
       await expect(
-        gitDDB.find({ prefix, includeDocs: true, recursive: false })
-      ).resolves.toMatchObject({
-        totalRows: 2,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_c001 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c001 + '$'),
-              name: name_c001,
-            },
-          },
-          {
-            _id: expect.stringMatching('^' + _id_c000 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c000 + '$'),
-              name: name_c000,
-            },
-          },
-        ],
-      });
+        findImpl(gitDDB, '', true, false, { prefix, recursive: false })
+      ).resolves.toEqual([json_c000, json_c001]);
 
       await gitDDB.destroy();
     });
 
-    it('uses recursive option to get from parent directory and child directory', async () => {
+    it('gets from parent directory and child directory', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -411,54 +404,30 @@ describe('<crud/find> find()', () => {
       });
       await gitDDB.open();
 
-      await gitDDB.put({ _id: _id_b, name: name_b });
-      await gitDDB.put({ _id: _id_a, name: name_a });
-      await gitDDB.put({ _id: _id_d, name: name_d });
-      await gitDDB.put({ _id: _id_c000, name: name_c000 });
-      await gitDDB.put({ _id: _id_c001, name: name_c001 });
-      await gitDDB.put({ _id: _id_c01, name: name_c01 });
-      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+      const json_b = { _id: _id_b, name: name_b };
+      const json_a = { _id: _id_a, name: name_a };
+      const json_d = { _id: _id_d, name: name_d };
+      const json_c000 = { _id: _id_c000, name: name_c000 };
+      const json_c001 = { _id: _id_c001, name: name_c001 };
+      const json_c01 = { _id: _id_c01, name: name_c01 };
+      const json_c02 = { _id: _id_c02, name: name_c02 };
+
+      await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_EXT, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_EXT, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
 
       const prefix = 'citrus';
 
-      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
-        totalRows: 4,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_c001 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c001 + '$'),
-              name: name_c001,
-            },
-          },
-          {
-            _id: expect.stringMatching('^' + _id_c000 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c000 + '$'),
-              name: name_c000,
-            },
-          },
-          {
-            _id: expect.stringMatching('^' + _id_c01 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c01 + '$'),
-              name: name_c01,
-            },
-          },
-          {
-            _id: expect.stringMatching('^' + _id_c02 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c02 + '$'),
-              name: name_c02,
-            },
-          },
-        ],
-      });
+      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([
+        json_c000,
+        json_c001,
+        json_c01,
+        json_c02,
+      ]);
 
       await gitDDB.destroy();
     });
@@ -471,30 +440,27 @@ describe('<crud/find> find()', () => {
       });
       await gitDDB.open();
 
-      await gitDDB.put({ _id: _id_b, name: name_b });
-      await gitDDB.put({ _id: _id_a, name: name_a });
-      await gitDDB.put({ _id: _id_d, name: name_d });
-      await gitDDB.put({ _id: _id_c000, name: name_c000 });
-      await gitDDB.put({ _id: _id_c001, name: name_c001 });
-      await gitDDB.put({ _id: _id_c01, name: name_c01 });
-      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+      const json_b = { _id: _id_b, name: name_b };
+      const json_a = { _id: _id_a, name: name_a };
+      const json_d = { _id: _id_d, name: name_d };
+      const json_c000 = { _id: _id_c000, name: name_c000 };
+      const json_c001 = { _id: _id_c001, name: name_c001 };
+      const json_c01 = { _id: _id_c01, name: name_c01 };
+      const json_c02 = { _id: _id_c02, name: name_c02 };
+
+      await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_EXT, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_EXT, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
 
       const prefix = 'citrus/y';
 
-      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
-        totalRows: 1,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_c02 + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_c02 + '$'),
-              name: name_c02,
-            },
-          },
-        ],
-      });
+      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([
+        json_c02,
+      ]);
 
       await gitDDB.destroy();
     });
@@ -507,21 +473,25 @@ describe('<crud/find> find()', () => {
       });
       await gitDDB.open();
 
-      await gitDDB.put({ _id: _id_b, name: name_b });
-      await gitDDB.put({ _id: _id_a, name: name_a });
-      await gitDDB.put({ _id: _id_d, name: name_d });
-      await gitDDB.put({ _id: _id_c000, name: name_c000 });
-      await gitDDB.put({ _id: _id_c001, name: name_c001 });
-      await gitDDB.put({ _id: _id_c01, name: name_c01 });
-      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+      const json_b = { _id: _id_b, name: name_b };
+      const json_a = { _id: _id_a, name: name_a };
+      const json_d = { _id: _id_d, name: name_d };
+      const json_c000 = { _id: _id_c000, name: name_c000 };
+      const json_c001 = { _id: _id_c001, name: name_c001 };
+      const json_c01 = { _id: _id_c01, name: name_c01 };
+      const json_c02 = { _id: _id_c02, name: name_c02 };
+
+      await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_EXT, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_EXT, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
 
       const prefix = 'not_exist/';
 
-      await expect(gitDDB.find({ prefix, includeDocs: true })).resolves.toMatchObject({
-        totalRows: 0,
-        rows: [],
-        commitOid: expect.stringMatching(/^[\da-z]{40}/),
-      });
+      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([]);
 
       await gitDDB.destroy();
     });
@@ -534,124 +504,34 @@ describe('<crud/find> find()', () => {
       });
       await gitDDB.open();
 
-      await gitDDB.put({ _id: _id_p, name: name_p });
+      const json_p = { _id: _id_p, name: name_p };
+      const json_b = { _id: _id_b, name: name_b };
+      const json_a = { _id: _id_a, name: name_a };
+      const json_d = { _id: _id_d, name: name_d };
+      const json_c000 = { _id: _id_c000, name: name_c000 };
+      const json_c001 = { _id: _id_c001, name: name_c001 };
+      const json_c01 = { _id: _id_c01, name: name_c01 };
+      const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await gitDDB.put({ _id: _id_b, name: name_b });
-      await gitDDB.put({ _id: _id_a, name: name_a });
-      await gitDDB.put({ _id: _id_d, name: name_d });
-      await gitDDB.put({ _id: _id_c000, name: name_c000 });
-      await gitDDB.put({ _id: _id_c001, name: name_c001 });
-      await gitDDB.put({ _id: _id_c01, name: name_c01 });
-      await gitDDB.put({ _id: _id_c02, name: name_c02 });
+      await addOneData(gitDDB, _id_p + JSON_EXT, toSortedJSONString(json_p));
 
-      await expect(
-        gitDDB.find({ prefix: 'pear/Japan', includeDocs: true })
-      ).resolves.toMatchObject({
-        totalRows: 1,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_p + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_p + '$'),
-              name: name_p,
-            },
-          },
-        ],
-      });
+      await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_EXT, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_EXT, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02));
 
       await expect(
-        gitDDB.find({ prefix: 'pear', includeDocs: true })
-      ).resolves.toMatchObject({
-        totalRows: 1,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_p + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-            doc: {
-              _id: expect.stringMatching('^' + _id_p + '$'),
-              name: name_p,
-            },
-          },
-        ],
-      });
+        findImpl(gitDDB, '', true, false, { prefix: 'pear/Japan' })
+      ).resolves.toEqual([json_p]);
+
+      await expect(findImpl(gitDDB, '', true, false, { prefix: 'pear' })).resolves.toEqual([
+        json_p,
+      ]);
+
       await gitDDB.destroy();
     });
-  });
-
-  it('throws InvalidJsonObjectError', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-
-    const _id = 'invalidJSON';
-    let fileOid, commitOid: string;
-    const data = 'invalid data'; // JSON.parse() will throw error
-    const _currentRepository = gitDDB.repository();
-    if (_currentRepository) {
-      try {
-        const filePath = path.resolve(gitDDB.workingDir(), _id);
-        const dir = path.dirname(filePath);
-        await fs.ensureDir(dir).catch((err: Error) => console.error(err));
-        await fs.writeFile(filePath, data);
-
-        const index = await _currentRepository.refreshIndex(); // read latest index
-
-        await index.addByPath(_id); // stage
-        await index.write(); // flush changes to index
-        const changes = await index.writeTree(); // get reference to a set of changes
-
-        const entry = index.getByPath(_id, 0); // https://www.nodegit.org/api/index/#STAGE
-        fileOid = entry.id.tostrS();
-
-        const gitAuthor = {
-          name: 'GitDocumentDB',
-          email: 'system@gdd.localhost',
-        };
-
-        const author = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-        const committer = nodegit.Signature.now(gitAuthor.name, gitAuthor.email);
-
-        // Calling nameToId() for HEAD throws error when there is not a commit object yet.
-        const head = await nodegit.Reference.nameToId(_currentRepository, 'HEAD').catch(
-          e => false
-        ); // get HEAD
-        let commit;
-        if (!head) {
-          // First commit
-          commit = await _currentRepository.createCommit(
-            'HEAD',
-            author,
-            committer,
-            'message',
-            changes,
-            []
-          );
-        }
-        else {
-          const parent = await _currentRepository.getCommit(head as nodegit.Oid); // get the commit of HEAD
-          commit = await _currentRepository.createCommit(
-            'HEAD',
-            author,
-            committer,
-            'message',
-            changes,
-            [parent]
-          );
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
-      await expect(gitDDB.find({ includeDocs: true })).rejects.toThrowError(
-        InvalidJsonObjectError
-      );
-    }
-    await gitDDB.destroy();
   });
 });
