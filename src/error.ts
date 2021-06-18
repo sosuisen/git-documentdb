@@ -48,8 +48,8 @@ export class CannotWriteDataError extends BaseError {
 /**
  */
 export class CannotDeleteDataError extends BaseError {
-  constructor (e = 'Cannot write data') {
-    super(e);
+  constructor (e = 'Cannot write data' as unknown) {
+    super(e as string);
   }
 }
 

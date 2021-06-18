@@ -198,19 +198,46 @@ describe('delete()', () => {
     });
 
     await gitDDB.open();
-    const users = gitDDB.collection('users');
-    const _id = 'test/prof01';
-    const doc = { _id: _id, name: 'shirase' };
-    await users.put(doc);
+    const _id = 'dir01/prof01';
+    const json = { _id: _id, name: 'shirase' };
+    const putResult = await gitDDB.put(json);
+
+    const prevCommitOid = putResult.commit.oid;
 
     // Delete
-    await expect(users.delete(doc)).resolves.toMatchObject({
-      ok: true,
-      _id: expect.stringMatching('^test/prof01$'),
-      fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
+    const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
+    const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
+    const deleteResult = await gitDDB.delete(json);
+    const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
+
+    const currentCommitOid = await git.resolveRef({
+      fs,
+      dir: gitDDB.workingDir(),
+      ref: 'HEAD',
     });
-    expect(doc._id).toBe('test/prof01');
+
+    // Check NormalizedCommit
+    expect(deleteResult.commit.oid).toBe(currentCommitOid);
+    expect(deleteResult.commit.message).toBe(
+      `insert: ${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+    );
+    expect(deleteResult.commit.parent).toEqual([prevCommitOid]);
+    expect(deleteResult.commit.author.name).toEqual(gitDDB.author.name);
+    expect(deleteResult.commit.author.email).toEqual(gitDDB.author.email);
+    expect(deleteResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(deleteResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
+      afterTimestamp
+    );
+    expect(deleteResult.commit.committer.name).toEqual(gitDDB.author.name);
+    expect(deleteResult.commit.committer.email).toEqual(gitDDB.author.email);
+    expect(deleteResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
+      beforeTimestamp
+    );
+    expect(deleteResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
+      afterTimestamp
+    );
 
     await gitDDB.destroy();
   });

@@ -12,18 +12,23 @@ import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
+import sinon from 'sinon';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
 import {
+  CannotDeleteDataError,
+  DatabaseClosingError,
   DocumentNotFoundError,
-  InvalidIdCharacterError,
   RepositoryNotOpenError,
+  TaskCancelError,
   UndefinedDBError,
-  UndefinedDocumentIdError,
 } from '../../src/error';
 import { GitDocumentDB } from '../../src/index';
 import { deleteImpl, deleteWorker } from '../../src/crud/delete';
 import { TaskMetadata } from '../../src/types';
 import { sleep, toSortedJSONString } from '../../src/utils';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const fs_module = require('fs-extra');
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -32,9 +37,16 @@ const monoId = () => {
 
 const localDir = `./test/database_crud_delete`;
 
+// Use sandbox to restore stub and spy in parallel mocha tests
+let sandbox: sinon.SinonSandbox;
 beforeEach(function () {
   // @ts-ignore
-  console.log(`... ${this.currentTest.title}`);
+  console.log(`... ${this.currentTest.fullTitle()}`);
+  sandbox = sinon.createSandbox();
+});
+
+afterEach(function () {
+  sandbox.restore();
 });
 
 before(() => {
@@ -44,8 +56,76 @@ before(() => {
 after(() => {
   fs.removeSync(path.resolve(localDir));
 });
+
 describe('<crud/delete>', () => {
-  describe('delete():', () => {
+  describe('deleteImpl()', () => {
+    it('throws DatabaseClosingError', async () => {
+      const dbName = monoId();
+      const gitDDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+
+      for (let i = 0; i < 50; i++) {
+        // put() will throw Error after the database is closed by force.
+        gitDDB.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
+      }
+      // Call close() without await
+      gitDDB.close().catch(() => {});
+      const _id = 'prof01';
+      await expect(deleteImpl(gitDDB, _id + JSON_EXT)).rejects.toThrowError(
+        DatabaseClosingError
+      );
+
+      // wait close
+      await sleep(5000);
+      await gitDDB.destroy();
+    });
+
+    it('throws TaskCancelError', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+
+      const workers = [];
+      let taskCancelErrorCount = 0;
+      for (let i = 0; i < 50; i++) {
+        deleteImpl(gitDDB, i.toString()).catch(
+          // eslint-disable-next-line no-loop-func
+          err => {
+            if (err instanceof TaskCancelError) taskCancelErrorCount++;
+          }
+        );
+      }
+      gitDDB.taskQueue.clear();
+      await sleep(3000);
+      expect(taskCancelErrorCount).toBeGreaterThan(0);
+      await gitDDB.destroy();
+    });
+
+    it('throws DOcumentNotFoundError when a document does not exist', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const _id = 'prof01';
+      const json = { _id: _id, name: 'shirase' };
+      const putResult = await gitDDB.put(json);
+
+      await expect(deleteImpl(gitDDB, _id + JSON_EXT + '_invalid')).rejects.toThrowError(
+        DocumentNotFoundError
+      );
+
+      await gitDDB.destroy();
+    });
+
     it('deletes a document by id.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -75,7 +155,7 @@ describe('<crud/delete>', () => {
       // Check NormalizedCommit
       expect(pickedDeleteResult.commit.oid).toBe(currentCommitOid);
       expect(pickedDeleteResult.commit.message).toBe(
-        `insert: ${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+        `delete: ${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
       );
       expect(pickedDeleteResult.commit.parent).toEqual([prevCommitOid]);
       expect(pickedDeleteResult.commit.author.name).toEqual(gitDDB.author.name);
@@ -112,7 +192,7 @@ describe('<crud/delete>', () => {
 
       // Delete
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-      const pickedDeleteResult = await deleteImpl(gitDDB, _id);
+      const pickedDeleteResult = await deleteImpl(gitDDB, _id + JSON_EXT);
 
       expect(pickedDeleteResult.commit.message).toEqual(
         `delete: ${_id}${JSON_EXT}(${shortOid})`
@@ -130,29 +210,6 @@ describe('<crud/delete>', () => {
       await gitDDB.destroy();
     });
 
-    it('deletes a document by JsonDoc.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      const _id = 'prof01';
-      const doc = { _id: _id, name: 'shirase' };
-      await gitDDB.put(doc);
-
-      // Delete
-      await expect(gitDDB.delete(doc)).resolves.toMatchObject({
-        _id: expect.stringMatching('^' + _id + '$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitMessage: expect.stringMatching('.+'),
-      });
-
-      await gitDDB.destroy();
-    });
-
     it('deletes a document which _id is non-ASCII.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -163,17 +220,14 @@ describe('<crud/delete>', () => {
       await gitDDB.open();
       const _id = '春はあけぼの';
       const doc = { _id: _id, name: 'shirase' };
-      await gitDDB.put(doc);
+      const putResult = await gitDDB.put(doc);
 
       // Delete
-      const deleteResult = await gitDDB.delete(_id);
-      const shortOid = deleteResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-      expect(deleteResult).toMatchObject({
-        _id: expect.stringMatching('^' + _id + '$'),
-        fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        commitMessage: `delete: ${_id}${JSON_EXT}(${shortOid})`,
-      });
+      const deleteResult = await deleteImpl(gitDDB, _id + JSON_EXT);
+
+      const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+      expect(deleteResult.fileOid).toBe(putResult.fileOid);
+      expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXT}(${shortOid})`);
 
       // Check commit directly
       const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
@@ -187,36 +241,21 @@ describe('<crud/delete>', () => {
       await gitDDB.destroy();
     });
 
-    it('throws UndefinedDocumentIdError', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-
-      await gitDDB.open();
-      // @ts-ignore
-      await expect(gitDDB.delete()).rejects.toThrowError(UndefinedDocumentIdError);
-      await gitDDB.destroy();
-    });
-  });
-
-  describe('deleteWorker', () => {
-    const _id_a = 'apple';
-    const name_a = 'Apple woman';
-    const _id_b = 'banana';
-    const name_b = 'Banana man';
-
-    const _id_c01 = 'citrus/amanatsu';
-    const name_c01 = 'Amanatsu boy';
-    const _id_c02 = 'citrus/yuzu';
-    const name_c02 = 'Yuzu girl';
-    const _id_d = 'durio/durian';
-    const name_d = 'Durian girls';
-    const _id_p = 'pear/Japan/21st';
-    const name_p = '21st century pear';
-
     it('deletes all at once', async () => {
+      const _id_a = 'apple';
+      const name_a = 'Apple woman';
+      const _id_b = 'banana';
+      const name_b = 'Banana man';
+
+      const _id_c01 = 'citrus/amanatsu';
+      const name_c01 = 'Amanatsu boy';
+      const _id_c02 = 'citrus/yuzu';
+      const name_c02 = 'Yuzu girl';
+      const _id_d = 'durio/durian';
+      const name_d = 'Durian girls';
+      const _id_p = 'pear/Japan/21st';
+      const name_p = '21st century pear';
+
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -234,63 +273,121 @@ describe('<crud/delete>', () => {
       ]);
 
       await Promise.all([
-        gitDDB.delete(_id_a),
-        gitDDB.delete(_id_b),
-        gitDDB.delete(_id_c01),
-        gitDDB.delete(_id_c02),
-        gitDDB.delete(_id_d),
+        deleteImpl(gitDDB, _id_a + JSON_EXT),
+        deleteImpl(gitDDB, _id_b + JSON_EXT),
+        deleteImpl(gitDDB, _id_c01 + JSON_EXT),
+        deleteImpl(gitDDB, _id_c02 + JSON_EXT),
+        deleteImpl(gitDDB, _id_d + JSON_EXT),
       ]);
 
-      await expect(gitDDB.find({ recursive: true })).resolves.toMatchObject({
-        totalRows: 1,
-        commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-        rows: [
-          {
-            _id: expect.stringMatching('^' + _id_p + '$'),
-            fileOid: expect.stringMatching(/^[\da-z]{40}$/),
-          },
-        ],
+      await expect(gitDDB.find({ recursive: true })).resolves.toEqual([
+        {
+          _id: _id_p,
+          fileOid: expect.stringMatching(/^[\da-z]{40}$/),
+          type: 'json',
+          doc: { _id: _id_p, name: name_p },
+        },
+      ]);
+
+      await gitDDB.destroy();
+    });
+
+    it('set taskId and enqueueCallback', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
       });
+      await gitDDB.open();
+      const enqueueEvent: TaskMetadata[] = [];
+      await gitDDB.put({ _id: '1' });
+      await gitDDB.put({ _id: '2' });
+      const id1 = gitDDB.taskQueue.newTaskId();
+      const id2 = gitDDB.taskQueue.newTaskId();
+      await deleteImpl(gitDDB, '1.json', {
+        taskId: id1,
+        enqueueCallback: (taskMetadata: TaskMetadata) => {
+          enqueueEvent.push(taskMetadata);
+        },
+      });
+      await deleteImpl(gitDDB, '2.json', {
+        taskId: id2,
+        enqueueCallback: (taskMetadata: TaskMetadata) => {
+          enqueueEvent.push(taskMetadata);
+        },
+      });
+
+      await sleep(2000);
+      expect(enqueueEvent[0].taskId).toBe(id1);
+      expect(enqueueEvent[1].taskId).toBe(id2);
 
       await gitDDB.destroy();
     });
   });
 
-  it('set taskId', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
+  describe('deleteWorker()', () => {
+    it('throws UndefinedDBError when Undefined DB', async () => {
+      // @ts-ignore
+      await expect(deleteWorker(undefined)).rejects.toThrowError(UndefinedDBError);
     });
-    await gitDDB.open();
-    const enqueueEvent: TaskMetadata[] = [];
-    await gitDDB.put({ _id: '1' });
-    await gitDDB.put({ _id: '2' });
-    const id1 = gitDDB.taskQueue.newTaskId();
-    const id2 = gitDDB.taskQueue.newTaskId();
-    await gitDDB.delete(
-      { _id: '1' },
-      {
-        taskId: id1,
-        enqueueCallback: (taskMetadata: TaskMetadata) => {
-          enqueueEvent.push(taskMetadata);
-        },
-      }
-    );
-    await gitDDB.delete(
-      { _id: '2' },
-      {
-        taskId: id2,
-        enqueueCallback: (taskMetadata: TaskMetadata) => {
-          enqueueEvent.push(taskMetadata);
-        },
-      }
-    );
 
-    await sleep(2000);
-    expect(enqueueEvent[0].taskId).toBe(id1);
-    expect(enqueueEvent[1].taskId).toBe(id2);
+    it('throws RepositoryNotOpenError when a repository is not opened.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await expect(deleteWorker(gitDDB, 'prof01', '')).rejects.toThrowError(
+        RepositoryNotOpenError
+      );
+      await gitDDB.destroy();
+    });
 
-    await gitDDB.destroy();
+    it('throws DocumentNotFoundError when fullDocPath is undefined.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      // @ts-ignore
+      await expect(deleteWorker(gitDDB, undefined, '')).rejects.toThrowError(
+        DocumentNotFoundError
+      );
+
+      await gitDDB.destroy();
+    });
+
+    it('throws DocumentNotFoundError when fullDocPath is NULL string.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      await expect(deleteWorker(gitDDB, '', '')).rejects.toThrowError(
+        DocumentNotFoundError
+      );
+
+      await gitDDB.destroy();
+    });
+
+    it('throws CannotDeleteDataError', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+
+      await gitDDB.put({ _id: 'prof01' });
+      const stubEnsureDir = sandbox.stub(fs_module, 'remove');
+      stubEnsureDir.rejects();
+
+      await expect(deleteWorker(gitDDB, 'prof01' + JSON_EXT, '')).rejects.toThrowError(
+        CannotDeleteDataError
+      );
+      await gitDDB.destroy();
+    });
   });
 });
