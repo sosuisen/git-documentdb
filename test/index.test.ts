@@ -8,13 +8,11 @@
  */
 
 import path from 'path';
-import git from 'isomorphic-git';
 import { monotonicFactory } from 'ulid';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { GitDocumentDB } from '../src/index';
-import { toSortedJSONString } from '../src/utils';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
+import { Collection } from '../src/collection';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -40,5 +38,16 @@ describe('<index>', () => {
       localDir,
     });
     expect(gitDDB.dbName()).toBe(dbName);
+  });
+
+  it('GitDocumentDB#collection', () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    const col = gitDDB.collection('col01');
+    expect(col instanceof Collection).toBeTruthy();
+    expect(col.collectionPath()).toBe('col01/');
   });
 });
