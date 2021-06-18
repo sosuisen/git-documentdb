@@ -44,7 +44,7 @@ const localDir = `./test/database_open`;
 async function createDatabaseInfo (workingDir: string, info: string) {
   const infoPath = path.resolve(workingDir, GIT_DOCUMENTDB_INFO_ID + JSON_EXT);
   await fs.ensureDir(path.dirname(infoPath));
-  git.init({ fs, dir: workingDir, defaultBranch: 'main' });
+  await git.init({ fs, dir: workingDir, defaultBranch: 'main' });
   await fs.writeFile(infoPath, info);
   await git.add({ fs, dir: workingDir, filepath: GIT_DOCUMENTDB_INFO_ID + JSON_EXT });
   await git.commit({
