@@ -9,6 +9,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { DatabaseCloseTimeoutError } from '../src/error';
 import { GitDocumentDB } from '../src/index';
@@ -25,7 +26,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 

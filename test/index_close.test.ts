@@ -9,6 +9,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { sleep } from '../src/utils';
 import {
@@ -31,7 +32,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -48,18 +49,23 @@ describe('<close> GitDocumentDB#close()', () => {
     });
     await gitDDB.open();
 
+    const results = [];
     for (let i = 0; i < 50; i++) {
       gitDDB.put({ _id: i.toString(), name: i.toString() });
+      results.push({ _id: i.toString(), name: i.toString() });
     }
+
+    results.sort((a, b) => {
+      if (a._id > b._id) return 1;
+      if (a._id < b._id) return -1;
+      return 0;
+    });
 
     await gitDDB.close();
 
     await gitDDB.open();
 
-    await expect(gitDDB.find({ recursive: true })).resolves.toMatchObject({
-      totalRows: 50,
-      commitOid: expect.stringMatching(/^[\da-z]{40}$/),
-    });
+    await expect(gitDDB.find({ recursive: true })).resolves.toEqual(results);
 
     await gitDDB.destroy();
   });

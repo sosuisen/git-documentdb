@@ -188,8 +188,8 @@ export class DatabaseClosingError extends BaseError {
 /**
  */
 export class DatabaseCloseTimeoutError extends BaseError {
-  constructor (e = 'Queued operations are timeout') {
-    super(e);
+  constructor (e = 'Queued operations are timeout' as unknown) {
+    super(e as string);
   }
 }
 
