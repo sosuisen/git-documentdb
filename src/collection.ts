@@ -727,9 +727,6 @@ export class Collection implements CRUDInterface {
     if (typeof shortIdOrDoc === 'string') {
       shortId = shortIdOrDoc;
       fullDocPath = this._collectionPath + shortId;
-      if (this.isJsonDocCollection()) {
-        fullDocPath += JSON_EXT;
-      }
     }
     else if (shortIdOrDoc._id) {
       shortId = shortIdOrDoc._id;
@@ -737,6 +734,9 @@ export class Collection implements CRUDInterface {
     }
     else {
       return Promise.reject(new UndefinedDocumentIdError());
+    }
+    if (this.isJsonDocCollection()) {
+      fullDocPath += JSON_EXT;
     }
 
     return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {
