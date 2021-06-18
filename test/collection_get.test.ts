@@ -14,7 +14,7 @@ import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { JSON_EXT } from '../src/const';
 import { Collection } from '../src/collection';
-import { sleep, toSortedJSONString, utf8encode } from '../src/utils';
+import { sleep, toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/index';
 import {
   DatabaseClosingError,
