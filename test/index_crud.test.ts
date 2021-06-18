@@ -15,7 +15,7 @@ import fs from 'fs-extra';
 import { GitDocumentDB } from '../src/index';
 import { sleep, toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
-import { IDocumentDB } from '../src/types_gitddb';
+import { addOneData } from './utils';
 import {
   DatabaseClosingError,
   DocumentNotFoundError,
@@ -38,36 +38,6 @@ beforeEach(function () {
 after(() => {
   fs.removeSync(path.resolve(localDir));
 });
-
-const addOneData = async (
-  gitDDB: IDocumentDB,
-  fullDocPath: string,
-  data: string,
-  author?: { name?: string; email?: string },
-  committer?: { name?: string; email?: string }
-) => {
-  fs.ensureDirSync(path.dirname(path.resolve(gitDDB.workingDir(), fullDocPath)));
-  fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), data);
-  await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
-  await git.commit({
-    fs,
-    dir: gitDDB.workingDir(),
-    message: 'message',
-    author: author ?? gitDDB.author,
-    committer: committer ?? gitDDB.committer,
-  });
-};
-
-const removeOneData = async (gitDDB: IDocumentDB, fullDocPath: string) => {
-  await git.remove({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
-  fs.removeSync(path.resolve(gitDDB.workingDir(), fullDocPath));
-  await git.commit({
-    fs,
-    dir: gitDDB.workingDir(),
-    message: 'message',
-    author: gitDDB.author,
-  });
-};
 
 describe('<index> put(jsonDoc)', () => {
   it('creates a JSON file', async () => {

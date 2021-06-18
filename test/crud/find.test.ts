@@ -11,7 +11,6 @@ import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { IDocumentDB } from '../../src/types_gitddb';
 import { sleep, toSortedJSONString } from '../../src/utils';
 import {
   DatabaseClosingError,
@@ -21,6 +20,7 @@ import {
 import { GitDocumentDB } from '../../src/index';
 import { FIRST_COMMIT_MESSAGE, GIT_DOCUMENTDB_INFO_ID, JSON_EXT } from '../../src/const';
 import { findImpl } from '../../src/crud/find';
+import { addOneData } from '../utils';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -41,25 +41,6 @@ before(() => {
 after(() => {
   fs.removeSync(path.resolve(localDir));
 });
-
-const addOneData = async (
-  gitDDB: IDocumentDB,
-  fullDocPath: string,
-  data: string,
-  author?: { name?: string; email?: string },
-  committer?: { name?: string; email?: string }
-) => {
-  fs.ensureDirSync(path.dirname(path.resolve(gitDDB.workingDir(), fullDocPath)));
-  fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), data);
-  await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
-  await git.commit({
-    fs,
-    dir: gitDDB.workingDir(),
-    message: 'message',
-    author: author ?? gitDDB.author,
-    committer: committer ?? gitDDB.committer,
-  });
-};
 
 describe('<crud/find> find()', () => {
   const _id_1 = '1';
@@ -534,4 +515,6 @@ describe('<crud/find> find()', () => {
       await gitDDB.destroy();
     });
   });
+
+  describe('with collectionPath', () => {});
 });

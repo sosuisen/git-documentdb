@@ -26,8 +26,9 @@ import {
 import { GitDocumentDB } from '../../src/index';
 import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
 import { getHistoryImpl, readOldBlob } from '../../src/crud/history';
-import { IDocumentDB } from '../../src/types_gitddb';
+
 import { JSON_EXT } from '../../src/const';
+import { addOneData, removeOneData } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const git_module = require('isomorphic-git');
@@ -65,36 +66,6 @@ afterEach(function () {
 after(() => {
   fs.removeSync(path.resolve(localDir));
 });
-
-const addOneData = async (
-  gitDDB: IDocumentDB,
-  fullDocPath: string,
-  data: string,
-  author?: { name?: string; email?: string },
-  committer?: { name?: string; email?: string }
-) => {
-  fs.ensureDirSync(path.dirname(path.resolve(gitDDB.workingDir(), fullDocPath)));
-  fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), data);
-  await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
-  await git.commit({
-    fs,
-    dir: gitDDB.workingDir(),
-    message: 'message',
-    author: author ?? gitDDB.author,
-    committer: committer ?? gitDDB.committer,
-  });
-};
-
-const removeOneData = async (gitDDB: IDocumentDB, fullDocPath: string, data: string) => {
-  await git.remove({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
-  fs.removeSync(path.resolve(gitDDB.workingDir(), fullDocPath));
-  await git.commit({
-    fs,
-    dir: gitDDB.workingDir(),
-    message: 'message',
-    author: gitDDB.author,
-  });
-};
 
 // This test needs environment variables:
 //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
@@ -415,7 +386,7 @@ describe('<crud/history> readOldBlob()', () => {
     const fullDocPath = collectionPath + shortId + JSON_EXT;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-    await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+    await removeOneData(gitDDB, fullDocPath);
 
     await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 0)).resolves.toBeUndefined();
 
@@ -435,7 +406,7 @@ describe('<crud/history> readOldBlob()', () => {
     const fullDocPath = collectionPath + shortId + JSON_EXT;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-    await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json));
+    await removeOneData(gitDDB, fullDocPath);
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
     await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 1)).resolves.toEqual({
       oid,
@@ -460,7 +431,7 @@ describe('<crud/history> readOldBlob()', () => {
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
-    await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
+    await removeOneData(gitDDB, fullDocPath);
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
     await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 2)).resolves.toEqual({
       oid,
@@ -484,7 +455,7 @@ describe('<crud/history> readOldBlob()', () => {
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+    await removeOneData(gitDDB, fullDocPath);
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
     await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 2)).resolves.toEqual({
@@ -509,7 +480,7 @@ describe('<crud/history> readOldBlob()', () => {
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+    await removeOneData(gitDDB, fullDocPath);
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
     await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 1)).resolves.toBeUndefined();
@@ -531,7 +502,7 @@ describe('<crud/history> readOldBlob()', () => {
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+    await removeOneData(gitDDB, fullDocPath);
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
     await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 3)).resolves.toBeUndefined();
@@ -591,7 +562,7 @@ describe('<crud/history> readOldBlob()', () => {
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await removeOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
+    await removeOneData(gitDDB, fullDocPath);
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
     await expect(
