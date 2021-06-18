@@ -693,10 +693,10 @@ export class Collection implements CRUDInterface {
    * Delete a document
    *
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError} (from deleteImpl, deleteWorker)
-   * @throws {@link TaskCancelError}
+   * @throws {@link DatabaseClosingError} (from deleteImpl)
+   * @throws {@link TaskCancelError} (from deleteImpl)
    *
+   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
@@ -709,10 +709,10 @@ export class Collection implements CRUDInterface {
    * @param jsonDoc - Only the _id property in JsonDoc is referenced.
    *
    * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError} (from deleteImpl, deleteWorker)
-   * @throws {@link TaskCancelError}
+   * @throws {@link DatabaseClosingError} (from deleteImpl)
+   * @throws {@link TaskCancelError} (from deleteImpl)
    *
+   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
@@ -728,7 +728,7 @@ export class Collection implements CRUDInterface {
       shortId = shortIdOrDoc;
       fullDocPath = this._collectionPath + shortId;
     }
-    else if (shortIdOrDoc._id) {
+    else if (shortIdOrDoc?._id) {
       shortId = shortIdOrDoc._id;
       fullDocPath = this._collectionPath + shortId;
     }
