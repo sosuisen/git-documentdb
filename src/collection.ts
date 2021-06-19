@@ -378,6 +378,15 @@ export class Collection implements CRUDInterface {
     options?: PutOptions
   ): Promise<PutResult>;
 
+  /**
+   * @internal
+   */
+  insert (
+    shortIdOrDoc: string | JsonDoc,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
+    options?: PutOptions
+  ): Promise<PutResult>;
+
   insert (
     shortIdOrDoc: string | JsonDoc,
     dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
@@ -473,6 +482,15 @@ export class Collection implements CRUDInterface {
   update (
     _id: string,
     data: JsonDoc | Uint8Array | string,
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  /**
+   * @internal
+   */
+  update (
+    shortIdOrDoc: string | JsonDoc,
+    dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult>;
 
@@ -661,6 +679,38 @@ export class Collection implements CRUDInterface {
    * - Commits before the first insert are ignored.
    * Thus, the history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
    * ```
+   * @returns Array of Doc or undefined.
+   *  - undefined if the document does not exists or the document is deleted.
+   *
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *
+   *  - Uint8Array or string if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getHistory (
+    _id: string,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<(Doc | undefined)[]> {
+    return getHistoryImpl(
+      this._gitDDB,
+      _id,
+      this._collectionPath,
+      this.isJsonDocCollection(),
+      historyOptions,
+      getOptions,
+      false
+    ) as Promise<(Doc | undefined)[]>;
+  }
+
+  /**
+   * {@link getHistory} that returns FatDoc
+   *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
    *
@@ -674,7 +724,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getHistory (
+  getFatDocHistory (
     _id: string,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
@@ -685,8 +735,9 @@ export class Collection implements CRUDInterface {
       this._collectionPath,
       this.isJsonDocCollection(),
       historyOptions,
-      getOptions
-    );
+      getOptions,
+      true
+    ) as Promise<(FatDoc | undefined)[]>;
   }
 
   /**

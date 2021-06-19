@@ -8,7 +8,7 @@
 
 import { log, readBlob, ReadBlobResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { DocType, FatDoc, GetOptions, HistoryFilter, HistoryOptions } from '../types';
+import { Doc, DocType, FatDoc, GetOptions, HistoryFilter, HistoryOptions } from '../types';
 import { IDocumentDB } from '../types_gitddb';
 import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
 import { JSON_EXT } from '../const';
@@ -28,8 +28,9 @@ export async function getHistoryImpl (
   collectionPath: string,
   isJsonDocCollection: boolean,
   historyOptions?: HistoryOptions,
-  options?: GetOptions
-): Promise<(FatDoc | undefined)[]> {
+  options?: GetOptions,
+  withMetaData = false
+): Promise<(FatDoc | Doc | undefined)[]> {
   if (gitDDB.isClosing) {
     throw new DatabaseClosingError();
   }
@@ -53,7 +54,7 @@ export async function getHistoryImpl (
     // TODO: select binary or text by .gitattribtues
   }
 
-  const docArray: (FatDoc | undefined)[] = [];
+  const docArray: (FatDoc | Doc | undefined)[] = [];
 
   const commits = await log({
     fs,
@@ -89,13 +90,31 @@ export async function getHistoryImpl (
           docArray.push(undefined);
         }
         else if (docType === 'json') {
-          docArray.push(blobToJsonDoc(shortId, readBlobResult, true) as FatDoc);
+          // eslint-disable-next-line max-depth
+          if (withMetaData) {
+            docArray.push(blobToJsonDoc(shortId, readBlobResult, true) as FatDoc);
+          }
+          else {
+            docArray.push(blobToJsonDoc(shortId, readBlobResult, false) as Doc);
+          }
         }
         else if (docType === 'text') {
-          docArray.push(blobToText(shortId, readBlobResult, true) as FatDoc);
+          // eslint-disable-next-line max-depth
+          if (withMetaData) {
+            docArray.push(blobToText(shortId, readBlobResult, true) as FatDoc);
+          }
+          else {
+            docArray.push(blobToText(shortId, readBlobResult, false) as Doc);
+          }
         }
         else if (docType === 'binary') {
-          docArray.push(blobToBinary(shortId, readBlobResult, true) as FatDoc);
+          // eslint-disable-next-line max-depth
+          if (withMetaData) {
+            docArray.push(blobToBinary(shortId, readBlobResult, true) as FatDoc);
+          }
+          else {
+            docArray.push(blobToBinary(shortId, readBlobResult, false) as Doc);
+          }
         }
       }
     }

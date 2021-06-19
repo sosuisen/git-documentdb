@@ -941,9 +941,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
    *
-   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
    *
-   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *  - Uint8Array or string if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
@@ -955,8 +955,32 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     _id: string,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
-  ): Promise<(FatDoc | undefined)[]> {
+  ): Promise<(Doc | undefined)[]> {
     return this._fullCollection.getHistory(_id, historyOptions, getOptions);
+  }
+
+  /**
+   * {@link getHistory} that returns FatDoc
+   *
+   * @returns Array of FatDoc or undefined.
+   *  - undefined if the document does not exists or the document is deleted.
+   *
+   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *
+   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getFatDocHistory (
+    _id: string,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<(FatDoc | undefined)[]> {
+    return this._fullCollection.getFatDocHistory(_id, historyOptions, getOptions);
   }
 
   /**
