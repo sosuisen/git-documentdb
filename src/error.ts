@@ -75,7 +75,7 @@ This name is not permitted as collectionPath.`;
 /**
  */
 export class InvalidCollectionPathLengthError extends BaseError {
-  constructor (collectionPath: string, minLength: number, maxLength: number) {
+  constructor (collectionPath: unknown, minLength: unknown, maxLength: unknown) {
     super(
       `Invalid collectionPath length: A byte length of '${collectionPath}' must be equal to or more than ${minLength} and equal to or less than ${maxLength}.`
     );
@@ -196,7 +196,7 @@ export class DatabaseCloseTimeoutError extends BaseError {
 /**
  */
 export class InvalidDbNameCharacterError extends BaseError {
-  constructor (name: string) {
+  constructor (name: unknown) {
     const e = `Invalid dbName '${name}'`;
     super(e);
   }
@@ -205,7 +205,7 @@ export class InvalidDbNameCharacterError extends BaseError {
 /**
  */
 export class InvalidLocalDirCharacterError extends BaseError {
-  constructor (name: string) {
+  constructor (name: unknown) {
     const e = `Invalid localDir character '${name}'`;
     super(e);
   }

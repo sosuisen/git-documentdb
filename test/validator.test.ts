@@ -9,6 +9,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { Validator } from '../src/validator';
 import { GitDocumentDB } from '../src';
 import {
@@ -28,7 +29,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.title}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
