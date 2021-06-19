@@ -223,7 +223,7 @@ export class InvalidSSHKeyPathError extends BaseError {
 /**
  */
 export class InvalidURLError extends BaseError {
-  constructor (url: string) {
+  constructor (url: unknown) {
     super(`Invalid url: ${url}'`);
   }
 }
@@ -239,7 +239,7 @@ export class UndefinedRemoteURLError extends BaseError {
 /**
  */
 export class RemoteRepositoryNotFoundError extends BaseError {
-  constructor (url: string) {
+  constructor (url: unknown) {
     super(
       `Repository does not exist, or you do not have permission to access the repository: ${url}`
     );
@@ -249,13 +249,13 @@ export class RemoteRepositoryNotFoundError extends BaseError {
 /**
  */
 export class PushPermissionDeniedError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`Permission denied to push to the repository: ${mes}`);
   }
 }
 
 export class FetchPermissionDeniedError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`Permission denied to fetch to the repository: ${mes}`);
   }
 }
@@ -263,7 +263,7 @@ export class FetchPermissionDeniedError extends BaseError {
 /**
  */
 export class FetchConnectionFailedError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`Fetch connection failed: ${mes}`);
   }
 }
@@ -271,7 +271,7 @@ export class FetchConnectionFailedError extends BaseError {
 /**
  */
 export class PushConnectionFailedError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`Push connection failed: ${mes}`);
   }
 }
@@ -307,7 +307,7 @@ Current value is '${type}'`);
 /**
  */
 export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
-  constructor (type: string | undefined) {
+  constructor (type: unknown) {
     super(
       `This authentication type does not allow to create repository. Current value is '${type}'`
     );
@@ -341,7 +341,7 @@ export class UndefinedDBError extends BaseError {
 /**
  */
 export class HttpProtocolRequiredError extends BaseError {
-  constructor (url: string) {
+  constructor (url: unknown) {
     super(`HTTP protocol is required: ${url}`);
   }
 }
@@ -349,7 +349,7 @@ export class HttpProtocolRequiredError extends BaseError {
 /**
  */
 export class InvalidRepositoryURLError extends BaseError {
-  constructor (url: string) {
+  constructor (url: unknown) {
     super(`Repository URL is invalid: ${url}`);
   }
 }
@@ -375,7 +375,7 @@ export class UnfetchedCommitExistsError extends BaseError {
 /**
  */
 export class IntervalTooSmallError extends BaseError {
-  constructor (min: number, current: number) {
+  constructor (min: unknown, current: unknown) {
     super(`Interval is too small. Minimum value is ${min}. Current value is ${current}.`);
   }
 }
@@ -391,8 +391,8 @@ export class FileRemoveTimeoutError extends BaseError {
 /**
  */
 export class InvalidConflictStateError extends BaseError {
-  constructor (mes: string) {
-    super(mes);
+  constructor (mes: unknown) {
+    super(mes as string);
   }
 }
 
@@ -425,7 +425,7 @@ export class CannotConnectError extends BaseError {
 /**
  */
 export class RequestTimeoutError extends BaseError {
-  constructor (url: string) {
+  constructor (url: unknown) {
     super(`Request timeout: ${url}`);
   }
 }
@@ -433,7 +433,7 @@ export class RequestTimeoutError extends BaseError {
 /**
  */
 export class SocketTimeoutError extends BaseError {
-  constructor (url: string) {
+  constructor (url: unknown) {
     super(`Socket timeout: ${url}`);
   }
 }
@@ -441,7 +441,7 @@ export class SocketTimeoutError extends BaseError {
 /**
  */
 export class HTTPNetworkError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`HTTPNetworkError: ${mes}`);
   }
 }
@@ -457,7 +457,7 @@ export class CannotCreateRepositoryError extends BaseError {
 /**
  */
 export class CannotCreateRemoteRepositoryError extends BaseError {
-  constructor (reason: string) {
+  constructor (reason: unknown) {
     super(`Cannot create remote repository: ${reason}`);
   }
 }
@@ -489,7 +489,7 @@ export class PushWorkerError extends BaseError {
 /**
  */
 export class SyncWorkerError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`Error in sync_worker: ${mes}`);
   }
 }
@@ -505,7 +505,7 @@ export class ThreeWayMergeError extends BaseError {
 /**
  */
 export class RemoteRepositoryConnectError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`Error in RemoteRepository#connect(): ${mes}`);
   }
 }
@@ -513,7 +513,7 @@ export class RemoteRepositoryConnectError extends BaseError {
 /**
  */
 export class PushNotAllowedError extends BaseError {
-  constructor (direction: string) {
+  constructor (direction: unknown) {
     super(`Push is not allowed. Current sync direction setting is : ${direction}`);
   }
 }
@@ -535,7 +535,7 @@ export class GitMergeBranchError extends BaseError {
 }
 
 export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
-  constructor (syncInterval: number, retryInterval: number) {
+  constructor (syncInterval: unknown, retryInterval: unknown) {
     super(
       `Sync interval is less than or equal to retry interval : ${syncInterval} < ${retryInterval}`
     );

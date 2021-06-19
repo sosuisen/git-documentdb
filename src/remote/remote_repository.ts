@@ -100,11 +100,12 @@ export class RemoteRepository {
       let result;
       let retry = 0;
       for (; retry < NETWORK_RETRY; retry++) {
+        // @ts-ignore
         // eslint-disable-next-line no-await-in-loop
         result = await this._octokit!.repos.createForAuthenticatedUser({
           name: repo,
           private: this._options.connection.private,
-        }).catch(err => {
+        }).catch((err: Error) => {
           // May throw HttpError if the repository which has the same name already exists.
           // HttpError: Repository creation failed.:
           // {"resource":"Repository","code":"custom","field":"name","message":"name already exists on this account
@@ -170,11 +171,12 @@ export class RemoteRepository {
       let result;
       let retry = 0;
       for (; retry < NETWORK_RETRY; retry++) {
+        // @ts-ignore
         // eslint-disable-next-line no-await-in-loop
         result = await this._octokit!.repos.delete({
           owner,
           repo,
-        }).catch(err => {
+        }).catch((err: Error) => {
           return err;
         });
         if (result instanceof Error) {

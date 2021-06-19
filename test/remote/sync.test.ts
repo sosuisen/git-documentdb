@@ -15,6 +15,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
+import expect from 'expect';
 import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src';
 import { RemoteOptions } from '../../src/types';
@@ -45,7 +46,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -66,7 +67,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     // Remove remote
     await removeRemoteRepositories(reposPrefix);
   });
@@ -378,7 +379,7 @@ maybe('<remote/sync> init()', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     // Remove remote
     await removeRemoteRepositories(reposPrefix);
   });
@@ -414,7 +415,7 @@ maybe('<remote/sync> syncImpl()', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     // Remove remote
     await removeRemoteRepositories(reposPrefix);
   });
@@ -471,7 +472,7 @@ maybe('<remote/sync> tryPush()', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     // Remove remote
     await removeRemoteRepositories(reposPrefix);
   });

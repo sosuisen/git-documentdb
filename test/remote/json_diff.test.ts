@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import expect from 'expect';
 import { JsonDiff } from '../../src/remote/json_diff';
 
 const primitiveDiff = new JsonDiff();

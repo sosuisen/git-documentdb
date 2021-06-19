@@ -15,6 +15,7 @@
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { DuplicatedFile } from '../../src/types';
 import { GitDocumentDB } from '../../src';
 import { NoMergeBaseFoundError } from '../../src/error';
@@ -41,7 +42,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -65,7 +66,7 @@ maybe('<remote/combine>', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
@@ -297,7 +298,7 @@ maybe('<remote/combine>', () => {
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
       // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
       jsonB1._id = jsonB1._id + '-from-' + dbIdB;
-      const duplicatedB1 = await dbB.getDocWithMetaData(jsonB1._id);
+      const duplicatedB1 = await dbB.getFatDoc(jsonB1._id);
 
       expect(syncResult).toEqual({
         action: 'combine database',
@@ -363,7 +364,7 @@ maybe('<remote/combine>', () => {
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
       // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
       jsonB1._id = jsonB1._id + '-from-' + dbIdB;
-      const duplicatedB1 = await dbB.getDocWithMetaData(jsonB1._id);
+      const duplicatedB1 = await dbB.getFatDoc(jsonB1._id);
 
       expect(syncResult).toEqual({
         action: 'combine database',
@@ -435,7 +436,7 @@ maybe('<remote/combine>', () => {
       });
 
       jsonA1._id = jsonA1._id + '-from-' + dbIdA;
-      const duplicatedA1 = await dbA.getDocWithMetaData(jsonA1._id);
+      const duplicatedA1 = await dbA.getFatDoc(jsonA1._id);
 
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonB1, jsonB2]);
       // jsonA1 is duplicated with postfix due to combine-head-with-theirs strategy

@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import {
   compareWorkingDirAndBlobs,
   createDatabase,
@@ -41,7 +42,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -65,7 +66,7 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 

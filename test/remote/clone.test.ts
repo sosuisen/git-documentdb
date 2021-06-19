@@ -13,6 +13,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { cloneRepository } from '../../src/remote/clone';
 import { removeRemoteRepositories } from '../remote_utils';
 
@@ -24,7 +25,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -45,7 +46,7 @@ maybe('<remote/clone> cloneRepository', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     // Remove remote
     await removeRemoteRepositories(reposPrefix);
   });

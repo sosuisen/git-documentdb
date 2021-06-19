@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import { Octokit } from '@octokit/rest';
+import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { createCredential } from '../../src/remote/authentication';
@@ -59,7 +60,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -80,7 +81,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     // Remove remote
     await removeRemoteRepositories(reposPrefix);
   });

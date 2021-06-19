@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { GitDocumentDB } from '../../src';
 import {
   SyncResult,
@@ -50,7 +51,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -74,7 +75,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
@@ -111,7 +112,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
-      expect(syncResult1.commits!.remote[0].oid).toBe(putResultA1.commitOid);
+      expect(syncResult1.commits!.remote[0].oid).toBe(putResultA1.commit.oid);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileInsert(jsonA1, putResultA1),
@@ -142,7 +143,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
-      expect(syncResult1.commits!.remote[0].oid).toBe(deleteResultA1.commitOid);
+      expect(syncResult1.commits!.remote[0].oid).toBe(deleteResultA1.commit.oid);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileDelete(jsonA1, deleteResultA1),
@@ -173,7 +174,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.action).toBe('push');
       expect(syncResult1.commits!.remote.length).toBe(1);
-      expect(syncResult1.commits!.remote[0].oid).toBe(putResultA1dash.commitOid);
+      expect(syncResult1.commits!.remote[0].oid).toBe(putResultA1dash.commit.oid);
       expect(syncResult1.changes.remote.length).toBe(1);
       expect(syncResult1.changes.remote).toEqual([
         getChangedFileUpdate(jsonA1, putResultA1, jsonA1dash, putResultA1dash),
@@ -210,7 +211,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const syncResult1 = (await syncB.trySync()) as SyncResultFastForwardMerge;
       expect(syncResult1.action).toBe('fast-forward merge');
       expect(syncResult1.commits!.local.length).toBe(1);
-      expect(syncResult1.commits!.local[0].oid).toBe(putResult1.commitOid);
+      expect(syncResult1.commits!.local[0].oid).toBe(putResult1.commit.oid);
       expect(syncResult1.changes.local.length).toBe(1);
       expect(syncResult1.changes.local).toEqual([getChangedFileInsert(jsonA1, putResult1)]);
 
@@ -250,8 +251,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
       expect(syncResult1.action).toBe('fast-forward merge');
       expect(syncResult1.commits!.local.length).toBe(2);
-      expect(syncResult1.commits!.local[0].oid).toBe(putResult1.commitOid);
-      expect(syncResult1.commits!.local[1].oid).toBe(putResult2.commitOid);
+      expect(syncResult1.commits!.local[0].oid).toBe(putResult1.commit.oid);
+      expect(syncResult1.commits!.local[1].oid).toBe(putResult2.commit.oid);
       expect(syncResult1.changes.local.length).toBe(2);
       expect(syncResult1.changes.local).toEqual(
         expect.arrayContaining([
@@ -301,9 +302,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       expect(syncResult1.commits!.local.length).toBe(2); // put commit and merge commit
       expect(syncResult1.commits!.remote.length).toBe(2); // put commit and merge commit
-      expect(syncResult1.commits!.local[0].oid).toBe(putResultA1.commitOid);
+      expect(syncResult1.commits!.local[0].oid).toBe(putResultA1.commit.oid);
       expect(syncResult1.commits!.local[1].message).toBe('merge');
-      expect(syncResult1.commits!.remote[0].oid).toBe(putResultB2.commitOid);
+      expect(syncResult1.commits!.remote[0].oid).toBe(putResultB2.commit.oid);
       expect(syncResult1.commits!.remote[1].message).toBe('merge');
 
       expect(syncResult1.changes.local).toEqual([

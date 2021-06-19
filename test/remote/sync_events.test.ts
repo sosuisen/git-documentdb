@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import {
   ChangedFile,
   RemoteOptions,
@@ -52,7 +53,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -74,7 +75,7 @@ maybe('<remote/sync> [event]', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
@@ -700,7 +701,7 @@ maybe('<remote/sync> [event]', () => {
       expect(startTaskId).toBe(errorTaskId);
 
       error = false;
-      await expect(syncA.tryPush()).rejects.toThrowError(Error); // request failed with status code: 404
+      await expect(syncA.tryPush()).rejects.toThrowError(); // request failed with status code: 404
 
       expect(error).toBe(true);
 

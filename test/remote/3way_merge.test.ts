@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { InvalidConflictStateError } from '../../src/error';
 import { threeWayMerge } from '../../src/remote/3way_merge';
 import { GitDocumentDB } from '../../src';
@@ -49,7 +50,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -73,7 +74,7 @@ maybe('<remote/3way_merge>', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
@@ -88,7 +89,7 @@ maybe('<remote/3way_merge>', () => {
     );
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
-    const commit = putResultA1.commitOid;
+    const commit = putResultA1.commit.oid;
     const index = await dbA.repository()?.refreshIndex();
     await expect(
       threeWayMerge(dbA, syncA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
