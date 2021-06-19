@@ -47,7 +47,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = new Collection(gitDDB, 'col01');
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
       col.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
@@ -70,7 +70,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = new Collection(gitDDB, 'col01');
     await gitDDB.close();
     await expect(col.get('prof01')).rejects.toThrowError(RepositoryNotOpenError);
   });
@@ -82,7 +82,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = new Collection(gitDDB, 'col01');
 
     const shortId = 'prof01';
     const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
@@ -100,7 +100,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = new Collection(gitDDB, 'col01');
     const shortId = 'prof01';
     const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
@@ -119,7 +119,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = new Collection(gitDDB, 'col01');
     const shortId = 'prof01';
 
     await expect(col.get(shortId)).resolves.toBeUndefined();
@@ -133,7 +133,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = new Collection(gitDDB, 'col01');
     const shortId = 'prof01';
     const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };

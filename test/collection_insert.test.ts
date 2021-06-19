@@ -132,9 +132,30 @@ describe('<collection> insert(jsonDoc)', () => {
     const putResult = await col.insert(json, { commitMessage });
     const internalJson = JSON.parse(JSON.stringify(json));
     internalJson._id = col.collectionPath() + _id;
-    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
-    fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult.commit.message).toBe(commitMessage);
+
+    await gitDDB.destroy();
+  });
+
+  it('inserts into deep collection', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01/col02/col03');
+    const _id = 'prof01';
+    const commitMessage = 'message';
+    const json = { _id, name: 'Shirase' };
+    const putResult = await col.insert(json);
+    const internalJson = JSON.parse(JSON.stringify(json));
+    internalJson._id = col.collectionPath() + _id;
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult.commit.message).toBe(
+      `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+    );
 
     await gitDDB.destroy();
   });
