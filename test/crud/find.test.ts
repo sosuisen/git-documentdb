@@ -967,7 +967,7 @@ describe('<crud/find> find()', () => {
     });
   });
 
-  describe('with meta data', () => {
+  describe('with metadata', () => {
     it('returns empty', async () => {
       const dbName = monoId();
 

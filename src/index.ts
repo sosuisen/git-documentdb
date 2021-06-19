@@ -979,7 +979,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * {@link getHistory} that returns FatDoc
+   * {@link getHistory} that returns FatDoc[]
    *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
@@ -1051,7 +1051,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get all the documents
+   * {@link find} that returns FatDoc[]
    *
    * @remarks
    *
