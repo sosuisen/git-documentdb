@@ -118,7 +118,7 @@ maybe('<crud/history> getHistoryImpl', () => {
     await syncB.trySync(); // Resolve conflict. jsonB2 wins.
 
     // Get
-    const history = await getHistoryImpl(dbB, _id, '', true);
+    const history = await getHistoryImpl(dbB, _id, '', true, undefined, undefined, true);
 
     expect(history[0]).toEqual({
       _id,
@@ -290,7 +290,15 @@ describe('<crud/history> getHistoryImpl', () => {
     const jsonA01 = { _id: _idA, name: 'v01' };
     await gitDDB.put(jsonA01);
     // Get
-    const historyA = await getHistoryImpl(gitDDB, 'invalid_id', '', true);
+    const historyA = await getHistoryImpl(
+      gitDDB,
+      'invalid_id',
+      '',
+      true,
+      undefined,
+      undefined,
+      true
+    );
     expect(historyA.length).toBe(0);
 
     await destroyDBs([gitDDB]);
@@ -350,9 +358,9 @@ describe('<crud/history> getHistoryImpl', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(getHistoryImpl(gitDDB, '0', '', true)).rejects.toThrowError(
-      DatabaseClosingError
-    );
+    await expect(
+      getHistoryImpl(gitDDB, '0', '', true, undefined, undefined, true)
+    ).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -369,9 +377,9 @@ describe('<crud/history> getHistoryImpl', () => {
     });
     await gitDDB.open();
     await gitDDB.close();
-    await expect(getHistoryImpl(gitDDB, 'tmp', '', true)).rejects.toThrowError(
-      RepositoryNotOpenError
-    );
+    await expect(
+      getHistoryImpl(gitDDB, 'tmp', '', true, undefined, undefined, true)
+    ).rejects.toThrowError(RepositoryNotOpenError);
     await destroyDBs([gitDDB]);
   });
 
@@ -384,11 +392,105 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.open();
     await gitDDB.put('1.json', 'invalid json');
 
-    await expect(getHistoryImpl(gitDDB, '1', '', true)).rejects.toThrowError(
-      InvalidJsonObjectError
-    );
+    await expect(
+      getHistoryImpl(gitDDB, '1', '', true, undefined, undefined, true)
+    ).rejects.toThrowError(InvalidJsonObjectError);
 
     await destroyDBs([gitDDB]);
+  });
+
+  describe('without metadata', () => {
+    it('gets without metadata by default', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      const jsonA03 = { _id: _idA, name: 'v03' };
+      await gitDDB.put(jsonA01);
+      await gitDDB.put(jsonA02);
+      await gitDDB.put(jsonA03);
+
+      // Get
+      const historyA = await getHistoryImpl(gitDDB, _idA, '', true);
+      expect(historyA.length).toBe(3);
+      expect(historyA[0]).toMatchObject(jsonA03);
+      expect(historyA[1]).toMatchObject(jsonA02);
+      expect(historyA[2]).toMatchObject(jsonA01);
+
+      await destroyDBs([gitDDB]);
+    });
+
+    it('gets deleted revisions without metadata', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      const jsonA02 = { _id: _idA, name: 'v02' };
+      const jsonA03 = { _id: _idA, name: 'v03' };
+      await gitDDB.put(jsonA01);
+      await gitDDB.delete(jsonA01);
+      await gitDDB.put(jsonA02);
+      await gitDDB.delete(jsonA02);
+      await gitDDB.put(jsonA03);
+      await gitDDB.delete(jsonA03);
+
+      // Get
+      const historyA = await getHistoryImpl(
+        gitDDB,
+        _idA,
+        '',
+        true,
+        undefined,
+        undefined,
+        false
+      );
+      expect(historyA.length).toBe(6);
+      expect(historyA[0]).toBe(undefined);
+      expect(historyA[1]).toMatchObject(jsonA03);
+      expect(historyA[2]).toBe(undefined);
+      expect(historyA[3]).toMatchObject(jsonA02);
+      expect(historyA[4]).toBe(undefined);
+      expect(historyA[5]).toMatchObject(jsonA01);
+
+      await destroyDBs([gitDDB]);
+    });
+
+    it('gets empty revision', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const _idA = 'profA';
+      const jsonA01 = { _id: _idA, name: 'v01' };
+      await gitDDB.put(jsonA01);
+      // Get
+      const historyA = await getHistoryImpl(
+        gitDDB,
+        'invalid_id',
+        '',
+        true,
+        undefined,
+        undefined,
+        false
+      );
+      expect(historyA).toEqual([]);
+
+      await destroyDBs([gitDDB]);
+    });
   });
 });
 

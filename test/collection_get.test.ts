@@ -664,7 +664,7 @@ describe('<crud/get> getBackNumber()', () => {
   });
 });
 
-describe('<crud/get> getHistory()', () => {
+describe('<crud/get> getFatDocHistory()', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -765,7 +765,7 @@ describe('<crud/get> getHistory()', () => {
     const jsonA01 = { _id: _idA, name: 'v01' };
     await col.put(jsonA01);
     // Get
-    const historyA = await col.getHistory('invalid_id');
+    const historyA = await col.getFatDocHistory('invalid_id');
     expect(historyA.length).toBe(0);
 
     await gitDDB.destroy();
@@ -786,7 +786,7 @@ describe('<crud/get> getHistory()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(col.getHistory('0')).rejects.toThrowError(DatabaseClosingError);
+    await expect(col.getFatDocHistory('0')).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -804,7 +804,7 @@ describe('<crud/get> getHistory()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     await gitDDB.close();
-    await expect(col.getHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(col.getFatDocHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -818,7 +818,115 @@ describe('<crud/get> getHistory()', () => {
     const col = new Collection(gitDDB, 'col01');
     await col.put('1.json', 'invalid json');
 
-    await expect(col.getHistory('1')).rejects.toThrowError(InvalidJsonObjectError);
+    await expect(col.getFatDocHistory('1')).rejects.toThrowError(InvalidJsonObjectError);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('<crud/get> getHistory()', () => {
+  it('gets all revisions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01');
+
+    const _idA = 'profA';
+    const jsonA01 = { _id: _idA, name: 'v01' };
+    const jsonA02 = { _id: _idA, name: 'v02' };
+    const jsonA03 = { _id: _idA, name: 'v03' };
+    await col.put(jsonA01);
+    await col.put(jsonA02);
+    await col.put(jsonA03);
+    const _idB = 'profB';
+    const jsonB01 = { _id: _idB, name: 'v01' };
+    const jsonB02 = { _id: _idB, name: 'v02' };
+    await col.put(jsonB01);
+    await col.put(jsonB02);
+    // Get
+    const historyA = await col.getHistory(_idA);
+    expect(historyA.length).toBe(3);
+    expect(historyA[0]).toMatchObject(jsonA03);
+    expect(historyA[1]).toMatchObject(jsonA02);
+    expect(historyA[2]).toMatchObject(jsonA01);
+    const historyB = await col.getHistory(_idB);
+    expect(historyB.length).toBe(2);
+    expect(historyB[0]).toMatchObject(jsonB02);
+    expect(historyB[1]).toMatchObject(jsonB01);
+
+    await gitDDB.destroy();
+  });
+
+  it('gets filtered revisions', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01');
+    const _idA = 'profA';
+    const jsonA01 = { _id: _idA, name: 'v01' };
+    const jsonA02 = { _id: _idA, name: 'v02' };
+    const jsonA03 = { _id: _idA, name: 'v03' };
+
+    gitDDB.author = { name: 'authorA', email: 'authorEmailA' };
+    gitDDB.committer = { name: 'committerA', email: 'committerEmailA' };
+    await col.put(jsonA01);
+
+    gitDDB.author = { name: 'authorB', email: 'authorEmailB' };
+    gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
+    await col.put(jsonA02);
+    await col.put(jsonA03);
+
+    const _idB = 'profB';
+    const jsonB01 = { _id: _idB, name: 'v01' };
+    const jsonB02 = { _id: _idB, name: 'v02' };
+
+    gitDDB.author = { name: 'authorA', email: 'authorEmailA' };
+    gitDDB.committer = { name: 'committerA', email: 'committerEmailA' };
+    await col.put(jsonB01);
+
+    gitDDB.author = { name: 'authorB', email: 'authorEmailB' };
+    gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
+    await col.put(jsonB02);
+
+    const historyA = await col.getHistory(_idA, {
+      filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
+    });
+    expect(historyA.length).toBe(2);
+    expect(historyA[0]).toMatchObject(jsonA03);
+    expect(historyA[1]).toMatchObject(jsonA02);
+
+    const historyB = await col.getHistory(_idB, {
+      filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
+    });
+    expect(historyB.length).toBe(1);
+    expect(historyB[0]).toMatchObject(jsonB02);
+
+    await gitDDB.destroy();
+  });
+
+  it('gets empty revision', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const col = new Collection(gitDDB, 'col01');
+    const _idA = 'profA';
+    const jsonA01 = { _id: _idA, name: 'v01' };
+    await col.put(jsonA01);
+    // Get
+    const historyA = await col.getHistory('invalid_id');
+    expect(historyA.length).toBe(0);
 
     await gitDDB.destroy();
   });
