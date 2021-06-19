@@ -808,26 +808,19 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get a JSON document or data
+   * Get a JSON document
    *
    * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
    *
    * @returns
    *  - undefined if not exists.
    *
-   *  - JsonDoc if the collection's readMethod is 'json'(default is 'json')
-   *     or the file extension is '.json'.
-   *
-   *  - Uint8Array or string if the collections. readMethods is 'file'.
-   *
-   *  - getOptions.forceDocType always overwrite return type.
-   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  get (_id: string, getOptions?: GetOptions): Promise<Doc | undefined> {
-    return this._fullCollection.get(_id, getOptions);
+  get (_id: string): Promise<JsonDoc | undefined> {
+    return this._fullCollection.get(_id);
   }
 
   /**
@@ -899,10 +892,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   getBackNumber (
     _id: string,
     backNumber: number,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<Doc | undefined> {
-    return this._fullCollection.getBackNumber(_id, backNumber, historyOptions, getOptions);
+    historyOptions?: HistoryOptions
+  ): Promise<JsonDoc | undefined> {
+    return this._fullCollection.getBackNumber(_id, backNumber, historyOptions);
   }
 
   /**
@@ -972,10 +964,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    */
   getHistory (
     _id: string,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<(Doc | undefined)[]> {
-    return this._fullCollection.getHistory(_id, historyOptions, getOptions);
+    historyOptions?: HistoryOptions
+  ): Promise<(JsonDoc | undefined)[]> {
+    return this._fullCollection.getHistory(_id, historyOptions);
   }
 
   /**

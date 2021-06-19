@@ -81,7 +81,7 @@ export class Collection implements CRUDInterface {
    *
    * - If isJsonDocCollection is false, any file types are available. _id param must be a full filename if it has an extension. e.g) _id is 'foo.json', 'baz.jpg', 'README.md'.
    *
-   * - Be careful that _id in JsonDoc does not always have trailing '.json'.
+   * - Be careful that _id property in JsonDoc does not always have trailing '.json'.
    *
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
@@ -516,31 +516,21 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get a JSON document or data
+   * Get a JSON document
    *
    * @returns
    *  - undefined if not exists.
    *
-   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
-   *
    *  - JsonDoc may not have _id property if it was not created by GitDocumentDB.
-   *
-   *  - Uint8Array or string if isJsonDocCollection is false.
-   *
-   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  get (_id: string, getOptions?: GetOptions): Promise<Doc | undefined> {
-    return getImpl(
-      this._gitDDB,
-      _id,
-      this._collectionPath,
-      this.isJsonDocCollection(),
-      getOptions
-    );
+  get (_id: string): Promise<JsonDoc | undefined> {
+    return getImpl(this._gitDDB, _id, this._collectionPath, this.isJsonDocCollection(), {
+      forceDocType: 'json',
+    }) as Promise<JsonDoc | undefined>;
   }
 
   /**
@@ -614,12 +604,6 @@ export class Collection implements CRUDInterface {
    * @remarks
    *  - undefined if the document does not exists or the document is deleted.
    *
-   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
-   *
-   *  - Uint8Array or string if isJsonDocCollection is false.
-   *
-   *  - getOptions.forceDocType always overwrite return type.
-   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
@@ -627,25 +611,33 @@ export class Collection implements CRUDInterface {
   getBackNumber (
     _id: string,
     backNumber: number,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<Doc | undefined> {
+    historyOptions?: HistoryOptions
+  ): Promise<JsonDoc | undefined> {
     return getImpl(
       this._gitDDB,
       _id,
       this._collectionPath,
       this.isJsonDocCollection(),
-      getOptions,
+      { forceDocType: 'json' },
       {
         withMetadata: false,
         backNumber: backNumber,
       },
       historyOptions
-    ) as Promise<Doc | undefined>;
+    ) as Promise<JsonDoc | undefined>;
   }
 
   /**
-   * {@link getBackNumber) that returns FatDoc
+   * {@link getBackNumber} that returns FatDoc
+   *
+   * @remarks
+   *  - undefined if the document does not exists or the document is deleted.
+   *
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *
+   *  - Uint8Array or string if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -709,30 +701,23 @@ export class Collection implements CRUDInterface {
    * @returns Array of Doc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
    *
-   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
-   *
-   *  - Uint8Array or string if isJsonDocCollection is false.
-   *
-   *  - getOptions.forceDocType always overwrite return type.
-   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
   getHistory (
     _id: string,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<(Doc | undefined)[]> {
+    historyOptions?: HistoryOptions
+  ): Promise<(JsonDoc | undefined)[]> {
     return getHistoryImpl(
       this._gitDDB,
       _id,
       this._collectionPath,
       this.isJsonDocCollection(),
       historyOptions,
-      getOptions,
+      { forceDocType: 'json' },
       false
-    ) as Promise<(Doc | undefined)[]>;
+    ) as Promise<(JsonDoc | undefined)[]>;
   }
 
   /**

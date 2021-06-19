@@ -18,6 +18,7 @@ import {
   FatDoc,
   FindOptions,
   GetOptions,
+  HistoryOptions,
   JsonDoc,
   OpenOptions,
   PutOptions,
@@ -56,7 +57,35 @@ export interface CRUDInterface {
     options?: PutOptions
   ): Promise<PutResult>;
 
-  get(_id: string, getOptions?: GetOptions): Promise<Doc | undefined>;
+  get(_id: string, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
+  getFatDoc(_id: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+
+  getDocByOid(fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined>;
+
+  getBackNumber(
+    _id: string,
+    backNumber: number,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<JsonDoc | undefined>;
+
+  getFatDocBackNumber(
+    _id: string,
+    backNumber: number,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined>;
+
+  getHistory(
+    _id: string,
+    historyOptions?: HistoryOptions
+  ): Promise<(JsonDoc | undefined)[]>;
+
+  getFatDocHistory(
+    _id: string,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<(FatDoc | undefined)[]>;
 
   delete(_id: string, options?: DeleteOptions): Promise<DeleteResult>;
   delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
