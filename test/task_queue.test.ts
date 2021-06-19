@@ -9,6 +9,7 @@
 
 import path from 'path';
 import { monotonicFactory } from 'ulid';
+import expect from 'expect';
 import fs from 'fs-extra';
 import { Logger } from 'tslog';
 import { GitDocumentDB } from '../src/index';
@@ -35,7 +36,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -280,11 +281,12 @@ describe('<task_queue>', () => {
       return 0;
     });
 
-    const revisions = await gitDDB.getHistory('foo');
+    const revisions = await gitDDB.getFatDocHistory('foo');
     for (let i = 0; i < revisions.length; i++) {
-      // eslint-disable-next-line no-await-in-loop
-      const doc = await gitDDB.getByRevision(revisions[i]);
-      expect(doc!.taskId).toBe(taskMetadataList[i].taskId);
+      const revision = revisions[i];
+      if (revision?.type === 'json') {
+        expect(revision.doc.taskId).toBe(taskMetadataList[i].taskId);
+      }
     }
 
     await gitDDB.destroy();
@@ -302,11 +304,11 @@ maybe('<task_queue> remote', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  test('increments statistics: push', async () => {
+  it('increments statistics: push', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     // The first push in open()
@@ -320,7 +322,7 @@ maybe('<task_queue> remote', () => {
     await destroyDBs([dbA]);
   });
 
-  test('increments statistics: sync', async () => {
+  it('increments statistics: sync', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     expect(dbA.taskQueue.currentStatistics().sync).toBe(0);
@@ -331,7 +333,7 @@ maybe('<task_queue> remote', () => {
     await destroyDBs([dbA]);
   });
 
-  test('clear() statistics', async () => {
+  it('clear() statistics', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
 
     await syncA.trySync();
