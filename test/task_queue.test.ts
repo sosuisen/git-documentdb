@@ -134,7 +134,7 @@ describe('<task_queue>', () => {
       localDir,
     });
     await gitDDB.open();
-    gitDDB.insert(
+    await gitDDB.insert(
       { _id: '01' },
       {
         enqueueCallback: async () => {
@@ -145,6 +145,7 @@ describe('<task_queue>', () => {
         },
       }
     );
+    await gitDDB.destroy();
   });
 
   it('returns newTaskId', () => {
@@ -218,17 +219,20 @@ describe('<task_queue>', () => {
     for (let i = 0; i < maxNumber; i++) {
       const id = `${i}`;
       promiseList.push(
-        new Promise(resolve => {
-          gitDDB.put(
+        (async () => {
+          let taskMetaData: TaskMetadata;
+          await gitDDB.put(
             { _id: 'foo', taskId: id },
             {
               taskId: id,
-              enqueueCallback: (taskMetaData: TaskMetadata) => {
-                resolve(taskMetaData);
+              enqueueCallback: (myTaskMetaData: TaskMetadata) => {
+                taskMetaData = myTaskMetaData;
               },
             }
           );
-        })
+          // @ts-ignore
+          return taskMetaData;
+        })()
       );
     }
 
@@ -259,17 +263,20 @@ describe('<task_queue>', () => {
     for (let i = 0; i < 10; i++) {
       const id = `${rand[i]}`;
       promiseList.push(
-        new Promise(resolve => {
-          gitDDB.put(
+        (async () => {
+          let taskMetaData: TaskMetadata;
+          await gitDDB.put(
             { _id: 'foo', taskId: id },
             {
               taskId: id,
-              enqueueCallback: (taskMetaData: TaskMetadata) => {
-                resolve(taskMetaData);
+              enqueueCallback: (myTaskMetaData: TaskMetadata) => {
+                taskMetaData = myTaskMetaData;
               },
             }
           );
-        })
+          // @ts-ignore
+          return taskMetaData;
+        })()
       );
     }
 
