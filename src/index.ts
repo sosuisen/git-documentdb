@@ -719,9 +719,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
-    options ??= {};
-    options.insertOrUpdate = 'insert';
-    return this._fullCollection.put(shortIdOrDoc, dataOrOptions, options);
+    return this._fullCollection.insert(shortIdOrDoc, dataOrOptions, options);
   }
 
   /**
@@ -804,9 +802,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
-    options ??= {};
-    options.insertOrUpdate = 'update';
-    return this._fullCollection.put(shortIdOrDoc, dataOrOptions, options);
+    return this._fullCollection.update(shortIdOrDoc, dataOrOptions, options);
   }
 
   /**
