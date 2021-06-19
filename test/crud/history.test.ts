@@ -29,6 +29,7 @@ import { getHistoryImpl, readOldBlob } from '../../src/crud/history';
 
 import { JSON_EXT } from '../../src/const';
 import { addOneData, removeOneData } from '../utils';
+import { FatJsonDoc } from '../../src/types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const git_module = require('isomorphic-git');
@@ -182,15 +183,31 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.put(jsonB01);
     await gitDDB.put(jsonB02);
     // Get
-    const historyA = await getHistoryImpl(gitDDB, _idA, '', true);
+    const historyA = await getHistoryImpl(
+      gitDDB,
+      _idA,
+      '',
+      true,
+      undefined,
+      undefined,
+      true
+    );
     expect(historyA.length).toBe(3);
-    expect(historyA[0]?.doc).toMatchObject(jsonA03);
-    expect(historyA[1]?.doc).toMatchObject(jsonA02);
-    expect(historyA[2]?.doc).toMatchObject(jsonA01);
-    const historyB = await getHistoryImpl(gitDDB, _idB, '', true);
+    expect((historyA[0] as FatJsonDoc).doc).toMatchObject(jsonA03);
+    expect((historyA[1] as FatJsonDoc).doc).toMatchObject(jsonA02);
+    expect((historyA[2] as FatJsonDoc).doc).toMatchObject(jsonA01);
+    const historyB = await getHistoryImpl(
+      gitDDB,
+      _idB,
+      '',
+      true,
+      undefined,
+      undefined,
+      true
+    );
     expect(historyB.length).toBe(2);
-    expect(historyB[0]?.doc).toMatchObject(jsonB02);
-    expect(historyB[1]?.doc).toMatchObject(jsonB01);
+    expect((historyB[0] as FatJsonDoc).doc).toMatchObject(jsonB02);
+    expect((historyB[1] as FatJsonDoc).doc).toMatchObject(jsonB01);
 
     await destroyDBs([gitDDB]);
   });
@@ -229,18 +246,34 @@ describe('<crud/history> getHistoryImpl', () => {
     gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
     await gitDDB.put(jsonB02);
 
-    const historyA = await getHistoryImpl(gitDDB, _idA, '', true, {
-      filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
-    });
+    const historyA = await getHistoryImpl(
+      gitDDB,
+      _idA,
+      '',
+      true,
+      {
+        filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
+      },
+      undefined,
+      true
+    );
     expect(historyA.length).toBe(2);
-    expect(historyA[0]?.doc).toMatchObject(jsonA03);
-    expect(historyA[1]?.doc).toMatchObject(jsonA02);
+    expect((historyA[0] as FatJsonDoc).doc).toMatchObject(jsonA03);
+    expect((historyA[1] as FatJsonDoc).doc).toMatchObject(jsonA02);
 
-    const historyB = await getHistoryImpl(gitDDB, _idB, '', true, {
-      filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
-    });
+    const historyB = await getHistoryImpl(
+      gitDDB,
+      _idB,
+      '',
+      true,
+      {
+        filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
+      },
+      undefined,
+      true
+    );
     expect(historyB.length).toBe(1);
-    expect(historyB[0]?.doc).toMatchObject(jsonB02);
+    expect((historyB[0] as FatJsonDoc).doc).toMatchObject(jsonB02);
 
     await destroyDBs([gitDDB]);
   });
@@ -283,14 +316,22 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.delete(jsonA03);
 
     // Get
-    const historyA = await getHistoryImpl(gitDDB, _idA, '', true);
+    const historyA = await getHistoryImpl(
+      gitDDB,
+      _idA,
+      '',
+      true,
+      undefined,
+      undefined,
+      true
+    );
     expect(historyA.length).toBe(6);
     expect(historyA[0]).toBe(undefined);
-    expect(historyA[1]?.doc).toMatchObject(jsonA03);
+    expect((historyA[1] as FatJsonDoc).doc).toMatchObject(jsonA03);
     expect(historyA[2]).toBe(undefined);
-    expect(historyA[3]?.doc).toMatchObject(jsonA02);
+    expect((historyA[3] as FatJsonDoc).doc).toMatchObject(jsonA02);
     expect(historyA[4]).toBe(undefined);
-    expect(historyA[5]?.doc).toMatchObject(jsonA01);
+    expect((historyA[5] as FatJsonDoc).doc).toMatchObject(jsonA01);
 
     await destroyDBs([gitDDB]);
   });

@@ -688,12 +688,12 @@ describe('<crud/get> getHistory()', () => {
     await col.put(jsonB01);
     await col.put(jsonB02);
     // Get
-    const historyA = await col.getHistory(_idA);
+    const historyA = await col.getFatDocHistory(_idA);
     expect(historyA.length).toBe(3);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
     expect(historyA[2]?.doc).toMatchObject(jsonA01);
-    const historyB = await col.getHistory(_idB);
+    const historyB = await col.getFatDocHistory(_idB);
     expect(historyB.length).toBe(2);
     expect(historyB[0]?.doc).toMatchObject(jsonB02);
     expect(historyB[1]?.doc).toMatchObject(jsonB01);
@@ -736,14 +736,14 @@ describe('<crud/get> getHistory()', () => {
     gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
     await col.put(jsonB02);
 
-    const historyA = await col.getHistory(_idA, {
+    const historyA = await col.getFatDocHistory(_idA, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyA.length).toBe(2);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
 
-    const historyB = await col.getHistory(_idB, {
+    const historyB = await col.getFatDocHistory(_idB, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyB.length).toBe(1);
