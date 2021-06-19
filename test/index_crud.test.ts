@@ -422,7 +422,7 @@ describe('<index> getFatDoc()', () => {
   });
 });
 
-describe('<index> getByOid()', () => {
+describe('<index> getDocByOid()', () => {
   it('returns the specified JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -435,7 +435,7 @@ describe('<index> getByOid()', () => {
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(gitDDB.getByOid(oid)).resolves.toEqual(json01);
+    await expect(gitDDB.getDocByOid(oid)).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 
@@ -450,7 +450,7 @@ describe('<index> getByOid()', () => {
     const fullDocPath = shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await expect(gitDDB.getByOid('not exist')).resolves.toBeUndefined();
+    await expect(gitDDB.getDocByOid('not exist')).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 });

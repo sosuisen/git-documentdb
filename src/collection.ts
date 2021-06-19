@@ -588,7 +588,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getByOid (fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined> {
+  getDocByOid (fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined> {
     return getImpl(
       this._gitDDB,
       '',

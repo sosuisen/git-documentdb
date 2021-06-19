@@ -870,8 +870,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getByOid (fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined> {
-    return this._fullCollection.getByOid(fileOid, getOptions);
+  getDocByOid (fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined> {
+    return this._fullCollection.getDocByOid(fileOid, getOptions);
   }
 
   /**
