@@ -614,9 +614,9 @@ export class Collection implements CRUDInterface {
    * @remarks
    *  - undefined if the document does not exists or the document is deleted.
    *
-   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
    *
-   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *  - Uint8Array or string if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
@@ -625,6 +625,33 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   getBackNumber (
+    _id: string,
+    backNumber: number,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<Doc | undefined> {
+    return getImpl(
+      this._gitDDB,
+      _id,
+      this._collectionPath,
+      this.isJsonDocCollection(),
+      getOptions,
+      {
+        withMetadata: false,
+        backNumber: backNumber,
+      },
+      historyOptions
+    ) as Promise<Doc | undefined>;
+  }
+
+  /**
+   * {@link getBackNumber) that returns FatDoc
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getFatDocBackNumber (
     _id: string,
     backNumber: number,
     historyOptions?: HistoryOptions,

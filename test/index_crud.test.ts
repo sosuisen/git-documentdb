@@ -455,7 +455,7 @@ describe('<index> getByOid()', () => {
   });
 });
 
-describe('<index> getBackNumber()', () => {
+describe('<index>', () => {
   const dbName = monoId();
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName,
@@ -717,111 +717,159 @@ describe('<index> getBackNumber()', () => {
     await gitDDB.destroy();
   });
 
-  it('with author.name', async () => {
-    await expect(
-      gitDDB.getBackNumber(targetId, 0, {
-        filter: [{ author: { name: 'authorA' } }],
-      })
-    ).resolves.toEqual({
-      _id: targetId,
-      type: 'json',
-      fileOid: (await git.hashBlob({ object: toSortedJSONString(json09) })).oid,
-      doc: json09,
+  describe('getFatDocBackNumber()', () => {
+    it('with author.name', async () => {
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 0, {
+          filter: [{ author: { name: 'authorA' } }],
+        })
+      ).resolves.toEqual({
+        _id: targetId,
+        type: 'json',
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json09) })).oid,
+        doc: json09,
+      });
+
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 1, {
+          filter: [{ author: { name: 'authorA' } }],
+        })
+      ).resolves.toEqual({
+        _id: targetId,
+        type: 'json',
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json08) })).oid,
+        doc: json08,
+      });
     });
 
-    await expect(
-      gitDDB.getBackNumber(targetId, 1, {
-        filter: [{ author: { name: 'authorA' } }],
-      })
-    ).resolves.toEqual({
-      _id: targetId,
-      type: 'json',
-      fileOid: (await git.hashBlob({ object: toSortedJSONString(json08) })).oid,
-      doc: json08,
+    it('with committer.name', async () => {
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 0, {
+          filter: [{ committer: { name: 'committerA' } }],
+        })
+      ).resolves.toEqual({
+        _id: targetId,
+        type: 'json',
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json15) })).oid,
+        doc: json15,
+      });
+
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 1, {
+          filter: [{ committer: { name: 'committerA' } }],
+        })
+      ).resolves.toEqual({
+        _id: targetId,
+        type: 'json',
+
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
+        doc: json14,
+      });
+    });
+
+    it('with author.name, author.email, committer.name, and committer.email', async () => {
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 0, {
+          filter: [
+            {
+              author: { name: 'authorA', email: 'authorEmailA' },
+              committer: { name: 'committerA', email: 'committerEmailA' },
+            },
+          ],
+        })
+      ).resolves.toEqual({
+        _id: targetId,
+        type: 'json',
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
+        doc: json02,
+      });
+
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 1, {
+          filter: [
+            {
+              author: { name: 'authorA', email: 'authorEmailA' },
+              committer: { name: 'committerA', email: 'committerEmailA' },
+            },
+          ],
+        })
+      ).resolves.toBeUndefined();
+    });
+
+    it('with OR condition', async () => {
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 0, {
+          filter: [
+            { committer: { name: 'committerA', email: 'committerEmailA' } },
+            { committer: { name: 'committerB', email: 'committerEmailB' } },
+          ],
+        })
+      ).resolves.toEqual({
+        _id: targetId,
+        type: 'json',
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json17) })).oid,
+        doc: json17,
+      });
+
+      await expect(
+        gitDDB.getFatDocBackNumber(targetId, 1, {
+          filter: [
+            { committer: { name: 'committerA', email: 'committerEmailA' } },
+            { committer: { name: 'committerB', email: 'committerEmailB' } },
+          ],
+        })
+      ).resolves.toEqual({
+        _id: targetId,
+        type: 'json',
+        fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
+        doc: json14,
+      });
     });
   });
 
-  it('with committer.name', async () => {
-    await expect(
-      gitDDB.getBackNumber(targetId, 0, {
-        filter: [{ committer: { name: 'committerA' } }],
-      })
-    ).resolves.toEqual({
-      _id: targetId,
-      type: 'json',
-      fileOid: (await git.hashBlob({ object: toSortedJSONString(json15) })).oid,
-      doc: json15,
+  describe('getBackNumber()', () => {
+    it('with author.name, author.email, committer.name, and committer.email', async () => {
+      await expect(
+        gitDDB.getBackNumber(targetId, 0, {
+          filter: [
+            {
+              author: { name: 'authorA', email: 'authorEmailA' },
+              committer: { name: 'committerA', email: 'committerEmailA' },
+            },
+          ],
+        })
+      ).resolves.toEqual(json02);
+
+      await expect(
+        gitDDB.getBackNumber(targetId, 1, {
+          filter: [
+            {
+              author: { name: 'authorA', email: 'authorEmailA' },
+              committer: { name: 'committerA', email: 'committerEmailA' },
+            },
+          ],
+        })
+      ).resolves.toBeUndefined();
     });
 
-    await expect(
-      gitDDB.getBackNumber(targetId, 1, {
-        filter: [{ committer: { name: 'committerA' } }],
-      })
-    ).resolves.toEqual({
-      _id: targetId,
-      type: 'json',
+    it('with OR condition', async () => {
+      await expect(
+        gitDDB.getBackNumber(targetId, 0, {
+          filter: [
+            { committer: { name: 'committerA', email: 'committerEmailA' } },
+            { committer: { name: 'committerB', email: 'committerEmailB' } },
+          ],
+        })
+      ).resolves.toEqual(json17);
 
-      fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
-      doc: json14,
-    });
-  });
-
-  it('with author.name, author.email, committer.name, and committer.email', async () => {
-    await expect(
-      gitDDB.getBackNumber(targetId, 0, {
-        filter: [
-          {
-            author: { name: 'authorA', email: 'authorEmailA' },
-            committer: { name: 'committerA', email: 'committerEmailA' },
-          },
-        ],
-      })
-    ).resolves.toEqual({
-      _id: targetId,
-      type: 'json',
-      fileOid: (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
-      doc: json02,
-    });
-
-    await expect(
-      gitDDB.getBackNumber(targetId, 1, {
-        filter: [
-          {
-            author: { name: 'authorA', email: 'authorEmailA' },
-            committer: { name: 'committerA', email: 'committerEmailA' },
-          },
-        ],
-      })
-    ).resolves.toBeUndefined();
-  });
-
-  it('with OR condition', async () => {
-    await expect(
-      gitDDB.getBackNumber(targetId, 0, {
-        filter: [
-          { committer: { name: 'committerA', email: 'committerEmailA' } },
-          { committer: { name: 'committerB', email: 'committerEmailB' } },
-        ],
-      })
-    ).resolves.toEqual({
-      _id: targetId,
-      type: 'json',
-      fileOid: (await git.hashBlob({ object: toSortedJSONString(json17) })).oid,
-      doc: json17,
-    });
-
-    await expect(
-      gitDDB.getBackNumber(targetId, 1, {
-        filter: [
-          { committer: { name: 'committerA', email: 'committerEmailA' } },
-          { committer: { name: 'committerB', email: 'committerEmailB' } },
-        ],
-      })
-    ).resolves.toEqual({
-      _id: targetId,
-      type: 'json',
-      fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
-      doc: json14,
+      await expect(
+        gitDDB.getBackNumber(targetId, 1, {
+          filter: [
+            { committer: { name: 'committerA', email: 'committerEmailA' } },
+            { committer: { name: 'committerB', email: 'committerEmailB' } },
+          ],
+        })
+      ).resolves.toEqual(json14);
     });
   });
 });

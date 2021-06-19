@@ -719,6 +719,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     dataOrOptions?: JsonDoc | Uint8Array | string | PutOptions,
     options?: PutOptions
   ): Promise<PutResult> {
+    options ??= {};
+    options.insertOrUpdate = 'insert';
     return this._fullCollection.insert(shortIdOrDoc, dataOrOptions, options);
   }
 
@@ -884,9 +886,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    *  - undefined if the document does not exists or the document is deleted.
    *
-   *  - FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
    *
-   *  - FatBinaryDoc or FatTextDoc if isJsonDocCollection is false.
+   *  - Uint8Array or string if isJsonDocCollection is false.
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
@@ -899,8 +901,29 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     backNumber: number,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
-  ): Promise<FatDoc | undefined> {
+  ): Promise<Doc | undefined> {
     return this._fullCollection.getBackNumber(_id, backNumber, historyOptions, getOptions);
+  }
+
+  /**
+   * {@link getBackNumber} that returns FatDoc
+   *
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link InvalidJsonObjectError}
+   */
+  getFatDocBackNumber (
+    _id: string,
+    backNumber: number,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined> {
+    return this._fullCollection.getFatDocBackNumber(
+      _id,
+      backNumber,
+      historyOptions,
+      getOptions
+    );
   }
 
   /**
