@@ -46,6 +46,7 @@ export async function combineDatabaseWithTheirs (
       // This will not occur after NoBaseMergeFoundError.
       throw new RemoteRepositoryNotFoundError(remoteOptions.remoteUrl!);
     }
+
     const index = await remoteRepository.refreshIndex();
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.repository()!);
@@ -125,7 +126,7 @@ export async function combineDatabaseWithTheirs (
 
       await git.commit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: remoteDir,
         author: gitDDB.author,
         committer: gitDDB.committer,
         message: commitMessage,

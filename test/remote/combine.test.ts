@@ -13,8 +13,8 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
 import fs from 'fs-extra';
+import git from 'isomorphic-git';
 import expect from 'expect';
 import { DuplicatedFile } from '../../src/types';
 import { GitDocumentDB } from '../../src';
@@ -117,10 +117,18 @@ maybe('<remote/combine>', () => {
       await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
-      const repository = dbB.repository();
-      const head = await nodegit.Reference.nameToId(repository!, 'HEAD').catch(e => false); // get HEAD
-      const commit = await repository!.getCommit(head as nodegit.Oid); // get the commit of HEAD
-      expect(commit.message()).toEqual(`combine database head with theirs`);
+
+      const headCommitOid = await git.resolveRef({
+        fs,
+        dir: dbB.workingDir(),
+        ref: 'HEAD',
+      });
+      const headCommit = await git.readCommit({
+        fs,
+        dir: dbB.workingDir(),
+        oid: headCommitOid,
+      });
+      expect(headCommit.commit.message).toEqual(`combine database head with theirs\n`);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -401,7 +409,6 @@ maybe('<remote/combine>', () => {
       });
       let duplicatedFiles: DuplicatedFile[] = [];
       syncA.on('combine', (duplicates: DuplicatedFile[]) => {
-        console.log('### combine');
         duplicatedFiles = [...duplicates];
       });
 
