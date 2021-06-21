@@ -6,11 +6,12 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import path from 'path';
 import fs from 'fs';
 
 import { readTree, resolveRef } from 'isomorphic-git';
 import {
+  InvalidDocTypeError,
+  InvalidJsonFileExtensionError,
   InvalidJsonObjectError,
   RepositoryNotOpenError,
   UndefinedDocumentIdError,
@@ -23,8 +24,6 @@ import {
   UndefinedDBError,
   CannotCreateDirectoryError,
   CannotWriteDataError,
-  InvalidDocTypeError,
-  InvalidJsonFileExtensionError,
 } from './error';
 import {
   CollectionPath,
@@ -56,9 +55,9 @@ import { putImpl } from './crud/put';
  * @remarks
  * In a collection API, shortId (shortName) is used instead of _id (name).
  *
- * - _id = collectionPath + shortId
+ * - shortId is a file path whose collectionPath and .json extension are omitted. (_id = collectionPath + shortId)
  *
- * - name = collectionPath + shortName
+ * - shortName is a file path whose collectionPath is omitted. (name = collectionPath + shortName)
  *
  * @example
  * ```
@@ -142,10 +141,10 @@ export class Collection implements CRUDInterface {
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
+   *
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}${jsonDoc._id}.json`.
-   *
-   * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -166,6 +165,8 @@ export class Collection implements CRUDInterface {
 
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
+   *
+   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
@@ -254,6 +255,8 @@ export class Collection implements CRUDInterface {
   /**
    * Insert a JSON document
    *
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
+   *
    * @remarks
    * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
@@ -282,6 +285,8 @@ export class Collection implements CRUDInterface {
 
   /**
    * Insert a JSON document
+   *
+   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
@@ -342,6 +347,8 @@ export class Collection implements CRUDInterface {
   /**
    * Update a JSON document
    *
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
+   *
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
    *
@@ -365,19 +372,20 @@ export class Collection implements CRUDInterface {
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link DocumentNotFoundError}
-   *
    */
   update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
 
   /**
    * Update a JSON document
    *
+   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   *
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
    *
-   * - A update operation is not skipped even if no change occurred on a specified data.
+   * - An update operation is not skipped even if no change occurred on a specified data.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -430,6 +438,11 @@ export class Collection implements CRUDInterface {
 
   /**
    * Insert a data if not exists. Otherwise, update it.
+   *
+   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   *
+   * @remarks
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
    *
    * @throws {@link InvalidJsonFileExtensionError}
    * @throws {@link InvalidJsonObjectError}
@@ -510,10 +523,12 @@ export class Collection implements CRUDInterface {
   /**
    * Insert a data
    *
+   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   *
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
    *
@@ -549,12 +564,14 @@ export class Collection implements CRUDInterface {
   /**
    * Update a data
    *
+   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   *
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
    *
-   * - A update operation is not skipped even if no change occurred on a specified data.
+   * - An update operation is not skipped even if no change occurred on a specified data.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
@@ -588,6 +605,8 @@ export class Collection implements CRUDInterface {
   /**
    * Get a JSON document
    *
+   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   *
    * @returns
    *  - undefined if not exists.
    *
@@ -606,6 +625,8 @@ export class Collection implements CRUDInterface {
 
   /**
    * Get a FatDoc
+   *
+   * @param shortName - shortName is a file path whose collectionPath is omitted.
    *
    * @returns
    *  - undefined if not exists.
@@ -628,6 +649,8 @@ export class Collection implements CRUDInterface {
 
   /**
    * Get a Doc which has specified oid
+   *
+   * @fileOid - Object ID (SHA-1 hash) that represents a Git object. (See https://git-scm.com/docs/git-hash-object )
    *
    * @remarks
    *  - undefined if not exists.
@@ -652,6 +675,7 @@ export class Collection implements CRUDInterface {
   /**
    * Get a back number of a JSON document
    *
+   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
    * See {@link getHistory} for the array of revisions.
@@ -687,6 +711,7 @@ export class Collection implements CRUDInterface {
   /**
    * Get a back number of a data
    *
+   * @param shortName - shortName is a file path whose collectionPath is omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
    * See {@link getHistory} for the array of revisions.
@@ -731,6 +756,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
+   * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
    * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
    *
    * @example
@@ -783,7 +809,12 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * {@link getHistory} that returns FatDoc
+   * Get revision history of a data
+   *
+   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   *
+   * @remarks
+   * See {@link getHistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
@@ -816,6 +847,8 @@ export class Collection implements CRUDInterface {
   /**
    * Delete a JSON document
    *
+   * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
+   *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link DatabaseClosingError} (from deleteImpl)
    * @throws {@link TaskCancelError} (from deleteImpl)
@@ -830,7 +863,7 @@ export class Collection implements CRUDInterface {
   /**
    * Delete a document by _id property in JsonDoc
    *
-   * @param jsonDoc - Only the _id property in JsonDoc is referenced.
+   * @param jsonDoc - JsonDoc whose _id is shortId. Only the _id property is referenced. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link DatabaseClosingError} (from deleteImpl)
@@ -868,6 +901,8 @@ export class Collection implements CRUDInterface {
   /**
    * Delete a data
    *
+   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link DatabaseClosingError} (from deleteImpl)
    * @throws {@link TaskCancelError} (from deleteImpl)
@@ -884,7 +919,7 @@ export class Collection implements CRUDInterface {
     const fullDocPath = this._collectionPath + shortName;
     return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {
       const deleteResult: DeleteResult = { ...res, name: shortName };
-      // NOTE: Cannot detect JsonDoc whose file name does not end with '.json'
+      // NOTE: Cannot detect JsonDoc whose file path does not end with '.json'
       if (shortName.endsWith(JSON_EXT)) {
         const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
         deleteResult._id = shortId;
