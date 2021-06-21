@@ -121,9 +121,17 @@ export class InvalidJsonObjectError extends BaseError {
 
 /**
  */
-export class InvalidDocumentTypeError extends BaseError {
-  constructor (id: string) {
-    super(`Invalid Document type: ${id}`);
+export class InvalidJsonFileExtensionError extends BaseError {
+  constructor () {
+    super(`JSON file extension must be .json`);
+  }
+}
+
+/**
+ */
+export class InvalidDocTypeError extends BaseError {
+  constructor (type: unknown) {
+    super(`Invalid Document type: ${type}`);
   }
 }
 
