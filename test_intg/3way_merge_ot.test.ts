@@ -14,7 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src';
+import { GitDocumentDB } from '../src/git_documentdb';
 import {
   Schema,
   SyncResultMergeAndPush,

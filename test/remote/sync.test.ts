@@ -17,7 +17,7 @@ import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
 import expect from 'expect';
 import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
-import { GitDocumentDB } from '../../src';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { RemoteOptions } from '../../src/types';
 import {
   HttpProtocolRequiredError,

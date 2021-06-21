@@ -17,7 +17,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { InvalidConflictStateError } from '../../src/error';
 import { threeWayMerge } from '../../src/remote/3way_merge';
-import { GitDocumentDB } from '../../src';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   JsonDoc,
   SyncResultMergeAndPush,

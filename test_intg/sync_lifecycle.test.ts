@@ -16,7 +16,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import sinon from 'sinon';
 import { Sync } from '../src/remote/sync';
-import { GitDocumentDB } from '../src';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { RemoteOptions, SyncResultPush } from '../src/types';
 import {
   PushWorkerError,

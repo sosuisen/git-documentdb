@@ -18,7 +18,7 @@ import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { createCredential } from '../../src/remote/authentication';
-import { GitDocumentDB } from '../../src';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   AuthenticationTypeNotAllowCreateRepositoryError,
   CannotConnectError,

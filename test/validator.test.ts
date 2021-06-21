@@ -11,7 +11,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
 import { Validator } from '../src/validator';
-import { GitDocumentDB } from '../src';
+import { GitDocumentDB } from '../src/git_documentdb';
 import {
   InvalidCollectionPathCharacterError,
   InvalidCollectionPathLengthError,

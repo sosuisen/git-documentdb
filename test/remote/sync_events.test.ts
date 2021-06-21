@@ -35,7 +35,7 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import { GitDocumentDB } from '../../src';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { Sync } from '../../src/remote/sync';
 import { SyncWorkerError } from '../../src/error';
 import { MINIMUM_SYNC_INTERVAL } from '../../src/const';

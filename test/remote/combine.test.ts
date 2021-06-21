@@ -17,7 +17,7 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import { DuplicatedFile } from '../../src/types';
-import { GitDocumentDB } from '../../src';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { NoMergeBaseFoundError } from '../../src/error';
 import {
   compareWorkingDirAndBlobs,

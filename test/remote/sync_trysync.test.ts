@@ -15,7 +15,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
-import { GitDocumentDB } from '../../src';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   SyncResult,
   SyncResultFastForwardMerge,
