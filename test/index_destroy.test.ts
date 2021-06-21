@@ -12,7 +12,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { DatabaseCloseTimeoutError } from '../src/error';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 
 const ulid = monotonicFactory();
 const monoId = () => {

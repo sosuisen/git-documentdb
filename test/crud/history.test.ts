@@ -23,7 +23,7 @@ import {
   destroyDBs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import { GitDocumentDB } from '../../src/index';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
 import { getHistoryImpl, readOldBlob } from '../../src/crud/history';
 

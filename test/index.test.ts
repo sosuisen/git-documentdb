@@ -11,7 +11,7 @@ import path from 'path';
 import { monotonicFactory } from 'ulid';
 import expect from 'expect';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { Collection } from '../src/collection';
 
 const ulid = monotonicFactory();

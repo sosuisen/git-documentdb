@@ -14,7 +14,7 @@ import {
   InvalidWorkingDirectoryPathLengthError,
   UndefinedDatabaseNameError,
 } from '../src/error';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { Validator } from '../src/validator';
 
 const localDir = `./test/database_gitddb_constructor`;

@@ -15,7 +15,7 @@ import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import {
   InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,

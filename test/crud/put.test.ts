@@ -24,7 +24,7 @@ import {
   TaskCancelError,
   UndefinedDBError,
 } from '../../src/error';
-import { GitDocumentDB } from '../../src/index';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { putImpl, putWorker } from '../../src/crud/put';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
 import { sleep, toSortedJSONString } from '../../src/utils';

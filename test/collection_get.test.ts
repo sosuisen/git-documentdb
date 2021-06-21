@@ -15,7 +15,7 @@ import { monotonicFactory } from 'ulid';
 import { JSON_EXT } from '../src/const';
 import { Collection } from '../src/collection';
 import { sleep, toSortedJSONString } from '../src/utils';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import {
   DatabaseClosingError,
   InvalidJsonObjectError,

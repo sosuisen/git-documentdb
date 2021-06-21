@@ -11,7 +11,7 @@ import path from 'path';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { InvalidCollectionPathCharacterError } from '../src/error';
 import { Collection } from '../src/collection';
 

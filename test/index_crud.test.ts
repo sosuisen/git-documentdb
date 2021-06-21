@@ -12,7 +12,7 @@ import git from 'isomorphic-git';
 import { monotonicFactory } from 'ulid';
 import expect from 'expect';
 import fs from 'fs-extra';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { sleep, toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { addOneData } from './utils';

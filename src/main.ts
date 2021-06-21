@@ -8,7 +8,7 @@
 
 export * from './collection';
 export * from './error';
-export * from './index';
+export * from './git_documentdb';
 export * from './types';
 export * from './validator';
 export * from './remote/clone';

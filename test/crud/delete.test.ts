@@ -22,7 +22,7 @@ import {
   TaskCancelError,
   UndefinedDBError,
 } from '../../src/error';
-import { GitDocumentDB } from '../../src/index';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { deleteImpl, deleteWorker } from '../../src/crud/delete';
 import { TaskMetadata } from '../../src/types';
 import { sleep, toSortedJSONString } from '../../src/utils';

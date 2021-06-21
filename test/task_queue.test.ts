@@ -12,7 +12,7 @@ import { monotonicFactory } from 'ulid';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { Logger } from 'tslog';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { createDatabase, destroyDBs, removeRemoteRepositories } from './remote_utils';
 import { sleep } from '../src/utils';
 import { TaskQueue } from '../src/task_queue';

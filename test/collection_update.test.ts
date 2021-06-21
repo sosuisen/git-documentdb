@@ -13,7 +13,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { DocumentNotFoundError } from '../src/error';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { Collection } from '../src/collection';
 import { toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';

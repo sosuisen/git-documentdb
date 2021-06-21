@@ -17,7 +17,7 @@ import {
   DatabaseClosingError,
   TaskCancelError,
 } from '../src/error';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { destroyDBs } from './remote_utils';
 
 const ulid = monotonicFactory();

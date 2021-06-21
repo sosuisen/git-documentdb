@@ -19,7 +19,7 @@ import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
 } from '../../src/error';
-import { GitDocumentDB } from '../../src/index';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { getImpl } from '../../src/crud/get';
 import { JSON_EXT } from '../../src/const';
 import { addOneData, removeOneData } from '../utils';

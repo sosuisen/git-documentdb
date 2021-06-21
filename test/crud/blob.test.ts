@@ -21,7 +21,7 @@ import {
   readLatestBlob,
 } from '../../src/crud/blob';
 import { InvalidJsonObjectError } from '../../src/error';
-import { GitDocumentDB } from '../../src/index';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { toSortedJSONString, utf8encode } from '../../src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

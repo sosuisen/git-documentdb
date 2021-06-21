@@ -20,7 +20,7 @@ import {
   DatabaseClosingError,
   RepositoryNotFoundError,
 } from '../src/error';
-import { generateDatabaseId, GitDocumentDB } from '../src/index';
+import { generateDatabaseId, GitDocumentDB } from '../src/git_documentdb';
 import { DatabaseInfo, DatabaseOpenResult } from '../src/types';
 import {
   DATABASE_CREATOR,

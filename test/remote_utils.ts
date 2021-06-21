@@ -16,7 +16,7 @@ import {
   Schema,
 } from '../src/types';
 import { ISync } from '../src/types_sync';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { FILE_REMOVE_TIMEOUT, JSON_EXT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 

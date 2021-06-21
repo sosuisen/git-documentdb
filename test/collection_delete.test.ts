@@ -14,7 +14,7 @@ import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { DocumentNotFoundError, UndefinedDocumentIdError } from '../src/error';
 import { Collection } from '../src/collection';
 

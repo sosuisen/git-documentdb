@@ -15,7 +15,7 @@ import { monotonicFactory } from 'ulid';
 import { Collection } from '../src/collection';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
-import { GitDocumentDB } from '../src/index';
+import { GitDocumentDB } from '../src/git_documentdb';
 import { SameIdExistsError } from '../src/error';
 
 const ulid = monotonicFactory();

@@ -17,7 +17,7 @@ import {
   InvalidJsonObjectError,
   RepositoryNotOpenError,
 } from '../../src/error';
-import { GitDocumentDB } from '../../src/index';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import { FIRST_COMMIT_MESSAGE, GIT_DOCUMENTDB_INFO_ID, JSON_EXT } from '../../src/const';
 import { findImpl } from '../../src/crud/find';
 import { addOneData } from '../utils';
