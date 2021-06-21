@@ -52,6 +52,7 @@ import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
 import {
+  DEFAULT_COMBINE_DB_STRATEGY,
   DEFAULT_CONFLICT_RESOLUTION_STRATEGY,
   DEFAULT_SYNC_INTERVAL,
   MINIMUM_SYNC_INTERVAL,
@@ -228,7 +229,7 @@ export class Sync implements ISync {
     }
 
     this._options.retry ??= NETWORK_RETRY;
-    this._options.combineDbStrategy ??= 'combine-head-with-theirs';
+    this._options.combineDbStrategy ??= DEFAULT_COMBINE_DB_STRATEGY;
     this._options.includeCommits ??= false;
     this._options.conflictResolutionStrategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
 

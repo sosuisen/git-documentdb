@@ -31,7 +31,7 @@ import { ISync } from './types_sync';
 import { Validator } from './validator';
 
 /**
- * Interface for GitDocumentDB CRUD
+ * Interface of GitDocumentDB CRUD
  *
  * @internal
  */
@@ -57,10 +57,25 @@ export interface CRUDInterface {
     options?: PutOptions
   ): Promise<PutResult>;
 
-  get(_id: string, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
-  getFatDoc(_id: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+  putFatDoc(
+    name: string,
+    data: JsonDoc | Uint8Array | string,
+    options?: PutOptions
+  ): Promise<PutResult>;
 
-  getDocByOid(fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined>;
+  insertFatDoc(
+    name: string,
+    data: JsonDoc | Uint8Array | string,
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  updateFatDoc(
+    name: string,
+    data: JsonDoc | Uint8Array | string,
+    options?: PutOptions
+  ): Promise<PutResult>;
+
+  get(_id: string, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
 
   getBackNumber(
     _id: string,
@@ -69,33 +84,41 @@ export interface CRUDInterface {
     getOptions?: GetOptions
   ): Promise<JsonDoc | undefined>;
 
-  getFatDocBackNumber(
-    _id: string,
-    backNumber: number,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<FatDoc | undefined>;
-
   getHistory(
     _id: string,
     historyOptions?: HistoryOptions
   ): Promise<(JsonDoc | undefined)[]>;
 
+  getFatDoc(name: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+
+  getFatDocBackNumber(
+    name: string,
+    backNumber: number,
+    historyOptions?: HistoryOptions,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined>;
+
   getFatDocHistory(
-    _id: string,
+    name: string,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<(FatDoc | undefined)[]>;
 
-  delete(_id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  getDocByOid(fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined>;
+
   delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 
-  find(options?: FindOptions): Promise<Doc[]>;
+  delete(_id: string, options?: DeleteOptions): Promise<DeleteResult>;
+
+  deleteFatDoc(name: string, options?: DeleteOptions): Promise<DeleteResult>;
+
+  find(options?: FindOptions): Promise<JsonDoc[]>;
+
   findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
 }
 
 /**
- * Abstract class for GitDocumentDB body
+ * Abstract class of GitDocumentDB body
  *
  * @internal
  */

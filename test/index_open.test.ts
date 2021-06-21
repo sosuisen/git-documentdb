@@ -142,7 +142,7 @@ describe('<index>', () => {
         creator: DATABASE_CREATOR,
         version: DATABASE_VERSION,
         isNew: true,
-        isCreatedByGitddb: true,
+        isCreatedByGitDDB: true,
         isValidVersion: true,
       });
 
@@ -221,7 +221,7 @@ describe('<index>', () => {
         creator: DATABASE_CREATOR,
         version: DATABASE_VERSION,
         isNew: false,
-        isCreatedByGitddb: true,
+        isCreatedByGitDDB: true,
         isValidVersion: true,
       });
       expect(gitDDB.isOpened()).toBeTruthy();
@@ -257,7 +257,7 @@ describe('<index>', () => {
         creator,
         version: '',
         isNew: false,
-        isCreatedByGitddb: false,
+        isCreatedByGitDDB: false,
         isValidVersion: false,
       });
       await gitDDB.destroy();
@@ -287,7 +287,7 @@ describe('<index>', () => {
         creator: DATABASE_CREATOR,
         version: '0.01',
         isNew: false,
-        isCreatedByGitddb: true,
+        isCreatedByGitDDB: true,
         isValidVersion: false,
       });
       await gitDDB.destroy();
@@ -318,7 +318,7 @@ describe('<index>', () => {
         creator: DATABASE_CREATOR,
         version: DATABASE_VERSION,
         isNew: false,
-        isCreatedByGitddb: true,
+        isCreatedByGitDDB: true,
         isValidVersion: true,
       });
     });
@@ -340,7 +340,7 @@ describe('<index>', () => {
         creator: DATABASE_CREATOR,
         version: DATABASE_VERSION,
         isNew: false,
-        isCreatedByGitddb: true,
+        isCreatedByGitDDB: true,
         isValidVersion: true,
       });
       await gitDDB.destroy();

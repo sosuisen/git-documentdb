@@ -1,4 +1,3 @@
-import nodegit from '@sosuisen/nodegit';
 import { JsonDiff } from './remote/json_diff';
 import {
   IJsonPatch,

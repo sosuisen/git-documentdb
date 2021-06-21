@@ -127,7 +127,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     creator: '',
     version: '',
     isNew: false,
-    isCreatedByGitddb: true,
+    isCreatedByGitDDB: true,
     isValidVersion: true,
   };
 
@@ -269,7 +269,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       creator: '',
       version: '',
       isNew: false,
-      isCreatedByGitddb: true,
+      isCreatedByGitDDB: true,
       isValidVersion: true,
     };
     this.taskQueue.clear();
@@ -369,7 +369,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this._dbOpenResult.version = info.version;
 
     if (new RegExp('^' + DATABASE_CREATOR).test(info.creator)) {
-      this._dbOpenResult.isCreatedByGitddb = true;
+      this._dbOpenResult.isCreatedByGitDDB = true;
       if (new RegExp('^' + DATABASE_VERSION).test(info.version)) {
         this._dbOpenResult.isValidVersion = true;
       }
@@ -381,7 +381,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       }
     }
     else {
-      this._dbOpenResult.isCreatedByGitddb = false;
+      this._dbOpenResult.isCreatedByGitDDB = false;
       this._dbOpenResult.isValidVersion = false;
     }
   }

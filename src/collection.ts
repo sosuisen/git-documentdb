@@ -71,30 +71,14 @@ export class Collection implements CRUDInterface {
 
   private _gitDDB: CRUDInterface & IDocumentDB;
 
-  private _isJsonDocCollection: boolean;
-
   /**
-   * @param isJsonDocCollection - (true) The collection manages only JsonDoc. (false) The collection manages any file types.
-   *
-   * @remarks
-   * - If isJsonDocCollection is true, JsonDoc id default type. There is no '.json' at the end of _id. e.g.) _id is 'foo', 'bar'.
-   *
-   * - If isJsonDocCollection is false, any file types are available. _id param must be a full filename if it has an extension. e.g) _id is 'foo.json', 'baz.jpg', 'README.md'.
-   *
-   * - Be careful that _id property in JsonDoc does not always have trailing '.json'.
-   *
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  constructor (
-    gitDDB: CRUDInterface & IDocumentDB,
-    collectionPath?: CollectionPath,
-    isJsonDocCollection = true
-  ) {
+  constructor (gitDDB: CRUDInterface & IDocumentDB, collectionPath?: CollectionPath) {
     this._gitDDB = gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
     this._gitDDB.validator.validateCollectionPath(this._collectionPath);
-    this._isJsonDocCollection = isJsonDocCollection;
   }
 
   /**
@@ -149,13 +133,6 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * isJsonDocCollection
-   */
-  isJsonDocCollection () {
-    return this._isJsonDocCollection;
-  }
-
-  /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
    * @remarks
@@ -187,8 +164,6 @@ export class Collection implements CRUDInterface {
    * - The saved file path is `${workingDir()}/${_id}`. If data is JsonDoc, trailing '.json' is added to the file path.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
-   *
-   * - This overload method always accept JsonDoc, Uint8Array and string regardless of isJsonDocCollection.
    *
    * @param _id
    * @param data - {@link JsonDoc} or Uint8Array or string.
@@ -350,8 +325,6 @@ export class Collection implements CRUDInterface {
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * - This overload method always accept JsonDoc, Uint8Array and string regardless of isJsonDocCollection.
-   *
    * @param _id - '.json' is automatically completed when you omit it for JsonDoc _id.
    * @param data - {@link JsonDoc} or Uint8Array or string.
    *
@@ -456,8 +429,6 @@ export class Collection implements CRUDInterface {
    * - The saved file path is `${workingDir()}/${_id}`. If data is JsonDoc, trailing '.json' is added to the file path.
    *
    * - A update operation is not skipped even if no change occurred on a specified data.
-   *
-   * - This overload method always accept JsonDoc, Uint8Array and string regardless of isJsonDocCollection.
    *
    * @param id - _id property of a document
    * @param data - {@link JsonDoc} or Uint8Array or string.
