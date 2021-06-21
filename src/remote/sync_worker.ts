@@ -400,11 +400,11 @@ export async function syncWorker (
   let commitMessage = 'resolve: ';
   acceptedConflicts.forEach(conflict => {
     // e.g.) put-ours: myID
-    const fileName =
+    const fullDocPath =
       conflict.target.type === undefined || conflict.target.type === 'json'
         ? conflict.target._id + JSON_EXT
         : conflict.target._id;
-    commitMessage += `${fileName}(${conflict.operation},${conflict.target.fileOid.substr(
+    commitMessage += `${fullDocPath}(${conflict.operation},${conflict.target.fileOid.substr(
       0,
       SHORT_SHA_LENGTH
     )},${conflict.strategy}), `;

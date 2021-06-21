@@ -20,12 +20,8 @@ import { IDocumentDB } from '../types_gitddb';
  *
  * @throws {@link CannotCreateDirectoryError}
  */
-export async function writeBlobToFile (
-  gitDDB: IDocumentDB,
-  fileName: string,
-  data: string
-) {
-  const filePath = nodePath.resolve(gitDDB.workingDir(), fileName);
+export async function writeBlobToFile (gitDDB: IDocumentDB, name: string, data: string) {
+  const filePath = nodePath.resolve(gitDDB.workingDir(), name);
   const dir = nodePath.dirname(filePath);
   await fs.ensureDir(dir).catch((err: Error) => {
     return Promise.reject(new CannotCreateDirectoryError(err.message));

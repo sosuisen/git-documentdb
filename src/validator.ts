@@ -82,7 +82,7 @@ export class Validator {
   maxCollectionPathLength () {
     // Suppose that collectionPath is normalized.
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}/${collectionPath}${fileName}.json`
+    // Full path is `${_workingDirectory}/${collectionPath}${shortId}.json`
     const minIdLength = 6; // 'a.json'
     return MAX_FILE_PATH_LENGTH - this._workingDirectory.length - 1 - minIdLength;
   }
@@ -91,12 +91,12 @@ export class Validator {
    * Return max length of _id
    *
    * @remarks
-   * _id means `${collectionPath}/${fileName}`
+   * _id means `${collectionPath}/${shortId}`
    */
   maxIdLength () {
     // Suppose that collectionPath is normalized.
     // Trailing slash of workingDirectory is omitted.
-    // Full path is `${_workingDirectory}/${collectionPath}${fileName}.json`
+    // Full path is `${_workingDirectory}/${collectionPath}${shortId}.json`
     const extLength = 5; // '.json'
     return MAX_FILE_PATH_LENGTH - this._workingDirectory.length - 1 - extLength;
   }
@@ -309,7 +309,7 @@ export class Validator {
   /**
    * Validate _id
    *
-   * _id = collectionPath + fileName (not including postfix '.json')
+   * _id = collectionPath + shortId (not including postfix '.json')
    *
    * @remarks Spec of _id is described at {@link JsonDoc}.
    * @throws {@link InvalidIdCharacterError}
