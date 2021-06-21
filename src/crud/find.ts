@@ -34,8 +34,8 @@ import { blobToBinary, blobToJsonDoc, blobToText, readLatestBlob } from './blob'
 export async function findImpl (
   gitDDB: IDocumentDB,
   collectionPath: string,
-  isJsonCollection: boolean,
   withMetadata: boolean,
+  findOnlyJson: boolean,
   options?: FindOptions
 ): Promise<(Doc | FatDoc)[]> {
   if (gitDDB.isClosing) {
@@ -143,19 +143,21 @@ export async function findImpl (
         }
       }
       else {
+        if (findOnlyJson && !fullDocPath.endsWith('.json')) {
+          continue;
+        }
         // eslint-disable-next-line no-await-in-loop
         const readBlobResult = await readLatestBlob(gitDDB.workingDir(), fullDocPath);
         // Skip if cannot read
         if (readBlobResult) {
           const docType: DocType =
-            options.forceDocType ??
-            (isJsonCollection || fullDocPath.endsWith('.json') ? 'json' : 'text');
+            options.forceDocType ?? (fullDocPath.endsWith('.json') ? 'json' : 'text');
           if (docType === 'text') {
             // TODO: select binary or text by .gitattribtues
           }
-          let shortId = fullDocPath.replace(new RegExp('^' + collectionPath), '');
+          const shortName = fullDocPath.replace(new RegExp('^' + collectionPath), '');
           if (docType === 'json') {
-            shortId = shortId.replace(new RegExp(JSON_EXT + '$'), '');
+            const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
             if (withMetadata) {
               docs.push(blobToJsonDoc(shortId, readBlobResult, true) as FatJsonDoc);
             }
@@ -165,18 +167,18 @@ export async function findImpl (
           }
           else if (docType === 'text') {
             if (withMetadata) {
-              docs.push(blobToText(shortId, readBlobResult, true) as FatTextDoc);
+              docs.push(blobToText(shortName, readBlobResult, true) as FatTextDoc);
             }
             else {
-              docs.push(blobToText(shortId, readBlobResult, false) as string);
+              docs.push(blobToText(shortName, readBlobResult, false) as string);
             }
           }
           else if (docType === 'binary') {
             if (withMetadata) {
-              docs.push(blobToBinary(shortId, readBlobResult, true) as FatBinaryDoc);
+              docs.push(blobToBinary(shortName, readBlobResult, true) as FatBinaryDoc);
             }
             else {
-              docs.push(blobToBinary(shortId, readBlobResult, false) as Uint8Array);
+              docs.push(blobToBinary(shortName, readBlobResult, false) as Uint8Array);
             }
           }
         }

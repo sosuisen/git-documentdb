@@ -38,9 +38,8 @@ import { readOldBlob } from './history';
 // eslint-disable-next-line complexity
 export async function getImpl (
   gitDDB: IDocumentDB,
-  shortId: string,
+  shortName: string,
   collectionPath: string,
-  isJsonCollection: boolean,
   options?: GetOptions,
   internalOptions?: GetInternalOptions,
   historyOptions?: HistoryOptions
@@ -66,12 +65,7 @@ export async function getImpl (
   internalOptions.backNumber ??= 0;
   internalOptions.oid ??= '';
 
-  let fullDocPath = collectionPath + shortId;
-  if (options.forceDocType === 'json' || isJsonCollection) {
-    if (!fullDocPath.endsWith(JSON_EXT)) {
-      fullDocPath += JSON_EXT;
-    }
-  }
+  const fullDocPath = collectionPath + shortName;
 
   // Do not use validateId for get()
   // Just return undefined if not exists.
@@ -105,8 +99,7 @@ export async function getImpl (
   if (readBlobResult === undefined) return undefined;
 
   const docType: DocType =
-    options.forceDocType ??
-    (isJsonCollection || fullDocPath.endsWith('.json') ? 'json' : 'text');
+    options.forceDocType ?? (fullDocPath.endsWith('.json') ? 'json' : 'text');
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
@@ -115,12 +108,13 @@ export async function getImpl (
     if (internalOptions.oid !== '') {
       return blobToJsonDocWithoutOverwrittenId(readBlobResult);
     }
+    const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
     return blobToJsonDoc(shortId, readBlobResult, internalOptions.withMetadata);
   }
   else if (docType === 'text') {
-    return blobToText(shortId, readBlobResult, internalOptions.withMetadata);
+    return blobToText(shortName, readBlobResult, internalOptions.withMetadata);
   }
   else if (docType === 'binary') {
-    return blobToBinary(shortId, readBlobResult, internalOptions.withMetadata);
+    return blobToBinary(shortName, readBlobResult, internalOptions.withMetadata);
   }
 }

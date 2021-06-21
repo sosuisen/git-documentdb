@@ -158,6 +158,7 @@ export type Doc = JsonDoc | string | Uint8Array;
  */
 export type JsonDocMetadata = {
   _id: string;
+  name: string;
   fileOid: string;
   type: 'json';
 };

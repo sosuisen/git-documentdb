@@ -24,9 +24,8 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
 // eslint-disable-next-line complexity
 export async function getHistoryImpl (
   gitDDB: IDocumentDB,
-  shortId: string,
+  shortName: string,
   collectionPath: string,
-  isJsonDocCollection: boolean,
   historyOptions?: HistoryOptions,
   options?: GetOptions,
   withMetaData = false
@@ -43,13 +42,11 @@ export async function getHistoryImpl (
     forceDocType: undefined,
   };
 
-  let fullDocPath = collectionPath + shortId;
-  if (isJsonDocCollection) {
-    fullDocPath += JSON_EXT;
-  }
+  const fullDocPath = collectionPath + shortName;
+
   const docType: DocType =
-    options.forceDocType ??
-    (isJsonDocCollection || fullDocPath.endsWith('.json') ? 'json' : 'text');
+    options.forceDocType ?? (fullDocPath.endsWith('.json') ? 'json' : 'text');
+
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
@@ -90,6 +87,8 @@ export async function getHistoryImpl (
           docArray.push(undefined);
         }
         else if (docType === 'json') {
+          const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
+
           // eslint-disable-next-line max-depth
           if (withMetaData) {
             docArray.push(blobToJsonDoc(shortId, readBlobResult, true) as FatDoc);
@@ -101,19 +100,19 @@ export async function getHistoryImpl (
         else if (docType === 'text') {
           // eslint-disable-next-line max-depth
           if (withMetaData) {
-            docArray.push(blobToText(shortId, readBlobResult, true) as FatDoc);
+            docArray.push(blobToText(shortName, readBlobResult, true) as FatDoc);
           }
           else {
-            docArray.push(blobToText(shortId, readBlobResult, false) as Doc);
+            docArray.push(blobToText(shortName, readBlobResult, false) as Doc);
           }
         }
         else if (docType === 'binary') {
           // eslint-disable-next-line max-depth
           if (withMetaData) {
-            docArray.push(blobToBinary(shortId, readBlobResult, true) as FatDoc);
+            docArray.push(blobToBinary(shortName, readBlobResult, true) as FatDoc);
           }
           else {
-            docArray.push(blobToBinary(shortId, readBlobResult, false) as Doc);
+            docArray.push(blobToBinary(shortName, readBlobResult, false) as Doc);
           }
         }
       }

@@ -8,6 +8,7 @@
 
 import fs from 'fs';
 import { readBlob, ReadBlobResult, resolveRef } from 'isomorphic-git';
+import { JSON_EXT } from '../const';
 import { utf8decode } from '../utils';
 import { InvalidJsonObjectError } from '../error';
 import { FatBinaryDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
@@ -32,6 +33,7 @@ export function blobToJsonDoc (
     if (withMetadata) {
       const fatJsonDoc: FatJsonDoc = {
         _id: shortId,
+        name: shortId + JSON_EXT,
         fileOid: readBlobResult.oid,
         type: 'json',
         doc: jsonDoc,
@@ -60,14 +62,14 @@ export function blobToJsonDocWithoutOverwrittenId (
  * blobToText
  */
 export function blobToText (
-  shortId: string,
+  shortName: string,
   readBlobResult: ReadBlobResult,
   withMetadata: boolean
 ): FatTextDoc | string {
   const text = utf8decode(readBlobResult.blob);
   if (withMetadata) {
     const fatTextDoc: FatTextDoc = {
-      _id: shortId,
+      name: shortName,
       fileOid: readBlobResult.oid,
       type: 'text',
       doc: text,
@@ -81,13 +83,13 @@ export function blobToText (
  * blobToBinary
  */
 export function blobToBinary (
-  shortId: string,
+  shortName: string,
   readBlobResult: ReadBlobResult,
   withMetadata: boolean
 ): FatBinaryDoc | Uint8Array {
   if (withMetadata) {
     const fatBinaryDoc: FatBinaryDoc = {
-      _id: shortId,
+      name: shortName,
       fileOid: readBlobResult.oid,
       type: 'binary',
       doc: readBlobResult.blob,
