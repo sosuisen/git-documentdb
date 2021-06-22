@@ -16,6 +16,7 @@ import { monotonicFactory } from 'ulid';
 import {
   blobToBinary,
   blobToJsonDoc,
+  blobToJsonDocWithoutOverwrittenId,
   blobToText,
   readBlobByOid,
   readLatestBlob,
@@ -23,6 +24,7 @@ import {
 import { InvalidJsonObjectError } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { toSortedJSONString, utf8encode } from '../../src/utils';
+import { JSON_EXT } from '../../src/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const git_module = require('isomorphic-git');
@@ -75,6 +77,19 @@ describe('<crud/blob>', () => {
       expect(blobToJsonDoc(shortId, readBlobResult, false)).toEqual(json);
     });
 
+    it('returns JsonDoc with overwritten _id', async () => {
+      const shortId = 'foo';
+      const shortId2 = 'foo';
+      const json = { _id: shortId, name: 'bar' };
+      const json2 = { _id: shortId2, name: 'bar' };
+      const text = toSortedJSONString(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDoc(shortId2, readBlobResult, false)).toEqual(json2);
+    });
+
     it('returns FatJsonDoc', async () => {
       const shortId = 'foo';
       const json = { _id: shortId, name: 'bar' };
@@ -86,10 +101,35 @@ describe('<crud/blob>', () => {
       };
       expect(blobToJsonDoc(shortId, readBlobResult, true)).toEqual({
         _id: shortId,
+        name: shortId + JSON_EXT,
         fileOid,
         type: 'json',
         doc: json,
       });
+    });
+  });
+
+  describe('blobToJsonDocWithoutOverwrittenId', () => {
+    it('throws InvalidJsonObjectError', async () => {
+      const text = 'bar';
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(() => blobToJsonDocWithoutOverwrittenId(readBlobResult)).toThrowError(
+        InvalidJsonObjectError
+      );
+    });
+
+    it('returns JsonDoc', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, name: 'bar' };
+      const text = toSortedJSONString(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDocWithoutOverwrittenId(readBlobResult)).toEqual(json);
     });
   });
 
@@ -105,15 +145,15 @@ describe('<crud/blob>', () => {
     });
 
     it('returns FatTextDoc', async () => {
-      const shortId = 'foo';
+      const shortName = 'foo.md';
       const text = '春はあけぼの';
       const fileOid = (await git.hashBlob({ object: text })).oid;
       const readBlobResult: ReadBlobResult = {
         oid: fileOid,
         blob: utf8encode(text),
       };
-      expect(blobToText(shortId, readBlobResult, true)).toEqual({
-        _id: shortId,
+      expect(blobToText(shortName, readBlobResult, true)).toEqual({
+        name: shortName,
         fileOid,
         type: 'text',
         doc: text,
@@ -132,16 +172,16 @@ describe('<crud/blob>', () => {
       expect(blobToBinary(shortId, readBlobResult, false)).toEqual(uint8array);
     });
 
-    it('returns FatTextDoc', async () => {
-      const shortId = 'foo';
+    it('returns FatBinaryDoc', async () => {
+      const shortName = 'foo.json';
       const uint8array = new Uint8Array([0, 1, 2]);
       const fileOid = (await git.hashBlob({ object: uint8array })).oid;
       const readBlobResult: ReadBlobResult = {
         oid: fileOid,
         blob: uint8array,
       };
-      expect(blobToBinary(shortId, readBlobResult, true)).toEqual({
-        _id: shortId,
+      expect(blobToBinary(shortName, readBlobResult, true)).toEqual({
+        name: shortName,
         fileOid,
         type: 'binary',
         doc: uint8array,

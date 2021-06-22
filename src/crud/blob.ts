@@ -53,7 +53,7 @@ export function blobToJsonDoc (
  */
 export function blobToJsonDocWithoutOverwrittenId (
   readBlobResult: ReadBlobResult
-): FatJsonDoc | JsonDoc {
+): JsonDoc {
   try {
     const text = utf8decode(readBlobResult.blob);
     const jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
