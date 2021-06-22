@@ -1187,7 +1187,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * Get synchronizer
    *
    */
-  getSynchronizer (remoteURL: string): Sync {
+  getSync (remoteURL: string): Sync {
     return this._synchronizers[remoteURL];
   }
 
@@ -1195,7 +1195,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * Stop and unregister remote synchronization
    *
    */
-  unregisterRemote (remoteURL: string) {
+  removeSync (remoteURL: string) {
     this._synchronizers[remoteURL].pause();
     delete this._synchronizers[remoteURL];
   }

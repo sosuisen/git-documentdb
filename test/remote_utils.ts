@@ -197,7 +197,7 @@ export async function createDatabase (
 
   await dbA.open();
   await dbA.sync(options);
-  const remoteA = dbA.getSynchronizer(remoteURL);
+  const remoteA = dbA.getSync(remoteURL);
 
   return [dbA, remoteA];
 }
@@ -240,8 +240,8 @@ export async function createClonedDatabases (
   await dbB.open();
   await dbB.sync(options);
 
-  const remoteA = dbA.getSynchronizer(remoteURL);
-  const remoteB = dbB.getSynchronizer(remoteURL);
+  const remoteA = dbA.getSync(remoteURL);
+  const remoteB = dbB.getSync(remoteURL);
 
   return [dbA, dbB, remoteA, remoteB];
 }

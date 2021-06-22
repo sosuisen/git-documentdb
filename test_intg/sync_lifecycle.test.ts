@@ -91,7 +91,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
    * Initialize means creating local and remote repositories by using a remoteUrl
    */
   describe('initialized by open():', () => {
-    it('getSynchronizer() returns an instance of Sync.', async () => {
+    it('getSync() returns an instance of Sync.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
@@ -121,8 +121,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
       };
       await dbA.open();
       await dbA.sync(options);
-      dbA.unregisterRemote(remoteURL);
-      expect(dbA.getSynchronizer(remoteURL)).toBeUndefined();
+      dbA.removeSync(remoteURL);
+      expect(dbA.getSync(remoteURL)).toBeUndefined();
       destroyDBs([dbA]);
     });
 
