@@ -8,6 +8,7 @@
 
 import path from 'path';
 import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger, TLogLevelName } from 'tslog';
@@ -52,6 +53,7 @@ import {
   GetOptions,
   HistoryOptions,
   JsonDoc,
+  NormalizedCommit,
   OpenOptions,
   PutOptions,
   PutResult,
@@ -74,7 +76,7 @@ import {
   JSON_EXT,
   SET_DATABASE_ID_MESSAGE,
 } from './const';
-import { toSortedJSONString } from './utils';
+import { normalizeCommit, toSortedJSONString } from './utils';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -1250,5 +1252,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     const sync = await syncImpl.call(this, options);
     this._synchronizers[sync.remoteURL()] = sync;
     return sync;
+  }
+
+  async getCommit (oid: string): Promise<NormalizedCommit> {
+    const readCommitResult = await git.readCommit({ fs, dir: this._workingDirectory, oid });
+    return normalizeCommit(readCommitResult);
   }
 }
