@@ -98,7 +98,7 @@ function getMergedDocument (
  * @throws {@link InvalidConflictStateError}
  * @throws {@link CannotDeleteDataError}
  * @throws {@link CannotCreateDirectoryError} (from writeBlobToFile)
- * @throws {@link InvalidJsonObjectError} (from getFatDoc)
+ * @throws {@link InvalidJsonObjectError} (from getFatDocFromData, getFatDocFromReadBlobResult)
  */
 // eslint-disable-next-line complexity
 export async function threeWayMerge (

@@ -9,7 +9,7 @@
 import nodePath from 'path';
 import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { normalizeCommit, utf8decode } from '../utils';
+import { normalizeCommit } from '../utils';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
 import {
@@ -23,7 +23,7 @@ import {
   NormalizedCommit,
 } from '../types';
 import { IDocumentDB } from '../types_gitddb';
-import { blobToBinary, blobToJsonDoc, blobToText, readBlobByOid } from '../crud/blob';
+import { blobToBinary, blobToJsonDoc, blobToText } from '../crud/blob';
 
 /**
  * Write blob to file system
@@ -51,7 +51,7 @@ async function getFatDocFromData (
   const { oid } = await git.hashBlob({ object: data });
   if (docType === 'json') {
     const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
-    if (data !== 'string') {
+    if (typeof data !== 'string') {
       throw new InvalidJsonObjectError(_id);
     }
     try {
@@ -104,6 +104,9 @@ export async function getFatDocFromOid (
   return getFatDocFromReadBlobResult(fullDocPath, readBlobResult, docType);
 }
 
+/**
+ * @throws {@link InvalidJsonObjectError}
+ */
 export function getFatDocFromReadBlobResult (
   fullDocPath: string,
   readBlobResult: ReadBlobResult,

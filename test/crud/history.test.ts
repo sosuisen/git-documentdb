@@ -98,6 +98,7 @@ maybe('<crud/history> getHistoryImpl', () => {
     );
 
     const _id = 'prof';
+    const shortName = _id + JSON_EXT;
     const jsonA1 = { _id, name: 'A-1' };
     const jsonA2 = { _id, name: 'A-2' };
     const jsonA3 = { _id, name: 'A-3' };
@@ -118,40 +119,46 @@ maybe('<crud/history> getHistoryImpl', () => {
     await syncB.trySync(); // Resolve conflict. jsonB2 wins.
 
     // Get
-    const history = await getHistoryImpl(dbB, _id, '', true, undefined, undefined, true);
+    const history = await getHistoryImpl(dbB, shortName, '', undefined, undefined, true);
 
     expect(history[0]).toEqual({
       _id,
+      name: shortName,
       fileOid: expect.stringMatching(/^[\da-z]{40}$/),
       type: 'json',
       doc: jsonB2,
     });
     expect(history[1]).toEqual({
       _id,
+      name: shortName,
       fileOid: expect.stringMatching(/^[\da-z]{40}$/),
       type: 'json',
       doc: jsonA3,
     });
     expect(history[2]).toEqual({
       _id,
+      name: shortName,
       fileOid: expect.stringMatching(/^[\da-z]{40}$/),
       type: 'json',
       doc: jsonB2,
     });
     expect(history[3]).toEqual({
       _id,
+      name: shortName,
       fileOid: expect.stringMatching(/^[\da-z]{40}$/),
       type: 'json',
       doc: jsonA2,
     });
     expect(history[4]).toEqual({
       _id,
+      name: shortName,
       fileOid: expect.stringMatching(/^[\da-z]{40}$/),
       type: 'json',
       doc: jsonB1,
     });
     expect(history[5]).toEqual({
       _id,
+      name: shortName,
       fileOid: expect.stringMatching(/^[\da-z]{40}$/),
       type: 'json',
       doc: jsonA1,
@@ -171,6 +178,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
+    const shortNameA = _idA + JSON_EXT;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -178,6 +186,7 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.put(jsonA02);
     await gitDDB.put(jsonA03);
     const _idB = 'profB';
+    const shortNameB = _idB + JSON_EXT;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
     await gitDDB.put(jsonB01);
@@ -185,9 +194,8 @@ describe('<crud/history> getHistoryImpl', () => {
     // Get
     const historyA = await getHistoryImpl(
       gitDDB,
-      _idA,
+      shortNameA,
       '',
-      true,
       undefined,
       undefined,
       true
@@ -198,9 +206,8 @@ describe('<crud/history> getHistoryImpl', () => {
     expect((historyA[2] as FatJsonDoc).doc).toMatchObject(jsonA01);
     const historyB = await getHistoryImpl(
       gitDDB,
-      _idB,
+      shortNameB,
       '',
-      true,
       undefined,
       undefined,
       true
@@ -221,6 +228,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
+    const shortNameA = _idA + JSON_EXT;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -235,6 +243,7 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.put(jsonA03);
 
     const _idB = 'profB';
+    const shortNameB = _idB + JSON_EXT;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
 
@@ -248,9 +257,8 @@ describe('<crud/history> getHistoryImpl', () => {
 
     const historyA = await getHistoryImpl(
       gitDDB,
-      _idA,
+      shortNameA,
       '',
-      true,
       {
         filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
       },
@@ -263,9 +271,8 @@ describe('<crud/history> getHistoryImpl', () => {
 
     const historyB = await getHistoryImpl(
       gitDDB,
-      _idB,
+      shortNameB,
       '',
-      true,
       {
         filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
       },
@@ -294,7 +301,6 @@ describe('<crud/history> getHistoryImpl', () => {
       gitDDB,
       'invalid_id',
       '',
-      true,
       undefined,
       undefined,
       true
@@ -313,6 +319,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
+    const shortNameA = _idA + JSON_EXT;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -326,9 +333,8 @@ describe('<crud/history> getHistoryImpl', () => {
     // Get
     const historyA = await getHistoryImpl(
       gitDDB,
-      _idA,
+      shortNameA,
       '',
-      true,
       undefined,
       undefined,
       true
@@ -359,7 +365,7 @@ describe('<crud/history> getHistoryImpl', () => {
     // Call close() without await
     gitDDB.close().catch(() => {});
     await expect(
-      getHistoryImpl(gitDDB, '0', '', true, undefined, undefined, true)
+      getHistoryImpl(gitDDB, '0.json', '', undefined, undefined, true)
     ).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
@@ -378,7 +384,7 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.open();
     await gitDDB.close();
     await expect(
-      getHistoryImpl(gitDDB, 'tmp', '', true, undefined, undefined, true)
+      getHistoryImpl(gitDDB, 'tmp', '', undefined, undefined, true)
     ).rejects.toThrowError(RepositoryNotOpenError);
     await destroyDBs([gitDDB]);
   });
@@ -390,10 +396,10 @@ describe('<crud/history> getHistoryImpl', () => {
       localDir,
     });
     await gitDDB.open();
-    await gitDDB.put('1.json', 'invalid json');
+    await gitDDB.putFatDoc('1.json', 'invalid json');
 
     await expect(
-      getHistoryImpl(gitDDB, '1', '', true, undefined, undefined, true)
+      getHistoryImpl(gitDDB, '1.json', '', undefined, undefined, true)
     ).rejects.toThrowError(InvalidJsonObjectError);
 
     await destroyDBs([gitDDB]);
@@ -409,6 +415,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
       await gitDDB.open();
       const _idA = 'profA';
+      const shortNameA = _idA + JSON_EXT;
       const jsonA01 = { _id: _idA, name: 'v01' };
       const jsonA02 = { _id: _idA, name: 'v02' };
       const jsonA03 = { _id: _idA, name: 'v03' };
@@ -417,7 +424,7 @@ describe('<crud/history> getHistoryImpl', () => {
       await gitDDB.put(jsonA03);
 
       // Get
-      const historyA = await getHistoryImpl(gitDDB, _idA, '', true);
+      const historyA = await getHistoryImpl(gitDDB, shortNameA, '');
       expect(historyA.length).toBe(3);
       expect(historyA[0]).toMatchObject(jsonA03);
       expect(historyA[1]).toMatchObject(jsonA02);
@@ -435,6 +442,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
       await gitDDB.open();
       const _idA = 'profA';
+      const shortNameA = _idA + JSON_EXT;
       const jsonA01 = { _id: _idA, name: 'v01' };
       const jsonA02 = { _id: _idA, name: 'v02' };
       const jsonA03 = { _id: _idA, name: 'v03' };
@@ -448,9 +456,8 @@ describe('<crud/history> getHistoryImpl', () => {
       // Get
       const historyA = await getHistoryImpl(
         gitDDB,
-        _idA,
+        shortNameA,
         '',
-        true,
         undefined,
         undefined,
         false
@@ -482,7 +489,6 @@ describe('<crud/history> getHistoryImpl', () => {
         gitDDB,
         'invalid_id',
         '',
-        true,
         undefined,
         undefined,
         false
