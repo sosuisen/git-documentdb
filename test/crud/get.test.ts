@@ -69,9 +69,7 @@ describe('<crud/get> getImpl()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(getImpl(gitDDB, 'tmp', '', true)).rejects.toThrowError(
-      DatabaseClosingError
-    );
+    await expect(getImpl(gitDDB, 'tmp', '')).rejects.toThrowError(DatabaseClosingError);
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
       await sleep(100);
@@ -87,9 +85,7 @@ describe('<crud/get> getImpl()', () => {
     });
     await gitDDB.open();
     await gitDDB.close();
-    await expect(getImpl(gitDDB, 'tmp', '', true)).rejects.toThrowError(
-      RepositoryNotOpenError
-    );
+    await expect(getImpl(gitDDB, 'tmp', '')).rejects.toThrowError(RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -101,13 +97,13 @@ describe('<crud/get> getImpl()', () => {
     });
     await gitDDB.open();
 
-    const shortId = 'foo';
+    const shortName = 'foo.json';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortName;
     const data = 'invalid data'; // JSON.parse() will throw error
     await addOneData(gitDDB, fullDocPath, data);
 
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).rejects.toThrowError(
+    await expect(getImpl(gitDDB, shortName, collectionPath)).rejects.toThrowError(
       InvalidJsonObjectError
     );
 
@@ -123,11 +119,12 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'prof01';
+    const shortName = shortId + JSON_EXT;
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+    await expect(getImpl(gitDDB, shortName, collectionPath)).resolves.toEqual(json);
 
     await gitDDB.destroy();
   });
@@ -141,11 +138,12 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'dir01/prof01';
+    const shortName = shortId + JSON_EXT;
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+    await expect(getImpl(gitDDB, shortName, collectionPath)).resolves.toEqual(json);
 
     await gitDDB.destroy();
   });
@@ -159,11 +157,12 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'dir01/prof01';
+    const shortName = shortId + JSON_EXT;
     const collectionPath = 'col01/col02/col03';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+    await expect(getImpl(gitDDB, shortName, collectionPath)).resolves.toEqual(json);
 
     await gitDDB.destroy();
   });
@@ -178,9 +177,9 @@ describe('<crud/get> getImpl()', () => {
     const stubIsOpened = sandbox.stub(gitDDB, 'isOpened');
     stubIsOpened.returns(true);
 
-    const shortId = 'prof01';
+    const shortName = 'prof01.json';
     const collectionPath = '';
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toBeUndefined();
+    await expect(getImpl(gitDDB, shortName, collectionPath)).resolves.toBeUndefined();
 
     await gitDDB.destroy();
   });
@@ -193,10 +192,10 @@ describe('<crud/get> getImpl()', () => {
     });
     await gitDDB.open();
 
-    const shortId = 'dir01/prof01';
+    const shortName = 'dir01/prof01.json';
     const collectionPath = '';
 
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toBeUndefined();
+    await expect(getImpl(gitDDB, shortName, collectionPath)).resolves.toBeUndefined();
 
     await gitDDB.destroy();
   });
@@ -210,15 +209,16 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'prof01';
+    const shortName = shortId + JSON_EXT;
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
     const stubReadBlob = sandbox.stub(git_module, 'readBlob');
     stubReadBlob.rejects();
 
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toBeUndefined();
+    await expect(getImpl(gitDDB, shortName, collectionPath)).resolves.toBeUndefined();
 
     await gitDDB.destroy();
   });
@@ -232,11 +232,12 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = '枕草子/春はあけぼの';
+    const shortName = shortId + JSON_EXT;
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
-    await expect(getImpl(gitDDB, shortId, collectionPath, true)).resolves.toEqual(json);
+    await expect(getImpl(gitDDB, shortName, collectionPath)).resolves.toEqual(json);
 
     await gitDDB.destroy();
   });
@@ -251,13 +252,14 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
       const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { oid })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { oid })
       ).resolves.toEqual(json);
 
       await gitDDB.destroy();
@@ -274,15 +276,17 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
       const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { withMetadata: true })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { withMetadata: true })
       ).resolves.toEqual({
         _id: shortId,
+        name: shortName,
         fileOid: oid,
         type: 'json',
         doc: json,
@@ -300,13 +304,14 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: -1 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: -1 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -323,14 +328,15 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 0 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 0 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -345,14 +351,15 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 1 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 1 })
       ).resolves.toEqual(json);
 
       await gitDDB.destroy();
@@ -367,8 +374,9 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -376,7 +384,7 @@ describe('<crud/get> getImpl()', () => {
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 2 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 2 })
       ).resolves.toEqual(json01);
 
       await gitDDB.destroy();
@@ -391,8 +399,9 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -400,7 +409,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 2 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 2 })
       ).resolves.toEqual(json01);
 
       await gitDDB.destroy();
@@ -415,8 +424,9 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -424,7 +434,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 1 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 1 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -439,8 +449,9 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
       const json02 = { _id: shortId, name: 'v02' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -448,7 +459,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 3 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 3 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -462,11 +473,11 @@ describe('<crud/get> getImpl()', () => {
       });
 
       await gitDDB.open();
-      const shortId = 'prof01';
+      const shortName = 'prof01.json';
       const collectionPath = '';
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 0 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 0 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -481,8 +492,9 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
+      const shortName = shortId + JSON_EXT;
       const collectionPath = '';
-      const fullDocPath = collectionPath + shortId + JSON_EXT;
+      const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
@@ -490,7 +502,7 @@ describe('<crud/get> getImpl()', () => {
       stubReadBlob.rejects();
 
       await expect(
-        getImpl(gitDDB, shortId, collectionPath, true, undefined, { backNumber: 0 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 0 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -505,8 +517,9 @@ describe('<crud/get> getImpl()', () => {
     });
 
     const targetId = '01';
+    const targetName = targetId + JSON_EXT;
     const collectionPath = '';
-    const fullDocPath = collectionPath + targetId + JSON_EXT;
+    const fullDocPath = collectionPath + targetName;
 
     const json01 = { _id: targetId, name: 'v01' };
     const json02 = { _id: targetId, name: 'v02' };
@@ -764,9 +777,8 @@ describe('<crud/get> getImpl()', () => {
       await expect(
         getImpl(
           gitDDB,
-          targetId,
+          targetName,
           collectionPath,
-          true,
           undefined,
           { backNumber: 0 },
           {
@@ -783,9 +795,8 @@ describe('<crud/get> getImpl()', () => {
       await expect(
         getImpl(
           gitDDB,
-          targetId,
+          targetName,
           collectionPath,
-          true,
           undefined,
           { backNumber: 1 },
           {
@@ -804,9 +815,8 @@ describe('<crud/get> getImpl()', () => {
       await expect(
         getImpl(
           gitDDB,
-          targetId,
+          targetName,
           collectionPath,
-          true,
           undefined,
           { backNumber: 0 },
           {
@@ -821,9 +831,8 @@ describe('<crud/get> getImpl()', () => {
       await expect(
         getImpl(
           gitDDB,
-          targetId,
+          targetName,
           collectionPath,
-          true,
           undefined,
           { backNumber: 1 },
           {
