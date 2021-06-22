@@ -161,9 +161,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -241,9 +244,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -313,9 +319,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultA1.fileOid,
+          type: 'json',
+          doc: jsonA1,
         },
         strategy: 'theirs',
         operation: 'insert',
@@ -401,7 +410,10 @@ maybe('<remote/3way_merge>', () => {
       {
         target: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -487,9 +499,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -567,9 +582,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: deleteResultB1.fileOid,
+          type: 'json',
+          doc: jsonA1,
         },
         strategy: 'ours',
         operation: 'delete',
@@ -649,9 +667,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        facDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultA1dash.fileOid,
+          type: 'json',
+          doc: jsonA1dash,
         },
         strategy: 'theirs',
         operation: 'update',
@@ -733,9 +754,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        webkitConvertPointFromPageToNode: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
