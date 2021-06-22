@@ -19,6 +19,8 @@ import { InvalidConflictStateError } from '../../src/error';
 import { threeWayMerge } from '../../src/remote/3way_merge';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import {
+  FatDoc,
+  FatJsonDoc,
   JsonDoc,
   SyncResultMergeAndPush,
   SyncResultResolveConflictsAndPush,
@@ -408,7 +410,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
           name: '1.json',
           fileOid: putResultB1.fileOid,
@@ -667,7 +669,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        facDoc: {
+        fatDoc: {
           _id: '1',
           name: '1.json',
           fileOid: putResultA1dash.fileOid,
@@ -754,7 +756,7 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        webkitConvertPointFromPageToNode: {
+        fatDoc: {
           _id: '1',
           name: '1.json',
           fileOid: putResultB1.fileOid,
@@ -838,9 +840,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'update',
@@ -927,9 +932,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: deleteResultA1.fileOid,
+          type: 'json',
+          doc: jsonA1,
         },
         strategy: 'theirs',
         operation: 'delete',
@@ -1012,9 +1020,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1104,9 +1115,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1194,9 +1208,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'insert',
@@ -1274,9 +1291,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'update',
@@ -1357,9 +1377,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultA1dash.fileOid,
+          type: 'json',
+          doc: jsonA1dash,
         },
         strategy: 'theirs',
         operation: 'update',
@@ -1477,25 +1500,34 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts).toEqual(
       expect.arrayContaining([
         {
-          target: {
+          fatDoc: {
             _id: '1',
+            name: '1.json',
             fileOid: deleteResultB1.fileOid,
+            type: 'json',
+            doc: jsonA1,
           },
           strategy: 'ours',
           operation: 'delete',
         },
         {
-          target: {
+          fatDoc: {
             _id: '2',
+            name: '2.json',
             fileOid: putResultB2.fileOid,
+            type: 'json',
+            doc: jsonB2,
           },
           strategy: 'ours',
           operation: 'update',
         },
         {
-          target: {
+          fatDoc: {
             _id: '3',
+            name: '3.json',
             fileOid: putResultB3.fileOid,
+            type: 'json',
+            doc: jsonB3,
           },
           strategy: 'ours',
           operation: 'update',
@@ -1526,11 +1558,11 @@ maybe('<remote/3way_merge>', () => {
    *   jsonB1:16 - Conflict. Accept ours (update)
    */
   it('resolves case 16 by user strategy function.', async () => {
-    const userStrategyByDate = (ours?: JsonDoc, theirs?: JsonDoc) => {
+    const userStrategyByDate = (ours?: FatDoc, theirs?: FatDoc) => {
       if (ours === undefined || theirs === undefined) {
         throw new Error('Undefined document');
       }
-      if (ours.date > theirs.date) {
+      if ((ours.doc as JsonDoc).date > (theirs.doc as JsonDoc).date) {
         return 'ours';
       }
       return 'theirs';
@@ -1585,9 +1617,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours',
         operation: 'update',
@@ -1616,11 +1651,11 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA1:17 - Conflict. Accept theirs (update)
    */
   it('resolves case 17 by user strategy function.', async () => {
-    const userStrategyByDate = (ours?: JsonDoc, theirs?: JsonDoc) => {
+    const userStrategyByDate = (ours?: FatDoc, theirs?: FatDoc) => {
       if (ours === undefined || theirs === undefined) {
         throw new Error('Undefined document');
       }
-      if (ours.date > theirs.date) {
+      if ((ours.doc as JsonDoc).date > (theirs.doc as JsonDoc).date) {
         return 'ours';
       }
       return 'theirs';
@@ -1677,9 +1712,12 @@ maybe('<remote/3way_merge>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultA1dash.fileOid,
+          type: 'json',
+          doc: jsonA1dash,
         },
         strategy: 'theirs',
         operation: 'update',
