@@ -96,21 +96,34 @@ export async function getAllMetadata (repos: nodegit.Repository) {
           if (docType === 'text') {
             // TODO: select binary or text by .gitattribtues
           }
-          let _id;
+
+          let docMetadata: DocMetadata;
           // eslint-disable-next-line max-depth
           if (docType === 'json') {
-            _id = entryPath.replace(new RegExp(JSON_EXT + '$'), '');
+            const _id = entryPath.replace(new RegExp(JSON_EXT + '$'), '');
+            docMetadata = {
+              _id,
+              name: entryPath,
+              fileOid: entry!.id().tostrS(),
+              type: 'json',
+            };
           }
-          else {
-            _id = entryPath;
+          else if (docType === 'text') {
+            docMetadata = {
+              name: entryPath,
+              fileOid: entry!.id().tostrS(),
+              type: 'text',
+            };
+          }
+          else if (docType === 'binary') {
+            docMetadata = {
+              name: entryPath,
+              fileOid: entry!.id().tostrS(),
+              type: 'binary',
+            };
           }
 
-          const docMetadata: DocMetadata = {
-            _id,
-            fileOid: entry!.id().tostrS(),
-            type: docType,
-          };
-          files.push(docMetadata);
+          files.push(docMetadata!);
         }
       }
     }

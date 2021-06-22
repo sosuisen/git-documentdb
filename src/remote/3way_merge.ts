@@ -12,19 +12,26 @@ import {
   AcceptedConflict,
   ConflictResolutionStrategies,
   ConflictResolutionStrategyLabels,
+  DocType,
+  FatDoc,
   IJsonPatch,
   JsonDoc,
 } from '../types';
 import { IDocumentDB } from '../types_gitddb';
-import { getDocumentFromBuffer, writeBlobToFile } from './worker_utils';
+import {
+  getFatDocFromData,
+  getFatDocFromOid,
+  getFatDocFromReadBlobResult,
+  writeBlobToFile,
+} from './worker_utils';
 import { toSortedJSONString, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { ISync } from '../types_sync';
 
 function getStrategy (
   strategy: ConflictResolutionStrategies | undefined,
-  oursDoc?: JsonDoc,
-  theirsDoc?: JsonDoc
+  oursDoc?: FatDoc,
+  theirsDoc?: FatDoc
 ) {
   const defaultStrategy: ConflictResolutionStrategies = DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
   if (strategy === undefined) {
@@ -90,7 +97,8 @@ function getMergedDocument (
  * @throws {@link RepositoryNotOpenError}
  * @throws {@link InvalidConflictStateError}
  * @throws {@link CannotDeleteDataError}
- * @throws {@link CannotCreateDirectoryError} (from writeBlobToFile())
+ * @throws {@link CannotCreateDirectoryError} (from writeBlobToFile)
+ * @throws {@link InvalidJsonObjectError} (from getFatDoc)
  */
 // eslint-disable-next-line complexity
 export async function threeWayMerge (
@@ -98,7 +106,7 @@ export async function threeWayMerge (
   sync: ISync,
   conflictResolutionStrategy: ConflictResolutionStrategies,
   resolvedIndex: nodegit.Index,
-  path: string,
+  fullDocPath: string,
   mergeBaseOid: string,
   oursCommitOid: string,
   theirsCommitOid: string,
@@ -114,7 +122,7 @@ export async function threeWayMerge (
       fs,
       dir: gitDDB.workingDir(),
       oid: mergeBaseOid,
-      filepath: path,
+      filepath: fullDocPath,
     })
     .catch(() => undefined);
 
@@ -123,7 +131,7 @@ export async function threeWayMerge (
       fs,
       dir: gitDDB.workingDir(),
       oid: oursCommitOid,
-      filepath: path,
+      filepath: fullDocPath,
     })
     .catch(() => undefined);
 
@@ -132,11 +140,15 @@ export async function threeWayMerge (
       fs,
       dir: gitDDB.workingDir(),
       oid: theirsCommitOid,
-      filepath: path,
+      filepath: fullDocPath,
     })
     .catch(() => undefined);
 
-  const docId = path.replace(new RegExp(JSON_EXT + '$'), '');
+  const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
+  const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+  if (docType === 'text') {
+    // TODO: select binary or text by .gitattribtues
+  }
 
   // 2 x 2 x 2 cases
   if (!base && !ours && !theirs) {
@@ -149,28 +161,28 @@ export async function threeWayMerge (
     // A new file has been inserted on theirs.
     // Write it to the file.
     // console.log(' #case 1 - Accept theirs (insert): ' + path);
-    await writeBlobToFile(gitDDB, path, utf8decode(theirs!.blob));
-    await resolvedIndex.addByPath(path);
+    await writeBlobToFile(gitDDB, fullDocPath, utf8decode(theirs!.blob));
+    await resolvedIndex.addByPath(fullDocPath);
   }
   else if (!base && ours && !theirs) {
     // A new file has been inserted on ours.
     // Just add it to the index.
     // console.log(' #case 2 - Accept ours (insert): ' + path);
-    await resolvedIndex.addByPath(path);
+    await resolvedIndex.addByPath(fullDocPath);
   }
   else if (!base && ours && theirs) {
     if (ours.oid === theirs.oid) {
       // The same filenames with exactly the same contents are inserted on both local and remote.
       // console.log(' #case 3 - Accept both (insert): ' + path);
       // Jut add it to the index.
-      await resolvedIndex.addByPath(path);
+      await resolvedIndex.addByPath(fullDocPath);
     }
     else {
       // ! Conflict
       const strategy = await getStrategy(
         conflictResolutionStrategy,
-        getDocumentFromBuffer(path, ours.blob),
-        getDocumentFromBuffer(path, theirs.blob)
+        getFatDocFromReadBlobResult(fullDocPath, ours, docType),
+        getFatDocFromReadBlobResult(fullDocPath, theirs, docType)
       );
       if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add it to the index.
@@ -184,17 +196,14 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(theirs!.blob))
         );
 
-        await writeBlobToFile(gitDDB, path, data);
+        await writeBlobToFile(gitDDB, fullDocPath, data);
 
-        await resolvedIndex.addByPath(path);
-        const entry = await resolvedIndex.getByPath(path);
-        const fileOid = entry.id.tostrS();
+        await resolvedIndex.addByPath(fullDocPath);
+
+        const fatDoc: FatDoc = await getFatDocFromData(data, fullDocPath, docType);
+
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: strategy === 'ours' ? 'insert' : 'insert-merge',
         });
@@ -210,18 +219,14 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(ours!.blob)),
           JSON.parse(utf8decode(theirs!.blob))
         );
-        await writeBlobToFile(gitDDB, path, data);
+        await writeBlobToFile(gitDDB, fullDocPath, data);
 
-        await resolvedIndex.addByPath(path);
-        const entry = await resolvedIndex.getByPath(path);
-        const fileOid = entry.id.tostrS();
+        await resolvedIndex.addByPath(fullDocPath);
+
+        const fatDoc: FatDoc = await getFatDocFromData(data, fullDocPath, docType);
 
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: strategy === 'theirs' ? 'insert' : 'insert-merge',
         });
@@ -231,53 +236,59 @@ export async function threeWayMerge (
   else if (base && !ours && !theirs) {
     // The same files are removed.
     // console.log(' #case 6 - Accept both (delete): ' + path);
-    await resolvedIndex.removeByPath(path);
+    await resolvedIndex.removeByPath(fullDocPath);
   }
   else if (base && !ours && theirs) {
     if (base.oid === theirs.oid) {
       // A file has been removed on ours.
       // console.log(' #case 7 - Accept ours (delete): ' + path);
-      await resolvedIndex.removeByPath(path);
+      await resolvedIndex.removeByPath(fullDocPath);
     }
     else {
       // ! Conflict
       const strategy = await getStrategy(
         conflictResolutionStrategy,
         undefined,
-        getDocumentFromBuffer(path, theirs.blob)
+        getFatDocFromReadBlobResult(fullDocPath, theirs, docType)
       );
       if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add it to the index.
         // console.log(' #case 8 - Conflict. Accept ours (delete): ' + path);
+        const fatDoc: FatDoc = await getFatDocFromOid(
+          gitDDB.workingDir(),
+          fullDocPath,
+          base.oid,
+          docType
+        );
+
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid: base.oid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: 'delete',
         });
-        await resolvedIndex.removeByPath(path);
+        await resolvedIndex.removeByPath(fullDocPath);
       }
       else if (strategy === 'theirs' || strategy === 'theirs-diff') {
         // Write theirs to the file.
         // console.log(' #case 9 - Conflict. Accept theirs (update): ' + path);
+        const fatDoc: FatDoc = await getFatDocFromOid(
+          gitDDB.workingDir(),
+          fullDocPath,
+          theirs.oid,
+          docType
+        );
+
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid: theirs.oid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: 'update',
         });
 
         const data = utf8decode(theirs!.blob);
 
-        await writeBlobToFile(gitDDB, path, data);
+        await writeBlobToFile(gitDDB, fullDocPath, data);
 
-        await resolvedIndex.addByPath(path);
+        await resolvedIndex.addByPath(fullDocPath);
       }
     }
   }
@@ -285,53 +296,59 @@ export async function threeWayMerge (
     if (base.oid === ours.oid) {
       // A file has been removed on theirs.
       // console.log(' #case 10 - Accept theirs (delete): ' + path);
-      await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
+      await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
         throw new CannotDeleteDataError();
       });
-      await resolvedIndex.removeByPath(path);
+      await resolvedIndex.removeByPath(fullDocPath);
     }
     else {
       // ! Conflict
       const strategy = await getStrategy(
         conflictResolutionStrategy,
-        getDocumentFromBuffer(path, ours.blob),
+        getFatDocFromReadBlobResult(fullDocPath, ours, docType),
         undefined
       );
       if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add to the index.
         // console.log(' #case 11 - Conflict. Accept ours (update): ' + path);
+        const fatDoc: FatDoc = await getFatDocFromOid(
+          gitDDB.workingDir(),
+          fullDocPath,
+          ours.oid,
+          docType
+        );
+
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid: ours.oid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: 'update',
         });
 
         const data = utf8decode(ours!.blob);
 
-        await writeBlobToFile(gitDDB, path, data);
+        await writeBlobToFile(gitDDB, fullDocPath, data);
 
-        await resolvedIndex.addByPath(path);
+        await resolvedIndex.addByPath(fullDocPath);
       }
       else if (strategy === 'theirs' || strategy === 'theirs-diff') {
         // Remove file
         // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + path);
+        const fatDoc: FatDoc = await getFatDocFromOid(
+          gitDDB.workingDir(),
+          fullDocPath,
+          base.oid,
+          docType
+        );
+
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid: base.oid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: 'delete',
         });
-        await fs.remove(nodePath.resolve(repos.workdir(), path)).catch(() => {
+        await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
           throw new CannotDeleteDataError();
         });
-        await resolvedIndex.removeByPath(path);
+        await resolvedIndex.removeByPath(fullDocPath);
       }
     }
   }
@@ -340,26 +357,26 @@ export async function threeWayMerge (
       // The same filenames with exactly the same contents are inserted on both local and remote.
       // Jut add it to the index.
       // console.log(' #case 13 - Accept both (update): ' + path);
-      await resolvedIndex.addByPath(path);
+      await resolvedIndex.addByPath(fullDocPath);
     }
     else if (base.oid === ours.oid) {
       // Write theirs to the file.
       // console.log(' #case 14 - Accept theirs (update): ' + path);
       const data = utf8decode(theirs!.blob);
-      await writeBlobToFile(gitDDB, path, data);
-      await resolvedIndex.addByPath(path);
+      await writeBlobToFile(gitDDB, fullDocPath, data);
+      await resolvedIndex.addByPath(fullDocPath);
     }
     else if (base.oid === theirs.oid) {
       // Jut add it to the index.
       // console.log(' #case 15 - Accept ours (update): ' + path);
-      await resolvedIndex.addByPath(path);
+      await resolvedIndex.addByPath(fullDocPath);
     }
     else {
       // ! Conflict
       const strategy = await getStrategy(
         conflictResolutionStrategy,
-        getDocumentFromBuffer(path, ours.blob),
-        getDocumentFromBuffer(path, theirs.blob)
+        getFatDocFromReadBlobResult(fullDocPath, ours, docType),
+        getFatDocFromReadBlobResult(fullDocPath, theirs, docType)
       );
       if (strategy === 'ours' || strategy === 'ours-diff') {
         // Just add it to the index.
@@ -373,18 +390,14 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(theirs!.blob))
         );
 
-        await writeBlobToFile(gitDDB, path, data);
+        await writeBlobToFile(gitDDB, fullDocPath, data);
 
-        await resolvedIndex.addByPath(path);
-        const entry = await resolvedIndex.getByPath(path);
-        const fileOid = entry.id.tostrS();
+        await resolvedIndex.addByPath(fullDocPath);
+
+        const fatDoc: FatDoc = await getFatDocFromData(data, fullDocPath, docType);
 
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: strategy === 'ours' ? 'update' : 'update-merge',
         });
@@ -401,18 +414,14 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(theirs!.blob))
         );
 
-        await writeBlobToFile(gitDDB, path, data);
+        await writeBlobToFile(gitDDB, fullDocPath, data);
 
-        await resolvedIndex.addByPath(path);
-        const entry = await resolvedIndex.getByPath(path);
-        const fileOid = entry.id.tostrS();
+        await resolvedIndex.addByPath(fullDocPath);
+
+        const fatDoc: FatDoc = await getFatDocFromData(data, fullDocPath, docType);
 
         acceptedConflicts.push({
-          target: {
-            _id: docId,
-            fileOid,
-            type: 'json',
-          },
+          fatDoc,
           strategy: strategy,
           operation: strategy === 'theirs' ? 'update' : 'update-merge',
         });

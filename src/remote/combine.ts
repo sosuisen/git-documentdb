@@ -15,7 +15,10 @@ import rimraf from 'rimraf';
 import { cloneRepository } from './clone';
 import {
   DocMetadata,
+  DocType,
   DuplicatedFile,
+  FatDoc,
+  JsonDocMetadata,
   RemoteOptions,
   SyncResultCombineDatabase,
 } from '../types';
@@ -51,76 +54,99 @@ export async function combineDatabaseWithTheirs (
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.repository()!);
     const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteRepository);
-    const remoteIds = remoteMetadataList.map(meta => meta._id);
+    const remoteNames = remoteMetadataList.map(meta => meta.name);
 
     for (let i = 0; i < localMetadataList.length; i++) {
       const meta = localMetadataList[i];
-      const filename = meta._id + (meta.type === 'json' ? '.json' : '');
-      const localFilePath = path.resolve(gitDDB.workingDir(), filename);
-      const remoteFilePath = path.resolve(remoteDir, filename);
+      const localFilePath = path.resolve(gitDDB.workingDir(), meta.name);
+      const remoteFilePath = path.resolve(remoteDir, meta.name);
       const dir = path.dirname(remoteFilePath);
 
       await fs.ensureDir(dir);
 
-      if (remoteIds.includes(meta._id)) {
+      const docType: DocType = localFilePath.endsWith('.json') ? 'json' : 'text';
+      // eslint-disable-next-line max-depth
+      if (docType === 'text') {
+        // TODO: select binary or text by .gitattribtues
+      }
+
+      if (remoteNames.includes(meta.name)) {
         // Add postfix and copy localFilePath to remoteFilePath if remoteFilePath exists
 
         let duplicatedFileName = '';
         let duplicatedFileId = '';
-        let duplicatedFileSha = '';
         let duplicatedFileExt = '';
         const postfix = DUPLICATED_FILE_POSTFIX + gitDDB.dbId();
 
-        if (remoteFilePath.endsWith(JSON_EXT)) {
+        let original: DocMetadata;
+        let duplicate: DocMetadata;
+
+        const remoteFile = remoteMetadataList.find(data => data.name === meta.name);
+
+        if (docType === 'json') {
           const doc = fs.readJSONSync(localFilePath);
-          doc._id = meta._id + postfix;
-          duplicatedFileName = meta._id + postfix + JSON_EXT;
-          duplicatedFileId = meta._id + postfix;
+          const _id = (meta as JsonDocMetadata)._id;
+          // eslint-disable-next-line max-depth
+          if (doc._id !== undefined) {
+            doc._id = _id + postfix;
+          }
+          duplicatedFileName = _id + postfix + JSON_EXT;
+          duplicatedFileId = _id + postfix;
           duplicatedFileExt = JSON_EXT;
           fs.writeFileSync(
             path.resolve(remoteDir, duplicatedFileName),
             toSortedJSONString(doc)
           );
+          original = {
+            _id,
+            name: meta.name,
+            fileOid: remoteFile!.fileOid,
+            type: 'json',
+          };
+          duplicate = {
+            _id: duplicatedFileId,
+            name: duplicatedFileName,
+            fileOid: meta.fileOid,
+            type: 'json',
+          };
         }
         else {
           // Add postfix before extension.
-          duplicatedFileId = meta._id + postfix;
           duplicatedFileExt = path.extname(localFilePath);
-          duplicatedFileName = duplicatedFileId + duplicatedFileExt;
+          const onlyName = localFilePath.replace(new RegExp(duplicatedFileExt + '$'), '');
+          duplicatedFileName = onlyName + postfix + duplicatedFileExt;
 
           fs.copyFileSync(localFilePath, path.resolve(remoteDir, duplicatedFileName));
+
+          original = {
+            name: meta.name,
+            fileOid: remoteFile!.fileOid,
+            type: docType,
+          };
+          duplicate = {
+            name: duplicatedFileName,
+            fileOid: meta.fileOid,
+            type: docType,
+          };
         }
         await index.addByPath(duplicatedFileName);
         await index.write();
 
-        const entry = index.getByPath(duplicatedFileName, 0); // https://www.nodegit.org/api/index/#STAGE
-        duplicatedFileSha = entry.id.tostrS();
-
-        const remoteFile = remoteMetadataList.find(data => data._id === meta._id);
-        // TODO: check file types
         duplicates.push({
-          original: {
-            _id: meta._id,
-            fileOid: remoteFile!.fileOid,
-            type: 'json',
-          },
-          duplicate: {
-            _id: duplicatedFileId,
-            fileOid: duplicatedFileSha,
-            type: 'json',
-          },
+          original,
+          duplicate,
         });
       }
       else {
         // Copy localFilePath to remoteFilePath if remoteFilePath not exists
         await fs.copyFile(localFilePath, remoteFilePath);
-        await index.addByPath(filename);
+        await index.addByPath(meta.name);
         await index.write();
       }
     }
 
     if (localMetadataList.length > 0) {
-      const treeOid = await index.writeTree();
+      await index.writeTree();
 
       const commitMessage = 'combine database head with theirs';
 

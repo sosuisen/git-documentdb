@@ -41,11 +41,16 @@ export function blobToJsonDoc (
       return fatJsonDoc;
     }
     return jsonDoc;
-  } catch (e) {
+  } catch {
     throw new InvalidJsonObjectError(shortId);
   }
 }
 
+/**
+ * blobToJsonDocWithoutOverwrittenId
+ *
+ * @throws {@link InvalidJsonObjectError}
+ */
 export function blobToJsonDocWithoutOverwrittenId (
   readBlobResult: ReadBlobResult
 ): FatJsonDoc | JsonDoc {

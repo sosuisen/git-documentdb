@@ -480,7 +480,7 @@ export type CombineDbStrategies =
  */
 export type ConflictResolutionStrategies =
   | ConflictResolutionStrategyLabels
-  | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolutionStrategyLabels);
+  | ((ours?: FatDoc, theirs?: FatDoc) => ConflictResolutionStrategyLabels);
 
 export type ConflictResolutionStrategyLabels =
   | 'ours-diff'
@@ -513,14 +513,14 @@ export type WriteOperation =
  * Accepted conflict
  *
  * @remarks
- * - target: Conflicted document (metadata only)
+ * - doc: Conflicted document (metadata only)
  *
  * - strategy: Applied strategy on the target
  *
  * - operation: Applied write operation on the target
  */
 export type AcceptedConflict = {
-  target: DocMetadata;
+  fatDoc: FatDoc;
   strategy: ConflictResolutionStrategyLabels;
   operation: WriteOperation;
 };

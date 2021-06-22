@@ -7,13 +7,23 @@
  */
 
 import nodePath from 'path';
-import git, { ReadCommitResult } from 'isomorphic-git';
+import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { normalizeCommit, utf8decode } from '../utils';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
-import { ChangedFile, JsonDoc, NormalizedCommit } from '../types';
+import {
+  ChangedFile,
+  DocType,
+  FatBinaryDoc,
+  FatDoc,
+  FatJsonDoc,
+  FatTextDoc,
+  JsonDoc,
+  NormalizedCommit,
+} from '../types';
 import { IDocumentDB } from '../types_gitddb';
+import { blobToBinary, blobToJsonDoc, blobToText, readBlobByOid } from '../crud/blob';
 
 /**
  * Write blob to file system
@@ -29,27 +39,88 @@ export async function writeBlobToFile (gitDDB: IDocumentDB, name: string, data: 
   await fs.writeFile(filePath, data);
 }
 
-export function getDocumentFromBuffer (filepath: string, buffer: Uint8Array) {
-  const id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
-  let document: JsonDoc | undefined;
-  try {
-    document = (JSON.parse(utf8decode(buffer)) as unknown) as JsonDoc;
-    if (document._id !== undefined) {
-      document._id = id;
+export /**
+ * @throws {@link InvalidJsonObjectError}
+ */
+async function getFatDocFromData (
+  data: string | Uint8Array,
+  fullDocPath: string,
+  docType: DocType
+) {
+  let fatDoc: FatDoc;
+  const { oid } = await git.hashBlob({ object: data });
+  if (docType === 'json') {
+    const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
+    if (data !== 'string') {
+      throw new InvalidJsonObjectError(_id);
     }
-  } catch (e) {
-    throw new InvalidJsonObjectError(id);
+    try {
+      const jsonDoc = (JSON.parse(data) as unknown) as JsonDoc;
+      if (jsonDoc._id !== undefined) {
+        // Overwrite _id property by _id if JsonDoc is created by GitDocumentedDB (_id !== undefined).
+        jsonDoc._id = _id;
+      }
+      fatDoc = {
+        _id,
+        name: fullDocPath,
+        fileOid: oid,
+        type: 'json',
+        doc: jsonDoc,
+      };
+    } catch {
+      throw new InvalidJsonObjectError(_id);
+    }
   }
-  return document;
+  else if (docType === 'text') {
+    fatDoc = {
+      name: fullDocPath,
+      fileOid: oid,
+      type: 'text',
+      doc: data as string,
+    };
+  }
+  else if (docType === 'binary') {
+    fatDoc = {
+      name: fullDocPath,
+      fileOid: oid,
+      type: 'binary',
+      doc: data as Uint8Array,
+    };
+  }
+  return fatDoc!;
 }
 
-export async function getDocument (workingDir: string, filepath: string, fileOid: string) {
-  const { blob } = await git.readBlob({
+export async function getFatDocFromOid (
+  workingDir: string,
+  fullDocPath: string,
+  fileOid: string,
+  docType: DocType
+) {
+  const readBlobResult = await git.readBlob({
     fs,
     dir: workingDir,
     oid: fileOid,
   });
-  return getDocumentFromBuffer(filepath, blob);
+  return getFatDocFromReadBlobResult(fullDocPath, readBlobResult, docType);
+}
+
+export function getFatDocFromReadBlobResult (
+  fullDocPath: string,
+  readBlobResult: ReadBlobResult,
+  docType: DocType
+) {
+  let fatDoc: FatDoc;
+  if (docType === 'json') {
+    const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
+    fatDoc = blobToJsonDoc(_id, readBlobResult, true) as FatJsonDoc;
+  }
+  else if (docType === 'text') {
+    fatDoc = blobToText(fullDocPath, readBlobResult, true) as FatTextDoc;
+  }
+  else if (docType === 'binary') {
+    fatDoc = blobToBinary(fullDocPath, readBlobResult, true) as FatBinaryDoc;
+  }
+  return fatDoc!;
 }
 
 /**
@@ -70,18 +141,18 @@ export async function getChanges (
     trees: [git.TREE({ ref: oldCommitOid }), git.TREE({ ref: newCommitOid })],
     // @ts-ignore
     // eslint-disable-next-line complexity
-    map: async function (filepath, [a, b]) {
+    map: async function (fullDocPath, [a, b]) {
       // ignore directories
-      if (filepath === '.') {
+      if (fullDocPath === '.') {
         return;
       }
-      if (filepath.startsWith(GIT_DOCUMENTDB_METADATA_DIR)) {
+      if (fullDocPath.startsWith(GIT_DOCUMENTDB_METADATA_DIR)) {
         return;
       }
 
-      let _id = filepath;
-      if (_id.endsWith(JSON_EXT)) {
-        _id = _id.replace(new RegExp(JSON_EXT + '$'), '');
+      const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+      if (docType === 'text') {
+        // TODO: select binary or text by .gitattribtues
       }
 
       const aType = a === null ? undefined : await a.type();
@@ -98,44 +169,20 @@ export async function getChanges (
       if (bOid === undefined && aOid !== undefined) {
         change = {
           operation: 'delete',
-          old: {
-            _id,
-            fileOid: aOid,
-            type: 'json',
-            // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, aOid),
-          },
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
         };
       }
       else if (aOid === undefined && bOid !== undefined) {
         change = {
           operation: 'insert',
-          new: {
-            _id,
-            fileOid: bOid,
-            type: 'json',
-            // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, bOid),
-          },
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
         };
       }
       else if (aOid !== undefined && bOid !== undefined && aOid !== bOid) {
         change = {
           operation: 'update',
-          old: {
-            _id,
-            fileOid: aOid,
-            type: 'json',
-            // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, aOid),
-          },
-          new: {
-            _id,
-            fileOid: bOid,
-            type: 'json',
-            // eslint-disable-next-line no-await-in-loop
-            doc: await getDocument(workingDir, filepath, bOid),
-          },
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
         };
       }
       else {

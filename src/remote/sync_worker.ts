@@ -393,21 +393,16 @@ export async function syncWorker (
   await resolvedIndex.writeTree();
 
   acceptedConflicts.sort((a, b) => {
-    return a.target._id === b.target._id ? 0 : a.target._id > b.target._id ? 1 : -1;
+    return a.fatDoc.name === b.fatDoc.name ? 0 : a.fatDoc.name > b.fatDoc.name ? 1 : -1;
   });
   // console.log(acceptedConflicts);
 
   let commitMessage = 'resolve: ';
   acceptedConflicts.forEach(conflict => {
     // e.g.) put-ours: myID
-    const fullDocPath =
-      conflict.target.type === undefined || conflict.target.type === 'json'
-        ? conflict.target._id + JSON_EXT
-        : conflict.target._id;
-    commitMessage += `${fullDocPath}(${conflict.operation},${conflict.target.fileOid.substr(
-      0,
-      SHORT_SHA_LENGTH
-    )},${conflict.strategy}), `;
+    commitMessage += `${conflict.fatDoc.name}(${
+      conflict.operation
+    },${conflict.fatDoc.fileOid.substr(0, SHORT_SHA_LENGTH)},${conflict.strategy}), `;
   });
   if (commitMessage.endsWith(', ')) {
     commitMessage = commitMessage.slice(0, -2);
