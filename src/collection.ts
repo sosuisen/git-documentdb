@@ -941,7 +941,7 @@ export class Collection implements CRUDInterface {
   find (options?: FindOptions): Promise<JsonDoc[]> {
     options ??= {};
     options.forceDocType ??= 'json';
-    return findImpl(this._gitDDB, this._collectionPath, false, true, options) as Promise<
+    return findImpl(this._gitDDB, this._collectionPath, true, false, options) as Promise<
       JsonDoc[]
     >;
   }
@@ -954,7 +954,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   findFatDoc (options?: FindOptions): Promise<FatDoc[]> {
-    return findImpl(this._gitDDB, this._collectionPath, true, false, options) as Promise<
+    return findImpl(this._gitDDB, this._collectionPath, false, true, options) as Promise<
       FatDoc[]
     >;
   }

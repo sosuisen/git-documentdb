@@ -34,8 +34,8 @@ import { blobToBinary, blobToJsonDoc, blobToText, readLatestBlob } from './blob'
 export async function findImpl (
   gitDDB: IDocumentDB,
   collectionPath: string,
-  withMetadata: boolean,
   findOnlyJson: boolean,
+  withMetadata: boolean,
   options?: FindOptions
 ): Promise<(Doc | FatDoc)[]> {
   if (gitDDB.isClosing) {

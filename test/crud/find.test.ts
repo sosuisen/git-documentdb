@@ -305,6 +305,35 @@ describe('<crud/find> find()', () => {
     await gitDDB.destroy();
   });
 
+  it('returns only JSON documents', async () => {
+    const dbName = monoId();
+
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+      RepositoryNotOpenError
+    );
+
+    await gitDDB.open();
+
+    const json_b = { _id: _id_b, name: name_b };
+    const json_a = { _id: _id_a, name: name_a };
+    const json_1 = { _id: _id_1, name: name_1 };
+    const json_c = { _id: _id_c, name: name_c };
+
+    await addOneData(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_1, toSortedJSONString(json_1));
+    await addOneData(gitDDB, _id_c, toSortedJSONString(json_c));
+
+    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([json_a, json_b]);
+
+    await gitDDB.destroy();
+  });
+
   describe('Prefix search', () => {
     it('gets from directory', async () => {
       const dbName = monoId();
@@ -1006,30 +1035,35 @@ describe('<crud/find> find()', () => {
       await expect(findImpl(gitDDB, '', true, true)).resolves.toEqual([
         {
           _id: _id_a,
+          name: _id_a + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
+          name: _id_b + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
+          name: _id_c01 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
+          name: _id_c02 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
+          name: _id_d + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,
