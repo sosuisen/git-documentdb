@@ -150,6 +150,33 @@ describe('<index> put(_id, jsonDoc)', () => {
   });
 });
 
+describe('<index> putFatDoc(name, jsonDoc)', () => {
+  it('creates a JSON file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const name = _id + JSON_EXT;
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.putFatDoc(name, json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
+    await gitDDB.destroy();
+  });
+});
+
 describe('<index> insert(jsonDoc)', () => {
   it('inserts a JSON file', async () => {
     const dbName = monoId();
@@ -235,6 +262,34 @@ describe('<index> insert(_id, jsonDoc)', () => {
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
     fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult.commit.message).toBe(commitMessage);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('<index> insertFatDoc(name, jsonDoc)', () => {
+  it('inserts a JSON file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const name = _id + JSON_EXT;
+    const json = { _id, name: 'Shirase' };
+    const putResult = await gitDDB.insertFatDoc(name, json);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
     await gitDDB.destroy();
   });
@@ -336,6 +391,36 @@ describe('<index> update(_id, jsonDoc', () => {
   });
 });
 
+describe('<index> updateFatDoc(name, jsonDoc', () => {
+  it('update a JSON file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    const name = _id + JSON_EXT;
+    const json = { _id, name: 'Shirase' };
+    await gitDDB.insert(json);
+    const jsonUpdated = { _id, name: 'updated' };
+    const putResult = await gitDDB.updateFatDoc(name, jsonUpdated);
+    const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXT}(${shortOid})`);
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
+
+    await gitDDB.destroy();
+  });
+});
+
 describe('<index> get()', () => {
   it('returns undefined if not exists', async () => {
     const dbName = monoId();
@@ -393,14 +478,16 @@ describe('<index> getFatDoc()', () => {
     });
     await gitDDB.open();
     const shortId = 'prof01';
+    const shortName = shortId + JSON_EXT;
     const fullDocPath = shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     const json02 = { _id: shortId, name: 'v2' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-    await expect(gitDDB.getFatDoc(shortId)).resolves.toEqual({
+    await expect(gitDDB.getFatDoc(shortName)).resolves.toEqual({
       _id: shortId,
+      name: shortName,
       fileOid: await (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
       type: 'json',
       doc: json02,
@@ -463,6 +550,7 @@ describe('<index>', () => {
   });
 
   const targetId = '01';
+  const targetName = targetId + JSON_EXT;
   const fullDocPath = targetId + JSON_EXT;
 
   const json01 = { _id: targetId, name: 'v01' };
@@ -720,22 +808,24 @@ describe('<index>', () => {
   describe('getFatDocBackNumber()', () => {
     it('with author.name', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 0, {
+        gitDDB.getFatDocBackNumber(targetName, 0, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json09) })).oid,
         doc: json09,
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 1, {
+        gitDDB.getFatDocBackNumber(targetName, 1, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json08) })).oid,
         doc: json08,
@@ -744,24 +834,25 @@ describe('<index>', () => {
 
     it('with committer.name', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 0, {
+        gitDDB.getFatDocBackNumber(targetName, 0, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json15) })).oid,
         doc: json15,
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 1, {
+        gitDDB.getFatDocBackNumber(targetName, 1, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
-
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
         doc: json14,
       });
@@ -769,7 +860,7 @@ describe('<index>', () => {
 
     it('with author.name, author.email, committer.name, and committer.email', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 0, {
+        gitDDB.getFatDocBackNumber(targetName, 0, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -779,13 +870,14 @@ describe('<index>', () => {
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
         doc: json02,
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 1, {
+        gitDDB.getFatDocBackNumber(targetName, 1, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -798,7 +890,7 @@ describe('<index>', () => {
 
     it('with OR condition', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 0, {
+        gitDDB.getFatDocBackNumber(targetName, 0, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -806,13 +898,14 @@ describe('<index>', () => {
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json17) })).oid,
         doc: json17,
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetId, 1, {
+        gitDDB.getFatDocBackNumber(targetName, 1, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -820,6 +913,7 @@ describe('<index>', () => {
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
         doc: json14,
@@ -874,7 +968,7 @@ describe('<index>', () => {
   });
 });
 
-describe('<index> getHistory()', () => {
+describe('<index> getFatDocHistory()', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -885,6 +979,7 @@ describe('<index> getHistory()', () => {
     await gitDDB.open();
 
     const _idA = 'profA';
+    const shortNameA = _idA + JSON_EXT;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -892,17 +987,18 @@ describe('<index> getHistory()', () => {
     await gitDDB.put(jsonA02);
     await gitDDB.put(jsonA03);
     const _idB = 'profB';
+    const shortNameB = _idB + JSON_EXT;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
     await gitDDB.put(jsonB01);
     await gitDDB.put(jsonB02);
     // Get
-    const historyA = await gitDDB.getFatDocHistory(_idA);
+    const historyA = await gitDDB.getFatDocHistory(shortNameA);
     expect(historyA.length).toBe(3);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
     expect(historyA[2]?.doc).toMatchObject(jsonA01);
-    const historyB = await gitDDB.getFatDocHistory(_idB);
+    const historyB = await gitDDB.getFatDocHistory(shortNameB);
     expect(historyB.length).toBe(2);
     expect(historyB[0]?.doc).toMatchObject(jsonB02);
     expect(historyB[1]?.doc).toMatchObject(jsonB01);
@@ -919,6 +1015,7 @@ describe('<index> getHistory()', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
+    const shortNameA = _idA + JSON_EXT;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -933,6 +1030,7 @@ describe('<index> getHistory()', () => {
     await gitDDB.put(jsonA03);
 
     const _idB = 'profB';
+    const shortNameB = _idB + JSON_EXT;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
 
@@ -944,14 +1042,14 @@ describe('<index> getHistory()', () => {
     gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
     await gitDDB.put(jsonB02);
 
-    const historyA = await gitDDB.getFatDocHistory(_idA, {
+    const historyA = await gitDDB.getFatDocHistory(shortNameA, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyA.length).toBe(2);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
 
-    const historyB = await gitDDB.getFatDocHistory(_idB, {
+    const historyB = await gitDDB.getFatDocHistory(shortNameB, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyB.length).toBe(1);
@@ -1024,7 +1122,9 @@ describe('<index> getHistory()', () => {
     await gitDDB.open();
     await gitDDB.putFatDoc('1.json', 'invalid json');
 
-    await expect(gitDDB.getFatDocHistory('1')).rejects.toThrowError(InvalidJsonObjectError);
+    await expect(gitDDB.getFatDocHistory('1.json')).rejects.toThrowError(
+      InvalidJsonObjectError
+    );
 
     await gitDDB.destroy();
   });
@@ -1135,7 +1235,7 @@ describe('<index> getHistory()', () => {
   });
 });
 
-describe('<index> delete()', () => {
+describe('<index> delete(_id)', () => {
   it('throws DocumentNotFoundError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -1196,6 +1296,38 @@ describe('<index> delete()', () => {
     await gitDDB.destroy();
   });
 
+  it('modifies a commit message.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+
+    const _id = 'test/prof01';
+    await gitDDB.put({ _id: _id, name: 'shirase' });
+
+    // Delete
+    const commitMessage = 'my commit message';
+    const deleteResult = await gitDDB.delete(_id, { commitMessage });
+
+    expect(deleteResult.commit.message).toBe(commitMessage);
+
+    // Check commit directly
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const { commit } = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    expect(commit.message).toEqual(`${commitMessage}\n`);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('<index> delete(jsonDoc)', () => {
   it('deletes a document by JsonDoc.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -1248,8 +1380,10 @@ describe('<index> delete()', () => {
 
     await gitDDB.destroy();
   });
+});
 
-  it('modifies a commit message.', async () => {
+describe('<index> deleteFatDoc(name)', () => {
+  it('deletes a document by id.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -1257,15 +1391,20 @@ describe('<index> delete()', () => {
     });
 
     await gitDDB.open();
-
     const _id = 'test/prof01';
-    await gitDDB.put({ _id: _id, name: 'shirase' });
+    const name = _id + JSON_EXT;
+    const _id2 = 'test/prof02';
+    const name2 = _id2 + JSON_EXT;
 
+    const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
+    await gitDDB.put({ _id: _id2, name: 'Soya' });
+
+    const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const commitMessage = 'my commit message';
-    const deleteResult = await gitDDB.delete(_id, { commitMessage });
-
-    expect(deleteResult.commit.message).toBe(commitMessage);
+    const deleteResult = await gitDDB.deleteFatDoc(name);
+    expect(deleteResult._id).toBe(_id);
+    expect(deleteResult.fileOid).toBe(putResult.fileOid);
+    expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXT}(${shortOid})`);
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
@@ -1274,7 +1413,20 @@ describe('<index> delete()', () => {
       dir: gitDDB.workingDir(),
       oid: commitOid,
     });
-    expect(commit.message).toEqual(`${commitMessage}\n`);
+    expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
+
+    await expect(gitDDB.deleteFatDoc(name)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(gitDDB.get(_id)).resolves.toBeUndefined();
+
+    await gitDDB.deleteFatDoc(name2);
+
+    // Directory is empty
+    await expect(
+      fs.access(
+        path.dirname(path.resolve(gitDDB.workingDir(), 'test', _id)),
+        fs.constants.F_OK
+      )
+    ).rejects.toThrowError();
 
     await gitDDB.destroy();
   });
@@ -1646,30 +1798,35 @@ describe('<index>', () => {
       await expect(gitDDB.findFatDoc()).resolves.toEqual([
         {
           _id: _id_a,
+          name: _id_a + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
+          name: _id_b + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
+          name: _id_c01 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
+          name: _id_c02 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
+          name: _id_d + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,

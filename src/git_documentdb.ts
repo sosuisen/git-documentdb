@@ -788,10 +788,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Insert a data if not exists. Otherwise, update it.
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   * @param name - name is a file path.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
    *
    * @throws {@link InvalidJsonFileExtensionError}
    * @throws {@link InvalidJsonObjectError}
@@ -808,22 +808,22 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotWriteDataError} (from putWorker)
    */
   putFatDoc (
-    shortName: string,
+    name: string,
     doc: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult> {
-    return this._fullCollection.putFatDoc(shortName, doc, options);
+    return this._fullCollection.putFatDoc(name, doc, options);
   }
 
   /**
    * Insert a data
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   * @param name - name is a file path.
    *
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
    *
@@ -845,7 +845,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link SameIdExistsError} (from putWorker)
    */
   insertFatDoc (
-    shortName: string,
+    name: string,
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -853,18 +853,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     options ??= {};
     options.insertOrUpdate = 'insert';
 
-    return this._fullCollection.putFatDoc(shortName, doc, options);
+    return this._fullCollection.putFatDoc(name, doc, options);
   }
 
   /**
    * Update a data
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   * @param name - name is a file path.
    *
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
@@ -886,7 +886,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link DocumentNotFoundError}
    */
   updateFatDoc (
-    shortName: string,
+    name: string,
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -894,7 +894,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     options ??= {};
     options.insertOrUpdate = 'update';
 
-    return this._fullCollection.putFatDoc(shortName, doc, options);
+    return this._fullCollection.putFatDoc(name, doc, options);
   }
 
   /**
@@ -949,7 +949,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getDocByOid (fileOid: string, docType: DocType): Promise<Doc | undefined> {
+  getDocByOid (fileOid: string, docType: DocType = 'binary'): Promise<Doc | undefined> {
     return this._fullCollection.getDocByOid(fileOid, docType);
   }
 
@@ -1089,11 +1089,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   getFatDocHistory (
-    shortName: string,
+    name: string,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<(FatDoc | undefined)[]> {
-    return this._fullCollection.getFatDocHistory(shortName, historyOptions, getOptions);
+    return this._fullCollection.getFatDocHistory(name, historyOptions, getOptions);
   }
 
   /**

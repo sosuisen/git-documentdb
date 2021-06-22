@@ -79,25 +79,6 @@ describe('<collection>', () => {
     await gitDDB.destroy();
   });
 
-  it('returns isJsonDocCollection', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01', true);
-    expect(col.isJsonDocCollection()).toBe(true);
-
-    const col2 = new Collection(gitDDB, 'col02'); // default
-    expect(col2.isJsonDocCollection()).toBe(true);
-
-    const col3 = new Collection(gitDDB, 'col03', false);
-    expect(col3.isJsonDocCollection()).toBe(false);
-
-    await gitDDB.destroy();
-  });
-
   describe('getCollections()', () => {
     it('returns root collections', async () => {
       const dbName = monoId();
