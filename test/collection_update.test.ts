@@ -163,7 +163,7 @@ describe('<collection> update(jsonDoc)', () => {
   });
 });
 
-describe('<collection> update(id, jsonDoc)', () => {
+describe('<collection> update(shortId, jsonDoc)', () => {
   it('throws DocumentNotFoundError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({

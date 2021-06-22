@@ -516,7 +516,7 @@ describe('<collection>', () => {
     });
   });
 
-  describe('<crud/put> put(id, jsonDoc)', () => {
+  describe('<crud/put> put(shortId, jsonDoc)', () => {
     it('throws InvalidJsonObjectError', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({

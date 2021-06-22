@@ -34,7 +34,7 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('delete()', () => {
+describe('delete(shortId)', () => {
   it('throws UndefinedDocumentIdError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -182,6 +182,39 @@ describe('delete()', () => {
     await gitDDB.destroy();
   });
 
+  it('modifies a commit message.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const users = new Collection(gitDDB, 'users');
+
+    const _id = 'test/prof01';
+    await users.put({ _id: _id, name: 'shirase' });
+
+    // Delete
+    const commitMessage = 'my commit message';
+    const deleteResult = await users.delete(_id, { commitMessage });
+
+    expect(deleteResult.commit.message).toBe(commitMessage);
+
+    // Check commit directly
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const { commit } = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    expect(commit.message).toEqual(`${commitMessage}\n`);
+
+    await gitDDB.destroy();
+  });
+});
+
+describe('delete(jsonDoc)', () => {
   it('deletes a document by JsonDoc.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -258,40 +291,9 @@ describe('delete()', () => {
 
     await gitDDB.destroy();
   });
-
-  it('modifies a commit message.', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-
-    await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
-
-    const _id = 'test/prof01';
-    await users.put({ _id: _id, name: 'shirase' });
-
-    // Delete
-    const commitMessage = 'my commit message';
-    const deleteResult = await users.delete(_id, { commitMessage });
-
-    expect(deleteResult.commit.message).toBe(commitMessage);
-
-    // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
-    const { commit } = await git.readCommit({
-      fs,
-      dir: gitDDB.workingDir(),
-      oid: commitOid,
-    });
-    expect(commit.message).toEqual(`${commitMessage}\n`);
-
-    await gitDDB.destroy();
-  });
 });
 
-describe('deleteFatDoc()', () => {
+describe('deleteFatDoc(name)', () => {
   it('throws UndefinedDocumentIdError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({

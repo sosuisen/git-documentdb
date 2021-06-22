@@ -161,7 +161,7 @@ describe('<collection> insert(jsonDoc)', () => {
   });
 });
 
-describe('<collection> insert(id, jsonDoc)', () => {
+describe('<collection> insert(shortId, jsonDoc)', () => {
   it('throws SameIdExistsError when a document which has the same id exists.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
