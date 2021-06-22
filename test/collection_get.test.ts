@@ -190,14 +190,16 @@ describe('<collection> getFatDoc()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB);
     const shortId = 'prof01';
+    const shortName = shortId + JSON_EXT;
     const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     const json02 = { _id: shortId, name: 'v2' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-    await expect(col.getFatDoc(shortId)).resolves.toEqual({
+    await expect(col.getFatDoc(shortName)).resolves.toEqual({
       _id: shortId,
+      name: shortName,
       fileOid: await (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
       type: 'json',
       doc: json02,
@@ -214,8 +216,9 @@ describe('<collection> getFatDoc()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB);
     const shortId = 'prof01';
+    const shortName = shortId + JSON_EXT;
 
-    await expect(col.getFatDoc(shortId)).resolves.toBeUndefined();
+    await expect(col.getFatDoc(shortName)).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 });
@@ -234,7 +237,7 @@ describe('<crud/get> getDocByOid()', () => {
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(col.getDocByOid(oid)).resolves.toEqual(json01);
+    await expect(col.getDocByOid(oid, 'json')).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 
@@ -250,7 +253,7 @@ describe('<crud/get> getDocByOid()', () => {
     const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
-    await expect(col.getDocByOid('not exist')).resolves.toBeUndefined();
+    await expect(col.getDocByOid('not exist', 'json')).resolves.toBeUndefined();
     await gitDDB.destroy();
   });
 
@@ -263,12 +266,13 @@ describe('<crud/get> getDocByOid()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath() + shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXT;
+    const fullDocPath = col.collectionPath() + shortName;
     // JsonDoc without _id
     const json01 = { name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(col.getDocByOid(oid)).resolves.toEqual(json01);
+    await expect(col.getDocByOid(oid, 'json')).resolves.toEqual(json01);
     await gitDDB.destroy();
   });
 });
@@ -281,6 +285,7 @@ describe('<crud/get>', () => {
   });
 
   const targetId = '01';
+  const targetName = targetId + JSON_EXT;
   const collectionPath = 'col01/';
   const col = new Collection(gitDDB, collectionPath);
   const fullDocPath = collectionPath + targetId + JSON_EXT;
@@ -558,22 +563,24 @@ describe('<crud/get>', () => {
   describe('getFatDocBackNumber()', () => {
     it('with author.name', async () => {
       await expect(
-        col.getFatDocBackNumber(targetId, 0, {
+        col.getFatDocBackNumber(targetName, 0, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json09) })).oid,
         doc: json09_,
       });
 
       await expect(
-        col.getFatDocBackNumber(targetId, 1, {
+        col.getFatDocBackNumber(targetName, 1, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json08) })).oid,
         doc: json08_,
@@ -582,22 +589,24 @@ describe('<crud/get>', () => {
 
     it('with committer.name', async () => {
       await expect(
-        col.getFatDocBackNumber(targetId, 0, {
+        col.getFatDocBackNumber(targetName, 0, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json15) })).oid,
         doc: json15_,
       });
 
       await expect(
-        col.getFatDocBackNumber(targetId, 1, {
+        col.getFatDocBackNumber(targetName, 1, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
 
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
@@ -607,7 +616,7 @@ describe('<crud/get>', () => {
 
     it('with author.name, author.email, committer.name, and committer.email', async () => {
       await expect(
-        col.getFatDocBackNumber(targetId, 0, {
+        col.getFatDocBackNumber(targetName, 0, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -617,13 +626,14 @@ describe('<crud/get>', () => {
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json02) })).oid,
         doc: json02_,
       });
 
       await expect(
-        col.getFatDocBackNumber(targetId, 1, {
+        col.getFatDocBackNumber(targetName, 1, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -636,7 +646,7 @@ describe('<crud/get>', () => {
 
     it('with OR condition', async () => {
       await expect(
-        col.getFatDocBackNumber(targetId, 0, {
+        col.getFatDocBackNumber(targetName, 0, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -644,13 +654,14 @@ describe('<crud/get>', () => {
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json17) })).oid,
         doc: json17_,
       });
 
       await expect(
-        col.getFatDocBackNumber(targetId, 1, {
+        col.getFatDocBackNumber(targetName, 1, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -658,6 +669,7 @@ describe('<crud/get>', () => {
         })
       ).resolves.toEqual({
         _id: targetId,
+        name: targetName,
         type: 'json',
         fileOid: (await git.hashBlob({ object: toSortedJSONString(json14) })).oid,
         doc: json14_,
@@ -724,6 +736,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     const col = new Collection(gitDDB, 'col01');
 
     const _idA = 'profA';
+    const shortNameA = _idA + JSON_EXT;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -731,17 +744,18 @@ describe('<crud/get> getFatDocHistory()', () => {
     await col.put(jsonA02);
     await col.put(jsonA03);
     const _idB = 'profB';
+    const shortNameB = _idB + JSON_EXT;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
     await col.put(jsonB01);
     await col.put(jsonB02);
     // Get
-    const historyA = await col.getFatDocHistory(_idA);
+    const historyA = await col.getFatDocHistory(shortNameA);
     expect(historyA.length).toBe(3);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
     expect(historyA[2]?.doc).toMatchObject(jsonA01);
-    const historyB = await col.getFatDocHistory(_idB);
+    const historyB = await col.getFatDocHistory(shortNameB);
     expect(historyB.length).toBe(2);
     expect(historyB[0]?.doc).toMatchObject(jsonB02);
     expect(historyB[1]?.doc).toMatchObject(jsonB01);
@@ -759,6 +773,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     const _idA = 'profA';
+    const shortNameA = _idA + JSON_EXT;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -773,6 +788,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     await col.put(jsonA03);
 
     const _idB = 'profB';
+    const shortNameB = _idB + JSON_EXT;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
 
@@ -784,14 +800,14 @@ describe('<crud/get> getFatDocHistory()', () => {
     gitDDB.committer = { name: 'committerB', email: 'committerEmailB' };
     await col.put(jsonB02);
 
-    const historyA = await col.getFatDocHistory(_idA, {
+    const historyA = await col.getFatDocHistory(shortNameA, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyA.length).toBe(2);
     expect(historyA[0]?.doc).toMatchObject(jsonA03);
     expect(historyA[1]?.doc).toMatchObject(jsonA02);
 
-    const historyB = await col.getFatDocHistory(_idB, {
+    const historyB = await col.getFatDocHistory(shortNameB, {
       filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
     });
     expect(historyB.length).toBe(1);
@@ -834,7 +850,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(col.getFatDocHistory('0')).rejects.toThrowError(DatabaseClosingError);
+    await expect(col.getFatDocHistory('0.json')).rejects.toThrowError(DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -864,9 +880,11 @@ describe('<crud/get> getFatDocHistory()', () => {
     });
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
-    await col.put('1.json', 'invalid json');
+    await col.putFatDoc('1.json', 'invalid json');
 
-    await expect(col.getFatDocHistory('1')).rejects.toThrowError(InvalidJsonObjectError);
+    await expect(col.getFatDocHistory('1.json')).rejects.toThrowError(
+      InvalidJsonObjectError
+    );
 
     await gitDDB.destroy();
   });
