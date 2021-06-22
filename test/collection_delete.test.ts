@@ -290,3 +290,120 @@ describe('delete()', () => {
     await gitDDB.destroy();
   });
 });
+
+describe('deleteFatDoc()', () => {
+  it('throws UndefinedDocumentIdError', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const users = new Collection(gitDDB, 'users');
+    // @ts-ignore
+    await expect(users.deleteFatDoc()).rejects.toThrowError(UndefinedDocumentIdError);
+
+    await gitDDB.destroy();
+  });
+
+  it('deletes a document by id.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const users = new Collection(gitDDB, 'users');
+    const _id = 'test/prof01';
+    const _id2 = 'test/prof02';
+
+    const putResult = await users.put({ _id: _id, name: 'Shirase' });
+    await users.put({ _id: _id2, name: 'Soya' });
+
+    const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+    // Delete
+    const deleteResult = await users.deleteFatDoc(_id + JSON_EXT);
+    expect(deleteResult._id).toBe(_id);
+    expect(deleteResult.fileOid).toBe(putResult.fileOid);
+    expect(deleteResult.commit.message).toBe(
+      `delete: users/${_id}${JSON_EXT}(${shortOid})`
+    );
+
+    // Check commit directly
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const { commit } = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXT}(${shortOid})\n`);
+
+    await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(users.get(_id)).resolves.toBeUndefined();
+
+    await users.delete(_id2);
+
+    // Directory is empty
+    await expect(
+      fs.access(
+        path.dirname(path.resolve(gitDDB.workingDir(), 'users', _id)),
+        fs.constants.F_OK
+      )
+    ).rejects.toThrowError();
+
+    await gitDDB.destroy();
+  });
+
+  it('deletes a document in deep collection by id.', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const users = new Collection(gitDDB, 'col01/col02/col03/users');
+    const _id = 'test/prof01';
+    const _id2 = 'test/prof02';
+
+    const putResult = await users.put({ _id: _id, name: 'Shirase' });
+    await users.put({ _id: _id2, name: 'Soya' });
+
+    const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+    // Delete
+    const deleteResult = await users.deleteFatDoc(_id + JSON_EXT);
+    expect(deleteResult._id).toBe(_id);
+    expect(deleteResult.fileOid).toBe(putResult.fileOid);
+    expect(deleteResult.commit.message).toBe(
+      `delete: ${users.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+    );
+
+    // Check commit directly
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const { commit } = await git.readCommit({
+      fs,
+      dir: gitDDB.workingDir(),
+      oid: commitOid,
+    });
+    expect(commit.message).toEqual(
+      `delete: ${users.collectionPath()}${_id}${JSON_EXT}(${shortOid})\n`
+    );
+
+    await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(users.get(_id)).resolves.toBeUndefined();
+
+    await users.delete(_id2);
+
+    // Directories are recursively removed.
+    await expect(
+      fs.access(
+        path.dirname(path.resolve(gitDDB.workingDir(), 'col01', _id)),
+        fs.constants.F_OK
+      )
+    ).rejects.toThrowError();
+
+    await gitDDB.destroy();
+  });
+});
