@@ -304,48 +304,54 @@ describe('<crud/put> put', () => {
     const json_p = { _id: _id_p, name: name_p };
 
     await Promise.all([
-      putImpl(gitDDB, _id_a, toSortedJSONString(json_a)),
-      putImpl(gitDDB, _id_b, toSortedJSONString(json_b)),
-      putImpl(gitDDB, _id_c01, toSortedJSONString(json_c01)),
-      putImpl(gitDDB, _id_c02, toSortedJSONString(json_c02)),
-      putImpl(gitDDB, _id_d, toSortedJSONString(json_d)),
-      putImpl(gitDDB, _id_p, toSortedJSONString(json_p)),
+      putImpl(gitDDB, _id_a + JSON_EXT, toSortedJSONString(json_a)),
+      putImpl(gitDDB, _id_b + JSON_EXT, toSortedJSONString(json_b)),
+      putImpl(gitDDB, _id_c01 + JSON_EXT, toSortedJSONString(json_c01)),
+      putImpl(gitDDB, _id_c02 + JSON_EXT, toSortedJSONString(json_c02)),
+      putImpl(gitDDB, _id_d + JSON_EXT, toSortedJSONString(json_d)),
+      putImpl(gitDDB, _id_p + JSON_EXT, toSortedJSONString(json_p)),
     ]);
 
     await expect(gitDDB.findFatDoc()).resolves.toEqual(
       expect.arrayContaining([
         {
           _id: _id_a,
+          name: _id_a + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
+          name: _id_b + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
+          name: _id_c01 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
+          name: _id_c02 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
+          name: _id_d + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,
         },
         {
           _id: _id_p,
+          name: _id_p + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_p) })).oid,
           type: 'json',
           doc: json_p,
@@ -649,36 +655,42 @@ describe('<crud/put> putWorker', () => {
       expect.arrayContaining([
         {
           _id: _id_a,
+          name: _id_a + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
+          name: _id_b + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
+          name: _id_c01 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
+          name: _id_c02 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
+          name: _id_d + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,
         },
         {
           _id: _id_p,
+          name: _id_p + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_p) })).oid,
           type: 'json',
           doc: json_p,
