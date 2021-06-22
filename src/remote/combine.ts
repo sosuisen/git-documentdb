@@ -97,6 +97,8 @@ export async function combineDatabaseWithTheirs (
             path.resolve(remoteDir, duplicatedFileName),
             toSortedJSONString(doc)
           );
+          const duplicatedOid = (await git.hashBlob({ object: toSortedJSONString(doc) }))
+            .oid;
           original = {
             _id,
             name: meta.name,
@@ -106,7 +108,7 @@ export async function combineDatabaseWithTheirs (
           duplicate = {
             _id: duplicatedFileId,
             name: duplicatedFileName,
-            fileOid: meta.fileOid,
+            fileOid: duplicatedOid,
             type: 'json',
           };
         }
