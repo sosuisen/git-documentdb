@@ -107,7 +107,7 @@ describe('<crud/delete>', () => {
       await gitDDB.destroy();
     });
 
-    it('throws DOcumentNotFoundError when a document does not exist', async () => {
+    it('throws DocumentNotFoundError when a document does not exist', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -135,7 +135,7 @@ describe('<crud/delete>', () => {
 
       await gitDDB.open();
       const _id = 'prof01';
-      const json = { _id: _id, name: 'shirase' };
+      const json = { _id, name: 'Shirase' };
       const putResult = await gitDDB.put(json);
 
       const prevCommitOid = putResult.commit.oid;
@@ -187,7 +187,7 @@ describe('<crud/delete>', () => {
 
       await gitDDB.open();
       const _id = 'prof01';
-      const json = { _id: _id, name: 'shirase' };
+      const json = { _id, name: 'Shirase' };
       const putResult = await gitDDB.put(json);
 
       // Delete
@@ -283,6 +283,7 @@ describe('<crud/delete>', () => {
       await expect(gitDDB.findFatDoc({ recursive: true })).resolves.toEqual([
         {
           _id: _id_p,
+          name: _id_p + JSON_EXT,
           fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           type: 'json',
           doc: { _id: _id_p, name: name_p },
