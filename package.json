@@ -11,7 +11,7 @@
     "build": "rm -rf dist/* && npm run lint && tsc --project src/tsconfig.json",
     "doc": "npm run build && npm run api-extractor && npm run crlf",
     "mocha": "rm -rf test/database* && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha",
-    "mocha-unit": "rm -rf test/database* && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha --retries 3 --no-parallel",
+    "mocha-unit": "rm -rf test/database* && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha --retries 1 --no-parallel",
     "compile-tests": "tsc --project test/tsconfig.json && tsc --project test_intg/tsconfig.json",
     "rm-test-db": "rm -rf test/database* test_intg/database*",
     "test": "npm run rm-test-db && npx nyc npm run mocha \"test/**/*.test.ts\" \"test_intg/**/*.test.ts\" && npm run rm-test-db",
