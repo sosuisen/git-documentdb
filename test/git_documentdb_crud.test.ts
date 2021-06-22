@@ -28,7 +28,7 @@ const monoId = () => {
   return ulid(Date.now());
 };
 
-const localDir = `./test/database_index`;
+const localDir = `./test/database_git_documentdb`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -39,7 +39,7 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<index> put(jsonDoc)', () => {
+describe('<git_documentdb> put(jsonDoc)', () => {
   it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -95,7 +95,7 @@ describe('<index> put(jsonDoc)', () => {
   });
 });
 
-describe('<index> put(_id, jsonDoc)', () => {
+describe('<git_documentdb> put(_id, jsonDoc)', () => {
   it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -150,7 +150,7 @@ describe('<index> put(_id, jsonDoc)', () => {
   });
 });
 
-describe('<index> putFatDoc(name, jsonDoc)', () => {
+describe('<git_documentdb> putFatDoc(name, jsonDoc)', () => {
   it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -177,7 +177,7 @@ describe('<index> putFatDoc(name, jsonDoc)', () => {
   });
 });
 
-describe('<index> insert(jsonDoc)', () => {
+describe('<git_documentdb> insert(jsonDoc)', () => {
   it('inserts a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -222,7 +222,7 @@ describe('<index> insert(jsonDoc)', () => {
   });
 });
 
-describe('<index> insert(_id, jsonDoc)', () => {
+describe('<git_documentdb> insert(_id, jsonDoc)', () => {
   it('inserts a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -267,7 +267,7 @@ describe('<index> insert(_id, jsonDoc)', () => {
   });
 });
 
-describe('<index> insertFatDoc(name, jsonDoc)', () => {
+describe('<git_documentdb> insertFatDoc(name, jsonDoc)', () => {
   it('inserts a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -295,7 +295,7 @@ describe('<index> insertFatDoc(name, jsonDoc)', () => {
   });
 });
 
-describe('<index> update(jsonDoc)', () => {
+describe('<git_documentdb> update(jsonDoc)', () => {
   it('update a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -343,7 +343,7 @@ describe('<index> update(jsonDoc)', () => {
   });
 });
 
-describe('<index> update(_id, jsonDoc', () => {
+describe('<git_documentdb> update(_id, jsonDoc', () => {
   it('update a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -391,7 +391,7 @@ describe('<index> update(_id, jsonDoc', () => {
   });
 });
 
-describe('<index> updateFatDoc(name, jsonDoc', () => {
+describe('<git_documentdb> updateFatDoc(name, jsonDoc', () => {
   it('update a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -421,7 +421,7 @@ describe('<index> updateFatDoc(name, jsonDoc', () => {
   });
 });
 
-describe('<index> get()', () => {
+describe('<git_documentdb> get()', () => {
   it('returns undefined if not exists', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -469,7 +469,7 @@ describe('<index> get()', () => {
   });
 });
 
-describe('<index> getFatDoc()', () => {
+describe('<git_documentdb> getFatDoc()', () => {
   it('returns the latest FatJsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -509,7 +509,7 @@ describe('<index> getFatDoc()', () => {
   });
 });
 
-describe('<index> getDocByOid()', () => {
+describe('<git_documentdb> getDocByOid()', () => {
   it('returns the specified JsonDoc', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -542,7 +542,7 @@ describe('<index> getDocByOid()', () => {
   });
 });
 
-describe('<index>', () => {
+describe('<git_documentdb>', () => {
   const dbName = monoId();
   const gitDDB: GitDocumentDB = new GitDocumentDB({
     dbName,
@@ -968,7 +968,7 @@ describe('<index>', () => {
   });
 });
 
-describe('<index> getFatDocHistory()', () => {
+describe('<git_documentdb> getFatDocHistory()', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -1130,7 +1130,7 @@ describe('<index> getFatDocHistory()', () => {
   });
 });
 
-describe('<index> getHistory()', () => {
+describe('<git_documentdb> getHistory()', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -1235,7 +1235,7 @@ describe('<index> getHistory()', () => {
   });
 });
 
-describe('<index> delete(_id)', () => {
+describe('<git_documentdb> delete(_id)', () => {
   it('throws DocumentNotFoundError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -1327,7 +1327,7 @@ describe('<index> delete(_id)', () => {
   });
 });
 
-describe('<index> delete(jsonDoc)', () => {
+describe('<git_documentdb> delete(jsonDoc)', () => {
   it('deletes a document by JsonDoc.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -1382,7 +1382,7 @@ describe('<index> delete(jsonDoc)', () => {
   });
 });
 
-describe('<index> deleteFatDoc(name)', () => {
+describe('<git_documentdb> deleteFatDoc(name)', () => {
   it('deletes a document by id.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -1432,7 +1432,7 @@ describe('<index> deleteFatDoc(name)', () => {
   });
 });
 
-describe('<index>', () => {
+describe('<git_documentdb>', () => {
   const _id_1 = '1';
   const name_1 = 'one';
   const _id_a = 'apple';

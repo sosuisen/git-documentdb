@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import { GitDocumentDB } from '../src/git_documentdb';
 import {
   Schema,
@@ -47,7 +48,7 @@ beforeEach(function () {
   console.log(`... ${this.currentTest.fullTitle()}`);
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -71,7 +72,7 @@ maybe('intg: <3way_merge_ot>', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
@@ -116,7 +117,7 @@ maybe('intg: <3way_merge_ot>', () => {
     // It will occur conflict on id 1.json.
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
 
-    const mergedDoc = await dbB.getDocWithMetaData('1');
+    const mergedDoc = await dbB.getFatDoc('1.json');
 
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
@@ -160,10 +161,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
-          _id: '1',
-          fileOid: mergedDoc!.fileOid,
-        },
+        fatDoc: mergedDoc,
         strategy: 'ours-diff',
         operation: 'insert-merge',
       },
@@ -214,7 +212,7 @@ maybe('intg: <3way_merge_ot>', () => {
     // It will occur conflict on id 1.json.
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
 
-    const mergedDoc = await dbB.getDocWithMetaData('1');
+    const mergedDoc = await dbB.getFatDoc('1.json');
 
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
@@ -248,10 +246,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
-          _id: '1',
-          fileOid: mergedDoc!.fileOid,
-        },
+        fatDoc: mergedDoc,
         strategy: 'theirs-diff',
         operation: 'insert-merge',
       },
@@ -324,9 +319,12 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: deleteResultB1.fileOid,
+          type: 'json',
+          doc: jsonA1,
         },
         strategy: 'ours-diff',
         operation: 'delete',
@@ -406,9 +404,12 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
+        fatDoc: {
           _id: '1',
+          name: '1.json',
           fileOid: putResultB1.fileOid,
+          type: 'json',
+          doc: jsonB1,
         },
         strategy: 'ours-diff',
         operation: 'update',
@@ -482,7 +483,7 @@ maybe('intg: <3way_merge_ot>', () => {
     // It will occur conflict on id 1.json.
     const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
 
-    const mergedDoc = await dbB.getDocWithMetaData('1');
+    const mergedDoc = await dbB.getFatDoc('1.json');
 
     expect(syncResult1.action).toBe('resolve conflicts and push');
     expect(syncResult1.commits).toMatchObject({
@@ -524,10 +525,7 @@ maybe('intg: <3way_merge_ot>', () => {
     expect(syncResult1.conflicts.length).toEqual(1);
     expect(syncResult1.conflicts).toEqual([
       {
-        target: {
-          _id: '1',
-          fileOid: mergedDoc!.fileOid,
-        },
+        fatDoc: mergedDoc,
         strategy: 'theirs-diff',
         operation: 'update-merge',
       },
@@ -601,7 +599,7 @@ maybe('intg: <3way_merge_ot>', () => {
       // It will occur conflict on id 1.json.
       const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
 
-      const mergedDoc = await dbB.getDocWithMetaData('1');
+      const mergedDoc = await dbB.getFatDoc('1.json');
 
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
@@ -669,7 +667,7 @@ maybe('intg: <3way_merge_ot>', () => {
       // It will occur conflict on id 1.json.
       const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
 
-      const mergedDoc = await dbB.getDocWithMetaData('1');
+      const mergedDoc = await dbB.getFatDoc('1.json');
 
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(
@@ -738,7 +736,7 @@ maybe('intg: <3way_merge_ot>', () => {
       // It will occur conflict on id 1.json.
       const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
 
-      const mergedDoc = await dbB.getDocWithMetaData('1');
+      const mergedDoc = await dbB.getFatDoc('1.json');
 
       expect(syncResult1.changes.local).toEqual([
         getChangedFileUpdateBySHA(

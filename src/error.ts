@@ -295,7 +295,7 @@ export class UndefinedGitHubAuthenticationError extends BaseError {
 /**
  */
 export class RemoteAlreadyRegisteredError extends BaseError {
-  constructor (url: string) {
+  constructor (url: unknown) {
     super(
       `The remote repository has already been registered. :${url}
 Call removeRemote() before register it again.`
@@ -489,7 +489,7 @@ export class PersonalAccessTokenForAnotherAccountError extends BaseError {
 /**
  */
 export class PushWorkerError extends BaseError {
-  constructor (mes: string) {
+  constructor (mes: unknown) {
     super(`Error in push_worker: ${mes}`);
   }
 }

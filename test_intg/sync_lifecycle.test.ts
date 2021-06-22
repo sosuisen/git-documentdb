@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import expect from 'expect';
 import sinon from 'sinon';
 import { Sync } from '../src/remote/sync';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -30,7 +31,7 @@ import {
   getChangedFileUpdate,
   removeRemoteRepositories,
 } from '../test/remote_utils';
-import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
+import { JSON_EXT, MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
 import { pushWorker } from '../src/remote/push_worker';
 import { syncWorker } from '../src/remote/sync_worker';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -58,7 +59,7 @@ afterEach(function () {
   sandbox.restore();
 });
 
-beforeAll(() => {
+before(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -81,7 +82,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
     : process.env.GITDDB_GITHUB_USER_URL + '/';
   const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
-  beforeAll(async () => {
+  before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
@@ -294,9 +295,12 @@ maybe('intg <sync_lifecycle> Sync', () => {
           },
           conflicts: [
             {
-              target: {
+              fatDoc: {
                 _id: jsonB1._id,
+                name: jsonB1._id + JSON_EXT,
                 fileOid: putResultB1.fileOid,
+                type: 'json',
+                doc: jsonB1,
               },
               operation: 'insert-merge',
               strategy: 'ours-diff',
@@ -552,7 +556,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
 
         expect(stubPush.callCount).toBe(NETWORK_RETRY + 1);
 
@@ -595,8 +599,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
             taskId: 'myTaskId',
           });
         });
-
-        await expect(sync.init(dbA.repository()!)).resolves.toMatchObject(syncResultPush);
+        const syncResult = await sync.init(dbA.repository()!);
+        expect(syncResult).toEqual(syncResultPush);
 
         expect(stubPush.callCount).toBe(2);
 
@@ -663,7 +667,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         stubSync.rejects();
 
         // sync has already been initialized, so will run trySync()
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
 
         expect(stubSync.callCount).toBe(NETWORK_RETRY + 1);
 
@@ -711,7 +715,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           },
         };
 
-        await expect(sync.init(dbA.repository()!)).resolves.toMatchObject(syncResultPush);
+        await expect(sync.init(dbA.repository()!)).resolves.toEqual(syncResultPush);
 
         expect(stubSync.callCount).toBe(2);
 
@@ -807,7 +811,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubSync = sandbox.stub(syncWorker_module, 'syncWorker');
         stubSync.rejects();
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
 
         expect(stubSync.callCount).toBe(1);
 
@@ -838,7 +842,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(Error);
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
 
         expect(stubPush.callCount).toBe(1);
 

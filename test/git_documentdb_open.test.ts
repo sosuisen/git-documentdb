@@ -74,7 +74,7 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<index>', () => {
+describe('<git_documentdb>', () => {
   describe('create', () => {
     it('throws DatabaseClosingError.', async () => {
       const dbName = monoId();
@@ -92,7 +92,10 @@ describe('<index>', () => {
       await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
 
       // wait close
-      await sleep(5000);
+      while (gitDDB.isClosing) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
       await gitDDB.destroy();
     });
 

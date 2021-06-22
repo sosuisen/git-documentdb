@@ -77,7 +77,10 @@ describe('<crud/put> put', () => {
     ).rejects.toThrowError(DatabaseClosingError);
 
     // wait close
-    await sleep(5000);
+    while (gitDDB.isClosing) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(1000);
+    }
     await gitDDB.destroy();
   });
 
