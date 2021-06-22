@@ -448,7 +448,7 @@ maybe('<remote/sync> [event]', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('paused and activates', async () => {
+    it('pause and resume', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -461,13 +461,13 @@ maybe('<remote/sync> [event]', () => {
         }
       );
 
-      let active = false;
-      syncB.on('active', () => {
-        active = true;
+      let resume = false;
+      syncB.on('resume', () => {
+        resume = true;
       });
-      let paused = false;
-      syncB.on('paused', () => {
-        paused = true;
+      let pause = false;
+      syncB.on('pause', () => {
+        pause = true;
       });
       let complete = false;
       syncB.on('complete', () => {
@@ -485,8 +485,8 @@ maybe('<remote/sync> [event]', () => {
       }
 
       syncB.pause();
-      expect(paused).toBe(true);
-      expect(active).toBe(false);
+      expect(pause).toBe(true);
+      expect(resume).toBe(false);
       expect(syncB.options().live).toBe(false);
 
       // Check second complete event
@@ -497,7 +497,7 @@ maybe('<remote/sync> [event]', () => {
       expect(complete).toBe(false); // complete will not happen because synchronization is paused.
 
       syncB.resume();
-      expect(active).toBe(true);
+      expect(resume).toBe(true);
       expect(syncB.options().live).toBe(true);
 
       // Check third complete event
@@ -527,12 +527,12 @@ maybe('<remote/sync> [event]', () => {
 
       const repos = dbA.repository();
       const remote = new Sync(dbA, options);
-      let active = false;
-      remote.on('active', () => {
-        active = true;
+      let resume = false;
+      remote.on('resume', () => {
+        resume = true;
       });
       await remote.init(repos!);
-      expect(active).toBe(true);
+      expect(resume).toBe(true);
 
       await destroyDBs([dbA]);
     });

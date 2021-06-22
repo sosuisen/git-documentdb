@@ -848,8 +848,8 @@ export type SyncEvent =
   | 'localChange'
   | 'remoteChange'
   | 'combine'
-  | 'paused'
-  | 'active'
+  | 'pause'
+  | 'resume'
   | 'start'
   | 'complete'
   | 'error';
@@ -886,12 +886,12 @@ export type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void
 /**
  * Callback of pause event
  */
-export type SyncPausedCallback = () => void;
+export type SyncPauseCallback = () => void;
 
 /**
- * Callback of active event
+ * Callback of resume event
  */
-export type SyncActiveCallback = () => void;
+export type SyncResumeCallback = () => void;
 
 /**
  * Callback of start event
@@ -919,8 +919,8 @@ export type SyncCallback =
   | SyncLocalChangeCallback
   | SyncRemoteChangeCallback
   | SyncCombineDatabaseCallback
-  | SyncPausedCallback
-  | SyncActiveCallback
+  | SyncPauseCallback
+  | SyncResumeCallback
   | SyncStartCallback
   | SyncCompleteCallback
   | SyncErrorCallback;

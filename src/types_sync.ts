@@ -2,7 +2,6 @@ import { JsonDiff } from './remote/json_diff';
 import {
   IJsonPatch,
   RemoteOptions,
-  SyncActiveCallback,
   SyncCallback,
   SyncChangeCallback,
   SyncCombineDatabaseCallback,
@@ -10,11 +9,12 @@ import {
   SyncErrorCallback,
   SyncEvent,
   SyncLocalChangeCallback,
-  SyncPausedCallback,
+  SyncPauseCallback,
   SyncRemoteChangeCallback,
   SyncResult,
   SyncResultCancel,
   SyncResultPush,
+  SyncResumeCallback,
   SyncStartCallback,
 } from './types';
 
@@ -28,8 +28,8 @@ export interface ISync {
     localChange: SyncLocalChangeCallback[];
     remoteChange: SyncRemoteChangeCallback[];
     combine: SyncCombineDatabaseCallback[];
-    paused: SyncPausedCallback[];
-    active: SyncActiveCallback[];
+    pause: SyncPauseCallback[];
+    resume: SyncResumeCallback[];
     start: SyncStartCallback[];
     complete: SyncCompleteCallback[];
     error: SyncErrorCallback[];
@@ -47,6 +47,5 @@ export interface ISync {
   on(event: SyncEvent, callback: SyncCallback): void;
   off(event: SyncEvent, callback: SyncCallback): void;
   pause(): void;
-  cancel(): void;
   resume(options?: { interval?: number; retry?: number }): void;
 }

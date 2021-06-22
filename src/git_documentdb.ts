@@ -1196,7 +1196,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    */
   unregisterRemote (remoteURL: string) {
-    this._synchronizers[remoteURL].cancel();
+    this._synchronizers[remoteURL].pause();
     delete this._synchronizers[remoteURL];
   }
 

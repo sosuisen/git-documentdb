@@ -360,7 +360,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      it('stops by cancel()', async () => {
+      it('stops by pause()', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -381,7 +381,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         expect(syncA.options().live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
-        syncA.cancel();
+        syncA.pause();
         await sleep(interval * 2);
         expect(syncA.options().live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);

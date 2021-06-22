@@ -27,7 +27,6 @@ import {
 } from '../error';
 import {
   RemoteOptions,
-  SyncActiveCallback,
   SyncCallback,
   SyncChangeCallback,
   SyncCombineDatabaseCallback,
@@ -35,11 +34,12 @@ import {
   SyncErrorCallback,
   SyncEvent,
   SyncLocalChangeCallback,
-  SyncPausedCallback,
+  SyncPauseCallback,
   SyncRemoteChangeCallback,
   SyncResult,
   SyncResultCancel,
   SyncResultPush,
+  SyncResumeCallback,
   SyncStartCallback,
   Task,
   TaskMetadata,
@@ -147,8 +147,8 @@ export class Sync implements ISync {
     localChange: SyncLocalChangeCallback[];
     remoteChange: SyncRemoteChangeCallback[];
     combine: SyncCombineDatabaseCallback[];
-    paused: SyncPausedCallback[];
-    active: SyncActiveCallback[];
+    pause: SyncPauseCallback[];
+    resume: SyncResumeCallback[];
     start: SyncStartCallback[];
     complete: SyncCompleteCallback[];
     error: SyncErrorCallback[];
@@ -157,8 +157,8 @@ export class Sync implements ISync {
     localChange: [],
     remoteChange: [],
     combine: [],
-    paused: [],
-    active: [],
+    pause: [],
+    resume: [],
     start: [],
     complete: [],
     error: [],
@@ -323,7 +323,7 @@ export class Sync implements ISync {
 
     if (this._options.live) {
       if (this._syncTimer === undefined) {
-        this.eventHandlers.active.forEach(func => {
+        this.eventHandlers.resume.forEach(func => {
           func();
         });
         this._syncTimer = setInterval(() => {
@@ -353,10 +353,9 @@ export class Sync implements ISync {
   }
 
   /**
-   * Stop synchronization
-   *
+   * Pause synchronization
    */
-  cancel () {
+  pause () {
     if (!this._options.live) return false;
 
     // Cancel retrying
@@ -366,18 +365,10 @@ export class Sync implements ISync {
     }
     this._options.live = false;
 
-    this.eventHandlers.paused.forEach(func => {
+    this.eventHandlers.pause.forEach(func => {
       func();
     });
     return true;
-  }
-
-  /**
-   * Alias of cancel()
-   *
-   */
-  pause () {
-    return this.cancel();
   }
 
   /**
@@ -415,7 +406,7 @@ export class Sync implements ISync {
       }, this._options.interval!);
     }
 
-    this.eventHandlers.active.forEach(func => {
+    this.eventHandlers.resume.forEach(func => {
       func();
     });
 
@@ -806,8 +797,8 @@ export class Sync implements ISync {
       this.eventHandlers[event].push(callback as SyncRemoteChangeCallback);
     if (event === 'combine')
       this.eventHandlers[event].push(callback as SyncCombineDatabaseCallback);
-    if (event === 'paused') this.eventHandlers[event].push(callback as SyncPausedCallback);
-    if (event === 'active') this.eventHandlers[event].push(callback as SyncActiveCallback);
+    if (event === 'pause') this.eventHandlers[event].push(callback as SyncPauseCallback);
+    if (event === 'resume') this.eventHandlers[event].push(callback as SyncResumeCallback);
     if (event === 'start') this.eventHandlers[event].push(callback as SyncStartCallback);
     if (event === 'complete')
       this.eventHandlers[event].push(callback as SyncCompleteCallback);
@@ -833,14 +824,14 @@ export class Sync implements ISync {
    *
    */
   close () {
-    this.cancel();
+    this.pause();
     this.eventHandlers = {
       change: [],
       localChange: [],
       remoteChange: [],
       combine: [],
-      paused: [],
-      active: [],
+      pause: [],
+      resume: [],
       start: [],
       complete: [],
       error: [],
