@@ -208,6 +208,7 @@ export class Collection implements CRUDInterface {
     options?: PutOptions
   ): Promise<PutResult> {
     let shortId: string;
+    let _id: string;
     let shortName: string;
     let fullDocPath: string;
     let jsonDoc: JsonDoc;
@@ -215,12 +216,14 @@ export class Collection implements CRUDInterface {
     // Resolve overloads
     if (typeof shortIdOrDoc === 'string') {
       shortId = shortIdOrDoc;
+      _id = this._collectionPath + shortId;
       shortName = shortId + JSON_EXT;
       jsonDoc = jsonDocOrOptions as JsonDoc;
       fullDocPath = this._collectionPath + shortName;
     }
     else if (shortIdOrDoc?._id) {
       shortId = shortIdOrDoc._id;
+      _id = this._collectionPath + shortId;
       shortName = shortId + JSON_EXT;
       fullDocPath = this._collectionPath + shortName;
       jsonDoc = shortIdOrDoc as JsonDoc;
@@ -237,7 +240,7 @@ export class Collection implements CRUDInterface {
     } catch (err) {
       return Promise.reject(new InvalidJsonObjectError(shortId));
     }
-    clone._id = fullDocPath;
+    clone._id = _id;
     const data = toSortedJSONString(clone);
     try {
       this._gitDDB.validator.validateId(shortId);
