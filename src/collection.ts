@@ -486,7 +486,7 @@ export class Collection implements CRUDInterface {
       docType = 'json';
       // JsonDoc
       if (!shortName.endsWith(JSON_EXT)) {
-        throw new InvalidJsonFileExtensionError();
+        return Promise.reject(new InvalidJsonFileExtensionError());
       }
       shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
       fullDocPath = this._collectionPath + shortName;
@@ -498,7 +498,7 @@ export class Collection implements CRUDInterface {
       } catch (err) {
         return Promise.reject(new InvalidJsonObjectError(shortId));
       }
-      clone._id = fullDocPath;
+      clone._id = this._collectionPath + shortId;
       data = toSortedJSONString(clone);
       try {
         this._gitDDB.validator.validateDocument(clone);

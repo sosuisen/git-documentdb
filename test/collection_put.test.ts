@@ -20,6 +20,7 @@ import {
   InvalidCollectionPathCharacterError,
   InvalidIdCharacterError,
   InvalidIdLengthError,
+  InvalidJsonFileExtensionError,
   InvalidJsonObjectError,
   UndefinedDocumentIdError,
 } from '../src/error';
@@ -724,5 +725,95 @@ describe('<collection>', () => {
 }`);
 
     await gitDDB.destroy();
+  });
+
+  describe('<crud/put> putFatDoc(shortName, jsonDoc)', () => {
+    it('throws InvalidIdCharacterError', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      const col = new Collection(gitDDB, 'col01');
+      // JSON.stringify() throws error if an object has a bigint value
+      // @ts-ignore
+      await expect(col.putFatDoc('', { _id: 'test' })).rejects.toThrowError(
+        InvalidJsonFileExtensionError
+      );
+      await gitDDB.destroy();
+    });
+
+    it('creates a JSON file', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      const prevCommitOid = await git.resolveRef({
+        fs,
+        dir: gitDDB.workingDir(),
+        ref: 'HEAD',
+      });
+
+      const col = new Collection(gitDDB, 'col01');
+      const _id = 'dir01/prof01';
+      const shortName = _id + JSON_EXT;
+      // Check put operation
+      const json = { _id, name: 'Shirase' };
+
+      const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
+      const putResult = await col.putFatDoc(shortName, json);
+      const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
+
+      const currentCommitOid = await git.resolveRef({
+        fs,
+        dir: gitDDB.workingDir(),
+        ref: 'HEAD',
+      });
+
+      const internalJson = JSON.parse(JSON.stringify(json));
+      internalJson._id = col.collectionPath() + _id;
+      const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
+        .oid;
+      const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+
+      expect(putResult._id).toBe(_id);
+      expect(putResult.fileOid).toBe(fileOid);
+      expect(putResult.commit.oid).toBe(currentCommitOid);
+      expect(putResult.commit.message).toBe(
+        `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+      );
+
+      expect(putResult.commit.parent).toEqual([prevCommitOid]);
+      expect(putResult.commit.author.name).toEqual(gitDDB.author.name);
+      expect(putResult.commit.author.email).toEqual(gitDDB.author.email);
+      expect(putResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
+        beforeTimestamp
+      );
+      expect(putResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
+        afterTimestamp
+      );
+      expect(putResult.commit.committer.name).toEqual(gitDDB.author.name);
+      expect(putResult.commit.committer.email).toEqual(gitDDB.author.email);
+      expect(putResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
+        beforeTimestamp
+      );
+      expect(putResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
+        afterTimestamp
+      );
+
+      // fs.access() throw error when a file cannot be accessed.
+      const filePath = path.resolve(
+        gitDDB.workingDir(),
+        col.collectionPath(),
+        _id + JSON_EXT
+      );
+      await expect(fs.access(filePath)).resolves.not.toThrowError();
+      expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
+
+      await gitDDB.destroy();
+    });
   });
 });
