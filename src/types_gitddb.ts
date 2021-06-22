@@ -15,6 +15,7 @@ import {
   DeleteOptions,
   DeleteResult,
   Doc,
+  DocType,
   FatDoc,
   FindOptions,
   GetOptions,
@@ -104,7 +105,7 @@ export interface CRUDInterface {
     getOptions?: GetOptions
   ): Promise<(FatDoc | undefined)[]>;
 
-  getDocByOid(fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined>;
+  getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
 
   delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
 

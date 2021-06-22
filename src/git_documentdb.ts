@@ -945,18 +945,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    *  - undefined if not exists.
    *
-   *  - JsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
-   *
-   *  - Uint8Array if described in .gitattribtues, otherwise string.
-   *
-   *  - getOptions.forceDocType always overwrite return type.
-   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
-  getDocByOid (fileOid: string, getOptions?: GetOptions): Promise<Doc | undefined> {
-    return this._fullCollection.getDocByOid(fileOid, getOptions);
+  getDocByOid (fileOid: string, docType: DocType): Promise<Doc | undefined> {
+    return this._fullCollection.getDocByOid(fileOid, docType);
   }
 
   /**
