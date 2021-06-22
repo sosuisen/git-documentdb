@@ -708,30 +708,35 @@ describe('<collection>', () => {
       await expect(col.findFatDoc()).resolves.toEqual([
         {
           _id: _id_a,
+          name: _id_a + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a_,
         },
         {
           _id: _id_b,
+          name: _id_b + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b_,
         },
         {
           _id: _id_c01,
+          name: _id_c01 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01_,
         },
         {
           _id: _id_c02,
+          name: _id_c02 + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02_,
         },
         {
           _id: _id_d,
+          name: _id_d + JSON_EXT,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d_,
