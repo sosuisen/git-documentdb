@@ -12,6 +12,7 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
+import { PutResultJsonDoc } from '../src/types';
 import { Collection } from '../src/collection';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
@@ -289,7 +290,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
     internalJson._id = col.collectionPath() + _id;
 
     const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
-    const putResult = await col.insertFatDoc(shortName, json);
+    const putResult = (await col.insertFatDoc(shortName, json)) as PutResultJsonDoc;
     const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
 
     const currentCommitOid = await git.resolveRef({
