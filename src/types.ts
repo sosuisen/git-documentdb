@@ -243,6 +243,13 @@ export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
 export type CollectionPath = string;
 
 /**
+ * Options for Collection constructor
+ */
+export type CollectionOptions = {
+  namePrefix: string;
+};
+
+/**
  * Options for put APIs (put, update, insert, putFatDoc, updateFatDoc, and insertFatDoc)
  *
  * @remarks

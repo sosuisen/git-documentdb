@@ -27,6 +27,7 @@ import {
   CannotWriteDataError,
 } from './error';
 import {
+  CollectionOptions,
   CollectionPath,
   DeleteOptions,
   DeleteResult,
@@ -87,6 +88,11 @@ export class Collection implements CRUDInterface {
   private _monoID: ULID;
 
   /**
+   * Prefix of auto generated _id or name
+   */
+  public namePrefix = '';
+
+  /**
    * Generate new _id as monotonic ULID
    *
    * @remarks
@@ -95,14 +101,18 @@ export class Collection implements CRUDInterface {
    * @returns 26 Base32 alphabets
    */
   public generateId () {
-    return this._monoID(Date.now());
+    return this.namePrefix + this._monoID(Date.now());
   }
 
   /**
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
-  constructor (gitDDB: CRUDInterface & IDocumentDB, collectionPath?: CollectionPath) {
+  constructor (
+    gitDDB: CRUDInterface & IDocumentDB,
+    collectionPath?: CollectionPath,
+    options?: CollectionOptions
+  ) {
     this._gitDDB = gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
     this._gitDDB.validator.validateCollectionPath(this._collectionPath);
@@ -110,21 +120,21 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get the collections directly under the specified rootCollectionPath.
+   * Get the collections directly under the specified dirPath.
    *
-   * @param rootCollectionPath - Default is ''.
+   * @param dirPath - Default is ''.
    * @returns Array of Collections which does not include ''
    * @throws {@link RepositoryNotOpenError}
    */
   static async getCollections (
     gitDDB: CRUDInterface & IDocumentDB,
-    rootCollectionPath = ''
+    dirPath = ''
   ): Promise<Collection[]> {
     if (!gitDDB.isOpened()) {
       throw new RepositoryNotOpenError();
     }
-    rootCollectionPath = Validator.normalizeCollectionPath(rootCollectionPath);
-    rootCollectionPath = rootCollectionPath.slice(0, -1);
+    dirPath = Validator.normalizeCollectionPath(dirPath);
+    dirPath = dirPath.slice(0, -1);
 
     const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'main' });
 
@@ -132,7 +142,7 @@ export class Collection implements CRUDInterface {
       fs,
       dir: gitDDB.workingDir(),
       oid: commitOid,
-      filepath: rootCollectionPath,
+      filepath: dirPath,
     }).catch(() => undefined);
 
     const rootTree = treeResult?.tree ?? [];
@@ -140,8 +150,7 @@ export class Collection implements CRUDInterface {
     const collections: Collection[] = [];
 
     for (const entry of rootTree) {
-      const fullDocPath =
-        rootCollectionPath !== '' ? `${rootCollectionPath}/${entry.path}` : entry.path;
+      const fullDocPath = dirPath !== '' ? `${dirPath}/${entry.path}` : entry.path;
       if (entry.type === 'tree') {
         if (fullDocPath !== GIT_DOCUMENTDB_METADATA_DIR) {
           collections.push(new Collection(gitDDB, fullDocPath));

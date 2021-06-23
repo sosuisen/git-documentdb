@@ -38,6 +38,7 @@ import {
 import { Collection } from './collection';
 import { Validator } from './validator';
 import {
+  CollectionOptions,
   CollectionPath,
   DatabaseCloseOption,
   DatabaseInfo,
@@ -147,7 +148,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   private _logLevel: TLogLevelName;
 
-  private _fullCollection: Collection;
+  public rootCollection: Collection;
 
   /**
    * Schema
@@ -236,7 +237,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this.setLogLevel(this._logLevel);
     this.taskQueue = new TaskQueue(this.getLogger());
 
-    this._fullCollection = new Collection(this);
+    this.rootCollection = new Collection(this);
   }
 
   /**
@@ -451,19 +452,19 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @param collectionPath - path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
    *
    */
-  collection (collectionPath: CollectionPath) {
-    return new Collection(this, collectionPath);
+  collection (collectionPath: CollectionPath, options?: CollectionOptions) {
+    return new Collection(this, collectionPath, options);
   }
 
   /**
    * Get collections
    *
-   * @param rootCollectionPath Get collections directly under the rootPath.
+   * @param dirPath Get collections directly under the dirPath.
    * @returns Promise<Collection[]>
    * @throws {@link RepositoryNotOpenError}
    */
-  async getCollections (rootCollectionPath?: string): Promise<Collection[]> {
-    return await Collection.getCollections(this, rootCollectionPath);
+  async getCollections (dirPath?: string): Promise<Collection[]> {
+    return await Collection.getCollections(this, dirPath);
   }
 
   /**
@@ -597,6 +598,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - If _id is undefined, it is automatically generated.
    *
+   * - This is an alias of GitDocumentDB#rootCollection.put()
+   *
    * @throws {@link InvalidJsonObjectError}
    *
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
@@ -626,6 +629,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
+   * - This is an alias of GitDocumentDB#rootCollection.put()
+   *
    * @throws {@link InvalidJsonObjectError}
    *
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
@@ -650,7 +655,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
   ): Promise<PutResultJsonDoc> {
-    return this._fullCollection.put(_idOrDoc, jsonDocOrOptions, options);
+    return this.rootCollection.put(_idOrDoc, jsonDocOrOptions, options);
   }
 
   /**
@@ -664,6 +669,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * - If _id is undefined, it is automatically generated.
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${jsonDoc._id}.json` on the file system.
+   *
+   * - This is an alias of GitDocumentDB#rootCollection.insert()
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
@@ -698,6 +705,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
+   *  - This is an alias of GitDocumentDB#rootCollection.insert()
+   *
    * @throws {@link InvalidJsonObjectError}
    *
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
@@ -726,7 +735,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   ): Promise<PutResultJsonDoc> {
     options ??= {};
     options.insertOrUpdate = 'insert';
-    return this._fullCollection.insert(_idOrDoc, jsonDocOrOptions, options);
+    return this.rootCollection.insert(_idOrDoc, jsonDocOrOptions, options);
   }
 
   /**
@@ -740,6 +749,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * - If _id is undefined, it is automatically generated.
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
+   *
+   * - This is an alias of GitDocumentDB#rootCollection.update()
    *
    * @throws {@link InvalidJsonObjectError}
    *
@@ -772,6 +783,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
+   * - This is an alias of GitDocumentDB#rootCollection.update()
+   *
    * @throws {@link InvalidJsonObjectError}
    *
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
@@ -798,7 +811,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
   ): Promise<PutResultJsonDoc> {
-    return this._fullCollection.update(_idOrDoc, jsonDocOrOptions, options);
+    return this.rootCollection.update(_idOrDoc, jsonDocOrOptions, options);
   }
 
   /**
@@ -814,7 +827,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is removed.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
-
+   *
+   * - This is an alias of GitDocumentDB#rootCollection.putFatDoc()
+   *
    * @throws {@link InvalidJsonFileExtensionError}
    * @throws {@link InvalidJsonObjectError}
    *
@@ -834,7 +849,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     doc: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult> {
-    return this._fullCollection.putFatDoc(name, doc, options);
+    return this.rootCollection.putFatDoc(name, doc, options);
   }
 
   /**
@@ -850,6 +865,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * - If name is undefined, it is automatically generated.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
+   *
+   * - This is an alias of GitDocumentDB#rootCollection.insertFatDoc()
    *
    * @throws {@link InvalidJsonObjectError}
    *
@@ -871,11 +888,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
-    // Resolve overloads
-    options ??= {};
-    options.insertOrUpdate = 'insert';
-
-    return this._fullCollection.putFatDoc(name, doc, options);
+    return this.rootCollection.insertFatDoc(name, doc, options);
   }
 
   /**
@@ -893,6 +906,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
+   *
+   * - This is an alias of GitDocumentDB#rootCollection.updateFatDoc()
    *
    * @throws {@link InvalidJsonObjectError}
    *
@@ -914,11 +929,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
-    // Resolve overloads
-    options ??= {};
-    options.insertOrUpdate = 'update';
-
-    return this._fullCollection.putFatDoc(name, doc, options);
+    return this.rootCollection.updateFatDoc(name, doc, options);
   }
 
   /**
@@ -927,16 +938,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @returns
-   *  - undefined if not exists.
+   * - undefined if not exists.
    *
-   *  - JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   * - JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *
+   * - This is an alias of GitDocumentDB#rootCollection.get()
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
   get (_id: string): Promise<JsonDoc | undefined> {
-    return this._fullCollection.get(_id);
+    return this.rootCollection.get(_id);
   }
 
   /**
@@ -953,12 +966,14 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
+   *  - This is an alias of GitDocumentDB#rootCollection.getFatDoc()
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
   getFatDoc (name: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
-    return this._fullCollection.getFatDoc(name, getOptions);
+    return this.rootCollection.getFatDoc(name, getOptions);
   }
 
   /**
@@ -969,12 +984,14 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    *  - undefined if not exists.
    *
+   *  - This is an alias of GitDocumentDB#rootCollection.getDocByOid()
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
   getDocByOid (fileOid: string, docType: DocType = 'binary'): Promise<Doc | undefined> {
-    return this._fullCollection.getDocByOid(fileOid, docType);
+    return this.rootCollection.getDocByOid(fileOid, docType);
   }
 
   /**
@@ -990,6 +1007,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    *  - undefined if the document does not exists or the document is deleted.
    *
+   *  - This is an alias of GitDocumentDB#rootCollection.getBackNumber()
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
@@ -999,7 +1018,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     backNumber: number,
     historyOptions?: HistoryOptions
   ): Promise<JsonDoc | undefined> {
-    return this._fullCollection.getBackNumber(_id, backNumber, historyOptions);
+    return this.rootCollection.getBackNumber(_id, backNumber, historyOptions);
   }
 
   /**
@@ -1021,6 +1040,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
+   *  - This is an alias of GitDocumentDB#rootCollection.getFatDocBackNumber()
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
@@ -1031,7 +1052,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<FatDoc | undefined> {
-    return this._fullCollection.getFatDocBackNumber(
+    return this.rootCollection.getFatDocBackNumber(
       name,
       backNumber,
       historyOptions,
@@ -1044,6 +1065,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
+   *
+   * - This is an alias of GitDocumentDB#rootCollection.getHistory()
    *
    * @param _id - _id is a file path whose .json extension is omitted.
    * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
@@ -1088,7 +1111,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     _id: string,
     historyOptions?: HistoryOptions
   ): Promise<(JsonDoc | undefined)[]> {
-    return this._fullCollection.getHistory(_id, historyOptions);
+    return this.rootCollection.getHistory(_id, historyOptions);
   }
 
   /**
@@ -1097,7 +1120,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @param name - name is a file path.
    *
    * @remarks
-   * See {@link getHistory} for detailed examples.
+   *  - This is an alias of GitDocumentDB#rootCollection.getFatDocHistory()
+   *
+   * @example
+   *  - See {@link getHistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
@@ -1117,13 +1143,16 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<(FatDoc | undefined)[]> {
-    return this._fullCollection.getFatDocHistory(name, historyOptions, getOptions);
+    return this.rootCollection.getFatDocHistory(name, historyOptions, getOptions);
   }
 
   /**
    * Delete a JSON document
    *
    * @param _id - _id is a file path whose .json extension is omitted.
+   *
+   * @remarks
+   *  - This is an alias of GitDocumentDB#rootCollection.delete()
    *
    * @throws {@link UndefinedDocumentIdError} (from Collection#delete)
    * @throws {@link DatabaseClosingError} (from deleteImpl)
@@ -1141,6 +1170,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @param jsonDoc - Only the _id property of the JsonDoc is referenced. _id is a file path whose .json extension is omitted.
    *
+   * @remarks
+   *  - This is an alias of GitDocumentDB#rootCollection.delete()
+   *
    * @throws {@link UndefinedDocumentIdError} (from Collection#delete)
    * @throws {@link DatabaseClosingError} (from deleteImpl)
    * @throws {@link TaskCancelError} (from deleteImpl)
@@ -1155,13 +1187,16 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     idOrDoc: string | JsonDoc,
     options?: DeleteOptions
   ): Promise<DeleteResultJsonDoc> {
-    return this._fullCollection.delete(idOrDoc, options);
+    return this.rootCollection.delete(idOrDoc, options);
   }
 
   /**
    * Delete a data
    *
    * @param name - name is a file path
+   *
+   * @remarks
+   *  - This is an alias of GitDocumentDB#rootCollection.deleteFatDoc()
    *
    * @throws {@link UndefinedDocumentIdError}
    * @throws {@link DatabaseClosingError} (from deleteImpl)
@@ -1173,11 +1208,14 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
   deleteFatDoc (name: string, options?: DeleteOptions): Promise<DeleteResult> {
-    return this._fullCollection.deleteFatDoc(name, options);
+    return this.rootCollection.deleteFatDoc(name, options);
   }
 
   /**
    * Get all the JSON documents
+   *
+   * @remarks
+   *  - This is an alias of GitDocumentDB#rootCollection.find()
    *
    * @param options - The options specify how to get documents.
    *
@@ -1186,7 +1224,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   find (options?: FindOptions): Promise<JsonDoc[]> {
-    return this._fullCollection.find(options);
+    return this.rootCollection.find(options);
   }
 
   /**
@@ -1194,12 +1232,15 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @param options - The options specify how to get documents.
    *
+   * @remarks
+   *  - This is an alias of GitDocumentDB#rootCollection.findFatDoc()
+   *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
    */
   findFatDoc (options?: FindOptions): Promise<FatDoc[]> {
-    return this._fullCollection.findFatDoc(options);
+    return this.rootCollection.findFatDoc(options);
   }
 
   /**

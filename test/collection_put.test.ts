@@ -584,6 +584,26 @@ describe('<collection>', () => {
       await gitDDB.destroy();
     });
 
+    it('generates new _id with namePrefix', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      const col = new Collection(gitDDB, 'col01', {});
+      const json = { name: 'Shirase' };
+      const putResult = await col.put(undefined, json);
+      expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult._id)).resolves.toEqual({
+        ...json,
+        _id: putResult._id,
+      });
+
+
+      await gitDDB.destroy();
+    });
+
     it('creates a JSON file', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
