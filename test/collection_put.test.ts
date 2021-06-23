@@ -591,15 +591,17 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01', {});
+      const namePrefix = 'item';
+      const col = new Collection(gitDDB, 'col01', { namePrefix });
       const json = { name: 'Shirase' };
       const putResult = await col.put(undefined, json);
-      expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      expect(putResult._id.startsWith(namePrefix)).toBeTruthy();
+      const autoGen = putResult._id.replace(namePrefix, '');
+      expect(autoGen).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
       await expect(col.get(putResult._id)).resolves.toEqual({
         ...json,
         _id: putResult._id,
       });
-
 
       await gitDDB.destroy();
     });

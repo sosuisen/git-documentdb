@@ -165,6 +165,28 @@ describe('<git_documentdb> put(_id, jsonDoc)', () => {
     await gitDDB.destroy();
   });
 
+  it('generates new _id with namePrefix', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const namePrefix = 'item';
+    gitDDB.rootCollection.namePrefix = namePrefix;
+    const json = { name: 'Shirase' };
+    const putResult = await gitDDB.put(undefined, json);
+    expect(putResult._id.startsWith(namePrefix)).toBeTruthy();
+    const autoGen = putResult._id.replace(namePrefix, '');
+    expect(autoGen).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult._id)).resolves.toEqual({
+      ...json,
+      _id: putResult._id,
+    });
+
+    await gitDDB.destroy();
+  });
+
   it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({

@@ -58,7 +58,7 @@ describe('<index>', () => {
       localDir,
     });
     await gitDDB.open();
-    const putResult = await gitDDB.put({ _id: '1', name: 'Shirase'});
+    const putResult = await gitDDB.put({ _id: '1', name: 'Shirase' });
     const commit = await gitDDB.getCommit(putResult.commit.oid);
     expect(commit).toEqual(putResult.commit);
     gitDDB.destroy();

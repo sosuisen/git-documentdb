@@ -117,6 +117,8 @@ export class Collection implements CRUDInterface {
     this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
     this._gitDDB.validator.validateCollectionPath(this._collectionPath);
     this._monoID = monotonicFactory();
+
+    this.namePrefix = options?.namePrefix ?? this.namePrefix;
   }
 
   /**
