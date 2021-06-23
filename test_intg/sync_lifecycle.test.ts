@@ -91,7 +91,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
    * Initialize means creating local and remote repositories by using a remoteUrl
    */
   describe('initialized by open():', () => {
-    it('getSynchronizer() returns an instance of Sync.', async () => {
+    it('getSync() returns an instance of Sync.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
@@ -121,8 +121,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
       };
       await dbA.open();
       await dbA.sync(options);
-      dbA.unregisterRemote(remoteURL);
-      expect(dbA.getSynchronizer(remoteURL)).toBeUndefined();
+      dbA.removeSync(remoteURL);
+      expect(dbA.getSync(remoteURL)).toBeUndefined();
       destroyDBs([dbA]);
     });
 
@@ -360,7 +360,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await destroyDBs([dbA, dbB]);
       });
 
-      it('stops by cancel()', async () => {
+      it('stops by pause()', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
 
@@ -381,7 +381,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         expect(syncA.options().live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
-        syncA.cancel();
+        syncA.pause();
         await sleep(interval * 2);
         expect(syncA.options().live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);

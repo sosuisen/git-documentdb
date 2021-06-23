@@ -50,4 +50,17 @@ describe('<index>', () => {
     expect(col instanceof Collection).toBeTruthy();
     expect(col.collectionPath()).toBe('col01/');
   });
+
+  it('getCommit', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const putResult = await gitDDB.put({ _id: '1', name: 'Shirase'});
+    const commit = await gitDDB.getCommit(putResult.commit.oid);
+    expect(commit).toEqual(putResult.commit);
+    gitDDB.destroy();
+  });
 });
