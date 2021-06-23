@@ -8,11 +8,11 @@
  */
 
 import path from 'path';
-import internal from 'stream';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import { PutResultJsonDoc } from '../src/types';
 import { toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -22,7 +22,6 @@ import {
   InvalidIdLengthError,
   InvalidJsonFileExtensionError,
   InvalidJsonObjectError,
-  UndefinedDocumentIdError,
 } from '../src/error';
 import { Collection } from '../src/collection';
 import { Validator } from '../src/validator';
@@ -49,7 +48,7 @@ after(() => {
 
 describe('<collection>', () => {
   describe('put(jsonDoc)', () => {
-    it('throws UndefinedDocumentIdError when JsonDoc is undefined', async () => {
+    it('throws InvalidJsonObjectError when JsonDoc is undefined', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -58,11 +57,11 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       // @ts-ignore
-      await expect(col.put(undefined)).rejects.toThrowError(UndefinedDocumentIdError);
+      await expect(col.put(undefined)).rejects.toThrowError(InvalidJsonObjectError);
       await gitDDB.destroy();
     });
 
-    it('throws UndefinedDocumentIdError when _id is not found in JsonDoc', async () => {
+    it('generates new _id when _id is not found in JsonDoc', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -70,12 +69,30 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
-      await expect(col.put({ name: 'Shirase' })).rejects.toThrowError(
-        UndefinedDocumentIdError
-      );
-      await expect(col.put({ _id: '', name: 'Shirase' })).rejects.toThrowError(
-        UndefinedDocumentIdError
-      );
+      const json = { name: 'Shirase' };
+      const putResult = await col.put(json);
+      expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult._id)).resolves.toEqual({
+        ...json,
+        _id: putResult._id,
+      });
+
+      const json2 = { _id: '', name: 'Shirase' };
+      const putResult2 = await col.put(json2);
+      expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult2._id)).resolves.toEqual({
+        ...json2,
+        _id: putResult2._id,
+      });
+
+      const json3 = { _id: null, name: 'Shirase' };
+      const putResult3 = await col.put(json2);
+      expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult3._id)).resolves.toEqual({
+        ...json3,
+        _id: putResult3._id,
+      });
+
       await gitDDB.destroy();
     });
 
@@ -532,7 +549,7 @@ describe('<collection>', () => {
       await gitDDB.destroy();
     });
 
-    it('throws InvalidIdCharacterError', async () => {
+    it('generates new _id when _id is not found in JsonDoc', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -540,11 +557,30 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
-      // JSON.stringify() throws error if an object has a bigint value
-      // @ts-ignore
-      await expect(col.put('', { _id: 'test' })).rejects.toThrowError(
-        InvalidIdCharacterError
-      );
+      const json = { name: 'Shirase' };
+      const putResult = await col.put(undefined, json);
+      expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult._id)).resolves.toEqual({
+        ...json,
+        _id: putResult._id,
+      });
+
+      const json2 = { name: 'Shirase' };
+      const putResult2 = await col.put('', json2);
+      expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult2._id)).resolves.toEqual({
+        ...json2,
+        _id: putResult2._id,
+      });
+
+      const json3 = { name: 'Shirase' };
+      const putResult3 = await col.put(null, json2);
+      expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult3._id)).resolves.toEqual({
+        ...json3,
+        _id: putResult3._id,
+      });
+
       await gitDDB.destroy();
     });
 
@@ -728,7 +764,7 @@ describe('<collection>', () => {
   });
 
   describe('<crud/put> putFatDoc(shortName, jsonDoc)', () => {
-    it('throws InvalidIdCharacterError', async () => {
+    it('generates new _id when _id is not found in JsonDoc', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -736,11 +772,38 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
-      // JSON.stringify() throws error if an object has a bigint value
-      // @ts-ignore
-      await expect(col.putFatDoc('', { _id: 'test' })).rejects.toThrowError(
-        InvalidJsonFileExtensionError
+      const json = { name: 'Shirase' };
+      const putResult = (await col.putFatDoc(undefined, json)) as PutResultJsonDoc;
+      expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult._id)).resolves.toEqual({
+        ...json,
+        _id: putResult._id,
+      });
+
+      // Check .json extension
+      const filePath = path.resolve(
+        gitDDB.workingDir(),
+        col.collectionPath(),
+        putResult._id + JSON_EXT
       );
+      await expect(fs.access(filePath)).resolves.not.toThrowError();
+
+      const json2 = { name: 'Shirase' };
+      const putResult2 = (await col.putFatDoc('', json2)) as PutResultJsonDoc;
+      expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult2._id)).resolves.toEqual({
+        ...json2,
+        _id: putResult2._id,
+      });
+
+      const json3 = { name: 'Shirase' };
+      const putResult3 = (await col.putFatDoc(null, json2)) as PutResultJsonDoc;
+      expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+      await expect(col.get(putResult3._id)).resolves.toEqual({
+        ...json3,
+        _id: putResult3._id,
+      });
+
       await gitDDB.destroy();
     });
 
@@ -779,7 +842,7 @@ describe('<collection>', () => {
         .oid;
       const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
 
-      expect(putResult._id).toBe(_id);
+      expect((putResult as PutResultJsonDoc)._id).toBe(_id);
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(

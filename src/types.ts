@@ -357,11 +357,28 @@ export type FindOptions = {
  *
  * - commit: Git commit object of this put operation.
  */
-export type PutResult = {
-  _id?: string;
+export type PutResult = PutResultJsonDoc | PutResultText | PutResultBinary;
+
+export type PutResultJsonDoc = {
+  _id: string;
   name: string;
   fileOid: string;
   commit: NormalizedCommit;
+  type: 'json';
+};
+
+export type PutResultText = {
+  name: string;
+  fileOid: string;
+  commit: NormalizedCommit;
+  type: 'text';
+};
+
+export type PutResultBinary = {
+  name: string;
+  fileOid: string;
+  commit: NormalizedCommit;
+  type: 'binary';
 };
 
 /**
@@ -376,11 +393,28 @@ export type PutResult = {
  *
  * - commit: Git commit object of this put operation.
  */
-export type DeleteResult = {
-  _id?: string;
+export type DeleteResult = DeleteResultJsonDoc | DeleteResultText | DeleteResultBinary;
+
+export type DeleteResultJsonDoc = {
+  _id: string;
   name: string;
   fileOid: string;
   commit: NormalizedCommit;
+  type: 'json';
+};
+
+export type DeleteResultText = {
+  name: string;
+  fileOid: string;
+  commit: NormalizedCommit;
+  type: 'text';
+};
+
+export type DeleteResultBinary = {
+  name: string;
+  fileOid: string;
+  commit: NormalizedCommit;
+  type: 'binary';
 };
 
 /**

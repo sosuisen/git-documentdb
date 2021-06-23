@@ -9,6 +9,7 @@
 import fs from 'fs';
 
 import { readTree, resolveRef } from 'isomorphic-git';
+import { monotonicFactory, ULID } from 'ulid';
 import {
   InvalidDocTypeError,
   InvalidJsonFileExtensionError,
@@ -29,6 +30,9 @@ import {
   CollectionPath,
   DeleteOptions,
   DeleteResult,
+  DeleteResultBinary,
+  DeleteResultJsonDoc,
+  DeleteResultText,
   Doc,
   DocType,
   FatDoc,
@@ -38,6 +42,9 @@ import {
   JsonDoc,
   PutOptions,
   PutResult,
+  PutResultBinary,
+  PutResultJsonDoc,
+  PutResultText,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { Validator } from './validator';
@@ -77,6 +84,20 @@ export class Collection implements CRUDInterface {
 
   private _gitDDB: CRUDInterface & IDocumentDB;
 
+  private _monoID: ULID;
+
+  /**
+   * Generate new _id as monotonic ULID
+   *
+   * @remarks
+   * See https://github.com/ulid/javascript
+   *
+   * @returns 26 Base32 alphabets
+   */
+  public generateId () {
+    return this._monoID(Date.now());
+  }
+
   /**
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
@@ -85,6 +106,7 @@ export class Collection implements CRUDInterface {
     this._gitDDB = gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
     this._gitDDB.validator.validateCollectionPath(this._collectionPath);
+    this._monoID = monotonicFactory();
   }
 
   /**
@@ -146,9 +168,9 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}${jsonDoc._id}.json`.
    *
-   * @throws {@link UndefinedDocumentIdError}
+   * - If _id is undefined, it is automatically generated.
+   *
    * @throws {@link InvalidJsonObjectError}
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    *
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
@@ -161,7 +183,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
    */
-  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
@@ -171,12 +193,14 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
    *
+   * - If shortId is undefined, it is automatically generated.
+   *
    * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
    *
-   * @throws {@link UndefinedDocumentIdError}
+   * - An update operation is not skipped even if no change occurred on a specified data.
+   *
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    * @throws {@link InvalidCollectionPathCharacterError} (from validateDocument, validateId)
@@ -189,24 +213,28 @@ export class Collection implements CRUDInterface {
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
    */
-  put (shortId: string, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  put (
+    shortId: string | undefined | null,
+    jsonDoc: JsonDoc,
+    options?: PutOptions
+  ): Promise<PutResultJsonDoc>;
 
   /**
    * Overload only for internal call
    * @internal
    */
   put (
-    shortIdOrDoc: string | JsonDoc,
+    shortIdOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult>;
+  ): Promise<PutResultJsonDoc>;
 
   // eslint-disable-next-line complexity
   put (
-    shortIdOrDoc: string | JsonDoc,
+    shortIdOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult> {
+  ): Promise<PutResultJsonDoc> {
     let shortId: string;
     let _id: string;
     let shortName: string;
@@ -214,23 +242,26 @@ export class Collection implements CRUDInterface {
     let jsonDoc: JsonDoc;
 
     // Resolve overloads
-    if (typeof shortIdOrDoc === 'string') {
+    if (
+      typeof shortIdOrDoc === 'string' ||
+      shortIdOrDoc === undefined ||
+      shortIdOrDoc === null
+    ) {
+      if (!shortIdOrDoc) shortIdOrDoc = this.generateId();
       shortId = shortIdOrDoc;
       _id = this._collectionPath + shortId;
       shortName = shortId + JSON_EXT;
       jsonDoc = jsonDocOrOptions as JsonDoc;
       fullDocPath = this._collectionPath + shortName;
     }
-    else if (shortIdOrDoc?._id) {
+    else {
+      if (!shortIdOrDoc._id) shortIdOrDoc._id = this.generateId();
       shortId = shortIdOrDoc._id;
       _id = this._collectionPath + shortId;
       shortName = shortId + JSON_EXT;
       fullDocPath = this._collectionPath + shortName;
       jsonDoc = shortIdOrDoc as JsonDoc;
       options = jsonDocOrOptions as PutOptions;
-    }
-    else {
-      return Promise.reject(new UndefinedDocumentIdError());
     }
 
     // JSON
@@ -250,7 +281,12 @@ export class Collection implements CRUDInterface {
     }
 
     return putImpl(this._gitDDB, fullDocPath, data, options).then(res => {
-      const putResult = { ...res, _id: shortId, name: shortName };
+      const putResult: PutResultJsonDoc = {
+        ...res,
+        _id: shortId,
+        name: shortName,
+        type: 'json',
+      };
       return putResult;
     });
   }
@@ -263,14 +299,14 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
+   * - If _id is undefined, it is automatically generated.
+   *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${jsonDoc._id}.json`.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -284,7 +320,7 @@ export class Collection implements CRUDInterface {
    *
    * @throws {@link SameIdExistsError} (from putWorker)
    */
-  insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
   /**
    * Insert a JSON document
@@ -296,12 +332,12 @@ export class Collection implements CRUDInterface {
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
    *
+   * - If shortId is undefined, it is automatically generated.
+   *
    * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -315,33 +351,38 @@ export class Collection implements CRUDInterface {
    *
    * @throws {@link SameIdExistsError} (from putWorker)
    */
-  insert (shortId: string, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  insert (
+    shortId: string | undefined | null,
+    jsonDoc: JsonDoc,
+    options?: PutOptions
+  ): Promise<PutResultJsonDoc>;
 
   /**
    * @internal
    */
   insert (
-    shortIdOrDoc: string | JsonDoc,
+    shortIdOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult>;
+  ): Promise<PutResultJsonDoc>;
 
   insert (
-    shortIdOrDoc: string | JsonDoc,
+    shortIdOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult> {
+  ): Promise<PutResultJsonDoc> {
     // Resolve overloads
-    if (typeof shortIdOrDoc === 'string') {
+    if (
+      typeof shortIdOrDoc === 'string' ||
+      shortIdOrDoc === undefined ||
+      shortIdOrDoc === null
+    ) {
       options ??= {};
       options.insertOrUpdate = 'insert';
     }
-    else if (shortIdOrDoc?._id) {
+    else {
       jsonDocOrOptions ??= {};
       (jsonDocOrOptions as PutOptions).insertOrUpdate = 'insert';
-    }
-    else {
-      return Promise.reject(new UndefinedDocumentIdError());
     }
 
     return this.put(shortIdOrDoc, jsonDocOrOptions, options);
@@ -357,12 +398,12 @@ export class Collection implements CRUDInterface {
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${jsonDoc._id}.json`.
    *
+   * - If _id is undefined, it is automatically generated.
+   *
    * - An update operation is not skipped even if no change occurred on a specified document.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -376,7 +417,7 @@ export class Collection implements CRUDInterface {
    *
    * @throws {@link DocumentNotFoundError}
    */
-  update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
   /**
    * Update a JSON document
@@ -388,12 +429,12 @@ export class Collection implements CRUDInterface {
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
    *
+   * - If shortId is undefined, it is automatically generated.
+   *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -407,33 +448,38 @@ export class Collection implements CRUDInterface {
    *
    * @throws {@link DocumentNotFoundError}
    */
-  update (_id: string, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  update (
+    _id: string | undefined | null,
+    jsonDoc: JsonDoc,
+    options?: PutOptions
+  ): Promise<PutResultJsonDoc>;
 
   /**
    * @internal
    */
   update (
-    shortIdOrDoc: string | JsonDoc,
+    shortIdOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult>;
+  ): Promise<PutResultJsonDoc>;
 
   update (
-    shortIdOrDoc: string | JsonDoc,
+    shortIdOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult> {
+  ): Promise<PutResultJsonDoc> {
     // Resolve overloads
-    if (typeof shortIdOrDoc === 'string') {
+    if (
+      typeof shortIdOrDoc === 'string' ||
+      shortIdOrDoc === undefined ||
+      shortIdOrDoc === null
+    ) {
       options ??= {};
       options.insertOrUpdate = 'update';
     }
-    else if (shortIdOrDoc?._id) {
+    else {
       jsonDocOrOptions ??= {};
       (jsonDocOrOptions as PutOptions).insertOrUpdate = 'update';
-    }
-    else {
-      return Promise.reject(new UndefinedDocumentIdError());
     }
 
     return this.put(shortIdOrDoc, jsonDocOrOptions, options);
@@ -442,10 +488,16 @@ export class Collection implements CRUDInterface {
   /**
    * Insert a data if not exists. Otherwise, update it.
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
+   *
+   * - If shortName is undefined, it is automatically generated.
+   *
+   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+   *
+   * - An update operation is not skipped even if no change occurred on a specified data.
    *
    * @throws {@link InvalidJsonFileExtensionError}
    * @throws {@link InvalidJsonObjectError}
@@ -461,8 +513,9 @@ export class Collection implements CRUDInterface {
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
    */
+  // eslint-disable-next-line complexity
   putFatDoc (
-    shortName: string,
+    shortName: string | undefined | null,
     doc: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -473,16 +526,19 @@ export class Collection implements CRUDInterface {
 
     // Resolve overloads
     if (typeof doc === 'string') {
+      if (!shortName) shortName = this.generateId();
       docType = 'text';
       data = doc;
       fullDocPath = this._collectionPath + shortName;
     }
     else if (doc instanceof Uint8Array) {
+      if (!shortName) shortName = this.generateId();
       docType = 'binary';
       data = doc;
       fullDocPath = this._collectionPath + shortName;
     }
     else if (typeof doc === 'object') {
+      if (!shortName) shortName = this.generateId() + JSON_EXT;
       docType = 'json';
       // JsonDoc
       if (!shortName.endsWith(JSON_EXT)) {
@@ -517,28 +573,51 @@ export class Collection implements CRUDInterface {
     }
 
     return putImpl(this._gitDDB, fullDocPath, data, options).then(res => {
-      const putResult: PutResult = { ...res, name: shortName };
-      if (docType === 'json') putResult._id = shortId;
-      return putResult;
+      if (docType === 'json') {
+        const putResult: PutResultJsonDoc = {
+          ...res,
+          name: shortName!,
+          type: 'json',
+          _id: shortId,
+        };
+        return putResult;
+      }
+      else if (docType === 'text') {
+        const putResult: PutResultText = {
+          ...res,
+          name: shortName!,
+          type: 'text',
+        };
+        return putResult;
+      }
+      else if (docType === 'binary') {
+        const putResult: PutResultBinary = {
+          ...res,
+          name: shortName!,
+          type: 'binary',
+        };
+        return putResult;
+      }
+      return Promise.reject(new InvalidDocTypeError(typeof doc));
     });
   }
 
   /**
    * Insert a data
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
+   * - If shortName is undefined, it is automatically generated.
    *
-   * @throws {@link UndefinedDocumentIdError}
+   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+   *
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -553,7 +632,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link SameIdExistsError} (from putWorker)
    */
   insertFatDoc (
-    shortName: string,
+    shortName: string | undefined | null,
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -567,19 +646,21 @@ export class Collection implements CRUDInterface {
   /**
    * Update a data
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted.
+   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
    *
+   * - If shortName is undefined, it is automatically generated.
+   *
+   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+   *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -594,7 +675,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link DocumentNotFoundError}
    */
   updateFatDoc (
-    shortName: string,
+    shortName: string | undefined | null,
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -861,7 +942,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
-  delete (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  delete (_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
   /**
    * Delete a document by _id property in JsonDoc
@@ -877,11 +958,17 @@ export class Collection implements CRUDInterface {
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
-  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
-  delete (shortIdOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+  delete (
+    shortIdOrDoc: string | JsonDoc,
+    options?: DeleteOptions
+  ): Promise<DeleteResultJsonDoc>;
 
-  delete (shortIdOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
+  delete (
+    shortIdOrDoc: string | JsonDoc,
+    options?: DeleteOptions
+  ): Promise<DeleteResultJsonDoc> {
     let shortId: string;
     if (typeof shortIdOrDoc === 'string') {
       shortId = shortIdOrDoc;
@@ -896,7 +983,12 @@ export class Collection implements CRUDInterface {
     const fullDocPath = this._collectionPath + shortName;
 
     return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {
-      const deleteResult = { ...res, _id: shortId, name: shortName };
+      const deleteResult: PutResultJsonDoc = {
+        ...res,
+        _id: shortId,
+        name: shortName,
+        type: 'json',
+      };
       return deleteResult;
     });
   }
@@ -920,14 +1012,42 @@ export class Collection implements CRUDInterface {
       return Promise.reject(new UndefinedDocumentIdError());
     }
     const fullDocPath = this._collectionPath + shortName;
+
+    const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+    if (docType === 'text') {
+      // TODO: select binary or text by .gitattribtues
+    }
+
     return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {
-      const deleteResult: DeleteResult = { ...res, name: shortName };
       // NOTE: Cannot detect JsonDoc whose file path does not end with '.json'
-      if (shortName.endsWith(JSON_EXT)) {
+      if (docType === 'json') {
         const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
-        deleteResult._id = shortId;
+        const deleteResult: DeleteResultJsonDoc = {
+          ...res,
+          name: shortName,
+          type: 'json',
+          _id: shortId,
+        };
+        return deleteResult;
       }
-      return deleteResult;
+      else if (docType === 'text') {
+        const deleteResult: DeleteResultText = {
+          ...res,
+          name: shortName,
+          type: 'text',
+        };
+        return deleteResult;
+      }
+      else if (docType === 'binary') {
+        const deleteResult: DeleteResultBinary = {
+          ...res,
+          name: shortName,
+          type: 'binary',
+        };
+        return deleteResult;
+      }
+      // Not occur
+      return Promise.reject(new InvalidDocTypeError(docType));
     });
   }
 

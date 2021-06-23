@@ -12,6 +12,7 @@ import git from 'isomorphic-git';
 import { monotonicFactory } from 'ulid';
 import expect from 'expect';
 import fs from 'fs-extra';
+import { DeleteResultJsonDoc, PutResultJsonDoc } from '../src/types';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { sleep, toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
@@ -40,6 +41,40 @@ after(() => {
 });
 
 describe('<git_documentdb> put(jsonDoc)', () => {
+  it('generates new _id when _id is not found in JsonDoc', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const json = { name: 'Shirase' };
+    const putResult = await gitDDB.put(json);
+    expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult._id)).resolves.toEqual({
+      ...json,
+      _id: putResult._id,
+    });
+
+    const json2 = { _id: '', name: 'Shirase' };
+    const putResult2 = await gitDDB.put(json2);
+    expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult2._id)).resolves.toEqual({
+      ...json2,
+      _id: putResult2._id,
+    });
+
+    const json3 = { _id: null, name: 'Shirase' };
+    const putResult3 = await gitDDB.put(json2);
+    expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult3._id)).resolves.toEqual({
+      ...json3,
+      _id: putResult3._id,
+    });
+
+    await gitDDB.destroy();
+  });
+
   it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -96,6 +131,40 @@ describe('<git_documentdb> put(jsonDoc)', () => {
 });
 
 describe('<git_documentdb> put(_id, jsonDoc)', () => {
+  it('generates new _id when _id is not found in JsonDoc', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const json = { name: 'Shirase' };
+    const putResult = await gitDDB.put(undefined, json);
+    expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult._id)).resolves.toEqual({
+      ...json,
+      _id: putResult._id,
+    });
+
+    const json2 = { name: 'Shirase' };
+    const putResult2 = await gitDDB.put('', json2);
+    expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult2._id)).resolves.toEqual({
+      ...json2,
+      _id: putResult2._id,
+    });
+
+    const json3 = { name: 'Shirase' };
+    const putResult3 = await gitDDB.put(null, json2);
+    expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult3._id)).resolves.toEqual({
+      ...json3,
+      _id: putResult3._id,
+    });
+
+    await gitDDB.destroy();
+  });
+
   it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -151,6 +220,40 @@ describe('<git_documentdb> put(_id, jsonDoc)', () => {
 });
 
 describe('<git_documentdb> putFatDoc(name, jsonDoc)', () => {
+  it('generates new _id when _id is not found in JsonDoc', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const json = { name: 'Shirase' };
+    const putResult = (await gitDDB.putFatDoc(undefined, json)) as PutResultJsonDoc;
+    expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult._id)).resolves.toEqual({
+      ...json,
+      _id: putResult._id,
+    });
+
+    const json2 = { name: 'Shirase' };
+    const putResult2 = (await gitDDB.putFatDoc('', json2)) as PutResultJsonDoc;
+    expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult2._id)).resolves.toEqual({
+      ...json2,
+      _id: putResult2._id,
+    });
+
+    const json3 = { name: 'Shirase' };
+    const putResult3 = (await gitDDB.putFatDoc(null, json2)) as PutResultJsonDoc;
+    expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+    await expect(gitDDB.get(putResult3._id)).resolves.toEqual({
+      ...json3,
+      _id: putResult3._id,
+    });
+
+    await gitDDB.destroy();
+  });
+
   it('creates a JSON file', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -161,7 +264,7 @@ describe('<git_documentdb> putFatDoc(name, jsonDoc)', () => {
     const _id = 'prof01';
     const name = _id + JSON_EXT;
     const json = { _id, name: 'Shirase' };
-    const putResult = await gitDDB.putFatDoc(name, json);
+    const putResult = (await gitDDB.putFatDoc(name, json)) as PutResultJsonDoc;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
@@ -278,7 +381,7 @@ describe('<git_documentdb> insertFatDoc(name, jsonDoc)', () => {
     const _id = 'prof01';
     const name = _id + JSON_EXT;
     const json = { _id, name: 'Shirase' };
-    const putResult = await gitDDB.insertFatDoc(name, json);
+    const putResult = (await gitDDB.insertFatDoc(name, json)) as PutResultJsonDoc;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
@@ -404,7 +507,7 @@ describe('<git_documentdb> updateFatDoc(name, jsonDoc', () => {
     const json = { _id, name: 'Shirase' };
     await gitDDB.insert(json);
     const jsonUpdated = { _id, name: 'updated' };
-    const putResult = await gitDDB.updateFatDoc(name, jsonUpdated);
+    const putResult = (await gitDDB.updateFatDoc(name, jsonUpdated)) as PutResultJsonDoc;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(jsonUpdated) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
@@ -1401,7 +1504,7 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
 
     const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const deleteResult = await gitDDB.deleteFatDoc(name);
+    const deleteResult = (await gitDDB.deleteFatDoc(name)) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXT}(${shortOid})`);

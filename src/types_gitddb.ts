@@ -14,6 +14,7 @@ import {
   DatabaseOpenResult,
   DeleteOptions,
   DeleteResult,
+  DeleteResultJsonDoc,
   Doc,
   DocType,
   FatDoc,
@@ -24,6 +25,7 @@ import {
   OpenOptions,
   PutOptions,
   PutResult,
+  PutResultJsonDoc,
   RemoteOptions,
   Schema,
   SyncResult,
@@ -39,39 +41,39 @@ import { Validator } from './validator';
 export interface CRUDInterface {
   put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   put(
-    _id: string,
+    _id: string | undefined | null,
     data: JsonDoc | Uint8Array | string,
     options?: PutOptions
-  ): Promise<PutResult>;
+  ): Promise<PutResultJsonDoc>;
 
   insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   insert(
-    _id: string,
+    _id: string | undefined | null,
     data: JsonDoc | Uint8Array | string,
     options?: PutOptions
-  ): Promise<PutResult>;
+  ): Promise<PutResultJsonDoc>;
 
   update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
   update(
-    _id: string,
+    _id: string | undefined | null,
     data: JsonDoc | Uint8Array | string,
     options?: PutOptions
-  ): Promise<PutResult>;
+  ): Promise<PutResultJsonDoc>;
 
   putFatDoc(
-    name: string,
+    name: string | undefined | null,
     data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   insertFatDoc(
-    name: string,
+    name: string | undefined | null,
     data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
 
   updateFatDoc(
-    name: string,
+    name: string | undefined | null,
     data: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult>;
@@ -107,9 +109,9 @@ export interface CRUDInterface {
 
   getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
 
-  delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+  delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
-  delete(_id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  delete(_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
   deleteFatDoc(name: string, options?: DeleteOptions): Promise<DeleteResult>;
 

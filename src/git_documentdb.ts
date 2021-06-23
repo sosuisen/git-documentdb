@@ -45,6 +45,7 @@ import {
   DatabaseOptions,
   DeleteOptions,
   DeleteResult,
+  DeleteResultJsonDoc,
   Doc,
   DocType,
   FatDoc,
@@ -55,6 +56,7 @@ import {
   OpenOptions,
   PutOptions,
   PutResult,
+  PutResultJsonDoc,
   RemoteOptions,
   Schema,
   SyncResult,
@@ -593,10 +595,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${jsonDoc._id}.json` on the file system.
    *
-   * @throws {@link UndefinedDocumentIdError}
+   * - If _id is undefined, it is automatically generated.
+   *
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -608,22 +610,24 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
    */
-  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
    *
+   * - If _id is undefined, it is automatically generated.
+   *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * @throws {@link UndefinedDocumentIdError}
+   * - An update operation is not skipped even if no change occurred on a specified data.
+   *
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -635,14 +639,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
    */
-  put (_id: string, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  put (
+    _id: string | undefined | null,
+    jsonDoc: JsonDoc,
+    options?: PutOptions
+  ): Promise<PutResultJsonDoc>;
 
   put (
-    shortIdOrDoc: string | JsonDoc,
+    _idOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult> {
-    return this._fullCollection.put(shortIdOrDoc, jsonDocOrOptions, options);
+  ): Promise<PutResultJsonDoc> {
+    return this._fullCollection.put(_idOrDoc, jsonDocOrOptions, options);
   }
 
   /**
@@ -653,14 +661,14 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
    *
+   * - If _id is undefined, it is automatically generated.
+   *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${jsonDoc._id}.json` on the file system.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -674,24 +682,24 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @throws {@link SameIdExistsError} (from putWorker)
    */
-  insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
   /**
    * Insert a JSON document
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @remarks
    * - Throws SameIdExistsError when a data which has the same id exists. It might be better to use put() instead of insert().
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
    *
+   * - If _id is undefined, it is automatically generated.
+   *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -705,16 +713,20 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @throws {@link SameIdExistsError} (from putWorker)
    */
-  insert (_id: string, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  insert (
+    _id: string | undefined | null,
+    jsonDoc: JsonDoc,
+    options?: PutOptions
+  ): Promise<PutResultJsonDoc>;
 
   insert (
-    shortIdOrDoc: string | JsonDoc,
+    _idOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult> {
+  ): Promise<PutResultJsonDoc> {
     options ??= {};
     options.insertOrUpdate = 'insert';
-    return this._fullCollection.insert(shortIdOrDoc, jsonDocOrOptions, options);
+    return this._fullCollection.insert(_idOrDoc, jsonDocOrOptions, options);
   }
 
   /**
@@ -725,12 +737,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
    *
+   * - If _id is undefined, it is automatically generated.
+   *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -744,24 +756,24 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @throws {@link DocumentNotFoundError}
    */
-  update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
   /**
    * Update a JSON document
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
    *
+   * - If _id is undefined, it is automatically generated.
+   *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -775,14 +787,18 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * @throws {@link DocumentNotFoundError}
    */
-  update (_id: string, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+  update (
+    _id: string | undefined | null,
+    jsonDoc: JsonDoc,
+    options?: PutOptions
+  ): Promise<PutResultJsonDoc>;
 
   update (
-    shortIdOrDoc: string | JsonDoc,
+    _idOrDoc: string | undefined | null | JsonDoc,
     jsonDocOrOptions?: JsonDoc | PutOptions,
     options?: PutOptions
-  ): Promise<PutResult> {
-    return this._fullCollection.update(shortIdOrDoc, jsonDocOrOptions, options);
+  ): Promise<PutResultJsonDoc> {
+    return this._fullCollection.update(_idOrDoc, jsonDocOrOptions, options);
   }
 
   /**
@@ -793,6 +809,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
    *
+   * - If name is undefined, it is automatically generated.
+   *
+   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is removed.
+   *
+   * - An update operation is not skipped even if no change occurred on a specified data.
+
    * @throws {@link InvalidJsonFileExtensionError}
    * @throws {@link InvalidJsonObjectError}
    *
@@ -808,7 +830,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link CannotWriteDataError} (from putWorker)
    */
   putFatDoc (
-    name: string,
+    name: string | undefined | null,
     doc: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -825,12 +847,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
+   * - If name is undefined, it is automatically generated.
    *
-   * @throws {@link UndefinedDocumentIdError}
+   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
+   *
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -845,7 +867,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link SameIdExistsError} (from putWorker)
    */
   insertFatDoc (
-    name: string,
+    name: string | undefined | null,
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -866,12 +888,14 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
    *
+   * - If name is undefined, it is automatically generated.
+   *
+   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
+   *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link UndefinedDocumentIdError}
    * @throws {@link InvalidJsonObjectError}
    *
-   * @throws {@link UndefinedDocumentIdError} (from validateDocument)
    * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
    * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
    *
@@ -886,7 +910,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link DocumentNotFoundError}
    */
   updateFatDoc (
-    name: string,
+    name: string | undefined | null,
     doc: JsonDoc | string | Uint8Array,
     options?: PutOptions
   ): Promise<PutResult> {
@@ -1110,7 +1134,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
-  delete (_id: string, options?: DeleteOptions): Promise<DeleteResult>;
+  delete (_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
   /**
    * Delete a document by _id property in JsonDoc
@@ -1126,8 +1150,11 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
    */
-  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
-  delete (idOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResult> {
+  delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+  delete (
+    idOrDoc: string | JsonDoc,
+    options?: DeleteOptions
+  ): Promise<DeleteResultJsonDoc> {
     return this._fullCollection.delete(idOrDoc, options);
   }
 

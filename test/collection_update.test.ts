@@ -12,6 +12,7 @@ import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
+import { PutResultJsonDoc } from '../src/types';
 import { DocumentNotFoundError } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Collection } from '../src/collection';
@@ -287,7 +288,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     const jsonUpdated = { _id, name: 'updated' };
 
     const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
-    const putResult = await col.updateFatDoc(shortName, jsonUpdated);
+    const putResult = (await col.updateFatDoc(shortName, jsonUpdated)) as PutResultJsonDoc;
     const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
 
     const currentCommitOid = await git.resolveRef({

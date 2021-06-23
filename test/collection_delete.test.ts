@@ -12,6 +12,7 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
+import { DeleteResultJsonDoc } from '../src/types';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -326,7 +327,7 @@ describe('deleteFatDoc(name)', () => {
 
     const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const deleteResult = await users.deleteFatDoc(_id + JSON_EXT);
+    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXT)) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
@@ -375,7 +376,7 @@ describe('deleteFatDoc(name)', () => {
 
     const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const deleteResult = await users.deleteFatDoc(_id + JSON_EXT);
+    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXT)) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
