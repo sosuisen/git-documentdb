@@ -249,7 +249,6 @@ export class Collection implements CRUDInterface {
     let shortId: string;
     let _id: string;
     let shortName: string;
-    let fullDocPath: string;
     let jsonDoc: JsonDoc;
 
     // Resolve overloads
@@ -263,14 +262,12 @@ export class Collection implements CRUDInterface {
       _id = this._collectionPath + shortId;
       shortName = shortId + JSON_EXT;
       jsonDoc = jsonDocOrOptions as JsonDoc;
-      fullDocPath = this._collectionPath + shortName;
     }
     else {
       if (!shortIdOrDoc._id) shortIdOrDoc._id = this.generateId();
       shortId = shortIdOrDoc._id;
       _id = this._collectionPath + shortId;
       shortName = shortId + JSON_EXT;
-      fullDocPath = this._collectionPath + shortName;
       jsonDoc = shortIdOrDoc as JsonDoc;
       options = jsonDocOrOptions as PutOptions;
     }
@@ -291,7 +288,14 @@ export class Collection implements CRUDInterface {
       return Promise.reject(err);
     }
 
-    return putImpl(this._gitDDB, fullDocPath, data, options).then(res => {
+    return putImpl(
+      this._gitDDB,
+      this._collectionPath,
+      shortId,
+      shortName,
+      data,
+      options
+    ).then(res => {
       const putResult: PutResultJsonDoc = {
         ...res,
         _id: shortId,
@@ -530,8 +534,7 @@ export class Collection implements CRUDInterface {
     doc: JsonDoc | Uint8Array | string,
     options?: PutOptions
   ): Promise<PutResult> {
-    let shortId: string;
-    let fullDocPath: string;
+    let shortId: string | undefined;
     let data: Uint8Array | string;
     let docType: DocType;
 
@@ -540,13 +543,11 @@ export class Collection implements CRUDInterface {
       if (!shortName) shortName = this.generateId();
       docType = 'text';
       data = doc;
-      fullDocPath = this._collectionPath + shortName;
     }
     else if (doc instanceof Uint8Array) {
       if (!shortName) shortName = this.generateId();
       docType = 'binary';
       data = doc;
-      fullDocPath = this._collectionPath + shortName;
     }
     else if (typeof doc === 'object') {
       if (!shortName) shortName = this.generateId() + JSON_EXT;
@@ -556,7 +557,6 @@ export class Collection implements CRUDInterface {
         return Promise.reject(new InvalidJsonFileExtensionError());
       }
       shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
-      fullDocPath = this._collectionPath + shortName;
 
       // Validate JSON
       let clone;
@@ -583,20 +583,25 @@ export class Collection implements CRUDInterface {
       return Promise.reject(err);
     }
 
-    return putImpl(this._gitDDB, fullDocPath, data, options).then(res => {
+    return putImpl(
+      this._gitDDB,
+      this._collectionPath,
+      shortId,
+      shortName,
+      data,
+      options
+    ).then(res => {
       if (docType === 'json') {
         const putResult: PutResultJsonDoc = {
           ...res,
-          name: shortName!,
           type: 'json',
-          _id: shortId,
+          _id: shortId!,
         };
         return putResult;
       }
       else if (docType === 'text') {
         const putResult: PutResultText = {
           ...res,
-          name: shortName!,
           type: 'text',
         };
         return putResult;
@@ -604,7 +609,6 @@ export class Collection implements CRUDInterface {
       else if (docType === 'binary') {
         const putResult: PutResultBinary = {
           ...res,
-          name: shortName!,
           type: 'binary',
         };
         return putResult;

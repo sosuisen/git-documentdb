@@ -114,7 +114,9 @@ export class TaskQueue {
         const taskMetadata: TaskMetadata = {
           label: task.label,
           taskId: task.taskId,
-          targetId: task.targetId,
+          shortId: task.shortId,
+          shortName: task.shortId,
+          collectionPath: task.collectionPath,
           enqueueTime: task.enqueueTime,
         };
         if (task.enqueueCallback) {
@@ -124,7 +126,9 @@ export class TaskQueue {
             this._logger.debug(
               CONSOLE_STYLE.bgGreen()
                 .fgRed()
-                .tag()`Error in enqueueCallback (id: ${task.targetId}) ${e}`
+                .tag()`Error in enqueueCallback (fullDocPath: ${
+                task.collectionPath! + task.shortName
+              }) ${e}`
             );
           }
         }
@@ -207,17 +211,20 @@ export class TaskQueue {
       this._currentTask = this._taskQueue.shift();
       if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
         const label = this._currentTask.label;
-        const targetId = this._currentTask.targetId;
+        const shortId = this._currentTask.shortId;
+        const shortName = this._currentTask.shortName;
+        const collectionPath = this._currentTask.collectionPath;
+        const fullDocPath = collectionPath ? collectionPath + shortName : '';
         const taskId = this._currentTask.taskId;
 
         this._isTaskQueueWorking = true;
         this._logger.debug(
-          CONSOLE_STYLE.bgYellow().fgBlack().tag()`Start: ${label}(${targetId || ''})`
+          CONSOLE_STYLE.bgYellow().fgBlack().tag()`Start: ${label}(${fullDocPath})`
         );
 
         const beforeResolve = () => {
           this._logger.debug(
-            CONSOLE_STYLE.bgGreen().fgBlack().tag()`End: ${label}(${targetId || ''})`
+            CONSOLE_STYLE.bgGreen().fgBlack().tag()`End: ${label}(${fullDocPath})`
           );
           this._statistics[label]++;
           this._isTaskQueueWorking = false;
@@ -225,18 +232,18 @@ export class TaskQueue {
         };
         const beforeReject = () => {
           this._logger.debug(
-            CONSOLE_STYLE.bgGreen().fgRed().tag()`End with error: ${label}(${
-              targetId || ''
-            })`
+            CONSOLE_STYLE.bgGreen().fgRed().tag()`End with error: ${label}(${fullDocPath})`
           );
           this._statistics[label]++;
           this._isTaskQueueWorking = false;
           this._currentTask = undefined;
         };
         const taskMetadata: TaskMetadata = {
-          label: label,
-          taskId: taskId,
-          targetId: targetId,
+          label,
+          taskId,
+          shortId,
+          shortName,
+          collectionPath,
           enqueueTime: this._currentTask.enqueueTime,
         };
 

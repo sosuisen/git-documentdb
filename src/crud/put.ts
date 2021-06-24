@@ -42,10 +42,12 @@ import {
 // eslint-disable-next-line complexity
 export function putImpl (
   gitDDB: IDocumentDB,
-  fullDocPath: string,
+  collectionPath: string,
+  shortId: string | undefined,
+  shortName: string,
   data: Uint8Array | string,
   options?: PutOptions
-): Promise<Pick<PutResult, 'commit' | 'fileOid'>> {
+): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
@@ -57,6 +59,8 @@ export function putImpl (
     enqueueCallback: undefined,
   };
 
+  const fullDocPath = collectionPath + shortName;
+
   const commitMessage =
     options.commitMessage ?? `<%insertOrUpdate%>: ${fullDocPath}(<%file_oid%>)`;
 
@@ -66,9 +70,18 @@ export function putImpl (
     gitDDB.taskQueue.pushToTaskQueue({
       label: options!.insertOrUpdate === undefined ? 'put' : options!.insertOrUpdate,
       taskId: taskId,
-      targetId: fullDocPath,
+      shortId,
+      shortName,
+      collectionPath,
       func: (beforeResolve, beforeReject) =>
-        putWorker(gitDDB, fullDocPath, data, commitMessage!, options!.insertOrUpdate)
+        putWorker(
+          gitDDB,
+          collectionPath,
+          shortName,
+          data,
+          commitMessage!,
+          options!.insertOrUpdate
+        )
           .then(result => {
             beforeResolve();
             resolve(result);
@@ -97,11 +110,12 @@ export function putImpl (
  */
 export async function putWorker (
   gitDDB: IDocumentDB,
-  fullDocPath: string,
+  collectionPath: string,
+  shortName: string,
   data: Uint8Array | string,
   commitMessage: string,
   insertOrUpdate?: 'insert' | 'update'
-): Promise<Pick<PutResult, 'commit' | 'fileOid'>> {
+): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB === undefined) {
     throw new UndefinedDBError();
   }
@@ -109,6 +123,7 @@ export async function putWorker (
   if (!gitDDB.isOpened()) {
     throw new RepositoryNotOpenError();
   }
+  const fullDocPath = collectionPath + shortName;
 
   let fileOid: string;
   let commit: NormalizedCommit;
@@ -178,5 +193,6 @@ export async function putWorker (
   return {
     fileOid,
     commit,
+    name: shortName,
   };
 }

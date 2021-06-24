@@ -645,7 +645,9 @@ export type TaskStatistics = {
 export type TaskMetadata = {
   label: TaskLabel;
   taskId: string;
-  targetId?: string;
+  shortId?: string;
+  shortName?: string;
+  collectionPath?: string;
   enqueueTime?: string;
 };
 
