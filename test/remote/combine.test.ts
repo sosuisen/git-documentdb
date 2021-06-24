@@ -16,6 +16,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
+import parse from 'parse-git-config';
 import { DuplicatedFile } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { NoMergeBaseFoundError } from '../../src/error';
@@ -482,6 +483,36 @@ maybe('<remote/combine>', () => {
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it('copies author from local repository', async () => {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        combineDbStrategy: 'combine-head-with-theirs',
+        syncDirection: 'both',
+      });
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir,
+      });
+      await dbB.open();
+      const author = {
+        name: 'foo',
+        email: 'bar@localhost',
+      };
+      dbB.author = author;
+      await dbB.saveAuthor();
+
+      // Combine with remote db
+      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
+        NoMergeBaseFoundError
+      );
+
+      const config = parse.sync({ cwd: dbB.workingDir(), path: '.git/config' });
+      expect(config.user).toEqual(author);
 
       await destroyDBs([dbA, dbB]);
     });

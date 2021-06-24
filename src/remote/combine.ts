@@ -168,6 +168,30 @@ export async function combineDatabaseWithTheirs (
     remoteRepository = undefined;
 
     await fs.rename(remoteDir, gitDDB.workingDir());
+
+    const userName = await git
+      .getConfig({ fs, dir: tmpLocalDir, path: 'user.name' })
+      .catch(() => undefined);
+    const userEmail = await git
+      .getConfig({ fs, dir: tmpLocalDir, path: 'user.email' })
+      .catch(() => undefined);
+
+    if (userName) {
+      await git.setConfig({
+        fs,
+        dir: gitDDB.workingDir(),
+        path: 'user.name',
+        value: userName,
+      });
+    }
+    if (userEmail) {
+      await git.setConfig({
+        fs,
+        dir: gitDDB.workingDir(),
+        path: 'user.email',
+        value: userEmail,
+      });
+    }
   } catch (e) {
     console.log(e);
     throw e;
