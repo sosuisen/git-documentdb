@@ -1,6 +1,6 @@
 {
   "name": "git-documentdb",
-  "version": "0.4.0-alpha.2",
+  "version": "0.4.0-alpha.3",
   "description": "Offline-first database that syncs with Git",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -19,7 +19,7 @@
     "test-serial": "npm run rm-test-db && npx nyc npm run mocha-serial  \"test/**/*.test.ts\" \"test_intg/**/*.test.ts\" && npm run rm-test-db",
     "upload-coverage": "npx coveralls < coverage/lcov.info",
     "prepare": "",
-    "prepublishOnly": "npm run build && npm run test",
+    "prepublishOnly": "npm run build ",
     "api-extractor": "npx api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs-api",
     "lint": "eslint --fix --ext .ts .",
     "crlf": "npx crlf --set=LF docs-api/* etc/* "
