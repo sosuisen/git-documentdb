@@ -8,9 +8,10 @@
  */
 
 import path from 'path';
+import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import expect from 'expect';
-import fs from 'fs-extra';
+import parse from 'parse-git-config';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Collection } from '../src/collection';
 
@@ -51,6 +52,65 @@ describe('<index>', () => {
     expect(col.collectionPath()).toBe('col01/');
   });
 
+  it('saveAuthor', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const author = {
+      name: 'foo',
+      email: 'bar@example.com',
+    };
+    gitDDB.author = author;
+    await gitDDB.saveAuthor();
+
+    const config = parse.sync({ cwd: gitDDB.workingDir(), path: '.git/config' });
+    expect(config.user).toEqual(author);
+
+    await gitDDB.destroy();
+  });
+
+  it('loadAuthor', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const author = {
+      name: 'foo',
+      email: 'bar@example.com',
+    };
+    gitDDB.author = author;
+    await gitDDB.saveAuthor();
+
+    gitDDB.author = { name: 'baz', email: 'baz@localhost' };
+    expect(gitDDB.author).not.toEqual(author);
+
+    await gitDDB.loadAuthor();
+    expect(gitDDB.author).toEqual(author);
+
+    await gitDDB.destroy();
+  });
+
+  it('load undefined author', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const author = JSON.parse(JSON.stringify(gitDDB.author));
+
+    await gitDDB.loadAuthor();
+
+    expect(gitDDB.author).toEqual(author);
+
+    await gitDDB.destroy();
+  });
+
   it('getCommit', async () => {
     const dbName = monoId();
     const gitDDB = new GitDocumentDB({
@@ -61,6 +121,6 @@ describe('<index>', () => {
     const putResult = await gitDDB.put({ _id: '1', name: 'Shirase' });
     const commit = await gitDDB.getCommit(putResult.commit.oid);
     expect(commit).toEqual(putResult.commit);
-    gitDDB.destroy();
+    await gitDDB.destroy();
   });
 });

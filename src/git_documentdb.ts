@@ -116,19 +116,6 @@ export function generateDatabaseId () {
  * Main class of GitDocumentDB
  */
 export class GitDocumentDB implements IDocumentDB, CRUDInterface {
-  /**
-   * Author name and email
-   */
-  author = {
-    name: 'GitDocumentDB',
-    email: 'gitddb@example.com',
-  };
-
-  committer = {
-    name: 'GitDocumentDB',
-    email: 'gitddb@example.com',
-  };
-
   readonly defaultBranch = 'main';
 
   private _localDir: string;
@@ -150,7 +137,75 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   private _logLevel: TLogLevelName;
 
-  public rootCollection: Collection;
+  /**
+   * Author name and email for commit
+   */
+  author = {
+    name: 'GitDocumentDB',
+    email: 'gitddb@localhost',
+  };
+
+  /**
+   * Committer name and email for commit
+   */
+  committer = {
+    name: 'GitDocumentDB',
+    email: 'gitddb@localhost',
+  };
+
+  /**
+   * Save current author to .git/config
+   *
+   * @remarks
+   * Save GitDocumentDB#author. to user.name and user.email in .git/config
+   */
+  async saveAuthor (): Promise<void> {
+    if (this.author?.name !== undefined) {
+      await git.setConfig({
+        fs,
+        dir: this._workingDirectory,
+        path: 'user.name',
+        value: this.author.name,
+      });
+    }
+    if (this.author?.email !== undefined) {
+      await git.setConfig({
+        fs,
+        dir: this._workingDirectory,
+        path: 'user.email',
+        value: this.author.email,
+      });
+    }
+  }
+
+  /**
+   * Load author from .git/config
+   *
+   * @remarks
+   * Load user.name and user.email to GitDocumentDB#author.
+   * If not defined in .git/config, do nothing.
+   */
+  async loadAuthor (): Promise<void> {
+    const name = await git
+      .getConfig({
+        fs,
+        dir: this._workingDirectory,
+        path: 'user.name',
+      })
+      .catch(() => undefined);
+    this.author.name = name ?? this.author.name;
+
+    const email = await git
+      .getConfig({
+        fs,
+        dir: this._workingDirectory,
+        path: 'user.email',
+      })
+      .catch(() => undefined);
+    this.author.email = email ?? this.author.email;
+  }
+
+  rootCollection: Collection;
 
   /**
    * Schema
