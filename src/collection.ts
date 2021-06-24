@@ -995,17 +995,17 @@ export class Collection implements CRUDInterface {
       return Promise.reject(new UndefinedDocumentIdError());
     }
     const shortName = shortId + JSON_EXT;
-    const fullDocPath = this._collectionPath + shortName;
 
-    return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {
-      const deleteResult: PutResultJsonDoc = {
-        ...res,
-        _id: shortId,
-        name: shortName,
-        type: 'json',
-      };
-      return deleteResult;
-    });
+    return deleteImpl(this._gitDDB, this._collectionPath, shortId, shortName, options).then(
+      res => {
+        const deleteResult: PutResultJsonDoc = {
+          ...res,
+          _id: shortId,
+          type: 'json',
+        };
+        return deleteResult;
+      }
+    );
   }
 
   /**
@@ -1026,44 +1026,42 @@ export class Collection implements CRUDInterface {
     if (shortName === undefined) {
       return Promise.reject(new UndefinedDocumentIdError());
     }
-    const fullDocPath = this._collectionPath + shortName;
 
-    const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+    const docType: DocType = shortName.endsWith('.json') ? 'json' : 'text';
     if (docType === 'text') {
       // TODO: select binary or text by .gitattribtues
     }
+    const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
 
-    return deleteImpl(this._gitDDB, fullDocPath, options).then(res => {
-      // NOTE: Cannot detect JsonDoc whose file path does not end with '.json'
-      if (docType === 'json') {
-        const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
-        const deleteResult: DeleteResultJsonDoc = {
-          ...res,
-          name: shortName,
-          type: 'json',
-          _id: shortId,
-        };
-        return deleteResult;
+    return deleteImpl(this._gitDDB, this._collectionPath, shortId, shortName, options).then(
+      res => {
+        // NOTE: Cannot detect JsonDoc whose file path does not end with '.json'
+        if (docType === 'json') {
+          const deleteResult: DeleteResultJsonDoc = {
+            ...res,
+            type: 'json',
+            _id: shortId,
+          };
+          return deleteResult;
+        }
+        else if (docType === 'text') {
+          const deleteResult: DeleteResultText = {
+            ...res,
+            type: 'text',
+          };
+          return deleteResult;
+        }
+        else if (docType === 'binary') {
+          const deleteResult: DeleteResultBinary = {
+            ...res,
+            type: 'binary',
+          };
+          return deleteResult;
+        }
+        // Not occur
+        return Promise.reject(new InvalidDocTypeError(docType));
       }
-      else if (docType === 'text') {
-        const deleteResult: DeleteResultText = {
-          ...res,
-          name: shortName,
-          type: 'text',
-        };
-        return deleteResult;
-      }
-      else if (docType === 'binary') {
-        const deleteResult: DeleteResultBinary = {
-          ...res,
-          name: shortName,
-          type: 'binary',
-        };
-        return deleteResult;
-      }
-      // Not occur
-      return Promise.reject(new InvalidDocTypeError(docType));
-    });
+    );
   }
 
   /**

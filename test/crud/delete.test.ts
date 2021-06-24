@@ -74,7 +74,7 @@ describe('<crud/delete>', () => {
       // Call close() without await
       gitDDB.close().catch(() => {});
       const _id = 'prof01';
-      await expect(deleteImpl(gitDDB, _id + JSON_EXT)).rejects.toThrowError(
+      await expect(deleteImpl(gitDDB, '', _id, _id + JSON_EXT)).rejects.toThrowError(
         DatabaseClosingError
       );
 
@@ -97,7 +97,7 @@ describe('<crud/delete>', () => {
       const workers = [];
       let taskCancelErrorCount = 0;
       for (let i = 0; i < 50; i++) {
-        deleteImpl(gitDDB, i.toString()).catch(
+        deleteImpl(gitDDB, '', i.toString(), i.toString()).catch(
           // eslint-disable-next-line no-loop-func
           err => {
             if (err instanceof TaskCancelError) taskCancelErrorCount++;
@@ -122,9 +122,9 @@ describe('<crud/delete>', () => {
       const json = { _id: _id, name: 'shirase' };
       const putResult = await gitDDB.put(json);
 
-      await expect(deleteImpl(gitDDB, _id + JSON_EXT + '_invalid')).rejects.toThrowError(
-        DocumentNotFoundError
-      );
+      await expect(
+        deleteImpl(gitDDB, '', _id, _id + JSON_EXT + '_invalid')
+      ).rejects.toThrowError(DocumentNotFoundError);
 
       await gitDDB.destroy();
     });
@@ -146,7 +146,7 @@ describe('<crud/delete>', () => {
       // Delete
       const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
       const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
-      const pickedDeleteResult = await deleteImpl(gitDDB, _id + JSON_EXT);
+      const pickedDeleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXT);
       const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
 
       const currentCommitOid = await git.resolveRef({
@@ -195,7 +195,7 @@ describe('<crud/delete>', () => {
 
       // Delete
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-      const pickedDeleteResult = await deleteImpl(gitDDB, _id + JSON_EXT);
+      const pickedDeleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXT);
 
       expect(pickedDeleteResult.commit.message).toEqual(
         `delete: ${_id}${JSON_EXT}(${shortOid})`
@@ -226,7 +226,7 @@ describe('<crud/delete>', () => {
       const putResult = await gitDDB.put(doc);
 
       // Delete
-      const deleteResult = await deleteImpl(gitDDB, _id + JSON_EXT);
+      const deleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXT);
 
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(deleteResult.fileOid).toBe(putResult.fileOid);
@@ -276,11 +276,11 @@ describe('<crud/delete>', () => {
       ]);
 
       await Promise.all([
-        deleteImpl(gitDDB, _id_a + JSON_EXT),
-        deleteImpl(gitDDB, _id_b + JSON_EXT),
-        deleteImpl(gitDDB, _id_c01 + JSON_EXT),
-        deleteImpl(gitDDB, _id_c02 + JSON_EXT),
-        deleteImpl(gitDDB, _id_d + JSON_EXT),
+        deleteImpl(gitDDB, '', _id_a, _id_a + JSON_EXT),
+        deleteImpl(gitDDB, '', _id_b, _id_b + JSON_EXT),
+        deleteImpl(gitDDB, '', _id_c01, _id_c01 + JSON_EXT),
+        deleteImpl(gitDDB, '', _id_c02, _id_c02 + JSON_EXT),
+        deleteImpl(gitDDB, '', _id_d, _id_d + JSON_EXT),
       ]);
 
       await expect(gitDDB.findFatDoc({ recursive: true })).resolves.toEqual([
@@ -308,13 +308,13 @@ describe('<crud/delete>', () => {
       await gitDDB.put({ _id: '2' });
       const id1 = gitDDB.taskQueue.newTaskId();
       const id2 = gitDDB.taskQueue.newTaskId();
-      await deleteImpl(gitDDB, '1.json', {
+      await deleteImpl(gitDDB, '', '1', '1.json', {
         taskId: id1,
         enqueueCallback: (taskMetadata: TaskMetadata) => {
           enqueueEvent.push(taskMetadata);
         },
       });
-      await deleteImpl(gitDDB, '2.json', {
+      await deleteImpl(gitDDB, '', '2', '2.json', {
         taskId: id2,
         enqueueCallback: (taskMetadata: TaskMetadata) => {
           enqueueEvent.push(taskMetadata);
@@ -341,13 +341,13 @@ describe('<crud/delete>', () => {
         dbName,
         localDir,
       });
-      await expect(deleteWorker(gitDDB, 'prof01', '')).rejects.toThrowError(
+      await expect(deleteWorker(gitDDB, '', 'prof01', '')).rejects.toThrowError(
         RepositoryNotOpenError
       );
       await gitDDB.destroy();
     });
 
-    it('throws DocumentNotFoundError when fullDocPath is undefined.', async () => {
+    it('throws DocumentNotFoundError when collectionPath is undefined.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -362,14 +362,29 @@ describe('<crud/delete>', () => {
       await gitDDB.destroy();
     });
 
-    it('throws DocumentNotFoundError when fullDocPath is NULL string.', async () => {
+    it('throws DocumentNotFoundError when shortName is undefined.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
       });
       await gitDDB.open();
-      await expect(deleteWorker(gitDDB, '', '')).rejects.toThrowError(
+      // @ts-ignore
+      await expect(deleteWorker(gitDDB, '', undefined)).rejects.toThrowError(
+        DocumentNotFoundError
+      );
+
+      await gitDDB.destroy();
+    });
+
+    it('throws DocumentNotFoundError when both collectionPath and shortName are NULL string.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      await expect(deleteWorker(gitDDB, '', '', '')).rejects.toThrowError(
         DocumentNotFoundError
       );
 
@@ -388,7 +403,7 @@ describe('<crud/delete>', () => {
       const stubEnsureDir = sandbox.stub(fs_module, 'remove');
       stubEnsureDir.rejects();
 
-      await expect(deleteWorker(gitDDB, 'prof01' + JSON_EXT, '')).rejects.toThrowError(
+      await expect(deleteWorker(gitDDB, '', 'prof01' + JSON_EXT, '')).rejects.toThrowError(
         CannotDeleteDataError
       );
       await gitDDB.destroy();

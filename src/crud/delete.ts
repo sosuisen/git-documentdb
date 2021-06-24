@@ -37,9 +37,11 @@ import { normalizeCommit } from '../utils';
  */
 export function deleteImpl (
   gitDDB: IDocumentDB,
-  fullDocPath: string,
+  collectionPath: string,
+  shortId: string | undefined,
+  shortName: string,
   options?: DeleteOptions
-): Promise<Pick<DeleteResult, 'commit' | 'fileOid'>> {
+): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new DatabaseClosingError());
   }
@@ -49,6 +51,9 @@ export function deleteImpl (
     taskId: undefined,
     enqueueCallback: undefined,
   };
+
+  const fullDocPath = collectionPath + shortName;
+
   const commitMessage = options.commitMessage ?? `delete: ${fullDocPath}(<%file_oid%>)`;
 
   const taskId = options.taskId ?? gitDDB.taskQueue.newTaskId();
@@ -57,9 +62,11 @@ export function deleteImpl (
     gitDDB.taskQueue.pushToTaskQueue({
       label: 'delete',
       taskId: taskId,
-      targetId: fullDocPath,
+      collectionPath,
+      shortId,
+      shortName,
       func: (beforeResolve, beforeReject) =>
-        deleteWorker(gitDDB, fullDocPath, commitMessage!)
+        deleteWorker(gitDDB, collectionPath, shortName, commitMessage!)
           .then(result => {
             beforeResolve();
             resolve(result);
@@ -86,9 +93,10 @@ export function deleteImpl (
  */
 export async function deleteWorker (
   gitDDB: IDocumentDB,
-  fullDocPath: string,
+  collectionPath: string,
+  shortName: string,
   commitMessage: string
-): Promise<Pick<DeleteResult, 'commit' | 'fileOid'>> {
+): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB === undefined) {
     throw new UndefinedDBError();
   }
@@ -97,7 +105,9 @@ export async function deleteWorker (
     throw new RepositoryNotOpenError();
   }
 
-  if (fullDocPath === undefined || fullDocPath === '') {
+  const fullDocPath = collectionPath + shortName;
+
+  if (collectionPath === undefined || shortName === undefined || fullDocPath === '') {
     throw new DocumentNotFoundError();
   }
 
@@ -165,5 +175,6 @@ export async function deleteWorker (
   return {
     fileOid,
     commit,
+    name: shortName,
   };
 }

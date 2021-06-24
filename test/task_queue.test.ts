@@ -298,6 +298,136 @@ describe('<task_queue>', () => {
 
     await gitDDB.destroy();
   });
+
+  it('sets TaskMetaData for put', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+
+    // eslint-disable-next-line no-async-promise-executor
+    const taskMetadata = (await new Promise(resolve => {
+      gitDDB.put(
+        { _id: 'foo' },
+        {
+          taskId: 'testId',
+          enqueueCallback: (myTaskMetadata: TaskMetadata) => {
+            resolve(myTaskMetadata);
+          },
+        }
+      );
+    })) as TaskMetadata;
+    expect(taskMetadata).toMatchObject({
+      label: 'put',
+      taskId: 'testId',
+      shortId: 'foo',
+      shortName: 'foo.json',
+      collectionPath: '',
+    });
+    expect(taskMetadata.enqueueTime).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+
+    await gitDDB.destroy();
+  });
+
+  it('sets TaskMetaData with collectionPath for put', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const col = gitDDB.collection('col01');
+    // eslint-disable-next-line no-async-promise-executor
+    const taskMetadata = (await new Promise(resolve => {
+      col.put(
+        { _id: 'foo' },
+        {
+          taskId: 'testId',
+          enqueueCallback: (myTaskMetadata: TaskMetadata) => {
+            resolve(myTaskMetadata);
+          },
+        }
+      );
+    })) as TaskMetadata;
+    expect(taskMetadata).toMatchObject({
+      label: 'put',
+      taskId: 'testId',
+      shortId: 'foo',
+      shortName: 'foo.json',
+      collectionPath: 'col01/',
+    });
+    expect(taskMetadata.enqueueTime).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+
+    await gitDDB.destroy();
+  });
+
+  it('sets TaskMetaData for delete', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    await gitDDB.put({ _id: 'foo' });
+
+    // eslint-disable-next-line no-async-promise-executor
+    const taskMetadata = (await new Promise(resolve => {
+      gitDDB.delete(
+        { _id: 'foo' },
+        {
+          taskId: 'testId',
+          enqueueCallback: (myTaskMetadata: TaskMetadata) => {
+            resolve(myTaskMetadata);
+          },
+        }
+      );
+    })) as TaskMetadata;
+    expect(taskMetadata).toMatchObject({
+      label: 'delete',
+      taskId: 'testId',
+      shortId: 'foo',
+      shortName: 'foo.json',
+      collectionPath: '',
+    });
+    expect(taskMetadata.enqueueTime).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+
+    await gitDDB.destroy();
+  });
+
+  it('sets TaskMetaData with collectionPath for delete', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const col = gitDDB.collection('col01');
+    await col.put({ _id: 'foo' });
+    // eslint-disable-next-line no-async-promise-executor
+    const taskMetadata = (await new Promise(resolve => {
+      col.delete(
+        { _id: 'foo' },
+        {
+          taskId: 'testId',
+          enqueueCallback: (myTaskMetadata: TaskMetadata) => {
+            resolve(myTaskMetadata);
+          },
+        }
+      );
+    })) as TaskMetadata;
+    expect(taskMetadata).toMatchObject({
+      label: 'delete',
+      taskId: 'testId',
+      shortId: 'foo',
+      shortName: 'foo.json',
+      collectionPath: 'col01/',
+    });
+    expect(taskMetadata.enqueueTime).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+
+    await gitDDB.destroy();
+  });
 });
 
 const maybe =

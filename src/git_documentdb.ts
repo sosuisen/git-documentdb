@@ -398,6 +398,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     // Do not use this.put() because it increments TaskQueue.statistics.put.
     await putWorker(
       this,
+      '',
       GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
       toSortedJSONString(info),
       FIRST_COMMIT_MESSAGE
@@ -430,6 +431,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       // Do not use this.put() because it increments TaskQueue.statistics.put.
       await putWorker(
         this,
+        '',
         GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
         toSortedJSONString(info),
         SET_DATABASE_ID_MESSAGE

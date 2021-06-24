@@ -115,7 +115,7 @@ export class TaskQueue {
           label: task.label,
           taskId: task.taskId,
           shortId: task.shortId,
-          shortName: task.shortId,
+          shortName: task.shortName,
           collectionPath: task.collectionPath,
           enqueueTime: task.enqueueTime,
         };
