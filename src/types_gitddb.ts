@@ -134,6 +134,8 @@ export interface IDocumentDB {
     name: string;
     email: string;
   };
+  saveAuthor(): Promise<void>;
+  loadAuthor(): Promise<void>;
   schema: Schema;
   defaultBranch: string;
   isClosing: boolean;
