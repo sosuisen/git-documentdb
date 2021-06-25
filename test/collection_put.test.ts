@@ -145,7 +145,7 @@ describe('<collection>', () => {
       const _id = 'prof01';
       const json = { _id, obj: obj1 };
       // properties in obj will be skipped
-      const internalJson = { _id: col.collectionPath() + _id, obj: {} };
+      const internalJson = { _id: col.collectionPath + _id, obj: {} };
       const putResult = await col.put(json);
       const { oid } = await git.hashBlob({ object: toSortedJSONString(internalJson) });
       expect(putResult.fileOid).toBe(oid);
@@ -182,7 +182,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       const validator = new Validator(gitDDB.workingDir());
-      const maxIdLen = validator.maxIdLength() - col.collectionPath().length;
+      const maxIdLen = validator.maxIdLength() - col.collectionPath.length;
       let _id = '';
       for (let i = 0; i < maxIdLen; i++) {
         _id += '0';
@@ -253,19 +253,19 @@ describe('<collection>', () => {
         oid: commitOid,
       });
       expect(commit.message).toEqual(
-        `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})\n`
+        `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
       );
 
       // Check filename
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(
         gitDDB.workingDir(),
-        col.collectionPath(),
+        col.collectionPath,
         _id + JSON_EXT
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       // Read JSON and check doc._id
-      expect(fs.readJSONSync(filePath)._id).toBe(col.collectionPath() + _id);
+      expect(fs.readJSONSync(filePath)._id).toBe(col.collectionPath + _id);
 
       await gitDDB.destroy();
     });
@@ -299,7 +299,7 @@ describe('<collection>', () => {
       });
 
       const internalJson = JSON.parse(JSON.stringify(json));
-      internalJson._id = col.collectionPath() + _id;
+      internalJson._id = col.collectionPath + _id;
       const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
         .oid;
       const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
@@ -308,7 +308,7 @@ describe('<collection>', () => {
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
       );
 
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -332,7 +332,7 @@ describe('<collection>', () => {
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(
         gitDDB.workingDir(),
-        col.collectionPath(),
+        col.collectionPath,
         _id + JSON_EXT
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
@@ -354,12 +354,12 @@ describe('<collection>', () => {
         const json = { _id, name: 'Shirase' };
         const putResult = await col.put(json);
         const internalJson = JSON.parse(JSON.stringify(json));
-        internalJson._id = col.collectionPath() + _id;
+        internalJson._id = col.collectionPath + _id;
         const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
           .oid;
         const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
         expect(putResult.commit.message).toBe(
-          `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+          `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
         );
 
         await gitDDB.destroy();
@@ -377,13 +377,13 @@ describe('<collection>', () => {
         const json = { _id, name: 'Shirase' };
         await col.put(json);
         const internalJson = JSON.parse(JSON.stringify(json));
-        internalJson._id = col.collectionPath() + _id;
+        internalJson._id = col.collectionPath + _id;
 
         // Check filename
         // fs.access() throw error when a file cannot be accessed.
         const filePath = path.resolve(
           gitDDB.workingDir(),
-          col.collectionPath() + _id + JSON_EXT
+          col.collectionPath + _id + JSON_EXT
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
         // Read JSON and check doc._id
@@ -404,19 +404,19 @@ describe('<collection>', () => {
         const json = { _id, name: 'Shirase' };
         const putResult = await col.put(json);
         const internalJson = JSON.parse(JSON.stringify(json));
-        internalJson._id = col.collectionPath() + _id;
+        internalJson._id = col.collectionPath + _id;
         const shortOid = (
           await git.hashBlob({ object: toSortedJSONString(internalJson) })
         ).oid.substr(0, SHORT_SHA_LENGTH);
         expect(putResult.commit.message).toBe(
-          `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+          `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
         );
 
         // Check filename
         // fs.access() throw error when a file cannot be accessed.
         const filePath = path.resolve(
           gitDDB.workingDir(),
-          col.collectionPath() + _id + JSON_EXT
+          col.collectionPath + _id + JSON_EXT
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
         expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -433,7 +433,7 @@ describe('<collection>', () => {
           oid: commitOid,
         });
         expect(commit.message).toEqual(
-          `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})\n`
+          `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
         );
 
         gitDDB.destroy();
@@ -513,13 +513,13 @@ describe('<collection>', () => {
         // Update
         const updatedJson = { _id, name: 'Soya' };
         const internalJson = JSON.parse(JSON.stringify(updatedJson));
-        internalJson._id = col.collectionPath() + _id;
+        internalJson._id = col.collectionPath + _id;
         const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
           .oid;
 
         const putResult = await col.put(updatedJson);
         expect(putResult.commit.message).toBe(
-          `update: ${col.collectionPath()}${_id}${JSON_EXT}(${fileOid.substr(
+          `update: ${col.collectionPath}${_id}${JSON_EXT}(${fileOid.substr(
             0,
             SHORT_SHA_LENGTH
           )})`
@@ -635,7 +635,7 @@ describe('<collection>', () => {
       });
 
       const internalJson = JSON.parse(JSON.stringify(json));
-      internalJson._id = col.collectionPath() + _id;
+      internalJson._id = col.collectionPath + _id;
       const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
         .oid;
       const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
@@ -644,7 +644,7 @@ describe('<collection>', () => {
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
       );
 
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -668,7 +668,7 @@ describe('<collection>', () => {
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(
         gitDDB.workingDir(),
-        col.collectionPath(),
+        col.collectionPath,
         _id + JSON_EXT
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
@@ -721,18 +721,18 @@ describe('<collection>', () => {
       const putResult = await col.put(_id, json);
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       const internalJson = JSON.parse(JSON.stringify(json));
-      internalJson._id = col.collectionPath() + _id;
+      internalJson._id = col.collectionPath + _id;
 
       expect(putResult._id).toBe(_id);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
       );
 
       // _id of original json must not be overwritten
       expect(json._id).toBe('id-in-doc');
 
       // fs.access() throw error when a file cannot be accessed.
-      const fullDocPath = col.collectionPath() + _id + JSON_EXT;
+      const fullDocPath = col.collectionPath + _id + JSON_EXT;
       const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -762,7 +762,7 @@ describe('<collection>', () => {
 
     const filePath = path.resolve(
       gitDDB.workingDir(),
-      col.collectionPath() + 'id' + JSON_EXT
+      col.collectionPath + 'id' + JSON_EXT
     );
     const jsonStr = fs.readFileSync(filePath, 'utf8');
     expect(jsonStr).toBe(`{
@@ -805,7 +805,7 @@ describe('<collection>', () => {
       // Check .json extension
       const filePath = path.resolve(
         gitDDB.workingDir(),
-        col.collectionPath(),
+        col.collectionPath,
         putResult._id + JSON_EXT
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
@@ -859,7 +859,7 @@ describe('<collection>', () => {
       });
 
       const internalJson = JSON.parse(JSON.stringify(json));
-      internalJson._id = col.collectionPath() + _id;
+      internalJson._id = col.collectionPath + _id;
       const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
         .oid;
       const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
@@ -868,7 +868,7 @@ describe('<collection>', () => {
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
       );
 
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -892,7 +892,7 @@ describe('<collection>', () => {
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(
         gitDDB.workingDir(),
-        col.collectionPath(),
+        col.collectionPath,
         _id + JSON_EXT
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();

@@ -58,8 +58,8 @@ describe('<collection>', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB); // default
     const col2 = new Collection(gitDDB, '');
-    expect(col.collectionPath()).toBe('');
-    expect(col2.collectionPath()).toBe('');
+    expect(col.collectionPath).toBe('');
+    expect(col2.collectionPath).toBe('');
 
     await gitDDB.destroy();
   });
@@ -73,8 +73,8 @@ describe('<collection>', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'dir01/dir02/dir03');
     const col2 = new Collection(gitDDB, 'dir01/dir02/dir03/');
-    expect(col.collectionPath()).toBe('dir01/dir02/dir03/');
-    expect(col2.collectionPath()).toBe('dir01/dir02/dir03/');
+    expect(col.collectionPath).toBe('dir01/dir02/dir03/');
+    expect(col2.collectionPath).toBe('dir01/dir02/dir03/');
 
     await gitDDB.destroy();
   });

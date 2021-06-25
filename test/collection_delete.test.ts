@@ -153,7 +153,7 @@ describe('delete(shortId)', () => {
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})`
     );
 
     // Check commit directly
@@ -164,7 +164,7 @@ describe('delete(shortId)', () => {
       oid: commitOid,
     });
     expect(commit.message).toEqual(
-      `delete: ${users.collectionPath()}${_id}${JSON_EXT}(${shortOid})\n`
+      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
     );
 
     await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
@@ -228,7 +228,7 @@ describe('delete(jsonDoc)', () => {
 
     const _id = 'dir01/prof01';
     const json = { _id: _id, name: 'shirase' };
-    const innerJson = { _id: users.collectionPath() + _id, name: 'shirase' };
+    const innerJson = { _id: users.collectionPath + _id, name: 'shirase' };
     const putResult = await users.put(json);
 
     const prevCommitOid = putResult.commit.oid;
@@ -248,7 +248,7 @@ describe('delete(jsonDoc)', () => {
     // Check NormalizedCommit
     expect(deleteResult.commit.oid).toBe(currentCommitOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath()}${_id}${JSON_EXT}(${oid.substr(
+      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${oid.substr(
         0,
         SHORT_SHA_LENGTH
       )})`
@@ -380,7 +380,7 @@ describe('deleteFatDoc(name)', () => {
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath()}${_id}${JSON_EXT}(${shortOid})`
+      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})`
     );
 
     // Check commit directly
@@ -391,7 +391,7 @@ describe('deleteFatDoc(name)', () => {
       oid: commitOid,
     });
     expect(commit.message).toEqual(
-      `delete: ${users.collectionPath()}${_id}${JSON_EXT}(${shortOid})\n`
+      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
     );
 
     await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);

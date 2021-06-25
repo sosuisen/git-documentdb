@@ -82,15 +82,36 @@ import { putImpl } from './crud/put';
  */
 export class Collection implements CRUDInterface {
   private _collectionPath: CollectionPath = '';
+  /**
+   * Normalized path of collection
+   *
+   * @remarks
+   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
+   */
+  get collectionPath (): string {
+    return this._parent.collectionPath + this._collectionPath;
+  }
+
+  private _parent: Collection;
+  /**
+   * Parent collection
+   *
+   * @remarks
+   * Child collection inherits Parent's CollectionOptions.
+   */
+  get parent (): Collection {
+    return this._parent;
+  }
 
   private _gitDDB: CRUDInterface & IDocumentDB;
 
   private _monoID: ULID;
 
-  /**
-   * Prefix of auto generated _id or name
-   */
-  public namePrefix = '';
+  private _options: CollectionOptions;
+
+  get options (): CollectionOptions {
+    return { ...this._options };
+  }
 
   /**
    * Generate new _id as monotonic ULID
@@ -101,24 +122,37 @@ export class Collection implements CRUDInterface {
    * @returns 26 Base32 alphabets
    */
   public generateId () {
-    return this.namePrefix + this._monoID(Date.now());
+    return this._options.namePrefix + this._monoID(Date.now());
   }
 
   /**
+   * @param collectionPathFromParent - A relative collectionPath from a parent collection.
+   * @param parent - A parent collection of this collection.
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
   constructor (
     gitDDB: CRUDInterface & IDocumentDB,
-    collectionPath?: CollectionPath,
+    collectionPathFromParent?: CollectionPath,
+    parent?: Collection,
     options?: CollectionOptions
   ) {
     this._gitDDB = gitDDB;
-    this._collectionPath = Validator.normalizeCollectionPath(collectionPath);
+    this._collectionPath = Validator.normalizeCollectionPath(collectionPathFromParent);
     this._gitDDB.validator.validateCollectionPath(this._collectionPath);
     this._monoID = monotonicFactory();
 
-    this.namePrefix = options?.namePrefix ?? this.namePrefix;
+    if (parent === undefined) {
+      this._parent = new Collection(gitDDB);
+    }
+    else {
+      this._parent = parent;
+    }
+
+    options ??= {
+      namePrefix: '',
+    };
+    this._options = { ...parent?.options!, ...options };
   }
 
   /**
@@ -163,21 +197,12 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Get normalized path of collection
-   *
-   * @returns '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
-   */
-  collectionPath () {
-    return this._collectionPath;
-  }
-
-  /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
    * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}${jsonDoc._id}.json`.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -202,7 +227,7 @@ export class Collection implements CRUDInterface {
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortId}.json`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -316,7 +341,7 @@ export class Collection implements CRUDInterface {
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${jsonDoc._id}.json`.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
@@ -345,7 +370,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortId}.json`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -411,7 +436,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${jsonDoc._id}.json`.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -442,7 +467,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortId}.json`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -506,7 +531,7 @@ export class Collection implements CRUDInterface {
    * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortName}.json`.
    *
    * - If shortName is undefined, it is automatically generated.
    *
@@ -625,7 +650,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortName}.json`.
    *
    * - If shortName is undefined, it is automatically generated.
    *
@@ -666,7 +691,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath()}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortName}.json`.
    *
    * - If shortName is undefined, it is automatically generated.
    *

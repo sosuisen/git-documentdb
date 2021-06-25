@@ -49,7 +49,7 @@ describe('<index>', () => {
     });
     const col = gitDDB.collection('col01');
     expect(col instanceof Collection).toBeTruthy();
-    expect(col.collectionPath()).toBe('col01/');
+    expect(col.collectionPath).toBe('col01/');
   });
 
   it('saveAuthor', async () => {
