@@ -147,6 +147,14 @@ export class UndefinedDocumentIdError extends BaseError {
 
 /**
  */
+export class UndefinedSyncError extends BaseError {
+  constructor (e = `Sync is undefined` as unknown) {
+    super(e as string);
+  }
+}
+
+/**
+ */
 export class UndefinedFileSHAError extends BaseError {
   constructor (e = `File SHA is undefined.`) {
     super(e);

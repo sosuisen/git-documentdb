@@ -26,6 +26,8 @@ import {
   UnfetchedCommitExistsError,
 } from '../error';
 import {
+  ChangedFile,
+  FatDoc,
   RemoteOptions,
   SyncCallback,
   SyncChangeCallback,
@@ -126,6 +128,51 @@ export class Sync implements ISync {
   private _syncTimer: NodeJS.Timeout | undefined;
   private _retrySyncCounter = 0; // Decremental count
 
+  private _filterChanges (syncResult: SyncResult, collectionPath: string): SyncResult {
+    if (collectionPath === '') {
+      return syncResult;
+    }
+    const filter = (changedFiles: ChangedFile[]) => {
+      return changedFiles.reduce((result, changedFile) => {
+        let fatDoc: FatDoc;
+        if (changedFile.operation === 'delete' || changedFile.operation === 'update') {
+          fatDoc = changedFile.old;
+        }
+        else {
+          // insert
+          fatDoc = changedFile.new;
+        }
+        if (fatDoc.name.startsWith(collectionPath)) {
+          fatDoc.name = fatDoc.name.replace(new RegExp('^' + collectionPath), '');
+          if (fatDoc.type === 'json') {
+            fatDoc._id = fatDoc._id.replace(new RegExp('^' + collectionPath), '');
+            fatDoc.doc._id = fatDoc._id;
+          }
+          result.push(changedFile);
+        }
+        return result;
+      }, [] as ChangedFile[]);
+    };
+    if (
+      syncResult.action === 'resolve conflicts and push' ||
+      syncResult.action === 'merge and push' ||
+      syncResult.action === 'resolve conflicts and push error' ||
+      syncResult.action === 'merge and push error' ||
+      syncResult.action === 'fast-forward merge'
+    ) {
+      syncResult.changes.local = filter(syncResult.changes.local);
+    }
+    if (
+      syncResult.action === 'resolve conflicts and push' ||
+      syncResult.action === 'merge and push' ||
+      syncResult.action === 'push'
+    ) {
+      syncResult.changes.remote = filter(syncResult.changes.remote);
+    }
+
+    return syncResult;
+  }
+
   remoteRepository: RemoteRepository;
 
   /**
@@ -143,15 +190,15 @@ export class Sync implements ISync {
    * @internal
    */
   eventHandlers: {
-    change: SyncChangeCallback[];
-    localChange: SyncLocalChangeCallback[];
-    remoteChange: SyncRemoteChangeCallback[];
-    combine: SyncCombineDatabaseCallback[];
-    pause: SyncPauseCallback[];
-    resume: SyncResumeCallback[];
-    start: SyncStartCallback[];
-    complete: SyncCompleteCallback[];
-    error: SyncErrorCallback[];
+    change: { collectionPath: string; func: SyncChangeCallback }[];
+    localChange: { collectionPath: string; func: SyncLocalChangeCallback }[];
+    remoteChange: { collectionPath: string; func: SyncRemoteChangeCallback }[];
+    combine: { collectionPath: string; func: SyncCombineDatabaseCallback }[];
+    pause: { collectionPath: string; func: SyncPauseCallback }[];
+    resume: { collectionPath: string; func: SyncResumeCallback }[];
+    start: { collectionPath: string; func: SyncStartCallback }[];
+    complete: { collectionPath: string; func: SyncCompleteCallback }[];
+    error: { collectionPath: string; func: SyncErrorCallback }[];
   } = {
     change: [],
     localChange: [],
@@ -323,8 +370,8 @@ export class Sync implements ISync {
 
     if (this._options.live) {
       if (this._syncTimer === undefined) {
-        this.eventHandlers.resume.forEach(func => {
-          func();
+        this.eventHandlers.resume.forEach(callback => {
+          callback.func();
         });
         this._syncTimer = setInterval(() => {
           this.trySync().catch(() => undefined);
@@ -365,8 +412,8 @@ export class Sync implements ISync {
     }
     this._options.live = false;
 
-    this.eventHandlers.pause.forEach(func => {
-      func();
+    this.eventHandlers.pause.forEach(callback => {
+      callback.func();
     });
     return true;
   }
@@ -406,8 +453,8 @@ export class Sync implements ISync {
       }, this._options.interval!);
     }
 
-    this.eventHandlers.resume.forEach(func => {
-      func();
+    this.eventHandlers.resume.forEach(callback => {
+      callback.func();
     });
 
     return true;
@@ -543,8 +590,8 @@ export class Sync implements ISync {
             throw new CombineDatabaseError(err.message);
           });
           // eslint-disable-next-line no-loop-func
-          this.eventHandlers.combine.forEach(func =>
-            func(syncResultCombineDatabase.duplicates)
+          this.eventHandlers.combine.forEach(callback =>
+            callback.func(syncResultCombineDatabase.duplicates)
           );
           return syncResultCombineDatabase;
         }
@@ -629,13 +676,31 @@ export class Sync implements ISync {
               )}`
             );
 
-          this.eventHandlers.change.forEach(func => func(syncResultPush, taskMetadata));
+          this.eventHandlers.change.forEach(listener => {
+            const filteredSyncResultPush = this._filterChanges(
+              JSON.parse(JSON.stringify(syncResultPush)),
+              listener.collectionPath
+            ) as SyncResultPush;
+            listener.func(filteredSyncResultPush, {
+              ...taskMetadata,
+              collectionPath: listener.collectionPath,
+            });
+          });
           if (syncResultPush.action === 'push') {
-            this.eventHandlers.remoteChange.forEach(func =>
-              func(syncResultPush.changes.remote, taskMetadata)
-            );
+            this.eventHandlers.remoteChange.forEach(listener => {
+              const filteredSyncResultPush = this._filterChanges(
+                JSON.parse(JSON.stringify(syncResultPush)),
+                listener.collectionPath
+              ) as SyncResultPush;
+              listener.func(filteredSyncResultPush.changes.remote, {
+                ...taskMetadata,
+                collectionPath: listener.collectionPath,
+              });
+            });
           }
-          this.eventHandlers.complete.forEach(func => func(taskMetadata));
+          this.eventHandlers.complete.forEach(listener => {
+            listener.func({ ...taskMetadata, collectionPath: listener.collectionPath });
+          });
 
           beforeResolve();
           resolve(syncResultPush);
@@ -645,8 +710,11 @@ export class Sync implements ISync {
           if (!(err instanceof UnfetchedCommitExistsError)) {
             err = new PushWorkerError(err.message);
           }
-          this.eventHandlers.error.forEach(func => {
-            func(err, taskMetadata);
+          this.eventHandlers.error.forEach(listener => {
+            listener.func(err, {
+              ...taskMetadata,
+              collectionPath: listener.collectionPath,
+            });
           });
 
           beforeReject();
@@ -709,37 +777,72 @@ export class Sync implements ISync {
                 syncResult
               )}`
             );
+
+          let syncResultForChangeEvent = JSON.parse(JSON.stringify(syncResult));
           if (
-            syncResult.action === 'resolve conflicts and push' ||
-            syncResult.action === 'merge and push' ||
-            syncResult.action === 'resolve conflicts and push error' ||
-            syncResult.action === 'merge and push error' ||
-            syncResult.action === 'fast-forward merge' ||
-            syncResult.action === 'push'
+            syncResultForChangeEvent.action === 'resolve conflicts and push' ||
+            syncResultForChangeEvent.action === 'merge and push' ||
+            syncResultForChangeEvent.action === 'resolve conflicts and push error' ||
+            syncResultForChangeEvent.action === 'merge and push error' ||
+            syncResultForChangeEvent.action === 'fast-forward merge' ||
+            syncResultForChangeEvent.action === 'push'
           ) {
-            this.eventHandlers.change.forEach(func => func(syncResult, taskMetadata));
-            if (
-              syncResult.action === 'resolve conflicts and push' ||
-              syncResult.action === 'merge and push' ||
-              syncResult.action === 'resolve conflicts and push error' ||
-              syncResult.action === 'merge and push error' ||
-              syncResult.action === 'fast-forward merge'
-            ) {
-              this.eventHandlers.localChange.forEach(func =>
-                func(syncResult.changes.local, taskMetadata)
-              );
-            }
-            if (
-              syncResult.action === 'resolve conflicts and push' ||
-              syncResult.action === 'merge and push' ||
-              syncResult.action === 'push'
-            ) {
-              this.eventHandlers.remoteChange.forEach(func =>
-                func(syncResult.changes.remote, taskMetadata)
-              );
-            }
+            this.eventHandlers.change.forEach(listener => {
+              syncResultForChangeEvent = this._filterChanges(
+                syncResultForChangeEvent,
+                listener.collectionPath
+              ) as SyncResult;
+
+              listener.func(syncResultForChangeEvent, {
+                ...taskMetadata,
+                collectionPath: listener.collectionPath,
+              });
+            });
           }
-          this.eventHandlers.complete.forEach(func => func(taskMetadata));
+
+          let syncResultForLocalChangeEvent = JSON.parse(JSON.stringify(syncResult));
+          if (
+            syncResultForLocalChangeEvent.action === 'resolve conflicts and push' ||
+            syncResultForLocalChangeEvent.action === 'merge and push' ||
+            syncResultForLocalChangeEvent.action === 'resolve conflicts and push error' ||
+            syncResultForLocalChangeEvent.action === 'merge and push error' ||
+            syncResultForLocalChangeEvent.action === 'fast-forward merge'
+          ) {
+            this.eventHandlers.localChange.forEach(listener => {
+              syncResultForLocalChangeEvent = this._filterChanges(
+                syncResultForLocalChangeEvent,
+                listener.collectionPath
+              ) as SyncResult;
+              listener.func(
+                JSON.parse(JSON.stringify(syncResultForLocalChangeEvent.changes.local)),
+                {
+                  ...taskMetadata,
+                  collectionPath: listener.collectionPath,
+                }
+              );
+            });
+          }
+
+          const syncResultForRemoteChangeEvent = JSON.parse(JSON.stringify(syncResult));
+          if (
+            syncResultForRemoteChangeEvent.action === 'resolve conflicts and push' ||
+            syncResultForRemoteChangeEvent.action === 'merge and push' ||
+            syncResultForRemoteChangeEvent.action === 'push'
+          ) {
+            this.eventHandlers.remoteChange.forEach(remoteListener =>
+              remoteListener.func(
+                JSON.parse(JSON.stringify(syncResultForRemoteChangeEvent.changes.remote)),
+                {
+                  ...taskMetadata,
+                  collectionPath: remoteListener.collectionPath,
+                }
+              )
+            );
+          }
+
+          this.eventHandlers.complete.forEach(listener =>
+            listener.func({ ...taskMetadata, collectionPath: listener.collectionPath })
+          );
 
           beforeResolve();
           resolve(syncResult);
@@ -754,8 +857,11 @@ export class Sync implements ISync {
           ) {
             err = new SyncWorkerError(err.message);
           }
-          this.eventHandlers.error.forEach(func => {
-            func(err, taskMetadata);
+          this.eventHandlers.error.forEach(listener => {
+            listener.func(err, {
+              ...taskMetadata,
+              collectionPath: listener.collectionPath,
+            });
           });
 
           beforeReject();
@@ -789,20 +895,52 @@ export class Sync implements ISync {
    * Add SyncEvent handler
    *
    */
-  on (event: SyncEvent, callback: SyncCallback) {
-    if (event === 'change') this.eventHandlers[event].push(callback as SyncChangeCallback);
+  on (event: SyncEvent, callback: SyncCallback, collectionPath = '') {
+    if (event === 'change')
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncChangeCallback,
+      });
     if (event === 'localChange')
-      this.eventHandlers[event].push(callback as SyncLocalChangeCallback);
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncLocalChangeCallback,
+      });
     if (event === 'remoteChange')
-      this.eventHandlers[event].push(callback as SyncRemoteChangeCallback);
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncRemoteChangeCallback,
+      });
     if (event === 'combine')
-      this.eventHandlers[event].push(callback as SyncCombineDatabaseCallback);
-    if (event === 'pause') this.eventHandlers[event].push(callback as SyncPauseCallback);
-    if (event === 'resume') this.eventHandlers[event].push(callback as SyncResumeCallback);
-    if (event === 'start') this.eventHandlers[event].push(callback as SyncStartCallback);
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncCombineDatabaseCallback,
+      });
+    if (event === 'pause')
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncPauseCallback,
+      });
+    if (event === 'resume')
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncResumeCallback,
+      });
+    if (event === 'start')
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncStartCallback,
+      });
     if (event === 'complete')
-      this.eventHandlers[event].push(callback as SyncCompleteCallback);
-    if (event === 'error') this.eventHandlers[event].push(callback as SyncErrorCallback);
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncCompleteCallback,
+      });
+    if (event === 'error')
+      this.eventHandlers[event].push({
+        collectionPath,
+        func: callback as SyncErrorCallback,
+      });
 
     return this;
   }
@@ -814,7 +952,9 @@ export class Sync implements ISync {
   off (event: SyncEvent, callback: SyncCallback) {
     // @ts-ignore
     this.eventHandlers[event] = this.eventHandlers[event].filter(
-      (func: (res?: any) => void) => func !== callback
+      (listener: { collectionPath: string; func: (res?: any) => void }) => {
+        return listener.func !== callback;
+      }
     );
     return this;
   }

@@ -151,6 +151,9 @@ export interface IDocumentDB {
   loadDbInfo(): void;
   open(options?: OpenOptions): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
+  getRemoteURLs(): string[];
+  getSync(remoteURL: string): ISync;
+  removeSync(remoteURL: string): void;
   sync(options: RemoteOptions, getSyncResult: boolean): Promise<[ISync, SyncResult]>;
   sync(options: RemoteOptions): Promise<ISync>;
 }

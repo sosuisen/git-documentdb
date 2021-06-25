@@ -25,6 +25,7 @@ import {
   UndefinedDBError,
   CannotCreateDirectoryError,
   CannotWriteDataError,
+  UndefinedSyncError,
 } from './error';
 import {
   CollectionOptions,
@@ -46,6 +47,8 @@ import {
   PutResultBinary,
   PutResultJsonDoc,
   PutResultText,
+  SyncCallback,
+  SyncEvent,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
 import { Validator } from './validator';
@@ -56,6 +59,7 @@ import { getHistoryImpl } from './crud/history';
 import { deleteImpl } from './crud/delete';
 import { findImpl } from './crud/find';
 import { putImpl } from './crud/put';
+import { ISync } from './types_sync';
 
 /**
  * Documents under a collectionPath are gathered together in a collection.
@@ -209,6 +213,64 @@ export class Collection implements CRUDInterface {
       }
     }
     return collections;
+  }
+
+  onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): ISync;
+  onSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): ISync;
+  /**
+   * @internal
+   */
+  onSyncEvent (
+    remoteURLorSync: string | ISync,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): ISync;
+
+  onSyncEvent (
+    remoteURLorSync: string | ISync,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): ISync {
+    let sync;
+    if (typeof remoteURLorSync === 'string') {
+      sync = this._gitDDB.getSync(remoteURLorSync);
+    }
+    else {
+      sync = remoteURLorSync;
+    }
+    if (sync === undefined) {
+      throw new UndefinedSyncError();
+    }
+    return sync.on(event, callback, this.collectionPath);
+  }
+
+  offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+  offSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): void;
+  /**
+   * @internal
+   */
+  offSyncEvent (
+    remoteURLorSync: string | ISync,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): void;
+
+  offSyncEvent (
+    remoteURLorSync: string | ISync,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): void {
+    let sync;
+    if (typeof remoteURLorSync === 'string') {
+      sync = this._gitDDB.getSync(remoteURLorSync);
+    }
+    else {
+      sync = remoteURLorSync;
+    }
+    if (sync === undefined) {
+      throw new UndefinedSyncError();
+    }
+    sync.off(event, callback);
   }
 
   /**

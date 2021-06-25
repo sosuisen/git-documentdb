@@ -102,8 +102,11 @@ export async function pushWorker (
   skipStartEvent = false
 ): Promise<SyncResultPush> {
   if (!skipStartEvent) {
-    sync.eventHandlers.start.forEach(func => {
-      func(taskMetadata, sync.currentRetries());
+    sync.eventHandlers.start.forEach(listener => {
+      listener.func(
+        { ...taskMetadata, collectionPath: listener.collectionPath },
+        sync.currentRetries()
+      );
     });
   }
 

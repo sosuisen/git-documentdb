@@ -714,12 +714,12 @@ export type NormalizedCommit = {
   author: {
     name: string;
     email: string;
-    timestamp: Date;
+    timestamp: number; // Unix timestamp (milliseconds)
   };
   committer: {
     name: string;
     email: string;
-    timestamp: Date;
+    timestamp: number; // Unix timestamp (milliseconds)
   };
   gpgsig?: string;
 };

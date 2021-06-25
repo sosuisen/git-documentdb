@@ -24,15 +24,15 @@ import {
 export interface ISync {
   currentRetries(): number;
   eventHandlers: {
-    change: SyncChangeCallback[];
-    localChange: SyncLocalChangeCallback[];
-    remoteChange: SyncRemoteChangeCallback[];
-    combine: SyncCombineDatabaseCallback[];
-    pause: SyncPauseCallback[];
-    resume: SyncResumeCallback[];
-    start: SyncStartCallback[];
-    complete: SyncCompleteCallback[];
-    error: SyncErrorCallback[];
+    change: { collectionPath: string; func: SyncChangeCallback }[];
+    localChange: { collectionPath: string; func: SyncLocalChangeCallback }[];
+    remoteChange: { collectionPath: string; func: SyncRemoteChangeCallback }[];
+    combine: { collectionPath: string; func: SyncCombineDatabaseCallback }[];
+    pause: { collectionPath: string; func: SyncPauseCallback }[];
+    resume: { collectionPath: string; func: SyncResumeCallback }[];
+    start: { collectionPath: string; func: SyncStartCallback }[];
+    complete: { collectionPath: string; func: SyncCompleteCallback }[];
+    error: { collectionPath: string; func: SyncErrorCallback }[];
   };
   jsonDiff: JsonDiff;
   jsonPatch: IJsonPatch;
@@ -44,7 +44,7 @@ export interface ISync {
   trySync(): Promise<SyncResult>;
   enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
   enqueueSyncTask(): Promise<SyncResult>;
-  on(event: SyncEvent, callback: SyncCallback): void;
+  on(event: SyncEvent, callback: SyncCallback, collectionPath?: string): ISync;
   off(event: SyncEvent, callback: SyncCallback): void;
   pause(): void;
   resume(options?: { interval?: number; retry?: number }): void;

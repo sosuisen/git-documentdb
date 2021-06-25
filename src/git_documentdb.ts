@@ -35,6 +35,7 @@ import {
   TaskCancelError,
   UndefinedDBError,
   CannotWriteDataError,
+  UndefinedSyncError,
 } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -62,6 +63,8 @@ import {
   PutResultJsonDoc,
   RemoteOptions,
   Schema,
+  SyncCallback,
+  SyncEvent,
   SyncResult,
 } from './types';
 import { CRUDInterface, IDocumentDB } from './types_gitddb';
@@ -80,6 +83,7 @@ import {
   SET_DATABASE_ID_MESSAGE,
 } from './const';
 import { normalizeCommit, toSortedJSONString } from './utils';
+import { ISync } from './types_sync';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -1384,6 +1388,26 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     const sync = await syncImpl.call(this, options);
     this._synchronizers[sync.remoteURL()] = sync;
     return sync;
+  }
+
+  onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): ISync;
+  onSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): ISync;
+  onSyncEvent (
+    remoteURLorSync: string | ISync,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): ISync {
+    return this.rootCollection.onSyncEvent(remoteURLorSync, event, callback);
+  }
+
+  offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+  offSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): void;
+  offSyncEvent (
+    remoteURLorSync: string | ISync,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): void {
+    this.rootCollection.offSyncEvent(remoteURLorSync, event, callback);
   }
 
   async getCommit (oid: string): Promise<NormalizedCommit> {

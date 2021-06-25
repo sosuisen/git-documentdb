@@ -35,12 +35,12 @@ export function getCommitInfo (resultOrMessage: (PutResult | DeleteResult | stri
         author: {
           name: expect.any(String),
           email: expect.any(String),
-          timestamp: expect.any(Date),
+          timestamp: expect.any(Number),
         },
         committer: {
           name: expect.any(String),
           email: expect.any(String),
-          timestamp: expect.any(Date),
+          timestamp: expect.any(Number),
         },
       };
       acc.push(commit);

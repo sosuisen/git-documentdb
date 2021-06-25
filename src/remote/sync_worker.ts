@@ -84,8 +84,11 @@ export async function syncWorker (
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
   }
-  sync.eventHandlers.start.forEach(func => {
-    func(taskMetadata, sync.currentRetries());
+  sync.eventHandlers.start.forEach(listener => {
+    listener.func(
+      { ...taskMetadata, collectionPath: listener.collectionPath },
+      sync.currentRetries()
+    );
   });
 
   /**

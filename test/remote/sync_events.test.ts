@@ -15,6 +15,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
+import sinon from 'sinon';
 import {
   ChangedFile,
   RemoteOptions,
@@ -38,7 +39,10 @@ import {
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { Sync } from '../../src/remote/sync';
 import { SyncWorkerError } from '../../src/error';
-import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
+import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../../src/const';
+import { pushWorker } from '../../src/remote/push_worker';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pushWorker_module = require('../../src/remote/push_worker');
 
 const reposPrefix = 'test_sync_events___';
 const localDir = `./test/database_sync_events`;
@@ -48,9 +52,16 @@ const serialId = () => {
   return `${reposPrefix}${idCounter++}`;
 };
 
+// Use sandbox to restore stub and spy in parallel mocha tests
+let sandbox: sinon.SinonSandbox;
 beforeEach(function () {
   // @ts-ignore
   console.log(`... ${this.currentTest.fullTitle()}`);
+  sandbox = sinon.createSandbox();
+});
+
+afterEach(function () {
+  sandbox.restore();
 });
 
 before(() => {
@@ -82,7 +93,7 @@ maybe('<remote/sync> [event]', () => {
   /**
    * Events
    */
-  describe('change', () => {
+  describe.only('change', () => {
     it('occurs once', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
@@ -199,49 +210,42 @@ maybe('<remote/sync> [event]', () => {
      * dbB   :                 jsonB3
      * after :                 jsonB3
      */
-    it('occurs with every retry', async () => {
+    it.only('occurs with every retry', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
       );
-
-      // A puts and pushes
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      const putResult1 = await dbA.put(jsonA1);
-      const jsonA2 = { _id: '2', name: 'fromA' };
-      const putResult2 = await dbA.put(jsonA2);
+      await dbA.put({ _id: '1' });
       await syncA.tryPush();
 
-      await syncB.trySync();
+      await dbB.put({ _id: '2' });
 
-      syncA.on('change', (result: SyncResult) => {
-        // console.log('A: ' + JSON.stringify(result));
+      // @ts-ignore
+      const stubNet = sandbox.stub(syncA, 'canNetworkConnection');
+      stubNet.onFirstCall().resolves(false);
+      stubNet.onSecondCall().resolves(true);
+
+      const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
+      stubPush.onFirstCall().rejects(new Error());
+
+      // Call pushWorker which is not spied by Sinon
+      stubPush.onSecondCall().callsFake(async () => {
+        stubPush.restore();
+        return await pushWorker(dbA, syncA, {
+          label: 'sync',
+          taskId: 'myTaskId',
+        });
       });
+
       const resultsB: SyncResult[] = [];
       syncB.on('change', (result: SyncResult) => {
-        // console.log('B: ' + JSON.stringify(result));
+        console.log('B: ' + JSON.stringify(result));
         resultsB.push(result);
       });
+      await syncB.trySync();
 
-      await dbA.delete(jsonA1);
-      await syncA.trySync();
-
-      await dbA.delete(jsonA2);
-
-      const jsonB3 = { _id: '3', name: 'fromB' };
-      dbB
-        .put(jsonB3)
-        .then(() => {
-          syncB.trySync(); // merge and push
-          syncA.trySync(); // will invoke transactional conflict and retry on syncB
-        })
-        .catch(err => {
-          console.log(err);
-        });
-
-      await sleep(15000);
-
+      await sleep(30000);
       expect(resultsB.length).toBe(2);
       expect(resultsB[0].action).toBe('merge and push error');
       expect(resultsB[1].action).toBe('merge and push');
@@ -305,12 +309,10 @@ maybe('<remote/sync> [event]', () => {
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
-      const putResult1 = await dbA.put(jsonA1);
+      await dbA.put(jsonA1);
       const jsonA2 = { _id: '2', name: 'fromA' };
-      const putResult2 = await dbA.put(jsonA2);
+      await dbA.put(jsonA2);
       await syncA.tryPush();
-
-      await syncB.trySync();
 
       syncA.on('localChange', (changes: ChangedFile[]) => {
         // console.log('A local: ' + JSON.stringify(changes));
@@ -320,6 +322,8 @@ maybe('<remote/sync> [event]', () => {
         // console.log('B local: ' + JSON.stringify(changes));
         localChangesB.push(changes);
       });
+      await syncB.trySync();
+
       /*
       syncA.on('remoteChange', (remoteChanges: ChangedFile[]) => {
         console.log('A remote: ' + JSON.stringify(remoteChanges));
@@ -447,266 +451,266 @@ maybe('<remote/sync> [event]', () => {
 
       await destroyDBs([dbA, dbB]);
     });
+  });
 
-    it('pause and resume', async () => {
-      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
-        remoteURLBase,
-        localDir,
-        serialId,
-        {
-          connection: { type: 'github', personalAccessToken: token },
-          includeCommits: true,
-          live: true,
-          interval: 3000,
-        }
-      );
-
-      let resume = false;
-      syncB.on('resume', () => {
-        resume = true;
-      });
-      let pause = false;
-      syncB.on('pause', () => {
-        pause = true;
-      });
-      let complete = false;
-      syncB.on('complete', () => {
-        complete = true;
-      });
-
-      // Check first complete event
-
-      let sleepTime = 0;
-      // eslint-disable-next-line no-unmodified-loop-condition
-      while (!complete) {
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(1000);
-        sleepTime += 1000;
-      }
-
-      syncB.pause();
-      expect(pause).toBe(true);
-      expect(resume).toBe(false);
-      expect(syncB.options().live).toBe(false);
-
-      // Check second complete event
-      complete = false; // reset
-      // fast forward timer
-      await sleep(sleepTime + 1000);
-
-      expect(complete).toBe(false); // complete will not happen because synchronization is paused.
-
-      syncB.resume();
-      expect(resume).toBe(true);
-      expect(syncB.options().live).toBe(true);
-
-      // Check third complete event
-      complete = false; // reset
-      // fast forward timer
-      await sleep(sleepTime + 1000);
-
-      expect(complete).toBe(true);
-
-      await destroyDBs([dbA, dbB]);
-    });
-
-    it('active at initialization', async () => {
-      const remoteURL = remoteURLBase + serialId();
-      const dbNameA = serialId();
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        dbName: dbNameA,
-        localDir,
-      });
-      const options: RemoteOptions = {
-        remoteUrl: remoteURL,
-        connection: { type: 'github', personalAccessToken: token },
-        includeCommits: true,
-        live: true,
-      };
-      await dbA.open();
-
-      const repos = dbA.repository();
-      const remote = new Sync(dbA, options);
-      let resume = false;
-      remote.on('resume', () => {
-        resume = true;
-      });
-      await remote.init(repos!);
-      expect(resume).toBe(true);
-
-      await destroyDBs([dbA]);
-    });
-
-    it('starts once', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+  it('pause and resume', async () => {
+    const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+      remoteURLBase,
+      localDir,
+      serialId,
+      {
         connection: { type: 'github', personalAccessToken: token },
         includeCommits: true,
         live: true,
         interval: 3000,
-      });
-
-      let start = false;
-      syncA.on('start', () => {
-        start = true;
-      });
-
-      expect(start).toBe(false);
-
-      let sleepTime = 0;
-      // eslint-disable-next-line no-unmodified-loop-condition
-      while (!start) {
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(1000);
-        sleepTime += 1000;
       }
+    );
 
-      expect(start).toBe(true);
-      expect(sleepTime).toBeLessThan(5000);
-
-      await destroyDBs([dbA]);
+    let resume = false;
+    syncB.on('resume', () => {
+      resume = true;
+    });
+    let pause = false;
+    syncB.on('pause', () => {
+      pause = true;
+    });
+    let complete = false;
+    syncB.on('complete', () => {
+      complete = true;
     });
 
-    it('starts repeatedly', async () => {
-      const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection: { type: 'github', personalAccessToken: token },
-        includeCommits: true,
-        live: true,
-        interval,
-      });
+    // Check first complete event
 
-      let counter = 0;
-      syncA.on('start', () => {
-        counter++;
-      });
+    let sleepTime = 0;
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (!complete) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(1000);
+      sleepTime += 1000;
+    }
 
-      await sleep(interval * 5);
+    syncB.pause();
+    expect(pause).toBe(true);
+    expect(resume).toBe(false);
+    expect(syncB.options().live).toBe(false);
 
-      expect(counter).toBeGreaterThanOrEqual(3);
+    // Check second complete event
+    complete = false; // reset
+    // fast forward timer
+    await sleep(sleepTime + 1000);
 
-      await destroyDBs([dbA]);
+    expect(complete).toBe(false); // complete will not happen because synchronization is paused.
+
+    syncB.resume();
+    expect(resume).toBe(true);
+    expect(syncB.options().live).toBe(true);
+
+    // Check third complete event
+    complete = false; // reset
+    // fast forward timer
+    await sleep(sleepTime + 1000);
+
+    expect(complete).toBe(true);
+
+    await destroyDBs([dbA, dbB]);
+  });
+
+  it('active at initialization', async () => {
+    const remoteURL = remoteURLBase + serialId();
+    const dbNameA = serialId();
+    const dbA: GitDocumentDB = new GitDocumentDB({
+      dbName: dbNameA,
+      localDir,
+    });
+    const options: RemoteOptions = {
+      remoteUrl: remoteURL,
+      connection: { type: 'github', personalAccessToken: token },
+      includeCommits: true,
+      live: true,
+    };
+    await dbA.open();
+
+    const repos = dbA.repository();
+    const remote = new Sync(dbA, options);
+    let resume = false;
+    remote.on('resume', () => {
+      resume = true;
+    });
+    await remote.init(repos!);
+    expect(resume).toBe(true);
+
+    await destroyDBs([dbA]);
+  });
+
+  it('starts once', async () => {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection: { type: 'github', personalAccessToken: token },
+      includeCommits: true,
+      live: true,
+      interval: 3000,
     });
 
-    it('starts event returns taskMetaData and current retries', async () => {
-      const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection: { type: 'github', personalAccessToken: token },
-        includeCommits: true,
-        live: true,
-        interval,
-      });
-
-      let counter = 0;
-      let taskId = '';
-      let currentRetries = -1;
-      syncA.on('start', (taskMetadata: TaskMetadata, _currentRetries: number) => {
-        counter++;
-        taskId = taskMetadata.taskId;
-        currentRetries = _currentRetries;
-      });
-
-      await sleep(interval * 5);
-
-      expect(counter).toBeGreaterThanOrEqual(3);
-      expect(taskId).not.toBe('');
-      expect(currentRetries).toBe(0);
-
-      await destroyDBs([dbA]);
+    let start = false;
+    syncA.on('start', () => {
+      start = true;
     });
 
-    it('completes once', async () => {
-      const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection: { type: 'github', personalAccessToken: token },
-        includeCommits: true,
-        live: true,
-        interval,
-      });
+    expect(start).toBe(false);
 
-      let startTaskId = '';
-      syncA.on('start', (taskMetadata: TaskMetadata) => {
-        startTaskId = taskMetadata.taskId;
-      });
+    let sleepTime = 0;
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (!start) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(1000);
+      sleepTime += 1000;
+    }
 
-      let complete = false;
-      let endTaskId = '';
-      syncA.on('complete', (taskMetadata: TaskMetadata) => {
-        complete = true;
-        endTaskId = taskMetadata.taskId;
-      });
+    expect(start).toBe(true);
+    expect(sleepTime).toBeLessThan(5000);
 
-      expect(complete).toBe(false);
+    await destroyDBs([dbA]);
+  });
 
-      let sleepTime = 0;
-      // eslint-disable-next-line no-unmodified-loop-condition
-      while (!complete) {
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(1000);
-        sleepTime += 1000;
-      }
-
-      expect(complete).toBe(true);
-      expect(startTaskId).toBe(endTaskId);
-      expect(sleepTime).toBeLessThan(interval * 2);
-
-      await destroyDBs([dbA]);
+  it('starts repeatedly', async () => {
+    const interval = MINIMUM_SYNC_INTERVAL;
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection: { type: 'github', personalAccessToken: token },
+      includeCommits: true,
+      live: true,
+      interval,
     });
 
-    it('completes repeatedly', async () => {
-      const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection: { type: 'github', personalAccessToken: token },
-        includeCommits: true,
-        live: true,
-        interval,
-      });
-
-      let counter = 0;
-      syncA.on('complete', () => {
-        counter++;
-      });
-
-      await sleep(interval * 5);
-
-      expect(counter).toBeGreaterThanOrEqual(3);
-
-      await destroyDBs([dbA]);
+    let counter = 0;
+    syncA.on('start', () => {
+      counter++;
     });
 
-    it('error', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
-      await dbA.put({ _id: '1', name: 'fromA' });
-      await syncA.trySync();
+    await sleep(interval * 5);
 
-      await destroyRemoteRepository(syncA.remoteURL());
-      // Create different repository with the same repository name.
-      const [dbB, syncB] = await createDatabase(remoteURLBase, localDir, serialId);
-      await dbB.put({ _id: '1', name: 'fromB' });
-      await syncB.trySync();
+    expect(counter).toBeGreaterThanOrEqual(3);
 
-      let startTaskId = '';
-      syncA.on('start', (taskMetadata: TaskMetadata) => {
-        startTaskId = taskMetadata.taskId;
-      });
+    await destroyDBs([dbA]);
+  });
 
-      let error = false;
-      let errorTaskId = '';
-      syncA.on('error', (e: Error, taskMetadata: TaskMetadata) => {
-        error = true;
-        errorTaskId = taskMetadata.taskId;
-      });
-      await expect(syncA.trySync()).rejects.toThrowError(SyncWorkerError);
-
-      expect(error).toBe(true);
-      expect(startTaskId).toBe(errorTaskId);
-
-      error = false;
-      await expect(syncA.tryPush()).rejects.toThrowError(); // request failed with status code: 404
-
-      expect(error).toBe(true);
-
-      await destroyDBs([dbA, dbB]);
+  it('starts event returns taskMetaData and current retries', async () => {
+    const interval = MINIMUM_SYNC_INTERVAL;
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection: { type: 'github', personalAccessToken: token },
+      includeCommits: true,
+      live: true,
+      interval,
     });
+
+    let counter = 0;
+    let taskId = '';
+    let currentRetries = -1;
+    syncA.on('start', (taskMetadata: TaskMetadata, _currentRetries: number) => {
+      counter++;
+      taskId = taskMetadata.taskId;
+      currentRetries = _currentRetries;
+    });
+
+    await sleep(interval * 5);
+
+    expect(counter).toBeGreaterThanOrEqual(3);
+    expect(taskId).not.toBe('');
+    expect(currentRetries).toBe(0);
+
+    await destroyDBs([dbA]);
+  });
+
+  it('completes once', async () => {
+    const interval = MINIMUM_SYNC_INTERVAL;
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection: { type: 'github', personalAccessToken: token },
+      includeCommits: true,
+      live: true,
+      interval,
+    });
+
+    let startTaskId = '';
+    syncA.on('start', (taskMetadata: TaskMetadata) => {
+      startTaskId = taskMetadata.taskId;
+    });
+
+    let complete = false;
+    let endTaskId = '';
+    syncA.on('complete', (taskMetadata: TaskMetadata) => {
+      complete = true;
+      endTaskId = taskMetadata.taskId;
+    });
+
+    expect(complete).toBe(false);
+
+    let sleepTime = 0;
+    // eslint-disable-next-line no-unmodified-loop-condition
+    while (!complete) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(1000);
+      sleepTime += 1000;
+    }
+
+    expect(complete).toBe(true);
+    expect(startTaskId).toBe(endTaskId);
+    expect(sleepTime).toBeLessThan(interval * 2);
+
+    await destroyDBs([dbA]);
+  });
+
+  it('completes repeatedly', async () => {
+    const interval = MINIMUM_SYNC_INTERVAL;
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection: { type: 'github', personalAccessToken: token },
+      includeCommits: true,
+      live: true,
+      interval,
+    });
+
+    let counter = 0;
+    syncA.on('complete', () => {
+      counter++;
+    });
+
+    await sleep(interval * 5);
+
+    expect(counter).toBeGreaterThanOrEqual(3);
+
+    await destroyDBs([dbA]);
+  });
+
+  it('error', async () => {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    await dbA.put({ _id: '1', name: 'fromA' });
+    await syncA.trySync();
+
+    await destroyRemoteRepository(syncA.remoteURL());
+    // Create different repository with the same repository name.
+    const [dbB, syncB] = await createDatabase(remoteURLBase, localDir, serialId);
+    await dbB.put({ _id: '1', name: 'fromB' });
+    await syncB.trySync();
+
+    let startTaskId = '';
+    syncA.on('start', (taskMetadata: TaskMetadata) => {
+      startTaskId = taskMetadata.taskId;
+    });
+
+    let error = false;
+    let errorTaskId = '';
+    syncA.on('error', (e: Error, taskMetadata: TaskMetadata) => {
+      error = true;
+      errorTaskId = taskMetadata.taskId;
+    });
+    await expect(syncA.trySync()).rejects.toThrowError(SyncWorkerError);
+
+    expect(error).toBe(true);
+    expect(startTaskId).toBe(errorTaskId);
+
+    error = false;
+    await expect(syncA.tryPush()).rejects.toThrowError(); // request failed with status code: 404
+
+    expect(error).toBe(true);
+
+    await destroyDBs([dbA, dbB]);
   });
 
   it('on and off', async () => {
@@ -737,6 +741,4 @@ maybe('<remote/sync> [event]', () => {
 
     await destroyDBs([dbA]);
   });
-
-  describe.skip('check various errors in sync_worker.ts', () => {});
 });
