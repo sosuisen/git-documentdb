@@ -370,8 +370,8 @@ export class Sync implements ISync {
 
     if (this._options.live) {
       if (this._syncTimer === undefined) {
-        this.eventHandlers.resume.forEach(callback => {
-          callback.func();
+        this.eventHandlers.resume.forEach(listener => {
+          listener.func();
         });
         this._syncTimer = setInterval(() => {
           this.trySync().catch(() => undefined);
@@ -412,8 +412,8 @@ export class Sync implements ISync {
     }
     this._options.live = false;
 
-    this.eventHandlers.pause.forEach(callback => {
-      callback.func();
+    this.eventHandlers.pause.forEach(listener => {
+      listener.func();
     });
     return true;
   }
@@ -453,8 +453,8 @@ export class Sync implements ISync {
       }, this._options.interval!);
     }
 
-    this.eventHandlers.resume.forEach(callback => {
-      callback.func();
+    this.eventHandlers.resume.forEach(listener => {
+      listener.func();
     });
 
     return true;
