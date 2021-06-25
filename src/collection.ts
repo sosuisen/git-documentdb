@@ -139,7 +139,7 @@ export class Collection implements CRUDInterface {
   ) {
     this._gitDDB = gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(collectionPathFromParent);
-    this._gitDDB.validator.validateCollectionPath(this._collectionPath);
+    this._gitDDB.validator.validateCollectionPath(this.collectionPath);
     this._monoID = monotonicFactory();
 
     if (parent === undefined) {
@@ -284,14 +284,14 @@ export class Collection implements CRUDInterface {
     ) {
       if (!shortIdOrDoc) shortIdOrDoc = this.generateId();
       shortId = shortIdOrDoc;
-      _id = this._collectionPath + shortId;
+      _id = this.collectionPath + shortId;
       shortName = shortId + JSON_EXT;
       jsonDoc = jsonDocOrOptions as JsonDoc;
     }
     else {
       if (!shortIdOrDoc._id) shortIdOrDoc._id = this.generateId();
       shortId = shortIdOrDoc._id;
-      _id = this._collectionPath + shortId;
+      _id = this.collectionPath + shortId;
       shortName = shortId + JSON_EXT;
       jsonDoc = shortIdOrDoc as JsonDoc;
       options = jsonDocOrOptions as PutOptions;
@@ -315,7 +315,7 @@ export class Collection implements CRUDInterface {
 
     return putImpl(
       this._gitDDB,
-      this._collectionPath,
+      this.collectionPath,
       shortId,
       shortName,
       data,
@@ -590,7 +590,7 @@ export class Collection implements CRUDInterface {
       } catch (err) {
         return Promise.reject(new InvalidJsonObjectError(shortId));
       }
-      clone._id = this._collectionPath + shortId;
+      clone._id = this.collectionPath + shortId;
       data = toSortedJSONString(clone);
       try {
         this._gitDDB.validator.validateDocument(clone);
@@ -610,7 +610,7 @@ export class Collection implements CRUDInterface {
 
     return putImpl(
       this._gitDDB,
-      this._collectionPath,
+      this.collectionPath,
       shortId,
       shortName,
       data,
@@ -742,7 +742,7 @@ export class Collection implements CRUDInterface {
    */
   get (_id: string): Promise<JsonDoc | undefined> {
     const shortName = _id + JSON_EXT;
-    return getImpl(this._gitDDB, shortName, this._collectionPath, {
+    return getImpl(this._gitDDB, shortName, this.collectionPath, {
       forceDocType: 'json',
     }) as Promise<JsonDoc | undefined>;
   }
@@ -766,7 +766,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   getFatDoc (shortName: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
-    return getImpl(this._gitDDB, shortName, this._collectionPath, getOptions, {
+    return getImpl(this._gitDDB, shortName, this.collectionPath, getOptions, {
       withMetadata: true,
     }) as Promise<FatDoc | undefined>;
   }
@@ -787,7 +787,7 @@ export class Collection implements CRUDInterface {
     return getImpl(
       this._gitDDB,
       '',
-      this._collectionPath,
+      this.collectionPath,
       { forceDocType: docType },
       {
         withMetadata: false,
@@ -822,7 +822,7 @@ export class Collection implements CRUDInterface {
     return getImpl(
       this._gitDDB,
       shortName,
-      this._collectionPath,
+      this.collectionPath,
       { forceDocType: 'json' },
       {
         withMetadata: false,
@@ -864,7 +864,7 @@ export class Collection implements CRUDInterface {
     return getImpl(
       this._gitDDB,
       shortName,
-      this._collectionPath,
+      this.collectionPath,
       getOptions,
       {
         withMetadata: true,
@@ -925,7 +925,7 @@ export class Collection implements CRUDInterface {
     return getHistoryImpl(
       this._gitDDB,
       shortName,
-      this._collectionPath,
+      this.collectionPath,
       historyOptions,
       { forceDocType: 'json' },
       false
@@ -961,7 +961,7 @@ export class Collection implements CRUDInterface {
     return getHistoryImpl(
       this._gitDDB,
       shortName,
-      this._collectionPath,
+      this.collectionPath,
       historyOptions,
       getOptions,
       true
@@ -1021,7 +1021,7 @@ export class Collection implements CRUDInterface {
     }
     const shortName = shortId + JSON_EXT;
 
-    return deleteImpl(this._gitDDB, this._collectionPath, shortId, shortName, options).then(
+    return deleteImpl(this._gitDDB, this.collectionPath, shortId, shortName, options).then(
       res => {
         const deleteResult: PutResultJsonDoc = {
           ...res,
@@ -1058,7 +1058,7 @@ export class Collection implements CRUDInterface {
     }
     const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
 
-    return deleteImpl(this._gitDDB, this._collectionPath, shortId, shortName, options).then(
+    return deleteImpl(this._gitDDB, this.collectionPath, shortId, shortName, options).then(
       res => {
         // NOTE: Cannot detect JsonDoc whose file path does not end with '.json'
         if (docType === 'json') {
@@ -1099,7 +1099,7 @@ export class Collection implements CRUDInterface {
   find (options?: FindOptions): Promise<JsonDoc[]> {
     options ??= {};
     options.forceDocType ??= 'json';
-    return findImpl(this._gitDDB, this._collectionPath, true, false, options) as Promise<
+    return findImpl(this._gitDDB, this.collectionPath, true, false, options) as Promise<
       JsonDoc[]
     >;
   }
@@ -1112,7 +1112,7 @@ export class Collection implements CRUDInterface {
    * @throws {@link InvalidJsonObjectError}
    */
   findFatDoc (options?: FindOptions): Promise<FatDoc[]> {
-    return findImpl(this._gitDDB, this._collectionPath, false, true, options) as Promise<
+    return findImpl(this._gitDDB, this.collectionPath, false, true, options) as Promise<
       FatDoc[]
     >;
   }
