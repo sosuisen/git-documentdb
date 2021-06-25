@@ -82,48 +82,14 @@ import { putImpl } from './crud/put';
  */
 export class Collection implements CRUDInterface {
   private _collectionPath: CollectionPath = '';
-  /**
-   * Normalized path of collection
-   *
-   * @remarks
-   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
-   */
-  get collectionPath (): string {
-    return this._parent.collectionPath + this._collectionPath;
-  }
 
   private _parent: Collection;
-  /**
-   * Parent collection
-   *
-   * @remarks
-   * Child collection inherits Parent's CollectionOptions.
-   */
-  get parent (): Collection {
-    return this._parent;
-  }
 
   private _gitDDB: CRUDInterface & IDocumentDB;
 
   private _monoID: ULID;
 
   private _options: CollectionOptions;
-
-  get options (): CollectionOptions {
-    return { ...this._options };
-  }
-
-  /**
-   * Generate new _id as monotonic ULID
-   *
-   * @remarks
-   * See https://github.com/ulid/javascript
-   *
-   * @returns 26 Base32 alphabets
-   */
-  public generateId () {
-    return this._options.namePrefix + this._monoID(Date.now());
-  }
 
   /**
    * @param collectionPathFromParent - A relative collectionPath from a parent collection.
@@ -155,28 +121,75 @@ export class Collection implements CRUDInterface {
     this._options = { ...parent?.options!, ...options };
   }
 
+  get options (): CollectionOptions {
+    return { ...this._options };
+  }
+
   /**
-   * Get the collections directly under the specified dirPath.
+   * Generate new _id as monotonic ULID
    *
-   * @param dirPath - Default is ''.
+   * @remarks
+   * See https://github.com/ulid/javascript
+   *
+   * @returns 26 Base32 alphabets
+   */
+  generateId () {
+    return this._options.namePrefix + this._monoID(Date.now());
+  }
+
+  /**
+   * Normalized path of collection
+   *
+   * @remarks
+   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
+   */
+  get collectionPath (): string {
+    return this._parent.collectionPath + this._collectionPath;
+  }
+
+  /**
+   * Parent collection
+   *
+   * @remarks
+   * Child collection inherits Parent's CollectionOptions.
+   */
+  get parent (): Collection {
+    return this._parent;
+  }
+
+  /**
+   * Get a collection
+   *
+   * @param collectionPath - relative path from this.collectionPath. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
+   *
+   * @remarks
+   * - Notice that this function just read existing directory. It does not make a new sub-directory.
+   *
+   * @returns A child collection of this collection.
+   */
+  collection (collectionPath: CollectionPath, options?: CollectionOptions) {
+    return new Collection(this._gitDDB, collectionPath, this, options);
+  }
+
+  /**
+   * Get collections directly under the specified dirPath.
+   *
+   * @param dirPath - dirPath is a relative path from collectionPath. Default is ''.
    * @returns Array of Collections which does not include ''
    * @throws {@link RepositoryNotOpenError}
    */
-  static async getCollections (
-    gitDDB: CRUDInterface & IDocumentDB,
-    dirPath = ''
-  ): Promise<Collection[]> {
-    if (!gitDDB.isOpened()) {
+  async getCollections (dirPath = ''): Promise<Collection[]> {
+    if (!this._gitDDB.isOpened()) {
       throw new RepositoryNotOpenError();
     }
-    dirPath = Validator.normalizeCollectionPath(dirPath);
+    dirPath = Validator.normalizeCollectionPath(this.collectionPath + dirPath);
     dirPath = dirPath.slice(0, -1);
 
-    const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'main' });
+    const commitOid = await resolveRef({ fs, dir: this._gitDDB.workingDir(), ref: 'main' });
 
     const treeResult = await readTree({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: this._gitDDB.workingDir(),
       oid: commitOid,
       filepath: dirPath,
     }).catch(() => undefined);
@@ -189,7 +202,7 @@ export class Collection implements CRUDInterface {
       const fullDocPath = dirPath !== '' ? `${dirPath}/${entry.path}` : entry.path;
       if (entry.type === 'tree') {
         if (fullDocPath !== GIT_DOCUMENTDB_METADATA_DIR) {
-          collections.push(new Collection(gitDDB, fullDocPath));
+          collections.push(new Collection(this._gitDDB, fullDocPath));
         }
       }
     }

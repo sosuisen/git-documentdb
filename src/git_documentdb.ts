@@ -508,11 +508,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Get a collection
    *
+   * @param collectionPath - relative path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
+   *
    * @remarks
-   * - Notice that this function does not make a sub-directory under the working directory.
+   * - Notice that this function just read existing directory. It does not make a new sub-directory.
    *
-   * @param collectionPath - path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
-   *
+   * @returns A child collection of GitDocumentDB#rootCollection
    */
   collection (collectionPath: CollectionPath, options?: CollectionOptions) {
     return new Collection(this, collectionPath, this.rootCollection, options);
@@ -521,12 +522,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   /**
    * Get collections
    *
-   * @param dirPath Get collections directly under the dirPath.
+   * @param dirPath Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
    * @returns Promise<Collection[]>
    * @throws {@link RepositoryNotOpenError}
    */
-  async getCollections (dirPath?: string): Promise<Collection[]> {
-    return await Collection.getCollections(this, dirPath);
+  async getCollections (dirPath = ''): Promise<Collection[]> {
+    return await this.rootCollection.getCollections(dirPath);
   }
 
   /**
