@@ -167,13 +167,13 @@ describe('<git_documentdb> put(_id, jsonDoc)', () => {
 
   it('generates new _id with namePrefix', async () => {
     const dbName = monoId();
+    const namePrefix = 'item';
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
+      namePrefix,
     });
     await gitDDB.open();
-    const namePrefix = 'item';
-    gitDDB.rootCollection.namePrefix = namePrefix;
     const json = { name: 'Shirase' };
     const putResult = await gitDDB.put(undefined, json);
     expect(putResult._id.startsWith(namePrefix)).toBeTruthy();

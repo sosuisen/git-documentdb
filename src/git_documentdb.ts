@@ -260,7 +260,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @throws {@link UndefinedDatabaseNameError}
    *
    */
-  constructor (options: DatabaseOptions) {
+  constructor (options: DatabaseOptions & CollectionOptions) {
     if (options.dbName === undefined || options.dbName === '') {
       throw new UndefinedDatabaseNameError();
     }
@@ -297,7 +297,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this.setLogLevel(this._logLevel);
     this.taskQueue = new TaskQueue(this.getLogger());
 
-    this._rootCollection = new Collection(this);
+    const collectionOptions = {
+      namePrefix: options?.namePrefix ?? '',
+    };
+    this._rootCollection = new Collection(this, '', undefined, collectionOptions);
   }
 
   /**

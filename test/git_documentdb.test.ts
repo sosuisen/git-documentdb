@@ -123,4 +123,64 @@ describe('<index>', () => {
     expect(commit).toEqual(putResult.commit);
     await gitDDB.destroy();
   });
+
+  it('returns root collections', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const root01 = gitDDB.collection('root01');
+    const root02 = gitDDB.collection('root02');
+    const root03 = gitDDB.collection('root03');
+    await root01.put('item01', {});
+    await root02.put('item02', {});
+    await root03.put('item03', {});
+    const cols = await gitDDB.getCollections();
+    expect(cols.length).toBe(3);
+    await expect(cols[0].get('item01')).resolves.toEqual({ _id: 'item01' });
+    await expect(cols[1].get('item02')).resolves.toEqual({ _id: 'item02' });
+    await expect(cols[2].get('item03')).resolves.toEqual({ _id: 'item03' });
+
+    const cols2 = await gitDDB.getCollections('');
+    expect(cols2.length).toBe(3);
+
+    await gitDDB.destroy();
+  });
+
+  it('returns sub directory collections from root', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+    const root01 = gitDDB.collection('sub/root01');
+    const root02 = gitDDB.collection('sub/root02');
+    const root03 = gitDDB.collection('sub03');
+    await root01.put('item01', {});
+    await root02.put('item02', {});
+    await root03.put('item03', {});
+
+    const cols = await gitDDB.getCollections();
+    expect(cols.length).toBe(2);
+    await expect(cols[0].get('root01/item01')).resolves.toEqual({ _id: 'root01/item01' });
+    await expect(cols[0].get('root02/item02')).resolves.toEqual({ _id: 'root02/item02' });
+    await expect(cols[1].get('item03')).resolves.toEqual({ _id: 'item03' });
+
+    const cols2 = await gitDDB.getCollections('sub');
+    expect(cols2.length).toBe(2);
+    await expect(cols2[0].get('item01')).resolves.toEqual({ _id: 'item01' });
+    await expect(cols2[1].get('item02')).resolves.toEqual({ _id: 'item02' });
+
+    const cols3 = await gitDDB.getCollections('sub/');
+    expect(cols3.length).toBe(2);
+    await expect(cols3[0].get('item01')).resolves.toEqual({ _id: 'item01' });
+    await expect(cols3[1].get('item02')).resolves.toEqual({ _id: 'item02' });
+
+    await gitDDB.destroy();
+  });
 });

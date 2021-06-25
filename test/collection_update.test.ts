@@ -105,11 +105,7 @@ describe('<collection> update(jsonDoc)', () => {
     );
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(
-      gitDDB.workingDir(),
-      col.collectionPath,
-      _id + JSON_EXT
-    );
+    const filePath = path.resolve(gitDDB.workingDir(), col.collectionPath, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -234,11 +230,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
     );
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(
-      gitDDB.workingDir(),
-      col.collectionPath,
-      _id + JSON_EXT
-    );
+    const filePath = path.resolve(gitDDB.workingDir(), col.collectionPath, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -326,11 +318,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     );
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(
-      gitDDB.workingDir(),
-      col.collectionPath,
-      _id + JSON_EXT
-    );
+    const filePath = path.resolve(gitDDB.workingDir(), col.collectionPath, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));

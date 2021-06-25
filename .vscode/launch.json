@@ -4,7 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/open.test.js"],
+    "options": ["test/collection.test.js"],
   }],
   "configurations": [
       {

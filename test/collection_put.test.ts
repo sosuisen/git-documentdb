@@ -592,7 +592,7 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const namePrefix = 'item';
-      const col = new Collection(gitDDB, 'col01', { namePrefix });
+      const col = new Collection(gitDDB, 'col01', undefined, { namePrefix });
       const json = { name: 'Shirase' };
       const putResult = await col.put(undefined, json);
       expect(putResult._id.startsWith(namePrefix)).toBeTruthy();

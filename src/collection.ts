@@ -83,7 +83,7 @@ import { putImpl } from './crud/put';
 export class Collection implements CRUDInterface {
   private _collectionPath: CollectionPath = '';
 
-  private _parent: Collection;
+  private _parent: Collection | undefined;
 
   private _gitDDB: CRUDInterface & IDocumentDB;
 
@@ -109,15 +109,15 @@ export class Collection implements CRUDInterface {
     this._monoID = monotonicFactory();
 
     if (parent === undefined) {
-      this._parent = new Collection(gitDDB);
+      this._parent = undefined;
+      options ??= {
+        namePrefix: '',
+      };
     }
     else {
       this._parent = parent;
     }
 
-    options ??= {
-      namePrefix: '',
-    };
     this._options = { ...parent?.options!, ...options };
   }
 
@@ -144,7 +144,9 @@ export class Collection implements CRUDInterface {
    * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
    */
   get collectionPath (): string {
-    return this._parent.collectionPath + this._collectionPath;
+    return this._parent === undefined
+      ? this._collectionPath
+      : this._parent.collectionPath + this._collectionPath;
   }
 
   /**
@@ -153,7 +155,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * Child collection inherits Parent's CollectionOptions.
    */
-  get parent (): Collection {
+  get parent (): Collection | undefined {
     return this._parent;
   }
 

@@ -246,7 +246,7 @@ export type CollectionPath = string;
  * Options for Collection constructor
  */
 export type CollectionOptions = {
-  namePrefix: string;
+  namePrefix?: string;
 };
 
 /**

@@ -79,34 +79,79 @@ describe('<collection>', () => {
     await gitDDB.destroy();
   });
 
-  describe('getCollections()', () => {
-    it('returns root collections', async () => {
+  describe('parent', () => {
+    it('sets parent', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
       });
-
       await gitDDB.open();
-      const root01 = gitDDB.collection('root01');
-      const root02 = gitDDB.collection('root02');
-      const root03 = gitDDB.collection('root03');
-      await root01.put('item01', {});
-      await root02.put('item02', {});
-      await root03.put('item03', {});
-      const cols = await gitDDB.getCollections();
-      expect(cols.length).toBe(3);
-      await expect(cols[0].get('item01')).resolves.toEqual({ _id: 'item01' });
-      await expect(cols[1].get('item02')).resolves.toEqual({ _id: 'item02' });
-      await expect(cols[2].get('item03')).resolves.toEqual({ _id: 'item03' });
 
-      const cols2 = await gitDDB.getCollections('');
-      expect(cols2.length).toBe(3);
+      const root = await gitDDB.collection('');
+      const root2 = await gitDDB.rootCollection;
+      const col01 = await root.collection('col01');
+      const col02 = await col01.collection('col02');
+      const col03 = await col02.collection('col03');
+
+      expect(root.parent!.collectionPath).toBe('');
+      expect(root2.parent).toBeUndefined();
+      expect(col01.parent!.collectionPath).toBe('');
+      expect(col02.parent!.collectionPath).toBe('col01/');
+      expect(col03.parent!.collectionPath).toBe('col01/col02/');
 
       await gitDDB.destroy();
     });
 
-    it('returns sub directory collections', async () => {
+    it('collectionPath is inherited by child', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+
+      const root = await gitDDB.collection('');
+      const root2 = await gitDDB.rootCollection;
+      const col01 = await root.collection('col01');
+      const col02 = await col01.collection('col02');
+      const col03 = await col02.collection('col03');
+
+      expect(root.collectionPath).toBe('');
+      expect(root2.collectionPath).toBe('');
+      expect(col01.collectionPath).toBe('col01/');
+      expect(col02.collectionPath).toBe('col01/col02/');
+      expect(col03.collectionPath).toBe('col01/col02/col03/');
+
+      await gitDDB.destroy();
+    });
+
+    it('options are inherited by child', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+
+      const root = await gitDDB.collection('', { namePrefix: 'root' });
+      const col01 = await root.collection('col01');
+      const col02 = await col01.collection('col02');
+      const col03 = await col02.collection('col03', { namePrefix: 'col03' });
+      const col03dash = await new Collection(gitDDB, 'col03');
+
+      expect(root.options.namePrefix).toBe('root');
+      expect(col01.options.namePrefix).toBe('root');
+      expect(col02.options.namePrefix).toBe('root');
+      expect(col03.options.namePrefix).toBe('col03');
+      expect(col03dash.options.namePrefix).toBe('');
+
+      await gitDDB.destroy();
+    });
+  });
+
+  describe('getCollections()', () => {
+    it('returns sub directory collections from root collection', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -121,21 +166,45 @@ describe('<collection>', () => {
       await root02.put('item02', {});
       await root03.put('item03', {});
 
-      const cols = await gitDDB.getCollections();
+      const root = new Collection(gitDDB, '');
+      const cols = await root.getCollections();
       expect(cols.length).toBe(2);
       await expect(cols[0].get('root01/item01')).resolves.toEqual({ _id: 'root01/item01' });
       await expect(cols[0].get('root02/item02')).resolves.toEqual({ _id: 'root02/item02' });
       await expect(cols[1].get('item03')).resolves.toEqual({ _id: 'item03' });
 
-      const cols2 = await gitDDB.getCollections('sub');
+      const cols2 = await root.getCollections('sub');
       expect(cols2.length).toBe(2);
       await expect(cols2[0].get('item01')).resolves.toEqual({ _id: 'item01' });
       await expect(cols2[1].get('item02')).resolves.toEqual({ _id: 'item02' });
 
-      const cols3 = await gitDDB.getCollections('sub/');
+      const cols3 = await root.getCollections('sub/');
       expect(cols3.length).toBe(2);
       await expect(cols3[0].get('item01')).resolves.toEqual({ _id: 'item01' });
       await expect(cols3[1].get('item02')).resolves.toEqual({ _id: 'item02' });
+
+      await gitDDB.destroy();
+    });
+
+    it('returns sub directory collections from sub collection', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+
+      await gitDDB.open();
+      const root01 = gitDDB.collection('sub/root01');
+      const root02 = gitDDB.collection('sub/root02');
+      await root01.put('item01', {});
+      await root02.put('item02', {});
+
+      const sub = gitDDB.collection('sub');
+      const cols = await sub.getCollections();
+
+      expect(cols.length).toBe(2);
+      await expect(cols[0].get('item01')).resolves.toEqual({ _id: 'item01' });
+      await expect(cols[1].get('item02')).resolves.toEqual({ _id: 'item02' });
 
       await gitDDB.destroy();
     });

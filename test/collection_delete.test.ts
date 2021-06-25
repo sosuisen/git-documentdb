@@ -248,10 +248,7 @@ describe('delete(jsonDoc)', () => {
     // Check NormalizedCommit
     expect(deleteResult.commit.oid).toBe(currentCommitOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${oid.substr(
-        0,
-        SHORT_SHA_LENGTH
-      )})`
+      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
     );
     expect(deleteResult.commit.parent).toEqual([prevCommitOid]);
     expect(deleteResult.commit.author.name).toEqual(gitDDB.author.name);
