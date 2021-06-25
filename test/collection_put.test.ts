@@ -314,20 +314,12 @@ describe('<collection>', () => {
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
       expect(putResult.commit.author.name).toEqual(gitDDB.author.name);
       expect(putResult.commit.author.email).toEqual(gitDDB.author.email);
-      expect(putResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
-        beforeTimestamp
-      );
-      expect(putResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
-        afterTimestamp
-      );
+      expect(putResult.commit.author.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(putResult.commit.author.timestamp).toBeLessThanOrEqual(afterTimestamp);
       expect(putResult.commit.committer.name).toEqual(gitDDB.author.name);
       expect(putResult.commit.committer.email).toEqual(gitDDB.author.email);
-      expect(putResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
-        beforeTimestamp
-      );
-      expect(putResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
-        afterTimestamp
-      );
+      expect(putResult.commit.committer.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(
@@ -650,20 +642,12 @@ describe('<collection>', () => {
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
       expect(putResult.commit.author.name).toEqual(gitDDB.author.name);
       expect(putResult.commit.author.email).toEqual(gitDDB.author.email);
-      expect(putResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
-        beforeTimestamp
-      );
-      expect(putResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
-        afterTimestamp
-      );
+      expect(putResult.commit.author.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(putResult.commit.author.timestamp).toBeLessThanOrEqual(afterTimestamp);
       expect(putResult.commit.committer.name).toEqual(gitDDB.author.name);
       expect(putResult.commit.committer.email).toEqual(gitDDB.author.email);
-      expect(putResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
-        beforeTimestamp
-      );
-      expect(putResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
-        afterTimestamp
-      );
+      expect(putResult.commit.committer.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(
@@ -874,20 +858,12 @@ describe('<collection>', () => {
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
       expect(putResult.commit.author.name).toEqual(gitDDB.author.name);
       expect(putResult.commit.author.email).toEqual(gitDDB.author.email);
-      expect(putResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
-        beforeTimestamp
-      );
-      expect(putResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
-        afterTimestamp
-      );
+      expect(putResult.commit.author.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(putResult.commit.author.timestamp).toBeLessThanOrEqual(afterTimestamp);
       expect(putResult.commit.committer.name).toEqual(gitDDB.author.name);
       expect(putResult.commit.committer.email).toEqual(gitDDB.author.email);
-      expect(putResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
-        beforeTimestamp
-      );
-      expect(putResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
-        afterTimestamp
-      );
+      expect(putResult.commit.committer.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+      expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
       // fs.access() throw error when a file cannot be accessed.
       const filePath = path.resolve(

@@ -127,20 +127,14 @@ describe('<crud/put> put', () => {
     expect(pickedPutResult.commit.parent).toEqual([prevCommitOid]);
     expect(pickedPutResult.commit.author.name).toEqual(gitDDB.author.name);
     expect(pickedPutResult.commit.author.email).toEqual(gitDDB.author.email);
-    expect(pickedPutResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
-      beforeTimestamp
-    );
-    expect(pickedPutResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
-      afterTimestamp
-    );
+    expect(pickedPutResult.commit.author.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+    expect(pickedPutResult.commit.author.timestamp).toBeLessThanOrEqual(afterTimestamp);
     expect(pickedPutResult.commit.committer.name).toEqual(gitDDB.author.name);
     expect(pickedPutResult.commit.committer.email).toEqual(gitDDB.author.email);
-    expect(pickedPutResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
+    expect(pickedPutResult.commit.committer.timestamp).toBeGreaterThanOrEqual(
       beforeTimestamp
     );
-    expect(pickedPutResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
-      afterTimestamp
-    );
+    expect(pickedPutResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     await gitDDB.destroy();
   });

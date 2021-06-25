@@ -253,20 +253,12 @@ describe('delete(jsonDoc)', () => {
     expect(deleteResult.commit.parent).toEqual([prevCommitOid]);
     expect(deleteResult.commit.author.name).toEqual(gitDDB.author.name);
     expect(deleteResult.commit.author.email).toEqual(gitDDB.author.email);
-    expect(deleteResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
-      beforeTimestamp
-    );
-    expect(deleteResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
-      afterTimestamp
-    );
+    expect(deleteResult.commit.author.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+    expect(deleteResult.commit.author.timestamp).toBeLessThanOrEqual(afterTimestamp);
     expect(deleteResult.commit.committer.name).toEqual(gitDDB.author.name);
     expect(deleteResult.commit.committer.email).toEqual(gitDDB.author.email);
-    expect(deleteResult.commit.committer.timestamp.getTime()).toBeGreaterThanOrEqual(
-      beforeTimestamp
-    );
-    expect(deleteResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
-      afterTimestamp
-    );
+    expect(deleteResult.commit.committer.timestamp).toBeGreaterThanOrEqual(beforeTimestamp);
+    expect(deleteResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     await gitDDB.destroy();
   });

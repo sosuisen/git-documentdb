@@ -163,18 +163,18 @@ describe('<crud/delete>', () => {
       expect(pickedDeleteResult.commit.parent).toEqual([prevCommitOid]);
       expect(pickedDeleteResult.commit.author.name).toEqual(gitDDB.author.name);
       expect(pickedDeleteResult.commit.author.email).toEqual(gitDDB.author.email);
-      expect(pickedDeleteResult.commit.author.timestamp.getTime()).toBeGreaterThanOrEqual(
+      expect(pickedDeleteResult.commit.author.timestamp).toBeGreaterThanOrEqual(
         beforeTimestamp
       );
-      expect(pickedDeleteResult.commit.author.timestamp.getTime()).toBeLessThanOrEqual(
+      expect(pickedDeleteResult.commit.author.timestamp).toBeLessThanOrEqual(
         afterTimestamp
       );
       expect(pickedDeleteResult.commit.committer.name).toEqual(gitDDB.author.name);
       expect(pickedDeleteResult.commit.committer.email).toEqual(gitDDB.author.email);
-      expect(
-        pickedDeleteResult.commit.committer.timestamp.getTime()
-      ).toBeGreaterThanOrEqual(beforeTimestamp);
-      expect(pickedDeleteResult.commit.committer.timestamp.getTime()).toBeLessThanOrEqual(
+      expect(pickedDeleteResult.commit.committer.timestamp).toBeGreaterThanOrEqual(
+        beforeTimestamp
+      );
+      expect(pickedDeleteResult.commit.committer.timestamp).toBeLessThanOrEqual(
         afterTimestamp
       );
 
