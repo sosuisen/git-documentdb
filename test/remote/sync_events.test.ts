@@ -38,7 +38,7 @@ import {
 } from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { Sync } from '../../src/remote/sync';
-import { SyncWorkerError } from '../../src/error';
+import { SyncWorkerError, UnfetchedCommitExistsError } from '../../src/error';
 import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../../src/const';
 import { pushWorker } from '../../src/remote/push_worker';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -93,7 +93,7 @@ maybe('<remote/sync> [event]', () => {
   /**
    * Events
    */
-  describe.only('change', () => {
+  describe('change', () => {
     it('occurs once', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
@@ -210,45 +210,36 @@ maybe('<remote/sync> [event]', () => {
      * dbB   :                 jsonB3
      * after :                 jsonB3
      */
-    it.only('occurs with every retry', async () => {
+    it('occurs with every retry', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
       );
+
       await dbA.put({ _id: '1' });
       await syncA.tryPush();
 
       await dbB.put({ _id: '2' });
 
-      // @ts-ignore
-      const stubNet = sandbox.stub(syncA, 'canNetworkConnection');
-      stubNet.onFirstCall().resolves(false);
-      stubNet.onSecondCall().resolves(true);
-
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new Error());
-
-      // Call pushWorker which is not spied by Sinon
-      stubPush.onSecondCall().callsFake(async () => {
-        stubPush.restore();
-        return await pushWorker(dbA, syncA, {
-          label: 'sync',
-          taskId: 'myTaskId',
-        });
-      });
+      stubPush.onFirstCall().rejects(new UnfetchedCommitExistsError());
 
       const resultsB: SyncResult[] = [];
       syncB.on('change', (result: SyncResult) => {
-        console.log('B: ' + JSON.stringify(result));
+        if (resultsB.length === 0) {
+          // Restore stub after first change event.
+          stubPush.restore();
+        }
+        //  console.log('B: ' + JSON.stringify(result));
         resultsB.push(result);
       });
       await syncB.trySync();
 
-      await sleep(30000);
+      await sleep(syncA.options().retryInterval! + 5000);
       expect(resultsB.length).toBe(2);
       expect(resultsB[0].action).toBe('merge and push error');
-      expect(resultsB[1].action).toBe('merge and push');
+      expect(resultsB[1].action).toBe('push');
 
       await destroyDBs([dbA, dbB]);
     });
@@ -300,59 +291,36 @@ maybe('<remote/sync> [event]', () => {
      * dbB   :                 jsonB3
      * after :                 jsonB3
      */
-    it('occurs localChanges with every retry', async () => {
+    it('occurs localChanges when SyncResultMergeAndPushError', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
       );
 
-      // A puts and pushes
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-      const jsonA2 = { _id: '2', name: 'fromA' };
-      await dbA.put(jsonA2);
+      await dbA.put({ _id: '1' });
       await syncA.tryPush();
 
-      syncA.on('localChange', (changes: ChangedFile[]) => {
-        // console.log('A local: ' + JSON.stringify(changes));
-      });
+      await dbB.put({ _id: '2' });
+
+      const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
+      stubPush.onFirstCall().rejects(new UnfetchedCommitExistsError());
+
       const localChangesB: ChangedFile[][] = [];
       syncB.on('localChange', (changes: ChangedFile[]) => {
-        // console.log('B local: ' + JSON.stringify(changes));
+        if (localChangesB.length === 0) {
+          // Restore stub after first change event.
+          stubPush.restore();
+        }
         localChangesB.push(changes);
       });
+
       await syncB.trySync();
 
-      /*
-      syncA.on('remoteChange', (remoteChanges: ChangedFile[]) => {
-        console.log('A remote: ' + JSON.stringify(remoteChanges));
-      });
-      syncB.on('remoteChange', (remoteChanges: ChangedFile[]) => {
-        console.log('B remote: ' + JSON.stringify(remoteChanges));
-      });
-*/
-      await dbA.delete(jsonA1);
-      await syncA.trySync();
+      await sleep(syncB.options().retryInterval! + 5000);
+      expect(localChangesB.length).toBe(1);
 
-      await dbA.delete(jsonA2);
-
-      const jsonB3 = { _id: '3', name: 'fromB' };
-      dbB
-        .put(jsonB3)
-        .then(() => {
-          syncB.trySync(); // merge and push
-          syncA.trySync(); // will invoke transactional conflict and retry on syncB
-        })
-        .catch(err => {
-          console.log(err);
-        });
-
-      await sleep(15000);
-
-      expect(localChangesB.length).toBe(2);
-
-      await destroyDBs([dbA, dbB]);
+      await syncB.trySync();
     });
 
     it('is followed by remoteChange', async () => {
@@ -404,52 +372,40 @@ maybe('<remote/sync> [event]', () => {
      * dbB   :                 jsonB3
      * after :                 jsonB3
      */
-    it('occurs remoteChanges with every retry', async () => {
+    it('occurs remoteChanges after SyncResultMergeAndPushError', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId
       );
 
-      // A puts and pushes
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      const putResult1 = await dbA.put(jsonA1);
-      const jsonA2 = { _id: '2', name: 'fromA' };
-      const putResult2 = await dbA.put(jsonA2);
+      await dbA.put({ _id: '1' });
       await syncA.tryPush();
+
+      await dbB.put({ _id: '2' });
+
+      const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
+      stubPush.onFirstCall().rejects(new UnfetchedCommitExistsError());
+
+      let firstChange = true;
+      syncB.on('change', (changes: ChangedFile[]) => {
+        if (firstChange) {
+          firstChange = false;
+          // Restore stub after first change event.
+          stubPush.restore();
+        }
+      });
+      const remoteChangesB: ChangedFile[][] = [];
+      syncB.on('remoteChange', (changes: ChangedFile[]) => {
+        remoteChangesB.push(changes);
+      });
 
       await syncB.trySync();
 
-      const remoteChangesA: ChangedFile[][] = [];
-      syncA.on('remoteChange', (changes: ChangedFile[]) => {
-        // console.log('A remote: ' + JSON.stringify(remoteChanges));
-        remoteChangesA.push(changes);
-      });
-      syncB.on('remoteChange', (changes: ChangedFile[]) => {
-        // console.log('B remote: ' + JSON.stringify(changes));
-      });
+      await sleep(syncB.options().retryInterval! + 5000);
+      expect(remoteChangesB.length).toBe(1);
 
-      await dbA.delete(jsonA1);
-      await syncA.trySync();
-
-      await dbA.delete(jsonA2);
-
-      const jsonB3 = { _id: '3', name: 'fromB' };
-      dbB
-        .put(jsonB3)
-        .then(() => {
-          syncB.trySync(); // merge and push
-          syncA.trySync(); // will invoke transactional conflict and retry on syncB
-        })
-        .catch(err => {
-          console.log(err);
-        });
-
-      await sleep(15000);
-
-      expect(remoteChangesA.length).toBe(2);
-
-      await destroyDBs([dbA, dbB]);
+      await syncB.trySync();
     });
   });
 
@@ -531,13 +487,17 @@ maybe('<remote/sync> [event]', () => {
     await dbA.open();
 
     const repos = dbA.repository();
-    const remote = new Sync(dbA, options);
+    const sync = new Sync(dbA, options);
     let resume = false;
-    remote.on('resume', () => {
+    sync.on('resume', () => {
       resume = true;
     });
-    await remote.init(repos!);
+
+    const syncResult = await sync.init(repos!);
+    console.log(JSON.stringify(syncResult));
     expect(resume).toBe(true);
+
+    sync.close();
 
     await destroyDBs([dbA]);
   });
