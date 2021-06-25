@@ -205,7 +205,10 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this.author.email = email ?? this.author.email;
   }
 
-  rootCollection: Collection;
+  private _rootCollection: Collection;
+  get rootCollection (): Collection {
+    return this._rootCollection;
+  }
 
   /**
    * Schema
@@ -294,7 +297,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this.setLogLevel(this._logLevel);
     this.taskQueue = new TaskQueue(this.getLogger());
 
-    this.rootCollection = new Collection(this);
+    this._rootCollection = new Collection(this);
   }
 
   /**
@@ -512,7 +515,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    */
   collection (collectionPath: CollectionPath, options?: CollectionOptions) {
-    return new Collection(this, collectionPath, options);
+    return new Collection(this, collectionPath, this.rootCollection, options);
   }
 
   /**
