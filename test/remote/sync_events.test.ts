@@ -700,7 +700,7 @@ maybe('<remote/sync> [event]', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it.only('occurs change and remoteChange events by tryPush', async () => {
+    it('occurs change and remoteChange events by tryPush', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
