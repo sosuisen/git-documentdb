@@ -65,6 +65,7 @@ import {
 import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
+import { Validator } from '../validator';
 
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
@@ -778,16 +779,16 @@ export class Sync implements ISync {
               )}`
             );
 
-          let syncResultForChangeEvent = JSON.parse(JSON.stringify(syncResult));
           if (
-            syncResultForChangeEvent.action === 'resolve conflicts and push' ||
-            syncResultForChangeEvent.action === 'merge and push' ||
-            syncResultForChangeEvent.action === 'resolve conflicts and push error' ||
-            syncResultForChangeEvent.action === 'merge and push error' ||
-            syncResultForChangeEvent.action === 'fast-forward merge' ||
-            syncResultForChangeEvent.action === 'push'
+            syncResult.action === 'resolve conflicts and push' ||
+            syncResult.action === 'merge and push' ||
+            syncResult.action === 'resolve conflicts and push error' ||
+            syncResult.action === 'merge and push error' ||
+            syncResult.action === 'fast-forward merge' ||
+            syncResult.action === 'push'
           ) {
             this.eventHandlers.change.forEach(listener => {
+              let syncResultForChangeEvent = JSON.parse(JSON.stringify(syncResult));
               syncResultForChangeEvent = this._filterChanges(
                 syncResultForChangeEvent,
                 listener.collectionPath
@@ -800,44 +801,42 @@ export class Sync implements ISync {
             });
           }
 
-          let syncResultForLocalChangeEvent = JSON.parse(JSON.stringify(syncResult));
           if (
-            syncResultForLocalChangeEvent.action === 'resolve conflicts and push' ||
-            syncResultForLocalChangeEvent.action === 'merge and push' ||
-            syncResultForLocalChangeEvent.action === 'resolve conflicts and push error' ||
-            syncResultForLocalChangeEvent.action === 'merge and push error' ||
-            syncResultForLocalChangeEvent.action === 'fast-forward merge'
+            syncResult.action === 'resolve conflicts and push' ||
+            syncResult.action === 'merge and push' ||
+            syncResult.action === 'resolve conflicts and push error' ||
+            syncResult.action === 'merge and push error' ||
+            syncResult.action === 'fast-forward merge'
           ) {
             this.eventHandlers.localChange.forEach(listener => {
+              let syncResultForLocalChangeEvent = JSON.parse(JSON.stringify(syncResult));
               syncResultForLocalChangeEvent = this._filterChanges(
                 syncResultForLocalChangeEvent,
                 listener.collectionPath
               ) as SyncResult;
-              listener.func(
-                JSON.parse(JSON.stringify(syncResultForLocalChangeEvent.changes.local)),
-                {
-                  ...taskMetadata,
-                  collectionPath: listener.collectionPath,
-                }
-              );
+              listener.func(syncResultForLocalChangeEvent.changes.local, {
+                ...taskMetadata,
+                collectionPath: listener.collectionPath,
+              });
             });
           }
 
-          const syncResultForRemoteChangeEvent = JSON.parse(JSON.stringify(syncResult));
           if (
-            syncResultForRemoteChangeEvent.action === 'resolve conflicts and push' ||
-            syncResultForRemoteChangeEvent.action === 'merge and push' ||
-            syncResultForRemoteChangeEvent.action === 'push'
+            syncResult.action === 'resolve conflicts and push' ||
+            syncResult.action === 'merge and push' ||
+            syncResult.action === 'push'
           ) {
-            this.eventHandlers.remoteChange.forEach(remoteListener =>
-              remoteListener.func(
-                JSON.parse(JSON.stringify(syncResultForRemoteChangeEvent.changes.remote)),
-                {
-                  ...taskMetadata,
-                  collectionPath: remoteListener.collectionPath,
-                }
-              )
-            );
+            this.eventHandlers.remoteChange.forEach(listener => {
+              let syncResultForRemoteChangeEvent = JSON.parse(JSON.stringify(syncResult));
+              syncResultForRemoteChangeEvent = this._filterChanges(
+                syncResultForRemoteChangeEvent,
+                listener.collectionPath
+              ) as SyncResult;
+              listener.func(syncResultForRemoteChangeEvent.changes.remote, {
+                ...taskMetadata,
+                collectionPath: listener.collectionPath,
+              });
+            });
           }
 
           this.eventHandlers.complete.forEach(listener =>
@@ -896,6 +895,7 @@ export class Sync implements ISync {
    *
    */
   on (event: SyncEvent, callback: SyncCallback, collectionPath = '') {
+    collectionPath = Validator.normalizeCollectionPath(collectionPath);
     if (event === 'change')
       this.eventHandlers[event].push({
         collectionPath,

@@ -21,6 +21,8 @@ import {
   RemoteOptions,
   SyncResult,
   SyncResultFastForwardMerge,
+  SyncResultMergeAndPush,
+  SyncResultPush,
   TaskMetadata,
 } from '../../src/types';
 import { sleep } from '../../src/utils';
@@ -406,6 +408,421 @@ maybe('<remote/sync> [event]', () => {
       expect(remoteChangesB.length).toBe(1);
 
       await syncB.trySync();
+    });
+  });
+
+  describe('filtered by collectionPath', () => {
+    it('occurs change and localChange events', async () => {
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const col01 = dbA.collection('col01');
+      const col02 = dbA.collection('col02');
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult1 = await col01.put(jsonA1);
+      const putResult2 = await col02.put(jsonA2);
+
+      const jsonA1dash = { _id: 'col01/1', name: 'fromA' };
+      const putResult1dash = { ...putResult1, _id: 'col01/1' };
+      const jsonA2dash = { _id: 'col02/2', name: 'fromA' };
+      const putResult2dash = { ...putResult2, _id: 'col02/2' };
+
+      await syncA.tryPush();
+
+      // B syncs
+      let col01Result: SyncResultFastForwardMerge | undefined;
+      let col01ChangeTaskId: string | undefined;
+      syncB.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          col01Result = syncResult as SyncResultFastForwardMerge;
+          col01ChangeTaskId = taskMetadata.taskId;
+        },
+        'col01'
+      );
+
+      let changedFiles: ChangedFile[];
+      syncB.on(
+        'localChange',
+        (files: ChangedFile[], taskMetadata: TaskMetadata) => {
+          changedFiles = files;
+        },
+        'col02'
+      );
+
+      let rootResult: SyncResultFastForwardMerge | undefined;
+      let rootChangeTaskId: string | undefined;
+      syncB.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          rootResult = syncResult as SyncResultFastForwardMerge;
+          rootChangeTaskId = taskMetadata.taskId;
+        },
+        ''
+      );
+
+      let complete = false;
+      let endTaskId = '';
+      let completeCollectionPath: string | undefined;
+      syncB.on('complete', (taskMetadata: TaskMetadata) => {
+        complete = true;
+        endTaskId = taskMetadata.taskId;
+        completeCollectionPath = taskMetadata.collectionPath;
+      });
+      await syncB.trySync();
+
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!complete) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
+
+      expect(col01Result?.action).toBe('fast-forward merge');
+      expect(rootResult?.action).toBe('fast-forward merge');
+
+      expect(col01Result?.commits).toMatchObject({
+        local: getCommitInfo([putResult1, putResult2]),
+      });
+      expect(rootResult?.commits).toMatchObject({
+        local: getCommitInfo([putResult1, putResult2]),
+      });
+
+      expect(col01Result?.changes.local).toEqual([
+        getChangedFileInsert(jsonA1, putResult1),
+      ]);
+      expect(changedFiles!).toEqual([getChangedFileInsert(jsonA2, putResult2)]);
+
+      expect(rootResult?.changes.local).toEqual([
+        getChangedFileInsert(jsonA1dash, putResult1dash),
+        getChangedFileInsert(jsonA2dash, putResult2dash),
+      ]);
+
+      expect(col01ChangeTaskId).toBe(endTaskId);
+      expect(rootChangeTaskId).toBe(endTaskId);
+
+      expect(completeCollectionPath).toBe('');
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it('occurs change and remoteChange events by tryPush', async () => {
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const col01 = dbA.collection('col01');
+      const col02 = dbA.collection('col02');
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult1 = await col01.put(jsonA1);
+      const putResult2 = await col02.put(jsonA2);
+
+      const jsonA1dash = { _id: 'col01/1', name: 'fromA' };
+      const putResult1dash = { ...putResult1, _id: 'col01/1' };
+      const jsonA2dash = { _id: 'col02/2', name: 'fromA' };
+      const putResult2dash = { ...putResult2, _id: 'col02/2' };
+
+      let col01Result: SyncResultPush | undefined;
+      let col01ChangeTaskId: string | undefined;
+      syncA.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          col01Result = syncResult as SyncResultPush;
+          col01ChangeTaskId = taskMetadata.taskId;
+        },
+        'col01'
+      );
+
+      let changedFiles: ChangedFile[];
+      syncA.on(
+        'remoteChange',
+        (files: ChangedFile[], taskMetadata: TaskMetadata) => {
+          changedFiles = files;
+        },
+        'col02'
+      );
+
+      let rootResult: SyncResultPush | undefined;
+      let rootChangeTaskId: string | undefined;
+      syncA.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          rootResult = syncResult as SyncResultPush;
+          rootChangeTaskId = taskMetadata.taskId;
+        },
+        ''
+      );
+
+      let complete = false;
+      let endTaskId = '';
+      let completeCollectionPath: string | undefined;
+      syncA.on('complete', (taskMetadata: TaskMetadata) => {
+        complete = true;
+        endTaskId = taskMetadata.taskId;
+        completeCollectionPath = taskMetadata.collectionPath;
+      });
+      await syncA.tryPush();
+
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!complete) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
+
+      expect(col01Result?.action).toBe('push');
+      expect(rootResult?.action).toBe('push');
+
+      expect(col01Result?.commits).toMatchObject({
+        remote: getCommitInfo([putResult1, putResult2]),
+      });
+      expect(rootResult?.commits).toMatchObject({
+        remote: getCommitInfo([putResult1, putResult2]),
+      });
+
+      expect(col01Result?.changes.remote).toEqual([
+        getChangedFileInsert(jsonA1, putResult1),
+      ]);
+      expect(changedFiles!).toEqual([getChangedFileInsert(jsonA2, putResult2)]);
+
+      expect(rootResult?.changes.remote).toEqual([
+        getChangedFileInsert(jsonA1dash, putResult1dash),
+        getChangedFileInsert(jsonA2dash, putResult2dash),
+      ]);
+
+      expect(col01ChangeTaskId).toBe(endTaskId);
+      expect(rootChangeTaskId).toBe(endTaskId);
+
+      expect(completeCollectionPath).toBe('');
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it('occurs change and remoteChange events by trySync', async () => {
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const col01 = dbA.collection('col01');
+      const col02 = dbA.collection('col02');
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult1 = await col01.put(jsonA1);
+      const putResult2 = await col02.put(jsonA2);
+
+      const jsonA1dash = { _id: 'col01/1', name: 'fromA' };
+      const putResult1dash = { ...putResult1, _id: 'col01/1' };
+      const jsonA2dash = { _id: 'col02/2', name: 'fromA' };
+      const putResult2dash = { ...putResult2, _id: 'col02/2' };
+
+      let col01Result: SyncResultPush | undefined;
+      let col01ChangeTaskId: string | undefined;
+      syncA.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          col01Result = syncResult as SyncResultPush;
+          col01ChangeTaskId = taskMetadata.taskId;
+        },
+        'col01'
+      );
+
+      let changedFiles: ChangedFile[];
+      syncA.on(
+        'remoteChange',
+        (files: ChangedFile[], taskMetadata: TaskMetadata) => {
+          changedFiles = files;
+        },
+        'col02'
+      );
+
+      let rootResult: SyncResultPush | undefined;
+      let rootChangeTaskId: string | undefined;
+      syncA.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          rootResult = syncResult as SyncResultPush;
+          rootChangeTaskId = taskMetadata.taskId;
+        },
+        ''
+      );
+
+      let complete = false;
+      let endTaskId = '';
+      let completeCollectionPath: string | undefined;
+      syncA.on('complete', (taskMetadata: TaskMetadata) => {
+        complete = true;
+        endTaskId = taskMetadata.taskId;
+        completeCollectionPath = taskMetadata.collectionPath;
+      });
+      await syncA.trySync();
+
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!complete) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
+
+      expect(col01Result?.action).toBe('push');
+      expect(rootResult?.action).toBe('push');
+
+      expect(col01Result?.commits).toMatchObject({
+        remote: getCommitInfo([putResult1, putResult2]),
+      });
+      expect(rootResult?.commits).toMatchObject({
+        remote: getCommitInfo([putResult1, putResult2]),
+      });
+
+      expect(col01Result?.changes.remote).toEqual([
+        getChangedFileInsert(jsonA1, putResult1),
+      ]);
+      expect(changedFiles!).toEqual([getChangedFileInsert(jsonA2, putResult2)]);
+
+      expect(rootResult?.changes.remote).toEqual([
+        getChangedFileInsert(jsonA1dash, putResult1dash),
+        getChangedFileInsert(jsonA2dash, putResult2dash),
+      ]);
+
+      expect(col01ChangeTaskId).toBe(endTaskId);
+      expect(rootChangeTaskId).toBe(endTaskId);
+
+      expect(completeCollectionPath).toBe('');
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it.only('occurs change, localChange, and remoteChange events by merge and push', async () => {
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId
+      );
+
+      // A puts and pushes
+      const col01 = dbA.collection('col01');
+      const col02 = dbA.collection('col02');
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      const putResult1 = await col01.put(jsonA1);
+      const putResult2 = await col02.put(jsonA2);
+
+      const jsonA1dash = { _id: 'col01/1', name: 'fromA' };
+      const putResult1dash = { ...putResult1, _id: 'col01/1' };
+      const jsonA2dash = { _id: 'col02/2', name: 'fromA' };
+      const putResult2dash = { ...putResult2, _id: 'col02/2' };
+
+      const jsonB3 = { _id: '3', name: 'fromB' };
+      const putResult3 = await dbB.collection('col01').put(jsonB3);
+      const jsonB3dash = { _id: 'col01/3', name: 'fromB' };
+      const putResult3dash = { ...putResult3, _id: 'col01/3' };
+      await syncB.trySync();
+
+      let col01Result: SyncResultMergeAndPush | undefined;
+      let col01ChangeTaskId: string | undefined;
+      syncA.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          col01Result = syncResult as SyncResultMergeAndPush;
+          col01ChangeTaskId = taskMetadata.taskId;
+        },
+        'col01'
+      );
+
+      let localChangedFiles: ChangedFile[];
+      syncA.on(
+        'localChange',
+        (files: ChangedFile[], taskMetadata: TaskMetadata) => {
+          localChangedFiles = files;
+        },
+        'col01'
+      );
+
+      let remoteChangedFiles: ChangedFile[];
+      syncA.on(
+        'remoteChange',
+        (files: ChangedFile[], taskMetadata: TaskMetadata) => {
+          remoteChangedFiles = files;
+        },
+        'col02'
+      );
+
+      let rootResult: SyncResultMergeAndPush | undefined;
+      let rootChangeTaskId: string | undefined;
+      syncA.on(
+        'change',
+        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
+          rootResult = syncResult as SyncResultMergeAndPush;
+          rootChangeTaskId = taskMetadata.taskId;
+        },
+        ''
+      );
+
+      let complete = false;
+      let endTaskId = '';
+      let completeCollectionPath: string | undefined;
+      syncA.on(
+        'complete',
+        (taskMetadata: TaskMetadata) => {
+          complete = true;
+          endTaskId = taskMetadata.taskId;
+          completeCollectionPath = taskMetadata.collectionPath;
+        },
+        'col01'
+      );
+      await syncA.trySync();
+
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!complete) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+      }
+
+      expect(col01Result?.action).toBe('merge and push');
+      expect(rootResult?.action).toBe('merge and push');
+
+      expect(col01Result?.commits).toMatchObject({
+        remote: getCommitInfo([putResult1, putResult2, putResult3]),
+      });
+      expect(rootResult?.commits).toMatchObject({
+        remote: getCommitInfo([putResult1, putResult2, putResult3]),
+      });
+
+      expect(col01Result?.changes.remote).toEqual([
+        getChangedFileInsert(jsonA1, putResult1),
+        getChangedFileInsert(jsonA2, putResult2),
+      ]);
+      expect(col01Result?.changes.local).toEqual([
+        getChangedFileInsert(jsonB3, putResult3),
+      ]);
+      expect(localChangedFiles!).toEqual([getChangedFileInsert(jsonB3, putResult3)]);
+      expect(remoteChangedFiles!).toEqual([
+        getChangedFileInsert(jsonA1, putResult1),
+        getChangedFileInsert(jsonA2, putResult2),
+      ]);
+
+      expect(rootResult?.changes.remote).toEqual([
+        getChangedFileInsert(jsonA1dash, putResult1dash),
+        getChangedFileInsert(jsonA2dash, putResult2dash),
+      ]);
+      expect(rootResult?.changes.local).toEqual([
+        getChangedFileInsert(jsonB3dash, putResult3dash),
+      ]);
+
+      expect(col01ChangeTaskId).toBe(endTaskId);
+      expect(rootChangeTaskId).toBe(endTaskId);
+
+      expect(completeCollectionPath).toBe('col01');
+
+      await destroyDBs([dbA, dbB]);
     });
   });
 
