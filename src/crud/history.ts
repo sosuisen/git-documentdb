@@ -152,6 +152,12 @@ export async function readOldBlob (
   for (const commit of commits) {
     const commitOid = commit.oid;
 
+    // Skip merge commit
+    if (commit.commit.parent.length > 1) {
+      continue;
+    }
+
+    // Filtering
     if (
       historyOptions?.filter !== undefined &&
       !matchHistoryFilter(

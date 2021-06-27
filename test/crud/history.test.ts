@@ -168,6 +168,60 @@ maybe('<crud/history> getHistoryImpl', () => {
   });
 });
 
+maybe('<crud/history> readOldBlob()', () => {
+  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
+    ? process.env.GITDDB_GITHUB_USER_URL
+    : process.env.GITDDB_GITHUB_USER_URL + '/';
+  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+
+  before(async () => {
+    await removeRemoteRepositories(reposPrefix);
+  });
+
+  it('skips a merge commit', async () => {
+    const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+      remoteURLBase,
+      localDir,
+      serialId,
+      {
+        conflictResolutionStrategy: 'ours',
+      }
+    );
+    dbA.author = {
+      name: 'authorA',
+      email: 'authorEmailA',
+    };
+    dbB.author = {
+      name: 'authorB',
+      email: 'authorEmailB',
+    };
+
+    const jsonA1 = { _id: 'A1', name: 'A1' };
+    const jsonA1internal = { _id: 'A1', name: 'A1' };
+    const jsonB1 = { _id: 'B1', name: 'B1' };
+    const putResultA1 = await dbA.put(jsonA1);
+    await sleep(1500);
+    await dbB.put(jsonB1);
+    await sleep(1500);
+
+    await syncA.trySync();
+    await syncB.trySync(); // dbB commits 'merge'
+
+    await expect(
+      readOldBlob(dbB.workingDir(), 'A1.json', 0, { filter: [{ author: dbB.author }] })
+    ).resolves.toBeUndefined(); // merge commit is skipped, so jsonA1 does not exist.
+
+    await expect(
+      readOldBlob(dbB.workingDir(), 'A1.json', 0, { filter: [{ author: dbA.author }] })
+    ).resolves.toEqual({
+      oid: putResultA1.fileOid,
+      blob: utf8encode(toSortedJSONString(jsonA1internal)),
+    });
+
+    await destroyDBs([dbA, dbB]);
+  });
+});
+
 describe('<crud/history> getHistoryImpl', () => {
   it('gets all revisions', async () => {
     const dbName = monoId();
