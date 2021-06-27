@@ -105,16 +105,12 @@ describe('<git_documentdb>', () => {
       const stubEnsureDir = sandbox.stub(fs_module, 'ensureDir');
       stubEnsureDir.rejects();
 
-      const readonlyDir = './test/_readonly/';
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
       });
       // You don't have permission
       await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
-      if (process.platform !== 'win32') {
-        fs.chmodSync(readonlyDir, 0o644);
-      }
     });
 
     it('throws CannotCreateRepositoryError when tries to create a new repository on a readonly filesystem.', async () => {
