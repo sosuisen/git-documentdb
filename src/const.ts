@@ -10,10 +10,12 @@ export const DATABASE_CREATOR = 'GitDocumentDB';
 export const DATABASE_VERSION = '1.0';
 export const GIT_DOCUMENTDB_METADATA_DIR = '.gitddb';
 export const GIT_DOCUMENTDB_INFO_ID = '.gitddb/info';
+export const GIT_DOCUMENTDB_APP_INFO_ID = '.gitddb/app';
 export const DEFAULT_LOCAL_DIR = './git-documentdb';
 
 export const FIRST_COMMIT_MESSAGE = 'first commit';
 export const SET_DATABASE_ID_MESSAGE = 'set database id';
+export const PUT_APP_INFO_MESSAGE = 'put appinfo';
 
 export const DEFAULT_LOG_LEVEL = 'info';
 

@@ -78,8 +78,10 @@ import {
   DEFAULT_LOG_LEVEL,
   FILE_REMOVE_TIMEOUT,
   FIRST_COMMIT_MESSAGE,
+  GIT_DOCUMENTDB_APP_INFO_ID,
   GIT_DOCUMENTDB_INFO_ID,
   JSON_EXT,
+  PUT_APP_INFO_MESSAGE,
   SET_DATABASE_ID_MESSAGE,
 } from './const';
 import { normalizeCommit, toSortedJSONString } from './utils';
@@ -414,6 +416,33 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
       FIRST_COMMIT_MESSAGE
     );
     this._dbOpenResult = { ...this._dbOpenResult, ...info };
+  }
+
+  /**
+   * Save app specific info into .gitddb/app.json
+   */
+  async saveAppInfo (info: { [key: string]: any }) {
+    // Do not use this.put() because it increments TaskQueue.statistics.put.
+    await putWorker(
+      this,
+      '',
+      GIT_DOCUMENTDB_APP_INFO_ID + JSON_EXT,
+      toSortedJSONString(info),
+      PUT_APP_INFO_MESSAGE
+    );
+  }
+
+  /**
+   * Load app specific info from .gitddb/app.json
+   *
+   * @returns JSON object. It returns undefined if not exists.
+   */
+  async loadAppInfo () {
+    const info = await this.get(GIT_DOCUMENTDB_APP_INFO_ID).catch(() => undefined);
+    if (info?._id) {
+      delete info._id;
+    }
+    return info;
   }
 
   /**

@@ -183,4 +183,24 @@ describe('<index>', () => {
 
     await gitDDB.destroy();
   });
+
+  it('save and load AppInfo', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+
+    await gitDDB.open();
+
+    const json = {
+      appName: 'foo',
+      appVersion: 1,
+    };
+    await gitDDB.saveAppInfo(json);
+
+    await expect(gitDDB.loadAppInfo()).resolves.toEqual(json);
+
+    await gitDDB.destroy();
+  });
 });
