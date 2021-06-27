@@ -152,6 +152,17 @@ export async function readOldBlob (
   for (const commit of commits) {
     const commitOid = commit.oid;
 
+    if (
+      historyOptions?.filter !== undefined &&
+      !matchHistoryFilter(
+        commit.commit.author,
+        commit.commit.committer,
+        historyOptions.filter
+      )
+    ) {
+      continue;
+    }
+
     // eslint-disable-next-line no-await-in-loop
     readBlobResult = await readBlob({
       fs,
@@ -164,23 +175,16 @@ export async function readOldBlob (
     // Skip consecutive same SHAs
     if (prevSHA !== oid) {
       prevSHA = oid;
-
-      if (
-        historyOptions?.filter === undefined ||
-        matchHistoryFilter(
-          commit.commit.author,
-          commit.commit.committer,
-          historyOptions.filter
-        )
-      ) {
-        oidCounter++;
-      }
+      oidCounter++;
     }
     if (oidCounter >= backNumber) {
       break;
     }
   }
-  return readBlobResult;
+  if (oidCounter >= backNumber) {
+    return readBlobResult;
+  }
+  return undefined;
 }
 
 /**
