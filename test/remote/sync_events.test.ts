@@ -32,6 +32,7 @@ import {
   createDatabase,
   destroyDBs,
   destroyRemoteRepository,
+  getChangedFileDelete,
   getChangedFileInsert,
   getChangedFileUpdate,
   getCommitInfo,
@@ -510,7 +511,7 @@ maybe('<remote/sync> [event]', () => {
       await destroyDBs([dbA, dbB]);
     });
 
-    it('occurs change and remoteChange events by tryPush', async () => {
+    it('occurs change events with update and delete', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -523,12 +524,11 @@ maybe('<remote/sync> [event]', () => {
       const jsonA1 = { _id: '1', name: 'fromA' };
       const jsonA2 = { _id: '2', name: 'fromA' };
       const putResult1 = await col01.put(jsonA1);
-      const putResult2 = await col02.put(jsonA2);
-
-      const jsonA1dash = { _id: 'col01/1', name: 'fromA' };
-      const putResult1dash = { ...putResult1, _id: 'col01/1' };
-      const jsonA2dash = { _id: 'col02/2', name: 'fromA' };
-      const putResult2dash = { ...putResult2, _id: 'col02/2' };
+      await col02.put(jsonA2);
+      await syncA.trySync();
+      const jsonA1updated = { _id: '1', name: 'updated' };
+      const putResult1updated = await col01.put(jsonA1updated);
+      const deleteResult2 = await col02.delete(jsonA2);
 
       let col01Result: SyncResultPush | undefined;
       let col01ChangeTaskId: string | undefined;
@@ -550,24 +550,9 @@ maybe('<remote/sync> [event]', () => {
         'col02'
       );
 
-      let rootResult: SyncResultPush | undefined;
-      let rootChangeTaskId: string | undefined;
-      syncA.on(
-        'change',
-        (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
-          rootResult = syncResult as SyncResultPush;
-          rootChangeTaskId = taskMetadata.taskId;
-        },
-        ''
-      );
-
       let complete = false;
-      let endTaskId = '';
-      let completeCollectionPath: string | undefined;
       syncA.on('complete', (taskMetadata: TaskMetadata) => {
         complete = true;
-        endTaskId = taskMetadata.taskId;
-        completeCollectionPath = taskMetadata.collectionPath;
       });
       await syncA.tryPush();
 
@@ -578,29 +563,15 @@ maybe('<remote/sync> [event]', () => {
       }
 
       expect(col01Result?.action).toBe('push');
-      expect(rootResult?.action).toBe('push');
 
       expect(col01Result?.commits).toMatchObject({
-        remote: getCommitInfo([putResult1, putResult2]),
-      });
-      expect(rootResult?.commits).toMatchObject({
-        remote: getCommitInfo([putResult1, putResult2]),
+        remote: getCommitInfo([putResult1updated, deleteResult2]),
       });
 
       expect(col01Result?.changes.remote).toEqual([
-        getChangedFileInsert(jsonA1, putResult1),
+        getChangedFileUpdate(jsonA1, putResult1, jsonA1updated, putResult1updated),
       ]);
-      expect(changedFiles!).toEqual([getChangedFileInsert(jsonA2, putResult2)]);
-
-      expect(rootResult?.changes.remote).toEqual([
-        getChangedFileInsert(jsonA1dash, putResult1dash),
-        getChangedFileInsert(jsonA2dash, putResult2dash),
-      ]);
-
-      expect(col01ChangeTaskId).toBe(endTaskId);
-      expect(rootChangeTaskId).toBe(endTaskId);
-
-      expect(completeCollectionPath).toBe('');
+      expect(changedFiles!).toEqual([getChangedFileDelete(jsonA2, deleteResult2)]);
 
       await destroyDBs([dbA, dbB]);
     });
@@ -915,7 +886,7 @@ maybe('<remote/sync> [event]', () => {
 
       expect(completeCollectionPath).toBe('col01/');
 
-      // await destroyDBs([dbA, dbB]);
+      await destroyDBs([dbA, dbB]);
     });
   });
 

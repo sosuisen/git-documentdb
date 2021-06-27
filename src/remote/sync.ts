@@ -134,20 +134,35 @@ export class Sync implements ISync {
       return syncResult;
     }
     const filter = (changedFiles: ChangedFile[]) => {
+      // eslint-disable-next-line complexity
       return changedFiles.reduce((result, changedFile) => {
-        let fatDoc: FatDoc;
+        let oldFatDoc: FatDoc | undefined;
+        let newFatDoc: FatDoc | undefined;
         if (changedFile.operation === 'delete' || changedFile.operation === 'update') {
-          fatDoc = changedFile.old;
+          oldFatDoc = changedFile.old;
         }
-        else {
+        if (changedFile.operation === 'insert' || changedFile.operation === 'update') {
           // insert
-          fatDoc = changedFile.new;
+          newFatDoc = changedFile.new;
         }
-        if (fatDoc.name.startsWith(collectionPath)) {
-          fatDoc.name = fatDoc.name.replace(new RegExp('^' + collectionPath), '');
-          if (fatDoc.type === 'json') {
-            fatDoc._id = fatDoc._id.replace(new RegExp('^' + collectionPath), '');
-            fatDoc.doc._id = fatDoc._id;
+        if (
+          (oldFatDoc && oldFatDoc.name.startsWith(collectionPath)) ||
+          (newFatDoc && newFatDoc.name.startsWith(collectionPath))
+        ) {
+          if (oldFatDoc) {
+            oldFatDoc.name = oldFatDoc.name.replace(new RegExp('^' + collectionPath), '');
+            if (oldFatDoc.type === 'json') {
+              oldFatDoc._id = oldFatDoc._id.replace(new RegExp('^' + collectionPath), '');
+              oldFatDoc.doc._id = oldFatDoc._id;
+            }
+          }
+
+          if (newFatDoc) {
+            newFatDoc.name = newFatDoc.name.replace(new RegExp('^' + collectionPath), '');
+            if (newFatDoc.type === 'json') {
+              newFatDoc._id = newFatDoc._id.replace(new RegExp('^' + collectionPath), '');
+              newFatDoc.doc._id = newFatDoc._id;
+            }
           }
           result.push(changedFile);
         }
