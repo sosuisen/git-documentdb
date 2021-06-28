@@ -64,16 +64,6 @@ export class InvalidCollectionPathCharacterError extends BaseError {
 
 /**
  */
-export class InvalidCollectionPathError extends BaseError {
-  constructor (name: string) {
-    const e = `Invalid collectionPath: '${name}'
-This name is not permitted as collectionPath.`;
-    super(e);
-  }
-}
-
-/**
- */
 export class InvalidCollectionPathLengthError extends BaseError {
   constructor (collectionPath: unknown, minLength: unknown, maxLength: unknown) {
     super(
@@ -150,22 +140,6 @@ export class UndefinedDocumentIdError extends BaseError {
 export class UndefinedSyncError extends BaseError {
   constructor (e = `Sync is undefined` as unknown) {
     super(e as string);
-  }
-}
-
-/**
- */
-export class UndefinedFileSHAError extends BaseError {
-  constructor (e = `File SHA is undefined.`) {
-    super(e);
-  }
-}
-
-/**
- */
-export class InvalidBackNumberError extends BaseError {
-  constructor (e = `Back number must be greater than or equal to 0.`) {
-    super(e);
   }
 }
 
@@ -289,14 +263,6 @@ export class FetchConnectionFailedError extends BaseError {
 export class PushConnectionFailedError extends BaseError {
   constructor (mes: unknown) {
     super(`Push connection failed: ${mes}`);
-  }
-}
-
-/**
- */
-export class UndefinedGitHubAuthenticationError extends BaseError {
-  constructor (mes: string) {
-    super(`Authentication data for GitHub is undefined: ${mes}`);
   }
 }
 
@@ -555,18 +521,6 @@ export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
     super(
       `Sync interval is less than or equal to retry interval : ${syncInterval} < ${retryInterval}`
     );
-  }
-}
-
-export class InvalidFileSHAFormatError extends BaseError {
-  constructor () {
-    super(`File SHA format is invalid.`);
-  }
-}
-
-export class CorruptedRepositoryError extends BaseError {
-  constructor () {
-    super(`Repository is corrupted.`);
   }
 }
 
