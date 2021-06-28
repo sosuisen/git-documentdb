@@ -67,7 +67,7 @@ import {
   SyncEvent,
   SyncResult,
 } from './types';
-import { CRUDInterface, IDocumentDB } from './types_gitddb';
+import { GitDDBInterface } from './types_gitddb';
 import { putWorker } from './crud/put';
 import { Sync, syncAndGetResultImpl, syncImpl } from './remote/sync';
 import { TaskQueue } from './task_queue';
@@ -85,7 +85,9 @@ import {
   SET_DATABASE_ID_MESSAGE,
 } from './const';
 import { normalizeCommit, toSortedJSONString } from './utils';
-import { ISync } from './types_sync';
+import { SyncEventInterface, SyncInterface } from './types_sync';
+import { CRUDInterface } from './types_crud_interface';
+import { CollectionInterface, ICollection } from './types_collection';
 
 interface RepositoryInitOptions {
   description?: string;
@@ -121,14 +123,12 @@ export function generateDatabaseId () {
 /**
  * Main class of GitDocumentDB
  */
-export class GitDocumentDB implements IDocumentDB, CRUDInterface {
-  readonly defaultBranch = 'main';
-
-  private _localDir: string;
-  private _dbName: string;
-
+export class GitDocumentDB
+  implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface {
+  /***********************************************
+   * Private properties
+   ***********************************************/
   private _currentRepository: nodegit.Repository | undefined;
-  private _workingDirectory: string;
 
   private _synchronizers: { [url: string]: Sync } = {};
 
@@ -141,7 +141,122 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     isValidVersion: true,
   };
 
-  private _logLevel: TLogLevelName;
+  /***********************************************
+   * Public properties (readonly)
+   ***********************************************/
+
+  /**
+   * Default Git branch (readonly)
+   */
+  readonly defaultBranch = 'main';
+
+  private _localDir: string;
+  /**
+   * A local directory path that stores repositories of GitDocumentDB (readonly)
+   */
+  get localDir (): string {
+    return this._localDir;
+  }
+
+  private _dbName: string;
+  /**
+   * A name of a git repository (readonly)
+   */
+  get dbName (): string {
+    return this._dbName;
+  }
+
+  private _workingDir: string;
+  /**
+   * Get a full path of the current Git working directory (readonly)
+   *
+   * @returns A full path whose trailing slash is omitted
+   */
+  get workingDir () {
+    return this._workingDir;
+  }
+
+  /**
+   * Get dbId (readonly)
+   */
+  get dbId () {
+    return this._dbOpenResult.dbId;
+  }
+
+  private _logger!: Logger; // Use definite assignment assertion
+  /**
+   * Get logger (readonly)
+   */
+  get logger (): Logger {
+    return this._logger;
+  }
+
+  private _schema!: Schema;
+  /**
+   * Schema for specific document type (readonly)
+   */
+  get schema (): Schema {
+    return this._schema;
+  }
+
+  private _taskQueue: TaskQueue;
+  /**
+   * Task queue (readonly)
+   */
+  get taskQueue (): TaskQueue {
+    return this._taskQueue;
+  }
+
+  private _isClosing = false;
+  /**
+   * DB is going to close
+   */
+  get isClosing (): boolean {
+    return this._isClosing;
+  }
+
+  private _validator: Validator;
+  /**
+   * Name validator
+   */
+  get validator (): Validator {
+    return this._validator;
+  }
+
+  private _rootCollection: Collection;
+  /**
+   * Default collection whose collectionPath is ''
+   */
+  get rootCollection (): ICollection {
+    return this._rootCollection as ICollection;
+  }
+
+  /***********************************************
+   * Public properties
+   ***********************************************/
+
+  private _logLevel!: TLogLevelName;
+  /**
+   * logLevel ('silly' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal')
+   */
+  get logLevel (): TLogLevelName {
+    return this._logLevel;
+  }
+
+  /**
+   * logLevel ('silly' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal')
+   */
+  set logLevel (level: TLogLevelName) {
+    this._logLevel = level;
+    this._logger = new Logger({
+      name: this._dbName,
+      minLevel: level as TLogLevelName,
+      displayDateTime: false,
+      displayFunctionName: false,
+      displayFilePath: 'hidden',
+    });
+    if (this.taskQueue) this.taskQueue.setLogger(this._logger);
+  }
 
   /**
    * Author name and email for commit
@@ -160,103 +275,6 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   };
 
   /**
-   * Save current author to .git/config
-   *
-   * @remarks
-   * Save GitDocumentDB#author. to user.name and user.email in .git/config
-   */
-  async saveAuthor (): Promise<void> {
-    if (this.author?.name !== undefined) {
-      await git.setConfig({
-        fs,
-        dir: this._workingDirectory,
-        path: 'user.name',
-        value: this.author.name,
-      });
-    }
-    if (this.author?.email !== undefined) {
-      await git.setConfig({
-        fs,
-        dir: this._workingDirectory,
-        path: 'user.email',
-        value: this.author.email,
-      });
-    }
-  }
-
-  /**
-   * Load author from .git/config
-   *
-   * @remarks
-   * Load user.name and user.email to GitDocumentDB#author.
-   * If not defined in .git/config, do nothing.
-   */
-  async loadAuthor (): Promise<void> {
-    const name = await git
-      .getConfig({
-        fs,
-        dir: this._workingDirectory,
-        path: 'user.name',
-      })
-      .catch(() => undefined);
-    this.author.name = name ?? this.author.name;
-
-    const email = await git
-      .getConfig({
-        fs,
-        dir: this._workingDirectory,
-        path: 'user.email',
-      })
-      .catch(() => undefined);
-    this.author.email = email ?? this.author.email;
-  }
-
-  private _rootCollection: Collection;
-  get rootCollection (): Collection {
-    return this._rootCollection;
-  }
-
-  /**
-   * Schema
-   */
-  schema: Schema;
-
-  /**
-   * Task queue
-   */
-  taskQueue: TaskQueue;
-
-  /**
-   * Name validator
-   */
-  validator: Validator;
-
-  /**
-   * DB is going to close
-   */
-  isClosing = false;
-
-  /**
-   * Logger
-   */
-  private _logger!: Logger; // Use definite assignment assertion
-
-  getLogger (): Logger {
-    return this._logger;
-  }
-
-  setLogLevel (level: TLogLevelName) {
-    this._logger = new Logger({
-      name: this._dbName,
-      minLevel: level as TLogLevelName,
-      displayDateTime: false,
-      displayFunctionName: false,
-      displayFilePath: 'hidden',
-    });
-    if (this.taskQueue) this.taskQueue.setLogger(this._logger);
-  }
-
-  /**
    * Constructor
    *
    * @remarks
@@ -273,9 +291,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
     this._dbName = options.dbName;
     this._localDir = options.localDir ?? DEFAULT_LOCAL_DIR;
-    this._logLevel = options.logLevel ?? DEFAULT_LOG_LEVEL;
 
-    this.schema = options.schema ?? {
+    this._schema = options.schema ?? {
       json: {
         idOfSubtree: undefined,
         plainTextProperties: undefined,
@@ -283,31 +300,76 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     };
 
     // Get full-path
-    this._workingDirectory = path.resolve(this._localDir, this._dbName);
+    this._workingDir = path.resolve(this._localDir, this._dbName);
 
-    this.validator = new Validator(this._workingDirectory);
+    this._validator = new Validator(this._workingDir);
 
     this.validator.validateDbName(this._dbName);
     this.validator.validateLocalDir(this._localDir);
 
     if (
-      this._workingDirectory.length === 0 ||
-      Validator.byteLengthOf(this._workingDirectory) > Validator.maxWorkingDirectoryLength()
+      this._workingDir.length === 0 ||
+      Validator.byteLengthOf(this._workingDir) > Validator.maxWorkingDirectoryLength()
     ) {
       throw new InvalidWorkingDirectoryPathLengthError(
-        this._workingDirectory,
+        this._workingDir,
         0,
         Validator.maxWorkingDirectoryLength()
       );
     }
-    this.setLogLevel(this._logLevel);
-    this.taskQueue = new TaskQueue(this.getLogger());
+
+    this._taskQueue = new TaskQueue(this.logger);
+
+    // Set logLevel after initializing taskQueue.
+    this.logLevel = options.logLevel ?? DEFAULT_LOG_LEVEL;
 
     const collectionOptions = {
       namePrefix: options?.namePrefix ?? '',
     };
     this._rootCollection = new Collection(this, '', undefined, collectionOptions);
   }
+
+  /***********************************************
+   * Private methods
+   ***********************************************/
+
+  private async _createRepository () {
+    /**
+     * Create a repository followed by first commit
+     */
+    const options: RepositoryInitOptions = {
+      initialHead: this.defaultBranch,
+    };
+    this._dbOpenResult.isNew = true;
+
+    this._currentRepository = await nodegit.Repository.initExt(
+      this._workingDir,
+      // @ts-ignore
+      options
+    ).catch(err => {
+      return Promise.reject(err);
+    });
+
+    // First commit
+    const info = {
+      dbId: generateDatabaseId(),
+      creator: DATABASE_CREATOR,
+      version: DATABASE_VERSION,
+    };
+    // Do not use this.put() because it increments TaskQueue.statistics.put.
+    await putWorker(
+      this,
+      '',
+      GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
+      toSortedJSONString(info),
+      FIRST_COMMIT_MESSAGE
+    );
+    this._dbOpenResult = { ...this._dbOpenResult, ...info };
+  }
+
+  /***********************************************
+   * Public methods
+   ***********************************************/
 
   /**
    * Open or create a Git repository
@@ -340,7 +402,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     /**
      * Create directory
      */
-    await fs.ensureDir(this._workingDirectory).catch((err: Error) => {
+    await fs.ensureDir(this._workingDir).catch((err: Error) => {
       throw new CannotCreateDirectoryError(err.message);
     });
 
@@ -363,12 +425,12 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
      * open() also throws an error if the path is invalid or not writable,
      */
     try {
-      this._currentRepository = await nodegit.Repository.open(this._workingDirectory);
+      this._currentRepository = await nodegit.Repository.open(this._workingDir);
     } catch (err) {
-      const gitDir = this._workingDirectory + '/.git/';
+      const gitDir = this._workingDir + '/.git/';
       if (fs.existsSync(gitDir)) {
         // Cannot open though .git directory exists.
-        throw new CannotOpenRepositoryError(this._workingDirectory);
+        throw new CannotOpenRepositoryError(this._workingDir);
       }
       if (openOptions.createIfNotExists) {
         await this._createRepository().catch(e => {
@@ -384,38 +446,287 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     return this._dbOpenResult;
   }
 
-  private async _createRepository () {
-    /**
-     * Create a repository followed by first commit
-     */
-    const options: RepositoryInitOptions = {
-      initialHead: this.defaultBranch,
-    };
-    this._dbOpenResult.isNew = true;
+  /**
+   * Close a database
+   *
+   * @remarks
+   * - New CRUD operations are not available while closing.
+   *
+   * - Queued operations are executed before the database is closed.
+   *
+   * @param options - The options specify how to close database.
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link DatabaseCloseTimeoutError}
+   *
+   */
+  async close (options?: DatabaseCloseOption): Promise<void> {
+    if (this.isClosing) {
+      return Promise.reject(new DatabaseClosingError());
+    }
+    // Stop remote
+    Object.values(this._synchronizers).forEach(sync => sync.close());
 
-    this._currentRepository = await nodegit.Repository.initExt(
-      this._workingDirectory,
-      // @ts-ignore
-      options
-    ).catch(err => {
-      return Promise.reject(err);
+    options ??= { force: undefined, timeout: undefined };
+    options.force ??= false;
+    options.timeout ??= 10000;
+
+    // Wait taskQueue
+    if (this._currentRepository instanceof nodegit.Repository) {
+      try {
+        this._isClosing = true;
+        if (!options.force) {
+          const isTimeout = await this.taskQueue.waitCompletion(options.timeout);
+          if (isTimeout) {
+            return Promise.reject(new DatabaseCloseTimeoutError());
+          }
+        }
+      } finally {
+        this.taskQueue.clear();
+
+        /**
+         * The types are wrong. Repository does not have free() method.
+         * See https://github.com/nodegit/nodegit/issues/1817#issuecomment-776844425
+         * https://github.com/nodegit/nodegit/pull/1570
+         *
+         * Use cleanup() instead.
+         * http://carlosmn.github.io/libgit2/#v0.23.0/group/repository/git_repository__cleanup
+         */
+        // this._currentRepository.free();
+
+        this._currentRepository.cleanup();
+        this._currentRepository = undefined;
+
+        this._synchronizers = {};
+
+        this._isClosing = false;
+      }
+    }
+  }
+
+  /**
+   * Destroy a database
+   *
+   * @remarks
+   * - {@link GitDocumentDB.close} is called automatically before destroying.
+   *
+   * - options.force is true if undefined.
+   *
+   * - The Git repository and the working directory are removed from the filesystem.
+   *
+   * - localDir (which is specified in constructor) is not removed.
+   *
+   * @param options - The options specify how to close database.
+   * @throws {@link DatabaseClosingError}
+   * @throws {@link DatabaseCloseTimeoutError}
+   * @throws {@link FileRemoveTimeoutError}
+   */
+  async destroy (options: DatabaseCloseOption = {}): Promise<{ ok: true }> {
+    if (this.isClosing) {
+      return Promise.reject(new DatabaseClosingError());
+    }
+
+    let closeError: Error | undefined;
+    if (this._currentRepository !== undefined) {
+      // NOTICE: options.force is true by default.
+      options.force = options.force ?? true;
+      await this.close(options).catch(err => {
+        closeError = err;
+      });
+    }
+    // If the path does not exist, remove() silently does nothing.
+    // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
+    //      await fs.remove(this._workingDir).catch(err => {
+
+    await new Promise<void>((resolve, reject) => {
+      // Set timeout because rimraf sometimes does not catch EPERM error.
+      setTimeout(() => {
+        reject(new FileRemoveTimeoutError());
+      }, FILE_REMOVE_TIMEOUT);
+      rimraf(this._workingDir, error => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
     });
 
-    // First commit
-    const info = {
-      dbId: generateDatabaseId(),
-      creator: DATABASE_CREATOR,
-      version: DATABASE_VERSION,
+    if (closeError instanceof Error) {
+      throw closeError;
+    }
+
+    return {
+      ok: true,
     };
-    // Do not use this.put() because it increments TaskQueue.statistics.put.
-    await putWorker(
-      this,
-      '',
-      GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
-      toSortedJSONString(info),
-      FIRST_COMMIT_MESSAGE
-    );
-    this._dbOpenResult = { ...this._dbOpenResult, ...info };
+  }
+
+  /**
+   * Test if a database is opened
+   *
+   */
+  isOpened () {
+    return this._currentRepository !== undefined;
+  }
+
+  /**
+   * Get a collection
+   *
+   * @param collectionPath - relative path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
+   *
+   * @remarks
+   * - Notice that this function just read existing directory. It does not make a new sub-directory.
+   *
+   * @returns A child collection of GitDocumentDB#rootCollection
+   */
+  collection (collectionPath: CollectionPath, options?: CollectionOptions): Collection {
+    return new Collection(this, collectionPath, this.rootCollection, options);
+  }
+
+  /**
+   * Get collections
+   *
+   * @param dirPath Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
+   * @returns Promise<Collection[]>
+   * @throws {@link RepositoryNotOpenError}
+   */
+  async getCollections (dirPath = ''): Promise<ICollection[]> {
+    return await this.rootCollection.getCollections(dirPath);
+  }
+
+  /**
+   * getRemoteURLs
+   *
+   */
+  getRemoteURLs (): string[] {
+    return Object.keys(this._synchronizers);
+  }
+
+  /**
+   * Get synchronizer
+   *
+   */
+  getSync (remoteURL: string): Sync {
+    return this._synchronizers[remoteURL];
+  }
+
+  /**
+   * Stop and unregister remote synchronization
+   *
+   */
+  removeSync (remoteURL: string) {
+    this._synchronizers[remoteURL].pause();
+    delete this._synchronizers[remoteURL];
+  }
+
+  /**
+   * Synchronize with a remote repository
+   *
+   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+   *
+   * @throws {@link RepositoryNotFoundError} (from Sync#syncImpl())
+   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+   * @throws {@link PushWorkerError} (from Sync#init())
+   * @throws {@link SyncWorkerError} (from Sync#init())
+   *
+   * @remarks
+   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
+   */
+  async sync (options: RemoteOptions): Promise<Sync>;
+  /**
+   * Synchronize with a remote repository
+   *
+   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
+   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+   *
+   * @throws {@link RepositoryNotFoundError} (from Sync#syncAndGetResultImpl())
+   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
+   * @throws {@link PushWorkerError} (from Sync#init())
+   * @throws {@link SyncWorkerError} (from Sync#init())
+   *
+   * @remarks
+   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
+   */
+  async sync (options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
+
+  async sync (
+    options: RemoteOptions,
+    getSyncResult?: boolean
+  ): Promise<Sync | [Sync, SyncResult]> {
+    if (
+      options.remoteUrl !== undefined &&
+      this._synchronizers[options?.remoteUrl] !== undefined
+    ) {
+      throw new RemoteAlreadyRegisteredError(options.remoteUrl);
+    }
+
+    if (getSyncResult) {
+      const [sync, syncResult] = await syncAndGetResultImpl.call(this, options);
+      this._synchronizers[sync.remoteURL] = sync;
+      return [sync, syncResult];
+    }
+    const sync = await syncImpl.call(this, options);
+    this._synchronizers[sync.remoteURL] = sync;
+    return sync;
+  }
+
+  /**
+   * Get commit object
+   */
+  async getCommit (oid: string): Promise<NormalizedCommit> {
+    const readCommitResult = await git.readCommit({ fs, dir: this._workingDir, oid });
+    return normalizeCommit(readCommitResult);
+  }
+
+  /**
+   * Save current author to .git/config
+   *
+   * @remarks
+   * Save GitDocumentDB#author. to user.name and user.email in .git/config
+   */
+  async saveAuthor (): Promise<void> {
+    if (this.author?.name !== undefined) {
+      await git.setConfig({
+        fs,
+        dir: this._workingDir,
+        path: 'user.name',
+        value: this.author.name,
+      });
+    }
+    if (this.author?.email !== undefined) {
+      await git.setConfig({
+        fs,
+        dir: this._workingDir,
+        path: 'user.email',
+        value: this.author.email,
+      });
+    }
+  }
+
+  /**
+   * Load author from .git/config
+   *
+   * @remarks
+   * Load user.name and user.email to GitDocumentDB#author.
+   * If not defined in .git/config, do nothing.
+   */
+  async loadAuthor (): Promise<void> {
+    const name = await git
+      .getConfig({
+        fs,
+        dir: this._workingDir,
+        path: 'user.name',
+      })
+      .catch(() => undefined);
+    this.author.name = name ?? this.author.name;
+
+    const email = await git
+      .getConfig({
+        fs,
+        dir: this._workingDir,
+        path: 'user.email',
+      })
+      .catch(() => undefined);
+    this.author.email = email ?? this.author.email;
   }
 
   /**
@@ -500,33 +811,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
   }
 
   /**
-   * Get dbName
-   *
-   */
-  dbName () {
-    return this._dbName;
-  }
-
-  /**
-   * Get dbId
-   *
-   */
-  dbId () {
-    return this._dbOpenResult.dbId;
-  }
-
-  /**
-   * Get a full path of the current Git working directory
-   *
-   * @returns Full path of the directory (trailing slash is omitted)
-   *
-   */
-  workingDir () {
-    return this._workingDirectory;
-  }
-
-  /**
    * Get a current repository
+   *
+   * @deprecated It will be removed when NodeGit is replaced with isomorphic-git.
    */
   repository (): nodegit.Repository | undefined {
     return this._currentRepository;
@@ -534,6 +821,8 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
 
   /**
    * Set repository
+   *
+   * @deprecated  It will be removed when NodeGit is replaced with isomorphic-git.
    * @remarks Be aware that it can corrupt the database.
    */
   setRepository (repos: nodegit.Repository) {
@@ -541,151 +830,9 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     this._currentRepository = repos;
   }
 
-  /**
-   * Get a collection
-   *
-   * @param collectionPath - relative path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
-   *
-   * @remarks
-   * - Notice that this function just read existing directory. It does not make a new sub-directory.
-   *
-   * @returns A child collection of GitDocumentDB#rootCollection
-   */
-  collection (collectionPath: CollectionPath, options?: CollectionOptions) {
-    return new Collection(this, collectionPath, this.rootCollection, options);
-  }
-
-  /**
-   * Get collections
-   *
-   * @param dirPath Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
-   * @returns Promise<Collection[]>
-   * @throws {@link RepositoryNotOpenError}
-   */
-  async getCollections (dirPath = ''): Promise<Collection[]> {
-    return await this.rootCollection.getCollections(dirPath);
-  }
-
-  /**
-   * Test if a database is opened
-   *
-   */
-  isOpened () {
-    return this._currentRepository !== undefined;
-  }
-
-  /**
-   * Close a database
-   *
-   * @remarks
-   * - New CRUD operations are not available while closing.
-   *
-   * - Queued operations are executed before the database is closed.
-   *
-   * @param options - The options specify how to close database.
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link DatabaseCloseTimeoutError}
-   *
-   */
-  async close (options?: DatabaseCloseOption): Promise<void> {
-    if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
-    }
-    // Stop remote
-    Object.values(this._synchronizers).forEach(sync => sync.close());
-
-    options ??= { force: undefined, timeout: undefined };
-    options.force ??= false;
-    options.timeout ??= 10000;
-
-    // Wait taskQueue
-    if (this._currentRepository instanceof nodegit.Repository) {
-      try {
-        this.isClosing = true;
-        if (!options.force) {
-          const isTimeout = await this.taskQueue.waitCompletion(options.timeout);
-          if (isTimeout) {
-            return Promise.reject(new DatabaseCloseTimeoutError());
-          }
-        }
-      } finally {
-        this.taskQueue.clear();
-
-        /**
-         * The types are wrong. Repository does not have free() method.
-         * See https://github.com/nodegit/nodegit/issues/1817#issuecomment-776844425
-         * https://github.com/nodegit/nodegit/pull/1570
-         *
-         * Use cleanup() instead.
-         * http://carlosmn.github.io/libgit2/#v0.23.0/group/repository/git_repository__cleanup
-         */
-        // this._currentRepository.free();
-
-        this._currentRepository.cleanup();
-        this._currentRepository = undefined;
-
-        this._synchronizers = {};
-
-        this.isClosing = false;
-      }
-    }
-  }
-
-  /**
-   * Destroy a database
-   *
-   * @remarks
-   * - {@link GitDocumentDB.close} is called automatically before destroying.
-   *
-   * - options.force is true if undefined.
-   *
-   * - The Git repository and the working directory are removed from the filesystem.
-   *
-   * - localDir (which is specified in constructor) is not removed.
-   *
-   * @param options - The options specify how to close database.
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link DatabaseCloseTimeoutError}
-   * @throws {@link FileRemoveTimeoutError}
-   */
-  async destroy (options: DatabaseCloseOption = {}): Promise<{ ok: true }> {
-    if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
-    }
-
-    let closeError: Error | undefined;
-    if (this._currentRepository !== undefined) {
-      // NOTICE: options.force is true by default.
-      options.force = options.force ?? true;
-      await this.close(options).catch(err => {
-        closeError = err;
-      });
-    }
-    // If the path does not exist, remove() silently does nothing.
-    // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
-    //      await fs.remove(this._workingDirectory).catch(err => {
-
-    await new Promise<void>((resolve, reject) => {
-      // Set timeout because rimraf sometimes does not catch EPERM error.
-      setTimeout(() => {
-        reject(new FileRemoveTimeoutError());
-      }, FILE_REMOVE_TIMEOUT);
-      rimraf(this._workingDirectory, error => {
-        if (error) {
-          reject(error);
-        }
-        resolve();
-      });
-    });
-
-    if (closeError instanceof Error) {
-      throw closeError;
-    }
-
-    return {
-      ok: true,
-    };
-  }
+  /***********************************************
+   * Public method (Implementation of CRUDInterface)
+   ***********************************************/
 
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
@@ -693,7 +840,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${jsonDoc._id}.json` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${jsonDoc._id}.json` on the file system.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -720,7 +867,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -767,7 +914,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${jsonDoc._id}.json` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${jsonDoc._id}.json` on the file system.
    *
    * - This is an alias of GitDocumentDB#rootCollection.insert()
    *
@@ -798,7 +945,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a data which has the same id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -847,7 +994,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
    *
    * - This is an alias of GitDocumentDB#rootCollection.update()
    *
@@ -876,7 +1023,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${_id}.json` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -919,7 +1066,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @param name - name is a file path.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${name}.json`.
    *
    * - If name is undefined, it is automatically generated.
    *
@@ -959,7 +1106,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${name}.json`.
    *
    * - If name is undefined, it is automatically generated.
    *
@@ -998,7 +1145,7 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${name}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${name}.json`.
    *
    * - If name is undefined, it is automatically generated.
    *
@@ -1342,105 +1489,32 @@ export class GitDocumentDB implements IDocumentDB, CRUDInterface {
     return this.rootCollection.findFatDoc(options);
   }
 
-  /**
-   * getRemoteURLs
-   *
-   */
-  getRemoteURLs (): string[] {
-    return Object.keys(this._synchronizers);
-  }
+  /***********************************************
+   * Public method (Implementation of SyncEventInterface)
+   ***********************************************/
 
-  /**
-   * Get synchronizer
-   *
-   */
-  getSync (remoteURL: string): Sync {
-    return this._synchronizers[remoteURL];
-  }
-
-  /**
-   * Stop and unregister remote synchronization
-   *
-   */
-  removeSync (remoteURL: string) {
-    this._synchronizers[remoteURL].pause();
-    delete this._synchronizers[remoteURL];
-  }
-
-  /**
-   * Synchronize with a remote repository
-   *
-   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
-   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
-   *
-   * @throws {@link RepositoryNotFoundError} (from Sync#syncImpl())
-   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
-   * @throws {@link PushWorkerError} (from Sync#init())
-   * @throws {@link SyncWorkerError} (from Sync#init())
-   *
-   * @remarks
-   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
-   */
-  async sync (options: RemoteOptions): Promise<Sync>;
-  /**
-   * Synchronize with a remote repository
-   *
-   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
-   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
-   *
-   * @throws {@link RepositoryNotFoundError} (from Sync#syncAndGetResultImpl())
-   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
-   * @throws {@link PushWorkerError} (from Sync#init())
-   * @throws {@link SyncWorkerError} (from Sync#init())
-   *
-   * @remarks
-   * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
-   */
-  async sync (options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
-
-  async sync (
-    options: RemoteOptions,
-    getSyncResult?: boolean
-  ): Promise<Sync | [Sync, SyncResult]> {
-    if (
-      options.remoteUrl !== undefined &&
-      this._synchronizers[options?.remoteUrl] !== undefined
-    ) {
-      throw new RemoteAlreadyRegisteredError(options.remoteUrl);
-    }
-
-    if (getSyncResult) {
-      const [sync, syncResult] = await syncAndGetResultImpl.call(this, options);
-      this._synchronizers[sync.remoteURL()] = sync;
-      return [sync, syncResult];
-    }
-    const sync = await syncImpl.call(this, options);
-    this._synchronizers[sync.remoteURL()] = sync;
-    return sync;
-  }
-
-  onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): ISync;
-  onSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): ISync;
+  onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
   onSyncEvent (
-    remoteURLorSync: string | ISync,
+    sync: SyncInterface,
     event: SyncEvent,
     callback: SyncCallback
-  ): ISync {
+  ): SyncInterface;
+
+  onSyncEvent (
+    remoteURLorSync: string | SyncInterface,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): SyncInterface {
     return this.rootCollection.onSyncEvent(remoteURLorSync, event, callback);
   }
 
   offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
-  offSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): void;
+  offSyncEvent (sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
   offSyncEvent (
-    remoteURLorSync: string | ISync,
+    remoteURLorSync: string | SyncInterface,
     event: SyncEvent,
     callback: SyncCallback
   ): void {
     this.rootCollection.offSyncEvent(remoteURLorSync, event, callback);
-  }
-
-  async getCommit (oid: string): Promise<NormalizedCommit> {
-    const readCommitResult = await git.readCommit({ fs, dir: this._workingDirectory, oid });
-    return normalizeCommit(readCommitResult);
   }
 }

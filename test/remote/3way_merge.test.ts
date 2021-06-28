@@ -369,7 +369,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts, deletes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -460,7 +460,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -552,7 +552,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A updates and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
@@ -636,7 +636,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A updates and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
@@ -717,7 +717,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts, deletes, and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -806,7 +806,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A deletes the old file and puts a new file
     const deleteResultA1 = await dbA.delete(jsonA1);
@@ -892,7 +892,7 @@ maybe('<remote/3way_merge>', () => {
     // Clone dbA
     await dbB.open();
     const syncB = await dbB.sync({
-      ...syncA.options(),
+      ...syncA.options,
       conflictResolutionStrategy: 'theirs',
     });
 
@@ -979,7 +979,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1071,7 +1071,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1165,7 +1165,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -1257,7 +1257,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
@@ -1341,7 +1341,7 @@ maybe('<remote/3way_merge>', () => {
     // Clone dbA
     await dbB.open();
     const syncB = await dbB.sync({
-      ...syncA.options(),
+      ...syncA.options,
       conflictResolutionStrategy: 'theirs',
     });
 
@@ -1430,7 +1430,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A updates, deletes, updates, and pushes
 
@@ -1583,7 +1583,7 @@ maybe('<remote/3way_merge>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A puts and pushes
     const jsonA1dash = { _id: '1', name: 'updated', date: '2021/05/16' };
@@ -1676,7 +1676,7 @@ maybe('<remote/3way_merge>', () => {
     // Clone dbA
     await dbB.open();
     const syncB = await dbB.sync({
-      ...syncA.options(),
+      ...syncA.options,
       conflictResolutionStrategy: 'theirs',
     });
 

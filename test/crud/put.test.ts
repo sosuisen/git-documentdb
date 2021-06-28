@@ -93,7 +93,7 @@ describe('<crud/put> put', () => {
     await gitDDB.open();
     const prevCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -112,7 +112,7 @@ describe('<crud/put> put', () => {
 
     const currentCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -162,10 +162,10 @@ describe('<crud/put> put', () => {
     );
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`insert: ${_id}${JSON_EXT}(${shortOid})\n`);
@@ -197,10 +197,10 @@ describe('<crud/put> put', () => {
     );
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`update: ${_id}${JSON_EXT}(${shortOid})\n`);
@@ -228,10 +228,10 @@ describe('<crud/put> put', () => {
     expect(pickedPutResult.commit.message).toEqual(defaultCommitMessage);
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`${defaultCommitMessage}\n`);
@@ -294,10 +294,10 @@ describe('<crud/put> put', () => {
 
     expect(pickedPutResult.commit.message).toEqual(myCommitMessage);
 
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`${myCommitMessage}\n`);
@@ -634,7 +634,7 @@ describe('<crud/put> putWorker', () => {
     const json = { _id: 'prof01', name: 'Shirase' };
     const fullDocPath = json._id + JSON_EXT;
     await putWorker(gitDDB, '', fullDocPath, toSortedJSONString(json), 'message');
-    expect(readFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), 'utf8')).toBe(
+    expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(
       toSortedJSONString(json)
     );
 
@@ -655,7 +655,7 @@ describe('<crud/put> putWorker', () => {
 
     const json2 = { _id: 'prof01', name: 'updated document' };
     await putWorker(gitDDB, '', fullDocPath, toSortedJSONString(json2), 'message');
-    expect(readFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), 'utf8')).toBe(
+    expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(
       toSortedJSONString(json2)
     );
 

@@ -93,7 +93,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().live).toBe(false);
+    expect(sync.options.live).toBe(false);
 
     destroyDBs([gitDDB]);
   });
@@ -114,7 +114,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().syncDirection).toBe('both');
+    expect(sync.options.syncDirection).toBe('both');
 
     destroyDBs([gitDDB]);
   });
@@ -135,7 +135,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().combineDbStrategy).toBe('combine-head-with-theirs');
+    expect(sync.options.combineDbStrategy).toBe('combine-head-with-theirs');
 
     destroyDBs([gitDDB]);
   });
@@ -156,7 +156,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().includeCommits).toBe(false);
+    expect(sync.options.includeCommits).toBe(false);
 
     destroyDBs([gitDDB]);
   });
@@ -177,7 +177,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     const sync = new Sync(gitDDB, options);
-    expect(sync.options().conflictResolutionStrategy).toBe('ours-diff');
+    expect(sync.options.conflictResolutionStrategy).toBe('ours-diff');
 
     destroyDBs([gitDDB]);
   });

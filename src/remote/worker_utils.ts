@@ -22,7 +22,7 @@ import {
   JsonDoc,
   NormalizedCommit,
 } from '../types';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import { blobToBinary, blobToJsonDoc, blobToText } from '../crud/blob';
 
 /**
@@ -30,8 +30,12 @@ import { blobToBinary, blobToJsonDoc, blobToText } from '../crud/blob';
  *
  * @throws {@link CannotCreateDirectoryError}
  */
-export async function writeBlobToFile (gitDDB: IDocumentDB, name: string, data: string) {
-  const filePath = nodePath.resolve(gitDDB.workingDir(), name);
+export async function writeBlobToFile (
+  gitDDB: GitDDBInterface,
+  name: string,
+  data: string
+) {
+  const filePath = nodePath.resolve(gitDDB.workingDir, name);
   const dir = nodePath.dirname(filePath);
   await fs.ensureDir(dir).catch((err: Error) => {
     return Promise.reject(new CannotCreateDirectoryError(err.message));

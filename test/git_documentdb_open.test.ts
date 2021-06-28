@@ -151,7 +151,7 @@ describe('<git_documentdb>', () => {
       expect(fs.existsSync(path.resolve(localDir, dbName))).toBeTruthy();
 
       // Check path of working directory
-      expect(gitDDB.workingDir()).toBe(path.resolve(`${localDir}/${dbName}`));
+      expect(gitDDB.workingDir).toBe(path.resolve(`${localDir}/${dbName}`));
       // Destroy db
       await gitDDB.destroy().catch(e => console.error(e));
       // fs.access() throw error when a file cannot be accessed.
@@ -170,7 +170,7 @@ describe('<git_documentdb>', () => {
       // Create db
       await gitDDB.open();
 
-      expect(gitDDB.workingDir()).toBe(path.resolve(defaultLocalDir, dbName));
+      expect(gitDDB.workingDir).toBe(path.resolve(defaultLocalDir, dbName));
       // Destroy db
       await gitDDB.destroy().catch(e => console.error(e));
       fs.removeSync(path.resolve(defaultLocalDir));
@@ -196,7 +196,7 @@ describe('<git_documentdb>', () => {
         localDir,
       });
       // Create empty .git directory
-      await fs.ensureDir(gitDDB.workingDir() + '/.git/');
+      await fs.ensureDir(gitDDB.workingDir + '/.git/');
       await expect(gitDDB.open()).rejects.toThrowError(CannotOpenRepositoryError);
     });
 
@@ -236,12 +236,12 @@ describe('<git_documentdb>', () => {
         dbName,
         localDir,
       });
-      await fs.ensureDir(gitDDB.workingDir());
+      await fs.ensureDir(gitDDB.workingDir);
 
       // put another app
       const creator = 'Another App';
       await createDatabaseInfo(
-        gitDDB.workingDir(),
+        gitDDB.workingDir,
         JSON.stringify({
           creator,
         })
@@ -271,7 +271,7 @@ describe('<git_documentdb>', () => {
 
       const dbId = generateDatabaseId();
       await createDatabaseInfo(
-        gitDDB.workingDir(),
+        gitDDB.workingDir,
         JSON.stringify({
           dbId,
           creator: DATABASE_CREATOR,
@@ -300,7 +300,7 @@ describe('<git_documentdb>', () => {
       });
 
       await createDatabaseInfo(
-        gitDDB.workingDir(),
+        gitDDB.workingDir,
         JSON.stringify({
           dbId: '',
           creator: DATABASE_CREATOR,

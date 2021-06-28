@@ -208,11 +208,11 @@ maybe('<crud/history> readOldBlob()', () => {
     await syncB.trySync(); // dbB commits 'merge'
 
     await expect(
-      readOldBlob(dbB.workingDir(), 'A1.json', 0, { filter: [{ author: dbB.author }] })
+      readOldBlob(dbB.workingDir, 'A1.json', 0, { filter: [{ author: dbB.author }] })
     ).resolves.toBeUndefined(); // merge commit is skipped, so jsonA1 does not exist.
 
     await expect(
-      readOldBlob(dbB.workingDir(), 'A1.json', 0, { filter: [{ author: dbA.author }] })
+      readOldBlob(dbB.workingDir, 'A1.json', 0, { filter: [{ author: dbA.author }] })
     ).resolves.toEqual({
       oid: putResultA1.fileOid,
       blob: utf8encode(toSortedJSONString(jsonA1internal)),
@@ -569,9 +569,7 @@ describe('<crud/history> readOldBlob()', () => {
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
-    await expect(
-      readOldBlob(gitDDB.workingDir(), fullDocPath, -1)
-    ).resolves.toBeUndefined();
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, -1)).resolves.toBeUndefined();
 
     await destroyDBs([gitDDB]);
   });
@@ -591,7 +589,7 @@ describe('<crud/history> readOldBlob()', () => {
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await removeOneData(gitDDB, fullDocPath);
 
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 0)).resolves.toBeUndefined();
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 0)).resolves.toBeUndefined();
 
     await destroyDBs([gitDDB]);
   });
@@ -611,7 +609,7 @@ describe('<crud/history> readOldBlob()', () => {
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await removeOneData(gitDDB, fullDocPath);
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 1)).resolves.toEqual({
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 1)).resolves.toEqual({
       oid,
       blob: utf8encode(toSortedJSONString(json)),
     });
@@ -636,7 +634,7 @@ describe('<crud/history> readOldBlob()', () => {
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
     await removeOneData(gitDDB, fullDocPath);
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 2)).resolves.toEqual({
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 2)).resolves.toEqual({
       oid,
       blob: utf8encode(toSortedJSONString(json01)),
     });
@@ -661,7 +659,7 @@ describe('<crud/history> readOldBlob()', () => {
     await removeOneData(gitDDB, fullDocPath);
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 2)).resolves.toEqual({
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 2)).resolves.toEqual({
       oid,
       blob: utf8encode(toSortedJSONString(json01)),
     });
@@ -686,7 +684,7 @@ describe('<crud/history> readOldBlob()', () => {
     await removeOneData(gitDDB, fullDocPath);
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 1)).resolves.toBeUndefined();
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 1)).resolves.toBeUndefined();
 
     await destroyDBs([gitDDB]);
   });
@@ -708,7 +706,7 @@ describe('<crud/history> readOldBlob()', () => {
     await removeOneData(gitDDB, fullDocPath);
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 3)).resolves.toBeUndefined();
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 3)).resolves.toBeUndefined();
 
     await destroyDBs([gitDDB]);
   });
@@ -724,7 +722,7 @@ describe('<crud/history> readOldBlob()', () => {
     const shortId = 'prof01';
     const collectionPath = '';
     const fullDocPath = collectionPath + shortId;
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 0)).resolves.toBeUndefined();
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 0)).resolves.toBeUndefined();
 
     await destroyDBs([gitDDB]);
   });
@@ -746,7 +744,7 @@ describe('<crud/history> readOldBlob()', () => {
     const stubReadBlob = sandbox.stub(git_module, 'readBlob');
     stubReadBlob.rejects();
 
-    await expect(readOldBlob(gitDDB.workingDir(), fullDocPath, 0)).resolves.toBeUndefined();
+    await expect(readOldBlob(gitDDB.workingDir, fullDocPath, 0)).resolves.toBeUndefined();
 
     await destroyDBs([gitDDB]);
   });
@@ -769,7 +767,7 @@ describe('<crud/history> readOldBlob()', () => {
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
     await expect(
-      readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+      readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
         filter: [{ author: { name: 'invalid author' } }],
       })
     ).resolves.toBeUndefined();
@@ -1042,7 +1040,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with author.name', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
@@ -1051,7 +1049,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
@@ -1062,7 +1060,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with author.email', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [{ author: { email: 'authorEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1071,7 +1069,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [{ author: { email: 'authorEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1082,7 +1080,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with author.name and author.email', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [{ author: { name: 'authorA', email: 'authorEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1091,7 +1089,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [{ author: { name: 'authorA', email: 'authorEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1102,7 +1100,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with committer.name', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
@@ -1111,7 +1109,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
@@ -1122,7 +1120,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with committer.email', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [{ committer: { email: 'committerEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1131,7 +1129,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [{ committer: { email: 'committerEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1142,7 +1140,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with committer.name and committer.email', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [{ committer: { name: 'committerA', email: 'committerEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1151,7 +1149,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [{ committer: { name: 'committerA', email: 'committerEmailA' } }],
         })
       ).resolves.toEqual({
@@ -1162,7 +1160,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with author.name, author.email, committer.name, and committer.email', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -1176,7 +1174,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -1189,7 +1187,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     it('with OR condition', async () => {
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 0, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 0, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -1201,7 +1199,7 @@ describe('<crud/history> readOldBlob()', () => {
       });
 
       await expect(
-        readOldBlob(gitDDB.workingDir(), fullDocPath, 1, {
+        readOldBlob(gitDDB.workingDir, fullDocPath, 1, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },

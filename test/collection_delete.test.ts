@@ -108,10 +108,10 @@ describe('delete(shortId)', () => {
     );
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXT}(${shortOid})\n`);
@@ -124,7 +124,7 @@ describe('delete(shortId)', () => {
     // Directory is empty
     await expect(
       fs.access(
-        path.dirname(path.resolve(gitDDB.workingDir(), 'users', _id)),
+        path.dirname(path.resolve(gitDDB.workingDir, 'users', _id)),
         fs.constants.F_OK
       )
     ).rejects.toThrowError();
@@ -157,10 +157,10 @@ describe('delete(shortId)', () => {
     );
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(
@@ -175,7 +175,7 @@ describe('delete(shortId)', () => {
     // Directories are recursively removed.
     await expect(
       fs.access(
-        path.dirname(path.resolve(gitDDB.workingDir(), 'col01', _id)),
+        path.dirname(path.resolve(gitDDB.workingDir, 'col01', _id)),
         fs.constants.F_OK
       )
     ).rejects.toThrowError();
@@ -203,10 +203,10 @@ describe('delete(shortId)', () => {
     expect(deleteResult.commit.message).toBe(commitMessage);
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`${commitMessage}\n`);
@@ -241,7 +241,7 @@ describe('delete(jsonDoc)', () => {
 
     const currentCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -324,10 +324,10 @@ describe('deleteFatDoc(name)', () => {
     );
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXT}(${shortOid})\n`);
@@ -340,7 +340,7 @@ describe('deleteFatDoc(name)', () => {
     // Directory is empty
     await expect(
       fs.access(
-        path.dirname(path.resolve(gitDDB.workingDir(), 'users', _id)),
+        path.dirname(path.resolve(gitDDB.workingDir, 'users', _id)),
         fs.constants.F_OK
       )
     ).rejects.toThrowError();
@@ -373,10 +373,10 @@ describe('deleteFatDoc(name)', () => {
     );
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(
@@ -391,7 +391,7 @@ describe('deleteFatDoc(name)', () => {
     // Directories are recursively removed.
     await expect(
       fs.access(
-        path.dirname(path.resolve(gitDDB.workingDir(), 'col01', _id)),
+        path.dirname(path.resolve(gitDDB.workingDir, 'col01', _id)),
         fs.constants.F_OK
       )
     ).rejects.toThrowError();

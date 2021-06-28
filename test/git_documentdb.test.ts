@@ -38,7 +38,7 @@ describe('<index>', () => {
       dbName,
       localDir,
     });
-    expect(gitDDB.dbName()).toBe(dbName);
+    expect(gitDDB.dbName).toBe(dbName);
   });
 
   it('GitDocumentDB#collection', () => {
@@ -66,7 +66,7 @@ describe('<index>', () => {
     gitDDB.author = author;
     await gitDDB.saveAuthor();
 
-    const config = parse.sync({ cwd: gitDDB.workingDir(), path: '.git/config' });
+    const config = parse.sync({ cwd: gitDDB.workingDir, path: '.git/config' });
     expect(config.user).toEqual(author);
 
     await gitDDB.destroy();

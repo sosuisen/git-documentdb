@@ -9,7 +9,7 @@
 import { log, readBlob, ReadBlobResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { Doc, DocType, FatDoc, GetOptions, HistoryFilter, HistoryOptions } from '../types';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
 import { JSON_EXT } from '../const';
 import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
@@ -23,7 +23,7 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
  */
 // eslint-disable-next-line complexity
 export async function getHistoryImpl (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   shortName: string,
   collectionPath: string,
   historyOptions?: HistoryOptions,
@@ -55,7 +55,7 @@ export async function getHistoryImpl (
 
   const commits = await log({
     fs,
-    dir: gitDDB.workingDir(),
+    dir: gitDDB.workingDir,
     ref: 'main',
   });
 
@@ -66,7 +66,7 @@ export async function getHistoryImpl (
     // eslint-disable-next-line no-await-in-loop
     const readBlobResult = await readBlob({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
       filepath: fullDocPath,
     }).catch(() => undefined);

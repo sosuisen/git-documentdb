@@ -181,7 +181,7 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
-      const validator = new Validator(gitDDB.workingDir());
+      const validator = new Validator(gitDDB.workingDir);
       const maxIdLen = validator.maxIdLength() - col.collectionPath.length;
       let _id = '';
       for (let i = 0; i < maxIdLen; i++) {
@@ -246,10 +246,10 @@ describe('<collection>', () => {
       });
 
       // Check commit directly
-      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
       const { commit } = await git.readCommit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         oid: commitOid,
       });
       expect(commit.message).toEqual(
@@ -258,11 +258,7 @@ describe('<collection>', () => {
 
       // Check filename
       // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(
-        gitDDB.workingDir(),
-        col.collectionPath,
-        _id + JSON_EXT
-      );
+      const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       // Read JSON and check doc._id
       expect(fs.readJSONSync(filePath)._id).toBe(col.collectionPath + _id);
@@ -279,7 +275,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const prevCommitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
 
@@ -294,7 +290,7 @@ describe('<collection>', () => {
 
       const currentCommitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
 
@@ -322,11 +318,7 @@ describe('<collection>', () => {
       expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
       // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(
-        gitDDB.workingDir(),
-        col.collectionPath,
-        _id + JSON_EXT
-      );
+      const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
@@ -374,7 +366,7 @@ describe('<collection>', () => {
         // Check filename
         // fs.access() throw error when a file cannot be accessed.
         const filePath = path.resolve(
-          gitDDB.workingDir(),
+          gitDDB.workingDir,
           col.collectionPath + _id + JSON_EXT
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
@@ -407,7 +399,7 @@ describe('<collection>', () => {
         // Check filename
         // fs.access() throw error when a file cannot be accessed.
         const filePath = path.resolve(
-          gitDDB.workingDir(),
+          gitDDB.workingDir,
           col.collectionPath + _id + JSON_EXT
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
@@ -416,12 +408,12 @@ describe('<collection>', () => {
         // Check commit directly
         const commitOid = await git.resolveRef({
           fs,
-          dir: gitDDB.workingDir(),
+          dir: gitDDB.workingDir,
           ref: 'HEAD',
         });
         const { commit } = await git.readCommit({
           fs,
-          dir: gitDDB.workingDir(),
+          dir: gitDDB.workingDir,
           oid: commitOid,
         });
         expect(commit.message).toEqual(
@@ -448,12 +440,12 @@ describe('<collection>', () => {
         // Check commit directly
         const commitOid = await git.resolveRef({
           fs,
-          dir: gitDDB.workingDir(),
+          dir: gitDDB.workingDir,
           ref: 'HEAD',
         });
         const { commit } = await git.readCommit({
           fs,
-          dir: gitDDB.workingDir(),
+          dir: gitDDB.workingDir,
           oid: commitOid,
         });
         expect(commit.message).toEqual(`${commitMessage}\n`);
@@ -478,12 +470,12 @@ describe('<collection>', () => {
         // Check commit directly
         const commitOid = await git.resolveRef({
           fs,
-          dir: gitDDB.workingDir(),
+          dir: gitDDB.workingDir,
           ref: 'HEAD',
         });
         const { commit } = await git.readCommit({
           fs,
-          dir: gitDDB.workingDir(),
+          dir: gitDDB.workingDir,
           oid: commitOid,
         });
         expect(commit.message).toEqual(`${commitMessage}\n`);
@@ -607,7 +599,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const prevCommitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
 
@@ -622,7 +614,7 @@ describe('<collection>', () => {
 
       const currentCommitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
 
@@ -650,11 +642,7 @@ describe('<collection>', () => {
       expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
       // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(
-        gitDDB.workingDir(),
-        col.collectionPath,
-        _id + JSON_EXT
-      );
+      const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
@@ -678,12 +666,12 @@ describe('<collection>', () => {
       // Check commit directly
       const commitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
       const { commit } = await git.readCommit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         oid: commitOid,
       });
       expect(commit.message).toEqual(`${commitMessage}\n`);
@@ -717,7 +705,7 @@ describe('<collection>', () => {
 
       // fs.access() throw error when a file cannot be accessed.
       const fullDocPath = col.collectionPath + _id + JSON_EXT;
-      const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
+      const filePath = path.resolve(gitDDB.workingDir, fullDocPath);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 
@@ -744,10 +732,7 @@ describe('<collection>', () => {
       'A': 'A',
     });
 
-    const filePath = path.resolve(
-      gitDDB.workingDir(),
-      col.collectionPath + 'id' + JSON_EXT
-    );
+    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath + 'id' + JSON_EXT);
     const jsonStr = fs.readFileSync(filePath, 'utf8');
     expect(jsonStr).toBe(`{
   "1": 1,
@@ -788,7 +773,7 @@ describe('<collection>', () => {
 
       // Check .json extension
       const filePath = path.resolve(
-        gitDDB.workingDir(),
+        gitDDB.workingDir,
         col.collectionPath,
         putResult._id + JSON_EXT
       );
@@ -822,7 +807,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const prevCommitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
 
@@ -838,7 +823,7 @@ describe('<collection>', () => {
 
       const currentCommitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
 
@@ -866,11 +851,7 @@ describe('<collection>', () => {
       expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
       // fs.access() throw error when a file cannot be accessed.
-      const filePath = path.resolve(
-        gitDDB.workingDir(),
-        col.collectionPath,
-        _id + JSON_EXT
-      );
+      const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
 

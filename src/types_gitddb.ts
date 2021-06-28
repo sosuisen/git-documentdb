@@ -7,153 +7,88 @@
  */
 
 import nodegit from '@sosuisen/nodegit';
-import { Logger } from 'tslog';
+import { Logger, TLogLevelName } from 'tslog';
 import { TaskQueue } from './task_queue';
 import {
   DatabaseCloseOption,
   DatabaseOpenResult,
-  DeleteOptions,
-  DeleteResult,
-  DeleteResultJsonDoc,
-  Doc,
-  DocType,
-  FatDoc,
-  FindOptions,
-  GetOptions,
-  HistoryOptions,
-  JsonDoc,
+  NormalizedCommit,
   OpenOptions,
-  PutOptions,
-  PutResult,
-  PutResultJsonDoc,
   RemoteOptions,
   Schema,
   SyncResult,
 } from './types';
-import { ISync } from './types_sync';
+import { ICollection } from './types_collection';
+import { SyncInterface } from './types_sync';
 import { Validator } from './validator';
 
 /**
- * Interface of GitDocumentDB CRUD
+ * Interface of GitDocumentDB body
  *
  * @internal
  */
-export interface CRUDInterface {
-  put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-  put(
-    _id: string | undefined | null,
-    data: JsonDoc | Uint8Array | string,
-    options?: PutOptions
-  ): Promise<PutResultJsonDoc>;
+export interface GitDDBInterface {
+  /***********************************************
+   * Public properties (readonly)
+   ***********************************************/
+  defaultBranch: string;
+  localDir: string;
+  dbName: string;
+  workingDir: string;
+  dbId: string;
+  logger: Logger;
+  schema: Schema;
+  taskQueue: TaskQueue;
+  isClosing: boolean;
+  validator: Validator;
+  rootCollection: ICollection;
 
-  insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-  insert(
-    _id: string | undefined | null,
-    data: JsonDoc | Uint8Array | string,
-    options?: PutOptions
-  ): Promise<PutResultJsonDoc>;
+  /***********************************************
+   * Public properties
+   ***********************************************/
+  logLevel: TLogLevelName;
 
-  update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-  update(
-    _id: string | undefined | null,
-    data: JsonDoc | Uint8Array | string,
-    options?: PutOptions
-  ): Promise<PutResultJsonDoc>;
-
-  putFatDoc(
-    name: string | undefined | null,
-    data: JsonDoc | Uint8Array | string,
-    options?: PutOptions
-  ): Promise<PutResult>;
-
-  insertFatDoc(
-    name: string | undefined | null,
-    data: JsonDoc | Uint8Array | string,
-    options?: PutOptions
-  ): Promise<PutResult>;
-
-  updateFatDoc(
-    name: string | undefined | null,
-    data: JsonDoc | Uint8Array | string,
-    options?: PutOptions
-  ): Promise<PutResult>;
-
-  get(_id: string, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
-
-  getBackNumber(
-    _id: string,
-    backNumber: number,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<JsonDoc | undefined>;
-
-  getHistory(
-    _id: string,
-    historyOptions?: HistoryOptions
-  ): Promise<(JsonDoc | undefined)[]>;
-
-  getFatDoc(name: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
-
-  getFatDocBackNumber(
-    name: string,
-    backNumber: number,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<FatDoc | undefined>;
-
-  getFatDocHistory(
-    name: string,
-    historyOptions?: HistoryOptions,
-    getOptions?: GetOptions
-  ): Promise<(FatDoc | undefined)[]>;
-
-  getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
-
-  delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
-
-  delete(_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
-
-  deleteFatDoc(name: string, options?: DeleteOptions): Promise<DeleteResult>;
-
-  find(options?: FindOptions): Promise<JsonDoc[]>;
-
-  findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
-}
-
-/**
- * Abstract class of GitDocumentDB body
- *
- * @internal
- */
-export interface IDocumentDB {
   author: {
     name: string;
     email: string;
   };
+
   committer: {
     name: string;
     email: string;
   };
-  saveAuthor(): Promise<void>;
-  loadAuthor(): Promise<void>;
-  schema: Schema;
-  defaultBranch: string;
-  isClosing: boolean;
-  validator: Validator;
-  taskQueue: TaskQueue;
-  isOpened(): boolean;
-  dbName(): string;
-  dbId(): string;
-  workingDir(): string;
-  repository(): nodegit.Repository | undefined;
-  setRepository(repos: nodegit.Repository): void;
-  getLogger(): Logger;
-  loadDbInfo(): void;
+
+  /***********************************************
+   * Public methods
+   ***********************************************/
+  // Lifecycle
   open(options?: OpenOptions): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
+  destroy(options: DatabaseCloseOption): Promise<{ ok: true }>;
+  isOpened(): boolean;
+
+  // Sync
   getRemoteURLs(): string[];
-  getSync(remoteURL: string): ISync;
+  getSync(remoteURL: string): SyncInterface;
   removeSync(remoteURL: string): void;
-  sync(options: RemoteOptions, getSyncResult: boolean): Promise<[ISync, SyncResult]>;
-  sync(options: RemoteOptions): Promise<ISync>;
+  sync(
+    options: RemoteOptions,
+    getSyncResult: boolean
+  ): Promise<[SyncInterface, SyncResult]>;
+  sync(options: RemoteOptions): Promise<SyncInterface>;
+
+  getCommit(oid: string): Promise<NormalizedCommit>;
+
+  saveAuthor(): Promise<void>;
+  loadAuthor(): Promise<void>;
+
+  saveAppInfo(info: { [key: string]: any }): void;
+  loadAppInfo(): { [key: string]: any };
+
+  loadDbInfo(): void;
+
+  /* deprecate */
+  repository(): nodegit.Repository | undefined;
+  /* deprecate */
+  setRepository(repos: nodegit.Repository): void;
 }

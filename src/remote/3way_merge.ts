@@ -17,7 +17,7 @@ import {
   IJsonPatch,
   JsonDoc,
 } from '../types';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import {
   getFatDocFromData,
   getFatDocFromOid,
@@ -26,7 +26,7 @@ import {
 } from './worker_utils';
 import { toSortedJSONString, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
-import { ISync } from '../types_sync';
+import { SyncInterface } from '../types_sync';
 
 function getStrategy (
   strategy: ConflictResolutionStrategies | undefined,
@@ -102,8 +102,8 @@ function getMergedDocument (
  */
 // eslint-disable-next-line complexity
 export async function threeWayMerge (
-  gitDDB: IDocumentDB,
-  sync: ISync,
+  gitDDB: GitDDBInterface,
+  sync: SyncInterface,
   conflictResolutionStrategy: ConflictResolutionStrategies,
   resolvedIndex: nodegit.Index,
   fullDocPath: string,
@@ -120,7 +120,7 @@ export async function threeWayMerge (
   const base = await git
     .readBlob({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: mergeBaseOid,
       filepath: fullDocPath,
     })
@@ -129,7 +129,7 @@ export async function threeWayMerge (
   const ours = await git
     .readBlob({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: oursCommitOid,
       filepath: fullDocPath,
     })
@@ -138,7 +138,7 @@ export async function threeWayMerge (
   const theirs = await git
     .readBlob({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: theirsCommitOid,
       filepath: fullDocPath,
     })
@@ -255,7 +255,7 @@ export async function threeWayMerge (
         // Just add it to the index.
         // console.log(' #case 8 - Conflict. Accept ours (delete): ' + path);
         const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir(),
+          gitDDB.workingDir,
           fullDocPath,
           base.oid,
           docType
@@ -272,7 +272,7 @@ export async function threeWayMerge (
         // Write theirs to the file.
         // console.log(' #case 9 - Conflict. Accept theirs (update): ' + path);
         const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir(),
+          gitDDB.workingDir,
           fullDocPath,
           theirs.oid,
           docType
@@ -312,7 +312,7 @@ export async function threeWayMerge (
         // Just add to the index.
         // console.log(' #case 11 - Conflict. Accept ours (update): ' + path);
         const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir(),
+          gitDDB.workingDir,
           fullDocPath,
           ours.oid,
           docType
@@ -334,7 +334,7 @@ export async function threeWayMerge (
         // Remove file
         // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + path);
         const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir(),
+          gitDDB.workingDir,
           fullDocPath,
           base.oid,
           docType

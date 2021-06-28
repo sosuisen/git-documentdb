@@ -50,7 +50,7 @@ import {
   SyncCallback,
   SyncEvent,
 } from './types';
-import { CRUDInterface, IDocumentDB } from './types_gitddb';
+import { GitDDBInterface } from './types_gitddb';
 import { Validator } from './validator';
 import { toSortedJSONString } from './utils';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from './const';
@@ -59,7 +59,8 @@ import { getHistoryImpl } from './crud/history';
 import { deleteImpl } from './crud/delete';
 import { findImpl } from './crud/find';
 import { putImpl } from './crud/put';
-import { ISync } from './types_sync';
+import { SyncInterface } from './types_sync';
+import { ICollection } from './types_collection';
 
 /**
  * Documents under a collectionPath are gathered together in a collection.
@@ -84,27 +85,58 @@ import { ISync } from './types_sync';
  * gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', name: 'cherry blossoms' }.
  * ```
  */
-export class Collection implements CRUDInterface {
-  private _collectionPath: CollectionPath = '';
-
-  private _parent: Collection | undefined;
-
-  private _gitDDB: CRUDInterface & IDocumentDB;
+export class Collection implements ICollection {
+  private _gitDDB: GitDDBInterface;
 
   private _monoID: ULID;
 
+  /***********************************************
+   * Public properties (readonly)
+   ***********************************************/
   private _options: CollectionOptions;
+  /**
+   * Get clone of collection options (readonly)
+   */
+  get options (): CollectionOptions {
+    return { ...this._options };
+  }
+
+  private _collectionPath: CollectionPath = '';
+  /**
+   * Normalized path of collection
+   *
+   * @remarks
+   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
+   */
+  get collectionPath (): string {
+    return this._parent === undefined
+      ? this._collectionPath
+      : this._parent.collectionPath + this._collectionPath;
+  }
+
+  private _parent: ICollection | undefined;
+  /**
+   * Parent collection
+   *
+   * @remarks
+   * Child collection inherits Parent's CollectionOptions.
+   */
+  get parent (): ICollection | undefined {
+    return this._parent as ICollection | undefined;
+  }
 
   /**
+   * Constructor
+   *
    * @param collectionPathFromParent - A relative collectionPath from a parent collection.
    * @param parent - A parent collection of this collection.
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
    */
   constructor (
-    gitDDB: CRUDInterface & IDocumentDB,
+    gitDDB: GitDDBInterface,
     collectionPathFromParent?: CollectionPath,
-    parent?: Collection,
+    parent?: ICollection,
     options?: CollectionOptions
   ) {
     this._gitDDB = gitDDB;
@@ -125,9 +157,9 @@ export class Collection implements CRUDInterface {
     this._options = { ...parent?.options!, ...options };
   }
 
-  get options (): CollectionOptions {
-    return { ...this._options };
-  }
+  /***********************************************
+   * Public methods
+   ***********************************************/
 
   /**
    * Generate new _id as monotonic ULID
@@ -142,28 +174,6 @@ export class Collection implements CRUDInterface {
   }
 
   /**
-   * Normalized path of collection
-   *
-   * @remarks
-   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
-   */
-  get collectionPath (): string {
-    return this._parent === undefined
-      ? this._collectionPath
-      : this._parent.collectionPath + this._collectionPath;
-  }
-
-  /**
-   * Parent collection
-   *
-   * @remarks
-   * Child collection inherits Parent's CollectionOptions.
-   */
-  get parent (): Collection | undefined {
-    return this._parent;
-  }
-
-  /**
    * Get a collection
    *
    * @param collectionPath - relative path from this.collectionPath. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
@@ -173,8 +183,8 @@ export class Collection implements CRUDInterface {
    *
    * @returns A child collection of this collection.
    */
-  collection (collectionPath: CollectionPath, options?: CollectionOptions) {
-    return new Collection(this._gitDDB, collectionPath, this, options);
+  collection (collectionPath: CollectionPath, options?: CollectionOptions): ICollection {
+    return new Collection(this._gitDDB, collectionPath, this, options) as ICollection;
   }
 
   /**
@@ -184,18 +194,18 @@ export class Collection implements CRUDInterface {
    * @returns Array of Collections which does not include ''
    * @throws {@link RepositoryNotOpenError}
    */
-  async getCollections (dirPath = ''): Promise<Collection[]> {
+  async getCollections (dirPath = ''): Promise<ICollection[]> {
     if (!this._gitDDB.isOpened()) {
       throw new RepositoryNotOpenError();
     }
     dirPath = Validator.normalizeCollectionPath(this.collectionPath + dirPath);
     dirPath = dirPath.slice(0, -1);
 
-    const commitOid = await resolveRef({ fs, dir: this._gitDDB.workingDir(), ref: 'main' });
+    const commitOid = await resolveRef({ fs, dir: this._gitDDB.workingDir, ref: 'main' });
 
     const treeResult = await readTree({
       fs,
-      dir: this._gitDDB.workingDir(),
+      dir: this._gitDDB.workingDir,
       oid: commitOid,
       filepath: dirPath,
     }).catch(() => undefined);
@@ -212,66 +222,12 @@ export class Collection implements CRUDInterface {
         }
       }
     }
-    return collections;
+    return collections as ICollection[];
   }
 
-  onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): ISync;
-  onSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): ISync;
-  /**
-   * @internal
-   */
-  onSyncEvent (
-    remoteURLorSync: string | ISync,
-    event: SyncEvent,
-    callback: SyncCallback
-  ): ISync;
-
-  onSyncEvent (
-    remoteURLorSync: string | ISync,
-    event: SyncEvent,
-    callback: SyncCallback
-  ): ISync {
-    let sync;
-    if (typeof remoteURLorSync === 'string') {
-      sync = this._gitDDB.getSync(remoteURLorSync);
-    }
-    else {
-      sync = remoteURLorSync;
-    }
-    if (sync === undefined) {
-      throw new UndefinedSyncError();
-    }
-    return sync.on(event, callback, this.collectionPath);
-  }
-
-  offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
-  offSyncEvent (sync: ISync, event: SyncEvent, callback: SyncCallback): void;
-  /**
-   * @internal
-   */
-  offSyncEvent (
-    remoteURLorSync: string | ISync,
-    event: SyncEvent,
-    callback: SyncCallback
-  ): void;
-
-  offSyncEvent (
-    remoteURLorSync: string | ISync,
-    event: SyncEvent,
-    callback: SyncCallback
-  ): void {
-    let sync;
-    if (typeof remoteURLorSync === 'string') {
-      sync = this._gitDDB.getSync(remoteURLorSync);
-    }
-    else {
-      sync = remoteURLorSync;
-    }
-    if (sync === undefined) {
-      throw new UndefinedSyncError();
-    }
-    sync.off(event, callback);
-  }
+  /***********************************************
+   * Public method (Implementation of CRUDInterface)
+   ***********************************************/
 
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
@@ -279,7 +235,7 @@ export class Collection implements CRUDInterface {
    * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}${jsonDoc._id}.json`.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -304,7 +260,7 @@ export class Collection implements CRUDInterface {
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -418,7 +374,7 @@ export class Collection implements CRUDInterface {
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}.json`.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
@@ -447,7 +403,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -513,7 +469,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}.json`.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -544,7 +500,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -608,7 +564,7 @@ export class Collection implements CRUDInterface {
    * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
    *
    * - If shortName is undefined, it is automatically generated.
    *
@@ -727,7 +683,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
    *
    * - If shortName is undefined, it is automatically generated.
    *
@@ -768,7 +724,7 @@ export class Collection implements CRUDInterface {
    * @remarks
    * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir()}/${Collection#collectionPath}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
    *
    * - If shortName is undefined, it is automatically generated.
    *
@@ -1077,6 +1033,9 @@ export class Collection implements CRUDInterface {
    */
   delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
+  /**
+   * @internal
+   */
   delete (
     shortIdOrDoc: string | JsonDoc,
     options?: DeleteOptions
@@ -1192,5 +1151,72 @@ export class Collection implements CRUDInterface {
     return findImpl(this._gitDDB, this.collectionPath, false, true, options) as Promise<
       FatDoc[]
     >;
+  }
+
+  /***********************************************
+   * Public method (Implementation of SyncEventInterface)
+   ***********************************************/
+
+  onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
+  onSyncEvent (
+    sync: SyncInterface,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): SyncInterface;
+
+  /**
+   * @internal
+   */
+  onSyncEvent (
+    remoteURLorSync: string | SyncInterface,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): SyncInterface;
+
+  onSyncEvent (
+    remoteURLorSync: string | SyncInterface,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): SyncInterface {
+    let sync;
+    if (typeof remoteURLorSync === 'string') {
+      sync = this._gitDDB.getSync(remoteURLorSync);
+    }
+    else {
+      sync = remoteURLorSync;
+    }
+    if (sync === undefined) {
+      throw new UndefinedSyncError();
+    }
+    return sync.on(event, callback, this.collectionPath);
+  }
+
+  offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+  offSyncEvent (sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
+  /**
+   * @internal
+   */
+  offSyncEvent (
+    remoteURLorSync: string | SyncInterface,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): void;
+
+  offSyncEvent (
+    remoteURLorSync: string | SyncInterface,
+    event: SyncEvent,
+    callback: SyncCallback
+  ): void {
+    let sync;
+    if (typeof remoteURLorSync === 'string') {
+      sync = this._gitDDB.getSync(remoteURLorSync);
+    }
+    else {
+      sync = remoteURLorSync;
+    }
+    if (sync === undefined) {
+      throw new UndefinedSyncError();
+    }
+    sync.off(event, callback);
   }
 }

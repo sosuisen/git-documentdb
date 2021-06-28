@@ -22,7 +22,7 @@ import {
   RemoteOptions,
   SyncResultCombineDatabase,
 } from '../types';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import { FileRemoveTimeoutError, RemoteRepositoryNotFoundError } from '../error';
 import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXT } from '../const';
 import { getAllMetadata, toSortedJSONString } from '../utils';
@@ -34,16 +34,16 @@ import { getAllMetadata, toSortedJSONString } from '../utils';
  */
 // eslint-disable-next-line complexity
 export async function combineDatabaseWithTheirs (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   remoteOptions: RemoteOptions
 ): Promise<SyncResultCombineDatabase> {
   // Clone repository if remoteURL exists
-  const remoteDir = gitDDB.workingDir() + '_' + ulid(Date.now());
-  const tmpLocalDir = gitDDB.workingDir() + '_' + ulid(Date.now());
+  const remoteDir = gitDDB.workingDir + '_' + ulid(Date.now());
+  const tmpLocalDir = gitDDB.workingDir + '_' + ulid(Date.now());
   let remoteRepository: nodegit.Repository | undefined;
   const duplicates: DuplicatedFile[] = [];
   try {
-    remoteRepository = await cloneRepository(remoteDir, remoteOptions, gitDDB.getLogger());
+    remoteRepository = await cloneRepository(remoteDir, remoteOptions, gitDDB.logger);
     if (remoteRepository === undefined) {
       // Remote repository not found.
       // This will not occur after NoBaseMergeFoundError.
@@ -58,7 +58,7 @@ export async function combineDatabaseWithTheirs (
 
     for (let i = 0; i < localMetadataList.length; i++) {
       const meta = localMetadataList[i];
-      const localFilePath = path.resolve(gitDDB.workingDir(), meta.name);
+      const localFilePath = path.resolve(gitDDB.workingDir, meta.name);
       const remoteFilePath = path.resolve(remoteDir, meta.name);
       const dir = path.dirname(remoteFilePath);
 
@@ -76,7 +76,7 @@ export async function combineDatabaseWithTheirs (
         let duplicatedFileName = '';
         let duplicatedFileId = '';
         let duplicatedFileExt = '';
-        const postfix = DUPLICATED_FILE_POSTFIX + gitDDB.dbId();
+        const postfix = DUPLICATED_FILE_POSTFIX + gitDDB.dbId;
 
         let original: DocMetadata;
         let duplicate: DocMetadata;
@@ -162,12 +162,12 @@ export async function combineDatabaseWithTheirs (
     }
 
     gitDDB.repository()!.cleanup();
-    await fs.rename(gitDDB.workingDir(), tmpLocalDir);
+    await fs.rename(gitDDB.workingDir, tmpLocalDir);
 
     if (remoteRepository) remoteRepository.cleanup();
     remoteRepository = undefined;
 
-    await fs.rename(remoteDir, gitDDB.workingDir());
+    await fs.rename(remoteDir, gitDDB.workingDir);
 
     const userName = await git
       .getConfig({ fs, dir: tmpLocalDir, path: 'user.name' })
@@ -179,7 +179,7 @@ export async function combineDatabaseWithTheirs (
     if (userName) {
       await git.setConfig({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         path: 'user.name',
         value: userName,
       });
@@ -187,7 +187,7 @@ export async function combineDatabaseWithTheirs (
     if (userEmail) {
       await git.setConfig({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         path: 'user.email',
         value: userEmail,
       });
@@ -223,7 +223,7 @@ export async function combineDatabaseWithTheirs (
     if (remoteRepository) remoteRepository.cleanup();
     remoteRepository = undefined;
   }
-  const repos = await nodegit.Repository.open(gitDDB.workingDir());
+  const repos = await nodegit.Repository.open(gitDDB.workingDir);
   gitDDB.setRepository(repos!);
   await gitDDB.loadDbInfo();
 

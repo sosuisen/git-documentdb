@@ -60,7 +60,7 @@ describe('<collection> insert(jsonDoc)', () => {
     await gitDDB.open();
     const prevCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -74,7 +74,7 @@ describe('<collection> insert(jsonDoc)', () => {
 
     const currentCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -101,7 +101,7 @@ describe('<collection> insert(jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), col.collectionPath, _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -177,7 +177,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
     await gitDDB.open();
     const prevCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -193,7 +193,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
 
     const currentCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -218,7 +218,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), col.collectionPath, _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -258,7 +258,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
     await gitDDB.open();
     const prevCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -275,7 +275,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
 
     const currentCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -300,7 +300,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), col.collectionPath, _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));

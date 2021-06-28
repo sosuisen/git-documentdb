@@ -20,7 +20,7 @@ import {
   FindOptions,
   JsonDoc,
 } from '../types';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import { blobToBinary, blobToJsonDoc, blobToText, readLatestBlob } from './blob';
 
 /**
@@ -32,7 +32,7 @@ import { blobToBinary, blobToJsonDoc, blobToText, readLatestBlob } from './blob'
  */
 // eslint-disable-next-line complexity
 export async function findImpl (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   collectionPath: string,
   findOnlyJson: boolean,
   withMetadata: boolean,
@@ -57,7 +57,7 @@ export async function findImpl (
   options.prefix ??= '';
   options.prefix = collectionPath + options.prefix;
 
-  const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'main' });
+  const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir, ref: 'main' });
 
   // Normalize prefix and targetDir
   let prefix = options!.prefix;
@@ -82,7 +82,7 @@ export async function findImpl (
   const directories: { path: string; entries: TreeObject }[] = []; // type TreeObject = Array<TreeEntry>
   const specifiedTreeResult = await readTree({
     fs,
-    dir: gitDDB.workingDir(),
+    dir: gitDDB.workingDir,
     oid: commitOid,
     filepath: targetDir,
   }).catch(() => undefined);
@@ -134,7 +134,7 @@ export async function findImpl (
           // eslint-disable-next-line no-await-in-loop
           const { tree } = await readTree({
             fs,
-            dir: gitDDB.workingDir(),
+            dir: gitDDB.workingDir,
             oid: entry.oid,
           });
           directories.push({ path: fullDocPath, entries: tree });
@@ -147,7 +147,7 @@ export async function findImpl (
           continue;
         }
         // eslint-disable-next-line no-await-in-loop
-        const readBlobResult = await readLatestBlob(gitDDB.workingDir(), fullDocPath);
+        const readBlobResult = await readLatestBlob(gitDDB.workingDir, fullDocPath);
         // Skip if cannot read
         if (readBlobResult) {
           const docType: DocType =

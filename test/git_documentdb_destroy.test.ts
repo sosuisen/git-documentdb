@@ -43,7 +43,7 @@ describe('<index> destroy()', () => {
       localDir,
     });
     await gitDDB.open();
-    const workingDir = gitDDB.workingDir();
+    const workingDir = gitDDB.workingDir;
     await expect(gitDDB.destroy())
       .resolves.toMatchObject({ ok: true })
       .catch(e => console.error(e));

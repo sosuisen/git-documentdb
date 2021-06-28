@@ -10,7 +10,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import { SHORT_SHA_LENGTH } from '../const';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import {
   CannotDeleteDataError,
   DatabaseClosingError,
@@ -36,7 +36,7 @@ import { normalizeCommit } from '../utils';
  * @internal
  */
 export function deleteImpl (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   collectionPath: string,
   shortId: string | undefined,
   shortName: string,
@@ -92,7 +92,7 @@ export function deleteImpl (
  * @throws {@link CannotDeleteDataError}
  */
 export async function deleteWorker (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   collectionPath: string,
   shortName: string,
   commitMessage: string
@@ -112,17 +112,17 @@ export async function deleteWorker (
   }
 
   let commit: NormalizedCommit;
-  const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
+  const filePath = path.resolve(gitDDB.workingDir, fullDocPath);
 
   const headCommit = await git
-    .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' })
+    .resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' })
     .catch(() => undefined);
   if (headCommit === undefined) throw new DocumentNotFoundError();
 
   const { oid } = await git
     .readBlob({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: headCommit,
       filepath: fullDocPath,
     })
@@ -130,7 +130,7 @@ export async function deleteWorker (
       throw new DocumentNotFoundError();
     });
   const fileOid = oid;
-  await git.remove({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+  await git.remove({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
   commitMessage = commitMessage.replace(
     /<%file_oid%>/,
@@ -141,14 +141,14 @@ export async function deleteWorker (
     // Default ref is HEAD
     const commitOid = await git.commit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       author: gitDDB.author,
       committer: gitDDB.committer,
       message: commitMessage,
     });
     const readCommitResult = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     commit = normalizeCommit(readCommitResult);
@@ -161,8 +161,8 @@ export async function deleteWorker (
     for (let i = 0; i < dirs.length; i++) {
       const dirpath =
         i === 0
-          ? path.resolve(gitDDB.workingDir(), ...dirs)
-          : path.resolve(gitDDB.workingDir(), ...dirs.slice(0, -i));
+          ? path.resolve(gitDDB.workingDir, ...dirs)
+          : path.resolve(gitDDB.workingDir, ...dirs.slice(0, -i));
       // eslint-disable-next-line no-await-in-loop
       await fs.rmdir(dirpath).catch(e => {
         /* not empty */

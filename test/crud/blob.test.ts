@@ -193,9 +193,9 @@ describe('<crud/blob>', () => {
     it('returns ReadBlobResult', async () => {
       const uint8array = new Uint8Array([0, 1, 2]);
       const gitDDB = new GitDocumentDB({ localDir: localDir, dbName: monoId() });
-      await git.init({ fs, dir: gitDDB.workingDir() });
-      const oid = await git.writeBlob({ fs, dir: gitDDB.workingDir(), blob: uint8array });
-      const readBlobResult = await readBlobByOid(gitDDB.workingDir(), oid);
+      await git.init({ fs, dir: gitDDB.workingDir });
+      const oid = await git.writeBlob({ fs, dir: gitDDB.workingDir, blob: uint8array });
+      const readBlobResult = await readBlobByOid(gitDDB.workingDir, oid);
       expect(readBlobResult?.blob).toEqual(uint8array);
       expect(readBlobResult?.oid).toEqual(oid);
 
@@ -204,7 +204,7 @@ describe('<crud/blob>', () => {
 
     it('returns undefined', async () => {
       const gitDDB = new GitDocumentDB({ localDir: localDir, dbName: monoId() });
-      await expect(readBlobByOid(gitDDB.workingDir(), 'foobar')).resolves.toBeUndefined();
+      await expect(readBlobByOid(gitDDB.workingDir, 'foobar')).resolves.toBeUndefined();
       await gitDDB.destroy();
     });
   });
@@ -218,16 +218,16 @@ describe('<crud/blob>', () => {
       const blob = utf8encode(text);
 
       const gitDDB = new GitDocumentDB({ localDir: localDir, dbName: monoId() });
-      await git.init({ fs, dir: gitDDB.workingDir(), defaultBranch: 'main' });
-      fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), text);
-      await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+      await git.init({ fs, dir: gitDDB.workingDir, defaultBranch: 'main' });
+      fs.writeFileSync(path.resolve(gitDDB.workingDir, fullDocPath), text);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
       await git.commit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         message: 'test',
         author: gitDDB.author,
       });
-      await expect(readLatestBlob(gitDDB.workingDir(), fullDocPath)).resolves.toEqual({
+      await expect(readLatestBlob(gitDDB.workingDir, fullDocPath)).resolves.toEqual({
         oid,
         blob,
       });
@@ -236,8 +236,8 @@ describe('<crud/blob>', () => {
 
     it('returns undefined when Git is empty', async () => {
       const gitDDB = new GitDocumentDB({ localDir: localDir, dbName: monoId() });
-      await git.init({ fs, dir: gitDDB.workingDir() });
-      await expect(readLatestBlob(gitDDB.workingDir(), 'foo')).resolves.toBeUndefined();
+      await git.init({ fs, dir: gitDDB.workingDir });
+      await expect(readLatestBlob(gitDDB.workingDir, 'foo')).resolves.toBeUndefined();
       await gitDDB.destroy();
     });
 
@@ -246,18 +246,18 @@ describe('<crud/blob>', () => {
       const text = 'bar';
 
       const gitDDB = new GitDocumentDB({ localDir: localDir, dbName: monoId() });
-      await git.init({ fs, dir: gitDDB.workingDir(), defaultBranch: 'main' });
-      await git.init({ fs, dir: gitDDB.workingDir(), defaultBranch: 'main' });
-      fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), text);
-      await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+      await git.init({ fs, dir: gitDDB.workingDir, defaultBranch: 'main' });
+      await git.init({ fs, dir: gitDDB.workingDir, defaultBranch: 'main' });
+      fs.writeFileSync(path.resolve(gitDDB.workingDir, fullDocPath), text);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
       await git.commit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         message: 'test',
         author: gitDDB.author,
       });
       await expect(
-        readLatestBlob(gitDDB.workingDir(), fullDocPath + 'bar')
+        readLatestBlob(gitDDB.workingDir, fullDocPath + 'bar')
       ).resolves.toBeUndefined();
       await gitDDB.destroy();
     });
@@ -270,21 +270,19 @@ describe('<crud/blob>', () => {
       const blob = utf8encode(text);
 
       const gitDDB = new GitDocumentDB({ localDir: localDir, dbName: monoId() });
-      await git.init({ fs, dir: gitDDB.workingDir(), defaultBranch: 'main' });
-      fs.writeFileSync(path.resolve(gitDDB.workingDir(), fullDocPath), text);
-      await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+      await git.init({ fs, dir: gitDDB.workingDir, defaultBranch: 'main' });
+      fs.writeFileSync(path.resolve(gitDDB.workingDir, fullDocPath), text);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
       await git.commit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         message: 'test',
         author: gitDDB.author,
       });
       const stubReadBlob = sandbox.stub(git_module, 'readBlob');
       stubReadBlob.rejects();
 
-      await expect(
-        readLatestBlob(gitDDB.workingDir(), fullDocPath)
-      ).resolves.toBeUndefined();
+      await expect(readLatestBlob(gitDDB.workingDir, fullDocPath)).resolves.toBeUndefined();
 
       await gitDDB.destroy();
     });

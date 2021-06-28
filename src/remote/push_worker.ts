@@ -11,9 +11,9 @@ import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { CONSOLE_STYLE } from '../utils';
 import { GitPushError, SyncWorkerFetchError, UnfetchedCommitExistsError } from '../error';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import { NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
-import { ISync } from '../types_sync';
+import { SyncInterface } from '../types_sync';
 import { calcDistance, getChanges, getCommitLogs } from './worker_utils';
 
 /**
@@ -23,7 +23,7 @@ import { calcDistance, getChanges, getCommitLogs } from './worker_utils';
  * @throws {@link SyncWorkerFetchError} (from validatePushResult())
  * @throws {@link GitPushError} (from NodeGit.Remote.push())
  */
-async function push (gitDDB: IDocumentDB, sync: ISync): Promise<void> {
+async function push (gitDDB: GitDDBInterface, sync: SyncInterface): Promise<void> {
   const repos = gitDDB.repository()!;
   const remote: nodegit.Remote = await repos.getRemote('origin');
   await remote
@@ -51,7 +51,10 @@ async function push (gitDDB: IDocumentDB, sync: ISync): Promise<void> {
  * @throws {@link SyncWorkerFetchError}
  * @throws {@link UnfetchedCommitExistsError}
  */
-async function validatePushResult (gitDDB: IDocumentDB, sync: ISync): Promise<void> {
+async function validatePushResult (
+  gitDDB: GitDDBInterface,
+  sync: SyncInterface
+): Promise<void> {
   const repos = gitDDB.repository()!;
   await repos
     .fetch('origin', {
@@ -63,24 +66,22 @@ async function validatePushResult (gitDDB: IDocumentDB, sync: ISync): Promise<vo
 
   const localCommitOid = await git.resolveRef({
     fs,
-    dir: gitDDB.workingDir(),
+    dir: gitDDB.workingDir,
     ref: 'HEAD',
   });
   const remoteCommitOid = await git.resolveRef({
     fs,
-    dir: gitDDB.workingDir(),
+    dir: gitDDB.workingDir,
     ref: 'refs/remotes/origin/main',
   });
-  const distance = await calcDistance(gitDDB.workingDir(), localCommitOid, remoteCommitOid);
+  const distance = await calcDistance(gitDDB.workingDir, localCommitOid, remoteCommitOid);
 
   if (distance.behind > 0) {
-    gitDDB
-      .getLogger()
-      .debug(
-        CONSOLE_STYLE.bgWhite()
-          .fgBlack()
-          .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
-      );
+    gitDDB.logger.debug(
+      CONSOLE_STYLE.bgWhite()
+        .fgBlack()
+        .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
+    );
 
     throw new UnfetchedCommitExistsError();
   }
@@ -96,8 +97,8 @@ async function validatePushResult (gitDDB: IDocumentDB, sync: ISync): Promise<vo
  * @throws Error (Other errors from NodeGit.Remote.push())
  */
 export async function pushWorker (
-  gitDDB: IDocumentDB,
-  sync: ISync,
+  gitDDB: GitDDBInterface,
+  sync: SyncInterface,
   taskMetadata: TaskMetadata,
   skipStartEvent = false
 ): Promise<SyncResultPush> {
@@ -127,19 +128,19 @@ export async function pushWorker (
 
   const headCommitOid = await git.resolveRef({
     fs,
-    dir: gitDDB.workingDir(),
+    dir: gitDDB.workingDir,
     ref: 'HEAD',
   });
   const headCommit = await git.readCommit({
     fs,
-    dir: gitDDB.workingDir(),
+    dir: gitDDB.workingDir,
     oid: headCommitOid,
   });
 
   let localCommitOid: string;
 
   let remoteCommitOid = await git
-    .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'refs/remotes/origin/main' })
+    .resolveRef({ fs, dir: gitDDB.workingDir, ref: 'refs/remotes/origin/main' })
     .catch(() => undefined);
 
   if (headCommit.commit.parent.length === 2) {
@@ -155,25 +156,21 @@ export async function pushWorker (
   if (remoteCommitOid === undefined) {
     // This is the first push in this repository.
     // Get the first commit.
-    const logs = await git.log({ fs, dir: gitDDB.workingDir() });
+    const logs = await git.log({ fs, dir: gitDDB.workingDir });
     baseCommitOid = logs[logs.length - 1].oid;
     remoteCommitOid = baseCommitOid;
   }
   else {
     [baseCommitOid] = await git.findMergeBase({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oids: [localCommitOid, remoteCommitOid],
     });
   }
 
   // Push
   await push(gitDDB, sync);
-  const remoteChanges = await getChanges(
-    gitDDB.workingDir(),
-    remoteCommitOid,
-    headCommitOid
-  );
+  const remoteChanges = await getChanges(gitDDB.workingDir, remoteCommitOid, headCommitOid);
 
   const syncResult: SyncResultPush = {
     action: 'push',
@@ -184,9 +181,9 @@ export async function pushWorker (
 
   // Get a list of commits which will be pushed to remote.
   let commitListRemote: NormalizedCommit[] | undefined;
-  if (sync.options().includeCommits) {
+  if (sync.options.includeCommits) {
     commitListRemote = await getCommitLogs(
-      gitDDB.workingDir(),
+      gitDDB.workingDir,
       headCommitOid,
       baseCommitOid,
       remoteCommitOid

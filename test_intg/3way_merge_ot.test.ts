@@ -287,7 +287,7 @@ maybe('intg: <3way_merge_ot>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A updates and pushes
     const jsonA1dash = { _id: '1', name: 'updated' };
@@ -370,7 +370,7 @@ maybe('intg: <3way_merge_ot>', () => {
     });
     // Clone dbA
     await dbB.open();
-    const syncB = await dbB.sync(syncA.options());
+    const syncB = await dbB.sync(syncA.options);
 
     // A removes the old file and puts a new file
     const deleteResultA1 = await dbA.delete(jsonA1);
@@ -465,7 +465,7 @@ maybe('intg: <3way_merge_ot>', () => {
     // Clone dbA
     await dbB.open();
     const syncB = await dbB.sync({
-      ...syncA.options(),
+      ...syncA.options,
       conflictResolutionStrategy: 'theirs-diff',
     });
 
@@ -581,7 +581,7 @@ maybe('intg: <3way_merge_ot>', () => {
       // Clone dbA
       await dbB.open();
       const syncB = await dbB.sync({
-        ...syncA.options(),
+        ...syncA.options,
         conflictResolutionStrategy: 'ours-diff',
       });
 
@@ -649,7 +649,7 @@ maybe('intg: <3way_merge_ot>', () => {
       // Clone dbA
       await dbB.open();
       const syncB = await dbB.sync({
-        ...syncA.options(),
+        ...syncA.options,
         conflictResolutionStrategy: 'ours-diff',
       });
 
@@ -717,7 +717,7 @@ maybe('intg: <3way_merge_ot>', () => {
       // Clone dbA
       await dbB.open();
       const syncB = await dbB.sync({
-        ...syncA.options(),
+        ...syncA.options,
         conflictResolutionStrategy: 'ours-diff',
       });
 

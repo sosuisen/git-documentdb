@@ -15,7 +15,7 @@ import {
   RemoteOptions,
   Schema,
 } from '../src/types';
-import { ISync } from '../src/types_sync';
+import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { FILE_REMOVE_TIMEOUT, JSON_EXT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
@@ -176,7 +176,7 @@ export async function createDatabase (
   serialId: () => string,
   options?: RemoteOptions,
   schema?: Schema
-): Promise<[GitDocumentDB, ISync]> {
+): Promise<[GitDocumentDB, SyncInterface]> {
   const remoteURL = remoteURLBase + serialId();
 
   const dbNameA = serialId();
@@ -208,7 +208,7 @@ export async function createClonedDatabases (
   serialId: () => string,
   options?: RemoteOptions,
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
-): Promise<[GitDocumentDB, GitDocumentDB, ISync, ISync]> {
+): Promise<[GitDocumentDB, GitDocumentDB, SyncInterface, SyncInterface]> {
   const remoteURL = remoteURLBase + serialId();
 
   const dbNameA = serialId();
@@ -323,7 +323,7 @@ export const listFiles = (gitDDB: GitDocumentDB, dir: string): string[] => {
     .readdirSync(dir, { withFileTypes: true })
     .flatMap(dirent =>
       dirent.isFile()
-        ? [`${dir}/${dirent.name}`.replace(gitDDB.workingDir() + '/', '')]
+        ? [`${dir}/${dirent.name}`.replace(gitDDB.workingDir + '/', '')]
         : listFiles(gitDDB, `${dir}/${dirent.name}`)
     )
     .filter(name => !name.match(/^(\.gitddb|\.git)/));
@@ -332,7 +332,7 @@ export const listFiles = (gitDDB: GitDocumentDB, dir: string): string[] => {
 export const compareWorkingDirAndBlobs = async (
   gitDDB: GitDocumentDB
 ): Promise<boolean> => {
-  const files = listFiles(gitDDB, gitDDB.workingDir());
+  const files = listFiles(gitDDB, gitDDB.workingDir);
 
   const currentIndex = await gitDDB.repository()?.refreshIndex();
   const entryCount = currentIndex!.entryCount() - 1; // Reduce by 1 due to '.gitddb/lib_version'
@@ -360,7 +360,7 @@ export const compareWorkingDirAndBlobs = async (
     // @ts-ignore
     // eslint-disable-next-line no-await-in-loop
     const hashFromFile = await nodegit.Odb.hashfile(
-      gitDDB.workingDir() + '/' + file,
+      gitDDB.workingDir + '/' + file,
       3
     ).catch((err: Error) => console.log(err));
     // console.log('  - fromFile:  ' + hashFromFile.tostrS());
@@ -386,8 +386,8 @@ export const compareWorkingDirAndBlobs = async (
 };
 
 export const getWorkingDirDocs = (gitDDB: GitDocumentDB) => {
-  return listFiles(gitDDB, gitDDB.workingDir()).map(filepath => {
-    const doc = fs.readJSONSync(gitDDB.workingDir() + '/' + filepath);
+  return listFiles(gitDDB, gitDDB.workingDir).map(filepath => {
+    const doc = fs.readJSONSync(gitDDB.workingDir + '/' + filepath);
     doc._id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
     return doc;
   });

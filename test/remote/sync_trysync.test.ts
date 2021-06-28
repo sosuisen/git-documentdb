@@ -451,7 +451,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       });
       // Clone dbA
       await dbB.open();
-      const syncB = await dbB.sync(syncA.options());
+      const syncB = await dbB.sync(syncA.options);
 
       // A updates and pushes
       const jsonA1dash = { _id: '1', name: 'updated' };
@@ -501,7 +501,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       });
       // Clone dbA
       await dbB.open();
-      const syncB = await dbB.sync(syncA.options());
+      const syncB = await dbB.sync(syncA.options);
 
       // A puts and pushes
       const jsonA2 = { _id: '2', name: 'fromA' };
@@ -563,7 +563,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       // Clone dbA
       await dbB.open();
-      const syncB = await dbB.sync(syncA.options());
+      const syncB = await dbB.sync(syncA.options);
 
       // A deletes and pushes
       const deleteResultA1 = await dbA.delete(jsonA1);
@@ -623,7 +623,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       });
       // Clone dbA
       await dbB.open();
-      const syncB = await dbB.sync(syncA.options());
+      const syncB = await dbB.sync(syncA.options);
 
       // A deletes and pushes
       const deleteResultA1 = await dbA.delete(jsonA1);
@@ -658,7 +658,6 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
   it('skips consecutive sync tasks', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
-    // dbA.setLogLevel('trace');
     const results: SyncResult[] = [];
     for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line promise/catch-or-return
@@ -685,7 +684,6 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
   it('skips consecutive sync tasks after crud tasks', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
-    // dbA.setLogLevel('trace');
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     for (let i = 0; i < 10; i++) {
@@ -728,9 +726,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await dbB.open();
 
     // tryPush throws UnfetchedCommitExistsError
-    await expect(dbB.sync(syncA.options())).rejects.toThrowError(
-      UnfetchedCommitExistsError
-    );
+    await expect(dbB.sync(syncA.options)).rejects.toThrowError(UnfetchedCommitExistsError);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

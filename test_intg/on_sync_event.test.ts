@@ -86,7 +86,7 @@ maybe('intg: <git_documentdb>', () => {
       let changeTaskId = '';
 
       dbB.onSyncEvent(
-        syncB.remoteURL(),
+        syncB.remoteURL,
         'change',
         (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
           result = syncResult as SyncResultFastForwardMerge;
@@ -95,7 +95,7 @@ maybe('intg: <git_documentdb>', () => {
       );
       let complete = false;
       let endTaskId = '';
-      dbB.onSyncEvent(syncB.remoteURL(), 'complete', (taskMetadata: TaskMetadata) => {
+      dbB.onSyncEvent(syncB.remoteURL, 'complete', (taskMetadata: TaskMetadata) => {
         complete = true;
         endTaskId = taskMetadata.taskId;
       });
@@ -195,9 +195,9 @@ maybe('intg: <git_documentdb>', () => {
       );
 
       const callback = (syncResult: SyncResult, taskMetadata: TaskMetadata) => {};
-      dbB.onSyncEvent(syncB.remoteURL(), 'change', callback);
+      dbB.onSyncEvent(syncB.remoteURL, 'change', callback);
       expect(syncB.eventHandlers.change.length).toBe(1);
-      dbB.offSyncEvent(syncB.remoteURL(), 'change', callback);
+      dbB.offSyncEvent(syncB.remoteURL, 'change', callback);
       expect(syncB.eventHandlers.change.length).toBe(0);
 
       await destroyDBs([dbA, dbB]);
@@ -265,7 +265,7 @@ maybe('intg: <Collection>', () => {
       let changeTaskId = '';
 
       colB.onSyncEvent(
-        syncB.remoteURL(),
+        syncB.remoteURL,
         'change',
         (syncResult: SyncResult, taskMetadata: TaskMetadata) => {
           result = syncResult as SyncResultFastForwardMerge;
@@ -274,7 +274,7 @@ maybe('intg: <Collection>', () => {
       );
       let complete = false;
       let endTaskId = '';
-      colB.onSyncEvent(syncB.remoteURL(), 'complete', (taskMetadata: TaskMetadata) => {
+      colB.onSyncEvent(syncB.remoteURL, 'complete', (taskMetadata: TaskMetadata) => {
         complete = true;
         endTaskId = taskMetadata.taskId;
       });
@@ -378,9 +378,9 @@ maybe('intg: <Collection>', () => {
 
       const colB = dbB.collection('col');
       const callback = (syncResult: SyncResult, taskMetadata: TaskMetadata) => {};
-      colB.onSyncEvent(syncB.remoteURL(), 'change', callback);
+      colB.onSyncEvent(syncB.remoteURL, 'change', callback);
       expect(syncB.eventHandlers.change.length).toBe(1);
-      colB.offSyncEvent(syncB.remoteURL(), 'change', callback);
+      colB.offSyncEvent(syncB.remoteURL, 'change', callback);
       expect(syncB.eventHandlers.change.length).toBe(0);
 
       await destroyDBs([dbA, dbB]);

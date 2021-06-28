@@ -173,7 +173,7 @@ describe('<crud/get> getImpl()', () => {
       dbName,
       localDir,
     });
-    await git.init({ fs, dir: gitDDB.workingDir() });
+    await git.init({ fs, dir: gitDDB.workingDir });
     const stubIsOpened = sandbox.stub(gitDDB, 'isOpened');
     stubIsOpened.returns(true);
 

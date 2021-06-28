@@ -8,7 +8,7 @@
 
 import { ReadBlobResult } from 'isomorphic-git';
 import { JSON_EXT } from '../const';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
 import {
   Doc,
@@ -37,7 +37,7 @@ import { readOldBlob } from './history';
  */
 // eslint-disable-next-line complexity
 export async function getImpl (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   shortName: string,
   collectionPath: string,
   options?: GetOptions,
@@ -73,7 +73,7 @@ export async function getImpl (
 
   let readBlobResult: ReadBlobResult | undefined;
   if (internalOptions.oid !== '') {
-    readBlobResult = await readBlobByOid(gitDDB.workingDir(), internalOptions.oid);
+    readBlobResult = await readBlobByOid(gitDDB.workingDir, internalOptions.oid);
     // Do not return FatDoc because _id is not specified.
     // eslint-disable-next-line require-atomic-updates
     internalOptions.withMetadata = false;
@@ -82,11 +82,11 @@ export async function getImpl (
     historyOptions === undefined &&
     (!internalOptions.backNumber || internalOptions.backNumber === 0)
   ) {
-    readBlobResult = await readLatestBlob(gitDDB.workingDir(), fullDocPath);
+    readBlobResult = await readLatestBlob(gitDDB.workingDir, fullDocPath);
   }
   else if (internalOptions.backNumber >= 0) {
     readBlobResult = await readOldBlob(
-      gitDDB.workingDir(),
+      gitDDB.workingDir,
       fullDocPath,
       internalOptions.backNumber,
       historyOptions

@@ -43,7 +43,7 @@ describe('<validator>', () => {
     dbName,
     localDir,
   });
-  const validator = new Validator(gitDDB.workingDir());
+  const validator = new Validator(gitDDB.workingDir);
 
   it('normalizeCollectionPath', () => {
     expect(Validator.normalizeCollectionPath(undefined)).toBe('');

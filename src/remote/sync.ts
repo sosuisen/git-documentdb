@@ -46,8 +46,8 @@ import {
   Task,
   TaskMetadata,
 } from '../types';
-import { ISync } from '../types_sync';
-import { IDocumentDB } from '../types_gitddb';
+import { SyncInterface } from '../types_sync';
+import { GitDDBInterface } from '../types_gitddb';
 import { syncWorker } from './sync_worker';
 import { pushWorker } from './push_worker';
 import { createCredential } from './authentication';
@@ -83,7 +83,7 @@ import { Validator } from '../validator';
  * @internal
  */
 export async function syncAndGetResultImpl (
-  this: IDocumentDB,
+  this: GitDDBInterface,
   options: RemoteOptions
 ): Promise<[Sync, SyncResult]> {
   const repos = this.repository();
@@ -109,7 +109,10 @@ export async function syncAndGetResultImpl (
  *
  * @internal
  */
-export async function syncImpl (this: IDocumentDB, options: RemoteOptions): Promise<Sync> {
+export async function syncImpl (
+  this: GitDDBInterface,
+  options: RemoteOptions
+): Promise<Sync> {
   const repos = this.repository();
   if (repos === undefined) {
     throw new RepositoryNotOpenError();
@@ -119,86 +122,115 @@ export async function syncImpl (this: IDocumentDB, options: RemoteOptions): Prom
   return sync;
 }
 
+function filterChanges (syncResult: SyncResult, collectionPath: string): SyncResult {
+  if (collectionPath === '') {
+    return syncResult;
+  }
+  const filter = (changedFiles: ChangedFile[]) => {
+    // eslint-disable-next-line complexity
+    return changedFiles.reduce((result, changedFile) => {
+      let oldFatDoc: FatDoc | undefined;
+      let newFatDoc: FatDoc | undefined;
+      if (changedFile.operation === 'delete' || changedFile.operation === 'update') {
+        oldFatDoc = changedFile.old;
+      }
+      if (changedFile.operation === 'insert' || changedFile.operation === 'update') {
+        // insert
+        newFatDoc = changedFile.new;
+      }
+      if (
+        (oldFatDoc && oldFatDoc.name.startsWith(collectionPath)) ||
+        (newFatDoc && newFatDoc.name.startsWith(collectionPath))
+      ) {
+        if (oldFatDoc) {
+          oldFatDoc.name = oldFatDoc.name.replace(new RegExp('^' + collectionPath), '');
+          if (oldFatDoc.type === 'json') {
+            oldFatDoc._id = oldFatDoc._id.replace(new RegExp('^' + collectionPath), '');
+            oldFatDoc.doc._id = oldFatDoc._id;
+          }
+        }
+
+        if (newFatDoc) {
+          newFatDoc.name = newFatDoc.name.replace(new RegExp('^' + collectionPath), '');
+          if (newFatDoc.type === 'json') {
+            newFatDoc._id = newFatDoc._id.replace(new RegExp('^' + collectionPath), '');
+            newFatDoc.doc._id = newFatDoc._id;
+          }
+        }
+        result.push(changedFile);
+      }
+      return result;
+    }, [] as ChangedFile[]);
+  };
+  if (
+    syncResult.action === 'resolve conflicts and push' ||
+    syncResult.action === 'merge and push' ||
+    syncResult.action === 'resolve conflicts and push error' ||
+    syncResult.action === 'merge and push error' ||
+    syncResult.action === 'fast-forward merge'
+  ) {
+    syncResult.changes.local = filter(syncResult.changes.local);
+  }
+  if (
+    syncResult.action === 'resolve conflicts and push' ||
+    syncResult.action === 'merge and push' ||
+    syncResult.action === 'push'
+  ) {
+    syncResult.changes.remote = filter(syncResult.changes.remote);
+  }
+
+  return syncResult;
+}
 /**
  * Synchronizer class
  */
-export class Sync implements ISync {
-  private _gitDDB: IDocumentDB;
-  private _options: RemoteOptions;
+export class Sync implements SyncInterface {
+  private _gitDDB: GitDDBInterface;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
   private _retrySyncCounter = 0; // Decremental count
 
-  private _filterChanges (syncResult: SyncResult, collectionPath: string): SyncResult {
-    if (collectionPath === '') {
-      return syncResult;
-    }
-    const filter = (changedFiles: ChangedFile[]) => {
-      // eslint-disable-next-line complexity
-      return changedFiles.reduce((result, changedFile) => {
-        let oldFatDoc: FatDoc | undefined;
-        let newFatDoc: FatDoc | undefined;
-        if (changedFile.operation === 'delete' || changedFile.operation === 'update') {
-          oldFatDoc = changedFile.old;
-        }
-        if (changedFile.operation === 'insert' || changedFile.operation === 'update') {
-          // insert
-          newFatDoc = changedFile.new;
-        }
-        if (
-          (oldFatDoc && oldFatDoc.name.startsWith(collectionPath)) ||
-          (newFatDoc && newFatDoc.name.startsWith(collectionPath))
-        ) {
-          if (oldFatDoc) {
-            oldFatDoc.name = oldFatDoc.name.replace(new RegExp('^' + collectionPath), '');
-            if (oldFatDoc.type === 'json') {
-              oldFatDoc._id = oldFatDoc._id.replace(new RegExp('^' + collectionPath), '');
-              oldFatDoc.doc._id = oldFatDoc._id;
-            }
-          }
-
-          if (newFatDoc) {
-            newFatDoc.name = newFatDoc.name.replace(new RegExp('^' + collectionPath), '');
-            if (newFatDoc.type === 'json') {
-              newFatDoc._id = newFatDoc._id.replace(new RegExp('^' + collectionPath), '');
-              newFatDoc.doc._id = newFatDoc._id;
-            }
-          }
-          result.push(changedFile);
-        }
-        return result;
-      }, [] as ChangedFile[]);
-    };
-    if (
-      syncResult.action === 'resolve conflicts and push' ||
-      syncResult.action === 'merge and push' ||
-      syncResult.action === 'resolve conflicts and push error' ||
-      syncResult.action === 'merge and push error' ||
-      syncResult.action === 'fast-forward merge'
-    ) {
-      syncResult.changes.local = filter(syncResult.changes.local);
-    }
-    if (
-      syncResult.action === 'resolve conflicts and push' ||
-      syncResult.action === 'merge and push' ||
-      syncResult.action === 'push'
-    ) {
-      syncResult.changes.remote = filter(syncResult.changes.remote);
-    }
-
-    return syncResult;
-  }
-
-  remoteRepository: RemoteRepository;
+  /***********************************************
+   * Public properties (readonly)
+   ***********************************************/
 
   /**
-   * Return current retry count (incremental)
+   * remoteURL (readonly)
    */
-  currentRetries (): number {
-    let retries = this._options.retry! - this._retrySyncCounter + 1;
-    if (this._retrySyncCounter === 0) retries = 0;
-    return retries;
+  get remoteURL (): string {
+    return this._options.remoteUrl!;
   }
+
+  private _remoteRepository: RemoteRepository;
+  /**
+   * Remote repository (readonly)
+   */
+  get remoteRepository (): RemoteRepository {
+    return this._remoteRepository;
+  }
+
+  private _options: RemoteOptions;
+  /**
+   * Get clone of remote options (read only)
+   */
+  get options (): Required<RemoteOptions> {
+    const newOptions: Required<RemoteOptions> = JSON.parse(JSON.stringify(this._options));
+    // options include function.
+    newOptions.conflictResolutionStrategy = this._options.conflictResolutionStrategy!;
+    return newOptions;
+  }
+
+  private _upstreamBranch = '';
+  /**
+   * upstreamBranch (read only)
+   */
+  get upstreamBranch (): string {
+    return this._upstreamBranch;
+  }
+
+  /***********************************************
+   * Public properties
+   ***********************************************/
 
   /**
    * SyncEvent handlers
@@ -227,8 +259,9 @@ export class Sync implements ISync {
     error: [],
   };
 
-  upstreamBranch = '';
-
+  /**
+   * Callback for authentication
+   */
   credentialCallbacks: { [key: string]: any };
 
   /**
@@ -248,7 +281,7 @@ export class Sync implements ISync {
    * @throws {@link IntervalTooSmallError}
    * @throws {@link InvalidAuthenticationTypeError}
    */
-  constructor (gitDDB: IDocumentDB, options?: RemoteOptions) {
+  constructor (gitDDB: GitDDBInterface, options?: RemoteOptions) {
     this._gitDDB = gitDDB;
 
     options ??= {
@@ -301,18 +334,22 @@ export class Sync implements ISync {
 
     this.credentialCallbacks = createCredential(this._options);
 
-    this.upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
+    this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
 
     this._checkoutOptions = new nodegit.CheckoutOptions();
     // nodegit.Checkout.STRATEGY.USE_OURS: For unmerged files, checkout stage 2 from index
     this._checkoutOptions.checkoutStrategy =
       nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
-    this.remoteRepository = new RemoteRepository({
+    this._remoteRepository = new RemoteRepository({
       remoteUrl: this._options.remoteUrl,
       connection: this._options.connection,
     });
   }
+
+  /***********************************************
+   * Private properties
+   ***********************************************/
 
   /**
    * Check network connection
@@ -328,6 +365,10 @@ export class Sync implements ISync {
     });
     return okOrNetworkError.ok;
   }
+
+  /***********************************************
+   * Public properties
+   ***********************************************/
 
   /**
    * Create remote connection
@@ -348,10 +389,10 @@ export class Sync implements ISync {
       .catch(err => {
         throw new RemoteRepositoryConnectError(err.message);
       });
-    this._gitDDB.getLogger().debug('git remote: ' + gitResult);
-    this._gitDDB.getLogger().debug('remote repository: ' + remoteResult);
+    this._gitDDB.logger.debug('git remote: ' + gitResult);
+    this._gitDDB.logger.debug('remote repository: ' + remoteResult);
     if (remoteResult === 'create') {
-      this.upstreamBranch = '';
+      this._upstreamBranch = '';
     }
     let syncResult: SyncResult = {
       action: 'nop',
@@ -362,7 +403,7 @@ export class Sync implements ISync {
        */
     }
     else if (this.upstreamBranch === '') {
-      this._gitDDB.getLogger().debug('upstream_branch is empty. tryPush..');
+      this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
       // _trySync() pushes local commits to the remote branch.
       syncResult = await this.tryPush();
@@ -373,14 +414,14 @@ export class Sync implements ISync {
         await repos.getBranch(this._gitDDB.defaultBranch),
         `origin/${this._gitDDB.defaultBranch}`
       );
-      this.upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
+      this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else if (this._options.syncDirection === 'push') {
-      this._gitDDB.getLogger().debug('upstream_branch exists. tryPush..');
+      this._gitDDB.logger.debug('upstream_branch exists. tryPush..');
       syncResult = await this.tryPush();
     }
     else if (this._options.syncDirection === 'both') {
-      this._gitDDB.getLogger().debug('upstream_branch exists. trySync..');
+      this._gitDDB.logger.debug('upstream_branch exists. trySync..');
       syncResult = await this.trySync();
     }
 
@@ -395,24 +436,6 @@ export class Sync implements ISync {
       }
     }
     return syncResult;
-  }
-
-  /**
-   * Get remoteURL
-   *
-   */
-  remoteURL () {
-    return this._options.remoteUrl!;
-  }
-
-  /**
-   * Get remote options (read only)
-   */
-  options (): Required<RemoteOptions> {
-    const newOptions: Required<RemoteOptions> = JSON.parse(JSON.stringify(this._options));
-    // options include function.
-    newOptions.conflictResolutionStrategy = this._options.conflictResolutionStrategy!;
-    return newOptions;
   }
 
   /**
@@ -477,6 +500,24 @@ export class Sync implements ISync {
   }
 
   /**
+   * Stop and clear remote connection
+   */
+  close () {
+    this.pause();
+    this.eventHandlers = {
+      change: [],
+      localChange: [],
+      remoteChange: [],
+      combine: [],
+      pause: [],
+      resume: [],
+      start: [],
+      complete: [],
+      error: [],
+    };
+  }
+
+  /**
    * Try to push with retries
    *
    * @throws {@link PushNotAllowedError} (from this and enqueuePushTask)
@@ -517,7 +558,7 @@ export class Sync implements ISync {
       }
 
       if (error) {
-        this._gitDDB.getLogger().debug('Push failed: ' + error.message);
+        this._gitDDB.logger.debug('Push failed: ' + error.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
           throw error;
@@ -536,11 +577,9 @@ export class Sync implements ISync {
       // eslint-disable-next-line no-await-in-loop
       if (!(await this.canNetworkConnection())) {
         // Retry to connect due to network error.
-        this._gitDDB
-          .getLogger()
-          .debug(
-            CONSOLE_STYLE.bgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
-          );
+        this._gitDDB.logger.debug(
+          CONSOLE_STYLE.bgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
+        );
         // eslint-disable-next-line no-await-in-loop
         await sleep(this._options.retryInterval!);
       }
@@ -601,7 +640,7 @@ export class Sync implements ISync {
           // eslint-disable-next-line no-await-in-loop
           const syncResultCombineDatabase = await combineDatabaseWithTheirs(
             this._gitDDB,
-            this.options()
+            this._options
           ).catch(err => {
             throw new CombineDatabaseError(err.message);
           });
@@ -614,7 +653,7 @@ export class Sync implements ISync {
       }
 
       if (error) {
-        this._gitDDB.getLogger().debug('Sync or push failed: ' + error.message);
+        this._gitDDB.logger.debug('Sync or push failed: ' + error.message);
         this._retrySyncCounter--;
         if (this._retrySyncCounter === 0) {
           throw error;
@@ -642,11 +681,9 @@ export class Sync implements ISync {
         //   - 'push' action throws UnfetchedCommitExistsError
         //   - push_worker in 'merge and push' action throws UnfetchedCommitExistsError
         //   - push_worker in 'resolve conflicts and push' action throws UnfetchedCommitExistsError
-        this._gitDDB
-          .getLogger()
-          .debug(
-            CONSOLE_STYLE.bgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
-          );
+        this._gitDDB.logger.debug(
+          CONSOLE_STYLE.bgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
+        );
         // eslint-disable-next-line no-await-in-loop
         await sleep(this._options.retryInterval!);
       }
@@ -684,16 +721,14 @@ export class Sync implements ISync {
     ) =>
       pushWorker(this._gitDDB, this, taskMetadata)
         .then((syncResultPush: SyncResultPush) => {
-          this._gitDDB
-            .getLogger()
-            .debug(
-              CONSOLE_STYLE.bgWhite().fgBlack().tag()`push_worker: ${JSON.stringify(
-                syncResultPush
-              )}`
-            );
+          this._gitDDB.logger.debug(
+            CONSOLE_STYLE.bgWhite().fgBlack().tag()`push_worker: ${JSON.stringify(
+              syncResultPush
+            )}`
+          );
 
           this.eventHandlers.change.forEach(listener => {
-            const filteredSyncResultPush = this._filterChanges(
+            const filteredSyncResultPush = filterChanges(
               JSON.parse(JSON.stringify(syncResultPush)),
               listener.collectionPath
             ) as SyncResultPush;
@@ -704,7 +739,7 @@ export class Sync implements ISync {
           });
           if (syncResultPush.action === 'push') {
             this.eventHandlers.remoteChange.forEach(listener => {
-              const filteredSyncResultPush = this._filterChanges(
+              const filteredSyncResultPush = filterChanges(
                 JSON.parse(JSON.stringify(syncResultPush)),
                 listener.collectionPath
               ) as SyncResultPush;
@@ -786,13 +821,11 @@ export class Sync implements ISync {
       syncWorker(this._gitDDB, this, taskMetadata)
         // eslint-disable-next-line complexity
         .then(syncResult => {
-          this._gitDDB
-            .getLogger()
-            .debug(
-              CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: ${JSON.stringify(
-                syncResult
-              )}`
-            );
+          this._gitDDB.logger.debug(
+            CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: ${JSON.stringify(
+              syncResult
+            )}`
+          );
 
           if (
             syncResult.action === 'resolve conflicts and push' ||
@@ -804,7 +837,7 @@ export class Sync implements ISync {
           ) {
             this.eventHandlers.change.forEach(listener => {
               let syncResultForChangeEvent = JSON.parse(JSON.stringify(syncResult));
-              syncResultForChangeEvent = this._filterChanges(
+              syncResultForChangeEvent = filterChanges(
                 syncResultForChangeEvent,
                 listener.collectionPath
               ) as SyncResult;
@@ -825,7 +858,7 @@ export class Sync implements ISync {
           ) {
             this.eventHandlers.localChange.forEach(listener => {
               let syncResultForLocalChangeEvent = JSON.parse(JSON.stringify(syncResult));
-              syncResultForLocalChangeEvent = this._filterChanges(
+              syncResultForLocalChangeEvent = filterChanges(
                 syncResultForLocalChangeEvent,
                 listener.collectionPath
               ) as SyncResult;
@@ -843,7 +876,7 @@ export class Sync implements ISync {
           ) {
             this.eventHandlers.remoteChange.forEach(listener => {
               let syncResultForRemoteChangeEvent = JSON.parse(JSON.stringify(syncResult));
-              syncResultForRemoteChangeEvent = this._filterChanges(
+              syncResultForRemoteChangeEvent = filterChanges(
                 syncResultForRemoteChangeEvent,
                 listener.collectionPath
               ) as SyncResult;
@@ -903,6 +936,15 @@ export class Sync implements ISync {
       this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
       // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
     });
+  }
+
+  /**
+   * Return current retry count (incremental)
+   */
+  currentRetries (): number {
+    let retries = this._options.retry! - this._retrySyncCounter + 1;
+    if (this._retrySyncCounter === 0) retries = 0;
+    return retries;
   }
 
   /**
@@ -972,24 +1014,5 @@ export class Sync implements ISync {
       }
     );
     return this;
-  }
-
-  /**
-   * Stop and clear remote connection
-   *
-   */
-  close () {
-    this.pause();
-    this.eventHandlers = {
-      change: [],
-      localChange: [],
-      remoteChange: [],
-      combine: [],
-      pause: [],
-      resume: [],
-      start: [],
-      complete: [],
-      error: [],
-    };
   }
 }

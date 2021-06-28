@@ -93,7 +93,7 @@ describe('<git_documentdb> put(jsonDoc)', () => {
     expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
@@ -116,12 +116,12 @@ describe('<git_documentdb> put(jsonDoc)', () => {
     // Check commit directly
     const commitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`${commitMessage}\n`);
@@ -204,7 +204,7 @@ describe('<git_documentdb> put(_id, jsonDoc)', () => {
     expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
@@ -227,12 +227,12 @@ describe('<git_documentdb> put(_id, jsonDoc)', () => {
     // Check commit directly
     const commitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`${commitMessage}\n`);
@@ -294,7 +294,7 @@ describe('<git_documentdb> putFatDoc(name, jsonDoc)', () => {
     expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
@@ -320,7 +320,7 @@ describe('<git_documentdb> insert(jsonDoc)', () => {
     expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
@@ -365,7 +365,7 @@ describe('<git_documentdb> insert(_id, jsonDoc)', () => {
     expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
@@ -411,7 +411,7 @@ describe('<git_documentdb> insertFatDoc(name, jsonDoc)', () => {
     expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
@@ -440,7 +440,7 @@ describe('<git_documentdb> update(jsonDoc)', () => {
     expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
@@ -488,7 +488,7 @@ describe('<git_documentdb> update(_id, jsonDoc', () => {
     expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
@@ -537,7 +537,7 @@ describe('<git_documentdb> updateFatDoc(name, jsonDoc', () => {
     expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXT}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir(), _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXT);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
@@ -1397,10 +1397,10 @@ describe('<git_documentdb> delete(_id)', () => {
     expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXT}(${shortOid})`);
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
@@ -1413,7 +1413,7 @@ describe('<git_documentdb> delete(_id)', () => {
     // Directory is empty
     await expect(
       fs.access(
-        path.dirname(path.resolve(gitDDB.workingDir(), 'test', _id)),
+        path.dirname(path.resolve(gitDDB.workingDir, 'test', _id)),
         fs.constants.F_OK
       )
     ).rejects.toThrowError();
@@ -1440,10 +1440,10 @@ describe('<git_documentdb> delete(_id)', () => {
     expect(deleteResult.commit.message).toBe(commitMessage);
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`${commitMessage}\n`);
@@ -1476,7 +1476,7 @@ describe('<git_documentdb> delete(jsonDoc)', () => {
 
     const currentCommitOid = await git.resolveRef({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       ref: 'HEAD',
     });
 
@@ -1524,10 +1524,10 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
     expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXT}(${shortOid})`);
 
     // Check commit directly
-    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+    const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
     const { commit } = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
@@ -1540,7 +1540,7 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
     // Directory is empty
     await expect(
       fs.access(
-        path.dirname(path.resolve(gitDDB.workingDir(), 'test', _id)),
+        path.dirname(path.resolve(gitDDB.workingDir, 'test', _id)),
         fs.constants.F_OK
       )
     ).rejects.toThrowError();

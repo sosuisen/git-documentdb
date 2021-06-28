@@ -179,8 +179,8 @@ maybe('<remote/sync> [event]', () => {
         completeB = true;
       });
 
-      syncA.resume({ ...syncA.options(), interval: 3000 });
-      syncB.resume({ ...syncA.options(), interval: 3000 });
+      syncA.resume({ ...syncA.options, interval: 3000 });
+      syncB.resume({ ...syncA.options, interval: 3000 });
 
       // eslint-disable-next-line no-unmodified-loop-condition
       while (!completeA || !completeB) {
@@ -239,7 +239,7 @@ maybe('<remote/sync> [event]', () => {
       });
       await syncB.trySync();
 
-      await sleep(syncA.options().retryInterval! + 5000);
+      await sleep(syncA.options.retryInterval! + 5000);
       expect(resultsB.length).toBe(2);
       expect(resultsB[0].action).toBe('merge and push error');
       expect(resultsB[1].action).toBe('push');
@@ -320,7 +320,7 @@ maybe('<remote/sync> [event]', () => {
 
       await syncB.trySync();
 
-      await sleep(syncB.options().retryInterval! + 5000);
+      await sleep(syncB.options.retryInterval! + 5000);
       expect(localChangesB.length).toBe(1);
 
       await syncB.trySync();
@@ -405,7 +405,7 @@ maybe('<remote/sync> [event]', () => {
 
       await syncB.trySync();
 
-      await sleep(syncB.options().retryInterval! + 5000);
+      await sleep(syncB.options.retryInterval! + 5000);
       expect(remoteChangesB.length).toBe(1);
 
       await syncB.trySync();
@@ -929,7 +929,7 @@ maybe('<remote/sync> [event]', () => {
     syncB.pause();
     expect(pause).toBe(true);
     expect(resume).toBe(false);
-    expect(syncB.options().live).toBe(false);
+    expect(syncB.options.live).toBe(false);
 
     // Check second complete event
     complete = false; // reset
@@ -940,7 +940,7 @@ maybe('<remote/sync> [event]', () => {
 
     syncB.resume();
     expect(resume).toBe(true);
-    expect(syncB.options().live).toBe(true);
+    expect(syncB.options.live).toBe(true);
 
     // Check third complete event
     complete = false; // reset
@@ -1124,7 +1124,7 @@ maybe('<remote/sync> [event]', () => {
     await dbA.put({ _id: '1', name: 'fromA' });
     await syncA.trySync();
 
-    await destroyRemoteRepository(syncA.remoteURL());
+    await destroyRemoteRepository(syncA.remoteURL);
     // Create different repository with the same repository name.
     const [dbB, syncB] = await createDatabase(remoteURLBase, localDir, serialId);
     await dbB.put({ _id: '1', name: 'fromB' });

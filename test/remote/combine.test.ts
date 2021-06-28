@@ -90,7 +90,7 @@ maybe('<remote/combine>', () => {
       await dbB.open();
 
       // trySync throws NoMergeBaseFoundError
-      await expect(dbB.sync(syncA.options())).rejects.toThrowError(NoMergeBaseFoundError);
+      await expect(dbB.sync(syncA.options)).rejects.toThrowError(NoMergeBaseFoundError);
 
       //      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       //      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -116,18 +116,18 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB1);
 
       // Combine with remote db
-      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
       const headCommitOid = await git.resolveRef({
         fs,
-        dir: dbB.workingDir(),
+        dir: dbB.workingDir,
         ref: 'HEAD',
       });
       const headCommit = await git.readCommit({
         fs,
-        dir: dbB.workingDir(),
+        dir: dbB.workingDir,
         oid: headCommitOid,
       });
       expect(headCommit.commit.message).toEqual(`combine database head with theirs\n`);
@@ -149,7 +149,7 @@ maybe('<remote/combine>', () => {
       await dbB.open();
 
       // Combine with remote db
-      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
@@ -184,7 +184,7 @@ maybe('<remote/combine>', () => {
       await dbB.open();
 
       // Combine with remote db
-      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
@@ -218,7 +218,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB1);
 
       // Combine with remote db
-      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
@@ -258,7 +258,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Combine with remote db
-      await dbB.sync(syncA.options());
+      await dbB.sync(syncA.options);
 
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1, jsonB2]);
@@ -274,7 +274,7 @@ maybe('<remote/combine>', () => {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
-      const dbIdA = dbA.dbId();
+      const dbIdA = dbA.dbId;
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
@@ -287,7 +287,7 @@ maybe('<remote/combine>', () => {
       });
       await dbB.open();
 
-      const dbIdB = dbB.dbId();
+      const dbIdB = dbB.dbId;
       expect(dbIdB).not.toBe(dbIdA);
 
       const jsonB1 = { _id: '1', name: 'fromB' };
@@ -297,9 +297,9 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Combine with remote db
-      const [sync, syncResult] = await dbB.sync(syncA.options(), true);
+      const [sync, syncResult] = await dbB.sync(syncA.options, true);
 
-      expect(dbB.dbId()).toBe(dbIdA);
+      expect(dbB.dbId).toBe(dbIdA);
 
       // Put new doc to combined db.
       const jsonB3 = { _id: '3', name: 'fromB' };
@@ -342,7 +342,7 @@ maybe('<remote/combine>', () => {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
       });
-      const dbIdA = dbA.dbId();
+      const dbIdA = dbA.dbId;
 
       const jsonA1 = { _id: 'deep/one', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
@@ -355,7 +355,7 @@ maybe('<remote/combine>', () => {
       });
       await dbB.open();
 
-      const dbIdB = dbB.dbId();
+      const dbIdB = dbB.dbId;
       expect(dbIdB).not.toBe(dbIdA);
 
       const jsonB1 = { _id: 'deep/one', name: 'fromB' };
@@ -365,9 +365,9 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Combine with remote db
-      const [sync, syncResult] = await dbB.sync(syncA.options(), true);
+      const [sync, syncResult] = await dbB.sync(syncA.options, true);
 
-      expect(dbB.dbId()).toBe(dbIdA);
+      expect(dbB.dbId).toBe(dbIdA);
 
       // Put new doc to combined db.
       const jsonB3 = { _id: '3', name: 'fromB' };
@@ -399,7 +399,7 @@ maybe('<remote/combine>', () => {
       });
       expect(getWorkingDirDocs(dbB)).toEqual([jsonB2, jsonB3, jsonB1, jsonA1]);
 
-      const rawJSON = fs.readJSONSync(dbB.workingDir() + '/deep/one.json');
+      const rawJSON = fs.readJSONSync(dbB.workingDir + '/deep/one.json');
       rawJSON._id = 'one'; // not 'deep/one'
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -418,13 +418,13 @@ maybe('<remote/combine>', () => {
         duplicatedFiles = [...duplicates];
       });
 
-      const dbIdA = dbA.dbId();
+      const dbIdA = dbA.dbId;
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
 
       // Delete remote repository
-      await destroyRemoteRepository(syncA.remoteURL());
+      await destroyRemoteRepository(syncA.remoteURL);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
@@ -433,7 +433,7 @@ maybe('<remote/combine>', () => {
       });
       await dbB.open();
 
-      const dbIdB = dbB.dbId();
+      const dbIdB = dbB.dbId;
 
       const jsonB1 = { _id: '1', name: 'fromB' };
       const putResultB1 = await dbB.put(jsonB1);
@@ -442,7 +442,7 @@ maybe('<remote/combine>', () => {
       await dbB.put(jsonB2);
 
       // Create and push to new remote repository
-      const syncB = await dbB.sync(syncA.options());
+      const syncB = await dbB.sync(syncA.options);
       // Combine database on A
       await syncA.trySync().catch(async () => {
         await dbA.destroy();
@@ -507,11 +507,11 @@ maybe('<remote/combine>', () => {
       await dbB.saveAuthor();
 
       // Combine with remote db
-      await expect(dbB.sync(syncA.options())).resolves.not.toThrowError(
+      await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
         NoMergeBaseFoundError
       );
 
-      const config = parse.sync({ cwd: dbB.workingDir(), path: '.git/config' });
+      const config = parse.sync({ cwd: dbB.workingDir, path: '.git/config' });
       expect(config.user).toEqual(author);
 
       await destroyDBs([dbA, dbB]);

@@ -12,7 +12,7 @@ import git from 'isomorphic-git';
 import { normalizeCommit } from '../utils';
 import { SHORT_SHA_LENGTH } from '../const';
 import { NormalizedCommit, PutOptions, PutResult } from '../types';
-import { IDocumentDB } from '../types_gitddb';
+import { GitDDBInterface } from '../types_gitddb';
 import {
   CannotCreateDirectoryError,
   CannotWriteDataError,
@@ -41,7 +41,7 @@ import {
  */
 // eslint-disable-next-line complexity
 export function putImpl (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   collectionPath: string,
   shortId: string | undefined,
   shortName: string,
@@ -109,7 +109,7 @@ export function putImpl (
  * @throws {@link CannotWriteDataError}
  */
 export async function putWorker (
-  gitDDB: IDocumentDB,
+  gitDDB: GitDDBInterface,
   collectionPath: string,
   shortName: string,
   data: Uint8Array | string,
@@ -128,7 +128,7 @@ export async function putWorker (
   let fileOid: string;
   let commit: NormalizedCommit;
 
-  const filePath = path.resolve(gitDDB.workingDir(), fullDocPath);
+  const filePath = path.resolve(gitDDB.workingDir, fullDocPath);
   await fs.ensureDir(path.dirname(filePath)).catch((err: Error) => {
     throw new CannotCreateDirectoryError(err.message);
   });
@@ -137,7 +137,7 @@ export async function putWorker (
     await fs.writeFile(filePath, data);
 
     const headCommit = await git
-      .resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' })
+      .resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' })
       .catch(() => undefined);
 
     const oldEntry =
@@ -146,7 +146,7 @@ export async function putWorker (
         : await git
           .readBlob({
             fs,
-            dir: gitDDB.workingDir(),
+            dir: gitDDB.workingDir,
             oid: headCommit,
             filepath: fullDocPath,
           })
@@ -161,7 +161,7 @@ export async function putWorker (
       insertOrUpdate ??= 'insert';
     }
 
-    await git.add({ fs, dir: gitDDB.workingDir(), filepath: fullDocPath });
+    await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
     const { oid } = await git.hashBlob({ object: data });
     fileOid = oid;
@@ -175,14 +175,14 @@ export async function putWorker (
     // Default ref is HEAD
     const commitOid = await git.commit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       author: gitDDB.author,
       committer: gitDDB.committer,
       message: commitMessage,
     });
     const readCommitResult = await git.readCommit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       oid: commitOid,
     });
     commit = normalizeCommit(readCommitResult);

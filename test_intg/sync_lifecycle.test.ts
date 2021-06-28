@@ -104,7 +104,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
       };
       await dbA.open();
       const syncA = await dbA.sync(options);
-      expect(syncA.remoteURL()).toBe(remoteURL);
+      expect(syncA.remoteURL).toBe(remoteURL);
       destroyDBs([dbA]);
     });
 
@@ -339,8 +339,8 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
 
-        expect(syncA.options().live).toBeTruthy();
-        expect(syncA.options().interval).toBe(interval);
+        expect(syncA.options.live).toBeTruthy();
+        expect(syncA.options.interval).toBe(interval);
 
         // Wait live sync()
         while (dbA.taskQueue.currentStatistics().sync === 0) {
@@ -379,11 +379,11 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbA.open();
         const syncA = await dbA.sync(options);
 
-        expect(syncA.options().live).toBeTruthy();
+        expect(syncA.options.live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
         syncA.pause();
         await sleep(interval * 2);
-        expect(syncA.options().live).toBeFalsy();
+        expect(syncA.options.live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         await destroyDBs([dbA]);
@@ -408,19 +408,19 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbA.open();
         const syncA = await dbA.sync(options);
 
-        expect(syncA.options().live).toBeTruthy();
+        expect(syncA.options.live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
         expect(syncA.pause()).toBeTruthy();
         expect(syncA.pause()).toBeFalsy(); // ignored
 
         await sleep(interval * 2);
-        expect(syncA.options().live).toBeFalsy();
+        expect(syncA.options.live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         expect(syncA.resume()).toBeTruthy();
         expect(syncA.resume()).toBeFalsy(); // ignored
         await sleep(interval * 2);
-        expect(syncA.options().live).toBeTruthy();
+        expect(syncA.options.live).toBeTruthy();
         expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThan(count);
 
         await destroyDBs([dbA]);
@@ -445,14 +445,14 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbA.open();
         const syncA = await dbA.sync(options);
 
-        expect(syncA.options().live).toBeTruthy();
+        expect(syncA.options.live).toBeTruthy();
         const count = dbA.taskQueue.currentStatistics().sync;
         await dbA.close();
 
         syncA.resume(); // resume() must be ignored after close();
 
         await sleep(interval * 2);
-        expect(syncA.options().live).toBeFalsy();
+        expect(syncA.options.live).toBeFalsy();
         expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
         await destroyDBs([dbA]);
@@ -477,7 +477,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbA.open();
         const syncA = await dbA.sync(options);
 
-        expect(syncA.options().interval).toBe(interval);
+        expect(syncA.options.interval).toBe(interval);
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -496,7 +496,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         syncA.resume({
           interval: interval * 3,
         });
-        expect(syncA.options().interval).toBe(interval * 3);
+        expect(syncA.options.interval).toBe(interval * 3);
         await sleep(interval);
         // Check count before next sync()
         expect(dbA.taskQueue.currentStatistics().sync).toBe(currentCount);

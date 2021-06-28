@@ -151,7 +151,7 @@ describe('<crud/delete>', () => {
 
       const currentCommitOid = await git.resolveRef({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         ref: 'HEAD',
       });
 
@@ -202,10 +202,10 @@ describe('<crud/delete>', () => {
       );
 
       // Check commit directly
-      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
       const { commit } = await git.readCommit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         oid: commitOid,
       });
       expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
@@ -233,10 +233,10 @@ describe('<crud/delete>', () => {
       expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXT}(${shortOid})`);
 
       // Check commit directly
-      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir(), ref: 'HEAD' });
+      const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
       const { commit } = await git.readCommit({
         fs,
-        dir: gitDDB.workingDir(),
+        dir: gitDDB.workingDir,
         oid: commitOid,
       });
       expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);

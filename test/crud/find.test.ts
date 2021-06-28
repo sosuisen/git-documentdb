@@ -129,19 +129,19 @@ describe('<crud/find> find()', () => {
       localDir,
     });
 
-    const infoPath = path.resolve(gitDDB.workingDir(), GIT_DOCUMENTDB_INFO_ID + JSON_EXT);
+    const infoPath = path.resolve(gitDDB.workingDir, GIT_DOCUMENTDB_INFO_ID + JSON_EXT);
     await fs.ensureDir(path.dirname(infoPath));
     // Create empty repository
-    await git.init({ fs, dir: gitDDB.workingDir(), defaultBranch: 'main' });
+    await git.init({ fs, dir: gitDDB.workingDir, defaultBranch: 'main' });
     await fs.writeFile(infoPath, {});
     await git.add({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       filepath: GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
     });
     await git.commit({
       fs,
-      dir: gitDDB.workingDir(),
+      dir: gitDDB.workingDir,
       author: {
         name: 'test',
         email: 'text@example.com',
