@@ -4,6 +4,7 @@
 
 ## RequestTimeoutError class
 
+
 <b>Signature:</b>
 
 ```typescript

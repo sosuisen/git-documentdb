@@ -9,12 +9,12 @@ Constructs a new instance of the `Validator` class
 <b>Signature:</b>
 
 ```typescript
-constructor(_workingDir: string);
+constructor(workingDir: string);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_workingDir | string |  |
+|  workingDir | string |  |
 

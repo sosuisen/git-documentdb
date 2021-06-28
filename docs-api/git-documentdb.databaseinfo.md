@@ -10,7 +10,7 @@ Database info
 
 ```typescript
 export declare type DatabaseInfo = {
-    db_id: string;
+    dbId: string;
     creator: string;
     version: string;
 };
@@ -18,9 +18,9 @@ export declare type DatabaseInfo = {
 
 ## Remarks
 
-- db\_id: ULID of the database. (See https://github.com/ulid/spec for ULID)
+- dbId: ULID of the database. (See https://github.com/ulid/spec for ULID)
 
-- creator: Creator of the database. Default is 'GitDocumentDB'.
+- creator: Creator of the database. Default is 'GitDocumentDB'. The creator is described in .gitddb/info.json.
 
-- version: Version of the GitDocumentDB specification.
+- version: Version of the GitDocumentDB specification. The version is described in .gitddb/info.json.
 

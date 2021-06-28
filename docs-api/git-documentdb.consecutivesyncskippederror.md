@@ -4,6 +4,7 @@
 
 ## ConsecutiveSyncSkippedError class
 
+
 <b>Signature:</b>
 
 ```typescript

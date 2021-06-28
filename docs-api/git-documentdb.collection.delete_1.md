@@ -4,42 +4,38 @@
 
 ## Collection.delete() method
 
-Remove a document
+Delete a document by \_id property in JsonDoc
 
 <b>Signature:</b>
 
 ```typescript
-delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | Target document |
+|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | JsonDoc whose \_id is shortId. Only the \_id property is referenced. shortId is a file path whose collectionPath and .json extension are omitted. |
 |  options | [DeleteOptions](./git-documentdb.deleteoptions.md) |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
+Promise&lt;[DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md)<!-- -->&gt;
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
-
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
-
 [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) when the specified document does not exist.
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md) (from deleteImpl)
 
-[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
+[TaskCancelError](./git-documentdb.taskcancelerror.md) (from deleteImpl)
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) (from deleteWorker)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+[UndefinedDBError](./git-documentdb.undefineddberror.md) (from deleteWorker)
 
-[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) (from deleteWorker)
 
-[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
+[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) (from deleteWorker)
 

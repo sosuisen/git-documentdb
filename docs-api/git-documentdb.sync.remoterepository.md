@@ -4,8 +4,10 @@
 
 ## Sync.remoteRepository property
 
+Remote repository
+
 <b>Signature:</b>
 
 ```typescript
-remoteRepository: RemoteRepository;
+get remoteRepository(): RemoteRepository;
 ```

@@ -9,12 +9,12 @@ Constructs a new instance of the `DatabaseCloseTimeoutError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(e?: string);
+constructor(e?: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  e | string |  |
+|  e | unknown |  |
 

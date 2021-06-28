@@ -4,6 +4,7 @@
 
 ## HttpProtocolRequiredError class
 
+
 <b>Signature:</b>
 
 ```typescript

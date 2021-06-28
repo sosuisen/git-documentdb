@@ -2,18 +2,12 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [workingDir](./git-documentdb.gitdocumentdb.workingdir.md)
 
-## GitDocumentDB.workingDir() method
+## GitDocumentDB.workingDir property
 
 Get a full path of the current Git working directory
 
 <b>Signature:</b>
 
 ```typescript
-workingDir(): string;
+get workingDir(): string;
 ```
-<b>Returns:</b>
-
-string
-
-Full path of the directory (trailing slash is omitted)
-

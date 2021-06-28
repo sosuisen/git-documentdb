@@ -4,11 +4,19 @@
 
 ## SyncResultPush interface
 
+Push action occurred in synchronization.
+
 <b>Signature:</b>
 
 ```typescript
 export interface SyncResultPush 
 ```
+
+## Remarks
+
+- commits are sorted from old to new.
+
+- commits.remote: List of commits which has been pushed to remote
 
 ## Properties
 

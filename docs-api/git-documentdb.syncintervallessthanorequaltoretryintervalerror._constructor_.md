@@ -9,13 +9,13 @@ Constructs a new instance of the `SyncIntervalLessThanOrEqualToRetryIntervalErro
 <b>Signature:</b>
 
 ```typescript
-constructor(syncInterval: number, retryInterval: number);
+constructor(syncInterval: unknown, retryInterval: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  syncInterval | number |  |
-|  retryInterval | number |  |
+|  syncInterval | unknown |  |
+|  retryInterval | unknown |  |
 

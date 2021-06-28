@@ -4,14 +4,16 @@
 
 ## ChangedFileUpdate type
 
+Updated file in merge operation
+
 <b>Signature:</b>
 
 ```typescript
 export declare type ChangedFileUpdate = {
     operation: 'update';
-    old: JsonDocWithMetadata;
-    new: JsonDocWithMetadata;
+    old: FatDoc;
+    new: FatDoc;
 };
 ```
-<b>References:</b> [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)
+<b>References:</b> [FatDoc](./git-documentdb.fatdoc.md)
 

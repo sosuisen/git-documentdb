@@ -4,10 +4,10 @@
 
 ## GitDocumentDB.schema property
 
-Schema
+Schema for specific document type
 
 <b>Signature:</b>
 
 ```typescript
-schema: Schema;
+get schema(): Schema;
 ```

@@ -10,9 +10,11 @@ Return false if given name includes Windows invalid filename character
 
 ```typescript
 testWindowsInvalidFileNameCharacter(name: string, options?: {
-        allow_slash?: boolean;
-        allow_drive_letter?: boolean;
-        allow_directory_dot?: boolean;
+        allowSlash?: boolean;
+        allowDriveLetter?: boolean;
+        allowDirectoryDot?: boolean;
+        allowDot?: boolean;
+        allowLastSpace?: boolean;
     }): boolean;
 ```
 
@@ -21,7 +23,7 @@ testWindowsInvalidFileNameCharacter(name: string, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  name | string |  |
-|  options | { allow\_slash?: boolean; allow\_drive\_letter?: boolean; allow\_directory\_dot?: boolean; } |  |
+|  options | { allowSlash?: boolean; allowDriveLetter?: boolean; allowDirectoryDot?: boolean; allowDot?: boolean; allowLastSpace?: boolean; } |  |
 
 <b>Returns:</b>
 

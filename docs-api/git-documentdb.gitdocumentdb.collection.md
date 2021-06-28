@@ -9,20 +9,23 @@ Get a collection
 <b>Signature:</b>
 
 ```typescript
-collection(collectionPath: CollectionPath): Collection;
+collection(collectionPath: CollectionPath, options?: CollectionOptions): Collection;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collectionPath | [CollectionPath](./git-documentdb.collectionpath.md) | path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'. |
+|  collectionPath | [CollectionPath](./git-documentdb.collectionpath.md) | relative path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'. |
+|  options | [CollectionOptions](./git-documentdb.collectionoptions.md) |  |
 
 <b>Returns:</b>
 
 [Collection](./git-documentdb.collection.md)
 
+A child collection of [GitDocumentDB.rootCollection](./git-documentdb.gitdocumentdb.rootcollection.md)
+
 ## Remarks
 
-- Notice that this function does not make a sub-directory under the working directory.
+- Notice that this function just read existing directory. It does not make a new sub-directory.
 

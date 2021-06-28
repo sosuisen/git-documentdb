@@ -4,7 +4,7 @@
 
 ## TaskMetadata type
 
-TaskMetadata
+Metadata of a task
 
 <b>Signature:</b>
 
@@ -12,7 +12,9 @@ TaskMetadata
 export declare type TaskMetadata = {
     label: TaskLabel;
     taskId: string;
-    targetId?: string;
+    shortId?: string;
+    shortName?: string;
+    collectionPath?: string;
     enqueueTime?: string;
 };
 ```

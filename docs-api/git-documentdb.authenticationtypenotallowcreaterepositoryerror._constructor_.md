@@ -9,12 +9,12 @@ Constructs a new instance of the `AuthenticationTypeNotAllowCreateRepositoryErro
 <b>Signature:</b>
 
 ```typescript
-constructor(type: string | undefined);
+constructor(type: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  type | string \| undefined |  |
+|  type | unknown |  |
 

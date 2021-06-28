@@ -4,6 +4,7 @@
 
 ## UndefinedRemoteURLError class
 
+
 <b>Signature:</b>
 
 ```typescript

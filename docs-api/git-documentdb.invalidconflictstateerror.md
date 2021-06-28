@@ -4,6 +4,7 @@
 
 ## InvalidConflictStateError class
 
+
 <b>Signature:</b>
 
 ```typescript

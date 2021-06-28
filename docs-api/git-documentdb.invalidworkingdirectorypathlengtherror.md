@@ -4,6 +4,7 @@
 
 ## InvalidWorkingDirectoryPathLengthError class
 
+
 <b>Signature:</b>
 
 ```typescript

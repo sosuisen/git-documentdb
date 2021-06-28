@@ -9,5 +9,5 @@ DB is going to close
 <b>Signature:</b>
 
 ```typescript
-isClosing: boolean;
+get isClosing(): boolean;
 ```

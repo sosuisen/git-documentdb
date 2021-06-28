@@ -9,12 +9,12 @@ Constructs a new instance of the `CannotCreateRemoteRepositoryError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(reason: string);
+constructor(reason: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  reason | string |  |
+|  reason | unknown |  |
 

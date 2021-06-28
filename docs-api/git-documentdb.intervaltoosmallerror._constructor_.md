@@ -9,13 +9,13 @@ Constructs a new instance of the `IntervalTooSmallError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(min: number, current: number);
+constructor(min: unknown, current: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  min | number |  |
-|  current | number |  |
+|  min | unknown |  |
+|  current | unknown |  |
 

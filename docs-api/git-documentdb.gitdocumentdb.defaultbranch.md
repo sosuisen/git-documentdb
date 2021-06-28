@@ -4,6 +4,8 @@
 
 ## GitDocumentDB.defaultBranch property
 
+Default Git branch
+
 <b>Signature:</b>
 
 ```typescript

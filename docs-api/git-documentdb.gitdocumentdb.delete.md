@@ -4,38 +4,42 @@
 
 ## GitDocumentDB.delete() method
 
-Remove a document
+Delete a JSON document
 
 <b>Signature:</b>
 
 ```typescript
-delete(id: string, options?: DeleteOptions): Promise<DeleteResult>;
+delete(_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  id | string | id of a target document |
+|  \_id | string | \_id is a file path whose .json extension is omitted. |
 |  options | [DeleteOptions](./git-documentdb.deleteoptions.md) |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
+Promise&lt;[DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md)<!-- -->&gt;
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) (from Collection\#delete)
 
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md) (from deleteImpl)
 
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+[TaskCancelError](./git-documentdb.taskcancelerror.md) (from deleteImpl)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) when the specified document does not exist.
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) (from deleteWorker)
 
-[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
+[UndefinedDBError](./git-documentdb.undefineddberror.md) (from deleteWorker)
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) (from deleteWorker)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) (from deleteWorker)
+
+## Remarks
+
+- This is an alias of GitDocumentDB\#rootCollection.delete()
 

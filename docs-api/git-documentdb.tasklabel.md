@@ -4,7 +4,7 @@
 
 ## TaskLabel type
 
-TaskLabel DatabaseStatistics.taskCount must have the same members.
+Union type of properties of TaskStatistics
 
 <b>Signature:</b>
 

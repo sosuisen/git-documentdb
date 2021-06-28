@@ -6,7 +6,7 @@
 
 Validate \_id
 
-\_id = collectionPath + fileName
+\_id = collectionPath + shortId (not including postfix '.json')
 
 <b>Signature:</b>
 
@@ -36,11 +36,5 @@ void
 
 ## Remarks
 
-- \_id allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0
-
-- \_id cannot start with a slash and an underscore \_.
-
-- A directory name cannot end with a period or a white space.
-
-- A directory name does not allow '.' and '..'.
+Spec of \_id is described at [JsonDoc](./git-documentdb.jsondoc.md)<!-- -->.
 

@@ -4,6 +4,8 @@
 
 ## SyncResultNop interface
 
+No action occurs in synchronization.
+
 <b>Signature:</b>
 
 ```typescript

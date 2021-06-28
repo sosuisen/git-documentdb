@@ -4,13 +4,13 @@
 
 ## DeleteOptions type
 
-Options for delete()
+Options for delete
 
 <b>Signature:</b>
 
 ```typescript
 export declare type DeleteOptions = {
-    commit_message?: string;
+    commitMessage?: string;
     taskId?: string;
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
@@ -19,5 +19,9 @@ export declare type DeleteOptions = {
 
 ## Remarks
 
-- commit\_message: internal commit message. default is 'delete: path/to/the/file'
+- commitMessage: Git commit message. Default is 'delete: path/to/the/file(<!-- -->&lt;<!-- -->fileOid<!-- -->&gt;<!-- -->)'.
+
+- taskId: taskId is used in TaskQueue to distinguish CRUD and synchronization tasks. It is usually generated automatically. Set it if you would like to monitor this delete task explicitly.
+
+- enqueueCallback: A callback function called just after this delete task is enqueued to TaskQueue.
 

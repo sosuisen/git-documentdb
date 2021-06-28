@@ -4,26 +4,25 @@
 
 ## Collection.getCollections() method
 
-Get collections whose path start with specified path
+Get collections directly under the specified dirPath.
 
 <b>Signature:</b>
 
 ```typescript
-static getCollections(gitDDB: CRUDInterface & IDocumentDB, rootPath?: string): Promise<Collection[]>;
+getCollections(dirPath?: string): Promise<ICollection[]>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  gitDDB | CRUDInterface &amp; IDocumentDB |  |
-|  rootPath | string | Default is '/'. |
+|  dirPath | string | dirPath is a relative path from collectionPath. Default is ''. |
 
 <b>Returns:</b>
 
-Promise&lt;[Collection](./git-documentdb.collection.md)<!-- -->\[\]&gt;
+Promise&lt;ICollection\[\]&gt;
 
-Collection\[\]
+Array of Collections which does not include ''
 
 ## Exceptions
 

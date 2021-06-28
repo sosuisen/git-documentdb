@@ -280,11 +280,6 @@ export class GitDocumentDB
     return this._logLevel;
   }
 
-  /**
-   * logLevel ('silly' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal')
-   *
-   * @public
-   */
   set logLevel (level: TLogLevelName) {
     this._logLevel = level;
     this._logger = new Logger({
@@ -628,7 +623,7 @@ export class GitDocumentDB
    * @remarks
    * - Notice that this function just read existing directory. It does not make a new sub-directory.
    *
-   * @returns A child collection of {@link ./rootcollection}
+   * @returns A child collection of {@link git-documentdb#GitDocumentDB.rootCollection}
    *
    * @public
    */
@@ -639,8 +634,8 @@ export class GitDocumentDB
   /**
    * Get collections
    *
-   * @param dirPath Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
-   * @returns Promise<Collection[]>
+   * @param dirPath - Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
+   * @returns Promise\<Collection[]\>
    * @throws {@link RepositoryNotOpenError}
    *
    * @public
@@ -1346,7 +1341,7 @@ export class GitDocumentDB
    * @param _id - _id is a file path whose .json extension is omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
-   * See {@link ./gethistory} for the array of revisions.
+   * See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    *
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
@@ -1375,9 +1370,9 @@ export class GitDocumentDB
    * @param name - name is a file path.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
-   * See {@link ./gethistory} for the array of revisions.
+   * See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    *
-   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if a document does not exists or a document is deleted.
@@ -1419,7 +1414,7 @@ export class GitDocumentDB
    * - This is an alias of GitDocumentDB.rootCollection.getHistory().
    *
    * @param _id - _id is a file path whose .json extension is omitted.
-   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @example
    * ```
@@ -1474,7 +1469,7 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.getFatDocHistory()
    *
-   *  - See {@link ./gethistory} for detailed examples.
+   *  - See {@link git-documentdb#GitDocumentDB.getHistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.

@@ -9,12 +9,12 @@ Constructs a new instance of the `RepositoryNotFoundError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(path: string);
+constructor(path: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  path | string |  |
+|  path | unknown |  |
 

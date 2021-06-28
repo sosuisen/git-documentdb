@@ -4,6 +4,7 @@
 
 ## SocketTimeoutError class
 
+
 <b>Signature:</b>
 
 ```typescript

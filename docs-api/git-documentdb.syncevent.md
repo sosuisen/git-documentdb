@@ -4,10 +4,10 @@
 
 ## SyncEvent type
 
-SyncEvent
+Union type of SyncEvents
 
 <b>Signature:</b>
 
 ```typescript
-export declare type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'combine' | 'paused' | 'active' | 'start' | 'complete' | 'error';
+export declare type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'combine' | 'pause' | 'resume' | 'start' | 'complete' | 'error';
 ```

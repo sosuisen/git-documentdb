@@ -4,6 +4,11 @@
 
 ## GitDocumentDB.setRepository() method
 
+> Warning: This API is now obsolete.
+> 
+> This will be removed when NodeGit is replaced with isomorphic-git.
+> 
+
 Set repository
 
 <b>Signature:</b>

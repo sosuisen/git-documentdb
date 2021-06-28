@@ -4,6 +4,7 @@
 
 ## RemoteRepository class
 
+
 <b>Signature:</b>
 
 ```typescript
@@ -14,13 +15,13 @@ export declare class RemoteRepository
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(options)](./git-documentdb.remoterepository._constructor_.md) |  | Constructs a new instance of the <code>RemoteRepository</code> class |
+|  [(constructor)(options)](./git-documentdb.remoterepository._constructor_.md) |  | Constructor |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [connect(repos, credential\_callbacks, onlyFetch)](./git-documentdb.remoterepository.connect.md) |  | Set a remote repository and connect to the remote repository. A remote repository will be created if not exists. |
+|  [connect(repos, credentialCallbacks, onlyFetch)](./git-documentdb.remoterepository.connect.md) |  | Set a remote repository and connect to the remote repository. A remote repository will be created if not exists. |
 |  [create()](./git-documentdb.remoterepository.create.md) |  | Create a repository on a remote site |
 |  [destroy()](./git-documentdb.remoterepository.destroy.md) |  | Delete a repository on a remote site |
 

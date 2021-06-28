@@ -2,16 +2,12 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [dbName](./git-documentdb.gitdocumentdb.dbname.md)
 
-## GitDocumentDB.dbName() method
+## GitDocumentDB.dbName property
 
-Get dbName
+A name of a git repository
 
 <b>Signature:</b>
 
 ```typescript
-dbName(): string;
+get dbName(): string;
 ```
-<b>Returns:</b>
-
-string
-

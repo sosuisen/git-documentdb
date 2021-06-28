@@ -4,20 +4,22 @@
 
 ## Collection.(constructor)
 
-Constructs a new instance of the `Collection` class
+Constructor
 
 <b>Signature:</b>
 
 ```typescript
-constructor(_gitDDB: CRUDInterface & IDocumentDB, _collectionPath: CollectionPath);
+constructor(gitDDB: GitDDBInterface, collectionPathFromParent?: CollectionPath, parent?: ICollection, options?: CollectionOptions);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_gitDDB | CRUDInterface &amp; IDocumentDB |  |
-|  \_collectionPath | [CollectionPath](./git-documentdb.collectionpath.md) |  |
+|  gitDDB | GitDDBInterface |  |
+|  collectionPathFromParent | [CollectionPath](./git-documentdb.collectionpath.md) | A relative collectionPath from a parent collection. |
+|  parent | ICollection | A parent collection of this collection. |
+|  options | [CollectionOptions](./git-documentdb.collectionoptions.md) |  |
 
 ## Exceptions
 

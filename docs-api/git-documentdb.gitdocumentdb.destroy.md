@@ -40,7 +40,5 @@ Promise&lt;{ ok: true; }&gt;
 
 - The Git repository and the working directory are removed from the filesystem.
 
-- local\_dir (which is specified in constructor) is not removed.
-
-- destroy() can remove a database that has not been created yet if a working directory exists.
+- localDir (which is specified in constructor) is not removed.
 

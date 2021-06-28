@@ -4,6 +4,7 @@
 
 ## DATABASE\_CREATOR variable
 
+
 <b>Signature:</b>
 
 ```typescript

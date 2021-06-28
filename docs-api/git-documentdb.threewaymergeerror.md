@@ -4,6 +4,7 @@
 
 ## ThreeWayMergeError class
 
+
 <b>Signature:</b>
 
 ```typescript

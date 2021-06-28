@@ -4,6 +4,7 @@
 
 ## FileRemoveTimeoutError class
 
+
 <b>Signature:</b>
 
 ```typescript

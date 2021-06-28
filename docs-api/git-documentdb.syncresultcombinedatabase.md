@@ -4,13 +4,17 @@
 
 ## SyncResultCombineDatabase interface
 
-Combine databases (no push)
+Combine action occurred in synchronization.
 
 <b>Signature:</b>
 
 ```typescript
 export interface SyncResultCombineDatabase 
 ```
+
+## Remarks
+
+Push action does not occur after combine action.
 
 ## Properties
 

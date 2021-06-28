@@ -4,6 +4,8 @@
 
 ## SyncCompleteCallback type
 
+Callback of compete event
+
 <b>Signature:</b>
 
 ```typescript

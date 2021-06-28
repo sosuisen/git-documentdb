@@ -4,13 +4,15 @@
 
 ## ChangedFileInsert type
 
+Inserted file in merge operation
+
 <b>Signature:</b>
 
 ```typescript
 export declare type ChangedFileInsert = {
     operation: 'insert';
-    new: JsonDocWithMetadata;
+    new: FatDoc;
 };
 ```
-<b>References:</b> [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)
+<b>References:</b> [FatDoc](./git-documentdb.fatdoc.md)
 

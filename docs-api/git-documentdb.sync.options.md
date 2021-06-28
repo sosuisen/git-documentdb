@@ -2,16 +2,12 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [Sync](./git-documentdb.sync.md) &gt; [options](./git-documentdb.sync.options.md)
 
-## Sync.options() method
+## Sync.options property
 
-Get remote options (read only)
+Get clone of remote options
 
 <b>Signature:</b>
 
 ```typescript
-options(): Required<RemoteOptions>;
+get options(): Required<RemoteOptions>;
 ```
-<b>Returns:</b>
-
-Required&lt;[RemoteOptions](./git-documentdb.remoteoptions.md)<!-- -->&gt;
-

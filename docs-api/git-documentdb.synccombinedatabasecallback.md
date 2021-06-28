@@ -4,6 +4,8 @@
 
 ## SyncCombineDatabaseCallback type
 
+Callback of combine event
+
 <b>Signature:</b>
 
 ```typescript

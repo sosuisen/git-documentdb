@@ -9,5 +9,5 @@ Task queue
 <b>Signature:</b>
 
 ```typescript
-taskQueue: TaskQueue;
+get taskQueue(): TaskQueue;
 ```

@@ -4,6 +4,7 @@
 
 ## FetchPermissionDeniedError class
 
+
 <b>Signature:</b>
 
 ```typescript

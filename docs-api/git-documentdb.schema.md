@@ -4,7 +4,7 @@
 
 ## Schema type
 
-Schema
+Schema for specific document type
 
 <b>Signature:</b>
 
@@ -14,10 +14,4 @@ export declare type Schema = {
 };
 ```
 <b>References:</b> [JsonDiffOptions](./git-documentdb.jsondiffoptions.md)
-
-## Remarks
-
-- plainTextProperties: Only property whose key matches plainTextProperties uses text diff algorithm: google-diff-match-patch.
-
-e.g. { a: { b: true }<!-- -->, c: true } matches 'b' (whose ancestor is only 'a') and 'c'. { a: { \_all: true } } matches all child properties of 'a'. { a: { \_regex: /abc/ } } matches child properties of 'a' which match /abc/.
 

@@ -4,6 +4,11 @@
 
 ## GitDocumentDB.repository() method
 
+> Warning: This API is now obsolete.
+> 
+> This will be removed when NodeGit is replaced with isomorphic-git.
+> 
+
 Get a current repository
 
 <b>Signature:</b>

@@ -2,16 +2,12 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [dbId](./git-documentdb.gitdocumentdb.dbid.md)
 
-## GitDocumentDB.dbId() method
+## GitDocumentDB.dbId property
 
 Get dbId
 
 <b>Signature:</b>
 
 ```typescript
-dbId(): string;
+get dbId(): string;
 ```
-<b>Returns:</b>
-
-string
-

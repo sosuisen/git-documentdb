@@ -4,13 +4,15 @@
 
 ## ChangedFileDelete type
 
+Deleted file in merge operation
+
 <b>Signature:</b>
 
 ```typescript
 export declare type ChangedFileDelete = {
     operation: 'delete';
-    old: JsonDocWithMetadata;
+    old: FatDoc;
 };
 ```
-<b>References:</b> [JsonDocWithMetadata](./git-documentdb.jsondocwithmetadata.md)
+<b>References:</b> [FatDoc](./git-documentdb.fatdoc.md)
 

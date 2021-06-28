@@ -4,6 +4,7 @@
 
 ## PushNotAllowedError class
 
+
 <b>Signature:</b>
 
 ```typescript

@@ -9,14 +9,14 @@ Constructs a new instance of the `InvalidCollectionPathLengthError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(collectionPath: string, minLength: number, maxLength: number);
+constructor(collectionPath: unknown, minLength: unknown, maxLength: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  collectionPath | string |  |
-|  minLength | number |  |
-|  maxLength | number |  |
+|  collectionPath | unknown |  |
+|  minLength | unknown |  |
+|  maxLength | unknown |  |
 

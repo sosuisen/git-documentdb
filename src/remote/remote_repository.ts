@@ -41,7 +41,11 @@ export class RemoteRepository {
   private _octokit: Octokit | undefined;
 
   /**
+   * Constructor
+   *
    * @throws {@link InvalidAuthenticationTypeError}
+   *
+   * @public
    */
   constructor (options: RemoteOptions) {
     if (options.remoteUrl === undefined || options.remoteUrl === '') {
@@ -87,6 +91,7 @@ export class RemoteRepository {
    *
    * @throws {@link AuthenticationTypeNotAllowCreateRepositoryError}
    *
+   * @public
    */
   async create () {
     if (this._options.connection?.type === 'github') {
@@ -156,8 +161,9 @@ export class RemoteRepository {
    *
    *  - Other network errors
    *
-   * @throws {@AuthenticationTypeNotAllowCreateRepositoryError}
+   * @throws {@link AuthenticationTypeNotAllowCreateRepositoryError}
    *
+   * @public
    */
   async destroy () {
     if (this._options.connection?.type === 'github') {
@@ -286,6 +292,8 @@ export class RemoteRepository {
    * @throws {@link RemoteRepositoryNotFoundError}
    * @throws {@link PushPermissionDeniedError}
    * @throws Error (Other errors from NodeGit.Remote#connect())
+   *
+   * @internal
    */
   // eslint-disable-next-line complexity
   private async _checkPush (
@@ -340,6 +348,8 @@ export class RemoteRepository {
    * @throws {@link FetchConnectionFailedError}
    * @throws {@link CannotCreateRemoteRepositoryError}
    * @throws {@link PushConnectionFailedError}
+   *
+   * @public
    */
   async connect (
     repos: nodegit.Repository,

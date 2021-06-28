@@ -4,6 +4,7 @@
 
 ## FIRST\_COMMIT\_MESSAGE variable
 
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,6 +4,7 @@
 
 ## SyncWorkerError class
 
+
 <b>Signature:</b>
 
 ```typescript

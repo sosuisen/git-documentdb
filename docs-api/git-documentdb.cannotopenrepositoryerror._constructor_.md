@@ -9,12 +9,12 @@ Constructs a new instance of the `CannotOpenRepositoryError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(err: string);
+constructor(err: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  err | string |  |
+|  err | unknown |  |
 

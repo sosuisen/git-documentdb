@@ -10,7 +10,7 @@ Return false if given name equals Windows reserved filename
 
 ```typescript
 testWindowsReservedFileName(name: string, options?: {
-        allow_directory_dot?: boolean;
+        allowDirectoryDot?: boolean;
     }): boolean;
 ```
 
@@ -19,7 +19,7 @@ testWindowsReservedFileName(name: string, options?: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  name | string |  |
-|  options | { allow\_directory\_dot?: boolean; } |  |
+|  options | { allowDirectoryDot?: boolean; } |  |
 
 <b>Returns:</b>
 

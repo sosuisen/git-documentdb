@@ -4,6 +4,7 @@
 
 ## InvalidSSHKeyPathError class
 
+
 <b>Signature:</b>
 
 ```typescript

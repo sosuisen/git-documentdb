@@ -20,7 +20,7 @@
     "upload-coverage": "npx coveralls < coverage/lcov.info",
     "prepare": "",
     "prepublishOnly": "npm run build && npm test",
-    "api-extractor": "npx api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs-api",
+    "api-extractor": "api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs-api",
     "lint": "eslint --fix --ext .ts .",
     "crlf": "npx crlf --set=LF docs-api/* etc/* "
   },

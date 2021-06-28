@@ -11,14 +11,14 @@ Connection settings for GitHub
 ```typescript
 export declare type ConnectionSettingsGitHub = {
     type: 'github';
-    personal_access_token?: string;
+    personalAccessToken?: string;
     private?: boolean;
 };
 ```
 
 ## Remarks
 
-- personal\_access\_token: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
+- personalAccessToken: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
 - private: Whether automatically created repository is private or not. Default is true.
 

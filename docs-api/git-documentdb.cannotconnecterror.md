@@ -4,6 +4,7 @@
 
 ## CannotConnectError class
 
+
 <b>Signature:</b>
 
 ```typescript

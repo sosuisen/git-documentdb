@@ -4,11 +4,19 @@
 
 ## SyncResultFastForwardMerge interface
 
+Fast-forward action occurred in synchronization.
+
 <b>Signature:</b>
 
 ```typescript
 export interface SyncResultFastForwardMerge 
 ```
+
+## Remarks
+
+- commits are sorted from old to new.
+
+- commits.local: List of commits which has been pulled to local
 
 ## Properties
 

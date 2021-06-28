@@ -4,13 +4,13 @@
 
 ## PutOptions type
 
-Options for put()
+Options for put APIs (put, update, insert, putFatDoc, updateFatDoc, and insertFatDoc)
 
 <b>Signature:</b>
 
 ```typescript
 export declare type PutOptions = {
-    commit_message?: string;
+    commitMessage?: string;
     insertOrUpdate?: 'insert' | 'update';
     taskId?: string;
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
@@ -20,7 +20,11 @@ export declare type PutOptions = {
 
 ## Remarks
 
-- commit\_message: Internal commit message. default is 'put: path/to/the/file'
+- commitMessage: Git commit message. Default is '<!-- -->&lt;<!-- -->insert or update<!-- -->&gt;<!-- -->: path/to/the/file(<!-- -->&lt;<!-- -->fileOid<!-- -->&gt;<!-- -->)'.
 
-- insertOrUpdate: Change behavior of put(). Don't use it. Use insert() or update() instead.
+- insertOrUpdate: Change behavior of put and putFatDoc. Don't use this option. Use insert() or update() instead.
+
+- taskId: taskId is used in TaskQueue to distinguish CRUD and synchronization tasks. It is usually generated automatically. Set it if you would like to monitor this put task explicitly.
+
+- enqueueCallback: A callback function called just after this put task is enqueued to TaskQueue.
 

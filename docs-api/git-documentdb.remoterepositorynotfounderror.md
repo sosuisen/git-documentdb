@@ -4,6 +4,7 @@
 
 ## RemoteRepositoryNotFoundError class
 
+
 <b>Signature:</b>
 
 ```typescript

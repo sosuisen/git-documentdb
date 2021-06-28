@@ -4,6 +4,7 @@
 
 ## SyncIntervalLessThanOrEqualToRetryIntervalError class
 
+
 <b>Signature:</b>
 
 ```typescript

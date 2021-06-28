@@ -4,6 +4,7 @@
 
 ## UnfetchedCommitExistsError class
 
+
 <b>Signature:</b>
 
 ```typescript

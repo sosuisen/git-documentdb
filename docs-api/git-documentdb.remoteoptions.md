@@ -10,47 +10,47 @@ Options for Sync class
 
 ```typescript
 export declare type RemoteOptions = {
-    remote_url?: string;
-    sync_direction?: SyncDirection;
+    remoteUrl?: string;
+    syncDirection?: SyncDirection;
     connection?: ConnectionSettings;
     live?: boolean;
     interval?: number;
     retry?: number;
-    retry_interval?: number;
-    conflict_resolution_strategy?: ConflictResolutionStrategies;
-    combine_db_strategy?: CombineDbStrategies;
-    include_commits?: boolean;
+    retryInterval?: number;
+    conflictResolutionStrategy?: ConflictResolutionStrategies;
+    combineDbStrategy?: CombineDbStrategies;
+    includeCommits?: boolean;
 };
 ```
 <b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md)<!-- -->, [ConnectionSettings](./git-documentdb.connectionsettings.md)<!-- -->, [ConflictResolutionStrategies](./git-documentdb.conflictresolutionstrategies.md)<!-- -->, [CombineDbStrategies](./git-documentdb.combinedbstrategies.md)
 
 ## Remarks
 
-\[network\]
+(network)
 
-- remote\_url: Connection destination
+- remoteUrl: Connection destination
 
-- sync\_direction: Default is 'both'.
+- syncDirection: Default is 'both'.
 
 - connection: Authentication and other settings on remote site
 
-\[automation\]
+(automation)
 
 - live: Synchronization repeats automatically if true.
 
 - interval: Synchronization interval (milliseconds)
 
-- retry: Number of network retries
+- retry: Number of network retries. Retry does not occurred if retry is 0.
 
-- retry\_interval: Retry interval (milliseconds)
+- retryInterval: Retry interval (milliseconds)
 
-\[merge\]
+(merge)
 
-- conflict\_resolution\_strategy: Default is 'ours'.
+- conflictResolutionStrategy: Default is 'ours-diff'.
 
-- combine\_db\_strategy:
+- combineDbStrategy: Default is 'combine-head-with-theirs'.
 
-\[result\]
+(result)
 
-- include\_commits: (Beta version: It will leak memory if true.) Whether SyncResult includes 'commits' property or not. Default is false.
+- includeCommits: Whether SyncResult includes 'commits' property or not. Default is false.
 

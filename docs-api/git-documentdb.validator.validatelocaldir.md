@@ -28,11 +28,12 @@ void
 
 ## Remarks
 
-- A directory name allows Unicode characters excluding OS reserved filenames and following characters: &lt; &gt; : " \| ? \* \\<!-- -->0
 
+```
+- A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
 - A colon is generally disallowed, but a drive letter followed by a colon is allowed.
-
 - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
-
 - A trailing slash could be omitted.
+
+```
 

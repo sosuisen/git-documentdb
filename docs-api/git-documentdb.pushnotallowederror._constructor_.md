@@ -9,12 +9,12 @@ Constructs a new instance of the `PushNotAllowedError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(direction: string);
+constructor(direction: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  direction | string |  |
+|  direction | unknown |  |
 

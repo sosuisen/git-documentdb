@@ -4,24 +4,24 @@
 
 ## AcceptedConflict type
 
-Accepted Conflict
+Accepted conflict
 
 <b>Signature:</b>
 
 ```typescript
 export declare type AcceptedConflict = {
-    target: DocMetadata;
+    fatDoc: FatDoc;
     strategy: ConflictResolutionStrategyLabels;
     operation: WriteOperation;
 };
 ```
-<b>References:</b> [DocMetadata](./git-documentdb.docmetadata.md)<!-- -->, [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md)<!-- -->, [WriteOperation](./git-documentdb.writeoperation.md)
+<b>References:</b> [FatDoc](./git-documentdb.fatdoc.md)<!-- -->, [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md)<!-- -->, [WriteOperation](./git-documentdb.writeoperation.md)
 
 ## Remarks
 
-- target: Conflicted target
+- doc: Conflicted document (metadata only)
 
-- strategy: Applied strategy
+- strategy: Applied strategy on the target
 
-- operation: Applied operation on an applied strategy side (ours or theirs)
+- operation: Applied write operation on the target
 

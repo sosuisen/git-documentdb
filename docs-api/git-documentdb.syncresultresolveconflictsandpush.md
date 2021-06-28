@@ -4,11 +4,21 @@
 
 ## SyncResultResolveConflictsAndPush interface
 
+Resolve conflicts and push actions occurred in synchronization.
+
 <b>Signature:</b>
 
 ```typescript
 export interface SyncResultResolveConflictsAndPush 
 ```
+
+## Remarks
+
+- commits are sorted from old to new.
+
+- commits.local: List of commits which has been pulled to local
+
+- commits.remote: List of commits which has been pushed to remote
 
 ## Properties
 

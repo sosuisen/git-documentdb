@@ -9,18 +9,18 @@ Get collections
 <b>Signature:</b>
 
 ```typescript
-getCollections(rootPath?: string): Promise<Collection[]>;
+getCollections(dirPath?: string): Promise<ICollection[]>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  rootPath | string | Get collections directly under the path. |
+|  dirPath | string | Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''. |
 
 <b>Returns:</b>
 
-Promise&lt;[Collection](./git-documentdb.collection.md)<!-- -->\[\]&gt;
+Promise&lt;ICollection\[\]&gt;
 
 Promise<!-- -->&lt;<!-- -->Collection\[\]<!-- -->&gt;
 

@@ -9,14 +9,14 @@ Constructs a new instance of the `InvalidWorkingDirectoryPathLengthError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(path: string, minLength: number, maxLength: number);
+constructor(path: unknown, minLength: unknown, maxLength: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  path | string |  |
-|  minLength | number |  |
-|  maxLength | number |  |
+|  path | unknown |  |
+|  minLength | unknown |  |
+|  maxLength | unknown |  |
 

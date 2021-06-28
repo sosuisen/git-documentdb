@@ -9,12 +9,12 @@ Constructs a new instance of the `RemoteRepositoryConnectError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(mes: string);
+constructor(mes: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  mes | string |  |
+|  mes | unknown |  |
 

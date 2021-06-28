@@ -110,7 +110,7 @@ export class Collection implements ICollection {
    * Normalized path of collection
    *
    * @remarks
-   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
+   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
    * @public
    */
   get collectionPath (): string {
@@ -875,11 +875,11 @@ export class Collection implements ICollection {
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
    *
-   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if a document does not exists or a document is deleted.
-   *  - See {@link ./gethistory} for the array of revisions.
+   *  - See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -913,7 +913,7 @@ export class Collection implements ICollection {
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
    *
-   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if a document does not exists or a document is deleted.
@@ -924,7 +924,7 @@ export class Collection implements ICollection {
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
-   *  - See {@link ./gethistory} for the array of revisions.
+   *  - See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -958,7 +958,7 @@ export class Collection implements ICollection {
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
    * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
-   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @example
    * ```
@@ -1017,7 +1017,7 @@ export class Collection implements ICollection {
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    *
    * @remarks
-   * See {@link ./gethistory} for detailed examples.
+   * See {@link git-documentdb#GitDocumentDB.getHistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.

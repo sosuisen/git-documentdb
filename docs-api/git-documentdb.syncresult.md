@@ -4,7 +4,7 @@
 
 ## SyncResult type
 
-Result from sync\_worker()
+Union type of results from trySync and tryPush
 
 <b>Signature:</b>
 
@@ -12,12 +12,4 @@ Result from sync\_worker()
 export declare type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCombineDatabase | SyncResultCancel;
 ```
 <b>References:</b> [SyncResultNop](./git-documentdb.syncresultnop.md)<!-- -->, [SyncResultPush](./git-documentdb.syncresultpush.md)<!-- -->, [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md)<!-- -->, [SyncResultMergeAndPushError](./git-documentdb.syncresultmergeandpusherror.md)<!-- -->, [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md)<!-- -->, [SyncResultResolveConflictsAndPushError](./git-documentdb.syncresultresolveconflictsandpusherror.md)<!-- -->, [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md)<!-- -->, [SyncResultCombineDatabase](./git-documentdb.syncresultcombinedatabase.md)<!-- -->, [SyncResultCancel](./git-documentdb.syncresultcancel.md)
-
-## Remarks
-
-- commits are sorted from old to new.
-
-- commits.local: List of commits which has been pulled to local
-
-- commits.remote: List of commits which has been pushed to remote
 

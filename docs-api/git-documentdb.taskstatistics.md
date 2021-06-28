@@ -4,7 +4,7 @@
 
 ## TaskStatistics type
 
-Task Statistics
+Task statistics after opening database
 
 <b>Signature:</b>
 
@@ -19,3 +19,8 @@ export declare type TaskStatistics = {
     cancel: number;
 };
 ```
+
+## Remarks
+
+The statistics is on memory and not persistent. It is cleared by GitDocumentDB\#close().
+

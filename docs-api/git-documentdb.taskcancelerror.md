@@ -4,6 +4,7 @@
 
 ## TaskCancelError class
 
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,6 +4,7 @@
 
 ## CannotOpenRepositoryError class
 
+
 <b>Signature:</b>
 
 ```typescript

@@ -4,26 +4,22 @@
 
 ## PutResult type
 
-Result of put()
+Result of put APIs (put, update, insert, putFatDoc, updateFatDoc, and insertFatDoc)
 
 <b>Signature:</b>
 
 ```typescript
-export declare type PutResult = {
-    ok: true;
-    id: string;
-    file_sha: string;
-    commit_sha: string;
-};
+export declare type PutResult = PutResultJsonDoc | PutResultText | PutResultBinary;
 ```
+<b>References:</b> [PutResultJsonDoc](./git-documentdb.putresultjsondoc.md)<!-- -->, [PutResultText](./git-documentdb.putresulttext.md)<!-- -->, [PutResultBinary](./git-documentdb.putresultbinary.md)
 
 ## Remarks
 
-- ok: ok shows always true. Exception is thrown when error occurs.
+- \_id: \_id of a JSON document. This is a file name without .json extension. PutResult does not have \_id if a document is not [JsonDoc](./git-documentdb.jsondoc.md) type.
 
-- id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used.)
+- name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
 
-- file\_sha: SHA-1 hash of Git object (40 characters)
+- fileOid: SHA-1 hash of Git object (40 characters).
 
-- commit\_sha: SHA-1 hash of Git commit (40 characters)
+- commit: Git commit object of this put operation.
 

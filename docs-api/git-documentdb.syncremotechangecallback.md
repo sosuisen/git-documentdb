@@ -4,6 +4,8 @@
 
 ## SyncRemoteChangeCallback type
 
+Callback of remoteChange event
+
 <b>Signature:</b>
 
 ```typescript

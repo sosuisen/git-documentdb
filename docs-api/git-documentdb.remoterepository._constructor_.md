@@ -4,7 +4,7 @@
 
 ## RemoteRepository.(constructor)
 
-Constructs a new instance of the `RemoteRepository` class
+Constructor
 
 <b>Signature:</b>
 

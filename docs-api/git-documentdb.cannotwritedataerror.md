@@ -4,6 +4,7 @@
 
 ## CannotWriteDataError class
 
+
 <b>Signature:</b>
 
 ```typescript

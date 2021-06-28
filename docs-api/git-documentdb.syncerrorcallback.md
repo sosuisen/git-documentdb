@@ -4,6 +4,8 @@
 
 ## SyncErrorCallback type
 
+Callback of error event
+
 <b>Signature:</b>
 
 ```typescript

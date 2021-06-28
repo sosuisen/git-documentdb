@@ -9,12 +9,12 @@ Constructs a new instance of the `HttpProtocolRequiredError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(url: string);
+constructor(url: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  url | string |  |
+|  url | unknown |  |
 

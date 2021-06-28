@@ -4,7 +4,7 @@
 
 ## SyncChangeCallback type
 
-SyncEventCallbacks
+Callback of change event
 
 <b>Signature:</b>
 

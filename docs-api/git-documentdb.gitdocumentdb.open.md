@@ -4,18 +4,35 @@
 
 ## GitDocumentDB.open() method
 
-Open an existing repository
+Open or create a Git repository
 
 <b>Signature:</b>
 
 ```typescript
-open(): Promise<DatabaseOpenResult>;
+open(openOptions?: OpenOptions): Promise<DatabaseOpenResult>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  openOptions | [OpenOptions](./git-documentdb.openoptions.md) |  |
+
 <b>Returns:</b>
 
 Promise&lt;[DatabaseOpenResult](./git-documentdb.databaseopenresult.md)<!-- -->&gt;
 
 Database information
+
+## Exceptions
+
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+
+[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md)
+
+[CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md)
+
+[RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) may occurs when openOptions.createIfNotExists is false.
 
 ## Remarks
 

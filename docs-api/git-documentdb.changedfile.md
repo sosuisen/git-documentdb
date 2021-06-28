@@ -4,7 +4,7 @@
 
 ## ChangedFile type
 
-Changed file in merge operation
+Union type of changed files in merge operation
 
 <b>Signature:</b>
 

@@ -4,11 +4,19 @@
 
 ## SyncResultMergeAndPushError interface
 
+Merge and push actions occurred and push failed in synchronization.
+
 <b>Signature:</b>
 
 ```typescript
 export interface SyncResultMergeAndPushError 
 ```
+
+## Remarks
+
+- commits are sorted from old to new.
+
+- commits.local: List of commits which has been pulled to local
 
 ## Properties
 

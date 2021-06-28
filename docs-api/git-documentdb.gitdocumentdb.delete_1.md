@@ -4,38 +4,42 @@
 
 ## GitDocumentDB.delete() method
 
-Remove a document
+Delete a document by \_id property in JsonDoc
 
 <b>Signature:</b>
 
 ```typescript
-delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | Target document |
+|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | Only the \_id property of the JsonDoc is referenced. \_id is a file path whose .json extension is omitted. |
 |  options | [DeleteOptions](./git-documentdb.deleteoptions.md) |  |
 
 <b>Returns:</b>
 
-Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md)<!-- -->&gt;
+Promise&lt;[DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md)<!-- -->&gt;
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) (from Collection\#delete)
 
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md) (from deleteImpl)
 
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+[TaskCancelError](./git-documentdb.taskcancelerror.md) (from deleteImpl)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) when the specified document does not exist.
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) (from deleteWorker)
 
-[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md)
+[UndefinedDBError](./git-documentdb.undefineddberror.md) (from deleteWorker)
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) (from deleteWorker)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) (from deleteWorker)
+
+## Remarks
+
+- This is an alias of GitDocumentDB\#rootCollection.delete()
 

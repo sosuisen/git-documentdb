@@ -4,23 +4,12 @@
 
 ## DocMetadata type
 
-Type for a document metadata
+Union type of Document metadata
 
 <b>Signature:</b>
 
 ```typescript
-export declare type DocMetadata = {
-    id: string;
-    file_sha: string;
-    type?: 'json' | 'raw';
-};
+export declare type DocMetadata = JsonDocMetadata | TextDocMetadata | BinaryDocMetadata;
 ```
-
-## Remarks
-
-- id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used.)
-
-- file\_sha: SHA-1 hash of Git object (40 characters)
-
-- type: Default is 'json'.
+<b>References:</b> [JsonDocMetadata](./git-documentdb.jsondocmetadata.md)<!-- -->, [TextDocMetadata](./git-documentdb.textdocmetadata.md)<!-- -->, [BinaryDocMetadata](./git-documentdb.binarydocmetadata.md)
 

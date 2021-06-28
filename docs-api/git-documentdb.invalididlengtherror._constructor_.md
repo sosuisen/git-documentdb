@@ -9,14 +9,14 @@ Constructs a new instance of the `InvalidIdLengthError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(id: string, minLength: number, maxLength: number);
+constructor(id: unknown, minLength: unknown, maxLength: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  id | string |  |
-|  minLength | number |  |
-|  maxLength | number |  |
+|  id | unknown |  |
+|  minLength | unknown |  |
+|  maxLength | unknown |  |
 

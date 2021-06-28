@@ -9,43 +9,40 @@ Synchronizer class
 <b>Signature:</b>
 
 ```typescript
-export declare class Sync implements ISync 
+export declare class Sync implements SyncInterface 
 ```
-<b>Implements:</b> ISync
+<b>Implements:</b> SyncInterface
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(\_gitDDB, \_options)](./git-documentdb.sync._constructor_.md) |  | constructor |
+|  [(constructor)(gitDDB, options)](./git-documentdb.sync._constructor_.md) |  | constructor |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [author](./git-documentdb.sync.author.md) |  | nodegit.Signature |  |
-|  [committer](./git-documentdb.sync.committer.md) |  | nodegit.Signature |  |
-|  [credential\_callbacks](./git-documentdb.sync.credential_callbacks.md) |  | { \[key: string\]: any; } |  |
+|  [credentialCallbacks](./git-documentdb.sync.credentialcallbacks.md) |  | { \[key: string\]: any; } | Callback for authentication |
 |  [jsonDiff](./git-documentdb.sync.jsondiff.md) |  | JsonDiff | JsonDiff |
 |  [jsonPatch](./git-documentdb.sync.jsonpatch.md) |  | JsonPatchOT | JsonPatch |
-|  [remoteRepository](./git-documentdb.sync.remoterepository.md) |  | [RemoteRepository](./git-documentdb.remoterepository.md) |  |
-|  [upstream\_branch](./git-documentdb.sync.upstream_branch.md) |  | string |  |
+|  [options](./git-documentdb.sync.options.md) |  | Required&lt;[RemoteOptions](./git-documentdb.remoteoptions.md)<!-- -->&gt; | Get clone of remote options |
+|  [remoteRepository](./git-documentdb.sync.remoterepository.md) |  | [RemoteRepository](./git-documentdb.remoterepository.md) | Remote repository |
+|  [remoteURL](./git-documentdb.sync.remoteurl.md) |  | string | remoteURL |
+|  [upstreamBranch](./git-documentdb.sync.upstreambranch.md) |  | string | upstreamBranch |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [cancel()](./git-documentdb.sync.cancel.md) |  | Stop synchronization |
 |  [close()](./git-documentdb.sync.close.md) |  | Stop and clear remote connection |
 |  [currentRetries()](./git-documentdb.sync.currentretries.md) |  | Return current retry count (incremental) |
 |  [enqueuePushTask()](./git-documentdb.sync.enqueuepushtask.md) |  | Enqueue push task to TaskQueue |
 |  [enqueueSyncTask()](./git-documentdb.sync.enqueuesynctask.md) |  | Enqueue sync task to TaskQueue |
 |  [init(repos)](./git-documentdb.sync.init.md) |  | Create remote connection |
 |  [off(event, callback)](./git-documentdb.sync.off.md) |  | Remove SyncEvent handler |
-|  [on(event, callback)](./git-documentdb.sync.on.md) |  | Add SyncEvent handler |
-|  [options()](./git-documentdb.sync.options.md) |  | Get remote options (read only) |
-|  [pause()](./git-documentdb.sync.pause.md) |  | Alias of cancel() |
-|  [remoteURL()](./git-documentdb.sync.remoteurl.md) |  | Get remoteURL |
+|  [on(event, callback, collectionPath)](./git-documentdb.sync.on.md) |  | Add SyncEvent handler |
+|  [pause()](./git-documentdb.sync.pause.md) |  | Pause synchronization |
 |  [resume(options)](./git-documentdb.sync.resume.md) |  | Resume synchronization |
 |  [tryPush()](./git-documentdb.sync.trypush.md) |  | Try to push with retries |
 |  [trySync()](./git-documentdb.sync.trysync.md) |  | Try to sync with retries |

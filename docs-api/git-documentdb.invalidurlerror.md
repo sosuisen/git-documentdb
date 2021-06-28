@@ -4,6 +4,7 @@
 
 ## InvalidURLError class
 
+
 <b>Signature:</b>
 
 ```typescript

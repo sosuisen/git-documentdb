@@ -11,32 +11,24 @@ import { TLogLevelName } from 'tslog';
 
 // @public
 export type AcceptedConflict = {
-    target: DocMetadata;
+    fatDoc: FatDoc;
     strategy: ConflictResolutionStrategyLabels;
     operation: WriteOperation;
-};
-
-// @public
-export type AllDocsOptions = {
-    include_docs?: boolean;
-    descending?: boolean;
-    recursive?: boolean;
-    prefix?: string;
-};
-
-// @public
-export type AllDocsResult = {
-    total_rows: number;
-    commit_sha?: string;
-    rows: JsonDocWithMetadata[];
 };
 
 // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
 //
 // @public (undocumented)
 export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
-    constructor(type: string | undefined);
+    constructor(type: unknown);
 }
+
+// @public
+export type BinaryDocMetadata = {
+    name: string;
+    fileOid: string;
+    type: 'binary';
+};
 
 // @public (undocumented)
 export class CannotConnectError extends BaseError {
@@ -47,86 +39,120 @@ export class CannotConnectError extends BaseError {
 
 // @public (undocumented)
 export class CannotCreateDirectoryError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
 
 // @public (undocumented)
 export class CannotCreateRemoteRepositoryError extends BaseError {
-    constructor(reason: string);
+    constructor(reason: unknown);
+}
+
+// @public (undocumented)
+export class CannotCreateRepositoryError extends BaseError {
+    constructor(reason: unknown);
 }
 
 // @public (undocumented)
 export class CannotDeleteDataError extends BaseError {
-    constructor(e?: string);
-}
-
-// @public (undocumented)
-export class CannotGetEntryError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
 
 // @public (undocumented)
 export class CannotOpenRepositoryError extends BaseError {
-    constructor(err: string);
+    constructor(err: unknown);
 }
 
 // @public (undocumented)
 export class CannotWriteDataError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
 
 // @public
 export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 
-// @public (undocumented)
+// @public
 export type ChangedFileDelete = {
     operation: 'delete';
-    old: JsonDocWithMetadata;
+    old: FatDoc;
 };
 
-// @public (undocumented)
+// @public
 export type ChangedFileInsert = {
     operation: 'insert';
-    new: JsonDocWithMetadata;
+    new: FatDoc;
 };
 
-// @public (undocumented)
+// @public
 export type ChangedFileUpdate = {
     operation: 'update';
-    old: JsonDocWithMetadata;
-    new: JsonDocWithMetadata;
+    old: FatDoc;
+    new: FatDoc;
 };
 
 // @public
 export function cloneRepository(workingDir: string, remoteOptions: RemoteOptions, logger?: Logger): Promise<nodegit.Repository | undefined>;
 
-// Warning: (ae-forgotten-export) The symbol "CRUDInterface" needs to be exported by the entry point main.d.ts
+// Warning: (ae-forgotten-export) The symbol "ICollection" needs to be exported by the entry point main.d.ts
 //
 // @public
-export class Collection implements CRUDInterface {
-    // Warning: (ae-forgotten-export) The symbol "IDocumentDB" needs to be exported by the entry point main.d.ts
-    constructor(_gitDDB: CRUDInterface & IDocumentDB, _collectionPath: CollectionPath);
-    allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
-    collectionPath(): string;
-    delete(id: string, options?: DeleteOptions): Promise<DeleteResult>;
-    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
-    get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
-    static getCollections(gitDDB: CRUDInterface & IDocumentDB, rootPath?: string): Promise<Collection[]>;
-    insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    insert(id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
-    put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    put(_id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
-    remove(id: string, options?: DeleteOptions): Promise<DeleteResult>;
-    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
-    update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    update(id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
+export class Collection implements ICollection {
+    // Warning: (ae-forgotten-export) The symbol "GitDDBInterface" needs to be exported by the entry point main.d.ts
+    constructor(gitDDB: GitDDBInterface, collectionPathFromParent?: CollectionPath, parent?: ICollection, options?: CollectionOptions);
+    collection(collectionPath: CollectionPath, options?: CollectionOptions): ICollection;
+    get collectionPath(): string;
+    delete(_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    // @internal (undocumented)
+    delete(shortIdOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    deleteFatDoc(shortName: string, options?: DeleteOptions): Promise<DeleteResult>;
+    find(options?: FindOptions): Promise<JsonDoc[]>;
+    findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
+    generateId(): string;
+    get(_id: string): Promise<JsonDoc | undefined>;
+    getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
+    getCollections(dirPath?: string): Promise<ICollection[]>;
+    getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
+    getFatDoc(shortName: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+    getFatDocBackNumber(shortName: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+    getFatDocHistory(shortName: string, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]>;
+    getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | undefined)[]>;
+    insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    insert(shortId: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // @internal (undocumented)
+    insert(shortIdOrDoc: string | undefined | null | JsonDoc, jsonDocOrOptions?: JsonDoc | PutOptions, options?: PutOptions): Promise<PutResultJsonDoc>;
+    insertFatDoc(shortName: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
+    // @eventProperty
+    offSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+    // @eventProperty
+    offSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
+    // @internal (undocumented)
+    offSyncEvent(remoteURLorSync: string | SyncInterface, event: SyncEvent, callback: SyncCallback): void;
+    // Warning: (ae-forgotten-export) The symbol "SyncInterface" needs to be exported by the entry point main.d.ts
+    //
+    // @eventProperty
+    onSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
+    // @eventProperty
+    onSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): SyncInterface;
+    // @internal (undocumented)
+    onSyncEvent(remoteURLorSync: string | SyncInterface, event: SyncEvent, callback: SyncCallback): SyncInterface;
+    get options(): CollectionOptions;
+    get parent(): ICollection | undefined;
+    put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    put(shortId: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // @internal
+    put(shortIdOrDoc: string | undefined | null | JsonDoc, jsonDocOrOptions?: JsonDoc | PutOptions, options?: PutOptions): Promise<PutResultJsonDoc>;
+    putFatDoc(shortName: string | undefined | null, doc: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResult>;
+    update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    update(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // @internal (undocumented)
+    update(shortIdOrDoc: string | undefined | null | JsonDoc, jsonDocOrOptions?: JsonDoc | PutOptions, options?: PutOptions): Promise<PutResultJsonDoc>;
+    updateFatDoc(shortName: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
 }
+
+// @public
+export type CollectionOptions = {
+    namePrefix?: string;
+};
 
 // @public
 export type CollectionPath = string;
@@ -140,7 +166,7 @@ export class CombineDatabaseError extends BaseError {
 export type CombineDbStrategies = 'throw-error' | 'combine-head-with-ours' | 'combine-head-with-theirs' | 'combine-history-with-ours' | 'combine-history-with-theirs' | 'replace-with-ours' | 'replace-with-theirs';
 
 // @public
-export type ConflictResolutionStrategies = ConflictResolutionStrategyLabels | ((ours?: JsonDoc, theirs?: JsonDoc) => ConflictResolutionStrategyLabels);
+export type ConflictResolutionStrategies = ConflictResolutionStrategyLabels | ((ours?: FatDoc, theirs?: FatDoc) => ConflictResolutionStrategyLabels);
 
 // @public (undocumented)
 export type ConflictResolutionStrategyLabels = 'ours-diff' | 'theirs-diff' | 'ours' | 'theirs';
@@ -151,7 +177,7 @@ export type ConnectionSettings = ConnectionSettingsNone | ConnectionSettingsGitH
 // @public
 export type ConnectionSettingsGitHub = {
     type: 'github';
-    personal_access_token?: string;
+    personalAccessToken?: string;
     private?: boolean;
 };
 
@@ -163,19 +189,14 @@ export type ConnectionSettingsNone = {
 // @public
 export type ConnectionSettingsSSH = {
     type: 'ssh';
-    private_key_path: string;
-    public_key_path: string;
-    pass_phrase?: string;
+    privateKeyPath: string;
+    publicKeyPath: string;
+    passPhrase?: string;
 };
 
 // @public (undocumented)
 export class ConsecutiveSyncSkippedError extends BaseError {
     constructor(taskLabel: string, taskId: string);
-}
-
-// @public (undocumented)
-export class CorruptedRepositoryError extends BaseError {
-    constructor();
 }
 
 // @public (undocumented)
@@ -192,78 +213,102 @@ export type DatabaseCloseOption = {
 
 // @public (undocumented)
 export class DatabaseCloseTimeoutError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
 
 // @public (undocumented)
 export class DatabaseClosingError extends BaseError {
-    constructor(e?: string);
-}
-
-// @public (undocumented)
-export class DatabaseExistsError extends BaseError {
-    constructor();
+    constructor(e?: unknown);
 }
 
 // @public
 export type DatabaseInfo = {
-    db_id: string;
+    dbId: string;
     creator: string;
     version: string;
 };
 
 // @public
-export type DatabaseInfoError = {
-    ok: false;
-    error: Error;
+export type DatabaseOpenResult = DatabaseInfo & {
+    isNew: boolean;
+    isCreatedByGitDDB: boolean;
+    isValidVersion: boolean;
 };
 
 // @public
-export type DatabaseInfoSuccess = {
-    ok: true;
-    is_new: boolean;
-    is_clone: boolean;
-    is_created_by_gitddb: boolean;
-    is_valid_version: boolean;
-};
-
-// @public
-export type DatabaseOpenResult = (DatabaseInfo & DatabaseInfoSuccess) | DatabaseInfoError;
-
-// @public
-export type DatabaseOption = {
-    local_dir?: string;
-    db_name: string;
-    log_level?: TLogLevelName;
+export type DatabaseOptions = {
+    localDir?: string;
+    dbName: string;
+    logLevel?: TLogLevelName;
     schema?: Schema;
 };
 
+// @public (undocumented)
+export const DEFAULT_COMBINE_DB_STRATEGY = "combine-head-with-theirs";
+
+// @public (undocumented)
+export const DEFAULT_CONFLICT_RESOLUTION_STRATEGY = "ours-diff";
+
+// @public (undocumented)
+export const DEFAULT_LOCAL_DIR = "./git-documentdb";
+
+// @public (undocumented)
+export const DEFAULT_LOG_LEVEL = "info";
+
+// @public (undocumented)
+export const DEFAULT_SYNC_INTERVAL = 30000;
+
 // @public
 export type DeleteOptions = {
-    commit_message?: string;
+    commitMessage?: string;
     taskId?: string;
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 // @public
-export type DeleteResult = {
-    ok: true;
-    id: string;
-    file_sha: string;
-    commit_sha: string;
-};
+export type DeleteResult = DeleteResultJsonDoc | DeleteResultText | DeleteResultBinary;
 
-// @public
-export type DocMetadata = {
-    id: string;
-    file_sha: string;
-    type?: 'json' | 'raw';
+// @public (undocumented)
+export type DeleteResultBinary = {
+    name: string;
+    fileOid: string;
+    commit: NormalizedCommit;
+    type: 'binary';
 };
 
 // @public (undocumented)
+export type DeleteResultJsonDoc = {
+    _id: string;
+    name: string;
+    fileOid: string;
+    commit: NormalizedCommit;
+    type: 'json';
+};
+
+// @public (undocumented)
+export type DeleteResultText = {
+    name: string;
+    fileOid: string;
+    commit: NormalizedCommit;
+    type: 'text';
+};
+
+// @public
+export type Doc = JsonDoc | string | Uint8Array;
+
+// @public
+export type DocMetadata = JsonDocMetadata | TextDocMetadata | BinaryDocMetadata;
+
+// @public
+export type DocType = 'json' | 'text' | 'binary';
+
+// @public (undocumented)
 export class DocumentNotFoundError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
+
+// @public (undocumented)
+export const DUPLICATED_FILE_POSTFIX = "-from-";
 
 // @public
 export type DuplicatedFile = {
@@ -271,20 +316,49 @@ export type DuplicatedFile = {
     duplicate: DocMetadata;
 };
 
+// @public
+export type FatBinaryDoc = BinaryDocMetadata & {
+    doc: Uint8Array;
+};
+
+// @public
+export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
+
+// @public
+export type FatJsonDoc = JsonDocMetadata & {
+    doc: JsonDoc;
+};
+
+// @public
+export type FatTextDoc = TextDocMetadata & {
+    doc: string;
+};
+
 // @public (undocumented)
 export class FetchConnectionFailedError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
 
 // @public (undocumented)
 export class FetchPermissionDeniedError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
+
+// @public (undocumented)
+export const FILE_REMOVE_TIMEOUT = 7000;
 
 // @public (undocumented)
 export class FileRemoveTimeoutError extends BaseError {
     constructor();
 }
+
+// @public
+export type FindOptions = {
+    descending?: boolean;
+    recursive?: boolean;
+    prefix?: string;
+    forceDocType?: DocType;
+};
 
 // @public (undocumented)
 export const FIRST_COMMIT_MESSAGE = "first commit";
@@ -294,69 +368,113 @@ export const FIRST_COMMIT_MESSAGE = "first commit";
 // @internal
 export function generateDatabaseId(): string;
 
+// Warning: (ae-internal-missing-underscore) The name "GetInternalOptions" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export type GetInternalOptions = {
+    backNumber?: number;
+    oid?: string;
+    withMetadata?: boolean;
+};
+
+// @public
+export type GetOptions = {
+    forceDocType?: DocType;
+};
+
+// @public (undocumented)
+export const GIT_DOCUMENTDB_APP_INFO_ID = ".gitddb/app";
+
 // @public (undocumented)
 export const GIT_DOCUMENTDB_INFO_ID = ".gitddb/info";
 
+// @public (undocumented)
+export const GIT_DOCUMENTDB_METADATA_DIR = ".gitddb";
+
+// Warning: (ae-forgotten-export) The symbol "CRUDInterface" needs to be exported by the entry point main.d.ts
+// Warning: (ae-forgotten-export) The symbol "CollectionInterface" needs to be exported by the entry point main.d.ts
+// Warning: (ae-forgotten-export) The symbol "SyncEventInterface" needs to be exported by the entry point main.d.ts
+//
 // @public
-export class GitDocumentDB implements IDocumentDB, CRUDInterface {
-    constructor(options: DatabaseOption);
-    allDocs(options?: AllDocsOptions): Promise<AllDocsResult>;
+export class GitDocumentDB implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface {
+    constructor(options: DatabaseOptions & CollectionOptions);
+    author: {
+        name: string;
+        email: string;
+    };
     close(options?: DatabaseCloseOption): Promise<void>;
-    collection(collectionPath: CollectionPath): Collection;
-    createDB(remoteOptions?: RemoteOptions): Promise<DatabaseOpenResult>;
-    dbId(): string;
-    dbName(): string;
-    // (undocumented)
+    collection(collectionPath: CollectionPath, options?: CollectionOptions): Collection;
+    committer: {
+        name: string;
+        email: string;
+    };
+    get dbId(): string;
+    get dbName(): string;
     readonly defaultBranch = "main";
-    delete(id: string, options?: DeleteOptions): Promise<DeleteResult>;
-    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+    delete(_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    deleteFatDoc(name: string, options?: DeleteOptions): Promise<DeleteResult>;
     destroy(options?: DatabaseCloseOption): Promise<{
         ok: true;
     }>;
-    get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
-    getByRevision(fileSHA: string): Promise<JsonDoc | undefined>;
-    getCollections(rootPath?: string): Promise<Collection[]>;
-    getDocHistory(docID: string): Promise<string[]>;
-    getDocWithMetaData(docId: string, backNumber?: number): Promise<JsonDocWithMetadata | undefined>;
-    // (undocumented)
-    getLogger(): Logger;
+    find(options?: FindOptions): Promise<JsonDoc[]>;
+    findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
+    get(_id: string): Promise<JsonDoc | undefined>;
+    getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
+    getCollections(dirPath?: string): Promise<ICollection[]>;
+    getCommit(oid: string): Promise<NormalizedCommit>;
+    getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
+    getFatDoc(name: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+    getFatDocBackNumber(name: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+    getFatDocHistory(name: string, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]>;
+    getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | undefined)[]>;
     getRemoteURLs(): string[];
-    getSynchronizer(remoteURL: string): Sync;
-    readonly gitAuthor: {
-        readonly name: "GitDocumentDB";
-        readonly email: "gitddb@example.com";
-    };
-    insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    insert(id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
-    isClosing: boolean;
+    getSync(remoteURL: string): Sync;
+    insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    insert(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    insertFatDoc(name: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
+    get isClosing(): boolean;
     isOpened(): boolean;
+    loadAppInfo(): Promise<JsonDoc | undefined>;
+    loadAuthor(): Promise<void>;
     // @internal
     loadDbInfo(): Promise<void>;
-    open(): Promise<DatabaseOpenResult>;
-    put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    put(id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
-    remove(id: string, options?: DeleteOptions): Promise<DeleteResult>;
-    remove(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResult>;
+    get localDir(): string;
+    get logger(): Logger;
+    get logLevel(): TLogLevelName;
+    set logLevel(level: TLogLevelName);
+    // @eventProperty
+    offSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+    // @eventProperty
+    offSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
+    // @eventProperty
+    onSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
+    // @eventProperty
+    onSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): SyncInterface;
+    open(openOptions?: OpenOptions): Promise<DatabaseOpenResult>;
+    put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    put(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    putFatDoc(name: string | undefined | null, doc: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResult>;
+    removeSync(remoteURL: string): void;
+    // @deprecated
     repository(): nodegit.Repository | undefined;
-    schema: Schema;
-    // (undocumented)
-    setLogLevel(level: TLogLevelName): void;
+    get rootCollection(): ICollection;
+    saveAppInfo(info: {
+        [key: string]: any;
+    }): Promise<void>;
+    saveAuthor(): Promise<void>;
+    get schema(): Schema;
+    // @deprecated
     setRepository(repos: nodegit.Repository): void;
     sync(options: RemoteOptions): Promise<Sync>;
-    sync(options: RemoteOptions, get_sync_result: boolean): Promise<[Sync, SyncResult]>;
+    sync(options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
     // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
-    taskQueue: TaskQueue;
-    unregisterRemote(remoteURL: string): void;
-    update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
-    update(id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
-    validator: Validator;
-    workingDir(): string;
+    get taskQueue(): TaskQueue;
+    update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    update(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
+    updateFatDoc(name: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
+    get validator(): Validator;
+    get workingDir(): string;
     }
 
 // @public (undocumented)
@@ -369,17 +487,36 @@ export class GitPushError extends BaseError {
     constructor(mes: string);
 }
 
+// @public
+export type HistoryFilter = {
+    author?: {
+        name?: string;
+        email?: string;
+    };
+    committer?: {
+        name?: string;
+        email?: string;
+    };
+};
+
+// @public
+export type HistoryOptions = {
+    filter?: HistoryFilter[];
+};
+
 // @public (undocumented)
 export class HTTPNetworkError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
 
 // @public (undocumented)
 export class HttpProtocolRequiredError extends BaseError {
-    constructor(url: string);
+    constructor(url: unknown);
 }
 
-// @public (undocumented)
+// Warning: (ae-internal-missing-underscore) The name "IJsonPatch" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface IJsonPatch {
     // (undocumented)
     patch(docOurs: JsonDoc, docTheirs: JsonDoc, diffOurs: {
@@ -391,7 +528,7 @@ export interface IJsonPatch {
 
 // @public (undocumented)
 export class IntervalTooSmallError extends BaseError {
-    constructor(min: number, current: number);
+    constructor(min: unknown, current: unknown);
 }
 
 // @public (undocumented)
@@ -400,68 +537,58 @@ export class InvalidAuthenticationTypeError extends BaseError {
 }
 
 // @public (undocumented)
-export class InvalidBackNumberError extends BaseError {
-    constructor(e?: string);
-}
-
-// @public (undocumented)
 export class InvalidCollectionPathCharacterError extends BaseError {
-    constructor(name: string);
-}
-
-// @public (undocumented)
-export class InvalidCollectionPathError extends BaseError {
-    constructor(name: string);
+    constructor(name: unknown);
 }
 
 // @public (undocumented)
 export class InvalidCollectionPathLengthError extends BaseError {
-    constructor(collectionPath: string, minLength: number, maxLength: number);
+    constructor(collectionPath: unknown, minLength: unknown, maxLength: unknown);
 }
 
 // @public (undocumented)
 export class InvalidConflictStateError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
 
 // @public (undocumented)
 export class InvalidDbNameCharacterError extends BaseError {
-    constructor(name: string);
+    constructor(name: unknown);
 }
 
 // @public (undocumented)
-export class InvalidFileSHAFormatError extends BaseError {
-    constructor();
+export class InvalidDocTypeError extends BaseError {
+    constructor(type: unknown);
 }
 
 // @public (undocumented)
 export class InvalidIdCharacterError extends BaseError {
-    constructor(id: string);
+    constructor(id: unknown);
 }
 
 // @public (undocumented)
 export class InvalidIdLengthError extends BaseError {
-    constructor(id: string, minLength: number, maxLength: number);
+    constructor(id: unknown, minLength: unknown, maxLength: unknown);
+}
+
+// @public (undocumented)
+export class InvalidJsonFileExtensionError extends BaseError {
+    constructor();
 }
 
 // @public (undocumented)
 export class InvalidJsonObjectError extends BaseError {
-    constructor(idOrSha: string);
+    constructor(idOrSha: unknown);
 }
 
 // @public (undocumented)
 export class InvalidLocalDirCharacterError extends BaseError {
-    constructor(name: string);
-}
-
-// @public (undocumented)
-export class InvalidPropertyNameInDocumentError extends BaseError {
-    constructor(name: string);
+    constructor(name: unknown);
 }
 
 // @public (undocumented)
 export class InvalidRepositoryURLError extends BaseError {
-    constructor(url: string);
+    constructor(url: unknown);
 }
 
 // @public (undocumented)
@@ -471,13 +598,16 @@ export class InvalidSSHKeyPathError extends BaseError {
 
 // @public (undocumented)
 export class InvalidURLError extends BaseError {
-    constructor(url: string);
+    constructor(url: unknown);
 }
 
 // @public (undocumented)
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
-    constructor(path: string, minLength: number, maxLength: number);
+    constructor(path: unknown, minLength: unknown, maxLength: unknown);
 }
+
+// @public (undocumented)
+export const JSON_EXT = ".json";
 
 // @public
 export type JsonDiffOptions = {
@@ -493,9 +623,27 @@ export type JsonDoc = {
 };
 
 // @public
-export type JsonDocWithMetadata = DocMetadata & {
-    doc?: JsonDoc;
+export type JsonDocMetadata = {
+    _id: string;
+    name: string;
+    fileOid: string;
+    type: 'json';
 };
+
+// @public (undocumented)
+export const MAX_FILE_PATH_LENGTH = 255;
+
+// @public (undocumented)
+export const MINIMUM_SYNC_INTERVAL = 3000;
+
+// @public (undocumented)
+export const NETWORK_RETRY = 3;
+
+// @public (undocumented)
+export const NETWORK_RETRY_INTERVAL = 2000;
+
+// @public (undocumented)
+export const NETWORK_TIMEOUT = 7000;
 
 // @public (undocumented)
 export class NoMergeBaseFoundError extends BaseError {
@@ -504,20 +652,25 @@ export class NoMergeBaseFoundError extends BaseError {
 
 // @public
 export type NormalizedCommit = {
-    sha: string;
+    oid: string;
     message: string;
     parent: string[];
     author: {
         name: string;
         email: string;
-        timestamp: Date;
+        timestamp: number;
     };
     committer: {
         name: string;
         email: string;
-        timestamp: Date;
+        timestamp: number;
     };
     gpgsig?: string;
+};
+
+// @public
+export type OpenOptions = {
+    createIfNotExists?: boolean;
 };
 
 // @public (undocumented)
@@ -527,64 +680,87 @@ export class PersonalAccessTokenForAnotherAccountError extends BaseError {
 
 // @public (undocumented)
 export class PushConnectionFailedError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
 
 // @public (undocumented)
 export class PushNotAllowedError extends BaseError {
-    constructor(direction: string);
+    constructor(direction: unknown);
 }
 
 // @public (undocumented)
 export class PushPermissionDeniedError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
 
 // @public (undocumented)
 export class PushWorkerError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
+
+// @public (undocumented)
+export const PUT_APP_INFO_MESSAGE = "put appinfo";
 
 // @public
 export type PutOptions = {
-    commit_message?: string;
+    commitMessage?: string;
     insertOrUpdate?: 'insert' | 'update';
     taskId?: string;
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 
 // @public
-export type PutResult = {
-    ok: true;
-    id: string;
-    file_sha: string;
-    commit_sha: string;
+export type PutResult = PutResultJsonDoc | PutResultText | PutResultBinary;
+
+// @public (undocumented)
+export type PutResultBinary = {
+    name: string;
+    fileOid: string;
+    commit: NormalizedCommit;
+    type: 'binary';
+};
+
+// @public (undocumented)
+export type PutResultJsonDoc = {
+    _id: string;
+    name: string;
+    fileOid: string;
+    commit: NormalizedCommit;
+    type: 'json';
+};
+
+// @public (undocumented)
+export type PutResultText = {
+    name: string;
+    fileOid: string;
+    commit: NormalizedCommit;
+    type: 'text';
 };
 
 // @public (undocumented)
 export class RemoteAlreadyRegisteredError extends BaseError {
-    constructor(url: string);
+    constructor(url: unknown);
 }
 
 // @public
 export type RemoteOptions = {
-    remote_url?: string;
-    sync_direction?: SyncDirection;
+    remoteUrl?: string;
+    syncDirection?: SyncDirection;
     connection?: ConnectionSettings;
     live?: boolean;
     interval?: number;
     retry?: number;
-    retry_interval?: number;
-    conflict_resolution_strategy?: ConflictResolutionStrategies;
-    combine_db_strategy?: CombineDbStrategies;
-    include_commits?: boolean;
+    retryInterval?: number;
+    conflictResolutionStrategy?: ConflictResolutionStrategies;
+    combineDbStrategy?: CombineDbStrategies;
+    includeCommits?: boolean;
 };
 
 // @public (undocumented)
 export class RemoteRepository {
     constructor(options: RemoteOptions);
     // Warning: (ae-forgotten-export) The symbol "GitRemoteAction" needs to be exported by the entry point main.d.ts
-    connect(repos: nodegit.Repository, credential_callbacks: {
+    connect(repos: nodegit.Repository, credentialCallbacks: {
         [key: string]: any;
     }, onlyFetch?: boolean): Promise<[GitRemoteAction, 'exist' | 'create']>;
     create(): Promise<void>;
@@ -593,32 +769,32 @@ export class RemoteRepository {
 
 // @public (undocumented)
 export class RemoteRepositoryConnectError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
 
 // @public (undocumented)
 export class RemoteRepositoryNotFoundError extends BaseError {
-    constructor(url: string);
+    constructor(url: unknown);
 }
 
 // @public (undocumented)
 export class RepositoryNotFoundError extends BaseError {
-    constructor(path: string);
+    constructor(path: unknown);
 }
 
 // @public (undocumented)
 export class RepositoryNotOpenError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
 
 // @public (undocumented)
 export class RequestTimeoutError extends BaseError {
-    constructor(url: string);
+    constructor(url: unknown);
 }
 
 // @public (undocumented)
 export class SameIdExistsError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
 
 // @public
@@ -630,25 +806,20 @@ export type Schema = {
 export const SET_DATABASE_ID_MESSAGE = "set database id";
 
 // @public (undocumented)
+export const SHORT_SHA_LENGTH = 7;
+
+// @public (undocumented)
 export class SocketTimeoutError extends BaseError {
-    constructor(url: string);
+    constructor(url: unknown);
 }
 
-// Warning: (ae-forgotten-export) The symbol "ISync" needs to be exported by the entry point main.d.ts
-//
 // @public
-export class Sync implements ISync {
-    constructor(_gitDDB: IDocumentDB, _options?: RemoteOptions);
-    // (undocumented)
-    author: nodegit.Signature;
-    cancel(): boolean;
+export class Sync implements SyncInterface {
+    constructor(gitDDB: GitDDBInterface, options?: RemoteOptions);
     // @internal
     canNetworkConnection(): Promise<boolean>;
     close(): void;
-    // (undocumented)
-    committer: nodegit.Signature;
-    // (undocumented)
-    credential_callbacks: {
+    credentialCallbacks: {
         [key: string]: any;
     };
     currentRetries(): number;
@@ -656,90 +827,114 @@ export class Sync implements ISync {
     enqueueSyncTask(): Promise<SyncResult>;
     // @internal
     eventHandlers: {
-        change: SyncChangeCallback[];
-        localChange: SyncLocalChangeCallback[];
-        remoteChange: SyncRemoteChangeCallback[];
-        combine: SyncCombineDatabaseCallback[];
-        paused: SyncPausedCallback[];
-        active: SyncActiveCallback[];
-        start: SyncStartCallback[];
-        complete: SyncCompleteCallback[];
-        error: SyncErrorCallback[];
+        change: {
+            collectionPath: string;
+            func: SyncChangeCallback;
+        }[];
+        localChange: {
+            collectionPath: string;
+            func: SyncLocalChangeCallback;
+        }[];
+        remoteChange: {
+            collectionPath: string;
+            func: SyncRemoteChangeCallback;
+        }[];
+        combine: {
+            collectionPath: string;
+            func: SyncCombineDatabaseCallback;
+        }[];
+        pause: {
+            collectionPath: string;
+            func: SyncPauseCallback;
+        }[];
+        resume: {
+            collectionPath: string;
+            func: SyncResumeCallback;
+        }[];
+        start: {
+            collectionPath: string;
+            func: SyncStartCallback;
+        }[];
+        complete: {
+            collectionPath: string;
+            func: SyncCompleteCallback;
+        }[];
+        error: {
+            collectionPath: string;
+            func: SyncErrorCallback;
+        }[];
     };
     init(repos: nodegit.Repository): Promise<SyncResult>;
     // Warning: (ae-forgotten-export) The symbol "JsonDiff" needs to be exported by the entry point main.d.ts
     jsonDiff: JsonDiff;
     // Warning: (ae-forgotten-export) The symbol "JsonPatchOT" needs to be exported by the entry point main.d.ts
     jsonPatch: JsonPatchOT;
+    // @eventProperty
     off(event: SyncEvent, callback: SyncCallback): this;
-    on(event: SyncEvent, callback: SyncCallback): this;
-    options(): Required<RemoteOptions>;
+    // @eventProperty
+    on(event: SyncEvent, callback: SyncCallback, collectionPath?: string): this;
+    get options(): Required<RemoteOptions>;
     pause(): boolean;
-    // (undocumented)
-    remoteRepository: RemoteRepository;
-    remoteURL(): string;
+    get remoteRepository(): RemoteRepository;
+    get remoteURL(): string;
     resume(options?: {
         interval?: number;
         retry?: number;
     }): boolean;
     tryPush(): Promise<SyncResultPush | SyncResultCancel>;
     trySync(): Promise<SyncResult>;
-    // (undocumented)
-    upstream_branch: string;
-}
-
-// @public (undocumented)
-export type SyncActiveCallback = () => void;
+    get upstreamBranch(): string;
+    }
 
 // Warning: (ae-internal-missing-underscore) The name "syncAndGetResultImpl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export function syncAndGetResultImpl(this: IDocumentDB, options: RemoteOptions): Promise<[Sync, SyncResult]>;
+export function syncAndGetResultImpl(this: GitDDBInterface, options: RemoteOptions): Promise<[Sync, SyncResult]>;
 
-// @public (undocumented)
-export type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncCombineDatabaseCallback | SyncPausedCallback | SyncActiveCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
+// @public
+export type SyncCallback = SyncChangeCallback | SyncLocalChangeCallback | SyncRemoteChangeCallback | SyncCombineDatabaseCallback | SyncPauseCallback | SyncResumeCallback | SyncStartCallback | SyncCompleteCallback | SyncErrorCallback;
 
 // @public
 export type SyncChangeCallback = (syncResult: SyncResult, taskMetadata: TaskMetadata) => void;
 
-// @public (undocumented)
+// @public
 export type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void;
 
-// @public (undocumented)
+// @public
 export type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
 
 // @public
 export type SyncDirection = 'pull' | 'push' | 'both';
 
-// @public (undocumented)
+// @public
 export type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 
 // @public
-export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'combine' | 'paused' | 'active' | 'start' | 'complete' | 'error';
+export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'combine' | 'pause' | 'resume' | 'start' | 'complete' | 'error';
 
 // Warning: (ae-internal-missing-underscore) The name "syncImpl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export function syncImpl(this: IDocumentDB, options: RemoteOptions): Promise<Sync>;
+export function syncImpl(this: GitDDBInterface, options: RemoteOptions): Promise<Sync>;
 
 // @public (undocumented)
 export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
-    constructor(syncInterval: number, retryInterval: number);
+    constructor(syncInterval: unknown, retryInterval: unknown);
 }
 
-// @public (undocumented)
+// @public
 export type SyncLocalChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 
-// @public (undocumented)
-export type SyncPausedCallback = () => void;
+// @public
+export type SyncPauseCallback = () => void;
 
-// @public (undocumented)
+// @public
 export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 
 // @public
 export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCombineDatabase | SyncResultCancel;
 
-// @public (undocumented)
+// @public
 export interface SyncResultCancel {
     // (undocumented)
     action: 'canceled';
@@ -753,7 +948,7 @@ export interface SyncResultCombineDatabase {
     duplicates: DuplicatedFile[];
 }
 
-// @public (undocumented)
+// @public
 export interface SyncResultFastForwardMerge {
     // (undocumented)
     action: 'fast-forward merge';
@@ -767,7 +962,7 @@ export interface SyncResultFastForwardMerge {
     };
 }
 
-// @public (undocumented)
+// @public
 export interface SyncResultMergeAndPush {
     // (undocumented)
     action: 'merge and push';
@@ -783,7 +978,7 @@ export interface SyncResultMergeAndPush {
     };
 }
 
-// @public (undocumented)
+// @public
 export interface SyncResultMergeAndPushError {
     // (undocumented)
     action: 'merge and push error';
@@ -799,13 +994,13 @@ export interface SyncResultMergeAndPushError {
     error: Error;
 }
 
-// @public (undocumented)
+// @public
 export interface SyncResultNop {
     // (undocumented)
     action: 'nop';
 }
 
-// @public (undocumented)
+// @public
 export interface SyncResultPush {
     // (undocumented)
     action: 'push';
@@ -819,7 +1014,7 @@ export interface SyncResultPush {
     };
 }
 
-// @public (undocumented)
+// @public
 export interface SyncResultResolveConflictsAndPush {
     // (undocumented)
     action: 'resolve conflicts and push';
@@ -837,7 +1032,7 @@ export interface SyncResultResolveConflictsAndPush {
     conflicts: AcceptedConflict[];
 }
 
-// @public (undocumented)
+// @public
 export interface SyncResultResolveConflictsAndPushError {
     // (undocumented)
     action: 'resolve conflicts and push error';
@@ -855,12 +1050,15 @@ export interface SyncResultResolveConflictsAndPushError {
     error: Error;
 }
 
-// @public (undocumented)
+// @public
+export type SyncResumeCallback = () => void;
+
+// @public
 export type SyncStartCallback = (taskMetadata: TaskMetadata, currentRetries: number) => void;
 
 // @public (undocumented)
 export class SyncWorkerError extends BaseError {
-    constructor(mes: string);
+    constructor(mes: unknown);
 }
 
 // @public (undocumented)
@@ -868,7 +1066,9 @@ export class SyncWorkerFetchError extends BaseError {
     constructor(mes: string);
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "Task" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export type Task = TaskMetadata & {
     func: (beforeResolve: () => void, beforeReject: () => void, taskMetadata: TaskMetadata) => Promise<void>;
     cancel: () => void;
@@ -876,18 +1076,9 @@ export type Task = TaskMetadata & {
 };
 
 // @public (undocumented)
-export type TaskCallback = TaskEnqueueCallback;
-
-// @public (undocumented)
 export class TaskCancelError extends BaseError {
-    constructor(taskId: string);
+    constructor(taskId: unknown);
 }
-
-// @public (undocumented)
-export type TaskEnqueueCallback = (taskMetadata: TaskMetadata) => void;
-
-// @public
-export type TaskEvent = 'enqueue';
 
 // @public
 export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
@@ -896,7 +1087,9 @@ export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push'
 export type TaskMetadata = {
     label: TaskLabel;
     taskId: string;
-    targetId?: string;
+    shortId?: string;
+    shortName?: string;
+    collectionPath?: string;
     enqueueTime?: string;
 };
 
@@ -911,6 +1104,13 @@ export type TaskStatistics = {
     cancel: number;
 };
 
+// @public
+export type TextDocMetadata = {
+    name: string;
+    fileOid: string;
+    type: 'text';
+};
+
 // @public (undocumented)
 export class ThreeWayMergeError extends BaseError {
     constructor(mes: string);
@@ -918,7 +1118,7 @@ export class ThreeWayMergeError extends BaseError {
 
 // @public (undocumented)
 export class UndefinedDatabaseNameError extends BaseError {
-    constructor(e?: string);
+    constructor(e?: unknown);
 }
 
 // @public (undocumented)
@@ -928,17 +1128,7 @@ export class UndefinedDBError extends BaseError {
 
 // @public (undocumented)
 export class UndefinedDocumentIdError extends BaseError {
-    constructor(e?: string);
-}
-
-// @public (undocumented)
-export class UndefinedFileSHAError extends BaseError {
-    constructor(e?: string);
-}
-
-// @public (undocumented)
-export class UndefinedGitHubAuthenticationError extends BaseError {
-    constructor(mes: string);
+    constructor(e?: unknown);
 }
 
 // @public (undocumented)
@@ -952,13 +1142,18 @@ export class UndefinedRemoteURLError extends BaseError {
 }
 
 // @public (undocumented)
+export class UndefinedSyncError extends BaseError {
+    constructor(e?: unknown);
+}
+
+// @public (undocumented)
 export class UnfetchedCommitExistsError extends BaseError {
     constructor();
 }
 
 // @public
 export class Validator {
-    constructor(_workingDir: string);
+    constructor(workingDir: string);
     // (undocumented)
     static byteLengthOf: (str: string) => number;
     maxCollectionPathLength(): number;
@@ -966,12 +1161,14 @@ export class Validator {
     static maxWorkingDirectoryLength(): number;
     static normalizeCollectionPath(collectionPath: CollectionPath | undefined): CollectionPath;
     testWindowsInvalidFileNameCharacter(name: string, options?: {
-        allow_slash?: boolean;
-        allow_drive_letter?: boolean;
-        allow_directory_dot?: boolean;
+        allowSlash?: boolean;
+        allowDriveLetter?: boolean;
+        allowDirectoryDot?: boolean;
+        allowDot?: boolean;
+        allowLastSpace?: boolean;
     }): boolean;
     testWindowsReservedFileName(name: string, options?: {
-        allow_directory_dot?: boolean;
+        allowDirectoryDot?: boolean;
     }): boolean;
     validateCollectionPath(collectionPath: string): void;
     validateDbName(dbName: string): void;
@@ -979,11 +1176,6 @@ export class Validator {
     validateId(_id: string): void;
     validateLocalDir(localDir: string): void;
     }
-
-// @public (undocumented)
-export class WorkingDirectoryExistsError extends BaseError {
-    constructor();
-}
 
 // @public
 export type WriteOperation = 'insert' | 'update' | 'delete' | 'insert-merge' | 'update-merge';

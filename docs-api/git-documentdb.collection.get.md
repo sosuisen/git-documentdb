@@ -4,28 +4,27 @@
 
 ## Collection.get() method
 
-Get a document
+Get a JSON document
 
 <b>Signature:</b>
 
 ```typescript
-get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+get(_id: string): Promise<JsonDoc | undefined>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  docId | string | id of a target document |
-|  backNumber | number |  |
+|  \_id | string |  |
 
 <b>Returns:</b>
 
 Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
-- JsonDoc if exists.
-
 - undefined if not exists.
+
+- JsonDoc may not have \_id property if it was not created by GitDocumentDB.
 
 ## Exceptions
 
@@ -33,11 +32,5 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
-
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
-
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
-
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
 

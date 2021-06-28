@@ -4,28 +4,29 @@
 
 ## GitDocumentDB.get() method
 
-Get a document
+Get a JSON document
 
 <b>Signature:</b>
 
 ```typescript
-get(docId: string, backNumber?: number): Promise<JsonDoc | undefined>;
+get(_id: string): Promise<JsonDoc | undefined>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  docId | string | id of a target document |
-|  backNumber | number | Specify a number to go back to old revision. Default is 0. When backNumber equals 0, a document in the current DB is returned. When backNumber is 0 and a document has been deleted in the current DB, it returns undefined. |
+|  \_id | string | \_id is a file path whose .json extension is omitted. |
 
 <b>Returns:</b>
 
 Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
-- JsonDoc if exists.
-
 - undefined if not exists.
+
+- JsonDoc may not have \_id property if it was not created by GitDocumentDB.
+
+- This is an alias of GitDocumentDB\#rootCollection.get()
 
 ## Exceptions
 
@@ -33,15 +34,5 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
 [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
 
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
-
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
-
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
-
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
-
-[CorruptedRepositoryError](./git-documentdb.corruptedrepositoryerror.md)
-
-[InvalidBackNumberError](./git-documentdb.invalidbacknumbererror.md)
 

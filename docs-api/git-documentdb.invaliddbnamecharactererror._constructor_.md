@@ -9,12 +9,12 @@ Constructs a new instance of the `InvalidDbNameCharacterError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(name: string);
+constructor(name: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  name | string |  |
+|  name | unknown |  |
 

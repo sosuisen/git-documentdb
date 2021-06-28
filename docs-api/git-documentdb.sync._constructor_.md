@@ -9,15 +9,15 @@ constructor
 <b>Signature:</b>
 
 ```typescript
-constructor(_gitDDB: IDocumentDB, _options?: RemoteOptions);
+constructor(gitDDB: GitDDBInterface, options?: RemoteOptions);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_gitDDB | IDocumentDB |  |
-|  \_options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
+|  gitDDB | GitDDBInterface |  |
+|  options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
 
 ## Exceptions
 

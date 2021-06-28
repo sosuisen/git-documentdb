@@ -9,12 +9,12 @@ Constructs a new instance of the `TaskCancelError` class
 <b>Signature:</b>
 
 ```typescript
-constructor(taskId: string);
+constructor(taskId: unknown);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  taskId | string |  |
+|  taskId | unknown |  |
 

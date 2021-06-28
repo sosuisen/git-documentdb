@@ -4,6 +4,7 @@
 
 ## RemoteRepositoryConnectError class
 
+
 <b>Signature:</b>
 
 ```typescript

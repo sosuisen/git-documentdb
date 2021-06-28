@@ -4,6 +4,7 @@
 
 ## ConflictResolutionStrategyLabels type
 
+
 <b>Signature:</b>
 
 ```typescript

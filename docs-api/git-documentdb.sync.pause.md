@@ -4,7 +4,7 @@
 
 ## Sync.pause() method
 
-Alias of cancel()
+Pause synchronization
 
 <b>Signature:</b>
 

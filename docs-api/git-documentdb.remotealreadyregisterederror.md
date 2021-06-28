@@ -4,6 +4,7 @@
 
 ## RemoteAlreadyRegisteredError class
 
+
 <b>Signature:</b>
 
 ```typescript

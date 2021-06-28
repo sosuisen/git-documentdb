@@ -10,18 +10,18 @@ Normalized Commit
 
 ```typescript
 export declare type NormalizedCommit = {
-    sha: string;
+    oid: string;
     message: string;
     parent: string[];
     author: {
         name: string;
         email: string;
-        timestamp: Date;
+        timestamp: number;
     };
     committer: {
         name: string;
         email: string;
-        timestamp: Date;
+        timestamp: number;
     };
     gpgsig?: string;
 };

@@ -4,53 +4,55 @@
 
 ## Collection.insert() method
 
-Insert a document
+Insert a JSON document
 
 <b>Signature:</b>
 
 ```typescript
-insert(id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
+insert(shortId: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  id | string | \_id property of a document |
-|  document | { \[key: string\]: any; } | This is a [JsonDoc](./git-documentdb.jsondoc.md)<!-- -->, but \_id property is ignored. |
+|  shortId | string \| undefined \| null | shortId is a file path whose collectionPath and .json extension are omitted. |
+|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) |  |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
 <b>Returns:</b>
 
-Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
+Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md)<!-- -->&gt;
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
-
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
-
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
-
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 
-[CannotWriteDataError](./git-documentdb.cannotwritedataerror.md)
+[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) (from validateDocument, validateId)
 
-[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md)
+[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) (from validateDocument, validateId)
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md) (fromm putImpl)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+[TaskCancelError](./git-documentdb.taskcancelerror.md) (from putImpl)
 
-[SameIdExistsError](./git-documentdb.sameidexistserror.md)
+[UndefinedDBError](./git-documentdb.undefineddberror.md) (fromm putWorker)
+
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) (fromm putWorker)
+
+[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) (from putWorker)
+
+[CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) (from putWorker)
+
+[SameIdExistsError](./git-documentdb.sameidexistserror.md) (from putWorker)
 
 ## Remarks
 
-- Throws SameIdExistsError when a document which has the same id exists. It might be better to use put() instead of insert().
+- Throws SameIdExistsError when a data which has the same \_id exists. It might be better to use put() instead of insert().
 
-- create() does not check a write permission of your file system (unlike open()).
+- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`<!-- -->.
 
-- Saved file path is `${workingDir()}/${document._id}.json`<!-- -->. [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) will be thrown if the path length exceeds the maximum length of a filepath on the device.
+- If shortId is undefined, it is automatically generated.
+
+- \_id property of a JsonDoc is automatically set or overwritten by shortId parameter.
 

@@ -17,5 +17,5 @@ number
 
 ## Remarks
 
-\_id means `${collectionPath}/${fileName}`
+\_id means `${collectionPath}/${shortId}`
 

@@ -2,16 +2,12 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [Sync](./git-documentdb.sync.md) &gt; [remoteURL](./git-documentdb.sync.remoteurl.md)
 
-## Sync.remoteURL() method
+## Sync.remoteURL property
 
-Get remoteURL
+remoteURL
 
 <b>Signature:</b>
 
 ```typescript
-remoteURL(): string;
+get remoteURL(): string;
 ```
-<b>Returns:</b>
-
-string
-

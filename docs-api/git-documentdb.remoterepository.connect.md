@@ -9,7 +9,7 @@ Set a remote repository and connect to the remote repository. A remote repositor
 <b>Signature:</b>
 
 ```typescript
-connect(repos: nodegit.Repository, credential_callbacks: {
+connect(repos: nodegit.Repository, credentialCallbacks: {
         [key: string]: any;
     }, onlyFetch?: boolean): Promise<[GitRemoteAction, 'exist' | 'create']>;
 ```
@@ -19,7 +19,7 @@ connect(repos: nodegit.Repository, credential_callbacks: {
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  repos | nodegit.Repository |  |
-|  credential\_callbacks | { \[key: string\]: any; } |  |
+|  credentialCallbacks | { \[key: string\]: any; } |  |
 |  onlyFetch | boolean |  |
 
 <b>Returns:</b>

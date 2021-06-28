@@ -24,15 +24,9 @@ void
 
 ## Exceptions
 
-[InvalidPropertyNameInDocumentError](./git-documentdb.invalidpropertynameindocumenterror.md)
-
 [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
 
 [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
 
 [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
-
-## Remarks
-
-- Key cannot start with an underscore \_.
 

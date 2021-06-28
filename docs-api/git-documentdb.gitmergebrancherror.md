@@ -4,6 +4,7 @@
 
 ## GitMergeBranchError class
 
+
 <b>Signature:</b>
 
 ```typescript

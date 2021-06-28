@@ -4,6 +4,7 @@
 
 ## InvalidAuthenticationTypeError class
 
+
 <b>Signature:</b>
 
 ```typescript

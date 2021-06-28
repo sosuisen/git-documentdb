@@ -4,6 +4,7 @@
 
 ## HTTPNetworkError class
 
+
 <b>Signature:</b>
 
 ```typescript

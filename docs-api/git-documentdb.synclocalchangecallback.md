@@ -4,6 +4,8 @@
 
 ## SyncLocalChangeCallback type
 
+Callback of localChange event
+
 <b>Signature:</b>
 
 ```typescript

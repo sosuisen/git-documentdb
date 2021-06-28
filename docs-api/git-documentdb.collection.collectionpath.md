@@ -2,18 +2,17 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [Collection](./git-documentdb.collection.md) &gt; [collectionPath](./git-documentdb.collection.collectionpath.md)
 
-## Collection.collectionPath() method
+## Collection.collectionPath property
 
-Get normalized path of collection
+Normalized path of collection
 
 <b>Signature:</b>
 
 ```typescript
-collectionPath(): string;
+get collectionPath(): string;
 ```
-<b>Returns:</b>
 
-string
+## Remarks
 
 '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
 

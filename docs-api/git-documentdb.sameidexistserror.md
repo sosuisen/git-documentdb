@@ -4,6 +4,7 @@
 
 ## SameIdExistsError class
 
+
 <b>Signature:</b>
 
 ```typescript

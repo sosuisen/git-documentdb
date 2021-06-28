@@ -9,7 +9,7 @@ Synchronize with a remote repository
 <b>Signature:</b>
 
 ```typescript
-sync(options: RemoteOptions, get_sync_result: boolean): Promise<[Sync, SyncResult]>;
+sync(options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
 ```
 
 ## Parameters
@@ -17,7 +17,7 @@ sync(options: RemoteOptions, get_sync_result: boolean): Promise<[Sync, SyncResul
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
-|  get\_sync\_result | boolean |  |
+|  getSyncResult | boolean |  |
 
 <b>Returns:</b>
 

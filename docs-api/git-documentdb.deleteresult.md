@@ -4,26 +4,22 @@
 
 ## DeleteResult type
 
-Result of remove()
+Result of delete()
 
 <b>Signature:</b>
 
 ```typescript
-export declare type DeleteResult = {
-    ok: true;
-    id: string;
-    file_sha: string;
-    commit_sha: string;
-};
+export declare type DeleteResult = DeleteResultJsonDoc | DeleteResultText | DeleteResultBinary;
 ```
+<b>References:</b> [DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md)<!-- -->, [DeleteResultText](./git-documentdb.deleteresulttext.md)<!-- -->, [DeleteResultBinary](./git-documentdb.deleteresultbinary.md)
 
 ## Remarks
 
-- ok: ok shows always true. Exception is thrown when error occurs.
+- \_id: \_id of a JSON document. This is a file name without .json extension. PutResult does not have \_id if a document is not [JsonDoc](./git-documentdb.jsondoc.md) type.
 
-- id: id of a document. (You might be confused. Underscored '\_id' is used only in a [JsonDoc](./git-documentdb.jsondoc.md) type. In other cases, 'id' is used.)
+- name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
 
-- file\_sha: SHA-1 hash of Git blob (40 characters)
+- fileOid: SHA-1 hash of Git object (40 characters)
 
-- commit\_sha: SHA-1 hash of Git commit (40 characters)
+- commit: Git commit object of this put operation.
 

@@ -16,7 +16,7 @@ export declare class Validator
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(\_workingDir)](./git-documentdb.validator._constructor_.md) |  | Constructs a new instance of the <code>Validator</code> class |
+|  [(constructor)(workingDir)](./git-documentdb.validator._constructor_.md) |  | Constructs a new instance of the <code>Validator</code> class |
 
 ## Properties
 
@@ -31,12 +31,12 @@ export declare class Validator
 |  [maxCollectionPathLength()](./git-documentdb.validator.maxcollectionpathlength.md) |  | Return max length of collectionPath |
 |  [maxIdLength()](./git-documentdb.validator.maxidlength.md) |  | Return max length of \_id |
 |  [maxWorkingDirectoryLength()](./git-documentdb.validator.maxworkingdirectorylength.md) | <code>static</code> | Return max length of working directory path |
-|  [normalizeCollectionPath(collectionPath)](./git-documentdb.validator.normalizecollectionpath.md) | <code>static</code> | Normalized collectionPath is '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /. |
+|  [normalizeCollectionPath(collectionPath)](./git-documentdb.validator.normalizecollectionpath.md) | <code>static</code> | Normalized collectionPath is '' or path strings that has a trailing slash and no heading slash. Root ('/') is not allowed. Backslash \\ or yen ¥ is replaced with slash /. |
 |  [testWindowsInvalidFileNameCharacter(name, options)](./git-documentdb.validator.testwindowsinvalidfilenamecharacter.md) |  | Return false if given name includes Windows invalid filename character |
 |  [testWindowsReservedFileName(name, options)](./git-documentdb.validator.testwindowsreservedfilename.md) |  | Return false if given name equals Windows reserved filename |
 |  [validateCollectionPath(collectionPath)](./git-documentdb.validator.validatecollectionpath.md) |  | Validate collectionPath |
 |  [validateDbName(dbName)](./git-documentdb.validator.validatedbname.md) |  | Validate dbName |
 |  [validateDocument(doc)](./git-documentdb.validator.validatedocument.md) |  | Validate document |
-|  [validateId(\_id)](./git-documentdb.validator.validateid.md) |  | Validate \_id<!-- -->\_id = collectionPath + fileName |
+|  [validateId(\_id)](./git-documentdb.validator.validateid.md) |  | Validate \_id<!-- -->\_id = collectionPath + shortId (not including postfix '.json') |
 |  [validateLocalDir(localDir)](./git-documentdb.validator.validatelocaldir.md) |  | Validate localDir |
 

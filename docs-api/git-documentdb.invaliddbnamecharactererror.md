@@ -4,6 +4,7 @@
 
 ## InvalidDbNameCharacterError class
 
+
 <b>Signature:</b>
 
 ```typescript

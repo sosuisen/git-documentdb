@@ -9,5 +9,5 @@ Name validator
 <b>Signature:</b>
 
 ```typescript
-validator: Validator;
+get validator(): Validator;
 ```

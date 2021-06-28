@@ -4,6 +4,7 @@
 
 ## GIT\_DOCUMENTDB\_INFO\_ID variable
 
+
 <b>Signature:</b>
 
 ```typescript

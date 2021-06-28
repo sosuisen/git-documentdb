@@ -4,6 +4,7 @@
 
 ## DatabaseCloseTimeoutError class
 
+
 <b>Signature:</b>
 
 ```typescript

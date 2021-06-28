@@ -4,6 +4,7 @@
 
 ## InvalidRepositoryURLError class
 
+
 <b>Signature:</b>
 
 ```typescript

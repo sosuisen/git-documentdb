@@ -4,6 +4,7 @@
 
 ## DatabaseClosingError class
 
+
 <b>Signature:</b>
 
 ```typescript

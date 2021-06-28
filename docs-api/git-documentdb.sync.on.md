@@ -9,7 +9,7 @@ Add SyncEvent handler
 <b>Signature:</b>
 
 ```typescript
-on(event: SyncEvent, callback: SyncCallback): this;
+on(event: SyncEvent, callback: SyncCallback, collectionPath?: string): this;
 ```
 
 ## Parameters
@@ -18,6 +18,7 @@ on(event: SyncEvent, callback: SyncCallback): this;
 |  --- | --- | --- |
 |  event | [SyncEvent](./git-documentdb.syncevent.md) |  |
 |  callback | [SyncCallback](./git-documentdb.synccallback.md) |  |
+|  collectionPath | string |  |
 
 <b>Returns:</b>
 

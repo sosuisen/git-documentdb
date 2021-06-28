@@ -4,6 +4,7 @@
 
 ## DATABASE\_VERSION variable
 
+
 <b>Signature:</b>
 
 ```typescript

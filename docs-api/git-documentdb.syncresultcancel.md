@@ -4,6 +4,8 @@
 
 ## SyncResultCancel interface
 
+Synchronization was canceled.
+
 <b>Signature:</b>
 
 ```typescript

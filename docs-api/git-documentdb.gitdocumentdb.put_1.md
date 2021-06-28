@@ -4,51 +4,55 @@
 
 ## GitDocumentDB.put() method
 
-Insert a document if not exists. Otherwise, update it.
+Insert a JSON document if not exists. Otherwise, update it.
 
 <b>Signature:</b>
 
 ```typescript
-put(id: string, document: {
-        [key: string]: any;
-    }, options?: PutOptions): Promise<PutResult>;
+put(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  id | string | \_id property of a document |
-|  document | { \[key: string\]: any; } | This is a [JsonDoc](./git-documentdb.jsondoc.md)<!-- -->, but \_id property is ignored. |
+|  \_id | string \| undefined \| null | \_id is a file path whose .json extension is omitted. |
+|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) |  |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
 <b>Returns:</b>
 
-Promise&lt;[PutResult](./git-documentdb.putresult.md)<!-- -->&gt;
+Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md)<!-- -->&gt;
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
-
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
-
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
-
 [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md)
 
-[CannotWriteDataError](./git-documentdb.cannotwritedataerror.md)
+[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) (from validateDocument, validateId)
 
-[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md)
+[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) (from validateDocument, validateId)
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+[DatabaseClosingError](./git-documentdb.databaseclosingerror.md) (fromm putImpl)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+[TaskCancelError](./git-documentdb.taskcancelerror.md) (from putImpl)
+
+[UndefinedDBError](./git-documentdb.undefineddberror.md) (fromm putWorker)
+
+[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) (fromm putWorker)
+
+[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) (from putWorker)
+
+[CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) (from putWorker)
 
 ## Remarks
 
-- put() does not check a write permission of your file system (unlike open()).
+- The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
 
-- Saved file path is `${workingDir()}/${document._id}.json`<!-- -->. [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) will be thrown if the path length exceeds the maximum length of a filepath on the device.
+- If \_id is undefined, it is automatically generated.
 
-- A put operation is not skipped when no change occurred on a specified document.
+- \_id property of a JsonDoc is automatically set or overwritten by \_id parameter.
+
+- An update operation is not skipped even if no change occurred on a specified data.
+
+- This is an alias of GitDocumentDB\#rootCollection.put()
 

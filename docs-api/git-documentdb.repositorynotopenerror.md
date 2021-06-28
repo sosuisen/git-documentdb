@@ -4,6 +4,7 @@
 
 ## RepositoryNotOpenError class
 
+
 <b>Signature:</b>
 
 ```typescript

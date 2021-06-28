@@ -4,6 +4,8 @@
 
 ## SyncStartCallback type
 
+Callback of start event
+
 <b>Signature:</b>
 
 ```typescript

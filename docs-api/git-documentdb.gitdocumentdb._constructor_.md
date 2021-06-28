@@ -9,14 +9,14 @@ Constructor
 <b>Signature:</b>
 
 ```typescript
-constructor(options: DatabaseOption);
+constructor(options: DatabaseOptions & CollectionOptions);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [DatabaseOption](./git-documentdb.databaseoption.md) |  |
+|  options | [DatabaseOptions](./git-documentdb.databaseoptions.md) &amp; [CollectionOptions](./git-documentdb.collectionoptions.md) |  |
 
 ## Exceptions
 
@@ -26,5 +26,5 @@ constructor(options: DatabaseOption);
 
 ## Remarks
 
-- The git working directory will be localDir/dbName.
+- The Git working directory will be `${options.localDir}/${options.dbName}`<!-- -->.
 

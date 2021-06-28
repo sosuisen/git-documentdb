@@ -4,6 +4,7 @@
 
 ## CombineDatabaseError class
 
+
 <b>Signature:</b>
 
 ```typescript
