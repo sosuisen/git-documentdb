@@ -17,7 +17,7 @@ export declare namespace Err
 |  Class | Description |
 |  --- | --- |
 |  [AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.err.authenticationtypenotallowcreaterepositoryerror.md) |  |
-|  [BaseError](./git-documentdb.err.baseerror.md) | BaseError<!-- -->Use 'unknown' type assertion for constructor arguments in subclass of BaseError to use 'expect' in test. See https://github.com/facebook/jest/issues/8279 |
+|  [BaseError](./git-documentdb.err.baseerror.md) | BaseError |
 |  [CannotConnectError](./git-documentdb.err.cannotconnecterror.md) |  |
 |  [CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md) |  |
 |  [CannotCreateRemoteRepositoryError](./git-documentdb.err.cannotcreateremoterepositoryerror.md) |  |

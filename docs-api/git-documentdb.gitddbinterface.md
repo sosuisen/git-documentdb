@@ -27,7 +27,7 @@ export interface GitDDBInterface
 |  [logLevel](./git-documentdb.gitddbinterface.loglevel.md) | TLogLevelName | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 |  [rootCollection](./git-documentdb.gitddbinterface.rootcollection.md) | [ICollection](./git-documentdb.icollection.md) |  |
 |  [schema](./git-documentdb.gitddbinterface.schema.md) | [Schema](./git-documentdb.schema.md) |  |
-|  [taskQueue](./git-documentdb.gitddbinterface.taskqueue.md) | TaskQueue |  |
+|  [taskQueue](./git-documentdb.gitddbinterface.taskqueue.md) | [TaskQueue](./git-documentdb.taskqueue.md) |  |
 |  [validator](./git-documentdb.gitddbinterface.validator.md) | [Validator](./git-documentdb.validator.md) |  |
 |  [workingDir](./git-documentdb.gitddbinterface.workingdir.md) | string |  |
 

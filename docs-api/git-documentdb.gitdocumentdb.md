@@ -34,7 +34,7 @@ export declare class GitDocumentDB implements GitDDBInterface, CRUDInterface, Co
 |  [logLevel](./git-documentdb.gitdocumentdb.loglevel.md) |  | TLogLevelName | logLevel ('silly' \| 'trace' \| 'debug' \| 'info' \| 'warn' \| 'error' \| 'fatal') |
 |  [rootCollection](./git-documentdb.gitdocumentdb.rootcollection.md) |  | [ICollection](./git-documentdb.icollection.md) | Default collection whose collectionPath is '' |
 |  [schema](./git-documentdb.gitdocumentdb.schema.md) |  | [Schema](./git-documentdb.schema.md) | Schema for specific document type |
-|  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | TaskQueue | Task queue |
+|  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | [TaskQueue](./git-documentdb.taskqueue.md) | Task queue |
 |  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | [Validator](./git-documentdb.validator.md) | Name validator |
 |  [workingDir](./git-documentdb.gitdocumentdb.workingdir.md) |  | string | Get a full path of the current Git working directory |
 

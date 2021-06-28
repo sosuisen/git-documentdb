@@ -16,7 +16,7 @@ import { Err } from './error';
 /**
  * TaskQueue
  *
- * @internal
+ * @public
  */
 export class TaskQueue {
   // Monotonic counter
@@ -46,12 +46,19 @@ export class TaskQueue {
 
   private _currentTask: Task | undefined = undefined;
 
+  /**
+   * Constructor
+   *
+   * @public
+   */
   constructor (logger: Logger) {
     this._logger = logger;
   }
 
   /**
    * Set logger
+   *
+   * @internal
    */
   setLogger (logger: Logger) {
     this._logger = logger;
@@ -59,6 +66,8 @@ export class TaskQueue {
 
   /**
    * Get current task ID
+   *
+   * @public
    */
   currentTaskId () {
     return this._currentTask?.taskId;
@@ -68,6 +77,8 @@ export class TaskQueue {
    * Get default task ID
    *
    * @remarks ID monotonically increases. It does not ensures the task order in _taskQueue.
+   *
+   * @internal
    */
   newTaskId () {
     return this._ulid(Date.now());
@@ -77,6 +88,8 @@ export class TaskQueue {
    * Get enqueue time
    *
    * @remarks It ensures the task order in _taskQueue.
+   *
+   * @public
    */
   getEnqueueTime () {
     return this._ulid(Date.now());
@@ -84,6 +97,8 @@ export class TaskQueue {
 
   /**
    * Push task to TaskQueue
+   *
+   * @internal
    */
   // eslint-disable-next-line complexity
   pushToTaskQueue (task: Task) {
@@ -145,25 +160,10 @@ export class TaskQueue {
   }
 
   /**
-   * Unshift task to TaskQueue
+   * Clear TaskQueue
+   *
+   * @public
    */
-  /*
-  unshiftSyncTaskToTaskQueue (task: Task) {
-    if (
-      (this._currentTask?.label === 'sync' && task.label === 'sync') ||
-      (this._currentTask?.label === 'push' && task.label === 'push') ||
-      (this._taskQueue.length > 0 &&
-        ((this._taskQueue[0].label === 'sync' && task.label === 'sync') ||
-          (this._taskQueue[0].label === 'push' && task.label === 'push')))
-    ) {
-      // console.log('## task skipped');
-      task.cancel();
-      return;
-    }
-    this._taskQueue.unshift(task);
-    this._execTaskQueue();
-  }
-  */
   clear () {
     // Clear not queued jobs
     // @ts-ignore
@@ -185,14 +185,27 @@ export class TaskQueue {
     };
   }
 
+  /**
+   * Get length of TaskQueue
+   *
+   * @public
+   */
   length () {
     return this._taskQueue.length;
   }
 
+  /**
+   * Get current statistics
+   *
+   * @public
+   */
   currentStatistics (): TaskStatistics {
     return JSON.parse(JSON.stringify(this._statistics));
   }
 
+  /**
+   * @internal
+   */
   async waitCompletion (timeoutMsec: number) {
     const startMsec = Date.now();
     let isTimeout = false;
@@ -206,6 +219,9 @@ export class TaskQueue {
     return isTimeout;
   }
 
+  /**
+   * @internal
+   */
   private _execTaskQueue () {
     if (this._taskQueue.length > 0 && !this._isTaskQueueWorking) {
       this._currentTask = this._taskQueue.shift();

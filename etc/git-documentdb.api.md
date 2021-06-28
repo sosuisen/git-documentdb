@@ -691,8 +691,6 @@ export interface GitDDBInterface {
     sync(options: RemoteOptions, getSyncResult: boolean): Promise<[SyncInterface, SyncResult]>;
     // (undocumented)
     sync(options: RemoteOptions): Promise<SyncInterface>;
-    // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
-    //
     // (undocumented)
     taskQueue: TaskQueue;
     // (undocumented)
@@ -1289,6 +1287,24 @@ export type TaskMetadata = {
     collectionPath?: string;
     enqueueTime?: string;
 };
+
+// @public
+export class TaskQueue {
+    constructor(logger: Logger);
+    clear(): void;
+    currentStatistics(): TaskStatistics;
+    currentTaskId(): string | undefined;
+    getEnqueueTime(): string;
+    length(): number;
+    // @internal
+    newTaskId(): string;
+    // @internal
+    pushToTaskQueue(task: Task): void;
+    // @internal
+    setLogger(logger: Logger): void;
+    // @internal (undocumented)
+    waitCompletion(timeoutMsec: number): Promise<boolean>;
+}
 
 // @public
 export type TaskStatistics = {

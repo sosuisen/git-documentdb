@@ -14,6 +14,7 @@ Offline-first Database that Syncs with Git
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | Main class of GitDocumentDB |
 |  [RemoteRepository](./git-documentdb.remoterepository.md) | Remote repository class |
 |  [Sync](./git-documentdb.sync.md) | Synchronizer class |
+|  [TaskQueue](./git-documentdb.taskqueue.md) | TaskQueue |
 |  [Validator](./git-documentdb.validator.md) | Validator Class |
 
 ## Interfaces

@@ -6,8 +6,6 @@
 
 BaseError
 
-Use 'unknown' type assertion for constructor arguments in subclass of BaseError to use 'expect' in test. See https://github.com/facebook/jest/issues/8279
-
 <b>Signature:</b>
 
 ```typescript
