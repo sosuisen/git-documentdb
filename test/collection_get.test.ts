@@ -16,11 +16,7 @@ import { JSON_EXT } from '../src/const';
 import { Collection } from '../src/collection';
 import { sleep, toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
-import {
-  DatabaseClosingError,
-  InvalidJsonObjectError,
-  RepositoryNotOpenError,
-} from '../src/error';
+import { Err } from '../src/error';
 import { addOneData, removeOneData } from './utils';
 
 const ulid = monotonicFactory();
@@ -54,7 +50,7 @@ describe('<collection> get()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(col.get('99')).rejects.toThrowError(DatabaseClosingError);
+    await expect(col.get('99')).rejects.toThrowError(Err.DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -72,7 +68,7 @@ describe('<collection> get()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     await gitDDB.close();
-    await expect(col.get('prof01')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(col.get('prof01')).rejects.toThrowError(Err.RepositoryNotOpenError);
   });
 
   it('throws InvalidJsonObjectError', async () => {
@@ -88,7 +84,7 @@ describe('<collection> get()', () => {
     const fullDocPath = col.collectionPath + shortId + JSON_EXT;
     await addOneData(gitDDB, fullDocPath, 'invalid data');
 
-    await expect(col.get(shortId)).rejects.toThrowError(InvalidJsonObjectError);
+    await expect(col.get(shortId)).rejects.toThrowError(Err.InvalidJsonObjectError);
 
     await gitDDB.destroy();
   });
@@ -850,7 +846,9 @@ describe('<crud/get> getFatDocHistory()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(col.getFatDocHistory('0.json')).rejects.toThrowError(DatabaseClosingError);
+    await expect(col.getFatDocHistory('0.json')).rejects.toThrowError(
+      Err.DatabaseClosingError
+    );
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -868,7 +866,9 @@ describe('<crud/get> getFatDocHistory()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     await gitDDB.close();
-    await expect(col.getFatDocHistory('tmp')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(col.getFatDocHistory('tmp')).rejects.toThrowError(
+      Err.RepositoryNotOpenError
+    );
     await gitDDB.destroy();
   });
 
@@ -883,7 +883,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     await col.putFatDoc('1.json', 'invalid json');
 
     await expect(col.getFatDocHistory('1.json')).rejects.toThrowError(
-      InvalidJsonObjectError
+      Err.InvalidJsonObjectError
     );
 
     await gitDDB.destroy();

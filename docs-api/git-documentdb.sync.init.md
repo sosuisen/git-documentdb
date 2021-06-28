@@ -24,13 +24,13 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 ## Exceptions
 
-[RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md)
+[Err.RemoteRepositoryConnectError](./git-documentdb.err.remoterepositoryconnecterror.md)
 
-[PushWorkerError](./git-documentdb.pushworkererror.md)
+[Err.PushWorkerError](./git-documentdb.err.pushworkererror.md)
 
-[NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md)
+[Err.NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md)
 
-[SyncWorkerError](./git-documentdb.syncworkererror.md)
+[Err.SyncWorkerError](./git-documentdb.err.syncworkererror.md)
 
 ## Remarks
 

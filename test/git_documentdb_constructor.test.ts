@@ -9,11 +9,7 @@
 
 import path from 'path';
 import expect from 'expect';
-import {
-  DocumentNotFoundError,
-  InvalidWorkingDirectoryPathLengthError,
-  UndefinedDatabaseNameError,
-} from '../src/error';
+import { Err } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Validator } from '../src/validator';
 
@@ -39,7 +35,7 @@ describe('<index>', () => {
       expect(() => {
         /* eslint-disable-next-line no-new */ // @ts-ignore
         new GitDocumentDB({});
-      }).toThrowError(UndefinedDatabaseNameError);
+      }).toThrowError(Err.UndefinedDatabaseNameError);
     });
 
     it('throws InvalidWorkingDirectoryPathLengthError when tries to create a long name repository.', async () => {
@@ -71,7 +67,7 @@ describe('<index>', () => {
           dbName,
           localDir,
         });
-      }).toThrowError(InvalidWorkingDirectoryPathLengthError);
+      }).toThrowError(Err.InvalidWorkingDirectoryPathLengthError);
     });
 
     it('throws InvalidWorkingDirectoryPathLengthError when working directory path is too long.', () => {
@@ -83,7 +79,7 @@ describe('<index>', () => {
           localDir:
             '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
         });
-      }).toThrowError(InvalidWorkingDirectoryPathLengthError);
+      }).toThrowError(Err.InvalidWorkingDirectoryPathLengthError);
     });
   });
 });

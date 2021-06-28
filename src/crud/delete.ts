@@ -11,27 +11,20 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import { SHORT_SHA_LENGTH } from '../const';
 import { GitDDBInterface } from '../types_gitddb';
-import {
-  CannotDeleteDataError,
-  DatabaseClosingError,
-  DocumentNotFoundError,
-  RepositoryNotOpenError,
-  TaskCancelError,
-  UndefinedDBError,
-} from '../error';
+import { Err } from '../error';
 import { DeleteOptions, DeleteResult, NormalizedCommit } from '../types';
 import { normalizeCommit } from '../utils';
 
 /**
  * Implementation of delete()
  *
- * @throws {@link DatabaseClosingError}
- * @throws {@link TaskCancelError}
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.TaskCancelError}
  *
- * @throws {@link UndefinedDBError} (from deleteWorker)
- * @throws {@link RepositoryNotOpenError} (deleteWorker)
- * @throws {@link DocumentNotFoundError} (from deleteWorker)
- * @throws {@link CannotDeleteDataError} (from deleteWorker)
+ * @throws {@link Err.UndefinedDBError} (from deleteWorker)
+ * @throws {@link Err.RepositoryNotOpenError} (deleteWorker)
+ * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
+ * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
  *
  * @internal
  */
@@ -43,7 +36,7 @@ export function deleteImpl (
   options?: DeleteOptions
 ): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB.isClosing) {
-    return Promise.reject(new DatabaseClosingError());
+    return Promise.reject(new Err.DatabaseClosingError());
   }
 
   options ??= {
@@ -76,7 +69,7 @@ export function deleteImpl (
             reject(err);
           }),
       cancel: () => {
-        reject(new TaskCancelError(taskId));
+        reject(new Err.TaskCancelError(taskId));
       },
       enqueueCallback: options?.enqueueCallback,
     });
@@ -86,10 +79,10 @@ export function deleteImpl (
 /**
  * Remove and commit a file
  *
- * @throws {@link UndefinedDBError}
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link DocumentNotFoundError}
- * @throws {@link CannotDeleteDataError}
+ * @throws {@link Err.UndefinedDBError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.DocumentNotFoundError}
+ * @throws {@link Err.CannotDeleteDataError}
  */
 export async function deleteWorker (
   gitDDB: GitDDBInterface,
@@ -98,17 +91,17 @@ export async function deleteWorker (
   commitMessage: string
 ): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB === undefined) {
-    throw new UndefinedDBError();
+    throw new Err.UndefinedDBError();
   }
 
   if (!gitDDB.isOpened()) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
 
   const fullDocPath = collectionPath + shortName;
 
   if (collectionPath === undefined || shortName === undefined || fullDocPath === '') {
-    throw new DocumentNotFoundError();
+    throw new Err.DocumentNotFoundError();
   }
 
   let commit: NormalizedCommit;
@@ -117,7 +110,7 @@ export async function deleteWorker (
   const headCommit = await git
     .resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' })
     .catch(() => undefined);
-  if (headCommit === undefined) throw new DocumentNotFoundError();
+  if (headCommit === undefined) throw new Err.DocumentNotFoundError();
 
   const { oid } = await git
     .readBlob({
@@ -127,7 +120,7 @@ export async function deleteWorker (
       filepath: fullDocPath,
     })
     .catch(() => {
-      throw new DocumentNotFoundError();
+      throw new Err.DocumentNotFoundError();
     });
   const fileOid = oid;
   await git.remove({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
@@ -169,7 +162,7 @@ export async function deleteWorker (
       });
     }
   } catch (err) {
-    return Promise.reject(new CannotDeleteDataError(err.message));
+    return Promise.reject(new Err.CannotDeleteDataError(err.message));
   }
 
   return {

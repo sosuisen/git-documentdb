@@ -28,17 +28,17 @@ Promise&lt;\[GitRemoteAction, 'exist' \| 'create'\]&gt;
 
 ## Exceptions
 
-[UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md) (from RemoteRepository\#create())
+[Err.UndefinedPersonalAccessTokenError](./git-documentdb.err.undefinedpersonalaccesstokenerror.md) (from RemoteRepository\#create())
 
-[PersonalAccessTokenForAnotherAccountError](./git-documentdb.personalaccesstokenforanotheraccounterror.md) (from RemoteRepository\#create())
+[Err.PersonalAccessTokenForAnotherAccountError](./git-documentdb.err.personalaccesstokenforanotheraccounterror.md) (from RemoteRepository\#create())
 
-[CannotConnectError](./git-documentdb.cannotconnecterror.md) (from RemoteRepository\#create())
+[Err.CannotConnectError](./git-documentdb.err.cannotconnecterror.md) (from RemoteRepository\#create())
 
-[AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.authenticationtypenotallowcreaterepositoryerror.md) (from RemoteRepository\#create())
+[Err.AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.err.authenticationtypenotallowcreaterepositoryerror.md) (from RemoteRepository\#create())
 
-[FetchConnectionFailedError](./git-documentdb.fetchconnectionfailederror.md)
+[Err.FetchConnectionFailedError](./git-documentdb.err.fetchconnectionfailederror.md)
 
-[CannotCreateRemoteRepositoryError](./git-documentdb.cannotcreateremoterepositoryerror.md)
+[Err.CannotCreateRemoteRepositoryError](./git-documentdb.err.cannotcreateremoterepositoryerror.md)
 
-[PushConnectionFailedError](./git-documentdb.pushconnectionfailederror.md)
+[Err.PushConnectionFailedError](./git-documentdb.err.pushconnectionfailederror.md)
 

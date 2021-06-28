@@ -23,7 +23,7 @@ import {
   SyncResultPush,
   SyncResultResolveConflictsAndPush,
 } from '../../src/types';
-import { UnfetchedCommitExistsError } from '../../src/error';
+import { Err } from '../../src/error';
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -726,7 +726,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await dbB.open();
 
     // tryPush throws UnfetchedCommitExistsError
-    await expect(dbB.sync(syncA.options)).rejects.toThrowError(UnfetchedCommitExistsError);
+    await expect(dbB.sync(syncA.options)).rejects.toThrowError(
+      Err.UnfetchedCommitExistsError
+    );
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

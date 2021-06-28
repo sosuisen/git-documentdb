@@ -17,13 +17,12 @@ import {
   DocMetadata,
   DocType,
   DuplicatedFile,
-  FatDoc,
   JsonDocMetadata,
   RemoteOptions,
   SyncResultCombineDatabase,
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
-import { FileRemoveTimeoutError, RemoteRepositoryNotFoundError } from '../error';
+import { Err } from '../error';
 import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXT } from '../const';
 import { getAllMetadata, toSortedJSONString } from '../utils';
 
@@ -47,7 +46,7 @@ export async function combineDatabaseWithTheirs (
     if (remoteRepository === undefined) {
       // Remote repository not found.
       // This will not occur after NoBaseMergeFoundError.
-      throw new RemoteRepositoryNotFoundError(remoteOptions.remoteUrl!);
+      throw new Err.RemoteRepositoryNotFoundError(remoteOptions.remoteUrl!);
     }
 
     const index = await remoteRepository.refreshIndex();
@@ -199,7 +198,7 @@ export async function combineDatabaseWithTheirs (
     await new Promise<void>((resolve, reject) => {
       // Set timeout because rimraf sometimes does not catch EPERM error.
       setTimeout(() => {
-        reject(new FileRemoveTimeoutError());
+        reject(new Err.FileRemoveTimeoutError());
       }, FILE_REMOVE_TIMEOUT);
       rimraf(remoteDir, error => {
         if (error) {
@@ -211,7 +210,7 @@ export async function combineDatabaseWithTheirs (
     await new Promise<void>((resolve, reject) => {
       // Set timeout because rimraf sometimes does not catch EPERM error.
       setTimeout(() => {
-        reject(new FileRemoveTimeoutError());
+        reject(new Err.FileRemoveTimeoutError());
       }, FILE_REMOVE_TIMEOUT);
       rimraf(tmpLocalDir, error => {
         if (error) {

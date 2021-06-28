@@ -11,7 +11,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { DatabaseCloseTimeoutError } from '../src/error';
+import { Err } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
 
 const ulid = monotonicFactory();
@@ -86,7 +86,7 @@ describe('<index> destroy()', () => {
     }
     // Set options.force to false explicitly for this test
     await expect(gitDDB.destroy({ force: false, timeout: 1 })).rejects.toThrowError(
-      DatabaseCloseTimeoutError
+      Err.DatabaseCloseTimeoutError
     );
   });
 });

@@ -9,15 +9,7 @@
 import path from 'path';
 import Blob from 'cross-blob';
 import { MAX_FILE_PATH_LENGTH } from './const';
-import {
-  InvalidCollectionPathCharacterError,
-  InvalidCollectionPathLengthError,
-  InvalidDbNameCharacterError,
-  InvalidIdCharacterError,
-  InvalidIdLengthError,
-  InvalidLocalDirCharacterError,
-  UndefinedDocumentIdError,
-} from './error';
+import { Err } from './error';
 import { CollectionPath, JsonDoc } from './types';
 
 /**
@@ -203,7 +195,7 @@ export class Validator {
    * - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
    * - A trailing slash could be omitted.
    *```
-   * @throws {@link InvalidLocalDirCharacterError}
+   * @throws {@link Err.InvalidLocalDirCharacterError}
    */
   validateLocalDir (localDir: string) {
     localDir = localDir.replace(/\\/g, '/');
@@ -231,7 +223,7 @@ export class Validator {
           allowDirectoryDot: true,
         })
       ) {
-        throw new InvalidLocalDirCharacterError(part);
+        throw new Err.InvalidLocalDirCharacterError(part);
       }
     });
   }
@@ -245,14 +237,14 @@ export class Validator {
    * - dbName cannot end with a period or a white space.
    * - dbName does not allow '.' and '..'.
    *```
-   * @throws {@link InvalidDbNameCharacterError}
+   * @throws {@link Err.InvalidDbNameCharacterError}
    */
   validateDbName (dbName: string) {
     if (
       !this.testWindowsReservedFileName(dbName) ||
       !this.testWindowsInvalidFileNameCharacter(dbName)
     ) {
-      throw new InvalidDbNameCharacterError(dbName);
+      throw new Err.InvalidDbNameCharacterError(dbName);
     }
   }
 
@@ -270,8 +262,8 @@ export class Validator {
    * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
    *```
    *
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link Err.InvalidCollectionPathCharacterError}
+   * @throws {@link Err.InvalidCollectionPathLengthError}
    */
   validateCollectionPath (collectionPath: string) {
     if (collectionPath === '') {
@@ -279,7 +271,7 @@ export class Validator {
     }
 
     if (collectionPath.startsWith('/')) {
-      throw new InvalidCollectionPathCharacterError('/');
+      throw new Err.InvalidCollectionPathCharacterError('/');
     }
 
     const normalized = Validator.normalizeCollectionPath(collectionPath);
@@ -291,7 +283,7 @@ export class Validator {
         !this.testWindowsReservedFileName(part) ||
         !this.testWindowsInvalidFileNameCharacter(part)
       ) {
-        throw new InvalidCollectionPathCharacterError(part);
+        throw new Err.InvalidCollectionPathCharacterError(part);
       }
     });
 
@@ -300,7 +292,7 @@ export class Validator {
       Validator.byteLengthOf(normalized) < minimumCollectionPathLength ||
       Validator.byteLengthOf(normalized) > this.maxCollectionPathLength()
     ) {
-      throw new InvalidCollectionPathLengthError(
+      throw new Err.InvalidCollectionPathLengthError(
         normalized,
         minimumCollectionPathLength,
         this.maxCollectionPathLength()
@@ -314,22 +306,22 @@ export class Validator {
    * _id = collectionPath + shortId (not including postfix '.json')
    *
    * @remarks Spec of _id is described at {@link JsonDoc}.
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
-   * @throws {@link InvalidIdLengthError}
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidCollectionPathCharacterError}
+   * @throws {@link Err.InvalidCollectionPathLengthError}
+   * @throws {@link Err.InvalidIdLengthError}
    */
   validateId (_id: string) {
     const baseName = path.basename(_id);
     // basename returns '' if _id is '/'.
     // basename also returns '' if _id is '\' only on Windows
     if (baseName === '') {
-      throw new InvalidIdCharacterError(_id);
+      throw new Err.InvalidIdCharacterError(_id);
     }
     // basename returns a last directory name if _id ends with a slash.
     // e.g.) basename('/users/pages/') returns 'pages'.
     if (_id.endsWith('/')) {
-      throw new InvalidIdCharacterError(_id);
+      throw new Err.InvalidIdCharacterError(_id);
     }
 
     if (
@@ -338,7 +330,7 @@ export class Validator {
         allowLastSpace: true,
       })
     ) {
-      throw new InvalidIdCharacterError(_id);
+      throw new Err.InvalidIdCharacterError(_id);
     }
 
     const dirName = path.dirname(_id);
@@ -354,20 +346,20 @@ export class Validator {
       Validator.byteLengthOf(_id) < minimumIdLength ||
       Validator.byteLengthOf(_id) > this.maxIdLength()
     ) {
-      throw new InvalidIdLengthError(_id, minimumIdLength, this.maxIdLength());
+      throw new Err.InvalidIdLengthError(_id, minimumIdLength, this.maxIdLength());
     }
   }
 
   /**
    * Validate document
    *
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link InvalidIdCharacterError}
-   * @throws {@link InvalidIdLengthError}
+   * @throws {@link Err.UndefinedDocumentIdError}
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    */
   validateDocument (doc: JsonDoc) {
     if (doc._id === undefined) {
-      throw new UndefinedDocumentIdError();
+      throw new Err.UndefinedDocumentIdError();
     }
     this.validateId(doc._id);
   }

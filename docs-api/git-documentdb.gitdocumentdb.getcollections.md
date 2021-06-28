@@ -26,5 +26,5 @@ Promise<!-- -->&lt;<!-- -->Collection\[\]<!-- -->&gt;
 
 ## Exceptions
 
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
 

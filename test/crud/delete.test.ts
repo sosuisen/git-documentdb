@@ -14,14 +14,7 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import sinon from 'sinon';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
-import {
-  CannotDeleteDataError,
-  DatabaseClosingError,
-  DocumentNotFoundError,
-  RepositoryNotOpenError,
-  TaskCancelError,
-  UndefinedDBError,
-} from '../../src/error';
+import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { deleteImpl, deleteWorker } from '../../src/crud/delete';
 import { TaskMetadata } from '../../src/types';
@@ -75,7 +68,7 @@ describe('<crud/delete>', () => {
       gitDDB.close().catch(() => {});
       const _id = 'prof01';
       await expect(deleteImpl(gitDDB, '', _id, _id + JSON_EXT)).rejects.toThrowError(
-        DatabaseClosingError
+        Err.DatabaseClosingError
       );
 
       // wait close
@@ -100,7 +93,7 @@ describe('<crud/delete>', () => {
         deleteImpl(gitDDB, '', i.toString(), i.toString()).catch(
           // eslint-disable-next-line no-loop-func
           err => {
-            if (err instanceof TaskCancelError) taskCancelErrorCount++;
+            if (err instanceof Err.TaskCancelError) taskCancelErrorCount++;
           }
         );
       }
@@ -124,7 +117,7 @@ describe('<crud/delete>', () => {
 
       await expect(
         deleteImpl(gitDDB, '', _id, _id + JSON_EXT + '_invalid')
-      ).rejects.toThrowError(DocumentNotFoundError);
+      ).rejects.toThrowError(Err.DocumentNotFoundError);
 
       await gitDDB.destroy();
     });
@@ -332,7 +325,7 @@ describe('<crud/delete>', () => {
   describe('deleteWorker()', () => {
     it('throws UndefinedDBError when Undefined DB', async () => {
       // @ts-ignore
-      await expect(deleteWorker(undefined)).rejects.toThrowError(UndefinedDBError);
+      await expect(deleteWorker(undefined)).rejects.toThrowError(Err.UndefinedDBError);
     });
 
     it('throws RepositoryNotOpenError when a repository is not opened.', async () => {
@@ -342,7 +335,7 @@ describe('<crud/delete>', () => {
         localDir,
       });
       await expect(deleteWorker(gitDDB, '', 'prof01', '')).rejects.toThrowError(
-        RepositoryNotOpenError
+        Err.RepositoryNotOpenError
       );
       await gitDDB.destroy();
     });
@@ -356,7 +349,7 @@ describe('<crud/delete>', () => {
       await gitDDB.open();
       // @ts-ignore
       await expect(deleteWorker(gitDDB, undefined, '')).rejects.toThrowError(
-        DocumentNotFoundError
+        Err.DocumentNotFoundError
       );
 
       await gitDDB.destroy();
@@ -371,7 +364,7 @@ describe('<crud/delete>', () => {
       await gitDDB.open();
       // @ts-ignore
       await expect(deleteWorker(gitDDB, '', undefined)).rejects.toThrowError(
-        DocumentNotFoundError
+        Err.DocumentNotFoundError
       );
 
       await gitDDB.destroy();
@@ -385,7 +378,7 @@ describe('<crud/delete>', () => {
       });
       await gitDDB.open();
       await expect(deleteWorker(gitDDB, '', '', '')).rejects.toThrowError(
-        DocumentNotFoundError
+        Err.DocumentNotFoundError
       );
 
       await gitDDB.destroy();
@@ -404,7 +397,7 @@ describe('<crud/delete>', () => {
       stubEnsureDir.rejects();
 
       await expect(deleteWorker(gitDDB, '', 'prof01' + JSON_EXT, '')).rejects.toThrowError(
-        CannotDeleteDataError
+        Err.CannotDeleteDataError
       );
       await gitDDB.destroy();
     });

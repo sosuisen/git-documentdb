@@ -12,7 +12,7 @@ import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { InvalidCollectionPathCharacterError } from '../src/error';
+import { Err } from '../src/error';
 import { Collection } from '../src/collection';
 
 const ulid = monotonicFactory();
@@ -44,7 +44,7 @@ describe('<collection>', () => {
     });
     await gitDDB.open();
     expect(() => gitDDB.collection('users./')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     await gitDDB.destroy();
   });

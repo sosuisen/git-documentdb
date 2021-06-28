@@ -17,7 +17,7 @@ import { Collection } from '../src/collection';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { SameIdExistsError } from '../src/error';
+import { Err } from '../src/error';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -46,7 +46,7 @@ describe('<collection> insert(jsonDoc)', () => {
     const col = new Collection(gitDDB, 'col01');
     await col.insert({ _id: 'prof01' });
     await expect(col.insert({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
-      SameIdExistsError
+      Err.SameIdExistsError
     );
     await gitDDB.destroy();
   });
@@ -163,7 +163,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
     const col = new Collection(gitDDB, 'col01');
     await col.insert('prof01', { name: 'Shirase' });
     await expect(col.insert('prof01', { name: 'Shirase' })).rejects.toThrowError(
-      SameIdExistsError
+      Err.SameIdExistsError
     );
     await gitDDB.destroy();
   });

@@ -26,5 +26,5 @@ Array of Collections which does not include ''
 
 ## Exceptions
 
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md)
+[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
 

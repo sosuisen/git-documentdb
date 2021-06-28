@@ -3,11 +3,7 @@ import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY, JSON_EXT } from '../const';
-import {
-  CannotDeleteDataError,
-  InvalidConflictStateError,
-  RepositoryNotOpenError,
-} from '../error';
+import { Err } from '../error';
 import {
   AcceptedConflict,
   ConflictResolutionStrategies,
@@ -94,11 +90,11 @@ function getMergedDocument (
 /**
  * 3-way merge
  *
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link InvalidConflictStateError}
- * @throws {@link CannotDeleteDataError}
- * @throws {@link CannotCreateDirectoryError} (from writeBlobToFile)
- * @throws {@link InvalidJsonObjectError} (from getFatDocFromData, getFatDocFromReadBlobResult)
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.InvalidConflictStateError}
+ * @throws {@link Err.CannotDeleteDataError}
+ * @throws {@link Err.CannotCreateDirectoryError} (from writeBlobToFile)
+ * @throws {@link Err.InvalidJsonObjectError} (from getFatDocFromData, getFatDocFromReadBlobResult)
  */
 // eslint-disable-next-line complexity
 export async function threeWayMerge (
@@ -114,7 +110,7 @@ export async function threeWayMerge (
 ): Promise<void> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
   // Try 3-way merge on the assumption that their is no conflict.
   const base = await git
@@ -153,7 +149,7 @@ export async function threeWayMerge (
   // 2 x 2 x 2 cases
   if (!base && !ours && !theirs) {
     // This case must not occurred.
-    throw new InvalidConflictStateError(
+    throw new Err.InvalidConflictStateError(
       'Neither a base entry nor a local entry nor a remote entry exists.'
     );
   }
@@ -297,7 +293,7 @@ export async function threeWayMerge (
       // A file has been removed on theirs.
       // console.log(' #case 10 - Accept theirs (delete): ' + path);
       await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
-        throw new CannotDeleteDataError();
+        throw new Err.CannotDeleteDataError();
       });
       await resolvedIndex.removeByPath(fullDocPath);
     }
@@ -346,7 +342,7 @@ export async function threeWayMerge (
           operation: 'delete',
         });
         await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
-          throw new CannotDeleteDataError();
+          throw new Err.CannotDeleteDataError();
         });
         await resolvedIndex.removeByPath(fullDocPath);
       }

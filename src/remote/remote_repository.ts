@@ -8,21 +8,7 @@
 
 import nodegit from '@sosuisen/nodegit';
 import { Octokit } from '@octokit/rest';
-import {
-  AuthenticationTypeNotAllowCreateRepositoryError,
-  CannotConnectError,
-  CannotCreateRemoteRepositoryError,
-  FetchConnectionFailedError,
-  FetchPermissionDeniedError,
-  InvalidAuthenticationTypeError,
-  InvalidURLError,
-  PersonalAccessTokenForAnotherAccountError,
-  PushConnectionFailedError,
-  PushPermissionDeniedError,
-  RemoteRepositoryNotFoundError,
-  UndefinedPersonalAccessTokenError,
-  UndefinedRemoteURLError,
-} from '../error';
+import { Err } from '../error';
 import { RemoteOptions } from '../types';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../const';
 import { sleep } from '../utils';
@@ -45,13 +31,13 @@ export class RemoteRepository {
   /**
    * Constructor
    *
-   * @throws {@link InvalidAuthenticationTypeError}
+   * @throws {@link Err.InvalidAuthenticationTypeError}
    *
    * @public
    */
   constructor (options: RemoteOptions) {
     if (options.remoteUrl === undefined || options.remoteUrl === '') {
-      throw new UndefinedRemoteURLError();
+      throw new Err.UndefinedRemoteURLError();
     }
     this._options = (JSON.parse(JSON.stringify(options)) as unknown) as RemoteOptions;
     this._options.connection ??= {
@@ -68,7 +54,7 @@ export class RemoteRepository {
       // nop
     }
     else {
-      throw new InvalidAuthenticationTypeError(this._options.connection.type);
+      throw new Err.InvalidAuthenticationTypeError(this._options.connection.type);
     }
   }
 
@@ -77,9 +63,9 @@ export class RemoteRepository {
    * @remarks
    * connection.type must be 'github'
    *
-   * @throws {@link UndefinedPersonalAccessTokenError}
-   * @throws {@link PersonalAccessTokenForAnotherAccountError}
-   * @throws {@link CannotConnectError}
+   * @throws {@link Err.UndefinedPersonalAccessTokenError}
+   * @throws {@link Err.PersonalAccessTokenForAnotherAccountError}
+   * @throws {@link Err.CannotConnectError}
    *
    *  may include the following errors:
    *
@@ -91,7 +77,7 @@ export class RemoteRepository {
    *
    *  - Other network errors
    *
-   * @throws {@link AuthenticationTypeNotAllowCreateRepositoryError}
+   * @throws {@link Err.AuthenticationTypeNotAllowCreateRepositoryError}
    *
    * @public
    */
@@ -99,7 +85,7 @@ export class RemoteRepository {
     if (this._options.connection?.type === 'github') {
       // @ts-ignore
       if (this._options.connection.personalAccessToken === undefined) {
-        throw new UndefinedPersonalAccessTokenError();
+        throw new Err.UndefinedPersonalAccessTokenError();
       }
       const urlArray = this._options.remoteUrl!.split('/');
       const owner = urlArray[urlArray.length - 2];
@@ -129,17 +115,17 @@ export class RemoteRepository {
           if (result.data.full_name === `${owner}/${repo}`) {
             break;
           }
-          throw new PersonalAccessTokenForAnotherAccountError();
+          throw new Err.PersonalAccessTokenForAnotherAccountError();
         }
         // eslint-disable-next-line no-await-in-loop
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new CannotConnectError(retry, this._options.remoteUrl!, result.message);
+        throw new Err.CannotConnectError(retry, this._options.remoteUrl!, result.message);
       }
     }
     else {
-      throw new AuthenticationTypeNotAllowCreateRepositoryError(
+      throw new Err.AuthenticationTypeNotAllowCreateRepositoryError(
         this._options.connection?.type
       );
     }
@@ -150,8 +136,8 @@ export class RemoteRepository {
    * @remarks
    * connection.type must be 'github'
    *
-   * @throws {@link UndefinedPersonalAccessTokenError}
-   * @throws {@link CannotConnectError}
+   * @throws {@link Err.UndefinedPersonalAccessTokenError}
+   * @throws {@link Err.CannotConnectError}
    *
    *  may include the following errors:
    *
@@ -163,7 +149,7 @@ export class RemoteRepository {
    *
    *  - Other network errors
    *
-   * @throws {@link AuthenticationTypeNotAllowCreateRepositoryError}
+   * @throws {@link Err.AuthenticationTypeNotAllowCreateRepositoryError}
    *
    * @public
    */
@@ -171,7 +157,7 @@ export class RemoteRepository {
     if (this._options.connection?.type === 'github') {
       // @ts-ignore
       if (this._options.connection?.personalAccessToken === undefined) {
-        throw new UndefinedPersonalAccessTokenError();
+        throw new Err.UndefinedPersonalAccessTokenError();
       }
       const urlArray = this._options.remoteUrl!.split('/');
       const owner = urlArray[urlArray.length - 2];
@@ -200,11 +186,11 @@ export class RemoteRepository {
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new CannotConnectError(retry, this._options.remoteUrl!, result.message);
+        throw new Err.CannotConnectError(retry, this._options.remoteUrl!, result.message);
       }
     }
     else {
-      throw new AuthenticationTypeNotAllowCreateRepositoryError(
+      throw new Err.AuthenticationTypeNotAllowCreateRepositoryError(
         this._options.connection?.type
       );
     }
@@ -243,8 +229,8 @@ export class RemoteRepository {
   /**
    * Check connection by FETCH
    *
-   * @throws {@link InvalidURLError}
-   * @throws {@link RemoteRepositoryNotFoundError}
+   * @throws {@link Err.InvalidURLError}
+   * @throws {@link Err.RemoteRepositoryNotFoundError}
    * @throws Error (Other errors from NodeGit.Remote#connect())
    *
    * @internal
@@ -268,19 +254,19 @@ export class RemoteRepository {
       case error.startsWith('Error: unsupported URL protocol'):
       case error.startsWith('Error: failed to resolve address'):
       case error.startsWith('Error: failed to send request'):
-        throw new InvalidURLError(remoteURL + ':' + error);
+        throw new Err.InvalidURLError(remoteURL + ':' + error);
       case error.startsWith('Error: unexpected HTTP status code: 4'): // 401, 404 on Ubuntu
       case error.startsWith('Error: request failed with status code: 4'): // 401, 404 on Windows
       case error.startsWith('Error: Method connect has thrown an error'):
       case error.startsWith('Error: ERROR: Repository not found'):
         // Remote repository does not exist, or you do not have permission to the private repository
-        throw new RemoteRepositoryNotFoundError(remoteURL + ':' + error);
+        throw new Err.RemoteRepositoryNotFoundError(remoteURL + ':' + error);
       case error.startsWith(
         'Error: remote credential provider returned an invalid cred type'
       ): // on Ubuntu
       case error.startsWith('Failed to retrieve list of SSH authentication methods'):
       case error.startsWith('Error: too many redirects or authentication replays'):
-        throw new FetchPermissionDeniedError(error);
+        throw new Err.FetchPermissionDeniedError(error);
       default:
         throw new Error(error);
     }
@@ -290,9 +276,9 @@ export class RemoteRepository {
   /**
    * Check connection by PUSH
    *
-   * @throws {@link InvalidURLError}
-   * @throws {@link RemoteRepositoryNotFoundError}
-   * @throws {@link PushPermissionDeniedError}
+   * @throws {@link Err.InvalidURLError}
+   * @throws {@link Err.RemoteRepositoryNotFoundError}
+   * @throws {@link Err.PushPermissionDeniedError}
    * @throws Error (Other errors from NodeGit.Remote#connect())
    *
    * @internal
@@ -316,13 +302,13 @@ export class RemoteRepository {
       case error.startsWith('Error: unsupported URL protocol'):
       case error.startsWith('Error: failed to resolve address'):
       case error.startsWith('Error: failed to send request'):
-        throw new InvalidURLError(remoteURL);
+        throw new Err.InvalidURLError(remoteURL);
       case error.startsWith('Error: unexpected HTTP status code: 4'): // 401, 404 on Ubuntu
       case error.startsWith('Error: request failed with status code: 4'): // 401, 404 on Windows
       case error.startsWith('Error: Method connect has thrown an error'):
       case error.startsWith('Error: ERROR: Repository not found'): {
         // Remote repository does not exist, or you do not have permission to the private repository
-        throw new RemoteRepositoryNotFoundError(remoteURL);
+        throw new Err.RemoteRepositoryNotFoundError(remoteURL);
       }
       // Invalid personal access token
       // Personal access token is read only
@@ -331,7 +317,7 @@ export class RemoteRepository {
       ): // on Ubuntu
       case error.startsWith('Error: too many redirects or authentication replays'):
       case error.startsWith('Error: ERROR: Permission to'): {
-        throw new PushPermissionDeniedError(error);
+        throw new Err.PushPermissionDeniedError(error);
       }
       default:
         throw new Error(error);
@@ -343,13 +329,13 @@ export class RemoteRepository {
    * Set a remote repository and connect to the remote repository.
    * A remote repository will be created if not exists.
    *
-   * @throws {@link UndefinedPersonalAccessTokenError} (from RemoteRepository#create())
-   * @throws {@link PersonalAccessTokenForAnotherAccountError} (from RemoteRepository#create())
-   * @throws {@link CannotConnectError} (from RemoteRepository#create())
-   * @throws {@link AuthenticationTypeNotAllowCreateRepositoryError} (from RemoteRepository#create())
-   * @throws {@link FetchConnectionFailedError}
-   * @throws {@link CannotCreateRemoteRepositoryError}
-   * @throws {@link PushConnectionFailedError}
+   * @throws {@link Err.UndefinedPersonalAccessTokenError} (from RemoteRepository#create())
+   * @throws {@link Err.PersonalAccessTokenForAnotherAccountError} (from RemoteRepository#create())
+   * @throws {@link Err.CannotConnectError} (from RemoteRepository#create())
+   * @throws {@link Err.AuthenticationTypeNotAllowCreateRepositoryError} (from RemoteRepository#create())
+   * @throws {@link Err.FetchConnectionFailedError}
+   * @throws {@link Err.CannotCreateRemoteRepositoryError}
+   * @throws {@link Err.PushConnectionFailedError}
    *
    * @public
    */
@@ -370,25 +356,25 @@ export class RemoteRepository {
       credentialCallbacks
     ).catch(err => {
       if (
-        err instanceof RemoteRepositoryNotFoundError &&
+        err instanceof Err.RemoteRepositoryNotFoundError &&
         this._options.connection?.type === 'github'
       ) {
         return 'create';
       }
 
-      throw new FetchConnectionFailedError(err.message);
+      throw new Err.FetchConnectionFailedError(err.message);
     });
     if (remoteResult === 'create') {
       // Try to create repository by octokit
       await this.create().catch(err => {
         // App may check permission or
-        throw new CannotCreateRemoteRepositoryError(err.message);
+        throw new Err.CannotCreateRemoteRepositoryError(err.message);
       });
     }
 
     if (!onlyFetch) {
       await this._checkPush(remote, credentialCallbacks).catch(err => {
-        throw new PushConnectionFailedError(err.message);
+        throw new Err.PushConnectionFailedError(err.message);
       });
     }
     return [gitResult, remoteResult];

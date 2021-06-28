@@ -27,7 +27,7 @@ boolean
 
 ## Exceptions
 
-[IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md)
+[Err.IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md)
 
 ## Remarks
 

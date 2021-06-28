@@ -41,7 +41,7 @@ import {
 } from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { Sync } from '../../src/remote/sync';
-import { SyncWorkerError, UnfetchedCommitExistsError } from '../../src/error';
+import { Err } from '../../src/error';
 import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../../src/const';
 import { pushWorker } from '../../src/remote/push_worker';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -226,7 +226,7 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new UnfetchedCommitExistsError());
+      stubPush.onFirstCall().rejects(new Err.UnfetchedCommitExistsError());
 
       const resultsB: SyncResult[] = [];
       syncB.on('change', (result: SyncResult) => {
@@ -307,7 +307,7 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new UnfetchedCommitExistsError());
+      stubPush.onFirstCall().rejects(new Err.UnfetchedCommitExistsError());
 
       const localChangesB: ChangedFile[][] = [];
       syncB.on('localChange', (changes: ChangedFile[]) => {
@@ -388,7 +388,7 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new UnfetchedCommitExistsError());
+      stubPush.onFirstCall().rejects(new Err.UnfetchedCommitExistsError());
 
       let firstChange = true;
       syncB.on('change', (changes: ChangedFile[]) => {
@@ -1141,7 +1141,7 @@ maybe('<remote/sync> [event]', () => {
       error = true;
       errorTaskId = taskMetadata.taskId;
     });
-    await expect(syncA.trySync()).rejects.toThrowError(SyncWorkerError);
+    await expect(syncA.trySync()).rejects.toThrowError(Err.SyncWorkerError);
 
     expect(error).toBe(true);
     expect(startTaskId).toBe(errorTaskId);

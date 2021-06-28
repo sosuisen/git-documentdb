@@ -10,7 +10,7 @@ import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { CONSOLE_STYLE } from '../utils';
-import { GitPushError, SyncWorkerFetchError, UnfetchedCommitExistsError } from '../error';
+import { Err } from '../error';
 import { GitDDBInterface } from '../types_gitddb';
 import { NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
 import { SyncInterface } from '../types_sync';
@@ -19,9 +19,9 @@ import { calcDistance, getChanges, getCommitLogs } from './worker_utils';
 /**
  * git push
  *
- * @throws {@link UnfetchedCommitExistsError} (from this and validatePushResult())
- * @throws {@link SyncWorkerFetchError} (from validatePushResult())
- * @throws {@link GitPushError} (from NodeGit.Remote.push())
+ * @throws {@link Err.UnfetchedCommitExistsError} (from this and validatePushResult())
+ * @throws {@link Err.SyncWorkerFetchError} (from validatePushResult())
+ * @throws {@link Err.GitPushError} (from NodeGit.Remote.push())
  */
 async function push (gitDDB: GitDDBInterface, sync: SyncInterface): Promise<void> {
   const repos = gitDDB.repository()!;
@@ -36,9 +36,9 @@ async function push (gitDDB: GitDDBInterface, sync: SyncInterface): Promise<void
           'cannot push because a reference that you are trying to update on the remote contains commits that are not present locally'
         )
       ) {
-        throw new UnfetchedCommitExistsError();
+        throw new Err.UnfetchedCommitExistsError();
       }
-      throw new GitPushError(err.message);
+      throw new Err.GitPushError(err.message);
     });
   // gitDDB.logger.debug(CONSOLE_STYLE.BgWhite().FgBlack().tag()`sync_worker: May pushed.`);
   await validatePushResult(gitDDB, sync);
@@ -48,8 +48,8 @@ async function push (gitDDB: GitDDBInterface, sync: SyncInterface): Promise<void
  * NodeGit.Remote.push does not return valid error in race condition,
  * so check is needed.
  *
- * @throws {@link SyncWorkerFetchError}
- * @throws {@link UnfetchedCommitExistsError}
+ * @throws {@link Err.SyncWorkerFetchError}
+ * @throws {@link Err.UnfetchedCommitExistsError}
  */
 async function validatePushResult (
   gitDDB: GitDDBInterface,
@@ -61,7 +61,7 @@ async function validatePushResult (
       callbacks: sync.credentialCallbacks,
     })
     .catch(err => {
-      throw new SyncWorkerFetchError(err.message);
+      throw new Err.SyncWorkerFetchError(err.message);
     });
 
   const localCommitOid = await git.resolveRef({
@@ -83,17 +83,17 @@ async function validatePushResult (
         .tag()`sync_worker: push failed: ahead ${distance.ahead} behind ${distance.behind}`
     );
 
-    throw new UnfetchedCommitExistsError();
+    throw new Err.UnfetchedCommitExistsError();
   }
 }
 
 /**
  * Push and get changes
  *
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link UnfetchedCommitExistsError} (from push() and validatePushResult())
- * @throws {@link SyncWorkerFetchError} (from validatePushResult())
- * @throws {@link InvalidJsonObjectError} (from getChanges())
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.UnfetchedCommitExistsError} (from push() and validatePushResult())
+ * @throws {@link Err.SyncWorkerFetchError} (from validatePushResult())
+ * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
  * @throws Error (Other errors from NodeGit.Remote.push())
  */
 export async function pushWorker (

@@ -24,9 +24,9 @@ void
 
 ## Exceptions
 
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+[Err.UndefinedDocumentIdError](./git-documentdb.err.undefineddocumentiderror.md)
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+[Err.InvalidIdCharacterError](./git-documentdb.err.invalididcharactererror.md)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+[Err.InvalidIdLengthError](./git-documentdb.err.invalididlengtherror.md)
 

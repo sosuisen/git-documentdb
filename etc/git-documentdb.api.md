@@ -16,56 +16,12 @@ export type AcceptedConflict = {
     operation: WriteOperation;
 };
 
-// Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
-//
-// @public (undocumented)
-export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
-    constructor(type: unknown);
-}
-
 // @public
 export type BinaryDocMetadata = {
     name: string;
     fileOid: string;
     type: 'binary';
 };
-
-// @public (undocumented)
-export class CannotConnectError extends BaseError {
-    constructor(retry: number, url: string, mes: string);
-    // (undocumented)
-    retry: number;
-}
-
-// @public (undocumented)
-export class CannotCreateDirectoryError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
-export class CannotCreateRemoteRepositoryError extends BaseError {
-    constructor(reason: unknown);
-}
-
-// @public (undocumented)
-export class CannotCreateRepositoryError extends BaseError {
-    constructor(reason: unknown);
-}
-
-// @public (undocumented)
-export class CannotDeleteDataError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
-export class CannotOpenRepositoryError extends BaseError {
-    constructor(err: unknown);
-}
-
-// @public (undocumented)
-export class CannotWriteDataError extends BaseError {
-    constructor(e?: unknown);
-}
 
 // @public
 export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
@@ -162,11 +118,6 @@ export type CollectionOptions = {
 // @public
 export type CollectionPath = string;
 
-// @public (undocumented)
-export class CombineDatabaseError extends BaseError {
-    constructor(mes: string);
-}
-
 // @public
 export type CombineDbStrategies = 'throw-error' | 'combine-head-with-ours' | 'combine-head-with-theirs' | 'combine-history-with-ours' | 'combine-history-with-theirs' | 'replace-with-ours' | 'replace-with-theirs';
 
@@ -198,11 +149,6 @@ export type ConnectionSettingsSSH = {
     publicKeyPath: string;
     passPhrase?: string;
 };
-
-// @public (undocumented)
-export class ConsecutiveSyncSkippedError extends BaseError {
-    constructor(taskLabel: string, taskId: string);
-}
 
 // @public
 export interface CRUDInterface {
@@ -269,16 +215,6 @@ export type DatabaseCloseOption = {
     force?: boolean;
     timeout?: number;
 };
-
-// @public (undocumented)
-export class DatabaseCloseTimeoutError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
-export class DatabaseClosingError extends BaseError {
-    constructor(e?: unknown);
-}
 
 // @public
 export type DatabaseInfo = {
@@ -362,11 +298,6 @@ export type DocMetadata = JsonDocMetadata | TextDocMetadata | BinaryDocMetadata;
 export type DocType = 'json' | 'text' | 'binary';
 
 // @public (undocumented)
-export class DocumentNotFoundError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
 export const DUPLICATED_FILE_POSTFIX = "-from-";
 
 // @public
@@ -374,6 +305,264 @@ export type DuplicatedFile = {
     original: DocMetadata;
     duplicate: DocMetadata;
 };
+
+// @public
+export namespace Err {
+    // (undocumented)
+    export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
+        constructor(type: unknown);
+    }
+    export class BaseError extends Error {
+        constructor(e: string);
+    }
+    // (undocumented)
+    export class CannotConnectError extends BaseError {
+        constructor(retry: number, url: string, mes: string);
+        // (undocumented)
+        retry: number;
+    }
+    // (undocumented)
+    export class CannotCreateDirectoryError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class CannotCreateRemoteRepositoryError extends BaseError {
+        constructor(reason: unknown);
+    }
+    // (undocumented)
+    export class CannotCreateRepositoryError extends BaseError {
+        constructor(reason: unknown);
+    }
+    // (undocumented)
+    export class CannotDeleteDataError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class CannotOpenRepositoryError extends BaseError {
+        constructor(err: unknown);
+    }
+    // (undocumented)
+    export class CannotWriteDataError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class CombineDatabaseError extends BaseError {
+        constructor(mes: string);
+    }
+    // (undocumented)
+    export class ConsecutiveSyncSkippedError extends BaseError {
+        constructor(taskLabel: string, taskId: string);
+    }
+    // (undocumented)
+    export class DatabaseCloseTimeoutError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class DatabaseClosingError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class DocumentNotFoundError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class FetchConnectionFailedError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class FetchPermissionDeniedError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class FileRemoveTimeoutError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class GitMergeBranchError extends BaseError {
+        constructor(mes: string);
+    }
+    // (undocumented)
+    export class GitPushError extends BaseError {
+        constructor(mes: string);
+    }
+    // (undocumented)
+    export class HTTPNetworkError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class HttpProtocolRequiredError extends BaseError {
+        constructor(url: unknown);
+    }
+    // (undocumented)
+    export class IntervalTooSmallError extends BaseError {
+        constructor(min: unknown, current: unknown);
+    }
+    // (undocumented)
+    export class InvalidAuthenticationTypeError extends BaseError {
+        constructor(type: string);
+    }
+    // (undocumented)
+    export class InvalidCollectionPathCharacterError extends BaseError {
+        constructor(name: unknown);
+    }
+    // (undocumented)
+    export class InvalidCollectionPathLengthError extends BaseError {
+        constructor(collectionPath: unknown, minLength: unknown, maxLength: unknown);
+    }
+    // (undocumented)
+    export class InvalidConflictStateError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class InvalidDbNameCharacterError extends BaseError {
+        constructor(name: unknown);
+    }
+    // (undocumented)
+    export class InvalidDocTypeError extends BaseError {
+        constructor(type: unknown);
+    }
+    // (undocumented)
+    export class InvalidIdCharacterError extends BaseError {
+        constructor(id: unknown);
+    }
+    // (undocumented)
+    export class InvalidIdLengthError extends BaseError {
+        constructor(id: unknown, minLength: unknown, maxLength: unknown);
+    }
+    // (undocumented)
+    export class InvalidJsonFileExtensionError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class InvalidJsonObjectError extends BaseError {
+        constructor(idOrSha: unknown);
+    }
+    // (undocumented)
+    export class InvalidLocalDirCharacterError extends BaseError {
+        constructor(name: unknown);
+    }
+    // (undocumented)
+    export class InvalidRepositoryURLError extends BaseError {
+        constructor(url: unknown);
+    }
+    // (undocumented)
+    export class InvalidSSHKeyPathError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class InvalidURLError extends BaseError {
+        constructor(url: unknown);
+    }
+    // (undocumented)
+    export class InvalidWorkingDirectoryPathLengthError extends BaseError {
+        constructor(path: unknown, minLength: unknown, maxLength: unknown);
+    }
+    // (undocumented)
+    export class NoMergeBaseFoundError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class PersonalAccessTokenForAnotherAccountError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class PushConnectionFailedError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class PushNotAllowedError extends BaseError {
+        constructor(direction: unknown);
+    }
+    // (undocumented)
+    export class PushPermissionDeniedError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class PushWorkerError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class RemoteAlreadyRegisteredError extends BaseError {
+        constructor(url: unknown);
+    }
+    // (undocumented)
+    export class RemoteRepositoryConnectError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class RemoteRepositoryNotFoundError extends BaseError {
+        constructor(url: unknown);
+    }
+    // (undocumented)
+    export class RepositoryNotFoundError extends BaseError {
+        constructor(path: unknown);
+    }
+    // (undocumented)
+    export class RepositoryNotOpenError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class RequestTimeoutError extends BaseError {
+        constructor(url: unknown);
+    }
+    // (undocumented)
+    export class SameIdExistsError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class SocketTimeoutError extends BaseError {
+        constructor(url: unknown);
+    }
+    // (undocumented)
+    export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
+        constructor(syncInterval: unknown, retryInterval: unknown);
+    }
+    // (undocumented)
+    export class SyncWorkerError extends BaseError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class SyncWorkerFetchError extends BaseError {
+        constructor(mes: string);
+    }
+    // (undocumented)
+    export class TaskCancelError extends BaseError {
+        constructor(taskId: unknown);
+    }
+    // (undocumented)
+    export class ThreeWayMergeError extends BaseError {
+        constructor(mes: string);
+    }
+    // (undocumented)
+    export class UndefinedDatabaseNameError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class UndefinedDBError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class UndefinedDocumentIdError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class UndefinedPersonalAccessTokenError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class UndefinedRemoteURLError extends BaseError {
+        constructor();
+    }
+    // (undocumented)
+    export class UndefinedSyncError extends BaseError {
+        constructor(e?: unknown);
+    }
+    // (undocumented)
+    export class UnfetchedCommitExistsError extends BaseError {
+        constructor();
+    }
+    {};
+}
 
 // @public
 export type FatBinaryDoc = BinaryDocMetadata & {
@@ -394,22 +583,7 @@ export type FatTextDoc = TextDocMetadata & {
 };
 
 // @public (undocumented)
-export class FetchConnectionFailedError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
-export class FetchPermissionDeniedError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
 export const FILE_REMOVE_TIMEOUT = 7000;
-
-// @public (undocumented)
-export class FileRemoveTimeoutError extends BaseError {
-    constructor();
-}
 
 // @public
 export type FindOptions = {
@@ -608,16 +782,6 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     get workingDir(): string;
     }
 
-// @public (undocumented)
-export class GitMergeBranchError extends BaseError {
-    constructor(mes: string);
-}
-
-// @public (undocumented)
-export class GitPushError extends BaseError {
-    constructor(mes: string);
-}
-
 // @public
 export type HistoryFilter = {
     author?: {
@@ -634,16 +798,6 @@ export type HistoryFilter = {
 export type HistoryOptions = {
     filter?: HistoryFilter[];
 };
-
-// @public (undocumented)
-export class HTTPNetworkError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
-export class HttpProtocolRequiredError extends BaseError {
-    constructor(url: unknown);
-}
 
 // @public
 export type ICollection = CollectionInterface & CRUDInterface & SyncEventInterface & {
@@ -663,86 +817,6 @@ export interface IJsonPatch {
     }, diffTheirs?: {
         [key: string]: any;
     } | undefined, strategy?: ConflictResolutionStrategyLabels): JsonDoc;
-}
-
-// @public (undocumented)
-export class IntervalTooSmallError extends BaseError {
-    constructor(min: unknown, current: unknown);
-}
-
-// @public (undocumented)
-export class InvalidAuthenticationTypeError extends BaseError {
-    constructor(type: string);
-}
-
-// @public (undocumented)
-export class InvalidCollectionPathCharacterError extends BaseError {
-    constructor(name: unknown);
-}
-
-// @public (undocumented)
-export class InvalidCollectionPathLengthError extends BaseError {
-    constructor(collectionPath: unknown, minLength: unknown, maxLength: unknown);
-}
-
-// @public (undocumented)
-export class InvalidConflictStateError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
-export class InvalidDbNameCharacterError extends BaseError {
-    constructor(name: unknown);
-}
-
-// @public (undocumented)
-export class InvalidDocTypeError extends BaseError {
-    constructor(type: unknown);
-}
-
-// @public (undocumented)
-export class InvalidIdCharacterError extends BaseError {
-    constructor(id: unknown);
-}
-
-// @public (undocumented)
-export class InvalidIdLengthError extends BaseError {
-    constructor(id: unknown, minLength: unknown, maxLength: unknown);
-}
-
-// @public (undocumented)
-export class InvalidJsonFileExtensionError extends BaseError {
-    constructor();
-}
-
-// @public (undocumented)
-export class InvalidJsonObjectError extends BaseError {
-    constructor(idOrSha: unknown);
-}
-
-// @public (undocumented)
-export class InvalidLocalDirCharacterError extends BaseError {
-    constructor(name: unknown);
-}
-
-// @public (undocumented)
-export class InvalidRepositoryURLError extends BaseError {
-    constructor(url: unknown);
-}
-
-// @public (undocumented)
-export class InvalidSSHKeyPathError extends BaseError {
-    constructor();
-}
-
-// @public (undocumented)
-export class InvalidURLError extends BaseError {
-    constructor(url: unknown);
-}
-
-// @public (undocumented)
-export class InvalidWorkingDirectoryPathLengthError extends BaseError {
-    constructor(path: unknown, minLength: unknown, maxLength: unknown);
 }
 
 // @public (undocumented)
@@ -784,11 +858,6 @@ export const NETWORK_RETRY_INTERVAL = 2000;
 // @public (undocumented)
 export const NETWORK_TIMEOUT = 7000;
 
-// @public (undocumented)
-export class NoMergeBaseFoundError extends BaseError {
-    constructor();
-}
-
 // @public
 export type NormalizedCommit = {
     oid: string;
@@ -811,31 +880,6 @@ export type NormalizedCommit = {
 export type OpenOptions = {
     createIfNotExists?: boolean;
 };
-
-// @public (undocumented)
-export class PersonalAccessTokenForAnotherAccountError extends BaseError {
-    constructor();
-}
-
-// @public (undocumented)
-export class PushConnectionFailedError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
-export class PushNotAllowedError extends BaseError {
-    constructor(direction: unknown);
-}
-
-// @public (undocumented)
-export class PushPermissionDeniedError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
-export class PushWorkerError extends BaseError {
-    constructor(mes: unknown);
-}
 
 // @public (undocumented)
 export const PUT_APP_INFO_MESSAGE = "put appinfo";
@@ -876,11 +920,6 @@ export type PutResultText = {
     type: 'text';
 };
 
-// @public (undocumented)
-export class RemoteAlreadyRegisteredError extends BaseError {
-    constructor(url: unknown);
-}
-
 // @public
 export type RemoteOptions = {
     remoteUrl?: string;
@@ -906,36 +945,6 @@ export class RemoteRepository {
     destroy(): Promise<void>;
     }
 
-// @public (undocumented)
-export class RemoteRepositoryConnectError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
-export class RemoteRepositoryNotFoundError extends BaseError {
-    constructor(url: unknown);
-}
-
-// @public (undocumented)
-export class RepositoryNotFoundError extends BaseError {
-    constructor(path: unknown);
-}
-
-// @public (undocumented)
-export class RepositoryNotOpenError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
-export class RequestTimeoutError extends BaseError {
-    constructor(url: unknown);
-}
-
-// @public (undocumented)
-export class SameIdExistsError extends BaseError {
-    constructor(e?: unknown);
-}
-
 // @public
 export type Schema = {
     json: JsonDiffOptions;
@@ -946,11 +955,6 @@ export const SET_DATABASE_ID_MESSAGE = "set database id";
 
 // @public (undocumented)
 export const SHORT_SHA_LENGTH = 7;
-
-// @public (undocumented)
-export class SocketTimeoutError extends BaseError {
-    constructor(url: unknown);
-}
 
 // @public
 export class Sync implements SyncInterface {
@@ -1156,11 +1160,6 @@ export interface SyncInterface {
     upstreamBranch: string;
 }
 
-// @public (undocumented)
-export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
-    constructor(syncInterval: unknown, retryInterval: unknown);
-}
-
 // @public
 export type SyncLocalChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 
@@ -1269,16 +1268,6 @@ export type SyncResumeCallback = () => void;
 // @public
 export type SyncStartCallback = (taskMetadata: TaskMetadata, currentRetries: number) => void;
 
-// @public (undocumented)
-export class SyncWorkerError extends BaseError {
-    constructor(mes: unknown);
-}
-
-// @public (undocumented)
-export class SyncWorkerFetchError extends BaseError {
-    constructor(mes: string);
-}
-
 // Warning: (ae-internal-missing-underscore) The name "Task" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -1287,11 +1276,6 @@ export type Task = TaskMetadata & {
     cancel: () => void;
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
-
-// @public (undocumented)
-export class TaskCancelError extends BaseError {
-    constructor(taskId: unknown);
-}
 
 // @public
 export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
@@ -1323,46 +1307,6 @@ export type TextDocMetadata = {
     fileOid: string;
     type: 'text';
 };
-
-// @public (undocumented)
-export class ThreeWayMergeError extends BaseError {
-    constructor(mes: string);
-}
-
-// @public (undocumented)
-export class UndefinedDatabaseNameError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
-export class UndefinedDBError extends BaseError {
-    constructor();
-}
-
-// @public (undocumented)
-export class UndefinedDocumentIdError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
-export class UndefinedPersonalAccessTokenError extends BaseError {
-    constructor();
-}
-
-// @public (undocumented)
-export class UndefinedRemoteURLError extends BaseError {
-    constructor();
-}
-
-// @public (undocumented)
-export class UndefinedSyncError extends BaseError {
-    constructor(e?: unknown);
-}
-
-// @public (undocumented)
-export class UnfetchedCommitExistsError extends BaseError {
-    constructor();
-}
 
 // @public
 export class Validator {

@@ -17,11 +17,11 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md)<!-- -->&gt;
 
 ## Exceptions
 
-[SyncWorkerError](./git-documentdb.syncworkererror.md)
+[Err.SyncWorkerError](./git-documentdb.err.syncworkererror.md)
 
-[NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md)
+[Err.NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md)
 
-[UnfetchedCommitExistsError](./git-documentdb.unfetchedcommitexistserror.md)
+[Err.UnfetchedCommitExistsError](./git-documentdb.err.unfetchedcommitexistserror.md)
 
-[PushNotAllowedError](./git-documentdb.pushnotallowederror.md)
+[Err.PushNotAllowedError](./git-documentdb.err.pushnotallowederror.md)
 

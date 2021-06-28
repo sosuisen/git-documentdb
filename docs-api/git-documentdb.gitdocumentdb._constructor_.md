@@ -20,9 +20,9 @@ constructor(options: DatabaseOptions & CollectionOptions);
 
 ## Exceptions
 
-[InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md)
+[Err.InvalidWorkingDirectoryPathLengthError](./git-documentdb.err.invalidworkingdirectorypathlengtherror.md)
 
-[UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md)
+[Err.UndefinedDatabaseNameError](./git-documentdb.err.undefineddatabasenameerror.md)
 
 ## Remarks
 

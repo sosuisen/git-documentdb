@@ -9,12 +9,7 @@
 import { Socket } from 'net';
 import http from 'http';
 import https from 'https';
-import {
-  HTTPNetworkError,
-  HttpProtocolRequiredError,
-  RequestTimeoutError,
-  SocketTimeoutError,
-} from '../error';
+import { Err } from '../error';
 
 /**
  * Ping to host
@@ -54,10 +49,10 @@ export const ping = (
  * requestTimeout and socketTimeout must be greater than 0.
  * Timeout is not set if timeout is less than 0.
  *
- * @throws {@link HttpProtocolRequiredError}
- * @throws {@link HTTPNetworkError}
- * @throws {@link RequestTimeoutError}
- * @throws {@link SocketTimeoutError}
+ * @throws {@link Err.HttpProtocolRequiredError}
+ * @throws {@link Err.HTTPNetworkError}
+ * @throws {@link Err.RequestTimeoutError}
+ * @throws {@link Err.SocketTimeoutError}
  *
  * @internal
  */
@@ -88,7 +83,7 @@ export function checkHTTP (
       request = https.request;
     }
     else {
-      reject(new HttpProtocolRequiredError(url));
+      reject(new Err.HttpProtocolRequiredError(url));
     }
 
     let socket: Socket;
@@ -107,7 +102,7 @@ export function checkHTTP (
         socket.removeAllListeners();
       }
       req.destroy();
-      reject(new HTTPNetworkError(error.message));
+      reject(new Err.HTTPNetworkError(error.message));
     });
 
     if (requestTimeout > 0) {
@@ -118,7 +113,7 @@ export function checkHTTP (
         }
         req.destroy();
         console.log(' - request timeout error: ' + requestTimeout);
-        reject(new RequestTimeoutError(url));
+        reject(new Err.RequestTimeoutError(url));
       });
     }
 
@@ -133,7 +128,7 @@ export function checkHTTP (
           }
           req.destroy();
           console.log(' - socket timeout error: ' + socketTimeout);
-          reject(new SocketTimeoutError(url));
+          reject(new Err.SocketTimeoutError(url));
         });
       });
     }

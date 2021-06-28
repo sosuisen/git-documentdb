@@ -12,15 +12,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { Validator } from '../src/validator';
 import { GitDocumentDB } from '../src/git_documentdb';
-import {
-  InvalidCollectionPathCharacterError,
-  InvalidCollectionPathLengthError,
-  InvalidDbNameCharacterError,
-  InvalidIdCharacterError,
-  InvalidIdLengthError,
-  InvalidLocalDirCharacterError,
-  UndefinedDocumentIdError,
-} from '../src/error';
+import { Err } from '../src/error';
 
 const localDir = './test/database_validate';
 
@@ -86,7 +78,7 @@ describe('<validator>', () => {
       '\\',
     ];
     disallowedPunctuations.forEach(p =>
-      expect(() => validator.validateId(p)).toThrowError(InvalidIdCharacterError)
+      expect(() => validator.validateId(p)).toThrowError(Err.InvalidIdCharacterError)
     );
 
     const allowedPunctuations = [
@@ -114,30 +106,36 @@ describe('<validator>', () => {
       ',',
     ];
     allowedPunctuations.forEach(p => expect(validator.validateId(p)).toBeUndefined());
-    expect(() => validator.validateId('abc.')).not.toThrowError(InvalidIdCharacterError);
-    expect(() => validator.validateId('abc ')).not.toThrowError(InvalidIdCharacterError);
+    expect(() => validator.validateId('abc.')).not.toThrowError(
+      Err.InvalidIdCharacterError
+    );
+    expect(() => validator.validateId('abc ')).not.toThrowError(
+      Err.InvalidIdCharacterError
+    );
 
-    expect(() => validator.validateId('_abc')).not.toThrowError(InvalidIdCharacterError);
+    expect(() => validator.validateId('_abc')).not.toThrowError(
+      Err.InvalidIdCharacterError
+    );
     expect(() => validator.validateId('/abc')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateId('abc./def')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateId('abc /def')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateId('./def')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateId('../def')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateId('abc/./def')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateId('abc/../def')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     const maxLen = validator.maxIdLength();
     let _id = '';
@@ -146,7 +144,7 @@ describe('<validator>', () => {
     }
     expect(() => validator.validateId(_id)).not.toThrowError();
     _id += '0';
-    expect(() => validator.validateId(_id)).toThrowError(InvalidIdLengthError);
+    expect(() => validator.validateId(_id)).toThrowError(Err.InvalidIdLengthError);
 
     expect(() => validator.validateId('春はあけぼの')).not.toThrowError();
   });
@@ -159,25 +157,25 @@ describe('<validator>', () => {
     expect(() => validator.validateCollectionPath('春はあけぼの')).not.toThrowError();
 
     expect(() => validator.validateCollectionPath('_')).not.toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('/')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('COM3')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('foo./bar')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('/foo /bar')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('/./bar')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     expect(() => validator.validateCollectionPath('/../bar')).toThrowError(
-      InvalidCollectionPathCharacterError
+      Err.InvalidCollectionPathCharacterError
     );
     const maxColLen = validator.maxCollectionPathLength();
     let longPath = '';
@@ -188,7 +186,7 @@ describe('<validator>', () => {
     expect(() => validator.validateCollectionPath(longPath)).not.toThrowError();
     longPath = '0' + longPath;
     expect(() => validator.validateCollectionPath(longPath)).toThrowError(
-      InvalidCollectionPathLengthError
+      Err.InvalidCollectionPathLengthError
     );
   });
 
@@ -196,30 +194,34 @@ describe('<validator>', () => {
     expect(() => validator.validateDocument({ _id: 'id' })).not.toThrowError();
 
     expect(() => validator.validateDocument({ _id: undefined })).toThrowError(
-      UndefinedDocumentIdError
+      Err.UndefinedDocumentIdError
     );
   });
 
   it('validateDbName', () => {
     expect(() => validator.validateDbName('foo/bar')).toThrowError(
-      InvalidDbNameCharacterError
+      Err.InvalidDbNameCharacterError
     );
     expect(() => validator.validateDbName('foo\\bar')).toThrowError(
-      InvalidDbNameCharacterError
+      Err.InvalidDbNameCharacterError
     );
     expect(() => validator.validateDbName('foo¥bar')).toThrowError(
-      InvalidDbNameCharacterError
+      Err.InvalidDbNameCharacterError
     );
     expect(() => validator.validateDbName('COM3')).toThrowError(
-      InvalidDbNameCharacterError
+      Err.InvalidDbNameCharacterError
     );
-    expect(() => validator.validateDbName('.')).toThrowError(InvalidDbNameCharacterError);
-    expect(() => validator.validateDbName('..')).toThrowError(InvalidDbNameCharacterError);
+    expect(() => validator.validateDbName('.')).toThrowError(
+      Err.InvalidDbNameCharacterError
+    );
+    expect(() => validator.validateDbName('..')).toThrowError(
+      Err.InvalidDbNameCharacterError
+    );
     expect(() => validator.validateDbName('users.')).toThrowError(
-      InvalidDbNameCharacterError
+      Err.InvalidDbNameCharacterError
     );
     expect(() => validator.validateDbName('users ')).toThrowError(
-      InvalidDbNameCharacterError
+      Err.InvalidDbNameCharacterError
     );
 
     expect(() => validator.validateDbName('春はあけぼの')).not.toThrowError();
@@ -227,19 +229,19 @@ describe('<validator>', () => {
 
   it('validLocalDir', () => {
     expect(() => validator.validateLocalDir('COM3')).toThrowError(
-      InvalidLocalDirCharacterError
+      Err.InvalidLocalDirCharacterError
     );
     expect(() => validator.validateLocalDir('/COM3/foo/bar')).toThrowError(
-      InvalidLocalDirCharacterError
+      Err.InvalidLocalDirCharacterError
     );
     expect(() => validator.validateLocalDir(' ')).toThrowError(
-      InvalidLocalDirCharacterError
+      Err.InvalidLocalDirCharacterError
     );
     expect(() => validator.validateLocalDir('foo.')).toThrowError(
-      InvalidLocalDirCharacterError
+      Err.InvalidLocalDirCharacterError
     );
     expect(() => validator.validateLocalDir('foo./bar')).toThrowError(
-      InvalidLocalDirCharacterError
+      Err.InvalidLocalDirCharacterError
     );
 
     expect(() => validator.validateLocalDir('dir01/dir02')).not.toThrowError();

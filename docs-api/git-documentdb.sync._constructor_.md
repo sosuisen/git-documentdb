@@ -21,9 +21,9 @@ constructor(gitDDB: GitDDBInterface, options?: RemoteOptions);
 
 ## Exceptions
 
-[UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md)
+[Err.UndefinedRemoteURLError](./git-documentdb.err.undefinedremoteurlerror.md)
 
-[IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md)
+[Err.IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md)
 
-[InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md)
+[Err.InvalidAuthenticationTypeError](./git-documentdb.err.invalidauthenticationtypeerror.md)
 

@@ -14,16 +14,7 @@ import expect from 'expect';
 import fs from 'fs-extra';
 import sinon from 'sinon';
 import { monotonicFactory } from 'ulid';
-import {
-  CannotCreateDirectoryError,
-  CannotWriteDataError,
-  DatabaseClosingError,
-  DocumentNotFoundError,
-  RepositoryNotOpenError,
-  SameIdExistsError,
-  TaskCancelError,
-  UndefinedDBError,
-} from '../../src/error';
+import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { putImpl, putWorker } from '../../src/crud/put';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
@@ -74,7 +65,7 @@ describe('<crud/put> put', () => {
     const _id = 'prof01';
     await expect(
       putImpl(gitDDB, '', _id, _id + JSON_EXT, toSortedJSONString({ _id, name: 'shirase' }))
-    ).rejects.toThrowError(DatabaseClosingError);
+    ).rejects.toThrowError(Err.DatabaseClosingError);
 
     // wait close
     while (gitDDB.isClosing) {
@@ -497,7 +488,7 @@ describe('<crud/put> put', () => {
       ).catch(
         // eslint-disable-next-line no-loop-func
         err => {
-          if (err instanceof TaskCancelError) taskCancelErrorCount++;
+          if (err instanceof Err.TaskCancelError) taskCancelErrorCount++;
         }
       );
     }
@@ -511,7 +502,7 @@ describe('<crud/put> put', () => {
 describe('<crud/put> putWorker', () => {
   it('throws UndefinedDBError when Undefined DB', async () => {
     // @ts-ignore
-    await expect(putWorker(undefined)).rejects.toThrowError(UndefinedDBError);
+    await expect(putWorker(undefined)).rejects.toThrowError(Err.UndefinedDBError);
   });
 
   it('throws RepositoryNotOpenError when a repository is not opened.', async () => {
@@ -528,7 +519,7 @@ describe('<crud/put> putWorker', () => {
         '{ "_id": "prof01", "name": "Shirase" }',
         'message'
       )
-    ).rejects.toThrowError(RepositoryNotOpenError);
+    ).rejects.toThrowError(Err.RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -551,7 +542,7 @@ describe('<crud/put> putWorker', () => {
         '{ "_id": "prof01", "name": "Shirase" }',
         'message'
       )
-    ).rejects.toThrowError(CannotCreateDirectoryError);
+    ).rejects.toThrowError(Err.CannotCreateDirectoryError);
     await gitDDB.destroy();
   });
 
@@ -579,7 +570,7 @@ describe('<crud/put> putWorker', () => {
         'message',
         'insert'
       )
-    ).rejects.toThrowError(SameIdExistsError);
+    ).rejects.toThrowError(Err.SameIdExistsError);
     await gitDDB.destroy();
   });
 
@@ -600,7 +591,7 @@ describe('<crud/put> putWorker', () => {
         'message',
         'update'
       )
-    ).rejects.toThrowError(DocumentNotFoundError);
+    ).rejects.toThrowError(Err.DocumentNotFoundError);
     await gitDDB.destroy();
   });
 
@@ -617,7 +608,7 @@ describe('<crud/put> putWorker', () => {
     stubWriteFile.rejects();
 
     await expect(gitDDB.put({ _id: _id, name: 'Shirase' })).rejects.toThrowError(
-      CannotWriteDataError
+      Err.CannotWriteDataError
     );
 
     await gitDDB.destroy();

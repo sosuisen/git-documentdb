@@ -15,7 +15,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
-import { UndefinedSyncError } from '../src/error';
+import { Err } from '../src/error';
 import { SyncResult, SyncResultFastForwardMerge, TaskMetadata } from '../src/types';
 import {
   createClonedDatabases,
@@ -131,7 +131,7 @@ maybe('intg: <git_documentdb>', () => {
 
       expect(() => {
         dbA.onSyncEvent('https://test.example.com', 'change', () => {});
-      }).toThrowError(UndefinedSyncError);
+      }).toThrowError(Err.UndefinedSyncError);
     });
 
     it('with sync', async () => {
@@ -214,7 +214,7 @@ maybe('intg: <git_documentdb>', () => {
 
       expect(() => {
         dbA.offSyncEvent('https://test.example.com', 'change', () => {});
-      }).toThrowError(UndefinedSyncError);
+      }).toThrowError(Err.UndefinedSyncError);
     });
 
     it('with sync', async () => {
@@ -310,7 +310,7 @@ maybe('intg: <Collection>', () => {
       const colA = dbA.collection('col');
       expect(() => {
         colA.onSyncEvent('https://test.example.com', 'change', () => {});
-      }).toThrowError(UndefinedSyncError);
+      }).toThrowError(Err.UndefinedSyncError);
     });
 
     it('with sync', async () => {
@@ -398,7 +398,7 @@ maybe('intg: <Collection>', () => {
 
       expect(() => {
         colA.offSyncEvent('https://test.example.com', 'change', () => {});
-      }).toThrowError(UndefinedSyncError);
+      }).toThrowError(Err.UndefinedSyncError);
     });
 
     it('with sync', async () => {

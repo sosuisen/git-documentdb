@@ -11,7 +11,7 @@ import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { normalizeCommit } from '../utils';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
-import { CannotCreateDirectoryError, InvalidJsonObjectError } from '../error';
+import { Err } from '../error';
 import {
   ChangedFile,
   DocType,
@@ -28,7 +28,7 @@ import { blobToBinary, blobToJsonDoc, blobToText } from '../crud/blob';
 /**
  * Write blob to file system
  *
- * @throws {@link CannotCreateDirectoryError}
+ * @throws {@link Err.CannotCreateDirectoryError}
  */
 export async function writeBlobToFile (
   gitDDB: GitDDBInterface,
@@ -38,13 +38,13 @@ export async function writeBlobToFile (
   const filePath = nodePath.resolve(gitDDB.workingDir, name);
   const dir = nodePath.dirname(filePath);
   await fs.ensureDir(dir).catch((err: Error) => {
-    return Promise.reject(new CannotCreateDirectoryError(err.message));
+    return Promise.reject(new Err.CannotCreateDirectoryError(err.message));
   });
   await fs.writeFile(filePath, data);
 }
 
 export /**
- * @throws {@link InvalidJsonObjectError}
+ * @throws {@link Err.InvalidJsonObjectError}
  */
 async function getFatDocFromData (
   data: string | Uint8Array,
@@ -56,7 +56,7 @@ async function getFatDocFromData (
   if (docType === 'json') {
     const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
     if (typeof data !== 'string') {
-      throw new InvalidJsonObjectError(_id);
+      throw new Err.InvalidJsonObjectError(_id);
     }
     try {
       const jsonDoc = (JSON.parse(data) as unknown) as JsonDoc;
@@ -72,7 +72,7 @@ async function getFatDocFromData (
         doc: jsonDoc,
       };
     } catch {
-      throw new InvalidJsonObjectError(_id);
+      throw new Err.InvalidJsonObjectError(_id);
     }
   }
   else if (docType === 'text') {
@@ -109,7 +109,7 @@ export async function getFatDocFromOid (
 }
 
 /**
- * @throws {@link InvalidJsonObjectError}
+ * @throws {@link Err.InvalidJsonObjectError}
  */
 export function getFatDocFromReadBlobResult (
   fullDocPath: string,
@@ -133,7 +133,7 @@ export function getFatDocFromReadBlobResult (
 /**
  * Get changed files
  *
- * @throws {@link InvalidJsonObjectError} (from getDocument())
+ * @throws {@link Err.InvalidJsonObjectError} (from getDocument())
  *
  * @internal
  */

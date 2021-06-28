@@ -13,10 +13,10 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { Collection } from '../src/collection';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_EXT } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { InvalidJsonObjectError, SameIdExistsError } from '../src/error';
+import { Err } from '../src/error';
 import { addOneData } from './utils';
 
 const ulid = monotonicFactory();
@@ -74,7 +74,7 @@ describe('<collection>', () => {
         'invalidJSON'
       );
 
-      await expect(col.find()).rejects.toThrowError(InvalidJsonObjectError);
+      await expect(col.find()).rejects.toThrowError(Err.InvalidJsonObjectError);
 
       await gitDDB.destroy();
     });

@@ -20,5 +20,5 @@ constructor(options: RemoteOptions);
 
 ## Exceptions
 
-[InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md)
+[Err.InvalidAuthenticationTypeError](./git-documentdb.err.invalidauthenticationtypeerror.md)
 

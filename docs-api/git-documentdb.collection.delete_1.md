@@ -25,17 +25,17 @@ Promise&lt;[DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md)<!-- --
 
 ## Exceptions
 
-[UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md)
+[Err.UndefinedDocumentIdError](./git-documentdb.err.undefineddocumentiderror.md)
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md) (from deleteImpl)
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md) (from deleteImpl)
 
-[TaskCancelError](./git-documentdb.taskcancelerror.md) (from deleteImpl)
+[Err.TaskCancelError](./git-documentdb.err.taskcancelerror.md) (from deleteImpl)
 
-[RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) (from deleteWorker)
+[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md) (from deleteWorker)
 
-[UndefinedDBError](./git-documentdb.undefineddberror.md) (from deleteWorker)
+[Err.UndefinedDBError](./git-documentdb.err.undefineddberror.md) (from deleteWorker)
 
-[DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) (from deleteWorker)
+[Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md) (from deleteWorker)
 
-[CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) (from deleteWorker)
+[Err.CannotDeleteDataError](./git-documentdb.err.cannotdeletedataerror.md) (from deleteWorker)
 

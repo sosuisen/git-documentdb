@@ -17,12 +17,7 @@ import { GitDocumentDB } from '../src/git_documentdb';
 import { sleep, toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { addOneData } from './utils';
-import {
-  DatabaseClosingError,
-  DocumentNotFoundError,
-  InvalidJsonObjectError,
-  RepositoryNotOpenError,
-} from '../src/error';
+import { Err } from '../src/error';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -1215,7 +1210,9 @@ describe('<git_documentdb> getFatDocHistory()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(gitDDB.getFatDocHistory('0')).rejects.toThrowError(DatabaseClosingError);
+    await expect(gitDDB.getFatDocHistory('0')).rejects.toThrowError(
+      Err.DatabaseClosingError
+    );
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -1233,7 +1230,7 @@ describe('<git_documentdb> getFatDocHistory()', () => {
     await gitDDB.open();
     await gitDDB.close();
     await expect(gitDDB.getFatDocHistory('tmp')).rejects.toThrowError(
-      RepositoryNotOpenError
+      Err.RepositoryNotOpenError
     );
     await gitDDB.destroy();
   });
@@ -1248,7 +1245,7 @@ describe('<git_documentdb> getFatDocHistory()', () => {
     await gitDDB.putFatDoc('1.json', 'invalid json');
 
     await expect(gitDDB.getFatDocHistory('1.json')).rejects.toThrowError(
-      InvalidJsonObjectError
+      Err.InvalidJsonObjectError
     );
 
     await gitDDB.destroy();
@@ -1370,7 +1367,7 @@ describe('<git_documentdb> delete(_id)', () => {
 
     await gitDDB.open();
     const _id = 'test/prof01';
-    await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(gitDDB.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
 
     await gitDDB.destroy();
   });
@@ -1405,7 +1402,7 @@ describe('<git_documentdb> delete(_id)', () => {
     });
     expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
 
-    await expect(gitDDB.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(gitDDB.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(gitDDB.get(_id)).resolves.toBeUndefined();
 
     await gitDDB.delete(_id2);
@@ -1532,7 +1529,7 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
     });
     expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
 
-    await expect(gitDDB.deleteFatDoc(name)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(gitDDB.deleteFatDoc(name)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(gitDDB.get(_id)).resolves.toBeUndefined();
 
     await gitDDB.deleteFatDoc(name2);
@@ -1584,7 +1581,7 @@ describe('<git_documentdb>', () => {
 
       await addOneData(gitDDB, 'invalidJSON' + JSON_EXT, 'invalidJSON');
 
-      await expect(gitDDB.find()).rejects.toThrowError(InvalidJsonObjectError);
+      await expect(gitDDB.find()).rejects.toThrowError(Err.InvalidJsonObjectError);
 
       await gitDDB.destroy();
     });

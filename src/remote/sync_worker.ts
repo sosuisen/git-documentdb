@@ -13,14 +13,7 @@ import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
 import { CONSOLE_STYLE, normalizeCommit, utf8decode } from '../utils';
-import {
-  CannotDeleteDataError,
-  GitMergeBranchError,
-  NoMergeBaseFoundError,
-  RepositoryNotOpenError,
-  SyncWorkerFetchError,
-  ThreeWayMergeError,
-} from '../error';
+import { Err } from '../error';
 import { GitDDBInterface } from '../types_gitddb';
 import {
   AcceptedConflict,
@@ -40,7 +33,7 @@ import { threeWayMerge } from './3way_merge';
 /**
  * git fetch
  *
- * @throws {@link SyncWorkerFetchError}
+ * @throws {@link Err.SyncWorkerFetchError}
  */
 async function fetch (gitDDB: GitDDBInterface, sync: SyncInterface) {
   gitDDB.logger.debug(
@@ -52,23 +45,23 @@ async function fetch (gitDDB: GitDDBInterface, sync: SyncInterface) {
       callbacks: sync.credentialCallbacks,
     })
     .catch(err => {
-      throw new SyncWorkerFetchError(err.message);
+      throw new Err.SyncWorkerFetchError(err.message);
     });
 }
 
 /**
  * sync_worker
  *
- * @throws {@link RepositoryNotOpenError} (from this and push_worker())
- * @throws {@link SyncWorkerFetchError} (from fetch() and push_worker())
- * @throws {@link NoMergeBaseFoundError}
- * @throws {@link ThreeWayMergeError}
- * @throws {@link CannotDeleteDataError}
- * @throws {@link InvalidJsonObjectError} (from getChanges())
- * @throws {@link UnfetchedCommitExistsError} (from push_worker())
- * @throws {@link InvalidJsonObjectError} (from push_worker())
- * @throws {@link GitPushError} (from push_worker())
- * @throws {@link GitMergeBranchError} (from NodeGit.repos.mergeBranches())
+ * @throws {@link Err.RepositoryNotOpenError} (from this and push_worker())
+ * @throws {@link Err.SyncWorkerFetchError} (from fetch() and push_worker())
+ * @throws {@link Err.NoMergeBaseFoundError}
+ * @throws {@link Err.ThreeWayMergeError}
+ * @throws {@link Err.CannotDeleteDataError}
+ * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
+ * @throws {@link Err.UnfetchedCommitExistsError} (from push_worker())
+ * @throws {@link Err.InvalidJsonObjectError} (from push_worker())
+ * @throws {@link Err.GitPushError} (from push_worker())
+ * @throws {@link Err.GitMergeBranchError} (from NodeGit.repos.mergeBranches())
  *
  * @internal
  */
@@ -80,7 +73,7 @@ export async function syncWorker (
 ): Promise<SyncResult> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
   sync.eventHandlers.start.forEach(listener => {
     listener.func(
@@ -135,9 +128,9 @@ export async function syncWorker (
 
         if (res instanceof Error) {
           if (res.message.startsWith('no merge base found')) {
-            throw new NoMergeBaseFoundError();
+            throw new Err.NoMergeBaseFoundError();
           }
-          throw new GitMergeBranchError(res.message);
+          throw new Err.GitMergeBranchError(res.message);
         }
         /* returns conflicted index */ conflictedIndex = res;
         return undefined;
@@ -219,7 +212,7 @@ export async function syncWorker (
         const filename = change.old._id + JSON_EXT;
         const path = nodePath.resolve(repos.workdir(), filename);
         await fs.remove(path).catch(() => {
-          throw new CannotDeleteDataError();
+          throw new Err.CannotDeleteDataError();
         });
         await currentIndex.removeByPath(filename);
       }
@@ -374,7 +367,7 @@ export async function syncWorker (
         oldRemoteCommitOid,
         acceptedConflicts
       ).catch(err => {
-        throw new ThreeWayMergeError(err.message);
+        throw new Err.ThreeWayMergeError(err.message);
       })
     );
   });

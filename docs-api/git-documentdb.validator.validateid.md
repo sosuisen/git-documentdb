@@ -26,13 +26,13 @@ void
 
 ## Exceptions
 
-[InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md)
+[Err.InvalidIdCharacterError](./git-documentdb.err.invalididcharactererror.md)
 
-[InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md)
+[Err.InvalidCollectionPathCharacterError](./git-documentdb.err.invalidcollectionpathcharactererror.md)
 
-[InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md)
+[Err.InvalidCollectionPathLengthError](./git-documentdb.err.invalidcollectionpathlengtherror.md)
 
-[InvalidIdLengthError](./git-documentdb.invalididlengtherror.md)
+[Err.InvalidIdLengthError](./git-documentdb.err.invalididlengtherror.md)
 
 ## Remarks
 

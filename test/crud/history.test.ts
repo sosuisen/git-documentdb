@@ -13,11 +13,7 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
-import {
-  DatabaseClosingError,
-  InvalidJsonObjectError,
-  RepositoryNotOpenError,
-} from '../../src/error';
+import { Err } from '../../src/error';
 import {
   createClonedDatabases,
   destroyDBs,
@@ -420,7 +416,7 @@ describe('<crud/history> getHistoryImpl', () => {
     gitDDB.close().catch(() => {});
     await expect(
       getHistoryImpl(gitDDB, '0.json', '', undefined, undefined, true)
-    ).rejects.toThrowError(DatabaseClosingError);
+    ).rejects.toThrowError(Err.DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -439,7 +435,7 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.close();
     await expect(
       getHistoryImpl(gitDDB, 'tmp', '', undefined, undefined, true)
-    ).rejects.toThrowError(RepositoryNotOpenError);
+    ).rejects.toThrowError(Err.RepositoryNotOpenError);
     await destroyDBs([gitDDB]);
   });
 
@@ -454,7 +450,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
     await expect(
       getHistoryImpl(gitDDB, '1.json', '', undefined, undefined, true)
-    ).rejects.toThrowError(InvalidJsonObjectError);
+    ).rejects.toThrowError(Err.InvalidJsonObjectError);
 
     await destroyDBs([gitDDB]);
   });

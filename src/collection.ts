@@ -10,23 +10,7 @@ import fs from 'fs';
 
 import { readTree, resolveRef } from 'isomorphic-git';
 import { monotonicFactory, ULID } from 'ulid';
-import {
-  InvalidDocTypeError,
-  InvalidJsonFileExtensionError,
-  InvalidJsonObjectError,
-  RepositoryNotOpenError,
-  UndefinedDocumentIdError,
-  // Descendant's errors must be imported for TSDoc
-  // eslint-disable-next-line sort-imports
-  InvalidIdCharacterError,
-  InvalidIdLengthError,
-  DatabaseClosingError,
-  TaskCancelError,
-  UndefinedDBError,
-  CannotCreateDirectoryError,
-  CannotWriteDataError,
-  UndefinedSyncError,
-} from './error';
+import { Err } from './error';
 import {
   CollectionOptions,
   CollectionPath,
@@ -136,8 +120,8 @@ export class Collection implements ICollection {
    *
    * @param collectionPathFromParent - A relative collectionPath from a parent collection.
    * @param parent - A parent collection of this collection.
-   * @throws {@link InvalidCollectionPathCharacterError}
-   * @throws {@link InvalidCollectionPathLengthError}
+   * @throws {@link Err.InvalidCollectionPathCharacterError}
+   * @throws {@link Err.InvalidCollectionPathLengthError}
    *
    * @public
    */
@@ -204,13 +188,13 @@ export class Collection implements ICollection {
    *
    * @param dirPath - dirPath is a relative path from collectionPath. Default is ''.
    * @returns Array of Collections which does not include ''
-   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link Err.RepositoryNotOpenError}
    *
    * @public
    */
   async getCollections (dirPath = ''): Promise<ICollection[]> {
     if (!this._gitDDB.isOpened()) {
-      throw new RepositoryNotOpenError();
+      throw new Err.RepositoryNotOpenError();
     }
     dirPath = Validator.normalizeCollectionPath(this.collectionPath + dirPath);
     dirPath = dirPath.slice(0, -1);
@@ -253,18 +237,18 @@ export class Collection implements ICollection {
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
    * @public
    */
@@ -284,19 +268,19 @@ export class Collection implements ICollection {
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
-   * @throws {@link InvalidCollectionPathCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidCollectionPathCharacterError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
    * @public
    */
@@ -354,7 +338,7 @@ export class Collection implements ICollection {
     try {
       clone = JSON.parse(JSON.stringify(jsonDoc));
     } catch (err) {
-      return Promise.reject(new InvalidJsonObjectError(shortId));
+      return Promise.reject(new Err.InvalidJsonObjectError(shortId));
     }
     clone._id = _id;
     const data = toSortedJSONString(clone);
@@ -397,20 +381,20 @@ export class Collection implements ICollection {
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
    *
    * @public
    */
@@ -430,20 +414,20 @@ export class Collection implements ICollection {
    *
    * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
    *
    * @public
    */
@@ -498,20 +482,20 @@ export class Collection implements ICollection {
    *
    * - An update operation is not skipped even if no change occurred on a specified document.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link Err.DocumentNotFoundError}
    *
    * @public
    */
@@ -531,20 +515,20 @@ export class Collection implements ICollection {
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link Err.DocumentNotFoundError}
    *
    * @public
    */
@@ -599,19 +583,19 @@ export class Collection implements ICollection {
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link InvalidJsonFileExtensionError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonFileExtensionError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
    * @public
    */
@@ -641,7 +625,7 @@ export class Collection implements ICollection {
       docType = 'json';
       // JsonDoc
       if (!shortName.endsWith(JSON_EXT)) {
-        return Promise.reject(new InvalidJsonFileExtensionError());
+        return Promise.reject(new Err.InvalidJsonFileExtensionError());
       }
       shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
 
@@ -650,7 +634,7 @@ export class Collection implements ICollection {
       try {
         clone = JSON.parse(JSON.stringify(doc));
       } catch (err) {
-        return Promise.reject(new InvalidJsonObjectError(shortId));
+        return Promise.reject(new Err.InvalidJsonObjectError(shortId));
       }
       clone._id = this.collectionPath + shortId;
       data = toSortedJSONString(clone);
@@ -661,7 +645,7 @@ export class Collection implements ICollection {
       }
     }
     else {
-      return Promise.reject(new InvalidDocTypeError(typeof doc));
+      return Promise.reject(new Err.InvalidDocTypeError(typeof doc));
     }
 
     try {
@@ -700,7 +684,7 @@ export class Collection implements ICollection {
         };
         return putResult;
       }
-      return Promise.reject(new InvalidDocTypeError(typeof doc));
+      return Promise.reject(new Err.InvalidDocTypeError(typeof doc));
     });
   }
 
@@ -718,20 +702,20 @@ export class Collection implements ICollection {
    *
    * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
    *
    * @public
    */
@@ -763,20 +747,20 @@ export class Collection implements ICollection {
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link Err.DocumentNotFoundError}
    *
    * @public
    */
@@ -802,9 +786,9 @@ export class Collection implements ICollection {
    *
    *  - JsonDoc may not have _id property if it was not created by GitDocumentDB.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -829,9 +813,9 @@ export class Collection implements ICollection {
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -849,9 +833,9 @@ export class Collection implements ICollection {
    * @remarks
    *  - undefined if not exists.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -881,9 +865,9 @@ export class Collection implements ICollection {
    *  - undefined if a document does not exists or a document is deleted.
    *  - See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -926,9 +910,9 @@ export class Collection implements ICollection {
    *
    *  - See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -990,9 +974,9 @@ export class Collection implements ICollection {
    * @returns Array of JsonDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1028,9 +1012,9 @@ export class Collection implements ICollection {
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1054,14 +1038,14 @@ export class Collection implements ICollection {
    *
    * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
    *
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DatabaseClosingError} (from deleteImpl)
-   * @throws {@link TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError}
+   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
+   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
-   * @throws {@link UndefinedDBError} (from deleteWorker)
-   * @throws {@link DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
    *
    * @public
    */
@@ -1072,14 +1056,14 @@ export class Collection implements ICollection {
    *
    * @param jsonDoc - JsonDoc whose _id is shortId. Only the _id property is referenced. shortId is a file path whose collectionPath and .json extension are omitted.
    *
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DatabaseClosingError} (from deleteImpl)
-   * @throws {@link TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError}
+   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
+   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
-   * @throws {@link UndefinedDBError} (from deleteWorker)
-   * @throws {@link DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
    *
    * @public
    */
@@ -1105,7 +1089,7 @@ export class Collection implements ICollection {
       shortId = shortIdOrDoc._id;
     }
     else {
-      return Promise.reject(new UndefinedDocumentIdError());
+      return Promise.reject(new Err.UndefinedDocumentIdError());
     }
     const shortName = shortId + JSON_EXT;
 
@@ -1126,20 +1110,20 @@ export class Collection implements ICollection {
    *
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    *
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DatabaseClosingError} (from deleteImpl)
-   * @throws {@link TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError}
+   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
+   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
-   * @throws {@link UndefinedDBError} (from deleteWorker)
-   * @throws {@link DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
    *
    * @public
    */
   deleteFatDoc (shortName: string, options?: DeleteOptions): Promise<DeleteResult> {
     if (shortName === undefined) {
-      return Promise.reject(new UndefinedDocumentIdError());
+      return Promise.reject(new Err.UndefinedDocumentIdError());
     }
 
     const docType: DocType = shortName.endsWith('.json') ? 'json' : 'text';
@@ -1174,7 +1158,7 @@ export class Collection implements ICollection {
           return deleteResult;
         }
         // Not occur
-        return Promise.reject(new InvalidDocTypeError(docType));
+        return Promise.reject(new Err.InvalidDocTypeError(docType));
       }
     );
   }
@@ -1182,9 +1166,9 @@ export class Collection implements ICollection {
   /**
    * Get all the JSON documents
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1199,9 +1183,9 @@ export class Collection implements ICollection {
   /**
    * Get all the data
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1256,7 +1240,7 @@ export class Collection implements ICollection {
       sync = remoteURLorSync;
     }
     if (sync === undefined) {
-      throw new UndefinedSyncError();
+      throw new Err.UndefinedSyncError();
     }
     return sync.on(event, callback, this.collectionPath);
   }
@@ -1297,7 +1281,7 @@ export class Collection implements ICollection {
       sync = remoteURLorSync;
     }
     if (sync === undefined) {
-      throw new UndefinedSyncError();
+      throw new Err.UndefinedSyncError();
     }
     sync.off(event, callback);
   }

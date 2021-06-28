@@ -26,13 +26,13 @@ Database information
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md)
+[Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md)
 
-[CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md)
+[Err.CannotOpenRepositoryError](./git-documentdb.err.cannotopenrepositoryerror.md)
 
-[RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) may occurs when openOptions.createIfNotExists is false.
+[Err.RepositoryNotFoundError](./git-documentdb.err.repositorynotfounderror.md) may occurs when openOptions.createIfNotExists is false.
 
 ## Remarks
 

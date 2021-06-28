@@ -16,13 +16,7 @@ import { PutResultJsonDoc } from '../src/types';
 import { toSortedJSONString } from '../src/utils';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/git_documentdb';
-import {
-  InvalidCollectionPathCharacterError,
-  InvalidIdCharacterError,
-  InvalidIdLengthError,
-  InvalidJsonFileExtensionError,
-  InvalidJsonObjectError,
-} from '../src/error';
+import { Err } from '../src/error';
 import { Collection } from '../src/collection';
 import { Validator } from '../src/validator';
 
@@ -57,7 +51,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       // @ts-ignore
-      await expect(col.put(undefined)).rejects.toThrowError(InvalidJsonObjectError);
+      await expect(col.put(undefined)).rejects.toThrowError(Err.InvalidJsonObjectError);
       await gitDDB.destroy();
     });
 
@@ -109,7 +103,7 @@ describe('<collection>', () => {
       const obj2 = { obj: obj1 };
       obj1.obj = obj2;
       await expect(col.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(
-        InvalidJsonObjectError
+        Err.InvalidJsonObjectError
       );
       await gitDDB.destroy();
     });
@@ -125,7 +119,7 @@ describe('<collection>', () => {
       // JSON.stringify() throws error if an object has a bigint value
       const obj1 = { bigint: BigInt(9007199254740991) };
       await expect(col.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(
-        InvalidJsonObjectError
+        Err.InvalidJsonObjectError
       );
       await gitDDB.destroy();
     });
@@ -163,12 +157,12 @@ describe('<collection>', () => {
       const col = new Collection(gitDDB, 'col01');
       await expect(
         col.put({ _id: '<angleBrackets>', name: 'Shirase' })
-      ).rejects.toThrowError(InvalidIdCharacterError);
+      ).rejects.toThrowError(Err.InvalidIdCharacterError);
       await expect(
         col.put({ _id: 'trailing/Slash/', name: 'Shirase' })
-      ).rejects.toThrowError(InvalidIdCharacterError);
+      ).rejects.toThrowError(Err.InvalidIdCharacterError);
       await expect(col.put({ _id: '/', name: 'Shirase' })).rejects.toThrowError(
-        InvalidIdCharacterError
+        Err.InvalidIdCharacterError
       );
       await gitDDB.destroy();
     });
@@ -193,7 +187,7 @@ describe('<collection>', () => {
       _id += '0';
 
       await expect(col.put({ _id, name: 'Shirase' })).rejects.toThrowError(
-        InvalidIdLengthError
+        Err.InvalidIdLengthError
       );
 
       await gitDDB.destroy();
@@ -209,7 +203,7 @@ describe('<collection>', () => {
       await gitDDB.open();
       const col = new Collection(gitDDB, 'col01');
       await expect(col.put({ _id: '/headingSlash', name: 'Shirase' })).rejects.toThrowError(
-        InvalidCollectionPathCharacterError
+        Err.InvalidCollectionPathCharacterError
       );
 
       await gitDDB.destroy();
@@ -529,7 +523,9 @@ describe('<collection>', () => {
       // JSON.stringify() throws error if an object has a bigint value
       const json = { bigint: BigInt(9007199254740991) };
       // @ts-ignore
-      await expect(col.put('prof01', json)).rejects.toThrowError(InvalidJsonObjectError);
+      await expect(col.put('prof01', json)).rejects.toThrowError(
+        Err.InvalidJsonObjectError
+      );
       await gitDDB.destroy();
     });
 

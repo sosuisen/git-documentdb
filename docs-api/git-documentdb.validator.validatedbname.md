@@ -24,7 +24,7 @@ void
 
 ## Exceptions
 
-[InvalidDbNameCharacterError](./git-documentdb.invaliddbnamecharactererror.md)
+[Err.InvalidDbNameCharacterError](./git-documentdb.err.invaliddbnamecharactererror.md)
 
 ## Remarks
 

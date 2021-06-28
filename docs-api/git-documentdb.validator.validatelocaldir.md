@@ -24,7 +24,7 @@ void
 
 ## Exceptions
 
-[InvalidLocalDirCharacterError](./git-documentdb.invalidlocaldircharactererror.md)
+[Err.InvalidLocalDirCharacterError](./git-documentdb.err.invalidlocaldircharactererror.md)
 
 ## Remarks
 

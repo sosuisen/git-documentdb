@@ -9,7 +9,7 @@
 import fs from 'fs';
 import { readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
-import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
+import { Err } from '../error';
 import {
   Doc,
   DocType,
@@ -26,9 +26,9 @@ import { blobToBinary, blobToJsonDoc, blobToText, readLatestBlob } from './blob'
 /**
  * Implementation of find()
  *
- * @throws {@link DatabaseClosingError}
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link InvalidJsonObjectError}
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.InvalidJsonObjectError}
  */
 // eslint-disable-next-line complexity
 export async function findImpl (
@@ -39,11 +39,11 @@ export async function findImpl (
   options?: FindOptions
 ): Promise<(Doc | FatDoc)[]> {
   if (gitDDB.isClosing) {
-    return Promise.reject(new DatabaseClosingError());
+    return Promise.reject(new Err.DatabaseClosingError());
   }
 
   if (!gitDDB.isOpened()) {
-    return Promise.reject(new RepositoryNotOpenError());
+    return Promise.reject(new Err.RepositoryNotOpenError());
   }
 
   options ??= {

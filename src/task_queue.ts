@@ -11,7 +11,7 @@ import { Logger } from 'tslog';
 import AsyncLock from 'async-lock';
 import { Task, TaskMetadata, TaskStatistics } from './types';
 import { CONSOLE_STYLE, sleep } from './utils';
-import { ConsecutiveSyncSkippedError } from './error';
+import { Err } from './error';
 
 /**
  * TaskQueue
@@ -104,7 +104,7 @@ export class TaskQueue {
         ) {
           task.cancel();
           this._statistics.cancel++;
-          throw new ConsecutiveSyncSkippedError(task.label, task.taskId);
+          throw new Err.ConsecutiveSyncSkippedError(task.label, task.taskId);
         }
         // eslint-disable-next-line require-atomic-updates
         task.enqueueTime = this.getEnqueueTime();
@@ -135,7 +135,7 @@ export class TaskQueue {
         this._execTaskQueue();
       })
       .catch(e => {
-        if (e instanceof ConsecutiveSyncSkippedError) {
+        if (e instanceof Err.ConsecutiveSyncSkippedError) {
           this._logger.debug(CONSOLE_STYLE.bgGreen().fgRed().tag()`${e.message}`);
         }
         else {

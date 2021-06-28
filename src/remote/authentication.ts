@@ -7,13 +7,7 @@
  */
 
 import nodegit from '@sosuisen/nodegit';
-import {
-  HttpProtocolRequiredError,
-  InvalidAuthenticationTypeError,
-  InvalidRepositoryURLError,
-  InvalidSSHKeyPathError,
-  UndefinedPersonalAccessTokenError,
-} from '../error';
+import { Err } from '../error';
 import { ConnectionSettingsGitHub, ConnectionSettingsSSH, RemoteOptions } from '../types';
 
 /**
@@ -23,16 +17,16 @@ import { ConnectionSettingsGitHub, ConnectionSettingsSSH, RemoteOptions } from '
  */
 function createCredentialForGitHub (options: RemoteOptions) {
   if (!options.remoteUrl!.match(/^https?:\/\//)) {
-    throw new HttpProtocolRequiredError(options.remoteUrl!);
+    throw new Err.HttpProtocolRequiredError(options.remoteUrl!);
   }
   const connection = options.connection as ConnectionSettingsGitHub;
   if (options.syncDirection !== 'pull' && !connection.personalAccessToken) {
-    throw new UndefinedPersonalAccessTokenError();
+    throw new Err.UndefinedPersonalAccessTokenError();
   }
   const urlArray = options.remoteUrl!.replace(/^https?:\/\//, '').split('/');
   // github.com/account_name/repository_name
   if (urlArray.length !== 3) {
-    throw new InvalidRepositoryURLError(options.remoteUrl!);
+    throw new Err.InvalidRepositoryURLError(options.remoteUrl!);
   }
   const owner = urlArray[urlArray.length - 2];
   const credentials = () => {
@@ -49,10 +43,10 @@ function createCredentialForGitHub (options: RemoteOptions) {
 function createCredentialForSSH (options: RemoteOptions) {
   const connection = options.connection as ConnectionSettingsSSH;
   if (connection.privateKeyPath === undefined || connection.privateKeyPath === '') {
-    throw new InvalidSSHKeyPathError();
+    throw new Err.InvalidSSHKeyPathError();
   }
   if (connection.publicKeyPath === undefined || connection.publicKeyPath === '') {
-    throw new InvalidSSHKeyPathError();
+    throw new Err.InvalidSSHKeyPathError();
   }
   connection.passPhrase ??= '';
 
@@ -86,7 +80,7 @@ export function createCredential (options: RemoteOptions) {
   }
   else {
     // @ts-ignore
-    throw new InvalidAuthenticationTypeError(options.connection.type);
+    throw new Err.InvalidAuthenticationTypeError(options.connection.type);
   }
 
   const callbacks = {

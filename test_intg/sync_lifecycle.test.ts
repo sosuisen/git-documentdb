@@ -19,11 +19,7 @@ import sinon from 'sinon';
 import { Sync } from '../src/remote/sync';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { RemoteOptions, SyncResultPush } from '../src/types';
-import {
-  PushWorkerError,
-  RemoteAlreadyRegisteredError,
-  UnfetchedCommitExistsError,
-} from '../src/error';
+import { Err } from '../src/error';
 import { sleep } from '../src/utils';
 import {
   destroyDBs,
@@ -215,7 +211,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbB.put(jsonB1);
 
         await expect(Promise.all([syncA.tryPush(), syncB.tryPush()])).rejects.toThrowError(
-          UnfetchedCommitExistsError
+          Err.UnfetchedCommitExistsError
         );
 
         await destroyDBs([dbA, dbB]);
@@ -250,7 +246,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbB.put(jsonB1);
 
         await syncA.tryPush();
-        await expect(syncB.tryPush()).rejects.toThrowError(UnfetchedCommitExistsError);
+        await expect(syncB.tryPush()).rejects.toThrowError(Err.UnfetchedCommitExistsError);
 
         await destroyDBs([dbA, dbB]);
       });
@@ -636,7 +632,9 @@ maybe('intg <sync_lifecycle> Sync', () => {
           });
         });
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(PushWorkerError);
+        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(
+          Err.PushWorkerError
+        );
 
         expect(stubPush.callCount).toBe(1);
 
@@ -913,7 +911,9 @@ maybe('intg <sync_lifecycle> Sync', () => {
         connection: { type: 'github', personalAccessToken: token },
       };
       const syncA = await dbA.sync(options);
-      await expect(dbA.sync(options)).rejects.toThrowError(RemoteAlreadyRegisteredError);
+      await expect(dbA.sync(options)).rejects.toThrowError(
+        Err.RemoteAlreadyRegisteredError
+      );
       dbA.destroy();
     });
 

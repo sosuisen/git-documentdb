@@ -10,72 +10,10 @@ Offline-first Database that Syncs with Git
 
 |  Class | Description |
 |  --- | --- |
-|  [AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.authenticationtypenotallowcreaterepositoryerror.md) |  |
-|  [CannotConnectError](./git-documentdb.cannotconnecterror.md) |  |
-|  [CannotCreateDirectoryError](./git-documentdb.cannotcreatedirectoryerror.md) |  |
-|  [CannotCreateRemoteRepositoryError](./git-documentdb.cannotcreateremoterepositoryerror.md) |  |
-|  [CannotCreateRepositoryError](./git-documentdb.cannotcreaterepositoryerror.md) |  |
-|  [CannotDeleteDataError](./git-documentdb.cannotdeletedataerror.md) |  |
-|  [CannotOpenRepositoryError](./git-documentdb.cannotopenrepositoryerror.md) |  |
-|  [CannotWriteDataError](./git-documentdb.cannotwritedataerror.md) |  |
 |  [Collection](./git-documentdb.collection.md) | Documents under a collectionPath are gathered together in a collection. |
-|  [CombineDatabaseError](./git-documentdb.combinedatabaseerror.md) |  |
-|  [ConsecutiveSyncSkippedError](./git-documentdb.consecutivesyncskippederror.md) |  |
-|  [DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md) |  |
-|  [DatabaseClosingError](./git-documentdb.databaseclosingerror.md) |  |
-|  [DocumentNotFoundError](./git-documentdb.documentnotfounderror.md) |  |
-|  [FetchConnectionFailedError](./git-documentdb.fetchconnectionfailederror.md) |  |
-|  [FetchPermissionDeniedError](./git-documentdb.fetchpermissiondeniederror.md) |  |
-|  [FileRemoveTimeoutError](./git-documentdb.fileremovetimeouterror.md) |  |
 |  [GitDocumentDB](./git-documentdb.gitdocumentdb.md) | Main class of GitDocumentDB |
-|  [GitMergeBranchError](./git-documentdb.gitmergebrancherror.md) |  |
-|  [GitPushError](./git-documentdb.gitpusherror.md) |  |
-|  [HTTPNetworkError](./git-documentdb.httpnetworkerror.md) |  |
-|  [HttpProtocolRequiredError](./git-documentdb.httpprotocolrequirederror.md) |  |
-|  [IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) |  |
-|  [InvalidAuthenticationTypeError](./git-documentdb.invalidauthenticationtypeerror.md) |  |
-|  [InvalidCollectionPathCharacterError](./git-documentdb.invalidcollectionpathcharactererror.md) |  |
-|  [InvalidCollectionPathLengthError](./git-documentdb.invalidcollectionpathlengtherror.md) |  |
-|  [InvalidConflictStateError](./git-documentdb.invalidconflictstateerror.md) |  |
-|  [InvalidDbNameCharacterError](./git-documentdb.invaliddbnamecharactererror.md) |  |
-|  [InvalidDocTypeError](./git-documentdb.invaliddoctypeerror.md) |  |
-|  [InvalidIdCharacterError](./git-documentdb.invalididcharactererror.md) |  |
-|  [InvalidIdLengthError](./git-documentdb.invalididlengtherror.md) |  |
-|  [InvalidJsonFileExtensionError](./git-documentdb.invalidjsonfileextensionerror.md) |  |
-|  [InvalidJsonObjectError](./git-documentdb.invalidjsonobjecterror.md) |  |
-|  [InvalidLocalDirCharacterError](./git-documentdb.invalidlocaldircharactererror.md) |  |
-|  [InvalidRepositoryURLError](./git-documentdb.invalidrepositoryurlerror.md) |  |
-|  [InvalidSSHKeyPathError](./git-documentdb.invalidsshkeypatherror.md) |  |
-|  [InvalidURLError](./git-documentdb.invalidurlerror.md) |  |
-|  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.invalidworkingdirectorypathlengtherror.md) |  |
-|  [NoMergeBaseFoundError](./git-documentdb.nomergebasefounderror.md) |  |
-|  [PersonalAccessTokenForAnotherAccountError](./git-documentdb.personalaccesstokenforanotheraccounterror.md) |  |
-|  [PushConnectionFailedError](./git-documentdb.pushconnectionfailederror.md) |  |
-|  [PushNotAllowedError](./git-documentdb.pushnotallowederror.md) |  |
-|  [PushPermissionDeniedError](./git-documentdb.pushpermissiondeniederror.md) |  |
-|  [PushWorkerError](./git-documentdb.pushworkererror.md) |  |
-|  [RemoteAlreadyRegisteredError](./git-documentdb.remotealreadyregisterederror.md) |  |
 |  [RemoteRepository](./git-documentdb.remoterepository.md) | Remote repository class |
-|  [RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md) |  |
-|  [RemoteRepositoryNotFoundError](./git-documentdb.remoterepositorynotfounderror.md) |  |
-|  [RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) |  |
-|  [RepositoryNotOpenError](./git-documentdb.repositorynotopenerror.md) |  |
-|  [RequestTimeoutError](./git-documentdb.requesttimeouterror.md) |  |
-|  [SameIdExistsError](./git-documentdb.sameidexistserror.md) |  |
-|  [SocketTimeoutError](./git-documentdb.sockettimeouterror.md) |  |
 |  [Sync](./git-documentdb.sync.md) | Synchronizer class |
-|  [SyncIntervalLessThanOrEqualToRetryIntervalError](./git-documentdb.syncintervallessthanorequaltoretryintervalerror.md) |  |
-|  [SyncWorkerError](./git-documentdb.syncworkererror.md) |  |
-|  [SyncWorkerFetchError](./git-documentdb.syncworkerfetcherror.md) |  |
-|  [TaskCancelError](./git-documentdb.taskcancelerror.md) |  |
-|  [ThreeWayMergeError](./git-documentdb.threewaymergeerror.md) |  |
-|  [UndefinedDatabaseNameError](./git-documentdb.undefineddatabasenameerror.md) |  |
-|  [UndefinedDBError](./git-documentdb.undefineddberror.md) |  |
-|  [UndefinedDocumentIdError](./git-documentdb.undefineddocumentiderror.md) |  |
-|  [UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md) |  |
-|  [UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) |  |
-|  [UndefinedSyncError](./git-documentdb.undefinedsyncerror.md) |  |
-|  [UnfetchedCommitExistsError](./git-documentdb.unfetchedcommitexistserror.md) |  |
 |  [Validator](./git-documentdb.validator.md) | Validator Class |
 
 ## Interfaces
@@ -87,6 +25,12 @@ Offline-first Database that Syncs with Git
 |  [GitDDBInterface](./git-documentdb.gitddbinterface.md) | Interface of GitDocumentDB body |
 |  [SyncEventInterface](./git-documentdb.synceventinterface.md) | Interface for SyncEvent |
 |  [SyncInterface](./git-documentdb.syncinterface.md) | Interface of Sync |
+
+## Namespaces
+
+|  Namespace | Description |
+|  --- | --- |
+|  [Err](./git-documentdb.err.md) | Namespace for errors |
 
 ## Variables
 

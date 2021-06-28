@@ -12,19 +12,7 @@
 import { clearInterval, setInterval } from 'timers';
 import nodegit from '@sosuisen/nodegit';
 import { CONSOLE_STYLE, sleep } from '../utils';
-import {
-  CombineDatabaseError,
-  IntervalTooSmallError,
-  NoMergeBaseFoundError,
-  PushNotAllowedError,
-  PushWorkerError,
-  RemoteRepositoryConnectError,
-  RepositoryNotOpenError,
-  SyncIntervalLessThanOrEqualToRetryIntervalError,
-  SyncWorkerError,
-  UndefinedRemoteURLError,
-  UnfetchedCommitExistsError,
-} from '../error';
+import { Err } from '../error';
 import {
   ChangedFile,
   FatDoc,
@@ -70,15 +58,15 @@ import { Validator } from '../validator';
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
  *
- * @throws {@link RepositoryNotFoundError}
- * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
- * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+ * @throws {@link Err.RepositoryNotFoundError}
+ * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
+ * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
  *
- * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
- * @throws {@link PushWorkerError} (from Sync#init())
- * @throws {@link SyncWorkerError} (from Sync#init())
- * @throws {@link NoMergeBaseFoundError}
- * @throws {@link PushNotAllowedError}  (from Sync#init())
+ * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
+ * @throws {@link Err.PushWorkerError} (from Sync#init())
+ * @throws {@link Err.SyncWorkerError} (from Sync#init())
+ * @throws {@link Err.NoMergeBaseFoundError}
+ * @throws {@link Err.PushNotAllowedError}  (from Sync#init())
  *
  * @internal
  */
@@ -88,7 +76,7 @@ export async function syncAndGetResultImpl (
 ): Promise<[Sync, SyncResult]> {
   const repos = this.repository();
   if (repos === undefined) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
   const sync = new Sync(this, options);
   const syncResult = await sync.init(repos);
@@ -97,15 +85,15 @@ export async function syncAndGetResultImpl (
 /**
  * Implementation of GitDocumentDB#sync(options)
  *
- * @throws {@link RepositoryNotFoundError}
- * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
- * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+ * @throws {@link Err.RepositoryNotFoundError}
+ * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
+ * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
  *
- * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
- * @throws {@link PushWorkerError} (from Sync#init())
- * @throws {@link SyncWorkerError} (from Sync#init())
- * @throws {@link NoMergeBaseFoundError}
- * @throws {@link PushNotAllowedError}  (from Sync#init())
+ * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
+ * @throws {@link Err.PushWorkerError} (from Sync#init())
+ * @throws {@link Err.SyncWorkerError} (from Sync#init())
+ * @throws {@link Err.NoMergeBaseFoundError}
+ * @throws {@link Err.PushNotAllowedError}  (from Sync#init())
  *
  * @internal
  */
@@ -115,7 +103,7 @@ export async function syncImpl (
 ): Promise<Sync> {
   const repos = this.repository();
   if (repos === undefined) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
   const sync = new Sync(this, options);
   await sync.init(repos);
@@ -300,9 +288,9 @@ export class Sync implements SyncInterface {
   /**
    * constructor
    *
-   * @throws {@link UndefinedRemoteURLError}
-   * @throws {@link IntervalTooSmallError}
-   * @throws {@link InvalidAuthenticationTypeError}
+   * @throws {@link Err.UndefinedRemoteURLError}
+   * @throws {@link Err.IntervalTooSmallError}
+   * @throws {@link Err.InvalidAuthenticationTypeError}
    *
    * @public
    */
@@ -331,7 +319,7 @@ export class Sync implements SyncInterface {
        * TODO: Check upstream branch of this repository
        * Set remoteUrl to the upstream branch and cloneRepository() if exists.
        */
-      throw new UndefinedRemoteURLError();
+      throw new Err.UndefinedRemoteURLError();
     }
 
     this._options.live ??= false;
@@ -340,10 +328,10 @@ export class Sync implements SyncInterface {
     this._options.retryInterval ??= NETWORK_RETRY_INTERVAL;
 
     if (this._options.interval < MINIMUM_SYNC_INTERVAL) {
-      throw new IntervalTooSmallError(MINIMUM_SYNC_INTERVAL, this._options.interval);
+      throw new Err.IntervalTooSmallError(MINIMUM_SYNC_INTERVAL, this._options.interval);
     }
     if (this._options.interval <= this._options.retryInterval) {
-      throw new SyncIntervalLessThanOrEqualToRetryIntervalError(
+      throw new Err.SyncIntervalLessThanOrEqualToRetryIntervalError(
         this._options.interval,
         this._options.retryInterval
       );
@@ -401,10 +389,10 @@ export class Sync implements SyncInterface {
    * @remarks
    * Call init() once just after creating instance.
    *
-   * @throws {@link RemoteRepositoryConnectError}
-   * @throws {@link PushWorkerError}
-   * @throws {@link NoMergeBaseFoundError}
-   * @throws {@link SyncWorkerError}
+   * @throws {@link Err.RemoteRepositoryConnectError}
+   * @throws {@link Err.PushWorkerError}
+   * @throws {@link Err.NoMergeBaseFoundError}
+   * @throws {@link Err.SyncWorkerError}
    *
    * @public
    */
@@ -413,7 +401,7 @@ export class Sync implements SyncInterface {
     const [gitResult, remoteResult] = await this.remoteRepository
       .connect(this._gitDDB.repository()!, this.credentialCallbacks, onlyFetch)
       .catch(err => {
-        throw new RemoteRepositoryConnectError(err.message);
+        throw new Err.RemoteRepositoryConnectError(err.message);
       });
     this._gitDDB.logger.debug('git remote: ' + gitResult);
     this._gitDDB.logger.debug('remote repository: ' + remoteResult);
@@ -491,7 +479,7 @@ export class Sync implements SyncInterface {
    * @remarks
    * Give new settings if needed.
    *
-   * @throws {@link IntervalTooSmallError}
+   * @throws {@link Err.IntervalTooSmallError}
    *
    * @public
    */
@@ -507,7 +495,7 @@ export class Sync implements SyncInterface {
         this._options.interval = options.interval;
       }
       else {
-        throw new IntervalTooSmallError(MINIMUM_SYNC_INTERVAL, options.interval);
+        throw new Err.IntervalTooSmallError(MINIMUM_SYNC_INTERVAL, options.interval);
       }
     }
     if (options.retry !== undefined) {
@@ -551,16 +539,16 @@ export class Sync implements SyncInterface {
   /**
    * Try to push with retries
    *
-   * @throws {@link PushNotAllowedError} (from this and enqueuePushTask)
-   * @throws {@link PushWorkerError} (from this and enqueuePushTask)
-   * @throws {@link UnfetchedCommitExistsError} (from this and enqueuePushTask)
+   * @throws {@link Err.PushNotAllowedError} (from this and enqueuePushTask)
+   * @throws {@link Err.PushWorkerError} (from this and enqueuePushTask)
+   * @throws {@link Err.UnfetchedCommitExistsError} (from this and enqueuePushTask)
    *
    * @public
    */
   // eslint-disable-next-line complexity
   async tryPush (): Promise<SyncResultPush | SyncResultCancel> {
     if (this._options.syncDirection === 'pull') {
-      throw new PushNotAllowedError(this._options.syncDirection);
+      throw new Err.PushNotAllowedError(this._options.syncDirection);
     }
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
@@ -579,7 +567,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof UnfetchedCommitExistsError) {
+      if (error instanceof Err.UnfetchedCommitExistsError) {
         if (this._options.syncDirection === 'push') {
           if (this._options.combineDbStrategy === 'replace-with-ours') {
             // TODO: Exec replace-with-ours instead of throw error
@@ -630,17 +618,17 @@ export class Sync implements SyncInterface {
   /**
    * Try to sync with retries
    *
-   * @throws {@link PushNotAllowedError} (from this and enqueueSyncTask)
-   * @throws {@link SyncWorkerError} (from enqueueSyncTask)
-   * @throws {@link NoMergeBaseFoundError} (from enqueueSyncTask)
-   * @throws {@link UnfetchedCommitExistsError} (from enqueueSyncTask)
+   * @throws {@link Err.PushNotAllowedError} (from this and enqueueSyncTask)
+   * @throws {@link Err.SyncWorkerError} (from enqueueSyncTask)
+   * @throws {@link Err.NoMergeBaseFoundError} (from enqueueSyncTask)
+   * @throws {@link Err.UnfetchedCommitExistsError} (from enqueueSyncTask)
    *
    * @public
    */
   // eslint-disable-next-line complexity
   async trySync (): Promise<SyncResult> {
     if (this._options.syncDirection === 'pull') {
-      throw new PushNotAllowedError(this._options.syncDirection);
+      throw new Err.PushNotAllowedError(this._options.syncDirection);
     }
     if (this._retrySyncCounter === 0) {
       this._retrySyncCounter = this._options.retry! + 1;
@@ -666,7 +654,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof NoMergeBaseFoundError) {
+      if (error instanceof Err.NoMergeBaseFoundError) {
         if (this._options.combineDbStrategy === 'throw-error') {
           throw error;
         }
@@ -677,7 +665,7 @@ export class Sync implements SyncInterface {
             this._gitDDB,
             this._options
           ).catch(err => {
-            throw new CombineDatabaseError(err.message);
+            throw new Err.CombineDatabaseError(err.message);
           });
           // eslint-disable-next-line no-loop-func
           this.eventHandlers.combine.forEach(callback =>
@@ -708,7 +696,7 @@ export class Sync implements SyncInterface {
       if (
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
-        error instanceof UnfetchedCommitExistsError
+        error instanceof Err.UnfetchedCommitExistsError
       ) {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
@@ -737,15 +725,15 @@ export class Sync implements SyncInterface {
   /**
    * Enqueue push task to TaskQueue
    *
-   * @throws {@link PushWorkerError}
-   * @throws {@link UnfetchedCommitExistsError}
-   * @throws {@link PushNotAllowedError}
+   * @throws {@link Err.PushWorkerError}
+   * @throws {@link Err.UnfetchedCommitExistsError}
+   * @throws {@link Err.PushNotAllowedError}
    *
    * @public
    */
   enqueuePushTask (): Promise<SyncResultPush | SyncResultCancel> {
     if (this._options.syncDirection === 'pull') {
-      throw new PushNotAllowedError(this._options.syncDirection);
+      throw new Err.PushNotAllowedError(this._options.syncDirection);
     }
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
@@ -795,8 +783,8 @@ export class Sync implements SyncInterface {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-          if (!(err instanceof UnfetchedCommitExistsError)) {
-            err = new PushWorkerError(err.message);
+          if (!(err instanceof Err.UnfetchedCommitExistsError)) {
+            err = new Err.PushWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(listener => {
             listener.func(err, {
@@ -837,16 +825,16 @@ export class Sync implements SyncInterface {
   /**
    * Enqueue sync task to TaskQueue
    *
-   * @throws {@link SyncWorkerError}
-   * @throws {@link NoMergeBaseFoundError}
-   * @throws {@link UnfetchedCommitExistsError}
-   * @throws {@link PushNotAllowedError}
+   * @throws {@link Err.SyncWorkerError}
+   * @throws {@link Err.NoMergeBaseFoundError}
+   * @throws {@link Err.UnfetchedCommitExistsError}
+   * @throws {@link Err.PushNotAllowedError}
    *
    * @public
    */
   enqueueSyncTask (): Promise<SyncResult> {
     if (this._options.syncDirection === 'pull') {
-      throw new PushNotAllowedError(this._options.syncDirection);
+      throw new Err.PushNotAllowedError(this._options.syncDirection);
     }
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
@@ -937,11 +925,11 @@ export class Sync implements SyncInterface {
           // console.log(`Error in sync_worker: ${err}`);
           if (
             !(
-              err instanceof NoMergeBaseFoundError ||
-              err instanceof UnfetchedCommitExistsError
+              err instanceof Err.NoMergeBaseFoundError ||
+              err instanceof Err.UnfetchedCommitExistsError
             )
           ) {
-            err = new SyncWorkerError(err.message);
+            err = new Err.SyncWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(listener => {
             listener.func(err, {

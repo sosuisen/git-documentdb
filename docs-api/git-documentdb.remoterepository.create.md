@@ -17,11 +17,11 @@ Promise&lt;void&gt;
 
 ## Exceptions
 
-[UndefinedPersonalAccessTokenError](./git-documentdb.undefinedpersonalaccesstokenerror.md)
+[Err.UndefinedPersonalAccessTokenError](./git-documentdb.err.undefinedpersonalaccesstokenerror.md)
 
-[PersonalAccessTokenForAnotherAccountError](./git-documentdb.personalaccesstokenforanotheraccounterror.md)
+[Err.PersonalAccessTokenForAnotherAccountError](./git-documentdb.err.personalaccesstokenforanotheraccounterror.md)
 
-[CannotConnectError](./git-documentdb.cannotconnecterror.md)
+[Err.CannotConnectError](./git-documentdb.err.cannotconnecterror.md)
 
 may include the following errors:
 
@@ -33,7 +33,7 @@ may include the following errors:
 
 - Other network errors
 
-[AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.authenticationtypenotallowcreaterepositoryerror.md)
+[Err.AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.err.authenticationtypenotallowcreaterepositoryerror.md)
 
 ## Remarks
 

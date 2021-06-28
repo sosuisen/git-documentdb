@@ -13,7 +13,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { PutResultJsonDoc } from '../src/types';
-import { DocumentNotFoundError } from '../src/error';
+import { Err } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Collection } from '../src/collection';
 import { toSortedJSONString } from '../src/utils';
@@ -45,7 +45,7 @@ describe('<collection> update(jsonDoc)', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     await expect(col.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
-      DocumentNotFoundError
+      Err.DocumentNotFoundError
     );
     await gitDDB.destroy();
   });
@@ -165,7 +165,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
     const col = new Collection(gitDDB, 'col01');
     await expect(
       col.update('prof01', { _id: 'prof01', name: 'Shirase' })
-    ).rejects.toThrowError(DocumentNotFoundError);
+    ).rejects.toThrowError(Err.DocumentNotFoundError);
     await gitDDB.destroy();
   });
 

@@ -26,11 +26,11 @@ Promise&lt;{ ok: true; }&gt;
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md)
+[Err.DatabaseCloseTimeoutError](./git-documentdb.err.databaseclosetimeouterror.md)
 
-[FileRemoveTimeoutError](./git-documentdb.fileremovetimeouterror.md)
+[Err.FileRemoveTimeoutError](./git-documentdb.err.fileremovetimeouterror.md)
 
 ## Remarks
 

@@ -15,12 +15,11 @@
 import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
-import { InvalidConflictStateError } from '../../src/error';
+import { Err } from '../../src/error';
 import { threeWayMerge } from '../../src/remote/3way_merge';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   FatDoc,
-  FatJsonDoc,
   JsonDoc,
   SyncResultMergeAndPush,
   SyncResultResolveConflictsAndPush,
@@ -95,7 +94,7 @@ maybe('<remote/3way_merge>', () => {
     const index = await dbA.repository()?.refreshIndex();
     await expect(
       threeWayMerge(dbA, syncA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
-    ).rejects.toThrowError(InvalidConflictStateError);
+    ).rejects.toThrowError(Err.InvalidConflictStateError);
   });
 
   /**

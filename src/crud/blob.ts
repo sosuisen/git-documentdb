@@ -10,13 +10,13 @@ import fs from 'fs';
 import { readBlob, ReadBlobResult, resolveRef } from 'isomorphic-git';
 import { JSON_EXT } from '../const';
 import { utf8decode } from '../utils';
-import { InvalidJsonObjectError } from '../error';
+import { Err } from '../error';
 import { FatBinaryDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
 
 /**
  * blobToJsonDoc
  *
- * @throws {@link InvalidJsonObjectError}
+ * @throws {@link Err.InvalidJsonObjectError}
  */
 export function blobToJsonDoc (
   shortId: string,
@@ -42,14 +42,14 @@ export function blobToJsonDoc (
     }
     return jsonDoc;
   } catch {
-    throw new InvalidJsonObjectError(shortId);
+    throw new Err.InvalidJsonObjectError(shortId);
   }
 }
 
 /**
  * blobToJsonDocWithoutOverwrittenId
  *
- * @throws {@link InvalidJsonObjectError}
+ * @throws {@link Err.InvalidJsonObjectError}
  */
 export function blobToJsonDocWithoutOverwrittenId (
   readBlobResult: ReadBlobResult
@@ -59,7 +59,7 @@ export function blobToJsonDocWithoutOverwrittenId (
     const jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
     return jsonDoc;
   } catch (e) {
-    throw new InvalidJsonObjectError('');
+    throw new Err.InvalidJsonObjectError('');
   }
 }
 

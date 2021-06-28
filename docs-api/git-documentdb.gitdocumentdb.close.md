@@ -24,9 +24,9 @@ Promise&lt;void&gt;
 
 ## Exceptions
 
-[DatabaseClosingError](./git-documentdb.databaseclosingerror.md)
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[DatabaseCloseTimeoutError](./git-documentdb.databaseclosetimeouterror.md)
+[Err.DatabaseCloseTimeoutError](./git-documentdb.err.databaseclosetimeouterror.md)
 
 ## Remarks
 

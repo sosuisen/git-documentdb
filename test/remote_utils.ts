@@ -10,7 +10,6 @@ import {
   ChangedFileUpdate,
   DeleteResult,
   JsonDoc,
-  NormalizedCommit,
   PutResult,
   RemoteOptions,
   Schema,

@@ -9,7 +9,7 @@
 import { ReadBlobResult } from 'isomorphic-git';
 import { JSON_EXT } from '../const';
 import { GitDDBInterface } from '../types_gitddb';
-import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
+import { Err } from '../error';
 import {
   Doc,
   DocType,
@@ -31,9 +31,9 @@ import { readOldBlob } from './history';
 /**
  * Common implementation of get-like commands
  *
- * @throws {@link DatabaseClosingError}
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link InvalidJsonObjectError}
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.InvalidJsonObjectError}
  */
 // eslint-disable-next-line complexity
 export async function getImpl (
@@ -45,11 +45,11 @@ export async function getImpl (
   historyOptions?: HistoryOptions
 ): Promise<Doc | FatDoc | undefined> {
   if (gitDDB.isClosing) {
-    throw new DatabaseClosingError();
+    throw new Err.DatabaseClosingError();
   }
 
   if (!gitDDB.isOpened()) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
 
   options ??= {

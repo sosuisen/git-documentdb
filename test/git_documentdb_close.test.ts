@@ -12,11 +12,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { sleep } from '../src/utils';
-import {
-  DatabaseCloseTimeoutError,
-  DatabaseClosingError,
-  TaskCancelError,
-} from '../src/error';
+import { Err } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { destroyDBs } from './remote_utils';
 
@@ -83,7 +79,7 @@ describe('<close> GitDocumentDB#close()', () => {
     }
 
     await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(
-      DatabaseCloseTimeoutError
+      Err.DatabaseCloseTimeoutError
     );
 
     await gitDDB.open();
@@ -111,10 +107,10 @@ describe('<close> GitDocumentDB#close()', () => {
     }
 
     await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(
-      DatabaseCloseTimeoutError
+      Err.DatabaseCloseTimeoutError
     );
 
-    const taskCancelErrors = errors.filter(err => err instanceof TaskCancelError);
+    const taskCancelErrors = errors.filter(err => err instanceof Err.TaskCancelError);
     expect(taskCancelErrors.length).toBeGreaterThan(50); // Set number less than 100
 
     await gitDDB.destroy();
@@ -141,10 +137,10 @@ describe('<close> GitDocumentDB#close()', () => {
     }
 
     await expect(gitDDB.close({ timeout: 1 })).rejects.toThrowError(
-      DatabaseCloseTimeoutError
+      Err.DatabaseCloseTimeoutError
     );
 
-    const taskCancelErrors = errors.filter(err => err instanceof TaskCancelError);
+    const taskCancelErrors = errors.filter(err => err instanceof Err.TaskCancelError);
     expect(taskCancelErrors.length).toBeGreaterThan(50); // Set number less than 100
 
     await gitDDB.destroy();
@@ -191,13 +187,13 @@ describe('<close> GitDocumentDB#close()', () => {
     gitDDB.close().catch(() => {});
     const _id = 'prof01';
     await expect(gitDDB.put({ _id: _id, name: 'shirase' })).rejects.toThrowError(
-      DatabaseClosingError
+      Err.DatabaseClosingError
     );
-    await expect(gitDDB.get(_id)).rejects.toThrowError(DatabaseClosingError);
-    await expect(gitDDB.delete(_id)).rejects.toThrowError(DatabaseClosingError);
-    await expect(gitDDB.close()).rejects.toThrowError(DatabaseClosingError);
-    await expect(gitDDB.destroy()).rejects.toThrowError(DatabaseClosingError);
-    await expect(gitDDB.find()).rejects.toThrowError(DatabaseClosingError);
+    await expect(gitDDB.get(_id)).rejects.toThrowError(Err.DatabaseClosingError);
+    await expect(gitDDB.delete(_id)).rejects.toThrowError(Err.DatabaseClosingError);
+    await expect(gitDDB.close()).rejects.toThrowError(Err.DatabaseClosingError);
+    await expect(gitDDB.destroy()).rejects.toThrowError(Err.DatabaseClosingError);
+    await expect(gitDDB.find()).rejects.toThrowError(Err.DatabaseClosingError);
 
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop

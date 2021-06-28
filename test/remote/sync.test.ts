@@ -19,17 +19,7 @@ import expect from 'expect';
 import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { RemoteOptions } from '../../src/types';
-import {
-  HttpProtocolRequiredError,
-  IntervalTooSmallError,
-  InvalidRepositoryURLError,
-  PushNotAllowedError,
-  RemoteRepositoryConnectError,
-  RepositoryNotOpenError,
-  SyncIntervalLessThanOrEqualToRetryIntervalError,
-  UndefinedPersonalAccessTokenError,
-  UndefinedRemoteURLError,
-} from '../../src/error';
+import { Err } from '../../src/error';
 import { Sync, syncImpl } from '../../src/remote/sync';
 import { destroyDBs, removeRemoteRepositories } from '../remote_utils';
 
@@ -215,7 +205,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
         personalAccessToken: '',
       },
     };
-    expect(() => new Sync(gitDDB, options)).toThrowError(UndefinedRemoteURLError);
+    expect(() => new Sync(gitDDB, options)).toThrowError(Err.UndefinedRemoteURLError);
     await gitDDB.destroy();
   });
 
@@ -234,7 +224,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
         personalAccessToken: 'foobar',
       },
     };
-    expect(() => new Sync(gitDDB, options)).toThrowError(HttpProtocolRequiredError);
+    expect(() => new Sync(gitDDB, options)).toThrowError(Err.HttpProtocolRequiredError);
     await gitDDB.destroy();
   });
 
@@ -253,7 +243,9 @@ maybe('<remote/sync> Sync#constructor()', () => {
         personalAccessToken: '',
       },
     };
-    expect(() => new Sync(gitDDB, options)).toThrowError(UndefinedPersonalAccessTokenError);
+    expect(() => new Sync(gitDDB, options)).toThrowError(
+      Err.UndefinedPersonalAccessTokenError
+    );
     await gitDDB.destroy();
   });
 
@@ -274,7 +266,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
       },
     };
     expect(() => new Sync(gitDDB, options)).not.toThrowError(
-      UndefinedPersonalAccessTokenError
+      Err.UndefinedPersonalAccessTokenError
     );
     await gitDDB.destroy();
   });
@@ -294,7 +286,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
         personalAccessToken: 'foobar',
       },
     };
-    expect(() => new Sync(gitDDB, options)).toThrowError(InvalidRepositoryURLError);
+    expect(() => new Sync(gitDDB, options)).toThrowError(Err.InvalidRepositoryURLError);
     await gitDDB.destroy();
   });
 
@@ -314,7 +306,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
         personalAccessToken: '',
       },
     };
-    expect(() => new Sync(gitDDB, invalid_options)).toThrowError(IntervalTooSmallError);
+    expect(() => new Sync(gitDDB, invalid_options)).toThrowError(Err.IntervalTooSmallError);
     await gitDDB.destroy();
 
     await gitDDB.open();
@@ -351,7 +343,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     };
     // less than
     expect(() => new Sync(gitDDB, options)).toThrowError(
-      SyncIntervalLessThanOrEqualToRetryIntervalError
+      Err.SyncIntervalLessThanOrEqualToRetryIntervalError
     );
     await gitDDB.destroy();
 
@@ -359,7 +351,7 @@ maybe('<remote/sync> Sync#constructor()', () => {
     await gitDDB.open();
     options.interval = retryInterval;
     expect(() => new Sync(gitDDB, options)).toThrowError(
-      SyncIntervalLessThanOrEqualToRetryIntervalError
+      Err.SyncIntervalLessThanOrEqualToRetryIntervalError
     );
     await gitDDB.destroy();
 
@@ -403,7 +395,7 @@ maybe('<remote/sync> init()', () => {
     const sync = new Sync(gitDDB, options);
     //
     await expect(sync.init(gitDDB.repository()!)).rejects.toThrowError(
-      RemoteRepositoryConnectError
+      Err.RemoteRepositoryConnectError
     );
     await gitDDB.destroy();
   });
@@ -432,7 +424,7 @@ maybe('<remote/sync> syncImpl()', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       })
-    ).rejects.toThrowError(RepositoryNotOpenError);
+    ).rejects.toThrowError(Err.RepositoryNotOpenError);
     await gitDDB.destroy();
   });
 
@@ -495,7 +487,7 @@ maybe('<remote/sync> tryPush()', () => {
     };
     const sync = new Sync(gitDDB, options);
     await await expect(sync.init(gitDDB.repository()!)).rejects.toThrowError(
-      PushNotAllowedError
+      Err.PushNotAllowedError
     );
 
     destroyDBs([gitDDB]);

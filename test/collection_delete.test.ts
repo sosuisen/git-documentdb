@@ -16,7 +16,7 @@ import { DeleteResultJsonDoc } from '../src/types';
 import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { DocumentNotFoundError, UndefinedDocumentIdError } from '../src/error';
+import { Err } from '../src/error';
 import { Collection } from '../src/collection';
 
 const ulid = monotonicFactory();
@@ -46,7 +46,7 @@ describe('delete(shortId)', () => {
     await gitDDB.open();
     const users = new Collection(gitDDB, 'users');
     // @ts-ignore
-    await expect(users.delete()).rejects.toThrowError(UndefinedDocumentIdError);
+    await expect(users.delete()).rejects.toThrowError(Err.UndefinedDocumentIdError);
 
     await gitDDB.destroy();
   });
@@ -62,7 +62,7 @@ describe('delete(shortId)', () => {
     const users = new Collection(gitDDB, 'users');
     // @ts-ignore
     await expect(users.delete({ name: 'Shirase' })).rejects.toThrowError(
-      UndefinedDocumentIdError
+      Err.UndefinedDocumentIdError
     );
 
     await gitDDB.destroy();
@@ -78,7 +78,7 @@ describe('delete(shortId)', () => {
     await gitDDB.open();
     const _id = 'test/prof01';
     const users = new Collection(gitDDB, 'users');
-    await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
 
     await gitDDB.destroy();
   });
@@ -116,7 +116,7 @@ describe('delete(shortId)', () => {
     });
     expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXT}(${shortOid})\n`);
 
-    await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(users.get(_id)).resolves.toBeUndefined();
 
     await users.delete(_id2);
@@ -167,7 +167,7 @@ describe('delete(shortId)', () => {
       `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
     );
 
-    await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(users.get(_id)).resolves.toBeUndefined();
 
     await users.delete(_id2);
@@ -294,7 +294,7 @@ describe('deleteFatDoc(name)', () => {
     await gitDDB.open();
     const users = new Collection(gitDDB, 'users');
     // @ts-ignore
-    await expect(users.deleteFatDoc()).rejects.toThrowError(UndefinedDocumentIdError);
+    await expect(users.deleteFatDoc()).rejects.toThrowError(Err.UndefinedDocumentIdError);
 
     await gitDDB.destroy();
   });
@@ -332,7 +332,7 @@ describe('deleteFatDoc(name)', () => {
     });
     expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXT}(${shortOid})\n`);
 
-    await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(users.get(_id)).resolves.toBeUndefined();
 
     await users.delete(_id2);
@@ -383,7 +383,7 @@ describe('deleteFatDoc(name)', () => {
       `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
     );
 
-    await expect(users.delete(_id)).rejects.toThrowError(DocumentNotFoundError);
+    await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(users.get(_id)).resolves.toBeUndefined();
 
     await users.delete(_id2);

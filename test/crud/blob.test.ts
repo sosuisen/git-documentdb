@@ -21,7 +21,7 @@ import {
   readBlobByOid,
   readLatestBlob,
 } from '../../src/crud/blob';
-import { InvalidJsonObjectError } from '../../src/error';
+import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { toSortedJSONString, utf8encode } from '../../src/utils';
 import { JSON_EXT } from '../../src/const';
@@ -62,7 +62,7 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(() => blobToJsonDoc(shortId, readBlobResult, false)).toThrowError(
-        InvalidJsonObjectError
+        Err.InvalidJsonObjectError
       );
     });
 
@@ -117,7 +117,7 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(() => blobToJsonDocWithoutOverwrittenId(readBlobResult)).toThrowError(
-        InvalidJsonObjectError
+        Err.InvalidJsonObjectError
       );
     });
 

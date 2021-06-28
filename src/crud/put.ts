@@ -13,29 +13,20 @@ import { normalizeCommit } from '../utils';
 import { SHORT_SHA_LENGTH } from '../const';
 import { NormalizedCommit, PutOptions, PutResult } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
-import {
-  CannotCreateDirectoryError,
-  CannotWriteDataError,
-  DatabaseClosingError,
-  DocumentNotFoundError,
-  RepositoryNotOpenError,
-  SameIdExistsError,
-  TaskCancelError,
-  UndefinedDBError,
-} from '../error';
+import { Err } from '../error';
 
 /**
  * Common implementation of put-like commands.
  *
- * @throws {@link DatabaseClosingError}
- * @throws {@link TaskCancelError}
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.TaskCancelError}
  *
- * @throws {@link UndefinedDBError} (from putWorker)
- * @throws {@link RepositoryNotOpenError} (from putWorker)
- * @throws {@link CannotCreateDirectoryError} (from putWorker)
- * @throws {@link SameIdExistsError} (from putWorker)
- * @throws {@link DocumentNotFoundError} (from putWorker)
- * @throws {@link CannotWriteDataError} (from putWorker)
+ * @throws {@link Err.UndefinedDBError} (from putWorker)
+ * @throws {@link Err.RepositoryNotOpenError} (from putWorker)
+ * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+ * @throws {@link Err.SameIdExistsError} (from putWorker)
+ * @throws {@link Err.DocumentNotFoundError} (from putWorker)
+ * @throws {@link Err.CannotWriteDataError} (from putWorker)
  *
  * @internal
  */
@@ -49,7 +40,7 @@ export function putImpl (
   options?: PutOptions
 ): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB.isClosing) {
-    return Promise.reject(new DatabaseClosingError());
+    return Promise.reject(new Err.DatabaseClosingError());
   }
 
   options ??= {
@@ -91,7 +82,7 @@ export function putImpl (
             reject(err);
           }),
       cancel: () => {
-        reject(new TaskCancelError(taskId));
+        reject(new Err.TaskCancelError(taskId));
       },
       enqueueCallback: options?.enqueueCallback,
     });
@@ -101,12 +92,12 @@ export function putImpl (
 /**
  * Add and commit a file
  *
- * @throws {@link UndefinedDBError}
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link CannotCreateDirectoryError}
- * @throws {@link SameIdExistsError}
- * @throws {@link DocumentNotFoundError}
- * @throws {@link CannotWriteDataError}
+ * @throws {@link Err.UndefinedDBError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.CannotCreateDirectoryError}
+ * @throws {@link Err.SameIdExistsError}
+ * @throws {@link Err.DocumentNotFoundError}
+ * @throws {@link Err.CannotWriteDataError}
  */
 export async function putWorker (
   gitDDB: GitDDBInterface,
@@ -117,11 +108,11 @@ export async function putWorker (
   insertOrUpdate?: 'insert' | 'update'
 ): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB === undefined) {
-    throw new UndefinedDBError();
+    throw new Err.UndefinedDBError();
   }
 
   if (!gitDDB.isOpened()) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
   const fullDocPath = collectionPath + shortName;
 
@@ -130,7 +121,7 @@ export async function putWorker (
 
   const filePath = path.resolve(gitDDB.workingDir, fullDocPath);
   await fs.ensureDir(path.dirname(filePath)).catch((err: Error) => {
-    throw new CannotCreateDirectoryError(err.message);
+    throw new Err.CannotCreateDirectoryError(err.message);
   });
 
   try {
@@ -153,11 +144,12 @@ export async function putWorker (
           .catch(() => undefined);
 
     if (oldEntry) {
-      if (insertOrUpdate === 'insert') return Promise.reject(new SameIdExistsError());
+      if (insertOrUpdate === 'insert') return Promise.reject(new Err.SameIdExistsError());
       insertOrUpdate ??= 'update';
     }
     else {
-      if (insertOrUpdate === 'update') return Promise.reject(new DocumentNotFoundError());
+      if (insertOrUpdate === 'update')
+        return Promise.reject(new Err.DocumentNotFoundError());
       insertOrUpdate ??= 'insert';
     }
 
@@ -187,7 +179,7 @@ export async function putWorker (
     });
     commit = normalizeCommit(readCommitResult);
   } catch (err) {
-    throw new CannotWriteDataError(err.message);
+    throw new Err.CannotWriteDataError(err.message);
   }
 
   return {

@@ -24,17 +24,17 @@ Promise&lt;[Sync](./git-documentdb.sync.md)<!-- -->&gt;
 
 ## Exceptions
 
-[UndefinedRemoteURLError](./git-documentdb.undefinedremoteurlerror.md) (from Sync\#constructor())
+[Err.UndefinedRemoteURLError](./git-documentdb.err.undefinedremoteurlerror.md) (from Sync\#constructor())
 
-[IntervalTooSmallError](./git-documentdb.intervaltoosmallerror.md) (from Sync\#constructor())
+[Err.IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md) (from Sync\#constructor())
 
-[RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) (from Sync\#syncImpl())
+[Err.RepositoryNotFoundError](./git-documentdb.err.repositorynotfounderror.md) (from Sync\#syncImpl())
 
-[RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md) (from Sync\#init())
+[Err.RemoteRepositoryConnectError](./git-documentdb.err.remoterepositoryconnecterror.md) (from Sync\#init())
 
-[PushWorkerError](./git-documentdb.pushworkererror.md) (from Sync\#init())
+[Err.PushWorkerError](./git-documentdb.err.pushworkererror.md) (from Sync\#init())
 
-[SyncWorkerError](./git-documentdb.syncworkererror.md) (from Sync\#init())
+[Err.SyncWorkerError](./git-documentdb.err.syncworkererror.md) (from Sync\#init())
 
 ## Remarks
 

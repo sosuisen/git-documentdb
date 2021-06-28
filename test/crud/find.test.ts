@@ -12,11 +12,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { sleep, toSortedJSONString } from '../../src/utils';
-import {
-  DatabaseClosingError,
-  InvalidJsonObjectError,
-  RepositoryNotOpenError,
-} from '../../src/error';
+import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { FIRST_COMMIT_MESSAGE, GIT_DOCUMENTDB_INFO_ID, JSON_EXT } from '../../src/const';
 import { findImpl } from '../../src/crud/find';
@@ -81,7 +77,7 @@ describe('<crud/find> find()', () => {
     // Call close() without await
     gitDDB.close().catch(() => {});
     await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      DatabaseClosingError
+      Err.DatabaseClosingError
     );
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
@@ -99,7 +95,7 @@ describe('<crud/find> find()', () => {
     await gitDDB.open();
     await gitDDB.close();
     await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      RepositoryNotOpenError
+      Err.RepositoryNotOpenError
     );
     await gitDDB.destroy();
   });
@@ -115,7 +111,7 @@ describe('<crud/find> find()', () => {
     await addOneData(gitDDB, 'invalidJSON' + JSON_EXT, 'invalidJSON');
 
     await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      InvalidJsonObjectError
+      Err.InvalidJsonObjectError
     );
 
     await gitDDB.destroy();
@@ -184,7 +180,7 @@ describe('<crud/find> find()', () => {
     });
 
     await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      RepositoryNotOpenError
+      Err.RepositoryNotOpenError
     );
 
     await gitDDB.open();
@@ -314,7 +310,7 @@ describe('<crud/find> find()', () => {
     });
 
     await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      RepositoryNotOpenError
+      Err.RepositoryNotOpenError
     );
 
     await gitDDB.open();
@@ -566,7 +562,7 @@ describe('<crud/find> find()', () => {
       });
 
       await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-        RepositoryNotOpenError
+        Err.RepositoryNotOpenError
       );
 
       await gitDDB.open();

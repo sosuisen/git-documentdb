@@ -13,13 +13,7 @@ import git from 'isomorphic-git';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
 import sinon from 'sinon';
-import {
-  CannotCreateDirectoryError,
-  CannotCreateRepositoryError,
-  CannotOpenRepositoryError,
-  DatabaseClosingError,
-  RepositoryNotFoundError,
-} from '../src/error';
+import { Err } from '../src/error';
 import { generateDatabaseId, GitDocumentDB } from '../src/git_documentdb';
 import { DatabaseInfo, DatabaseOpenResult } from '../src/types';
 import {
@@ -89,7 +83,7 @@ describe('<git_documentdb>', () => {
       }
       // Call close() without await
       gitDDB.close().catch(() => {});
-      await expect(gitDDB.open()).rejects.toThrowError(DatabaseClosingError);
+      await expect(gitDDB.open()).rejects.toThrowError(Err.DatabaseClosingError);
 
       // wait close
       while (gitDDB.isClosing) {
@@ -110,7 +104,7 @@ describe('<git_documentdb>', () => {
         localDir,
       });
       // You don't have permission
-      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateDirectoryError);
+      await expect(gitDDB.open()).rejects.toThrowError(Err.CannotCreateDirectoryError);
     });
 
     it('throws CannotCreateRepositoryError when tries to create a new repository on a readonly filesystem.', async () => {
@@ -123,7 +117,7 @@ describe('<git_documentdb>', () => {
         localDir,
       });
       // You don't have permission
-      await expect(gitDDB.open()).rejects.toThrowError(CannotCreateRepositoryError);
+      await expect(gitDDB.open()).rejects.toThrowError(Err.CannotCreateRepositoryError);
     });
 
     it('creates a new repository.', async () => {
@@ -185,7 +179,7 @@ describe('<git_documentdb>', () => {
         localDir,
       });
       await expect(gitDDB.open({ createIfNotExists: false })).rejects.toThrowError(
-        RepositoryNotFoundError
+        Err.RepositoryNotFoundError
       );
     });
 
@@ -197,7 +191,7 @@ describe('<git_documentdb>', () => {
       });
       // Create empty .git directory
       await fs.ensureDir(gitDDB.workingDir + '/.git/');
-      await expect(gitDDB.open()).rejects.toThrowError(CannotOpenRepositoryError);
+      await expect(gitDDB.open()).rejects.toThrowError(Err.CannotOpenRepositoryError);
     });
 
     it('opens an existing repository.', async () => {

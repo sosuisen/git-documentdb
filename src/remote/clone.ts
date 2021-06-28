@@ -8,7 +8,7 @@
 
 import nodegit from '@sosuisen/nodegit';
 import { Logger } from 'tslog';
-import { CannotConnectError } from '../error';
+import { Err } from '../error';
 import { sleep } from '../utils';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL, NETWORK_TIMEOUT } from '../const';
 import { RemoteOptions } from '../types';
@@ -18,7 +18,7 @@ import { checkHTTP } from './net';
 /**
  * Clone repository from remote
  *
- * @throws {@link CannotConnectError}
+ * @throws {@link Err.CannotConnectError}
  *
  * @internal
  */
@@ -64,7 +64,7 @@ export async function cloneRepository (
     }
     if (!result.ok) {
       // Set retry number for code test
-      throw new CannotConnectError(retry, remoteOptions.remoteUrl, result.toString());
+      throw new Err.CannotConnectError(retry, remoteOptions.remoteUrl, result.toString());
     }
 
     return await nodegit.Clone.clone(remoteOptions.remoteUrl, workingDir, {

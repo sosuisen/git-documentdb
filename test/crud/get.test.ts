@@ -14,11 +14,7 @@ import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
 import { sleep, toSortedJSONString } from '../../src/utils';
-import {
-  DatabaseClosingError,
-  InvalidJsonObjectError,
-  RepositoryNotOpenError,
-} from '../../src/error';
+import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { getImpl } from '../../src/crud/get';
 import { JSON_EXT } from '../../src/const';
@@ -69,7 +65,7 @@ describe('<crud/get> getImpl()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(getImpl(gitDDB, 'tmp', '')).rejects.toThrowError(DatabaseClosingError);
+    await expect(getImpl(gitDDB, 'tmp', '')).rejects.toThrowError(Err.DatabaseClosingError);
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
       await sleep(100);
@@ -85,7 +81,9 @@ describe('<crud/get> getImpl()', () => {
     });
     await gitDDB.open();
     await gitDDB.close();
-    await expect(getImpl(gitDDB, 'tmp', '')).rejects.toThrowError(RepositoryNotOpenError);
+    await expect(getImpl(gitDDB, 'tmp', '')).rejects.toThrowError(
+      Err.RepositoryNotOpenError
+    );
     await gitDDB.destroy();
   });
 
@@ -104,7 +102,7 @@ describe('<crud/get> getImpl()', () => {
     await addOneData(gitDDB, fullDocPath, data);
 
     await expect(getImpl(gitDDB, shortName, collectionPath)).rejects.toThrowError(
-      InvalidJsonObjectError
+      Err.InvalidJsonObjectError
     );
 
     await gitDDB.destroy();

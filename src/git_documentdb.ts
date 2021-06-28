@@ -13,30 +13,7 @@ import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger, TLogLevelName } from 'tslog';
 import { ulid } from 'ulid';
-import {
-  CannotCreateDirectoryError,
-  CannotCreateRepositoryError,
-  CannotOpenRepositoryError,
-  DatabaseCloseTimeoutError,
-  DatabaseClosingError,
-  FileRemoveTimeoutError,
-  InvalidWorkingDirectoryPathLengthError,
-  RemoteAlreadyRegisteredError,
-  RepositoryNotFoundError,
-  UndefinedDatabaseNameError,
-  // Descendant's errors must be imported for TSDoc
-  // eslint-disable-next-line sort-imports
-  RepositoryNotOpenError,
-  InvalidJsonFileExtensionError,
-  UndefinedDocumentIdError,
-  InvalidJsonObjectError,
-  InvalidIdCharacterError,
-  InvalidIdLengthError,
-  TaskCancelError,
-  UndefinedDBError,
-  CannotWriteDataError,
-  UndefinedSyncError,
-} from './error';
+import { Err } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
 import {
@@ -318,14 +295,14 @@ export class GitDocumentDB
    * @remarks
    * - The Git working directory will be `${options.localDir}/${options.dbName}`.
    *
-   * @throws {@link InvalidWorkingDirectoryPathLengthError}
-   * @throws {@link UndefinedDatabaseNameError}
+   * @throws {@link Err.InvalidWorkingDirectoryPathLengthError}
+   * @throws {@link Err.UndefinedDatabaseNameError}
    *
    * @public
    */
   constructor (options: DatabaseOptions & CollectionOptions) {
     if (options.dbName === undefined || options.dbName === '') {
-      throw new UndefinedDatabaseNameError();
+      throw new Err.UndefinedDatabaseNameError();
     }
 
     this._dbName = options.dbName;
@@ -350,7 +327,7 @@ export class GitDocumentDB
       this._workingDir.length === 0 ||
       Validator.byteLengthOf(this._workingDir) > Validator.maxWorkingDirectoryLength()
     ) {
-      throw new InvalidWorkingDirectoryPathLengthError(
+      throw new Err.InvalidWorkingDirectoryPathLengthError(
         this._workingDir,
         0,
         Validator.maxWorkingDirectoryLength()
@@ -421,16 +398,16 @@ export class GitDocumentDB
    *  However, correct behavior is not guaranteed.
    *
    * @returns Database information
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link CannotCreateDirectoryError}
-   * @throws {@link CannotOpenRepositoryError}
-   * @throws {@link RepositoryNotFoundError} may occurs when openOptions.createIfNotExists is false.
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotOpenRepositoryError}
+   * @throws {@link Err.RepositoryNotFoundError} may occurs when openOptions.createIfNotExists is false.
    *
    * @public
    */
   async open (openOptions?: OpenOptions): Promise<DatabaseOpenResult> {
     if (this.isClosing) {
-      throw new DatabaseClosingError();
+      throw new Err.DatabaseClosingError();
     }
     if (this.isOpened()) {
       this._dbOpenResult.isNew = false;
@@ -447,7 +424,7 @@ export class GitDocumentDB
      * Create directory
      */
     await fs.ensureDir(this._workingDir).catch((err: Error) => {
-      throw new CannotCreateDirectoryError(err.message);
+      throw new Err.CannotCreateDirectoryError(err.message);
     });
 
     /**
@@ -474,15 +451,15 @@ export class GitDocumentDB
       const gitDir = this._workingDir + '/.git/';
       if (fs.existsSync(gitDir)) {
         // Cannot open though .git directory exists.
-        throw new CannotOpenRepositoryError(this._workingDir);
+        throw new Err.CannotOpenRepositoryError(this._workingDir);
       }
       if (openOptions.createIfNotExists) {
         await this._createRepository().catch(e => {
-          throw new CannotCreateRepositoryError(e.message);
+          throw new Err.CannotCreateRepositoryError(e.message);
         });
       }
       else {
-        throw new RepositoryNotFoundError(gitDir);
+        throw new Err.RepositoryNotFoundError(gitDir);
       }
     }
 
@@ -499,14 +476,14 @@ export class GitDocumentDB
    * - Queued operations are executed before the database is closed.
    *
    * @param options - The options specify how to close database.
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link DatabaseCloseTimeoutError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.DatabaseCloseTimeoutError}
    *
    * @public
    */
   async close (options?: DatabaseCloseOption): Promise<void> {
     if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
+      return Promise.reject(new Err.DatabaseClosingError());
     }
     // Stop remote
     Object.values(this._synchronizers).forEach(sync => sync.close());
@@ -522,7 +499,7 @@ export class GitDocumentDB
         if (!options.force) {
           const isTimeout = await this.taskQueue.waitCompletion(options.timeout);
           if (isTimeout) {
-            return Promise.reject(new DatabaseCloseTimeoutError());
+            return Promise.reject(new Err.DatabaseCloseTimeoutError());
           }
         }
       } finally {
@@ -561,15 +538,15 @@ export class GitDocumentDB
    * - localDir (which is specified in constructor) is not removed.
    *
    * @param options - The options specify how to close database.
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link DatabaseCloseTimeoutError}
-   * @throws {@link FileRemoveTimeoutError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.DatabaseCloseTimeoutError}
+   * @throws {@link Err.FileRemoveTimeoutError}
    *
    * @public
    */
   async destroy (options: DatabaseCloseOption = {}): Promise<{ ok: true }> {
     if (this.isClosing) {
-      return Promise.reject(new DatabaseClosingError());
+      return Promise.reject(new Err.DatabaseClosingError());
     }
 
     let closeError: Error | undefined;
@@ -587,7 +564,7 @@ export class GitDocumentDB
     await new Promise<void>((resolve, reject) => {
       // Set timeout because rimraf sometimes does not catch EPERM error.
       setTimeout(() => {
-        reject(new FileRemoveTimeoutError());
+        reject(new Err.FileRemoveTimeoutError());
       }, FILE_REMOVE_TIMEOUT);
       rimraf(this._workingDir, error => {
         if (error) {
@@ -636,7 +613,7 @@ export class GitDocumentDB
    *
    * @param dirPath - Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
    * @returns Promise\<Collection[]\>
-   * @throws {@link RepositoryNotOpenError}
+   * @throws {@link Err.RepositoryNotOpenError}
    *
    * @public
    */
@@ -675,13 +652,13 @@ export class GitDocumentDB
   /**
    * Synchronize with a remote repository
    *
-   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
-   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+   * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
+   * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
    *
-   * @throws {@link RepositoryNotFoundError} (from Sync#syncImpl())
-   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
-   * @throws {@link PushWorkerError} (from Sync#init())
-   * @throws {@link SyncWorkerError} (from Sync#init())
+   * @throws {@link Err.RepositoryNotFoundError} (from Sync#syncImpl())
+   * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
+   * @throws {@link Err.PushWorkerError} (from Sync#init())
+   * @throws {@link Err.SyncWorkerError} (from Sync#init())
    *
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
@@ -692,13 +669,13 @@ export class GitDocumentDB
   /**
    * Synchronize with a remote repository
    *
-   * @throws {@link UndefinedRemoteURLError} (from Sync#constructor())
-   * @throws {@link IntervalTooSmallError}  (from Sync#constructor())
+   * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
+   * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
    *
-   * @throws {@link RepositoryNotFoundError} (from Sync#syncAndGetResultImpl())
-   * @throws {@link RemoteRepositoryConnectError} (from Sync#init())
-   * @throws {@link PushWorkerError} (from Sync#init())
-   * @throws {@link SyncWorkerError} (from Sync#init())
+   * @throws {@link Err.RepositoryNotFoundError} (from Sync#syncAndGetResultImpl())
+   * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
+   * @throws {@link Err.PushWorkerError} (from Sync#init())
+   * @throws {@link Err.SyncWorkerError} (from Sync#init())
    *
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
@@ -715,7 +692,7 @@ export class GitDocumentDB
       options.remoteUrl !== undefined &&
       this._synchronizers[options?.remoteUrl] !== undefined
     ) {
-      throw new RemoteAlreadyRegisteredError(options.remoteUrl);
+      throw new Err.RemoteAlreadyRegisteredError(options.remoteUrl);
     }
 
     if (getSyncResult) {
@@ -917,18 +894,18 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.put()
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
    * @public
    */
@@ -950,18 +927,18 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.put()
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
    * @public
    */
@@ -995,20 +972,20 @@ export class GitDocumentDB
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
    *
    * @public
    */
@@ -1030,20 +1007,20 @@ export class GitDocumentDB
    *
    *  - This is an alias of GitDocumentDB#rootCollection.insert()
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
    *
    * @public
    */
@@ -1077,20 +1054,20 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.update()
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link Err.DocumentNotFoundError}
    *
    * @public
    */
@@ -1112,20 +1089,20 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.update()
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link Err.DocumentNotFoundError}
    *
    * @public
    */
@@ -1159,19 +1136,19 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.putFatDoc()
    *
-   * @throws {@link InvalidJsonFileExtensionError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonFileExtensionError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
    * @public
    */
@@ -1199,20 +1176,20 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.insertFatDoc()
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
    *
    * @public
    */
@@ -1242,20 +1219,20 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.updateFatDoc()
    *
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
+   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
    *
-   * @throws {@link DatabaseClosingError} (fromm putImpl)
-   * @throws {@link TaskCancelError} (from putImpl)
+   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
+   * @throws {@link Err.TaskCancelError} (from putImpl)
    *
-   * @throws {@link UndefinedDBError} (fromm putWorker)
-   * @throws {@link RepositoryNotOpenError} (fromm putWorker)
-   * @throws {@link CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link CannotWriteDataError} (from putWorker)
+   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
-   * @throws {@link DocumentNotFoundError}
+   * @throws {@link Err.DocumentNotFoundError}
    *
    * @public
    */
@@ -1279,9 +1256,9 @@ export class GitDocumentDB
    *
    * - This is an alias of GitDocumentDB#rootCollection.get()
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1305,9 +1282,9 @@ export class GitDocumentDB
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getFatDoc()
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1325,9 +1302,9 @@ export class GitDocumentDB
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getDocByOid()
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1350,9 +1327,9 @@ export class GitDocumentDB
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getBackNumber()
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1385,9 +1362,9 @@ export class GitDocumentDB
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getFatDocBackNumber()
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1448,9 +1425,9 @@ export class GitDocumentDB
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1480,9 +1457,9 @@ export class GitDocumentDB
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1502,14 +1479,14 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.delete()
    *
-   * @throws {@link UndefinedDocumentIdError} (from Collection#delete)
-   * @throws {@link DatabaseClosingError} (from deleteImpl)
-   * @throws {@link TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError} (from Collection#delete)
+   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
+   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
-   * @throws {@link UndefinedDBError} (from deleteWorker)
-   * @throws {@link DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
    *
    * @public
    */
@@ -1523,14 +1500,14 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.delete()
    *
-   * @throws {@link UndefinedDocumentIdError} (from Collection#delete)
-   * @throws {@link DatabaseClosingError} (from deleteImpl)
-   * @throws {@link TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError} (from Collection#delete)
+   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
+   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
-   * @throws {@link UndefinedDBError} (from deleteWorker)
-   * @throws {@link DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
    *
    * @public
    */
@@ -1550,14 +1527,14 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.deleteFatDoc()
    *
-   * @throws {@link UndefinedDocumentIdError}
-   * @throws {@link DatabaseClosingError} (from deleteImpl)
-   * @throws {@link TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError}
+   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
+   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link RepositoryNotOpenError} (from deleteWorker)
-   * @throws {@link UndefinedDBError} (from deleteWorker)
-   * @throws {@link DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
+   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
    *
    * @public
    */
@@ -1573,9 +1550,9 @@ export class GitDocumentDB
    *
    * @param options - The options specify how to get documents.
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -1591,9 +1568,9 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.findFatDoc()
    *
-   * @throws {@link DatabaseClosingError}
-   * @throws {@link RepositoryNotOpenError}
-   * @throws {@link InvalidJsonObjectError}
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
    */

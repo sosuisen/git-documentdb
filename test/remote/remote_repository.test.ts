@@ -19,19 +19,7 @@ import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { createCredential } from '../../src/remote/authentication';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import {
-  AuthenticationTypeNotAllowCreateRepositoryError,
-  CannotConnectError,
-  CannotCreateRemoteRepositoryError,
-  FetchConnectionFailedError,
-  FetchPermissionDeniedError,
-  InvalidURLError,
-  PersonalAccessTokenForAnotherAccountError,
-  PushConnectionFailedError,
-  PushPermissionDeniedError,
-  RemoteRepositoryNotFoundError,
-  UndefinedPersonalAccessTokenError,
-} from '../../src/error';
+import { Err } from '../../src/error';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
 import {
   createRemoteRepository,
@@ -212,7 +200,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             personalAccessToken: undefined,
           },
         }).create()
-      ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
+      ).rejects.toThrowError(Err.UndefinedPersonalAccessTokenError);
     });
 
     it('throws PersonalAccessTokenForAnotherAccountError()', async () => {
@@ -226,7 +214,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             personalAccessToken: token, // This is valid but for another account.
           },
         }).create()
-      ).rejects.toThrowError(PersonalAccessTokenForAnotherAccountError);
+      ).rejects.toThrowError(Err.PersonalAccessTokenForAnotherAccountError);
     });
 
     it(`throws CannotConnectError() with ${NETWORK_RETRY} retries`, async () => {
@@ -242,9 +230,9 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       })
         .create()
         .catch(err => err);
-      expect(error).toBeInstanceOf(CannotConnectError);
+      expect(error).toBeInstanceOf(Err.CannotConnectError);
       // This may be tested by using sinon.spy
-      expect((error as CannotConnectError).retry).toBe(NETWORK_RETRY);
+      expect((error as Err.CannotConnectError).retry).toBe(NETWORK_RETRY);
     });
 
     it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {
@@ -257,7 +245,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             type: 'none',
           },
         }).create()
-      ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
+      ).rejects.toThrowError(Err.AuthenticationTypeNotAllowCreateRepositoryError);
     });
   });
 
@@ -289,7 +277,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             personalAccessToken: undefined,
           },
         }).destroy()
-      ).rejects.toThrowError(UndefinedPersonalAccessTokenError);
+      ).rejects.toThrowError(Err.UndefinedPersonalAccessTokenError);
     });
 
     it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {
@@ -304,8 +292,8 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       })
         .destroy()
         .catch(err => err);
-      expect(error).toBeInstanceOf(CannotConnectError);
-      expect((error as CannotConnectError).retry).toBe(NETWORK_RETRY);
+      expect(error).toBeInstanceOf(Err.CannotConnectError);
+      expect((error as Err.CannotConnectError).retry).toBe(NETWORK_RETRY);
     });
 
     it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {
@@ -318,7 +306,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
             type: 'none',
           },
         }).destroy()
-      ).rejects.toThrowError(AuthenticationTypeNotAllowCreateRepositoryError);
+      ).rejects.toThrowError(Err.AuthenticationTypeNotAllowCreateRepositoryError);
     });
   });
 
@@ -458,7 +446,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
-        InvalidURLError
+        Err.InvalidURLError
       );
 
       destroyDBs([gitDDB]);
@@ -492,7 +480,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
-        InvalidURLError
+        Err.InvalidURLError
       );
 
       destroyDBs([gitDDB]);
@@ -526,7 +514,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
-        InvalidURLError
+        Err.InvalidURLError
       );
 
       destroyDBs([gitDDB]);
@@ -560,7 +548,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
-        RemoteRepositoryNotFoundError
+        Err.RemoteRepositoryNotFoundError
       );
 
       destroyDBs([gitDDB]);
@@ -595,7 +583,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
 
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkFetch'](remote, cred)).rejects.toThrowError(
-        FetchPermissionDeniedError
+        Err.FetchPermissionDeniedError
       );
 
       destroyDBs([gitDDB]);
@@ -665,7 +653,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       });
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkPush'](remote, cred)).rejects.toThrowError(
-        PushPermissionDeniedError
+        Err.PushPermissionDeniedError
       );
 
       destroyDBs([gitDDB]);
@@ -697,7 +685,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       });
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkPush'](remote, cred)).rejects.toThrowError(
-        RemoteRepositoryNotFoundError
+        Err.RemoteRepositoryNotFoundError
       );
 
       destroyDBs([gitDDB]);
@@ -781,7 +769,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const onlyFetch = true;
       await expect(
         remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
-      ).rejects.toThrowError(FetchConnectionFailedError);
+      ).rejects.toThrowError(Err.FetchConnectionFailedError);
 
       destroyDBs([gitDDB]);
     });
@@ -808,7 +796,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const onlyFetch = true;
       await expect(
         remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
-      ).rejects.toThrowError(CannotCreateRemoteRepositoryError);
+      ).rejects.toThrowError(Err.CannotCreateRemoteRepositoryError);
 
       destroyDBs([gitDDB]);
     });
@@ -835,7 +823,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       const onlyFetch = false;
       await expect(
         remoteRepos.connect(gitDDB.repository()!, cred, onlyFetch)
-      ).rejects.toThrowError(PushConnectionFailedError);
+      ).rejects.toThrowError(Err.PushConnectionFailedError);
 
       destroyDBs([gitDDB]);
     });

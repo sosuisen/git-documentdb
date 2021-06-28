@@ -10,16 +10,16 @@ import { log, readBlob, ReadBlobResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { Doc, DocType, FatDoc, GetOptions, HistoryFilter, HistoryOptions } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
-import { DatabaseClosingError, RepositoryNotOpenError } from '../error';
+import { Err } from '../error';
 import { JSON_EXT } from '../const';
 import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
 
 /**
  * Implementation of getHistory
  *
- * @throws {@link DatabaseClosingError}
- * @throws {@link RepositoryNotOpenError}
- * @throws {@link InvalidJsonObjectError} (from blobToJsonDoc)
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.InvalidJsonObjectError} (from blobToJsonDoc)
  */
 // eslint-disable-next-line complexity
 export async function getHistoryImpl (
@@ -31,11 +31,11 @@ export async function getHistoryImpl (
   withMetaData = false
 ): Promise<(FatDoc | Doc | undefined)[]> {
   if (gitDDB.isClosing) {
-    throw new DatabaseClosingError();
+    throw new Err.DatabaseClosingError();
   }
 
   if (!gitDDB.isOpened()) {
-    throw new RepositoryNotOpenError();
+    throw new Err.RepositoryNotOpenError();
   }
 
   options ??= {
