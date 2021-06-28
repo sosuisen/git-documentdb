@@ -15,3 +15,7 @@ export * from './remote/clone';
 export * from './remote/remote_repository';
 export * from './remote/sync';
 export * from './const';
+export * from './types_collection';
+export * from './types_crud_interface';
+export * from './types_gitddb';
+export * from './types_sync';

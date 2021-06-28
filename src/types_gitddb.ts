@@ -25,7 +25,7 @@ import { Validator } from './validator';
 /**
  * Interface of GitDocumentDB body
  *
- * @internal
+ * @public
  */
 export interface GitDDBInterface {
   /***********************************************

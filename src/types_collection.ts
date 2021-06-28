@@ -10,6 +10,11 @@ import { CollectionOptions, CollectionPath } from './types';
 import { CRUDInterface } from './types_crud_interface';
 import { SyncEventInterface } from './types_sync';
 
+/**
+ * Type for Collection Class
+ *
+ * @public
+ */
 export type ICollection = CollectionInterface &
   CRUDInterface &
   SyncEventInterface & {
@@ -26,6 +31,11 @@ export type ICollection = CollectionInterface &
     generateId(): string;
   };
 
+/**
+ * Interface for Collection
+ *
+ * @public
+ */
 export interface CollectionInterface {
   collection(collectionPath: CollectionPath, options?: CollectionOptions): ICollection;
   getCollections(dirPath: string): Promise<ICollection[]>;

@@ -23,9 +23,9 @@ import {
 } from './types';
 
 /**
- * Interface of GitDocumentDB CRUD
+ * Interface for GitDocumentDB CRUD
  *
- * @internal
+ * @public
  */
 export interface CRUDInterface {
   put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;

@@ -22,6 +22,8 @@ import {
 
 /**
  * Interface of Sync
+ *
+ * @public
  */
 export interface SyncInterface {
   /***********************************************
@@ -75,6 +77,11 @@ export interface SyncInterface {
   off(event: SyncEvent, callback: SyncCallback): void;
 }
 
+/**
+ * Interface for SyncEvent
+ *
+ * @public
+ */
 export interface SyncEventInterface {
   onSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
   onSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): SyncInterface;
