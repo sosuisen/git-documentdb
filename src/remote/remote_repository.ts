@@ -33,6 +33,8 @@ import { sleep } from '../utils';
 type GitRemoteAction = 'add' | 'change' | 'exist';
 
 /**
+ * Remote repository class
+ *
  * @public
  */
 export class RemoteRepository {
