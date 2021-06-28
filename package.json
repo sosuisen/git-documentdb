@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/sosuisen/git-documentdb#readme",
   "devDependencies": {
-    "@microsoft/api-documenter": "^7.13.24",
+    "@microsoft/api-documenter": "file:../rushstack/apps/api-documenter",
     "@microsoft/api-extractor": "^7.16.0",
     "@octokit/types": "^6.12.2",
     "@types/expect": "^24.3.0",
