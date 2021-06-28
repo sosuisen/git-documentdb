@@ -20,7 +20,7 @@ import { checkHTTP } from './net';
  *
  * @throws {@link CannotConnectError}
  *
- * @public
+ * @internal
  */
 export async function cloneRepository (
   workingDir: string,
