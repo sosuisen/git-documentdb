@@ -195,7 +195,8 @@ export class Sync implements SyncInterface {
    ***********************************************/
 
   /**
-   * remoteURL (readonly)
+   * remoteURL
+   * @readonly
    */
   get remoteURL (): string {
     return this._options.remoteUrl!;
@@ -203,7 +204,8 @@ export class Sync implements SyncInterface {
 
   private _remoteRepository: RemoteRepository;
   /**
-   * Remote repository (readonly)
+   * Remote repository
+   * @readonly
    */
   get remoteRepository (): RemoteRepository {
     return this._remoteRepository;
@@ -211,7 +213,8 @@ export class Sync implements SyncInterface {
 
   private _options: RemoteOptions;
   /**
-   * Get clone of remote options (read only)
+   * Get clone of remote options
+   * @readonly
    */
   get options (): Required<RemoteOptions> {
     const newOptions: Required<RemoteOptions> = JSON.parse(JSON.stringify(this._options));
@@ -222,7 +225,8 @@ export class Sync implements SyncInterface {
 
   private _upstreamBranch = '';
   /**
-   * upstreamBranch (read only)
+   * upstreamBranch
+   * @readonly
    */
   get upstreamBranch (): string {
     return this._upstreamBranch;
@@ -949,7 +953,7 @@ export class Sync implements SyncInterface {
 
   /**
    * Add SyncEvent handler
-   *
+   * @eventProperty
    */
   on (event: SyncEvent, callback: SyncCallback, collectionPath = '') {
     collectionPath = Validator.normalizeCollectionPath(collectionPath);
@@ -1004,7 +1008,7 @@ export class Sync implements SyncInterface {
 
   /**
    * Remove SyncEvent handler
-   *
+   * @eventProperty
    */
   off (event: SyncEvent, callback: SyncCallback) {
     // @ts-ignore

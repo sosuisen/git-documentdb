@@ -95,7 +95,8 @@ export class Collection implements ICollection {
    ***********************************************/
   private _options: CollectionOptions;
   /**
-   * Get clone of collection options (readonly)
+   * Get clone of collection options
+   * @readonly
    */
   get options (): CollectionOptions {
     return { ...this._options };
@@ -807,7 +808,7 @@ export class Collection implements ICollection {
   /**
    * Get a Doc which has specified oid
    *
-   * @fileOid - Object ID (SHA-1 hash) that represents a Git object. (See https://git-scm.com/docs/git-hash-object )
+   * @param fileOid - Object ID (SHA-1 hash) that represents a Git object. (See https://git-scm.com/docs/git-hash-object )
    *
    * @remarks
    *  - undefined if not exists.
@@ -835,12 +836,12 @@ export class Collection implements ICollection {
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
-   * See {@link getHistory} for the array of revisions.
    *
    * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if a document does not exists or a document is deleted.
+   *  - See {@link ./gethistory} for the array of revisions.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -871,7 +872,6 @@ export class Collection implements ICollection {
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
-   * See {@link getHistory} for the array of revisions.
    *
    * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
    *
@@ -883,6 +883,8 @@ export class Collection implements ICollection {
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
    *  - getOptions.forceDocType always overwrite return type.
+   *
+   *  - See {@link ./gethistory} for the array of revisions.
    *
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
@@ -971,7 +973,7 @@ export class Collection implements ICollection {
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    *
    * @remarks
-   * See {@link getHistory} for detailed examples.
+   * See {@link ./gethistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
@@ -1157,7 +1159,15 @@ export class Collection implements ICollection {
    * Public method (Implementation of SyncEventInterface)
    ***********************************************/
 
+  /**
+   * Add SyncEvent handler
+   * @eventProperty
+   */
   onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
+  /**
+   * Add SyncEvent handler
+   * @eventProperty
+   */
   onSyncEvent (
     sync: SyncInterface,
     event: SyncEvent,
@@ -1191,7 +1201,15 @@ export class Collection implements ICollection {
     return sync.on(event, callback, this.collectionPath);
   }
 
+  /**
+   * Remove SyncEvent handler
+   * @eventProperty
+   */
   offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+  /**
+   * Remove SyncEvent handler
+   * @eventProperty
+   */
   offSyncEvent (sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
   /**
    * @internal

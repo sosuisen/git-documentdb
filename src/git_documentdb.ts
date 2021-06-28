@@ -146,13 +146,15 @@ export class GitDocumentDB
    ***********************************************/
 
   /**
-   * Default Git branch (readonly)
+   * Default Git branch
+   * @readonly
    */
   readonly defaultBranch = 'main';
 
   private _localDir: string;
   /**
-   * A local directory path that stores repositories of GitDocumentDB (readonly)
+   * A local directory path that stores repositories of GitDocumentDB
+   * @readonly
    */
   get localDir (): string {
     return this._localDir;
@@ -160,7 +162,8 @@ export class GitDocumentDB
 
   private _dbName: string;
   /**
-   * A name of a git repository (readonly)
+   * A name of a git repository
+   * @readonly
    */
   get dbName (): string {
     return this._dbName;
@@ -168,7 +171,9 @@ export class GitDocumentDB
 
   private _workingDir: string;
   /**
-   * Get a full path of the current Git working directory (readonly)
+   * Get a full path of the current Git working directory
+   *
+   * @readonly
    *
    * @returns A full path whose trailing slash is omitted
    */
@@ -177,7 +182,8 @@ export class GitDocumentDB
   }
 
   /**
-   * Get dbId (readonly)
+   * Get dbId
+   * @readonly
    */
   get dbId () {
     return this._dbOpenResult.dbId;
@@ -185,7 +191,8 @@ export class GitDocumentDB
 
   private _logger!: Logger; // Use definite assignment assertion
   /**
-   * Get logger (readonly)
+   * Get logger
+   * @readonly
    */
   get logger (): Logger {
     return this._logger;
@@ -193,7 +200,8 @@ export class GitDocumentDB
 
   private _schema!: Schema;
   /**
-   * Schema for specific document type (readonly)
+   * Schema for specific document type
+   * @readonly
    */
   get schema (): Schema {
     return this._schema;
@@ -201,7 +209,8 @@ export class GitDocumentDB
 
   private _taskQueue: TaskQueue;
   /**
-   * Task queue (readonly)
+   * Task queue
+   * @readonly
    */
   get taskQueue (): TaskQueue {
     return this._taskQueue;
@@ -210,6 +219,7 @@ export class GitDocumentDB
   private _isClosing = false;
   /**
    * DB is going to close
+   * @readonly
    */
   get isClosing (): boolean {
     return this._isClosing;
@@ -218,6 +228,7 @@ export class GitDocumentDB
   private _validator: Validator;
   /**
    * Name validator
+   * @readonly
    */
   get validator (): Validator {
     return this._validator;
@@ -226,6 +237,7 @@ export class GitDocumentDB
   private _rootCollection: Collection;
   /**
    * Default collection whose collectionPath is ''
+   * @readonly
    */
   get rootCollection (): ICollection {
     return this._rootCollection as ICollection;
@@ -813,7 +825,7 @@ export class GitDocumentDB
   /**
    * Get a current repository
    *
-   * @deprecated It will be removed when NodeGit is replaced with isomorphic-git.
+   * @deprecated This will be removed when NodeGit is replaced with isomorphic-git.
    */
   repository (): nodegit.Repository | undefined {
     return this._currentRepository;
@@ -822,7 +834,7 @@ export class GitDocumentDB
   /**
    * Set repository
    *
-   * @deprecated  It will be removed when NodeGit is replaced with isomorphic-git.
+   * @deprecated  This will be removed when NodeGit is replaced with isomorphic-git.
    * @remarks Be aware that it can corrupt the database.
    */
   setRepository (repos: nodegit.Repository) {
@@ -1225,7 +1237,7 @@ export class GitDocumentDB
   /**
    * Get a Doc which has specified oid
    *
-   * @fileOid - Object ID (SHA-1 hash) that represents a Git object. (See https://git-scm.com/docs/git-hash-object )
+   * @param fileOid - Object ID (SHA-1 hash) that represents a Git object. (See https://git-scm.com/docs/git-hash-object )
    *
    * @remarks
    *  - undefined if not exists.
@@ -1246,7 +1258,7 @@ export class GitDocumentDB
    * @param _id - _id is a file path whose .json extension is omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
-   * See {@link getHistory} for the array of revisions.
+   * See {@link ./gethistory} for the array of revisions.
    *
    * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
    *
@@ -1273,7 +1285,7 @@ export class GitDocumentDB
    * @param name - name is a file path.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
    * When backNumber equals 0, the latest revision is returned.
-   * See {@link getHistory} for the array of revisions.
+   * See {@link ./gethistory} for the array of revisions.
    *
    * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
    *
@@ -1312,7 +1324,7 @@ export class GitDocumentDB
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
-   * - This is an alias of GitDocumentDB#rootCollection.getHistory()
+   * - This is an alias of GitDocumentDB.rootCollection.getHistory().
    *
    * @param _id - _id is a file path whose .json extension is omitted.
    * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
@@ -1368,8 +1380,7 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.getFatDocHistory()
    *
-   * @example
-   *  - See {@link getHistory} for detailed examples.
+   *  - See {@link ./gethistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
    *  - undefined if the document does not exists or the document is deleted.
@@ -1493,7 +1504,15 @@ export class GitDocumentDB
    * Public method (Implementation of SyncEventInterface)
    ***********************************************/
 
+  /**
+   * Add SyncEvent handler
+   * @eventProperty
+   */
   onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
+  /**
+   * Add SyncEvent handler
+   * @eventProperty
+   */
   onSyncEvent (
     sync: SyncInterface,
     event: SyncEvent,
@@ -1508,7 +1527,15 @@ export class GitDocumentDB
     return this.rootCollection.onSyncEvent(remoteURLorSync, event, callback);
   }
 
+  /**
+   * Remove SyncEvent handler
+   * @eventProperty
+   */
   offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+  /**
+   * Remove SyncEvent handler
+   * @eventProperty
+   */
   offSyncEvent (sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
   offSyncEvent (
     remoteURLorSync: string | SyncInterface,
