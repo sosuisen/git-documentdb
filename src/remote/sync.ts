@@ -122,6 +122,9 @@ export async function syncImpl (
   return sync;
 }
 
+/**
+ * @internal
+ */
 function filterChanges (syncResult: SyncResult, collectionPath: string): SyncResult {
   if (collectionPath === '') {
     return syncResult;
@@ -183,6 +186,8 @@ function filterChanges (syncResult: SyncResult, collectionPath: string): SyncRes
 }
 /**
  * Synchronizer class
+ *
+ * @public
  */
 export class Sync implements SyncInterface {
   private _gitDDB: GitDDBInterface;
@@ -196,7 +201,9 @@ export class Sync implements SyncInterface {
 
   /**
    * remoteURL
+   *
    * @readonly
+   * @public
    */
   get remoteURL (): string {
     return this._options.remoteUrl!;
@@ -205,7 +212,9 @@ export class Sync implements SyncInterface {
   private _remoteRepository: RemoteRepository;
   /**
    * Remote repository
+   *
    * @readonly
+   * @public
    */
   get remoteRepository (): RemoteRepository {
     return this._remoteRepository;
@@ -214,7 +223,9 @@ export class Sync implements SyncInterface {
   private _options: RemoteOptions;
   /**
    * Get clone of remote options
+   *
    * @readonly
+   * @public
    */
   get options (): Required<RemoteOptions> {
     const newOptions: Required<RemoteOptions> = JSON.parse(JSON.stringify(this._options));
@@ -226,7 +237,9 @@ export class Sync implements SyncInterface {
   private _upstreamBranch = '';
   /**
    * upstreamBranch
+   *
    * @readonly
+   * @public
    */
   get upstreamBranch (): string {
     return this._upstreamBranch;
@@ -265,16 +278,22 @@ export class Sync implements SyncInterface {
 
   /**
    * Callback for authentication
+   *
+   * @public
    */
   credentialCallbacks: { [key: string]: any };
 
   /**
    * JsonDiff
+   *
+   * @public
    */
   jsonDiff: JsonDiff;
 
   /**
    * JsonPatch
+   *
+   * @public
    */
   jsonPatch: JsonPatchOT;
 
@@ -284,6 +303,8 @@ export class Sync implements SyncInterface {
    * @throws {@link UndefinedRemoteURLError}
    * @throws {@link IntervalTooSmallError}
    * @throws {@link InvalidAuthenticationTypeError}
+   *
+   * @public
    */
   constructor (gitDDB: GitDDBInterface, options?: RemoteOptions) {
     this._gitDDB = gitDDB;
@@ -385,6 +406,7 @@ export class Sync implements SyncInterface {
    * @throws {@link NoMergeBaseFoundError}
    * @throws {@link SyncWorkerError}
    *
+   * @public
    */
   async init (repos: nodegit.Repository): Promise<SyncResult> {
     const onlyFetch = this._options.syncDirection === 'pull';
@@ -444,6 +466,8 @@ export class Sync implements SyncInterface {
 
   /**
    * Pause synchronization
+   *
+   * @public
    */
   pause () {
     if (!this._options.live) return false;
@@ -469,6 +493,7 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link IntervalTooSmallError}
    *
+   * @public
    */
   resume (options?: { interval?: number; retry?: number }) {
     if (this._options.live) return false;
@@ -505,6 +530,8 @@ export class Sync implements SyncInterface {
 
   /**
    * Stop and clear remote connection
+   *
+   * @public
    */
   close () {
     this.pause();
@@ -527,6 +554,8 @@ export class Sync implements SyncInterface {
    * @throws {@link PushNotAllowedError} (from this and enqueuePushTask)
    * @throws {@link PushWorkerError} (from this and enqueuePushTask)
    * @throws {@link UnfetchedCommitExistsError} (from this and enqueuePushTask)
+   *
+   * @public
    */
   // eslint-disable-next-line complexity
   async tryPush (): Promise<SyncResultPush | SyncResultCancel> {
@@ -605,6 +634,8 @@ export class Sync implements SyncInterface {
    * @throws {@link SyncWorkerError} (from enqueueSyncTask)
    * @throws {@link NoMergeBaseFoundError} (from enqueueSyncTask)
    * @throws {@link UnfetchedCommitExistsError} (from enqueueSyncTask)
+   *
+   * @public
    */
   // eslint-disable-next-line complexity
   async trySync (): Promise<SyncResult> {
@@ -709,6 +740,8 @@ export class Sync implements SyncInterface {
    * @throws {@link PushWorkerError}
    * @throws {@link UnfetchedCommitExistsError}
    * @throws {@link PushNotAllowedError}
+   *
+   * @public
    */
   enqueuePushTask (): Promise<SyncResultPush | SyncResultCancel> {
     if (this._options.syncDirection === 'pull') {
@@ -808,6 +841,8 @@ export class Sync implements SyncInterface {
    * @throws {@link NoMergeBaseFoundError}
    * @throws {@link UnfetchedCommitExistsError}
    * @throws {@link PushNotAllowedError}
+   *
+   * @public
    */
   enqueueSyncTask (): Promise<SyncResult> {
     if (this._options.syncDirection === 'pull') {
@@ -944,6 +979,8 @@ export class Sync implements SyncInterface {
 
   /**
    * Return current retry count (incremental)
+   *
+   * @public
    */
   currentRetries (): number {
     let retries = this._options.retry! - this._retrySyncCounter + 1;
@@ -953,7 +990,9 @@ export class Sync implements SyncInterface {
 
   /**
    * Add SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   on (event: SyncEvent, callback: SyncCallback, collectionPath = '') {
     collectionPath = Validator.normalizeCollectionPath(collectionPath);
@@ -1008,7 +1047,9 @@ export class Sync implements SyncInterface {
 
   /**
    * Remove SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   off (event: SyncEvent, callback: SyncCallback) {
     // @ts-ignore

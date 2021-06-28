@@ -84,6 +84,7 @@ import { ICollection } from './types_collection';
  * gitDDB.get({ _id: 'Nara/flower' }); // returns { _id: 'Nara/flower', name: 'cherry blossoms' }.
  * gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', name: 'cherry blossoms' }.
  * ```
+ * @public
  */
 export class Collection implements ICollection {
   private _gitDDB: GitDDBInterface;
@@ -96,7 +97,9 @@ export class Collection implements ICollection {
   private _options: CollectionOptions;
   /**
    * Get clone of collection options
+   *
    * @readonly
+   * @public
    */
   get options (): CollectionOptions {
     return { ...this._options };
@@ -108,6 +111,7 @@ export class Collection implements ICollection {
    *
    * @remarks
    * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \ or yen ¥ is replaced with slash /.
+   * @public
    */
   get collectionPath (): string {
     return this._parent === undefined
@@ -121,6 +125,7 @@ export class Collection implements ICollection {
    *
    * @remarks
    * Child collection inherits Parent's CollectionOptions.
+   * @public
    */
   get parent (): ICollection | undefined {
     return this._parent as ICollection | undefined;
@@ -133,6 +138,8 @@ export class Collection implements ICollection {
    * @param parent - A parent collection of this collection.
    * @throws {@link InvalidCollectionPathCharacterError}
    * @throws {@link InvalidCollectionPathLengthError}
+   *
+   * @public
    */
   constructor (
     gitDDB: GitDDBInterface,
@@ -169,6 +176,8 @@ export class Collection implements ICollection {
    * See https://github.com/ulid/javascript
    *
    * @returns 26 Base32 alphabets
+   *
+   * @public
    */
   generateId () {
     return this._options.namePrefix + this._monoID(Date.now());
@@ -183,6 +192,8 @@ export class Collection implements ICollection {
    * - Notice that this function just read existing directory. It does not make a new sub-directory.
    *
    * @returns A child collection of this collection.
+   *
+   * @public
    */
   collection (collectionPath: CollectionPath, options?: CollectionOptions): ICollection {
     return new Collection(this._gitDDB, collectionPath, this, options) as ICollection;
@@ -194,6 +205,8 @@ export class Collection implements ICollection {
    * @param dirPath - dirPath is a relative path from collectionPath. Default is ''.
    * @returns Array of Collections which does not include ''
    * @throws {@link RepositoryNotOpenError}
+   *
+   * @public
    */
   async getCollections (dirPath = ''): Promise<ICollection[]> {
     if (!this._gitDDB.isOpened()) {
@@ -252,6 +265,8 @@ export class Collection implements ICollection {
    * @throws {@link RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @public
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
@@ -282,6 +297,8 @@ export class Collection implements ICollection {
    * @throws {@link RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @public
    */
   put (
     shortId: string | undefined | null,
@@ -291,6 +308,7 @@ export class Collection implements ICollection {
 
   /**
    * Overload only for internal call
+   *
    * @internal
    */
   put (
@@ -393,6 +411,8 @@ export class Collection implements ICollection {
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link SameIdExistsError} (from putWorker)
+   *
+   * @public
    */
   insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
@@ -424,6 +444,8 @@ export class Collection implements ICollection {
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link SameIdExistsError} (from putWorker)
+   *
+   * @public
    */
   insert (
     shortId: string | undefined | null,
@@ -490,6 +512,8 @@ export class Collection implements ICollection {
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link DocumentNotFoundError}
+   *
+   * @public
    */
   update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
@@ -521,6 +545,8 @@ export class Collection implements ICollection {
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link DocumentNotFoundError}
+   *
+   * @public
    */
   update (
     _id: string | undefined | null,
@@ -586,6 +612,8 @@ export class Collection implements ICollection {
    * @throws {@link RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @public
    */
   // eslint-disable-next-line complexity
   putFatDoc (
@@ -704,6 +732,8 @@ export class Collection implements ICollection {
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link SameIdExistsError} (from putWorker)
+   *
+   * @public
    */
   insertFatDoc (
     shortName: string | undefined | null,
@@ -747,6 +777,8 @@ export class Collection implements ICollection {
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link DocumentNotFoundError}
+   *
+   * @public
    */
   updateFatDoc (
     shortName: string | undefined | null,
@@ -773,6 +805,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   get (_id: string): Promise<JsonDoc | undefined> {
     const shortName = _id + JSON_EXT;
@@ -798,6 +832,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getFatDoc (shortName: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
     return getImpl(this._gitDDB, shortName, this.collectionPath, getOptions, {
@@ -816,6 +852,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getDocByOid (fileOid: string, docType: DocType = 'binary'): Promise<Doc | undefined> {
     return getImpl(
@@ -846,6 +884,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getBackNumber (
     _id: string,
@@ -889,6 +929,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getFatDocBackNumber (
     shortName: string,
@@ -951,6 +993,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getHistory (
     _id: string,
@@ -987,6 +1031,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getFatDocHistory (
     shortName: string,
@@ -1016,6 +1062,8 @@ export class Collection implements ICollection {
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   *
+   * @public
    */
   delete (_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
@@ -1032,6 +1080,8 @@ export class Collection implements ICollection {
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   *
+   * @public
    */
   delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
@@ -1084,6 +1134,8 @@ export class Collection implements ICollection {
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   *
+   * @public
    */
   deleteFatDoc (shortName: string, options?: DeleteOptions): Promise<DeleteResult> {
     if (shortName === undefined) {
@@ -1133,6 +1185,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   find (options?: FindOptions): Promise<JsonDoc[]> {
     options ??= {};
@@ -1148,6 +1202,8 @@ export class Collection implements ICollection {
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   findFatDoc (options?: FindOptions): Promise<FatDoc[]> {
     return findImpl(this._gitDDB, this.collectionPath, false, true, options) as Promise<
@@ -1161,12 +1217,16 @@ export class Collection implements ICollection {
 
   /**
    * Add SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
   /**
    * Add SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   onSyncEvent (
     sync: SyncInterface,
@@ -1203,12 +1263,16 @@ export class Collection implements ICollection {
 
   /**
    * Remove SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
   /**
    * Remove SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   offSyncEvent (sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
   /**

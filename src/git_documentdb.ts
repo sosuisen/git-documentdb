@@ -122,6 +122,8 @@ export function generateDatabaseId () {
 
 /**
  * Main class of GitDocumentDB
+ *
+ * @public
  */
 export class GitDocumentDB
   implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface {
@@ -147,14 +149,18 @@ export class GitDocumentDB
 
   /**
    * Default Git branch
+   *
    * @readonly
+   * @public
    */
   readonly defaultBranch = 'main';
 
   private _localDir: string;
   /**
    * A local directory path that stores repositories of GitDocumentDB
+   *
    * @readonly
+   * @public
    */
   get localDir (): string {
     return this._localDir;
@@ -163,7 +169,9 @@ export class GitDocumentDB
   private _dbName: string;
   /**
    * A name of a git repository
+   *
    * @readonly
+   * @public
    */
   get dbName (): string {
     return this._dbName;
@@ -173,9 +181,10 @@ export class GitDocumentDB
   /**
    * Get a full path of the current Git working directory
    *
-   * @readonly
-   *
    * @returns A full path whose trailing slash is omitted
+   *
+   * @readonly
+   * @public
    */
   get workingDir () {
     return this._workingDir;
@@ -183,7 +192,9 @@ export class GitDocumentDB
 
   /**
    * Get dbId
+   *
    * @readonly
+   * @public
    */
   get dbId () {
     return this._dbOpenResult.dbId;
@@ -192,7 +203,9 @@ export class GitDocumentDB
   private _logger!: Logger; // Use definite assignment assertion
   /**
    * Get logger
+   *
    * @readonly
+   * @public
    */
   get logger (): Logger {
     return this._logger;
@@ -201,7 +214,9 @@ export class GitDocumentDB
   private _schema!: Schema;
   /**
    * Schema for specific document type
+   *
    * @readonly
+   * @public
    */
   get schema (): Schema {
     return this._schema;
@@ -210,7 +225,9 @@ export class GitDocumentDB
   private _taskQueue: TaskQueue;
   /**
    * Task queue
+   *
    * @readonly
+   * @public
    */
   get taskQueue (): TaskQueue {
     return this._taskQueue;
@@ -219,7 +236,9 @@ export class GitDocumentDB
   private _isClosing = false;
   /**
    * DB is going to close
+   *
    * @readonly
+   * @public
    */
   get isClosing (): boolean {
     return this._isClosing;
@@ -228,7 +247,9 @@ export class GitDocumentDB
   private _validator: Validator;
   /**
    * Name validator
+   *
    * @readonly
+   * @public
    */
   get validator (): Validator {
     return this._validator;
@@ -237,7 +258,9 @@ export class GitDocumentDB
   private _rootCollection: Collection;
   /**
    * Default collection whose collectionPath is ''
+   *
    * @readonly
+   * @public
    */
   get rootCollection (): ICollection {
     return this._rootCollection as ICollection;
@@ -250,6 +273,8 @@ export class GitDocumentDB
   private _logLevel!: TLogLevelName;
   /**
    * logLevel ('silly' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal')
+   *
+   * @public
    */
   get logLevel (): TLogLevelName {
     return this._logLevel;
@@ -257,6 +282,8 @@ export class GitDocumentDB
 
   /**
    * logLevel ('silly' | 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal')
+   *
+   * @public
    */
   set logLevel (level: TLogLevelName) {
     this._logLevel = level;
@@ -272,6 +299,8 @@ export class GitDocumentDB
 
   /**
    * Author name and email for commit
+   *
+   * @public
    */
   author = {
     name: 'GitDocumentDB',
@@ -280,6 +309,8 @@ export class GitDocumentDB
 
   /**
    * Committer name and email for commit
+   *
+   * @public
    */
   committer = {
     name: 'GitDocumentDB',
@@ -295,6 +326,7 @@ export class GitDocumentDB
    * @throws {@link InvalidWorkingDirectoryPathLengthError}
    * @throws {@link UndefinedDatabaseNameError}
    *
+   * @public
    */
   constructor (options: DatabaseOptions & CollectionOptions) {
     if (options.dbName === undefined || options.dbName === '') {
@@ -345,6 +377,9 @@ export class GitDocumentDB
    * Private methods
    ***********************************************/
 
+  /**
+   * @internal
+   */
   private async _createRepository () {
     /**
      * Create a repository followed by first commit
@@ -395,6 +430,8 @@ export class GitDocumentDB
    * @throws {@link CannotCreateDirectoryError}
    * @throws {@link CannotOpenRepositoryError}
    * @throws {@link RepositoryNotFoundError} may occurs when openOptions.createIfNotExists is false.
+   *
+   * @public
    */
   async open (openOptions?: OpenOptions): Promise<DatabaseOpenResult> {
     if (this.isClosing) {
@@ -470,6 +507,7 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
    *
+   * @public
    */
   async close (options?: DatabaseCloseOption): Promise<void> {
     if (this.isClosing) {
@@ -531,6 +569,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link DatabaseCloseTimeoutError}
    * @throws {@link FileRemoveTimeoutError}
+   *
+   * @public
    */
   async destroy (options: DatabaseCloseOption = {}): Promise<{ ok: true }> {
     if (this.isClosing) {
@@ -574,6 +614,7 @@ export class GitDocumentDB
   /**
    * Test if a database is opened
    *
+   * @public
    */
   isOpened () {
     return this._currentRepository !== undefined;
@@ -587,7 +628,9 @@ export class GitDocumentDB
    * @remarks
    * - Notice that this function just read existing directory. It does not make a new sub-directory.
    *
-   * @returns A child collection of GitDocumentDB#rootCollection
+   * @returns A child collection of {@link ./rootcollection}
+   *
+   * @public
    */
   collection (collectionPath: CollectionPath, options?: CollectionOptions): Collection {
     return new Collection(this, collectionPath, this.rootCollection, options);
@@ -599,6 +642,8 @@ export class GitDocumentDB
    * @param dirPath Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
    * @returns Promise<Collection[]>
    * @throws {@link RepositoryNotOpenError}
+   *
+   * @public
    */
   async getCollections (dirPath = ''): Promise<ICollection[]> {
     return await this.rootCollection.getCollections(dirPath);
@@ -607,6 +652,7 @@ export class GitDocumentDB
   /**
    * getRemoteURLs
    *
+   * @public
    */
   getRemoteURLs (): string[] {
     return Object.keys(this._synchronizers);
@@ -615,6 +661,7 @@ export class GitDocumentDB
   /**
    * Get synchronizer
    *
+   * @public
    */
   getSync (remoteURL: string): Sync {
     return this._synchronizers[remoteURL];
@@ -623,6 +670,7 @@ export class GitDocumentDB
   /**
    * Stop and unregister remote synchronization
    *
+   * @public
    */
   removeSync (remoteURL: string) {
     this._synchronizers[remoteURL].pause();
@@ -642,6 +690,8 @@ export class GitDocumentDB
    *
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
+   *
+   * @public
    */
   async sync (options: RemoteOptions): Promise<Sync>;
   /**
@@ -657,6 +707,8 @@ export class GitDocumentDB
    *
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
+   *
+   * @public
    */
   async sync (options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
 
@@ -683,6 +735,8 @@ export class GitDocumentDB
 
   /**
    * Get commit object
+   *
+   * @public
    */
   async getCommit (oid: string): Promise<NormalizedCommit> {
     const readCommitResult = await git.readCommit({ fs, dir: this._workingDir, oid });
@@ -694,6 +748,8 @@ export class GitDocumentDB
    *
    * @remarks
    * Save GitDocumentDB#author. to user.name and user.email in .git/config
+   *
+   * @public
    */
   async saveAuthor (): Promise<void> {
     if (this.author?.name !== undefined) {
@@ -720,6 +776,8 @@ export class GitDocumentDB
    * @remarks
    * Load user.name and user.email to GitDocumentDB#author.
    * If not defined in .git/config, do nothing.
+   *
+   * @public
    */
   async loadAuthor (): Promise<void> {
     const name = await git
@@ -743,6 +801,8 @@ export class GitDocumentDB
 
   /**
    * Save app specific info into .gitddb/app.json
+   *
+   * @public
    */
   async saveAppInfo (info: { [key: string]: any }) {
     // Do not use this.put() because it increments TaskQueue.statistics.put.
@@ -759,6 +819,8 @@ export class GitDocumentDB
    * Load app specific info from .gitddb/app.json
    *
    * @returns JSON object. It returns undefined if not exists.
+   *
+   * @public
    */
   async loadAppInfo () {
     const info = await this.get(GIT_DOCUMENTDB_APP_INFO_ID).catch(() => undefined);
@@ -826,6 +888,7 @@ export class GitDocumentDB
    * Get a current repository
    *
    * @deprecated This will be removed when NodeGit is replaced with isomorphic-git.
+   * @public
    */
   repository (): nodegit.Repository | undefined {
     return this._currentRepository;
@@ -834,8 +897,9 @@ export class GitDocumentDB
   /**
    * Set repository
    *
-   * @deprecated  This will be removed when NodeGit is replaced with isomorphic-git.
    * @remarks Be aware that it can corrupt the database.
+   * @deprecated  This will be removed when NodeGit is replaced with isomorphic-git.
+   * @public
    */
   setRepository (repos: nodegit.Repository) {
     this._currentRepository = undefined;
@@ -870,6 +934,8 @@ export class GitDocumentDB
    * @throws {@link RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @public
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
@@ -901,6 +967,8 @@ export class GitDocumentDB
    * @throws {@link RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @public
    */
   put (
     _id: string | undefined | null,
@@ -946,6 +1014,8 @@ export class GitDocumentDB
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link SameIdExistsError} (from putWorker)
+   *
+   * @public
    */
   insert (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
@@ -979,6 +1049,8 @@ export class GitDocumentDB
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link SameIdExistsError} (from putWorker)
+   *
+   * @public
    */
   insert (
     _id: string | undefined | null,
@@ -1024,6 +1096,8 @@ export class GitDocumentDB
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link DocumentNotFoundError}
+   *
+   * @public
    */
   update (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
@@ -1057,6 +1131,8 @@ export class GitDocumentDB
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link DocumentNotFoundError}
+   *
+   * @public
    */
   update (
     _id: string | undefined | null,
@@ -1101,6 +1177,8 @@ export class GitDocumentDB
    * @throws {@link RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link CannotCreateDirectoryError} (from putWorker)
    * @throws {@link CannotWriteDataError} (from putWorker)
+   *
+   * @public
    */
   putFatDoc (
     name: string | undefined | null,
@@ -1140,6 +1218,8 @@ export class GitDocumentDB
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link SameIdExistsError} (from putWorker)
+   *
+   * @public
    */
   insertFatDoc (
     name: string | undefined | null,
@@ -1181,6 +1261,8 @@ export class GitDocumentDB
    * @throws {@link CannotWriteDataError} (from putWorker)
    *
    * @throws {@link DocumentNotFoundError}
+   *
+   * @public
    */
   updateFatDoc (
     name: string | undefined | null,
@@ -1205,6 +1287,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   get (_id: string): Promise<JsonDoc | undefined> {
     return this.rootCollection.get(_id);
@@ -1229,6 +1313,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getFatDoc (name: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
     return this.rootCollection.getFatDoc(name, getOptions);
@@ -1247,6 +1333,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getDocByOid (fileOid: string, docType: DocType = 'binary'): Promise<Doc | undefined> {
     return this.rootCollection.getDocByOid(fileOid, docType);
@@ -1260,7 +1348,7 @@ export class GitDocumentDB
    * When backNumber equals 0, the latest revision is returned.
    * See {@link ./gethistory} for the array of revisions.
    *
-   * @param historyOptions: The array of revisions is filtered by HistoryOptions.filter.
+   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if the document does not exists or the document is deleted.
@@ -1270,6 +1358,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getBackNumber (
     _id: string,
@@ -1303,6 +1393,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getFatDocBackNumber (
     name: string,
@@ -1364,6 +1456,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getHistory (
     _id: string,
@@ -1394,6 +1488,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   getFatDocHistory (
     name: string,
@@ -1419,6 +1515,8 @@ export class GitDocumentDB
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   *
+   * @public
    */
   delete (_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
@@ -1438,6 +1536,8 @@ export class GitDocumentDB
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   *
+   * @public
    */
   delete (jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
   delete (
@@ -1463,6 +1563,8 @@ export class GitDocumentDB
    * @throws {@link UndefinedDBError} (from deleteWorker)
    * @throws {@link DocumentNotFoundError} (from deleteWorker)
    * @throws {@link CannotDeleteDataError} (from deleteWorker)
+   *
+   * @public
    */
   deleteFatDoc (name: string, options?: DeleteOptions): Promise<DeleteResult> {
     return this.rootCollection.deleteFatDoc(name, options);
@@ -1479,6 +1581,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   find (options?: FindOptions): Promise<JsonDoc[]> {
     return this.rootCollection.find(options);
@@ -1495,6 +1599,8 @@ export class GitDocumentDB
    * @throws {@link DatabaseClosingError}
    * @throws {@link RepositoryNotOpenError}
    * @throws {@link InvalidJsonObjectError}
+   *
+   * @public
    */
   findFatDoc (options?: FindOptions): Promise<FatDoc[]> {
     return this.rootCollection.findFatDoc(options);
@@ -1506,12 +1612,16 @@ export class GitDocumentDB
 
   /**
    * Add SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   onSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
   /**
    * Add SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   onSyncEvent (
     sync: SyncInterface,
@@ -1529,12 +1639,16 @@ export class GitDocumentDB
 
   /**
    * Remove SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   offSyncEvent (remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
   /**
    * Remove SyncEvent handler
+   *
    * @eventProperty
+   * @public
    */
   offSyncEvent (sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
   offSyncEvent (

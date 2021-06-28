@@ -32,6 +32,9 @@ import { sleep } from '../utils';
  */
 type GitRemoteAction = 'add' | 'change' | 'exist';
 
+/**
+ * @public
+ */
 export class RemoteRepository {
   private _options: RemoteOptions;
 
@@ -234,7 +237,6 @@ export class RemoteRepository {
    *
    * @throws {@link InvalidURLError}
    * @throws {@link RemoteRepositoryNotFoundError}
-   * @throws {@link InvalidSSHKeyError}
    * @throws Error (Other errors from NodeGit.Remote#connect())
    *
    * @internal

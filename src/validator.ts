@@ -22,6 +22,8 @@ import { CollectionPath, JsonDoc } from './types';
 
 /**
  * Validator Class
+ *
+ * @public
  */
 export class Validator {
   private _workingDirectory: string;

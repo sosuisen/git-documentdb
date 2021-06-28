@@ -22,6 +22,7 @@ class BaseError extends Error {
 }
 
 /**
+ * @public
  */
 export class UndefinedDatabaseNameError extends BaseError {
   constructor (e = `Database name is undefined: Option must have dbName` as unknown) {
@@ -30,6 +31,7 @@ export class UndefinedDatabaseNameError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class CannotCreateDirectoryError extends BaseError {
   constructor (e = 'Cannot create directory' as unknown) {
@@ -38,6 +40,7 @@ export class CannotCreateDirectoryError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class CannotWriteDataError extends BaseError {
   constructor (e = 'Cannot write data' as unknown) {
@@ -46,6 +49,7 @@ export class CannotWriteDataError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class CannotDeleteDataError extends BaseError {
   constructor (e = 'Cannot write data' as unknown) {
@@ -54,6 +58,7 @@ export class CannotDeleteDataError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidCollectionPathCharacterError extends BaseError {
   constructor (name: unknown) {
@@ -63,6 +68,7 @@ export class InvalidCollectionPathCharacterError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidCollectionPathLengthError extends BaseError {
   constructor (collectionPath: unknown, minLength: unknown, maxLength: unknown) {
@@ -73,6 +79,7 @@ export class InvalidCollectionPathLengthError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidWorkingDirectoryPathLengthError extends BaseError {
   constructor (path: unknown, minLength: unknown, maxLength: unknown) {
@@ -83,6 +90,7 @@ export class InvalidWorkingDirectoryPathLengthError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidIdCharacterError extends BaseError {
   constructor (id: unknown) {
@@ -92,6 +100,7 @@ export class InvalidIdCharacterError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidIdLengthError extends BaseError {
   constructor (id: unknown, minLength: unknown, maxLength: unknown) {
@@ -102,6 +111,7 @@ export class InvalidIdLengthError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidJsonObjectError extends BaseError {
   constructor (idOrSha: unknown) {
@@ -110,6 +120,7 @@ export class InvalidJsonObjectError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidJsonFileExtensionError extends BaseError {
   constructor () {
@@ -118,6 +129,7 @@ export class InvalidJsonFileExtensionError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidDocTypeError extends BaseError {
   constructor (type: unknown) {
@@ -126,6 +138,7 @@ export class InvalidDocTypeError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class UndefinedDocumentIdError extends BaseError {
   constructor (
@@ -136,6 +149,7 @@ export class UndefinedDocumentIdError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class UndefinedSyncError extends BaseError {
   constructor (e = `Sync is undefined` as unknown) {
@@ -144,6 +158,7 @@ export class UndefinedSyncError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class RepositoryNotOpenError extends BaseError {
   constructor (e = 'Repository not opened' as unknown) {
@@ -152,6 +167,7 @@ export class RepositoryNotOpenError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class DocumentNotFoundError extends BaseError {
   constructor (e = 'Document not found' as unknown) {
@@ -160,6 +176,7 @@ export class DocumentNotFoundError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class SameIdExistsError extends BaseError {
   constructor (e = 'The same id exists' as unknown) {
@@ -168,6 +185,7 @@ export class SameIdExistsError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class DatabaseClosingError extends BaseError {
   constructor (e = 'Database is closing' as unknown) {
@@ -176,6 +194,7 @@ export class DatabaseClosingError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class DatabaseCloseTimeoutError extends BaseError {
   constructor (e = 'Queued operations are timeout' as unknown) {
@@ -184,6 +203,7 @@ export class DatabaseCloseTimeoutError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidDbNameCharacterError extends BaseError {
   constructor (name: unknown) {
@@ -193,6 +213,7 @@ export class InvalidDbNameCharacterError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidLocalDirCharacterError extends BaseError {
   constructor (name: unknown) {
@@ -202,6 +223,7 @@ export class InvalidLocalDirCharacterError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidSSHKeyPathError extends BaseError {
   constructor () {
@@ -211,6 +233,7 @@ export class InvalidSSHKeyPathError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidURLError extends BaseError {
   constructor (url: unknown) {
@@ -219,6 +242,7 @@ export class InvalidURLError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class UndefinedRemoteURLError extends BaseError {
   constructor () {
@@ -227,6 +251,7 @@ export class UndefinedRemoteURLError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class RemoteRepositoryNotFoundError extends BaseError {
   constructor (url: unknown) {
@@ -237,6 +262,7 @@ export class RemoteRepositoryNotFoundError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class PushPermissionDeniedError extends BaseError {
   constructor (mes: unknown) {
@@ -244,6 +270,9 @@ export class PushPermissionDeniedError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class FetchPermissionDeniedError extends BaseError {
   constructor (mes: unknown) {
     super(`Permission denied to fetch to the repository: ${mes}`);
@@ -251,6 +280,7 @@ export class FetchPermissionDeniedError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class FetchConnectionFailedError extends BaseError {
   constructor (mes: unknown) {
@@ -259,6 +289,7 @@ export class FetchConnectionFailedError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class PushConnectionFailedError extends BaseError {
   constructor (mes: unknown) {
@@ -267,6 +298,7 @@ export class PushConnectionFailedError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class RemoteAlreadyRegisteredError extends BaseError {
   constructor (url: unknown) {
@@ -278,6 +310,7 @@ Call removeRemote() before register it again.`
 }
 
 /**
+ * @public
  */
 export class InvalidAuthenticationTypeError extends BaseError {
   constructor (type: string) {
@@ -287,6 +320,7 @@ Current value is '${type}'`);
 }
 
 /**
+ * @public
  */
 export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
   constructor (type: unknown) {
@@ -297,6 +331,7 @@ export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class UndefinedPersonalAccessTokenError extends BaseError {
   constructor () {
@@ -305,6 +340,7 @@ export class UndefinedPersonalAccessTokenError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class SyncWorkerFetchError extends BaseError {
   constructor (mes: string) {
@@ -313,6 +349,7 @@ export class SyncWorkerFetchError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class UndefinedDBError extends BaseError {
   constructor () {
@@ -321,6 +358,7 @@ export class UndefinedDBError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class HttpProtocolRequiredError extends BaseError {
   constructor (url: unknown) {
@@ -329,6 +367,7 @@ export class HttpProtocolRequiredError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidRepositoryURLError extends BaseError {
   constructor (url: unknown) {
@@ -337,6 +376,7 @@ export class InvalidRepositoryURLError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class NoMergeBaseFoundError extends BaseError {
   constructor () {
@@ -345,6 +385,7 @@ export class NoMergeBaseFoundError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class UnfetchedCommitExistsError extends BaseError {
   constructor () {
@@ -355,6 +396,7 @@ export class UnfetchedCommitExistsError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class IntervalTooSmallError extends BaseError {
   constructor (min: unknown, current: unknown) {
@@ -363,6 +405,7 @@ export class IntervalTooSmallError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class FileRemoveTimeoutError extends BaseError {
   constructor () {
@@ -371,6 +414,7 @@ export class FileRemoveTimeoutError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class InvalidConflictStateError extends BaseError {
   constructor (mes: unknown) {
@@ -379,6 +423,7 @@ export class InvalidConflictStateError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class CannotOpenRepositoryError extends BaseError {
   constructor (err: unknown) {
@@ -387,6 +432,7 @@ export class CannotOpenRepositoryError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class RepositoryNotFoundError extends BaseError {
   constructor (path: unknown) {
@@ -397,6 +443,7 @@ export class RepositoryNotFoundError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class CannotConnectError extends BaseError {
   constructor (public retry: number, url: string, mes: string) {
@@ -405,6 +452,7 @@ export class CannotConnectError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class RequestTimeoutError extends BaseError {
   constructor (url: unknown) {
@@ -413,6 +461,7 @@ export class RequestTimeoutError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class SocketTimeoutError extends BaseError {
   constructor (url: unknown) {
@@ -421,6 +470,7 @@ export class SocketTimeoutError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class HTTPNetworkError extends BaseError {
   constructor (mes: unknown) {
@@ -429,6 +479,7 @@ export class HTTPNetworkError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class CannotCreateRepositoryError extends BaseError {
   constructor (reason: unknown) {
@@ -437,6 +488,7 @@ export class CannotCreateRepositoryError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class CannotCreateRemoteRepositoryError extends BaseError {
   constructor (reason: unknown) {
@@ -445,6 +497,7 @@ export class CannotCreateRemoteRepositoryError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class TaskCancelError extends BaseError {
   constructor (taskId: unknown) {
@@ -453,6 +506,7 @@ export class TaskCancelError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class PersonalAccessTokenForAnotherAccountError extends BaseError {
   constructor () {
@@ -461,6 +515,7 @@ export class PersonalAccessTokenForAnotherAccountError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class PushWorkerError extends BaseError {
   constructor (mes: unknown) {
@@ -469,6 +524,7 @@ export class PushWorkerError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class SyncWorkerError extends BaseError {
   constructor (mes: unknown) {
@@ -477,6 +533,7 @@ export class SyncWorkerError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class ThreeWayMergeError extends BaseError {
   constructor (mes: string) {
@@ -485,6 +542,7 @@ export class ThreeWayMergeError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class RemoteRepositoryConnectError extends BaseError {
   constructor (mes: unknown) {
@@ -493,6 +551,7 @@ export class RemoteRepositoryConnectError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class PushNotAllowedError extends BaseError {
   constructor (direction: unknown) {
@@ -501,6 +560,7 @@ export class PushNotAllowedError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class GitPushError extends BaseError {
   constructor (mes: string) {
@@ -509,6 +569,7 @@ export class GitPushError extends BaseError {
 }
 
 /**
+ * @public
  */
 export class GitMergeBranchError extends BaseError {
   constructor (mes: string) {
@@ -516,6 +577,9 @@ export class GitMergeBranchError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
   constructor (syncInterval: unknown, retryInterval: unknown) {
     super(
@@ -524,12 +588,18 @@ export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
   }
 }
 
+/**
+ * @public
+ */
 export class ConsecutiveSyncSkippedError extends BaseError {
   constructor (taskLabel: string, taskId: string) {
     super(`Consecutive ${taskLabel} skipped (id: ${taskId})`);
   }
 }
 
+/**
+ * @public
+ */
 export class CombineDatabaseError extends BaseError {
   constructor (mes: string) {
     super(`Combine database failed: ${mes})`);

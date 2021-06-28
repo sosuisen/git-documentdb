@@ -17,18 +17,20 @@ import { TLogLevelName } from 'tslog';
  * ```
  * * localDir: A local directory path that stores repositories of GitDocumentDB.
  *   - Default is './gitddb'.
- *   - A directory name allows Unicode characters excluding OS reserved filenames and following characters: < > : " | ? * \0.
+ *   - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0.
  *   - A colon : is generally not allowed, but a Windows drive letter followed by a colon is allowed. e.g.) C: D:
  *   - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
  *   - A trailing slash / could be omitted.
  *
  * * dbName: A name of a git repository
- *   - dbName allows Unicode characters excluding OS reserved filenames and following characters: < > : " ¥ / \ | ? * \0.
+ *   - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \ | ? * \0.
  *   - dbName cannot end with a period or a white space.
  *   - dbName does not allow '.' and '..'.
  *
  * * logLevel: Default is 'info'.
  * ```
+ *
+ * @public
  */
 export type DatabaseOptions = {
   localDir?: string;
@@ -42,13 +44,17 @@ export type DatabaseOptions = {
  *
  * @remarks
  * - createIfNotExists: Default is true.
+ *
+ * @public
  */
 export type OpenOptions = {
   createIfNotExists?: boolean;
 };
 
 /**
- * Schema
+ * Schema for specific document type
+ *
+ * @public
  */
 export type Schema = {
   json: JsonDiffOptions;
@@ -65,6 +71,8 @@ export type Schema = {
  * { a: { _all: true } } matches all child properties of 'a'.
  * { a: { _regex: /abc/ } } matches child properties of 'a' which match /abc/.
  * ```
+ *
+ * @public
  */
 export type JsonDiffOptions = {
   idOfSubtree?: string[];
@@ -80,6 +88,8 @@ export type JsonDiffOptions = {
  * - isCreatedByGitDDB: Whether a repository is created by GitDocumentDB or other means.
  *
  * - isValidVersion: Whether a repository version equals to the current databaseVersion of GitDocumentDB.
+ *
+ * @public
  */
 export type DatabaseOpenResult = DatabaseInfo & {
   isNew: boolean;
@@ -96,6 +106,8 @@ export type DatabaseOpenResult = DatabaseInfo & {
  * - creator: Creator of the database. Default is 'GitDocumentDB'. The creator is described in .gitddb/info.json.
  *
  * - version: Version of the GitDocumentDB specification. The version is described in .gitddb/info.json.
+ *
+ * @public
  */
 export type DatabaseInfo = {
   dbId: string;
@@ -123,6 +135,8 @@ export type DatabaseInfo = {
  *   flower: 'double cherry blossoms'
  * }
  * ```
+ *
+ * @public
  */
 export type JsonDoc = {
   [key: string]: any;
@@ -137,11 +151,15 @@ export type JsonDoc = {
  * - text: utf8 string
  *
  * - binary: Uint8Array
+ *
+ * @public
  */
 export type DocType = 'json' | 'text' | 'binary';
 
 /**
  * Union type of Doc types
+ *
+ * @public
  */
 export type Doc = JsonDoc | string | Uint8Array;
 
@@ -156,6 +174,8 @@ export type Doc = JsonDoc | string | Uint8Array;
  * - fileOid: SHA-1 hash of Git object (40 characters)
  *
  * - type: type shows a DocType. type of JsonDocMetadata is fixed to 'json'.
+ *
+ * @public
  */
 export type JsonDocMetadata = {
   _id: string;
@@ -173,6 +193,8 @@ export type JsonDocMetadata = {
  * - fileOid: SHA-1 hash of Git object (40 characters)
  *
  * - type: type shows a DocType. type of TextDocMetadata is fixed to 'text'.
+ *
+ * @public
  */
 export type TextDocMetadata = {
   name: string;
@@ -189,6 +211,8 @@ export type TextDocMetadata = {
  * - fileOid: SHA-1 hash of Git object (40 characters)
  *
  * - type: type shows a DocType. type of BinaryDocMetadata is fixed to 'binary'.
+ *
+ * @public
  */
 export type BinaryDocMetadata = {
   name: string;
@@ -198,11 +222,15 @@ export type BinaryDocMetadata = {
 
 /**
  * Union type of Document metadata
+ *
+ * @public
  */
 export type DocMetadata = JsonDocMetadata | TextDocMetadata | BinaryDocMetadata;
 
 /**
  * JsonDoc with metadata
+ *
+ * @public
  */
 export type FatJsonDoc = JsonDocMetadata & {
   doc: JsonDoc;
@@ -210,6 +238,8 @@ export type FatJsonDoc = JsonDocMetadata & {
 
 /**
  * Text (string) with metadata
+ *
+ * @public
  */
 export type FatTextDoc = TextDocMetadata & {
   doc: string;
@@ -217,6 +247,8 @@ export type FatTextDoc = TextDocMetadata & {
 
 /**
  * Binary (Uint8Array) with metadata
+ *
+ * @public
  */
 export type FatBinaryDoc = BinaryDocMetadata & {
   doc: Uint8Array;
@@ -224,6 +256,8 @@ export type FatBinaryDoc = BinaryDocMetadata & {
 
 /**
  * Union type of documents with a metadata
+ *
+ * @public
  */
 export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
 
@@ -240,11 +274,15 @@ export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
  * - CollectionPath cannot start with a slash.
  * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
  *```
+ *
+ * @public
  */
 export type CollectionPath = string;
 
 /**
  * Options for Collection constructor
+ *
+ * @public
  */
 export type CollectionOptions = {
   namePrefix?: string;
@@ -254,13 +292,15 @@ export type CollectionOptions = {
  * Options for put APIs (put, update, insert, putFatDoc, updateFatDoc, and insertFatDoc)
  *
  * @remarks
- * - commitMessage: Git commit message. Default is '<insert or update>: path/to/the/file(<fileOid>)'.
+ * - commitMessage: Git commit message. Default is '\<insert or update\>: path/to/the/file(\<fileOid\>)'.
  *
  * - insertOrUpdate: Change behavior of put and putFatDoc. Don't use this option. Use insert() or update() instead.
  *
  * - taskId: taskId is used in TaskQueue to distinguish CRUD and synchronization tasks. It is usually generated automatically. Set it if you would like to monitor this put task explicitly.
  *
  * - enqueueCallback: A callback function called just after this put task is enqueued to TaskQueue.
+ *
+ * @public
  */
 export type PutOptions = {
   commitMessage?: string;
@@ -274,6 +314,7 @@ export type PutOptions = {
  *
  * @remarks
  * backNumber and oid are mutually exclusive options. oid has priority.
+ *
  * @internal
  */
 export type GetInternalOptions = {
@@ -289,6 +330,8 @@ export type GetInternalOptions = {
  * - forceDocType: Force return type.
  *
  * - getDocByOid does not have this option.
+ *
+ * @public
  */
 export type GetOptions = {
   forceDocType?: DocType;
@@ -299,6 +342,8 @@ export type GetOptions = {
  *
  * @remarks
  * - filter: Tha array of revisions is filtered by matching multiple HistoryFilters in OR condition.
+ *
+ * @public
  */
 export type HistoryOptions = {
   filter?: HistoryFilter[];
@@ -306,6 +351,8 @@ export type HistoryOptions = {
 
 /**
  * HistoryFilter
+ *
+ * @public
  */
 export type HistoryFilter = {
   author?: {
@@ -322,11 +369,13 @@ export type HistoryFilter = {
  * Options for delete
  *
  * @remarks
- * - commitMessage:  Git commit message. Default is 'delete: path/to/the/file(<fileOid>)'.
+ * - commitMessage:  Git commit message. Default is 'delete: path/to/the/file(\<fileOid\>)'.
  *
  * - taskId: taskId is used in TaskQueue to distinguish CRUD and synchronization tasks. It is usually generated automatically. Set it if you would like to monitor this delete task explicitly.
  *
  * - enqueueCallback: A callback function called just after this delete task is enqueued to TaskQueue.
+ *
+ * @public
  */
 export type DeleteOptions = {
   commitMessage?: string;
@@ -345,6 +394,8 @@ export type DeleteOptions = {
  * - prefix: Get documents whose _ids or names start with the prefix.
  *
  * - forceDocType: Force return DocType.
+ *
+ * @public
  */
 export type FindOptions = {
   descending?: boolean;
@@ -364,9 +415,14 @@ export type FindOptions = {
  * - fileOid: SHA-1 hash of Git object (40 characters).
  *
  * - commit: Git commit object of this put operation.
+ *
+ * @public
  */
 export type PutResult = PutResultJsonDoc | PutResultText | PutResultBinary;
 
+/**
+ * @public
+ */
 export type PutResultJsonDoc = {
   _id: string;
   name: string;
@@ -375,6 +431,9 @@ export type PutResultJsonDoc = {
   type: 'json';
 };
 
+/**
+ * @public
+ */
 export type PutResultText = {
   name: string;
   fileOid: string;
@@ -382,6 +441,9 @@ export type PutResultText = {
   type: 'text';
 };
 
+/**
+ * @public
+ */
 export type PutResultBinary = {
   name: string;
   fileOid: string;
@@ -400,9 +462,14 @@ export type PutResultBinary = {
  * - fileOid: SHA-1 hash of Git object (40 characters)
  *
  * - commit: Git commit object of this put operation.
+ *
+ * @public
  */
 export type DeleteResult = DeleteResultJsonDoc | DeleteResultText | DeleteResultBinary;
 
+/**
+ * @public
+ */
 export type DeleteResultJsonDoc = {
   _id: string;
   name: string;
@@ -411,6 +478,9 @@ export type DeleteResultJsonDoc = {
   type: 'json';
 };
 
+/**
+ * @public
+ */
 export type DeleteResultText = {
   name: string;
   fileOid: string;
@@ -418,6 +488,9 @@ export type DeleteResultText = {
   type: 'text';
 };
 
+/**
+ * @public
+ */
 export type DeleteResultBinary = {
   name: string;
   fileOid: string;
@@ -432,6 +505,8 @@ export type DeleteResultBinary = {
  * - force: Clear queued tasks immediately.
  *
  * - timeout: Clear queued tasks after timeout(msec). Default is 10000.
+ *
+ * @public
  */
 export type DatabaseCloseOption = {
   force?: boolean;
@@ -448,6 +523,8 @@ export type DatabaseCloseOption = {
  * - push: Only upload from local to remote
  *
  * - both: Both download and upload between remote and local
+ *
+ * @public
  */
 export type SyncDirection = 'pull' | 'push' | 'both';
 
@@ -458,6 +535,8 @@ export type SyncDirection = 'pull' | 'push' | 'both';
  * - personalAccessToken: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
  *
  * - private: Whether automatically created repository is private or not. Default is true.
+ *
+ * @public
  */
 export type ConnectionSettingsGitHub = {
   type: 'github';
@@ -467,6 +546,8 @@ export type ConnectionSettingsGitHub = {
 
 /**
  * Connection settings for SSH
+ *
+ * @public
  */
 export type ConnectionSettingsSSH = {
   type: 'ssh';
@@ -477,6 +558,8 @@ export type ConnectionSettingsSSH = {
 
 /**
  * Connection settings do not exist.
+ *
+ * @public
  */
 export type ConnectionSettingsNone = {
   type: 'none';
@@ -484,6 +567,8 @@ export type ConnectionSettingsNone = {
 
 /**
  * Connection settings for RemoteOptions
+ *
+ * @public
  */
 export type ConnectionSettings =
   | ConnectionSettingsNone
@@ -494,6 +579,8 @@ export type ConnectionSettings =
  * Behavior when combine inconsistent DBs
  *
  * Default is 'combine-head-with-theirs'.
+ *
+ * @public
  */
 export type CombineDbStrategies =
   | 'throw-error'
@@ -519,11 +606,16 @@ export type CombineDbStrategies =
  * - 'theirs': Accept theirs per document. Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the remote change is accepted.
  *
  * - Compare function that returns one of the strategies ('ours-diff', 'theirs-diff', 'ours', and 'theirs') can be given. Each parameter will be undefined when a document is removed or does not exist.
+ *
+ * @public
  */
 export type ConflictResolutionStrategies =
   | ConflictResolutionStrategyLabels
   | ((ours?: FatDoc, theirs?: FatDoc) => ConflictResolutionStrategyLabels);
 
+/**
+ * @public
+ */
 export type ConflictResolutionStrategyLabels =
   | 'ours-diff'
   | 'theirs-diff'
@@ -543,6 +635,8 @@ export type ConflictResolutionStrategyLabels =
  * - insert-merge: A merged document of ours and theirs is newly inserted.
  *
  * - update-merge: A document is updated to a merged document of ours and theirs.
+ *
+ * @public
  */
 export type WriteOperation =
   | 'insert'
@@ -560,6 +654,8 @@ export type WriteOperation =
  * - strategy: Applied strategy on the target
  *
  * - operation: Applied write operation on the target
+ *
+ * @public
  */
 export type AcceptedConflict = {
   fatDoc: FatDoc;
@@ -598,6 +694,8 @@ export type AcceptedConflict = {
  * (result)
  *
  * - includeCommits: Whether SyncResult includes 'commits' property or not. Default is false.
+ *
+ * @public
  */
 export type RemoteOptions = {
   /* network */
@@ -621,6 +719,8 @@ export type RemoteOptions = {
 
 /**
  * Union type of properties of TaskStatistics
+ *
+ * @public
  */
 export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push';
 
@@ -629,6 +729,8 @@ export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push'
  *
  * @remarks
  * The statistics is on memory and not persistent. It is cleared by GitDocumentDB#close().
+ *
+ * @public
  */
 export type TaskStatistics = {
   put: number;
@@ -642,6 +744,8 @@ export type TaskStatistics = {
 
 /**
  * Metadata of a task
+ *
+ * @public
  */
 export type TaskMetadata = {
   label: TaskLabel;
@@ -669,6 +773,8 @@ export type Task = TaskMetadata & {
 
 /**
  * Inserted file in merge operation
+ *
+ * @public
  */
 export type ChangedFileInsert = {
   operation: 'insert';
@@ -677,6 +783,8 @@ export type ChangedFileInsert = {
 
 /**
  * Updated file in merge operation
+ *
+ * @public
  */
 export type ChangedFileUpdate = {
   operation: 'update';
@@ -686,6 +794,8 @@ export type ChangedFileUpdate = {
 
 /**
  * Deleted file in merge operation
+ *
+ * @public
  */
 export type ChangedFileDelete = {
   operation: 'delete';
@@ -694,11 +804,15 @@ export type ChangedFileDelete = {
 
 /**
  * Union type of changed files in merge operation
+ *
+ * @public
  */
 export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 
 /**
  * Duplicated file in combine operation
+ *
+ * @public
  */
 export type DuplicatedFile = {
   original: DocMetadata;
@@ -707,6 +821,8 @@ export type DuplicatedFile = {
 
 /**
  * Normalized Commit
+ *
+ * @public
  */
 export type NormalizedCommit = {
   oid: string;
@@ -727,6 +843,8 @@ export type NormalizedCommit = {
 
 /**
  * No action occurs in synchronization.
+ *
+ * @public
  */
 export interface SyncResultNop {
   action: 'nop';
@@ -739,6 +857,8 @@ export interface SyncResultNop {
  * - commits are sorted from old to new.
  *
  * - commits.remote: List of commits which has been pushed to remote
+ *
+ * @public
  */
 export interface SyncResultPush {
   action: 'push';
@@ -757,6 +877,8 @@ export interface SyncResultPush {
  * - commits are sorted from old to new.
  *
  * - commits.local: List of commits which has been pulled to local
+ *
+ * @public
  */
 export interface SyncResultFastForwardMerge {
   action: 'fast-forward merge';
@@ -775,6 +897,8 @@ export interface SyncResultFastForwardMerge {
  * - commits are sorted from old to new.
  *
  * - commits.local: List of commits which has been pulled to local
+ *
+ * @public
  */
 export interface SyncResultMergeAndPushError {
   action: 'merge and push error';
@@ -796,6 +920,8 @@ export interface SyncResultMergeAndPushError {
  * - commits.local: List of commits which has been pulled to local
  *
  * - commits.remote: List of commits which has been pushed to remote
+ *
+ * @public
  */
 export interface SyncResultMergeAndPush {
   action: 'merge and push';
@@ -816,6 +942,8 @@ export interface SyncResultMergeAndPush {
  * - commits are sorted from old to new.
  *
  * - commits.local: List of commits which has been pulled to local
+ *
+ * @public
  */
 export interface SyncResultResolveConflictsAndPushError {
   action: 'resolve conflicts and push error';
@@ -838,6 +966,8 @@ export interface SyncResultResolveConflictsAndPushError {
  * - commits.local: List of commits which has been pulled to local
  *
  * - commits.remote: List of commits which has been pushed to remote
+ *
+ * @public
  */
 export interface SyncResultResolveConflictsAndPush {
   action: 'resolve conflicts and push';
@@ -857,6 +987,8 @@ export interface SyncResultResolveConflictsAndPush {
  *
  * @remarks
  * Push action does not occur after combine action.
+ *
+ * @public
  */
 export interface SyncResultCombineDatabase {
   action: 'combine database';
@@ -865,6 +997,8 @@ export interface SyncResultCombineDatabase {
 
 /**
  * Synchronization was canceled.
+ *
+ * @public
  */
 export interface SyncResultCancel {
   action: 'canceled';
@@ -872,6 +1006,8 @@ export interface SyncResultCancel {
 
 /**
  * Union type of results from trySync and tryPush
+ *
+ * @public
  */
 export type SyncResult =
   | SyncResultNop
@@ -886,6 +1022,8 @@ export type SyncResult =
 
 /**
  * Union type of SyncEvents
+ *
+ * @public
  */
 export type SyncEvent =
   | 'change'
@@ -900,6 +1038,8 @@ export type SyncEvent =
 
 /**
  * Callback of change event
+ *
+ * @public
  */
 export type SyncChangeCallback = (
   syncResult: SyncResult,
@@ -908,6 +1048,8 @@ export type SyncChangeCallback = (
 
 /**
  * Callback of localChange event
+ *
+ * @public
  */
 export type SyncLocalChangeCallback = (
   changedFiles: ChangedFile[],
@@ -916,6 +1058,8 @@ export type SyncLocalChangeCallback = (
 
 /**
  * Callback of remoteChange event
+ *
+ * @public
  */
 export type SyncRemoteChangeCallback = (
   changedFiles: ChangedFile[],
@@ -924,21 +1068,29 @@ export type SyncRemoteChangeCallback = (
 
 /**
  * Callback of combine event
+ *
+ * @public
  */
 export type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void;
 
 /**
  * Callback of pause event
+ *
+ * @public
  */
 export type SyncPauseCallback = () => void;
 
 /**
  * Callback of resume event
+ *
+ * @public
  */
 export type SyncResumeCallback = () => void;
 
 /**
  * Callback of start event
+ *
+ * @public
  */
 export type SyncStartCallback = (
   taskMetadata: TaskMetadata,
@@ -947,16 +1099,22 @@ export type SyncStartCallback = (
 
 /**
  * Callback of compete event
+ *
+ * @public
  */
 export type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
 
 /**
  * Callback of error event
+ *
+ * @public
  */
 export type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 
 /**
  * Union type of SyncEventCallbacks
+ *
+ * @public
  */
 export type SyncCallback =
   | SyncChangeCallback
