@@ -2,15 +2,27 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md)
 
-## SyncResultResolveConflictsAndPush interface
+## SyncResultResolveConflictsAndPush type
 
 Resolve conflicts and push actions occurred in synchronization.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SyncResultResolveConflictsAndPush 
+export declare type SyncResultResolveConflictsAndPush = {
+    action: 'resolve conflicts and push';
+    changes: {
+        local: ChangedFile[];
+        remote: ChangedFile[];
+    };
+    conflicts: AcceptedConflict[];
+    commits?: {
+        local: NormalizedCommit[];
+        remote: NormalizedCommit[];
+    };
+};
 ```
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [AcceptedConflict](./git-documentdb.acceptedconflict.md)<!-- -->, [NormalizedCommit](./git-documentdb.normalizedcommit.md)
 
 ## Remarks
 
@@ -19,13 +31,4 @@ export interface SyncResultResolveConflictsAndPush
 - commits.local: List of commits which has been pulled to local
 
 - commits.remote: List of commits which has been pushed to remote
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [action](./git-documentdb.syncresultresolveconflictsandpush.action.md) | 'resolve conflicts and push' |  |
-|  [changes](./git-documentdb.syncresultresolveconflictsandpush.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultresolveconflictsandpush.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; remote: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
-|  [conflicts](./git-documentdb.syncresultresolveconflictsandpush.conflicts.md) | [AcceptedConflict](./git-documentdb.acceptedconflict.md)<!-- -->\[\] |  |
 

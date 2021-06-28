@@ -21,7 +21,7 @@ collection(collectionPath: CollectionPath, options?: CollectionOptions): ICollec
 
 <b>Returns:</b>
 
-ICollection
+[ICollection](./git-documentdb.icollection.md)
 
 A child collection of this collection.
 

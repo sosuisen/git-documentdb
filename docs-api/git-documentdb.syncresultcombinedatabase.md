@@ -2,24 +2,21 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultCombineDatabase](./git-documentdb.syncresultcombinedatabase.md)
 
-## SyncResultCombineDatabase interface
+## SyncResultCombineDatabase type
 
 Combine action occurred in synchronization.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SyncResultCombineDatabase 
+export declare type SyncResultCombineDatabase = {
+    action: 'combine database';
+    duplicates: DuplicatedFile[];
+};
 ```
+<b>References:</b> [DuplicatedFile](./git-documentdb.duplicatedfile.md)
 
 ## Remarks
 
 Push action does not occur after combine action.
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [action](./git-documentdb.syncresultcombinedatabase.action.md) | 'combine database' |  |
-|  [duplicates](./git-documentdb.syncresultcombinedatabase.duplicates.md) | [DuplicatedFile](./git-documentdb.duplicatedfile.md)<!-- -->\[\] |  |
 

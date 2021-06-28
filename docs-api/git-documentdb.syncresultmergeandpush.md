@@ -2,15 +2,26 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md)
 
-## SyncResultMergeAndPush interface
+## SyncResultMergeAndPush type
 
 Merge and push actions occurred in synchronization.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SyncResultMergeAndPush 
+export declare type SyncResultMergeAndPush = {
+    action: 'merge and push';
+    changes: {
+        local: ChangedFile[];
+        remote: ChangedFile[];
+    };
+    commits?: {
+        local: NormalizedCommit[];
+        remote: NormalizedCommit[];
+    };
+};
 ```
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [NormalizedCommit](./git-documentdb.normalizedcommit.md)
 
 ## Remarks
 
@@ -19,12 +30,4 @@ export interface SyncResultMergeAndPush
 - commits.local: List of commits which has been pulled to local
 
 - commits.remote: List of commits which has been pushed to remote
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [action](./git-documentdb.syncresultmergeandpush.action.md) | 'merge and push' |  |
-|  [changes](./git-documentdb.syncresultmergeandpush.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultmergeandpush.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; remote: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

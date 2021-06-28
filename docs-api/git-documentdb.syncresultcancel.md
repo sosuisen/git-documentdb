@@ -2,19 +2,14 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultCancel](./git-documentdb.syncresultcancel.md)
 
-## SyncResultCancel interface
+## SyncResultCancel type
 
 Synchronization was canceled.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SyncResultCancel 
+export declare type SyncResultCancel = {
+    action: 'canceled';
+};
 ```
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [action](./git-documentdb.syncresultcancel.action.md) | 'canceled' |  |
-

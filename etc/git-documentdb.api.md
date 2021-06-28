@@ -89,14 +89,13 @@ export type ChangedFileUpdate = {
     new: FatDoc;
 };
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "cloneRepository" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function cloneRepository(workingDir: string, remoteOptions: RemoteOptions, logger?: Logger): Promise<nodegit.Repository | undefined>;
 
-// Warning: (ae-forgotten-export) The symbol "ICollection" needs to be exported by the entry point main.d.ts
-//
 // @public
 export class Collection implements ICollection {
-    // Warning: (ae-forgotten-export) The symbol "GitDDBInterface" needs to be exported by the entry point main.d.ts
     constructor(gitDDB: GitDDBInterface, collectionPathFromParent?: CollectionPath, parent?: ICollection, options?: CollectionOptions);
     collection(collectionPath: CollectionPath, options?: CollectionOptions): ICollection;
     get collectionPath(): string;
@@ -127,8 +126,6 @@ export class Collection implements ICollection {
     offSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
     // @internal (undocumented)
     offSyncEvent(remoteURLorSync: string | SyncInterface, event: SyncEvent, callback: SyncCallback): void;
-    // Warning: (ae-forgotten-export) The symbol "SyncInterface" needs to be exported by the entry point main.d.ts
-    //
     // @eventProperty
     onSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
     // @eventProperty
@@ -147,6 +144,14 @@ export class Collection implements ICollection {
     // @internal (undocumented)
     update(shortIdOrDoc: string | undefined | null | JsonDoc, jsonDocOrOptions?: JsonDoc | PutOptions, options?: PutOptions): Promise<PutResultJsonDoc>;
     updateFatDoc(shortName: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
+}
+
+// @public
+export interface CollectionInterface {
+    // (undocumented)
+    collection(collectionPath: CollectionPath, options?: CollectionOptions): ICollection;
+    // (undocumented)
+    getCollections(dirPath: string): Promise<ICollection[]>;
 }
 
 // @public
@@ -197,6 +202,60 @@ export type ConnectionSettingsSSH = {
 // @public (undocumented)
 export class ConsecutiveSyncSkippedError extends BaseError {
     constructor(taskLabel: string, taskId: string);
+}
+
+// @public
+export interface CRUDInterface {
+    // (undocumented)
+    delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    // (undocumented)
+    delete(_id: string, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    // @internal (undocumented)
+    delete(shortIdOrDoc: string | JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
+    // (undocumented)
+    deleteFatDoc(name: string, options?: DeleteOptions): Promise<DeleteResult>;
+    // (undocumented)
+    find(options?: FindOptions): Promise<JsonDoc[]>;
+    // (undocumented)
+    findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
+    // (undocumented)
+    get(_id: string, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
+    // (undocumented)
+    getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
+    // (undocumented)
+    getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
+    // (undocumented)
+    getFatDoc(name: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+    // (undocumented)
+    getFatDocBackNumber(name: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+    // (undocumented)
+    getFatDocHistory(name: string, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]>;
+    // (undocumented)
+    getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | undefined)[]>;
+    // (undocumented)
+    insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    insert(_id: string | undefined | null, data: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // @internal (undocumented)
+    insert(shortIdOrDoc: string | undefined | null | JsonDoc, jsonDocOrOptions?: JsonDoc | PutOptions, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // (undocumented)
+    insertFatDoc(name: string | undefined | null, data: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    put(_id: string | undefined | null, data: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // @internal (undocumented)
+    put(shortIdOrDoc: string | undefined | null | JsonDoc, jsonDocOrOptions?: JsonDoc | PutOptions, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // (undocumented)
+    putFatDoc(name: string | undefined | null, data: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
+    // (undocumented)
+    update(_id: string | undefined | null, data: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // @internal (undocumented)
+    update(shortIdOrDoc: string | undefined | null | JsonDoc, jsonDocOrOptions?: JsonDoc | PutOptions, options?: PutOptions): Promise<PutResultJsonDoc>;
+    // (undocumented)
+    updateFatDoc(name: string | undefined | null, data: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResult>;
 }
 
 // @public (undocumented)
@@ -391,10 +450,83 @@ export const GIT_DOCUMENTDB_INFO_ID = ".gitddb/info";
 // @public (undocumented)
 export const GIT_DOCUMENTDB_METADATA_DIR = ".gitddb";
 
-// Warning: (ae-forgotten-export) The symbol "CRUDInterface" needs to be exported by the entry point main.d.ts
-// Warning: (ae-forgotten-export) The symbol "CollectionInterface" needs to be exported by the entry point main.d.ts
-// Warning: (ae-forgotten-export) The symbol "SyncEventInterface" needs to be exported by the entry point main.d.ts
-//
+// @public
+export interface GitDDBInterface {
+    // (undocumented)
+    author: {
+        name: string;
+        email: string;
+    };
+    // (undocumented)
+    close(options?: DatabaseCloseOption): Promise<void>;
+    // (undocumented)
+    committer: {
+        name: string;
+        email: string;
+    };
+    // (undocumented)
+    dbId: string;
+    // (undocumented)
+    dbName: string;
+    defaultBranch: string;
+    // (undocumented)
+    destroy(options: DatabaseCloseOption): Promise<{
+        ok: true;
+    }>;
+    // (undocumented)
+    getCommit(oid: string): Promise<NormalizedCommit>;
+    // (undocumented)
+    getRemoteURLs(): string[];
+    // (undocumented)
+    getSync(remoteURL: string): SyncInterface;
+    // (undocumented)
+    isClosing: boolean;
+    // (undocumented)
+    isOpened(): boolean;
+    // (undocumented)
+    loadAppInfo(): {
+        [key: string]: any;
+    };
+    // (undocumented)
+    loadAuthor(): Promise<void>;
+    // (undocumented)
+    loadDbInfo(): void;
+    // (undocumented)
+    localDir: string;
+    // (undocumented)
+    logger: Logger;
+    logLevel: TLogLevelName;
+    open(options?: OpenOptions): Promise<DatabaseOpenResult>;
+    // (undocumented)
+    removeSync(remoteURL: string): void;
+    // (undocumented)
+    repository(): nodegit.Repository | undefined;
+    // (undocumented)
+    rootCollection: ICollection;
+    // (undocumented)
+    saveAppInfo(info: {
+        [key: string]: any;
+    }): void;
+    // (undocumented)
+    saveAuthor(): Promise<void>;
+    // (undocumented)
+    schema: Schema;
+    // (undocumented)
+    setRepository(repos: nodegit.Repository): void;
+    // (undocumented)
+    sync(options: RemoteOptions, getSyncResult: boolean): Promise<[SyncInterface, SyncResult]>;
+    // (undocumented)
+    sync(options: RemoteOptions): Promise<SyncInterface>;
+    // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
+    //
+    // (undocumented)
+    taskQueue: TaskQueue;
+    // (undocumented)
+    validator: Validator;
+    // (undocumented)
+    workingDir: string;
+}
+
 // @public
 export class GitDocumentDB implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface {
     constructor(options: DatabaseOptions & CollectionOptions);
@@ -468,7 +600,6 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     setRepository(repos: nodegit.Repository): void;
     sync(options: RemoteOptions): Promise<Sync>;
     sync(options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
-    // Warning: (ae-forgotten-export) The symbol "TaskQueue" needs to be exported by the entry point main.d.ts
     get taskQueue(): TaskQueue;
     update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     update(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
@@ -513,6 +644,14 @@ export class HTTPNetworkError extends BaseError {
 export class HttpProtocolRequiredError extends BaseError {
     constructor(url: unknown);
 }
+
+// @public
+export type ICollection = CollectionInterface & CRUDInterface & SyncEventInterface & {
+    options: CollectionOptions;
+    collectionPath: string;
+    parent: ICollection | undefined;
+    generateId(): string;
+};
 
 // Warning: (ae-internal-missing-underscore) The name "IJsonPatch" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -756,7 +895,7 @@ export type RemoteOptions = {
     includeCommits?: boolean;
 };
 
-// @public (undocumented)
+// @public
 export class RemoteRepository {
     constructor(options: RemoteOptions);
     // Warning: (ae-forgotten-export) The symbol "GitRemoteAction" needs to be exported by the entry point main.d.ts
@@ -912,10 +1051,110 @@ export type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => vo
 // @public
 export type SyncEvent = 'change' | 'localChange' | 'remoteChange' | 'combine' | 'pause' | 'resume' | 'start' | 'complete' | 'error';
 
+// @public
+export interface SyncEventInterface {
+    // (undocumented)
+    offSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
+    // (undocumented)
+    offSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): void;
+    // @internal (undocumented)
+    offSyncEvent(remoteURLorSync: string | SyncInterface, event: SyncEvent, callback: SyncCallback): void;
+    // (undocumented)
+    onSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncInterface;
+    // (undocumented)
+    onSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): SyncInterface;
+    // @internal (undocumented)
+    onSyncEvent(remoteURLorSync: string | SyncInterface, event: SyncEvent, callback: SyncCallback): SyncInterface;
+}
+
 // Warning: (ae-internal-missing-underscore) The name "syncImpl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
 export function syncImpl(this: GitDDBInterface, options: RemoteOptions): Promise<Sync>;
+
+// @public
+export interface SyncInterface {
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    credentialCallbacks: {
+        [key: string]: any;
+    };
+    // (undocumented)
+    currentRetries(): number;
+    // (undocumented)
+    enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
+    // (undocumented)
+    enqueueSyncTask(): Promise<SyncResult>;
+    // @internal (undocumented)
+    eventHandlers: {
+        change: {
+            collectionPath: string;
+            func: SyncChangeCallback;
+        }[];
+        localChange: {
+            collectionPath: string;
+            func: SyncLocalChangeCallback;
+        }[];
+        remoteChange: {
+            collectionPath: string;
+            func: SyncRemoteChangeCallback;
+        }[];
+        combine: {
+            collectionPath: string;
+            func: SyncCombineDatabaseCallback;
+        }[];
+        pause: {
+            collectionPath: string;
+            func: SyncPauseCallback;
+        }[];
+        resume: {
+            collectionPath: string;
+            func: SyncResumeCallback;
+        }[];
+        start: {
+            collectionPath: string;
+            func: SyncStartCallback;
+        }[];
+        complete: {
+            collectionPath: string;
+            func: SyncCompleteCallback;
+        }[];
+        error: {
+            collectionPath: string;
+            func: SyncErrorCallback;
+        }[];
+    };
+    init(repos: nodegit.Repository): Promise<SyncResult>;
+    // (undocumented)
+    jsonDiff: JsonDiff;
+    // Warning: (ae-incompatible-release-tags) The symbol "jsonPatch" is marked as @public, but its signature references "IJsonPatch" which is marked as @internal
+    //
+    // (undocumented)
+    jsonPatch: IJsonPatch;
+    // (undocumented)
+    off(event: SyncEvent, callback: SyncCallback): void;
+    // (undocumented)
+    on(event: SyncEvent, callback: SyncCallback, collectionPath?: string): SyncInterface;
+    // (undocumented)
+    options: RemoteOptions;
+    // (undocumented)
+    pause(): void;
+    // (undocumented)
+    remoteRepository: RemoteRepository;
+    remoteURL: string;
+    // (undocumented)
+    resume(options?: {
+        interval?: number;
+        retry?: number;
+    }): void;
+    // (undocumented)
+    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
+    // (undocumented)
+    trySync(): Promise<SyncResult>;
+    // (undocumented)
+    upstreamBranch: string;
+}
 
 // @public (undocumented)
 export class SyncIntervalLessThanOrEqualToRetryIntervalError extends BaseError {
@@ -935,120 +1174,94 @@ export type SyncRemoteChangeCallback = (changedFiles: ChangedFile[], taskMetadat
 export type SyncResult = SyncResultNop | SyncResultPush | SyncResultFastForwardMerge | SyncResultMergeAndPushError | SyncResultMergeAndPush | SyncResultResolveConflictsAndPushError | SyncResultResolveConflictsAndPush | SyncResultCombineDatabase | SyncResultCancel;
 
 // @public
-export interface SyncResultCancel {
-    // (undocumented)
+export type SyncResultCancel = {
     action: 'canceled';
-}
+};
 
 // @public
-export interface SyncResultCombineDatabase {
-    // (undocumented)
+export type SyncResultCombineDatabase = {
     action: 'combine database';
-    // (undocumented)
     duplicates: DuplicatedFile[];
-}
+};
 
 // @public
-export interface SyncResultFastForwardMerge {
-    // (undocumented)
+export type SyncResultFastForwardMerge = {
     action: 'fast-forward merge';
-    // (undocumented)
     changes: {
         local: ChangedFile[];
     };
-    // (undocumented)
     commits?: {
         local: NormalizedCommit[];
     };
-}
+};
 
 // @public
-export interface SyncResultMergeAndPush {
-    // (undocumented)
+export type SyncResultMergeAndPush = {
     action: 'merge and push';
-    // (undocumented)
     changes: {
         local: ChangedFile[];
         remote: ChangedFile[];
     };
-    // (undocumented)
     commits?: {
         local: NormalizedCommit[];
         remote: NormalizedCommit[];
     };
-}
+};
 
 // @public
-export interface SyncResultMergeAndPushError {
-    // (undocumented)
+export type SyncResultMergeAndPushError = {
     action: 'merge and push error';
-    // (undocumented)
     changes: {
         local: ChangedFile[];
     };
-    // (undocumented)
     commits?: {
         local: NormalizedCommit[];
     };
-    // (undocumented)
     error: Error;
-}
+};
 
 // @public
-export interface SyncResultNop {
-    // (undocumented)
+export type SyncResultNop = {
     action: 'nop';
-}
+};
 
 // @public
-export interface SyncResultPush {
-    // (undocumented)
+export type SyncResultPush = {
     action: 'push';
-    // (undocumented)
     changes: {
         remote: ChangedFile[];
     };
-    // (undocumented)
     commits?: {
         remote: NormalizedCommit[];
     };
-}
+};
 
 // @public
-export interface SyncResultResolveConflictsAndPush {
-    // (undocumented)
+export type SyncResultResolveConflictsAndPush = {
     action: 'resolve conflicts and push';
-    // (undocumented)
     changes: {
         local: ChangedFile[];
         remote: ChangedFile[];
     };
-    // (undocumented)
+    conflicts: AcceptedConflict[];
     commits?: {
         local: NormalizedCommit[];
         remote: NormalizedCommit[];
     };
-    // (undocumented)
-    conflicts: AcceptedConflict[];
-}
+};
 
 // @public
-export interface SyncResultResolveConflictsAndPushError {
-    // (undocumented)
+export type SyncResultResolveConflictsAndPushError = {
     action: 'resolve conflicts and push error';
-    // (undocumented)
     changes: {
         local: ChangedFile[];
     };
-    // (undocumented)
+    conflicts: AcceptedConflict[];
     commits?: {
         local: NormalizedCommit[];
     };
-    // (undocumented)
-    conflicts: AcceptedConflict[];
-    // (undocumented)
     error: Error;
-}
+};
 
 // @public
 export type SyncResumeCallback = () => void;

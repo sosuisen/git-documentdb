@@ -16,7 +16,7 @@ constructor(gitDDB: GitDDBInterface, options?: RemoteOptions);
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  gitDDB | GitDDBInterface |  |
+|  gitDDB | [GitDDBInterface](./git-documentdb.gitddbinterface.md) |  |
 |  options | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
 
 ## Exceptions

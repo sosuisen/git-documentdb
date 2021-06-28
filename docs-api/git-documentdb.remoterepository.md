@@ -4,6 +4,7 @@
 
 ## RemoteRepository class
 
+Remote repository class
 
 <b>Signature:</b>
 

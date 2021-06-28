@@ -846,9 +846,9 @@ export type NormalizedCommit = {
  *
  * @public
  */
-export interface SyncResultNop {
+export type SyncResultNop = {
   action: 'nop';
-}
+};
 
 /**
  * Push action occurred in synchronization.
@@ -860,7 +860,7 @@ export interface SyncResultNop {
  *
  * @public
  */
-export interface SyncResultPush {
+export type SyncResultPush = {
   action: 'push';
   changes: {
     remote: ChangedFile[];
@@ -868,7 +868,7 @@ export interface SyncResultPush {
   commits?: {
     remote: NormalizedCommit[]; // The list is sorted from old to new.
   };
-}
+};
 
 /**
  * Fast-forward action occurred in synchronization.
@@ -880,7 +880,7 @@ export interface SyncResultPush {
  *
  * @public
  */
-export interface SyncResultFastForwardMerge {
+export type SyncResultFastForwardMerge = {
   action: 'fast-forward merge';
   changes: {
     local: ChangedFile[];
@@ -888,7 +888,7 @@ export interface SyncResultFastForwardMerge {
   commits?: {
     local: NormalizedCommit[];
   };
-}
+};
 
 /**
  * Merge and push actions occurred and push failed in synchronization.
@@ -900,7 +900,7 @@ export interface SyncResultFastForwardMerge {
  *
  * @public
  */
-export interface SyncResultMergeAndPushError {
+export type SyncResultMergeAndPushError = {
   action: 'merge and push error';
   changes: {
     local: ChangedFile[];
@@ -909,7 +909,7 @@ export interface SyncResultMergeAndPushError {
     local: NormalizedCommit[];
   };
   error: Error;
-}
+};
 
 /**
  * Merge and push actions occurred in synchronization.
@@ -923,7 +923,7 @@ export interface SyncResultMergeAndPushError {
  *
  * @public
  */
-export interface SyncResultMergeAndPush {
+export type SyncResultMergeAndPush = {
   action: 'merge and push';
   changes: {
     local: ChangedFile[];
@@ -933,7 +933,7 @@ export interface SyncResultMergeAndPush {
     local: NormalizedCommit[];
     remote: NormalizedCommit[]; // The list is sorted from old to new.
   };
-}
+};
 
 /**
  * Resolve conflicts and push actions occurred and push failed in synchronization.
@@ -945,7 +945,7 @@ export interface SyncResultMergeAndPush {
  *
  * @public
  */
-export interface SyncResultResolveConflictsAndPushError {
+export type SyncResultResolveConflictsAndPushError = {
   action: 'resolve conflicts and push error';
   changes: {
     local: ChangedFile[];
@@ -955,7 +955,7 @@ export interface SyncResultResolveConflictsAndPushError {
     local: NormalizedCommit[];
   };
   error: Error;
-}
+};
 
 /**
  * Resolve conflicts and push actions occurred in synchronization.
@@ -969,7 +969,7 @@ export interface SyncResultResolveConflictsAndPushError {
  *
  * @public
  */
-export interface SyncResultResolveConflictsAndPush {
+export type SyncResultResolveConflictsAndPush = {
   action: 'resolve conflicts and push';
   changes: {
     local: ChangedFile[];
@@ -980,7 +980,7 @@ export interface SyncResultResolveConflictsAndPush {
     local: NormalizedCommit[];
     remote: NormalizedCommit[];
   };
-}
+};
 
 /**
  * Combine action occurred in synchronization.
@@ -990,19 +990,19 @@ export interface SyncResultResolveConflictsAndPush {
  *
  * @public
  */
-export interface SyncResultCombineDatabase {
+export type SyncResultCombineDatabase = {
   action: 'combine database';
   duplicates: DuplicatedFile[];
-}
+};
 
 /**
  * Synchronization was canceled.
  *
  * @public
  */
-export interface SyncResultCancel {
+export type SyncResultCancel = {
   action: 'canceled';
-}
+};
 
 /**
  * Union type of results from trySync and tryPush

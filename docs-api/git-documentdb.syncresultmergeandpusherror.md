@@ -2,28 +2,29 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultMergeAndPushError](./git-documentdb.syncresultmergeandpusherror.md)
 
-## SyncResultMergeAndPushError interface
+## SyncResultMergeAndPushError type
 
 Merge and push actions occurred and push failed in synchronization.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SyncResultMergeAndPushError 
+export declare type SyncResultMergeAndPushError = {
+    action: 'merge and push error';
+    changes: {
+        local: ChangedFile[];
+    };
+    commits?: {
+        local: NormalizedCommit[];
+    };
+    error: Error;
+};
 ```
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [NormalizedCommit](./git-documentdb.normalizedcommit.md)
 
 ## Remarks
 
 - commits are sorted from old to new.
 
 - commits.local: List of commits which has been pulled to local
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [action](./git-documentdb.syncresultmergeandpusherror.action.md) | 'merge and push error' |  |
-|  [changes](./git-documentdb.syncresultmergeandpusherror.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultmergeandpusherror.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
-|  [error](./git-documentdb.syncresultmergeandpusherror.error.md) | Error |  |
 

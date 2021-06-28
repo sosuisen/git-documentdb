@@ -11,7 +11,7 @@ Synchronizer class
 ```typescript
 export declare class Sync implements SyncInterface 
 ```
-<b>Implements:</b> SyncInterface
+<b>Implements:</b> [SyncInterface](./git-documentdb.syncinterface.md)
 
 ## Constructors
 

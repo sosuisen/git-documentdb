@@ -11,7 +11,7 @@ Documents under a collectionPath are gathered together in a collection.
 ```typescript
 export declare class Collection implements ICollection 
 ```
-<b>Implements:</b> ICollection
+<b>Implements:</b> [ICollection](./git-documentdb.icollection.md)
 
 ## Remarks
 
@@ -49,7 +49,7 @@ gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', na
 |  --- | --- | --- | --- |
 |  [collectionPath](./git-documentdb.collection.collectionpath.md) |  | string | Normalized path of collection |
 |  [options](./git-documentdb.collection.options.md) |  | [CollectionOptions](./git-documentdb.collectionoptions.md) | Get clone of collection options |
-|  [parent](./git-documentdb.collection.parent.md) |  | ICollection \| undefined | Parent collection |
+|  [parent](./git-documentdb.collection.parent.md) |  | [ICollection](./git-documentdb.icollection.md) \| undefined | Parent collection |
 
 ## Methods
 

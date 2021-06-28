@@ -2,27 +2,28 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultPush](./git-documentdb.syncresultpush.md)
 
-## SyncResultPush interface
+## SyncResultPush type
 
 Push action occurred in synchronization.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SyncResultPush 
+export declare type SyncResultPush = {
+    action: 'push';
+    changes: {
+        remote: ChangedFile[];
+    };
+    commits?: {
+        remote: NormalizedCommit[];
+    };
+};
 ```
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [NormalizedCommit](./git-documentdb.normalizedcommit.md)
 
 ## Remarks
 
 - commits are sorted from old to new.
 
 - commits.remote: List of commits which has been pushed to remote
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [action](./git-documentdb.syncresultpush.action.md) | 'push' |  |
-|  [changes](./git-documentdb.syncresultpush.changes.md) | { remote: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultpush.commits.md) | { remote: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

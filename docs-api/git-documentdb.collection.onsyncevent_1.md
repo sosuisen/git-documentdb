@@ -16,11 +16,11 @@ onSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): Sync
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  sync | SyncInterface |  |
+|  sync | [SyncInterface](./git-documentdb.syncinterface.md) |  |
 |  event | [SyncEvent](./git-documentdb.syncevent.md) |  |
 |  callback | [SyncCallback](./git-documentdb.synccallback.md) |  |
 
 <b>Returns:</b>
 
-SyncInterface
+[SyncInterface](./git-documentdb.syncinterface.md)
 

@@ -2,27 +2,28 @@
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md)
 
-## SyncResultFastForwardMerge interface
+## SyncResultFastForwardMerge type
 
 Fast-forward action occurred in synchronization.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SyncResultFastForwardMerge 
+export declare type SyncResultFastForwardMerge = {
+    action: 'fast-forward merge';
+    changes: {
+        local: ChangedFile[];
+    };
+    commits?: {
+        local: NormalizedCommit[];
+    };
+};
 ```
+<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md)<!-- -->, [NormalizedCommit](./git-documentdb.normalizedcommit.md)
 
 ## Remarks
 
 - commits are sorted from old to new.
 
 - commits.local: List of commits which has been pulled to local
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [action](./git-documentdb.syncresultfastforwardmerge.action.md) | 'fast-forward merge' |  |
-|  [changes](./git-documentdb.syncresultfastforwardmerge.changes.md) | { local: [ChangedFile](./git-documentdb.changedfile.md)<!-- -->\[\]; } |  |
-|  [commits?](./git-documentdb.syncresultfastforwardmerge.commits.md) | { local: [NormalizedCommit](./git-documentdb.normalizedcommit.md)<!-- -->\[\]; } | <i>(Optional)</i> |
 

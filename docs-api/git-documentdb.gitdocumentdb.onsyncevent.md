@@ -22,5 +22,5 @@ onSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): SyncIn
 
 <b>Returns:</b>
 
-SyncInterface
+[SyncInterface](./git-documentdb.syncinterface.md)
 

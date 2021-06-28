@@ -11,7 +11,7 @@ Main class of GitDocumentDB
 ```typescript
 export declare class GitDocumentDB implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface 
 ```
-<b>Implements:</b> GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface
+<b>Implements:</b> [GitDDBInterface](./git-documentdb.gitddbinterface.md)<!-- -->, [CRUDInterface](./git-documentdb.crudinterface.md)<!-- -->, [CollectionInterface](./git-documentdb.collectioninterface.md)<!-- -->, [SyncEventInterface](./git-documentdb.synceventinterface.md)
 
 ## Constructors
 
@@ -32,7 +32,7 @@ export declare class GitDocumentDB implements GitDDBInterface, CRUDInterface, Co
 |  [localDir](./git-documentdb.gitdocumentdb.localdir.md) |  | string | A local directory path that stores repositories of GitDocumentDB |
 |  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | Get logger |
 |  [logLevel](./git-documentdb.gitdocumentdb.loglevel.md) |  | TLogLevelName | logLevel ('silly' \| 'trace' \| 'debug' \| 'info' \| 'warn' \| 'error' \| 'fatal') |
-|  [rootCollection](./git-documentdb.gitdocumentdb.rootcollection.md) |  | ICollection | Default collection whose collectionPath is '' |
+|  [rootCollection](./git-documentdb.gitdocumentdb.rootcollection.md) |  | [ICollection](./git-documentdb.icollection.md) | Default collection whose collectionPath is '' |
 |  [schema](./git-documentdb.gitdocumentdb.schema.md) |  | [Schema](./git-documentdb.schema.md) | Schema for specific document type |
 |  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | TaskQueue | Task queue |
 |  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | [Validator](./git-documentdb.validator.md) | Name validator |

@@ -20,7 +20,7 @@ getCollections(dirPath?: string): Promise<ICollection[]>;
 
 <b>Returns:</b>
 
-Promise&lt;ICollection\[\]&gt;
+Promise&lt;[ICollection](./git-documentdb.icollection.md)<!-- -->\[\]&gt;
 
 Promise<!-- -->&lt;<!-- -->Collection\[\]<!-- -->&gt;
 

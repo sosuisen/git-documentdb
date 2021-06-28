@@ -16,9 +16,9 @@ constructor(gitDDB: GitDDBInterface, collectionPathFromParent?: CollectionPath, 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  gitDDB | GitDDBInterface |  |
+|  gitDDB | [GitDDBInterface](./git-documentdb.gitddbinterface.md) |  |
 |  collectionPathFromParent | [CollectionPath](./git-documentdb.collectionpath.md) | A relative collectionPath from a parent collection. |
-|  parent | ICollection | A parent collection of this collection. |
+|  parent | [ICollection](./git-documentdb.icollection.md) | A parent collection of this collection. |
 |  options | [CollectionOptions](./git-documentdb.collectionoptions.md) |  |
 
 ## Exceptions

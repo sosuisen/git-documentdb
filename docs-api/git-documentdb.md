@@ -55,7 +55,7 @@ Offline-first Database that Syncs with Git
 |  [PushPermissionDeniedError](./git-documentdb.pushpermissiondeniederror.md) |  |
 |  [PushWorkerError](./git-documentdb.pushworkererror.md) |  |
 |  [RemoteAlreadyRegisteredError](./git-documentdb.remotealreadyregisterederror.md) |  |
-|  [RemoteRepository](./git-documentdb.remoterepository.md) |  |
+|  [RemoteRepository](./git-documentdb.remoterepository.md) | Remote repository class |
 |  [RemoteRepositoryConnectError](./git-documentdb.remoterepositoryconnecterror.md) |  |
 |  [RemoteRepositoryNotFoundError](./git-documentdb.remoterepositorynotfounderror.md) |  |
 |  [RepositoryNotFoundError](./git-documentdb.repositorynotfounderror.md) |  |
@@ -78,25 +78,15 @@ Offline-first Database that Syncs with Git
 |  [UnfetchedCommitExistsError](./git-documentdb.unfetchedcommitexistserror.md) |  |
 |  [Validator](./git-documentdb.validator.md) | Validator Class |
 
-## Functions
-
-|  Function | Description |
-|  --- | --- |
-|  [cloneRepository(workingDir, remoteOptions, logger)](./git-documentdb.clonerepository.md) | Clone repository from remote |
-
 ## Interfaces
 
 |  Interface | Description |
 |  --- | --- |
-|  [SyncResultCancel](./git-documentdb.syncresultcancel.md) | Synchronization was canceled. |
-|  [SyncResultCombineDatabase](./git-documentdb.syncresultcombinedatabase.md) | Combine action occurred in synchronization. |
-|  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) | Fast-forward action occurred in synchronization. |
-|  [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) | Merge and push actions occurred in synchronization. |
-|  [SyncResultMergeAndPushError](./git-documentdb.syncresultmergeandpusherror.md) | Merge and push actions occurred and push failed in synchronization. |
-|  [SyncResultNop](./git-documentdb.syncresultnop.md) | No action occurs in synchronization. |
-|  [SyncResultPush](./git-documentdb.syncresultpush.md) | Push action occurred in synchronization. |
-|  [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md) | Resolve conflicts and push actions occurred in synchronization. |
-|  [SyncResultResolveConflictsAndPushError](./git-documentdb.syncresultresolveconflictsandpusherror.md) | Resolve conflicts and push actions occurred and push failed in synchronization. |
+|  [CollectionInterface](./git-documentdb.collectioninterface.md) | Interface for Collection |
+|  [CRUDInterface](./git-documentdb.crudinterface.md) | Interface for GitDocumentDB CRUD |
+|  [GitDDBInterface](./git-documentdb.gitddbinterface.md) | Interface of GitDocumentDB body |
+|  [SyncEventInterface](./git-documentdb.synceventinterface.md) | Interface for SyncEvent |
+|  [SyncInterface](./git-documentdb.syncinterface.md) | Interface of Sync |
 
 ## Variables
 
@@ -165,6 +155,7 @@ Offline-first Database that Syncs with Git
 |  [GetOptions](./git-documentdb.getoptions.md) | Options for get APIs (get, getFatDoc, getBackNumber, getFatDocBackNumber, getHistory, getFatDocHistory) |
 |  [HistoryFilter](./git-documentdb.historyfilter.md) | HistoryFilter |
 |  [HistoryOptions](./git-documentdb.historyoptions.md) | Options for getHistory and getFatDocHistory |
+|  [ICollection](./git-documentdb.icollection.md) | Type for Collection Class |
 |  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | JsonDiffOptions |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | The type for a JSON document that is stored in a database |
 |  [JsonDocMetadata](./git-documentdb.jsondocmetadata.md) | Metadata for JsonDoc |
@@ -188,6 +179,15 @@ Offline-first Database that Syncs with Git
 |  [SyncPauseCallback](./git-documentdb.syncpausecallback.md) | Callback of pause event |
 |  [SyncRemoteChangeCallback](./git-documentdb.syncremotechangecallback.md) | Callback of remoteChange event |
 |  [SyncResult](./git-documentdb.syncresult.md) | Union type of results from trySync and tryPush |
+|  [SyncResultCancel](./git-documentdb.syncresultcancel.md) | Synchronization was canceled. |
+|  [SyncResultCombineDatabase](./git-documentdb.syncresultcombinedatabase.md) | Combine action occurred in synchronization. |
+|  [SyncResultFastForwardMerge](./git-documentdb.syncresultfastforwardmerge.md) | Fast-forward action occurred in synchronization. |
+|  [SyncResultMergeAndPush](./git-documentdb.syncresultmergeandpush.md) | Merge and push actions occurred in synchronization. |
+|  [SyncResultMergeAndPushError](./git-documentdb.syncresultmergeandpusherror.md) | Merge and push actions occurred and push failed in synchronization. |
+|  [SyncResultNop](./git-documentdb.syncresultnop.md) | No action occurs in synchronization. |
+|  [SyncResultPush](./git-documentdb.syncresultpush.md) | Push action occurred in synchronization. |
+|  [SyncResultResolveConflictsAndPush](./git-documentdb.syncresultresolveconflictsandpush.md) | Resolve conflicts and push actions occurred in synchronization. |
+|  [SyncResultResolveConflictsAndPushError](./git-documentdb.syncresultresolveconflictsandpusherror.md) | Resolve conflicts and push actions occurred and push failed in synchronization. |
 |  [SyncResumeCallback](./git-documentdb.syncresumecallback.md) | Callback of resume event |
 |  [SyncStartCallback](./git-documentdb.syncstartcallback.md) | Callback of start event |
 |  [TaskLabel](./git-documentdb.tasklabel.md) | Union type of properties of TaskStatistics |
