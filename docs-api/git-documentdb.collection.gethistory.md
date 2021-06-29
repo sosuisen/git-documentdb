@@ -27,7 +27,7 @@ getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | und
 
 Promise&lt;([JsonDoc](./git-documentdb.jsondoc.md) \| undefined)\[\]&gt;
 
-Array of JsonDoc or undefined. - undefined if the document does not exists or the document is deleted.
+Array of JsonDoc or undefined. - undefined if a specified document does not exist or it is deleted.
 
 ## Exceptions
 
@@ -70,5 +70,6 @@ NOTE:
 - Consecutive same values (commit-02 and commit-03) are combined into one.
 - getHistory() ignores commit-01 because it was committed before the first insert.
 Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
+
 ```
 

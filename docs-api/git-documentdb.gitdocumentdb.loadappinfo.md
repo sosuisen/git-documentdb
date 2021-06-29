@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.loadAppInfo() method
 
-Load app specific info from .gitddb/app.json
+Load app-specific info from .gitddb/app.json
 
 <b>Signature:</b>
 
@@ -19,5 +19,5 @@ loadAppInfo(): Promise<JsonDoc | undefined>;
 
 Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
-JSON object. It returns undefined if not exists.
+JSON object. It returns undefined if app.json does not exist.
 

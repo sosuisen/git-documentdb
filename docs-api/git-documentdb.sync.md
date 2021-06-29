@@ -30,7 +30,7 @@ export declare class Sync implements SyncInterface
 |  [credentialCallbacks](./git-documentdb.sync.credentialcallbacks.md) |  | { \[key: string\]: any; } | Callback for authentication |
 |  [jsonDiff](./git-documentdb.sync.jsondiff.md) |  | JsonDiff | JsonDiff |
 |  [jsonPatch](./git-documentdb.sync.jsonpatch.md) |  | JsonPatchOT | JsonPatch |
-|  [options](./git-documentdb.sync.options.md) |  | Required&lt;[RemoteOptions](./git-documentdb.remoteoptions.md) &gt; | Get clone of remote options |
+|  [options](./git-documentdb.sync.options.md) |  | Required&lt;[RemoteOptions](./git-documentdb.remoteoptions.md) &gt; | Get a clone of remote options |
 |  [remoteRepository](./git-documentdb.sync.remoterepository.md) |  | [RemoteRepository](./git-documentdb.remoterepository.md) | Remote repository |
 |  [remoteURL](./git-documentdb.sync.remoteurl.md) |  | string | remoteURL |
 |  [upstreamBranch](./git-documentdb.sync.upstreambranch.md) |  | string | upstreamBranch |

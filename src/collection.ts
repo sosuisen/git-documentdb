@@ -64,7 +64,7 @@ import { ICollection } from './types_collection';
  * gitDDB.put({ _id: 'Nara/flower', name: 'cherry blossoms' });
  * gitDDB.collection('Nara').put({ _id: 'flower', name: 'cherry blossoms' })
  *
- * // Notice that APIs return different _id values in spite of the same source file.
+ * // Notice that APIs return different _id values despite the same source file.
  * gitDDB.get({ _id: 'Nara/flower' }); // returns { _id: 'Nara/flower', name: 'cherry blossoms' }.
  * gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', name: 'cherry blossoms' }.
  * ```
@@ -80,7 +80,7 @@ export class Collection implements ICollection {
    ***********************************************/
   private _options: CollectionOptions;
   /**
-   * Get clone of collection options
+   * Get a clone of collection options
    *
    * @readonly
    * @public
@@ -91,10 +91,10 @@ export class Collection implements ICollection {
 
   private _collectionPath: CollectionPath = '';
   /**
-   * Normalized path of collection
+   * Normalized path of a collection
    *
    * @remarks
-   * '' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
+   * collectionPath is '' or path strings that have a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
    * @public
    */
   get collectionPath (): string {
@@ -173,9 +173,9 @@ export class Collection implements ICollection {
    * @param collectionPath - relative path from this.collectionPath. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
    *
    * @remarks
-   * - Notice that this function just read existing directory. It does not make a new sub-directory.
+   * - Notice that this function just read an existing directory. It does not make a new sub-directory.
    *
-   * @returns A child collection of this collection.
+   * @returns A child collection of this collection
    *
    * @public
    */
@@ -187,7 +187,7 @@ export class Collection implements ICollection {
    * Get collections directly under the specified dirPath.
    *
    * @param dirPath - dirPath is a relative path from collectionPath. Default is ''.
-   * @returns Array of Collections which does not include ''
+   * @returns Array of Collections which does not include ''.
    * @throws {@link Err.RepositoryNotOpenError}
    *
    * @public
@@ -264,9 +264,9 @@ export class Collection implements ICollection {
    *
    * - If shortId is undefined, it is automatically generated.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by shortId parameter.
+   * - _id property of a JsonDoc is automatically set or overwritten by a shortId parameter.
    *
-   * - An update operation is not skipped even if no change occurred on a specified data.
+   * - An update operation is not skipped even if no change occurred on a specified document.
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
@@ -373,7 +373,7 @@ export class Collection implements ICollection {
    * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a document that has the same _id exists. It might be better to use put() instead of insert().
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -406,7 +406,7 @@ export class Collection implements ICollection {
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a document that has the same _id exists. It might be better to use put() instead of insert().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
    *
@@ -474,7 +474,7 @@ export class Collection implements ICollection {
    * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
+   * - Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}.json`.
    *
@@ -507,11 +507,9 @@ export class Collection implements ICollection {
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
+   * - Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
-   *
-   * - If shortId is undefined, it is automatically generated.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
@@ -570,7 +568,7 @@ export class Collection implements ICollection {
   }
 
   /**
-   * Insert a data if not exists. Otherwise, update it.
+   * Insert data if not exists. Otherwise, update it.
    *
    * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
@@ -694,7 +692,7 @@ export class Collection implements ICollection {
    * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
    * @remarks
-   * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when data that has the same _id exists. It might be better to use put() instead of insert().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
    *
@@ -737,11 +735,9 @@ export class Collection implements ICollection {
    * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
    *
    * @remarks
-   * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
+   * - Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
-   *
-   * - If shortName is undefined, it is automatically generated.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
    *
@@ -782,9 +778,9 @@ export class Collection implements ICollection {
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @returns
-   *  - undefined if not exists.
+   *  - undefined if a specified document does not exist.
    *
-   *  - JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
@@ -800,14 +796,14 @@ export class Collection implements ICollection {
   }
 
   /**
-   * Get a FatDoc
+   * Get a FatDoc data
    *
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    *
    * @returns
-   *  - undefined if not exists.
+   *  - undefined if a specified data does not exist.
    *
-   *  - FatJsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - FatJsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -831,7 +827,7 @@ export class Collection implements ICollection {
    * @param fileOid - Object ID (SHA-1 hash) that represents a Git object. (See https://git-scm.com/docs/git-hash-object )
    *
    * @remarks
-   *  - undefined if not exists.
+   *  - undefined if a specified oid does not exist.
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
@@ -862,7 +858,7 @@ export class Collection implements ICollection {
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
-   *  - undefined if a document does not exists or a document is deleted.
+   *  - undefined if a specified document does not exist or it is deleted.
    *  - See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    *
    * @throws {@link Err.DatabaseClosingError}
@@ -891,7 +887,7 @@ export class Collection implements ICollection {
   }
 
   /**
-   * Get a back number of a data
+   * Get a back number of a FatDoc data
    *
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
@@ -900,9 +896,9 @@ export class Collection implements ICollection {
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
-   *  - undefined if a document does not exists or a document is deleted.
+   *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - JsonDoc if the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - JsonDoc if the file extension is '.json'.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -946,33 +942,34 @@ export class Collection implements ICollection {
    *
    * @example
    * ```
-   * commit 01 to 08 were committed in order. file_v1 and file_v2 are two revisions of a file.
+   * Commit-01 to 08 were committed in order. file_v1 and file_v2 are two revisions of a file.
    *
-   * commit 08: not exists
-   * commit 07: deleted
-   * commit 06: file_v2
-   * commit 05: deleted
-   * commit 04: file_v2
-   * commit 03: file_v1
-   * commit 02: file_v1
-   * commit 01: not exists
+   * - Commit-08: Not exists
+   * - Commit-07: deleted
+   * - Commit-06: file_v2
+   * - Commit-05: deleted
+   * - Commit-04: file_v2
+   * - Commit-03: file_v1
+   * - Commit-02: file_v1
+   * - Commit-01: Not exists
    *
-   * file_v1 was newly inserted in commit 02.
-   * The file was not changed in commit 03.
-   * The file was updated to file_v2 in commit 04
-   * The file was deleted in commit 05.
-   * The same file (file_v2) was inserted again in commit 06.
-   * The file was deleted again in commit 07, so the file does not exist in commit 08.
+   * Commit-02 newly inserted a file (file_v1).
+   * Commit-03 did not change about the file.
+   * Commit-04 updated the file from file_v1 to file_v2.
+   * Commit-05 deleted the file.
+   * Commit-06 inserted the deleted file (file_v2) again.
+   * Commit-07 deleted the file again.
+   * Commit-08 did not change about the file.
    *
-   * Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1].
+   * Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1] as a history.
    *
    * NOTE:
-   * - Consecutive values are combined into one.
-   * - Commits before the first insert are ignored.
-   * Thus, the history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
+   * - Consecutive same values (commit-02 and commit-03) are combined into one.
+   * - getHistory() ignores commit-01 because it was committed before the first insert.
+   * Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
    * ```
    * @returns Array of JsonDoc or undefined.
-   *  - undefined if the document does not exists or the document is deleted.
+   *  - undefined if a specified document does not exist or it is deleted.
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
@@ -996,7 +993,7 @@ export class Collection implements ICollection {
   }
 
   /**
-   * Get revision history of a data
+   * Get revision history of a FatDoc data
    *
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    *
@@ -1004,9 +1001,9 @@ export class Collection implements ICollection {
    * See {@link git-documentdb#GitDocumentDB.getHistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
-   *  - undefined if the document does not exists or the document is deleted.
+   *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - Array of FatBinaryDoc if described in .gitattribtues, otherwise array of FatTextDoc.
    *
@@ -1181,7 +1178,7 @@ export class Collection implements ICollection {
   }
 
   /**
-   * Get all the data
+   * Get all the FatDoc data
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}

@@ -51,8 +51,8 @@ gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', na
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [collectionPath](./git-documentdb.collection.collectionpath.md) |  | string | Normalized path of collection |
-|  [options](./git-documentdb.collection.options.md) |  | [CollectionOptions](./git-documentdb.collectionoptions.md) | Get clone of collection options |
+|  [collectionPath](./git-documentdb.collection.collectionpath.md) |  | string | Normalized path of a collection |
+|  [options](./git-documentdb.collection.options.md) |  | [CollectionOptions](./git-documentdb.collectionoptions.md) | Get a clone of collection options |
 |  [parent](./git-documentdb.collection.parent.md) |  | [ICollection](./git-documentdb.icollection.md) \| undefined | Parent collection |
 
 ## Methods
@@ -64,15 +64,15 @@ gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', na
 |  [delete(jsonDoc, options)](./git-documentdb.collection.delete_1.md) |  | Delete a document by \_id property in JsonDoc |
 |  [deleteFatDoc(shortName, options)](./git-documentdb.collection.deletefatdoc.md) |  | Delete a data |
 |  [find(options)](./git-documentdb.collection.find.md) |  | Get all the JSON documents |
-|  [findFatDoc(options)](./git-documentdb.collection.findfatdoc.md) |  | Get all the data |
+|  [findFatDoc(options)](./git-documentdb.collection.findfatdoc.md) |  | Get all the FatDoc data |
 |  [generateId()](./git-documentdb.collection.generateid.md) |  | Generate new \_id as monotonic ULID |
 |  [get(\_id)](./git-documentdb.collection.get.md) |  | Get a JSON document |
 |  [getBackNumber(\_id, backNumber, historyOptions)](./git-documentdb.collection.getbacknumber.md) |  | Get a back number of a JSON document |
 |  [getCollections(dirPath)](./git-documentdb.collection.getcollections.md) |  | Get collections directly under the specified dirPath. |
 |  [getDocByOid(fileOid, docType)](./git-documentdb.collection.getdocbyoid.md) |  | Get a Doc which has specified oid |
-|  [getFatDoc(shortName, getOptions)](./git-documentdb.collection.getfatdoc.md) |  | Get a FatDoc |
-|  [getFatDocBackNumber(shortName, backNumber, historyOptions, getOptions)](./git-documentdb.collection.getfatdocbacknumber.md) |  | Get a back number of a data |
-|  [getFatDocHistory(shortName, historyOptions, getOptions)](./git-documentdb.collection.getfatdochistory.md) |  | Get revision history of a data |
+|  [getFatDoc(shortName, getOptions)](./git-documentdb.collection.getfatdoc.md) |  | Get a FatDoc data |
+|  [getFatDocBackNumber(shortName, backNumber, historyOptions, getOptions)](./git-documentdb.collection.getfatdocbacknumber.md) |  | Get a back number of a FatDoc data |
+|  [getFatDocHistory(shortName, historyOptions, getOptions)](./git-documentdb.collection.getfatdochistory.md) |  | Get revision history of a FatDoc data |
 |  [getHistory(\_id, historyOptions)](./git-documentdb.collection.gethistory.md) |  | Get revision history of a JSON document |
 |  [insert(jsonDoc, options)](./git-documentdb.collection.insert.md) |  | Insert a JSON document |
 |  [insert(shortId, jsonDoc, options)](./git-documentdb.collection.insert_1.md) |  | Insert a JSON document |
@@ -83,7 +83,7 @@ gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', na
 |  [onSyncEvent(sync, event, callback)](./git-documentdb.collection.onsyncevent_1.md) |  | Add SyncEvent handler |
 |  [put(jsonDoc, options)](./git-documentdb.collection.put.md) |  | Insert a JSON document if not exists. Otherwise, update it. |
 |  [put(shortId, jsonDoc, options)](./git-documentdb.collection.put_1.md) |  | Insert a JSON document if not exists. Otherwise, update it. |
-|  [putFatDoc(shortName, doc, options)](./git-documentdb.collection.putfatdoc.md) |  | Insert a data if not exists. Otherwise, update it. |
+|  [putFatDoc(shortName, doc, options)](./git-documentdb.collection.putfatdoc.md) |  | Insert data if not exists. Otherwise, update it. |
 |  [update(jsonDoc, options)](./git-documentdb.collection.update.md) |  | Update a JSON document |
 |  [update(\_id, jsonDoc, options)](./git-documentdb.collection.update_1.md) |  | Update a JSON document |
 |  [updateFatDoc(shortName, doc, options)](./git-documentdb.collection.updatefatdoc.md) |  | Update a data |

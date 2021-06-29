@@ -32,12 +32,12 @@ export declare class Validator
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [maxCollectionPathLength()](./git-documentdb.validator.maxcollectionpathlength.md) |  | Return max length of collectionPath |
-|  [maxIdLength()](./git-documentdb.validator.maxidlength.md) |  | Return max length of \_id |
-|  [maxWorkingDirectoryLength()](./git-documentdb.validator.maxworkingdirectorylength.md) | <code>static</code> | Return max length of working directory path |
-|  [normalizeCollectionPath(collectionPath)](./git-documentdb.validator.normalizecollectionpath.md) | <code>static</code> | Normalized collectionPath is '' or path strings that has a trailing slash and no heading slash. Root ('/') is not allowed. Backslash \\ or yen ¥ is replaced with slash /. |
-|  [testWindowsInvalidFileNameCharacter(name, options)](./git-documentdb.validator.testwindowsinvalidfilenamecharacter.md) |  | Return false if given name includes Windows invalid filename character |
-|  [testWindowsReservedFileName(name, options)](./git-documentdb.validator.testwindowsreservedfilename.md) |  | Return false if given name equals Windows reserved filename |
+|  [maxCollectionPathLength()](./git-documentdb.validator.maxcollectionpathlength.md) |  | Return the max length of collectionPath |
+|  [maxIdLength()](./git-documentdb.validator.maxidlength.md) |  | Return the max length of \_id |
+|  [maxWorkingDirectoryLength()](./git-documentdb.validator.maxworkingdirectorylength.md) | <code>static</code> | Return the max length of working directory path |
+|  [normalizeCollectionPath(collectionPath)](./git-documentdb.validator.normalizecollectionpath.md) | <code>static</code> | Normalized collectionPath is '' or path strings that have a trailing slash and no heading slash. Root ('/') is not allowed. Backslash \\ or yen ¥ is replaced with slash /. |
+|  [testWindowsInvalidFileNameCharacter(name, options)](./git-documentdb.validator.testwindowsinvalidfilenamecharacter.md) |  | Return false if the given name includes Windows invalid filename character |
+|  [testWindowsReservedFileName(name, options)](./git-documentdb.validator.testwindowsreservedfilename.md) |  | Return false if the given name equals Windows reserved filename |
 |  [validateCollectionPath(collectionPath)](./git-documentdb.validator.validatecollectionpath.md) |  | Validate collectionPath |
 |  [validateDbName(dbName)](./git-documentdb.validator.validatedbname.md) |  | Validate dbName |
 |  [validateDocument(doc)](./git-documentdb.validator.validatedocument.md) |  | Validate document |

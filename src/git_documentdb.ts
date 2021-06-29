@@ -145,7 +145,7 @@ export class GitDocumentDB
 
   private _dbName: string;
   /**
-   * A name of a git repository
+   * A name of a Git repository
    *
    * @readonly
    * @public
@@ -234,7 +234,7 @@ export class GitDocumentDB
 
   private _rootCollection: Collection;
   /**
-   * Default collection whose collectionPath is ''
+   * Default collection whose collectionPath is ''.
    *
    * @readonly
    * @public
@@ -394,10 +394,14 @@ export class GitDocumentDB
    * Open or create a Git repository
    *
    * @remarks
-   *  - GitDocumentDB can load a git repository that is not created by the git-documentdb module.
-   *  However, correct behavior is not guaranteed.
+   * - Create a new Git repository if a dbName specified in the constructor does not exist.
    *
-   * @returns Database information
+   * - GitDocumentDB creates a legitimate Git repository and unique metadata under '.gitddb/'.
+   *
+   * - '.gitddb/' keeps {@link git-documentdb#DatabaseInfo} for combining databases, checking schema and migration.
+   *
+   * - GitDocumentDB can also load a Git repository that is created by other apps. It almost works; however, correct behavior is not guaranteed if it does not have a valid '.gitddb/'.
+   *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.CannotCreateDirectoryError}
    * @throws {@link Err.CannotOpenRepositoryError}
@@ -473,7 +477,7 @@ export class GitDocumentDB
    * @remarks
    * - New CRUD operations are not available while closing.
    *
-   * - Queued operations are executed before the database is closed.
+   * - Queued operations are executed before the database is closed unless it times out.
    *
    * @param options - The options specify how to close database.
    * @throws {@link Err.DatabaseClosingError}
@@ -531,11 +535,11 @@ export class GitDocumentDB
    * @remarks
    * - {@link GitDocumentDB.close} is called automatically before destroying.
    *
-   * - options.force is true if undefined.
+   * - Default value of options.force is true.
    *
-   * - The Git repository and the working directory are removed from the filesystem.
+   * - destroy() removes the Git repository and the working directory from the filesystem.
    *
-   * - localDir (which is specified in constructor) is not removed.
+   * - destroy() does not remove localDir (which is specified in constructor).
    *
    * @param options - The options specify how to close database.
    * @throws {@link Err.DatabaseClosingError}
@@ -598,7 +602,7 @@ export class GitDocumentDB
    * @param collectionPath - relative path from localDir. Sub-directories are also permitted. e.g. 'pages', 'pages/works'.
    *
    * @remarks
-   * - Notice that this function just read existing directory. It does not make a new sub-directory.
+   * - Notice that this function just read an existing directory. It does not make a new sub-directory.
    *
    * @returns A child collection of {@link git-documentdb#GitDocumentDB.rootCollection}
    *
@@ -706,7 +710,7 @@ export class GitDocumentDB
   }
 
   /**
-   * Get commit object
+   * Get a commit object
    *
    * @public
    */
@@ -772,7 +776,7 @@ export class GitDocumentDB
   }
 
   /**
-   * Save app specific info into .gitddb/app.json
+   * Save app-specific info into .gitddb/app.json
    *
    * @public
    */
@@ -788,9 +792,9 @@ export class GitDocumentDB
   }
 
   /**
-   * Load app specific info from .gitddb/app.json
+   * Load app-specific info from .gitddb/app.json
    *
-   * @returns JSON object. It returns undefined if not exists.
+   * @returns JSON object. It returns undefined if app.json does not exist.
    *
    * @public
    */
@@ -923,7 +927,7 @@ export class GitDocumentDB
    *
    * - _id property of a JsonDoc is automatically set or overwritten by _id parameter.
    *
-   * - An update operation is not skipped even if no change occurred on a specified data.
+   * - An update operation is not skipped even if no change occurred on a specified document.
    *
    * - This is an alias of GitDocumentDB#rootCollection.put()
    *
@@ -962,7 +966,7 @@ export class GitDocumentDB
    * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - Throws SameIdExistsError when a document which has the same _id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a document that has the same _id exists. It might be better to use put() instead of insert().
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -997,7 +1001,7 @@ export class GitDocumentDB
    * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @remarks
-   * - Throws SameIdExistsError when a data which has the same id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when a document that has the same id exists. It might be better to use put() instead of insert().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
    *
@@ -1046,7 +1050,7 @@ export class GitDocumentDB
    * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @remarks
-   * - Throws DocumentNotFoundError if the document does not exist. It might be better to use put() instead of update().
+   * - Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -1079,13 +1083,11 @@ export class GitDocumentDB
    * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @remarks
-   * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
+   * - Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
    *
-   * - If _id is undefined, it is automatically generated.
-   *
-   * - An update operation is not skipped even if no change occurred on a specified data.
+   * - An update operation is not skipped even if no change occurred on a specified document.
    *
    * - This is an alias of GitDocumentDB#rootCollection.update()
    *
@@ -1121,14 +1123,14 @@ export class GitDocumentDB
   }
 
   /**
-   * Insert a data if not exists. Otherwise, update it.
+   * Insert data if not exists. Otherwise, update it.
    *
    * @param name - name is a file path.
    *
    * @remarks
    * - The saved file path is `${GitDocumentDB#workingDir}/${name}.json`.
    *
-   * - If name is undefined, it is automatically generated.
+   * - If a name parameter is undefined, it is automatically generated.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is removed.
    *
@@ -1166,11 +1168,11 @@ export class GitDocumentDB
    * @param name - name is a file path.
    *
    * @remarks
-   * - Throws SameIdExistsError when a data which has the same _id exists. It might be better to use put() instead of insert().
+   * - Throws SameIdExistsError when data that has the same _id exists. It might be better to use put() instead of insert().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${name}.json`.
    *
-   * - If name is undefined, it is automatically generated.
+   * - If a name parameter is undefined, it is automatically generated.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
    *
@@ -1207,11 +1209,9 @@ export class GitDocumentDB
    * @param name - name is a file path.
    *
    * @remarks
-   * - Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
+   * - Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
    *
    * - The saved file path is `${GitDocumentDB#workingDir}/${name}.json`.
-   *
-   * - If name is undefined, it is automatically generated.
    *
    * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
    *
@@ -1250,9 +1250,9 @@ export class GitDocumentDB
    * @param _id - _id is a file path whose .json extension is omitted.
    *
    * @returns
-   * - undefined if not exists.
+   * - undefined if a specified document does not exist.
    *
-   * - JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   * - JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    * - This is an alias of GitDocumentDB#rootCollection.get()
    *
@@ -1267,14 +1267,14 @@ export class GitDocumentDB
   }
 
   /**
-   * Get a FatDoc
+   * Get a FatDoc data
    *
    * @param name - name is a file path.
    *
    * @returns
-   *  - undefined if not exists.
+   *  - undefined if a specified data does not exist.
    *
-   *  - FatJsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - FatJsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -1298,7 +1298,7 @@ export class GitDocumentDB
    * @param fileOid - Object ID (SHA-1 hash) that represents a Git object. (See https://git-scm.com/docs/git-hash-object )
    *
    * @remarks
-   *  - undefined if not exists.
+   * - undefined if a specified oid does not exist.
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getDocByOid()
    *
@@ -1323,7 +1323,7 @@ export class GitDocumentDB
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
-   *  - undefined if the document does not exists or the document is deleted.
+   *  - undefined if a specified document does not exist or it is deleted.
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getBackNumber()
    *
@@ -1342,7 +1342,7 @@ export class GitDocumentDB
   }
 
   /**
-   * Get a back number of a data
+   * Get a back number of a FatDoc data
    *
    * @param name - name is a file path.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
@@ -1352,9 +1352,9 @@ export class GitDocumentDB
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
-   *  - undefined if a document does not exists or a document is deleted.
+   *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - JsonDoc if the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - JsonDoc if the file extension is '.json'.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -1395,29 +1395,34 @@ export class GitDocumentDB
    *
    * @example
    * ```
-   * commit 01 to 07 were committed in order. file_v1 and file_v2 are two revisions of a file.
+   * Commit-01 to 08 were committed in order. file_v1 and file_v2 are two revisions of a file.
    *
-   * commit 07: not exists
-   * commit 06: deleted
-   * commit 05: file_v2
-   * commit 04: deleted
-   * commit 03: file_v2
-   * commit 02: file_v1
-   * commit 01: file_v1
+   * - Commit-08: Not exists
+   * - Commit-07: deleted
+   * - Commit-06: file_v2
+   * - Commit-05: deleted
+   * - Commit-04: file_v2
+   * - Commit-03: file_v1
+   * - Commit-02: file_v1
+   * - Commit-01: Not exists
    *
-   * file_v1 was newly inserted in 01.
-   * The file was not changed in 02.
-   * The file was updated to file_v2 in 03
-   * The file was deleted in 04.
-   * The same file (file_v2) was inserted again in 05.
-   * The file was deleted again in 06, so the file does not exist in 07.
+   * Commit-02 newly inserted a file (file_v1).
+   * Commit-03 did not change about the file.
+   * Commit-04 updated the file from file_v1 to file_v2.
+   * Commit-05 deleted the file.
+   * Commit-06 inserted the deleted file (file_v2) again.
+   * Commit-07 deleted the file again.
+   * Commit-08 did not change about the file.
    *
-   * Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1].
-   * Be careful that consecutive values are combined into one.
-   * (Thus, it will not return [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1].)
+   * Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1] as a history.
+   *
+   * NOTE:
+   * - Consecutive same values (commit-02 and commit-03) are combined into one.
+   * - getHistory() ignores commit-01 because it was committed before the first insert.
+   * Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
    * ```
    * @returns Array of FatDoc or undefined.
-   *  - undefined if the document does not exists or the document is deleted.
+   *  - undefined if a specified document does not exist or it is deleted.
    *
    *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
    *
@@ -1439,7 +1444,7 @@ export class GitDocumentDB
   }
 
   /**
-   * Get revision history of a data
+   * Get revision history of a FatDoc data
    *
    * @param name - name is a file path.
    *
@@ -1449,9 +1454,9 @@ export class GitDocumentDB
    *  - See {@link git-documentdb#GitDocumentDB.getHistory} for detailed examples.
    *
    * @returns Array of FatDoc or undefined.
-   *  - undefined if the document does not exists or the document is deleted.
+   *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property if it was not created by GitDocumentDB.
+   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - Array of FatBinaryDoc if described in .gitattribtues, otherwise array of FatTextDoc.
    *
@@ -1561,7 +1566,7 @@ export class GitDocumentDB
   }
 
   /**
-   * Get all the data
+   * Get all the FatDoc data
    *
    * @param options - The options specify how to get documents.
    *

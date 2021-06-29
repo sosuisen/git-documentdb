@@ -56,7 +56,7 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 - If shortId is undefined, it is automatically generated.
 
-- \_id property of a JsonDoc is automatically set or overwritten by the shortId parameter.
+- \_id property of a JsonDoc is automatically set or overwritten by a shortId parameter.
 
 - An update operation is not skipped even if no change occurred on a specified document.
 

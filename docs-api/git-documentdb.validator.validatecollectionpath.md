@@ -44,5 +44,6 @@ CollectionPath must be NULL string or paths that match the following conditions:
 - A directory name in paths does not allow '.' and '..'.
 - CollectionPath cannot start with a slash.
 - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
+
 ```
 

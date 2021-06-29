@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.getFatDocBackNumber() method
 
-Get a back number of a data
+Get a back number of a FatDoc data
 
 <b>Signature:</b>
 
@@ -39,7 +39,7 @@ Promise&lt;[FatDoc](./git-documentdb.fatdoc.md) \| undefined&gt;
 
 ## Remarks
 
-- undefined if a specified document does not exist or a document is deleted.
+- undefined if a specified data does not exist or it is deleted.
 
 - JsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have \_id property when an app other than GitDocumentDB creates it.
 

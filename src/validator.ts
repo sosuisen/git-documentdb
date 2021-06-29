@@ -28,7 +28,7 @@ export class Validator {
   };
 
   /**
-   * Normalized collectionPath is '' or path strings that has a trailing slash and no heading slash.
+   * Normalized collectionPath is '' or path strings that have a trailing slash and no heading slash.
    * Root ('/') is not allowed.
    * Backslash \\ or yen ¥ is replaced with slash /.
    */
@@ -61,7 +61,7 @@ export class Validator {
   }
 
   /**
-   * Return max length of working directory path
+   * Return the max length of working directory path
    */
   static maxWorkingDirectoryLength () {
     // Trailing slash of workingDirectory is omitted.
@@ -71,7 +71,7 @@ export class Validator {
   }
 
   /**
-   * Return max length of collectionPath
+   * Return the max length of collectionPath
    */
   maxCollectionPathLength () {
     // Suppose that collectionPath is normalized.
@@ -82,7 +82,7 @@ export class Validator {
   }
 
   /**
-   * Return max length of _id
+   * Return the max length of _id
    *
    * @remarks
    * _id means `${collectionPath}/${shortId}`
@@ -96,7 +96,7 @@ export class Validator {
   }
 
   /**
-   * Return false if given name equals Windows reserved filename
+   * Return false if the given name equals Windows reserved filename
    */
   testWindowsReservedFileName (
     name: string,
@@ -124,7 +124,7 @@ export class Validator {
   }
 
   /**
-   * Return false if given name includes Windows invalid filename character
+   * Return false if the given name includes Windows invalid filename character
    */
   // eslint-disable-next-line complexity
   testWindowsInvalidFileNameCharacter (
@@ -190,9 +190,9 @@ export class Validator {
    *
    * @remarks
    *```
-   * - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
+   * - A directory name allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \\0
    * - A colon is generally disallowed, but a drive letter followed by a colon is allowed.
-   * - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
+   * - A directory name cannot end with a period or a white space but the current directory . and the parent directory .. are allowed.
    * - A trailing slash could be omitted.
    *```
    * @throws {@link Err.InvalidLocalDirCharacterError}
@@ -233,7 +233,7 @@ export class Validator {
    *
    * @remarks
    *```
-   * - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \\0
+   * - dbName allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " ¥ / \\ | ? * \\0
    * - dbName cannot end with a period or a white space.
    * - dbName does not allow '.' and '..'.
    *```
@@ -254,7 +254,7 @@ export class Validator {
    * @remarks CollectionPath must be NULL string or paths that match the following conditions:
    *```
    * - CollectionPath can include paths separated by slashes.
-   * - A directory name in paths allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
+   * - A directory name in paths allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \\0
    * - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
    * - A directory name in paths cannot end with a period or a white space.
    * - A directory name in paths does not allow '.' and '..'.

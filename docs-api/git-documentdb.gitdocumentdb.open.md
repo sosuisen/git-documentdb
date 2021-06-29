@@ -26,8 +26,6 @@ open(openOptions?: OpenOptions): Promise<DatabaseOpenResult>;
 
 Promise&lt;[DatabaseOpenResult](./git-documentdb.databaseopenresult.md) &gt;
 
-Database information
-
 ## Exceptions
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
@@ -40,5 +38,11 @@ Database information
 
 ## Remarks
 
-- GitDocumentDB can load a git repository that is not created by the git-documentdb module. However, correct behavior is not guaranteed.
+- Create a new Git repository if a dbName specified in the constructor does not exist.
+
+- GitDocumentDB creates a legitimate Git repository and unique metadata under '.gitddb/'.
+
+- '.gitddb/' keeps [DatabaseInfo](./git-documentdb.databaseinfo.md) for combining databases, checking schema and migration.
+
+- GitDocumentDB can also load a Git repository that is created by other apps. It almost works; however, correct behavior is not guaranteed if it does not have a valid '.gitddb/'.
 

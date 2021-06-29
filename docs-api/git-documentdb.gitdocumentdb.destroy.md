@@ -40,7 +40,7 @@ Promise&lt;{ ok: true; }&gt;
 
 - [GitDocumentDB.close()](./git-documentdb.gitdocumentdb.close.md) is called automatically before destroying.
 
-- Default of options.force is true.
+- Default value of options.force is true.
 
 - destroy() removes the Git repository and the working directory from the filesystem.
 

@@ -37,5 +37,5 @@ Promise&lt;[Doc](./git-documentdb.doc.md) \| undefined&gt;
 
 ## Remarks
 
-- undefined if a specified document does not exist.
+- undefined if a specified oid does not exist.
 

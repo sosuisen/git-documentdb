@@ -56,7 +56,7 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 - \_id property of a JsonDoc is automatically set or overwritten by \_id parameter.
 
-- An update operation is not skipped even if no change occurred on a specified data.
+- An update operation is not skipped even if no change occurred on a specified document.
 
 - This is an alias of GitDocumentDB\#rootCollection.put()
 

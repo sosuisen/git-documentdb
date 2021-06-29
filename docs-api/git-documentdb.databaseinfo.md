@@ -8,7 +8,7 @@ hide_title: true
 
 ## DatabaseInfo type
 
-Database info
+Database information
 
 <b>Signature:</b>
 
@@ -22,9 +22,13 @@ export declare type DatabaseInfo = {
 
 ## Remarks
 
-- dbId: ULID of the database. (See https://github.com/ulid/spec for ULID)
+- This is metadata unique to GitDocumentDB.
 
-- creator: Creator of the database. Default is 'GitDocumentDB'. The creator is described in .gitddb/info.json.
+- This metadata is saved to '.gitddb/info.json' in JSON format.
 
-- version: Version of the GitDocumentDB specification. The version is described in .gitddb/info.json.
+- dbId: ULID of the database. (See https://github.com/ulid/spec for ULID.) The dbId is used for combining databases.
+
+- creator: A creator of the database. Default is 'GitDocumentDB'. 'GitDocumentDB' ensures that the repository is created according to the GitDocumentDB scheme.
+
+- version: A version of the GitDocumentDB specification. The version can be used for database migration.
 

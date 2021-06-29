@@ -26,7 +26,7 @@ get(_id: string): Promise<JsonDoc | undefined>;
 
 Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
-- undefined if a specified document does not exist
+- undefined if a specified document does not exist.
 
 - JsonDoc may not have \_id property when an app other than GitDocumentDB creates it.
 

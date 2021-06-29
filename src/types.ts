@@ -12,18 +12,18 @@ import { TLogLevelName } from 'tslog';
  * Database Options
  *
  * @remarks
- * localDir and dbName are OS specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
+ * localDir and dbName are OS-specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
  *
  * ```
  * * localDir: A local directory path that stores repositories of GitDocumentDB.
  *   - Default is './gitddb'.
- *   - A directory name allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0.
+ *   - A directory name allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \0.
  *   - A colon : is generally not allowed, but a Windows drive letter followed by a colon is allowed. e.g.) C: D:
- *   - A directory name cannot end with a period or a white space, but the current directory . and the parent directory .. are allowed.
+ *   - A directory name cannot end with a period or a white space but the current directory . and the parent directory .. are allowed.
  *   - A trailing slash / could be omitted.
  *
  * * dbName: A name of a git repository
- *   - dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \ | ? * \0.
+ *   - dbName allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " ¥ / \ | ? * \0.
  *   - dbName cannot end with a period or a white space.
  *   - dbName does not allow '.' and '..'.
  *
@@ -98,14 +98,18 @@ export type DatabaseOpenResult = DatabaseInfo & {
 };
 
 /**
- * Database info
+ * Database information
  *
  * @remarks
- * - dbId: ULID of the database. (See https://github.com/ulid/spec for ULID)
+ * - This is metadata unique to GitDocumentDB.
  *
- * - creator: Creator of the database. Default is 'GitDocumentDB'. The creator is described in .gitddb/info.json.
+ * - This metadata is saved to '.gitddb/info.json' in JSON format.
  *
- * - version: Version of the GitDocumentDB specification. The version is described in .gitddb/info.json.
+ * - dbId: ULID of the database. (See https://github.com/ulid/spec for ULID.) The dbId is used for combining databases.
+ *
+ * - creator: A creator of the database. Default is 'GitDocumentDB'. 'GitDocumentDB' ensures that the repository is created according to the GitDocumentDB scheme.
+ *
+ * - version: A version of the GitDocumentDB specification. The version can be used for database migration.
  *
  * @public
  */
@@ -118,10 +122,10 @@ export type DatabaseInfo = {
 /**
  * The type for a JSON document that is stored in a database
  *
- * @remarks A JSON document must be an JavaScript object that matches the following conditions:
+ * @remarks A JSON document must be a JavaScript object that matches the following conditions:
  *```
  * - It must have an '_id' key that shows the unique identifier of a document
- * - _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+ * - _id allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \0
  * - _id is better to be ASCII characters and a case-insensitive name for cross-platform.
  * - _id cannot start or end with a slash.
  * - _id can include paths separated by slashes.
@@ -143,7 +147,7 @@ export type JsonDoc = {
 };
 
 /**
- * Doc type
+ * Type of document
  *
  * @remarks
  * - json: JsonDoc
@@ -210,7 +214,7 @@ export type TextDocMetadata = {
  *
  * - fileOid: SHA-1 hash of Git object (40 characters)
  *
- * - type: type shows a DocType. type of BinaryDocMetadata is fixed to 'binary'.
+ * - type: type shows a DocType. The type of BinaryDocMetadata is fixed to 'binary'.
  *
  * @public
  */
@@ -267,8 +271,8 @@ export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
  * @remarks CollectionPath must be paths that match the following conditions:
  *```
  * - CollectionPath can include paths separated by slashes.
- * - A directory name in paths allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
- * - CollectionPath is better to be ASCII characters and a case-insensitive names for cross-platform.
+ * - A directory name in paths allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \\0
+ * - CollectionPath is better to be ASCII characters and case-insensitive names for cross-platform.
  * - A directory name in paths cannot end with a period or a white space.
  * - A directory name in paths does not allow '.' and '..'.
  * - CollectionPath cannot start with a slash.
@@ -338,10 +342,10 @@ export type GetOptions = {
 };
 
 /**
- * Options for getHistory and getFatDocHistory
+ * Options for getHistory() and getFatDocHistory()
  *
  * @remarks
- * - filter: Tha array of revisions is filtered by matching multiple HistoryFilters in OR condition.
+ * - filter: This filters an array of revisions by matching multiple HistoryFilters in OR condition.
  *
  * @public
  */
@@ -350,7 +354,7 @@ export type HistoryOptions = {
 };
 
 /**
- * HistoryFilter
+ * Filter for file history
  *
  * @public
  */
@@ -387,9 +391,9 @@ export type DeleteOptions = {
  * Options for find and findFatDoc
  *
  * @remarks
- * - descending: Sort _id or name by descendant. Default is false (ascendant).
+ * - descending: Sort _ids or names in descendant order. Default is false (ascending).
  *
- * - recursive: Get documents recursively from all sub directories. Default is true.
+ * - recursive: Get documents recursively from all subdirectories. Default is true.
  *
  * - prefix: Get documents whose _ids or names start with the prefix.
  *
@@ -499,7 +503,7 @@ export type DeleteResultBinary = {
 };
 
 /**
- * How to close database
+ * How to close a database
  *
  * @remarks
  * - force: Clear queued tasks immediately.
@@ -534,7 +538,7 @@ export type SyncDirection = 'pull' | 'push' | 'both';
  * @remarks
  * - personalAccessToken: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
  *
- * - private: Whether automatically created repository is private or not. Default is true.
+ * - private: Whether the automatically created repository is private or not. Default is true.
  *
  * @public
  */
@@ -576,7 +580,7 @@ export type ConnectionSettings =
   | ConnectionSettingsSSH;
 
 /**
- * Behavior when combine inconsistent DBs
+ * Behavior when combining inconsistent DBs
  *
  * Default is 'combine-head-with-theirs'.
  *
@@ -597,15 +601,15 @@ export type CombineDbStrategies =
  * @remarks
  * 'ours' and 'theirs' are borrowed terms from Git (https://git-scm.com/docs/merge-strategies)
  *
- * - 'ours-diff': (Default) Accept ours per JSON property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the local change is accepted. If a document is not JSON, 'ours' strategy is applied.
+ * - 'ours-diff': (Default) Accept ours per JSON property. The merging process compares and merges properties in local and remote documents. When a remote property is conflicted with a local property in a document, the local property is accepted. If a document is not JSON, 'ours' strategy is applied.
  *
- * - 'theirs-diff': Accept theirs per JSON property. Properties in both local and remote documents are compared and merged. When a remote change is conflicted with a local change, the remote change is accepted. If a document is not JSON, 'theirs' strategy is applied.
+ * - 'theirs-diff': Accept theirs per JSON property. The merging process compares and merges properties in local and remote documents. When a remote property is conflicted with a local property in a document, the remote property is accepted. If a document is not JSON, 'theirs' strategy is applied.
  *
- * - 'ours': Accept ours per document. Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the local change is accepted.
+ * - 'ours': Accept ours. The merging process compares and merges per document. When a remote document is conflicted with a local document, the local document is accepted.
  *
- * - 'theirs': Accept theirs per document. Documents in both local and remote commits are compared and merged per document. When a remote change is conflicted with a local change, the remote change is accepted.
+ * - 'theirs': Accept theirs. The merging process compares and merges per document. When a remote document is conflicted with a local document, the remote document is accepted.
  *
- * - Compare function that returns one of the strategies ('ours-diff', 'theirs-diff', 'ours', and 'theirs') can be given. Each parameter will be undefined when a document is removed or does not exist.
+ * - Compare function that returns one of the strategies ('ours-diff', 'theirs-diff', 'ours', and 'theirs') can be given. Each parameter is undefined when a document is deleted or does not exist.
  *
  * @public
  */
@@ -626,15 +630,15 @@ export type ConflictResolutionStrategyLabels =
  * Write operation in resolving conflicts
  *
  * @remarks
- * - insert: A document in either ours or theirs is newly inserted.
+ * - insert: A document in either 'ours' or 'theirs' is newly inserted.
  *
- * - update: A document is updated to either ours document or theirs document.
+ * - update: A document is updated to either 'ours' document or 'theirs' document.
  *
  * - delete: A document is deleted.
  *
- * - insert-merge: A merged document of ours and theirs is newly inserted.
+ * - insert-merge: A merged document of 'ours' and 'theirs' is newly inserted.
  *
- * - update-merge: A document is updated to a merged document of ours and theirs.
+ * - update-merge: A document is updated to a merged document of 'ours' and 'theirs'.
  *
  * @public
  */
@@ -681,7 +685,7 @@ export type AcceptedConflict = {
  *
  * - interval: Synchronization interval (milliseconds)
  *
- * - retry: Number of network retries. Retry does not occurred if retry is 0.
+ * - retry: Number of network retries. Retry does not occur if retry is 0.
  *
  * - retryInterval: Retry interval  (milliseconds)
  *
@@ -728,7 +732,7 @@ export type TaskLabel = 'put' | 'insert' | 'update' | 'delete' | 'sync' | 'push'
  * Task statistics after opening database
  *
  * @remarks
- * The statistics is on memory and not persistent. It is cleared by GitDocumentDB#close().
+ * The statistics are on memory and not persistent. They are cleared by GitDocumentDB#close().
  *
  * @public
  */
@@ -772,7 +776,7 @@ export type Task = TaskMetadata & {
 };
 
 /**
- * Inserted file in merge operation
+ * Inserted file in a merge operation
  *
  * @public
  */
@@ -782,7 +786,7 @@ export type ChangedFileInsert = {
 };
 
 /**
- * Updated file in merge operation
+ * Updated file in a merge operation
  *
  * @public
  */
@@ -793,7 +797,7 @@ export type ChangedFileUpdate = {
 };
 
 /**
- * Deleted file in merge operation
+ * Deleted file in a merge operation
  *
  * @public
  */
@@ -803,14 +807,14 @@ export type ChangedFileDelete = {
 };
 
 /**
- * Union type of changed files in merge operation
+ * Union type of changed files in a merge operation
  *
  * @public
  */
 export type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 
 /**
- * Duplicated file in combine operation
+ * Duplicated file in combining operation
  *
  * @public
  */
@@ -842,7 +846,7 @@ export type NormalizedCommit = {
 };
 
 /**
- * No action occurs in synchronization.
+ * Synchronization did nothing.
  *
  * @public
  */
@@ -851,12 +855,12 @@ export type SyncResultNop = {
 };
 
 /**
- * Push action occurred in synchronization.
+ * Synchronization pushed commits.
  *
  * @remarks
  * - commits are sorted from old to new.
  *
- * - commits.remote: List of commits which has been pushed to remote
+ * - commits.remote: List of commits that had been pushed to remote
  *
  * @public
  */
@@ -871,12 +875,12 @@ export type SyncResultPush = {
 };
 
 /**
- * Fast-forward action occurred in synchronization.
+ * Synchronization invoked fast-forward merge.
  *
  * @remarks
  * - commits are sorted from old to new.
  *
- * - commits.local: List of commits which has been pulled to local
+ * - commits.local: List of commits that had been pulled to local
  *
  * @public
  */
@@ -891,12 +895,12 @@ export type SyncResultFastForwardMerge = {
 };
 
 /**
- * Merge and push actions occurred and push failed in synchronization.
+ * Synchronization created a merge commit and failed to push it.
  *
  * @remarks
  * - commits are sorted from old to new.
  *
- * - commits.local: List of commits which has been pulled to local
+ * - commits.local: List of commits that had been pulled to local
  *
  * @public
  */
@@ -912,14 +916,14 @@ export type SyncResultMergeAndPushError = {
 };
 
 /**
- * Merge and push actions occurred in synchronization.
+ * Synchronization created a merge commit and pushed it.
  *
  * @remarks
  * - commits are sorted from old to new.
  *
- * - commits.local: List of commits which has been pulled to local
+ * - commits.local: List of commits that had been pulled to local
  *
- * - commits.remote: List of commits which has been pushed to remote
+ * - commits.remote: List of commits that had been pushed to remote
  *
  * @public
  */
@@ -936,12 +940,12 @@ export type SyncResultMergeAndPush = {
 };
 
 /**
- * Resolve conflicts and push actions occurred and push failed in synchronization.
+ * Synchronization resolved conflicts, created a merge commit, and failed to push it.
  *
  * @remarks
  * - commits are sorted from old to new.
  *
- * - commits.local: List of commits which has been pulled to local
+ * - commits.local: List of commits that had been pulled to local
  *
  * @public
  */
@@ -958,14 +962,14 @@ export type SyncResultResolveConflictsAndPushError = {
 };
 
 /**
- * Resolve conflicts and push actions occurred in synchronization.
+ * Synchronization resolved conflicts, created a merge commit, and pushed it.
  *
  * @remarks
  * - commits are sorted from old to new.
  *
- * - commits.local: List of commits which has been pulled to local
+ * - commits.local: List of commits that had been pulled to local
  *
- * - commits.remote: List of commits which has been pushed to remote
+ * - commits.remote: List of commits that had been pushed to remote
  *
  * @public
  */
@@ -983,7 +987,7 @@ export type SyncResultResolveConflictsAndPush = {
 };
 
 /**
- * Combine action occurred in synchronization.
+ * Synchronization combined databases.
  *
  * @remarks
  * Push action does not occur after combine action.
@@ -1005,7 +1009,7 @@ export type SyncResultCancel = {
 };
 
 /**
- * Union type of results from trySync and tryPush
+ * Union type of results from trySync() and tryPush()
  *
  * @public
  */
@@ -1037,7 +1041,7 @@ export type SyncEvent =
   | 'error';
 
 /**
- * Callback of change event
+ * Callback of 'change' event
  *
  * @public
  */
@@ -1047,7 +1051,7 @@ export type SyncChangeCallback = (
 ) => void;
 
 /**
- * Callback of localChange event
+ * Callback of 'localChange' event
  *
  * @public
  */
@@ -1057,7 +1061,7 @@ export type SyncLocalChangeCallback = (
 ) => void;
 
 /**
- * Callback of remoteChange event
+ * Callback of 'remoteChange' event
  *
  * @public
  */
@@ -1067,28 +1071,28 @@ export type SyncRemoteChangeCallback = (
 ) => void;
 
 /**
- * Callback of combine event
+ * Callback of 'combine' event
  *
  * @public
  */
 export type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void;
 
 /**
- * Callback of pause event
+ * Callback of 'pause' event
  *
  * @public
  */
 export type SyncPauseCallback = () => void;
 
 /**
- * Callback of resume event
+ * Callback of 'resume' event
  *
  * @public
  */
 export type SyncResumeCallback = () => void;
 
 /**
- * Callback of start event
+ * Callback of 'start' event
  *
  * @public
  */
@@ -1098,14 +1102,14 @@ export type SyncStartCallback = (
 ) => void;
 
 /**
- * Callback of compete event
+ * Callback of 'complete' event
  *
  * @public
  */
 export type SyncCompleteCallback = (taskMetadata: TaskMetadata) => void;
 
 /**
- * Callback of error event
+ * Callback of 'error' event
  *
  * @public
  */

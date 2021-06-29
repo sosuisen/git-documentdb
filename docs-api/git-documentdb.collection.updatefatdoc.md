@@ -56,8 +56,6 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
 - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json` .
 
-- If shortName is undefined, it is automatically generated.
-
 - \_id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
 
 - An update operation is not skipped even if no change occurred on a specified data.

@@ -210,7 +210,7 @@ export class Sync implements SyncInterface {
 
   private _options: RemoteOptions;
   /**
-   * Get clone of remote options
+   * Get a clone of remote options
    *
    * @readonly
    * @public
@@ -387,7 +387,7 @@ export class Sync implements SyncInterface {
    * Create remote connection
    *
    * @remarks
-   * Call init() once just after creating instance.
+   * Call init() once just after creating an instance.
    *
    * @throws {@link Err.RemoteRepositoryConnectError}
    * @throws {@link Err.PushWorkerError}

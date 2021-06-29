@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.findFatDoc() method
 
-Get all the data
+Get all the FatDoc data
 
 <b>Signature:</b>
 

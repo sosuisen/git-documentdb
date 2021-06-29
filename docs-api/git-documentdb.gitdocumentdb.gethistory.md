@@ -51,6 +51,7 @@ Array of FatDoc or undefined. - undefined if a specified document does not exist
 
 ## Example
 
+
 ```
 Commit-01 to 08 were committed in order. file_v1 and file_v2 are two revisions of a file.
 
@@ -77,5 +78,6 @@ NOTE:
 - Consecutive same values (commit-02 and commit-03) are combined into one.
 - getHistory() ignores commit-01 because it was committed before the first insert.
 Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
+
 ```
 
