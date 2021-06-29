@@ -28,6 +28,16 @@ updateFatDoc(shortName: string | undefined | null, doc: JsonDoc | string | Uint8
 
 Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
+## Remarks
+
+- Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
+
+- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json` .
+
+- \_id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+
+- An update operation is not skipped even if no change occurred on a specified data.
+
 ## Exceptions
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
@@ -49,14 +59,4 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 [Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md) (from putWorker)
 
 [Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md)
-
-## Remarks
-
-- Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
-
-- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json` .
-
-- \_id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
-
-- An update operation is not skipped even if no change occurred on a specified data.
 

@@ -17,5 +17,7 @@ export declare type FatBinaryDoc = BinaryDocMetadata & {
     doc: Uint8Array;
 };
 ```
-<b>References:</b> [BinaryDocMetadata](./git-documentdb.binarydocmetadata.md)
+<b>References:</b>
+
+[BinaryDocMetadata](./git-documentdb.binarydocmetadata.md)
 

@@ -26,6 +26,10 @@ find(options?: FindOptions): Promise<JsonDoc[]>;
 
 Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \[\]&gt;
 
+## Remarks
+
+- This is an alias of GitDocumentDB\#rootCollection.find()
+
 ## Exceptions
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
@@ -33,8 +37,4 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \[\]&gt;
 [Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
-
-## Remarks
-
-- This is an alias of GitDocumentDB\#rootCollection.find()
 

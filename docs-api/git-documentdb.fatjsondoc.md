@@ -17,5 +17,7 @@ export declare type FatJsonDoc = JsonDocMetadata & {
     doc: JsonDoc;
 };
 ```
-<b>References:</b> [JsonDocMetadata](./git-documentdb.jsondocmetadata.md) , [JsonDoc](./git-documentdb.jsondoc.md)
+<b>References:</b>
+
+[JsonDocMetadata](./git-documentdb.jsondocmetadata.md) , [JsonDoc](./git-documentdb.jsondoc.md)
 

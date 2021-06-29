@@ -15,5 +15,7 @@ Callback of 'change' event
 ```typescript
 export declare type SyncChangeCallback = (syncResult: SyncResult, taskMetadata: TaskMetadata) => void;
 ```
-<b>References:</b> [SyncResult](./git-documentdb.syncresult.md) , [TaskMetadata](./git-documentdb.taskmetadata.md)
+<b>References:</b>
+
+[SyncResult](./git-documentdb.syncresult.md) , [TaskMetadata](./git-documentdb.taskmetadata.md)
 

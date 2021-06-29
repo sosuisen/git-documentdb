@@ -19,7 +19,9 @@ export declare type DatabaseOpenResult = DatabaseInfo & {
     isValidVersion: boolean;
 };
 ```
-<b>References:</b> [DatabaseInfo](./git-documentdb.databaseinfo.md)
+<b>References:</b>
+
+[DatabaseInfo](./git-documentdb.databaseinfo.md)
 
 ## Remarks
 

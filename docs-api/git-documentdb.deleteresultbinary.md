@@ -19,5 +19,7 @@ export declare type DeleteResultBinary = {
     type: 'binary';
 };
 ```
-<b>References:</b> [NormalizedCommit](./git-documentdb.normalizedcommit.md)
+<b>References:</b>
+
+[NormalizedCommit](./git-documentdb.normalizedcommit.md)
 

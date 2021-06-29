@@ -18,5 +18,7 @@ export declare type ChangedFileDelete = {
     old: FatDoc;
 };
 ```
-<b>References:</b> [FatDoc](./git-documentdb.fatdoc.md)
+<b>References:</b>
+
+[FatDoc](./git-documentdb.fatdoc.md)
 

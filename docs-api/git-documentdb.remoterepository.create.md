@@ -19,6 +19,10 @@ create(): Promise<void>;
 
 Promise&lt;void&gt;
 
+## Remarks
+
+connection.type must be 'github'
+
 ## Exceptions
 
 [Err.UndefinedPersonalAccessTokenError](./git-documentdb.err.undefinedpersonalaccesstokenerror.md)
@@ -38,8 +42,4 @@ may include the following errors:
 - Other network errors
 
 [Err.AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.err.authenticationtypenotallowcreaterepositoryerror.md)
-
-## Remarks
-
-connection.type must be 'github'
 

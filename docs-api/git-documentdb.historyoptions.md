@@ -17,7 +17,9 @@ export declare type HistoryOptions = {
     filter?: HistoryFilter[];
 };
 ```
-<b>References:</b> [HistoryFilter](./git-documentdb.historyfilter.md)
+<b>References:</b>
+
+[HistoryFilter](./git-documentdb.historyfilter.md)
 
 ## Remarks
 

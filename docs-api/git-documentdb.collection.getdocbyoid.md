@@ -27,6 +27,10 @@ getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
 
 Promise&lt;[Doc](./git-documentdb.doc.md) \| undefined&gt;
 
+## Remarks
+
+- undefined if a specified oid does not exist.
+
 ## Exceptions
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
@@ -34,8 +38,4 @@ Promise&lt;[Doc](./git-documentdb.doc.md) \| undefined&gt;
 [Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
-
-## Remarks
-
-- undefined if a specified oid does not exist.
 

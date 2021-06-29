@@ -28,6 +28,12 @@ getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions):
 
 Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
+## Remarks
+
+- undefined if a specified document does not exist or it is deleted.
+
+- This is an alias of GitDocumentDB\#rootCollection.getBackNumber()
+
 ## Exceptions
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
@@ -35,10 +41,4 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 [Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
-
-## Remarks
-
-- undefined if a specified document does not exist or it is deleted.
-
-- This is an alias of GitDocumentDB\#rootCollection.getBackNumber()
 

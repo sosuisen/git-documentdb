@@ -19,7 +19,9 @@ export declare type DeleteOptions = {
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
 };
 ```
-<b>References:</b> [TaskMetadata](./git-documentdb.taskmetadata.md)
+<b>References:</b>
+
+[TaskMetadata](./git-documentdb.taskmetadata.md)
 
 ## Remarks
 

@@ -26,6 +26,10 @@ init(repos: nodegit.Repository): Promise<SyncResult>;
 
 Promise&lt;[SyncResult](./git-documentdb.syncresult.md) &gt;
 
+## Remarks
+
+Call init() once just after creating an instance.
+
 ## Exceptions
 
 [Err.RemoteRepositoryConnectError](./git-documentdb.err.remoterepositoryconnecterror.md)
@@ -35,8 +39,4 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md) &gt;
 [Err.NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md)
 
 [Err.SyncWorkerError](./git-documentdb.err.syncworkererror.md)
-
-## Remarks
-
-Call init() once just after creating an instance.
 

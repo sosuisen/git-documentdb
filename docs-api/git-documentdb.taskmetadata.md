@@ -22,5 +22,7 @@ export declare type TaskMetadata = {
     enqueueTime?: string;
 };
 ```
-<b>References:</b> [TaskLabel](./git-documentdb.tasklabel.md)
+<b>References:</b>
+
+[TaskLabel](./git-documentdb.tasklabel.md)
 

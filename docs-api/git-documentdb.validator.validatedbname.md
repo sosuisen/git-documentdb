@@ -26,10 +26,6 @@ validateDbName(dbName: string): void;
 
 void
 
-## Exceptions
-
-[Err.InvalidDbNameCharacterError](./git-documentdb.err.invaliddbnamecharactererror.md)
-
 ## Remarks
 
 
@@ -39,4 +35,8 @@ void
 - dbName does not allow '.' and '..'.
 
 ```
+
+## Exceptions
+
+[Err.InvalidDbNameCharacterError](./git-documentdb.err.invaliddbnamecharactererror.md)
 

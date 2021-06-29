@@ -27,6 +27,16 @@ update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
 Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
+## Remarks
+
+- Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
+
+- If \_id is undefined, it is automatically generated.
+
+- The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
+
+- This is an alias of GitDocumentDB\#rootCollection.update()
+
 ## Exceptions
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
@@ -48,14 +58,4 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 [Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md) (from putWorker)
 
 [Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md)
-
-## Remarks
-
-- Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
-
-- If \_id is undefined, it is automatically generated.
-
-- The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
-
-- This is an alias of GitDocumentDB\#rootCollection.update()
 

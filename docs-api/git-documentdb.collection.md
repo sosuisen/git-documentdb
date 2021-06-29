@@ -15,7 +15,9 @@ Documents under a collectionPath are gathered together in a collection.
 ```typescript
 export declare class Collection implements ICollection 
 ```
-<b>Implements:</b> [ICollection](./git-documentdb.icollection.md)
+<b>Implements:</b>
+
+[ICollection](./git-documentdb.icollection.md)
 
 ## Remarks
 

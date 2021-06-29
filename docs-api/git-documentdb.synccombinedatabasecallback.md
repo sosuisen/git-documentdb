@@ -15,5 +15,7 @@ Callback of 'combine' event
 ```typescript
 export declare type SyncCombineDatabaseCallback = (duplicates: DuplicatedFile[]) => void;
 ```
-<b>References:</b> [DuplicatedFile](./git-documentdb.duplicatedfile.md)
+<b>References:</b>
+
+[DuplicatedFile](./git-documentdb.duplicatedfile.md)
 

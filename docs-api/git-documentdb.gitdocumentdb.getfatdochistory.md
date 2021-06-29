@@ -36,6 +36,12 @@ Array of FatDoc or undefined. - undefined if a specified data does not exist or 
 
 - getOptions.forceDocType always overwrite return type.
 
+## Remarks
+
+- This is an alias of GitDocumentDB\#rootCollection.getFatDocHistory()
+
+- See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for detailed examples.
+
 ## Exceptions
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
@@ -43,10 +49,4 @@ Array of FatDoc or undefined. - undefined if a specified data does not exist or 
 [Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
-
-## Remarks
-
-- This is an alias of GitDocumentDB\#rootCollection.getFatDocHistory()
-
-- See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for detailed examples.
 

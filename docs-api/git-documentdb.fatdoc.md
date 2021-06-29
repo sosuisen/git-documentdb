@@ -15,5 +15,7 @@ Union type of documents with a metadata
 ```typescript
 export declare type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
 ```
-<b>References:</b> [FatJsonDoc](./git-documentdb.fatjsondoc.md) , [FatTextDoc](./git-documentdb.fattextdoc.md) , [FatBinaryDoc](./git-documentdb.fatbinarydoc.md)
+<b>References:</b>
+
+[FatJsonDoc](./git-documentdb.fatjsondoc.md) , [FatTextDoc](./git-documentdb.fattextdoc.md) , [FatBinaryDoc](./git-documentdb.fatbinarydoc.md)
 

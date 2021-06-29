@@ -26,15 +26,15 @@ close(options?: DatabaseCloseOption): Promise<void>;
 
 Promise&lt;void&gt;
 
-## Exceptions
-
-[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
-
-[Err.DatabaseCloseTimeoutError](./git-documentdb.err.databaseclosetimeouterror.md)
-
 ## Remarks
 
 - New CRUD operations are not available while closing.
 
 - Queued operations are executed before the database is closed unless it times out.
+
+## Exceptions
+
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
+
+[Err.DatabaseCloseTimeoutError](./git-documentdb.err.databaseclosetimeouterror.md)
 

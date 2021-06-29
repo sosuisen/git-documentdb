@@ -20,7 +20,9 @@ export declare type FindOptions = {
     forceDocType?: DocType;
 };
 ```
-<b>References:</b> [DocType](./git-documentdb.doctype.md)
+<b>References:</b>
+
+[DocType](./git-documentdb.doctype.md)
 
 ## Remarks
 

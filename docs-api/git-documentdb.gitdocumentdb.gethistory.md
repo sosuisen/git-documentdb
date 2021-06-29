@@ -35,14 +35,6 @@ Array of FatDoc or undefined. - undefined if a specified document does not exist
 
 - getOptions.forceDocType always overwrite return type.
 
-## Exceptions
-
-[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
-
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-
-[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
-
 ## Remarks
 
 - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
@@ -80,4 +72,12 @@ NOTE:
 Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
 
 ```
+
+## Exceptions
+
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
+
+[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
+
+[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

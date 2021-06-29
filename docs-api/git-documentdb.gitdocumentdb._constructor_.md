@@ -22,13 +22,13 @@ constructor(options: DatabaseOptions & CollectionOptions);
 |  --- | --- | --- |
 |  options | [DatabaseOptions](./git-documentdb.databaseoptions.md) &amp; [CollectionOptions](./git-documentdb.collectionoptions.md) |  |
 
+## Remarks
+
+- The Git working directory will be `${options.localDir}/${options.dbName}` .
+
 ## Exceptions
 
 [Err.InvalidWorkingDirectoryPathLengthError](./git-documentdb.err.invalidworkingdirectorypathlengtherror.md)
 
 [Err.UndefinedDatabaseNameError](./git-documentdb.err.undefineddatabasenameerror.md)
-
-## Remarks
-
-- The Git working directory will be `${options.localDir}/${options.dbName}` .
 

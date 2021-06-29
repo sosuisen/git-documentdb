@@ -15,7 +15,9 @@ BaseError
 ```typescript
 class BaseError extends Error 
 ```
-<b>Extends:</b> Error
+<b>Extends:</b>
+
+Error
 
 ## Constructors
 

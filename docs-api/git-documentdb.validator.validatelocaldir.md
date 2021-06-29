@@ -26,10 +26,6 @@ validateLocalDir(localDir: string): void;
 
 void
 
-## Exceptions
-
-[Err.InvalidLocalDirCharacterError](./git-documentdb.err.invalidlocaldircharactererror.md)
-
 ## Remarks
 
 
@@ -40,4 +36,8 @@ void
 - A trailing slash could be omitted.
 
 ```
+
+## Exceptions
+
+[Err.InvalidLocalDirCharacterError](./git-documentdb.err.invalidlocaldircharactererror.md)
 

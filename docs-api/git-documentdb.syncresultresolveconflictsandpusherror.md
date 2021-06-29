@@ -25,7 +25,9 @@ export declare type SyncResultResolveConflictsAndPushError = {
     error: Error;
 };
 ```
-<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md) , [AcceptedConflict](./git-documentdb.acceptedconflict.md) , [NormalizedCommit](./git-documentdb.normalizedcommit.md)
+<b>References:</b>
+
+[ChangedFile](./git-documentdb.changedfile.md) , [AcceptedConflict](./git-documentdb.acceptedconflict.md) , [NormalizedCommit](./git-documentdb.normalizedcommit.md)
 
 ## Remarks
 

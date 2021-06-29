@@ -29,14 +29,6 @@ getFatDocBackNumber(shortName: string, backNumber: number, historyOptions?: Hist
 
 Promise&lt;[FatDoc](./git-documentdb.fatdoc.md) \| undefined&gt;
 
-## Exceptions
-
-[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
-
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-
-[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
-
 ## Remarks
 
 - undefined if a specified data does not exist or it is deleted.
@@ -48,4 +40,12 @@ Promise&lt;[FatDoc](./git-documentdb.fatdoc.md) \| undefined&gt;
 - getOptions.forceDocType always overwrite return type.
 
 - See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions.
+
+## Exceptions
+
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
+
+[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
+
+[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

@@ -19,5 +19,7 @@ export declare type ChangedFileUpdate = {
     new: FatDoc;
 };
 ```
-<b>References:</b> [FatDoc](./git-documentdb.fatdoc.md)
+<b>References:</b>
+
+[FatDoc](./git-documentdb.fatdoc.md)
 

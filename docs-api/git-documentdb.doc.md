@@ -15,5 +15,7 @@ Union type of Doc types
 ```typescript
 export declare type Doc = JsonDoc | string | Uint8Array;
 ```
-<b>References:</b> [JsonDoc](./git-documentdb.jsondoc.md)
+<b>References:</b>
+
+[JsonDoc](./git-documentdb.jsondoc.md)
 

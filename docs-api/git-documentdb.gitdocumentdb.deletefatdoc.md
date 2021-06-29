@@ -27,6 +27,10 @@ deleteFatDoc(name: string, options?: DeleteOptions): Promise<DeleteResult>;
 
 Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md) &gt;
 
+## Remarks
+
+- This is an alias of GitDocumentDB\#rootCollection.deleteFatDoc()
+
 ## Exceptions
 
 [Err.UndefinedDocumentIdError](./git-documentdb.err.undefineddocumentiderror.md)
@@ -42,8 +46,4 @@ Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md) &gt;
 [Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md) (from deleteWorker)
 
 [Err.CannotDeleteDataError](./git-documentdb.err.cannotdeletedataerror.md) (from deleteWorker)
-
-## Remarks
-
-- This is an alias of GitDocumentDB\#rootCollection.deleteFatDoc()
 

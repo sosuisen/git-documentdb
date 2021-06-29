@@ -15,7 +15,9 @@ Strategy for resolving conflicts
 ```typescript
 export declare type ConflictResolutionStrategies = ConflictResolutionStrategyLabels | ((ours?: FatDoc, theirs?: FatDoc) => ConflictResolutionStrategyLabels);
 ```
-<b>References:</b> [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md) , [FatDoc](./git-documentdb.fatdoc.md)
+<b>References:</b>
+
+[ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md) , [FatDoc](./git-documentdb.fatdoc.md)
 
 ## Remarks
 

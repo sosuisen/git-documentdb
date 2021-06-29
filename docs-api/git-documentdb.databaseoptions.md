@@ -20,7 +20,9 @@ export declare type DatabaseOptions = {
     schema?: Schema;
 };
 ```
-<b>References:</b> [Schema](./git-documentdb.schema.md)
+<b>References:</b>
+
+[Schema](./git-documentdb.schema.md)
 
 ## Remarks
 

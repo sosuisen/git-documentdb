@@ -15,7 +15,9 @@ Main class of GitDocumentDB
 ```typescript
 export declare class GitDocumentDB implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface 
 ```
-<b>Implements:</b> [GitDDBInterface](./git-documentdb.gitddbinterface.md) , [CRUDInterface](./git-documentdb.crudinterface.md) , [CollectionInterface](./git-documentdb.collectioninterface.md) , [SyncEventInterface](./git-documentdb.synceventinterface.md)
+<b>Implements:</b>
+
+[GitDDBInterface](./git-documentdb.gitddbinterface.md) , [CRUDInterface](./git-documentdb.crudinterface.md) , [CollectionInterface](./git-documentdb.collectioninterface.md) , [SyncEventInterface](./git-documentdb.synceventinterface.md)
 
 ## Constructors
 

@@ -15,5 +15,7 @@ Union type of changed files in a merge operation
 ```typescript
 export declare type ChangedFile = ChangedFileInsert | ChangedFileUpdate | ChangedFileDelete;
 ```
-<b>References:</b> [ChangedFileInsert](./git-documentdb.changedfileinsert.md) , [ChangedFileUpdate](./git-documentdb.changedfileupdate.md) , [ChangedFileDelete](./git-documentdb.changedfiledelete.md)
+<b>References:</b>
+
+[ChangedFileInsert](./git-documentdb.changedfileinsert.md) , [ChangedFileUpdate](./git-documentdb.changedfileupdate.md) , [ChangedFileDelete](./git-documentdb.changedfiledelete.md)
 

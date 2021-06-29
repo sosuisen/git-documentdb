@@ -15,7 +15,9 @@ Result of put APIs (put, update, insert, putFatDoc, updateFatDoc, and insertFatD
 ```typescript
 export declare type PutResult = PutResultJsonDoc | PutResultText | PutResultBinary;
 ```
-<b>References:</b> [PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) , [PutResultText](./git-documentdb.putresulttext.md) , [PutResultBinary](./git-documentdb.putresultbinary.md)
+<b>References:</b>
+
+[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) , [PutResultText](./git-documentdb.putresulttext.md) , [PutResultBinary](./git-documentdb.putresultbinary.md)
 
 ## Remarks
 

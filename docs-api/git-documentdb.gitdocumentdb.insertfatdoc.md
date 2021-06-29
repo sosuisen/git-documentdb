@@ -28,6 +28,18 @@ insertFatDoc(name: string | undefined | null, doc: JsonDoc | string | Uint8Array
 
 Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
+## Remarks
+
+- Throws SameIdExistsError when data that has the same \_id exists. It might be better to use put() instead of insert().
+
+- The saved file path is `${GitDocumentDB#workingDir}/${name}.json` .
+
+- If a name parameter is undefined, it is automatically generated.
+
+- \_id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
+
+- This is an alias of GitDocumentDB\#rootCollection.insertFatDoc()
+
 ## Exceptions
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
@@ -49,16 +61,4 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 [Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md) (from putWorker)
 
 [Err.SameIdExistsError](./git-documentdb.err.sameidexistserror.md) (from putWorker)
-
-## Remarks
-
-- Throws SameIdExistsError when data that has the same \_id exists. It might be better to use put() instead of insert().
-
-- The saved file path is `${GitDocumentDB#workingDir}/${name}.json` .
-
-- If a name parameter is undefined, it is automatically generated.
-
-- \_id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
-
-- This is an alias of GitDocumentDB\#rootCollection.insertFatDoc()
 

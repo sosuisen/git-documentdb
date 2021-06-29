@@ -28,6 +28,18 @@ putFatDoc(name: string | undefined | null, doc: JsonDoc | Uint8Array | string, o
 
 Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
+## Remarks
+
+- The saved file path is `${GitDocumentDB#workingDir}/${name}.json` .
+
+- If a name parameter is undefined, it is automatically generated.
+
+- \_id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is removed.
+
+- An update operation is not skipped even if no change occurred on a specified data.
+
+- This is an alias of GitDocumentDB\#rootCollection.putFatDoc()
+
 ## Exceptions
 
 [Err.InvalidJsonFileExtensionError](./git-documentdb.err.invalidjsonfileextensionerror.md)
@@ -49,16 +61,4 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 [Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md) (from putWorker)
 
 [Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md) (from putWorker)
-
-## Remarks
-
-- The saved file path is `${GitDocumentDB#workingDir}/${name}.json` .
-
-- If a name parameter is undefined, it is automatically generated.
-
-- \_id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is removed.
-
-- An update operation is not skipped even if no change occurred on a specified data.
-
-- This is an alias of GitDocumentDB\#rootCollection.putFatDoc()
 

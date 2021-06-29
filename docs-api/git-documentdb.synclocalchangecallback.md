@@ -15,5 +15,7 @@ Callback of 'localChange' event
 ```typescript
 export declare type SyncLocalChangeCallback = (changedFiles: ChangedFile[], taskMetadata: TaskMetadata) => void;
 ```
-<b>References:</b> [ChangedFile](./git-documentdb.changedfile.md) , [TaskMetadata](./git-documentdb.taskmetadata.md)
+<b>References:</b>
+
+[ChangedFile](./git-documentdb.changedfile.md) , [TaskMetadata](./git-documentdb.taskmetadata.md)
 

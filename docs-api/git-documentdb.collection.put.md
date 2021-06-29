@@ -27,6 +27,12 @@ put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
 Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
+## Remarks
+
+- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}${jsonDoc._id}.json` .
+
+- If \_id is undefined, it is automatically generated.
+
 ## Exceptions
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
@@ -46,10 +52,4 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 [Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md) (from putWorker)
 
 [Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md) (from putWorker)
-
-## Remarks
-
-- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}${jsonDoc._id}.json` .
-
-- If \_id is undefined, it is automatically generated.
 

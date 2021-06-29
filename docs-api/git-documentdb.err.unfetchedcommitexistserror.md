@@ -14,7 +14,9 @@ hide_title: true
 ```typescript
 export class UnfetchedCommitExistsError extends BaseError 
 ```
-<b>Extends:</b> BaseError
+<b>Extends:</b>
+
+BaseError
 
 ## Constructors
 

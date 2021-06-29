@@ -18,5 +18,7 @@ export declare type DuplicatedFile = {
     duplicate: DocMetadata;
 };
 ```
-<b>References:</b> [DocMetadata](./git-documentdb.docmetadata.md)
+<b>References:</b>
+
+[DocMetadata](./git-documentdb.docmetadata.md)
 

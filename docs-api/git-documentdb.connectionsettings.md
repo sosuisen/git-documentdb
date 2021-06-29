@@ -15,5 +15,7 @@ Connection settings for RemoteOptions
 ```typescript
 export declare type ConnectionSettings = ConnectionSettingsNone | ConnectionSettingsGitHub | ConnectionSettingsSSH;
 ```
-<b>References:</b> [ConnectionSettingsNone](./git-documentdb.connectionsettingsnone.md) , [ConnectionSettingsGitHub](./git-documentdb.connectionsettingsgithub.md) , [ConnectionSettingsSSH](./git-documentdb.connectionsettingsssh.md)
+<b>References:</b>
+
+[ConnectionSettingsNone](./git-documentdb.connectionsettingsnone.md) , [ConnectionSettingsGitHub](./git-documentdb.connectionsettingsgithub.md) , [ConnectionSettingsSSH](./git-documentdb.connectionsettingsssh.md)
 

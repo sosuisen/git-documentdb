@@ -27,6 +27,10 @@ delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
 Promise&lt;[DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md) &gt;
 
+## Remarks
+
+- This is an alias of GitDocumentDB\#rootCollection.delete()
+
 ## Exceptions
 
 [Err.UndefinedDocumentIdError](./git-documentdb.err.undefineddocumentiderror.md) (from Collection\#delete)
@@ -42,8 +46,4 @@ Promise&lt;[DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md) &gt;
 [Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md) (from deleteWorker)
 
 [Err.CannotDeleteDataError](./git-documentdb.err.cannotdeletedataerror.md) (from deleteWorker)
-
-## Remarks
-
-- This is an alias of GitDocumentDB\#rootCollection.delete()
 

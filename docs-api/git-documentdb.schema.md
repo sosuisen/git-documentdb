@@ -17,5 +17,7 @@ export declare type Schema = {
     json: JsonDiffOptions;
 };
 ```
-<b>References:</b> [JsonDiffOptions](./git-documentdb.jsondiffoptions.md)
+<b>References:</b>
+
+[JsonDiffOptions](./git-documentdb.jsondiffoptions.md)
 

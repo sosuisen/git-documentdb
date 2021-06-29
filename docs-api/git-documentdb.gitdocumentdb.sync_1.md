@@ -27,6 +27,10 @@ sync(options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]
 
 Promise&lt;\[[Sync](./git-documentdb.sync.md) , [SyncResult](./git-documentdb.syncresult.md) \]&gt;
 
+## Remarks
+
+Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
+
 ## Exceptions
 
 [Err.UndefinedRemoteURLError](./git-documentdb.err.undefinedremoteurlerror.md) (from Sync\#constructor())
@@ -40,8 +44,4 @@ Promise&lt;\[[Sync](./git-documentdb.sync.md) , [SyncResult](./git-documentdb.sy
 [Err.PushWorkerError](./git-documentdb.err.pushworkererror.md) (from Sync\#init())
 
 [Err.SyncWorkerError](./git-documentdb.err.syncworkererror.md) (from Sync\#init())
-
-## Remarks
-
-Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
 

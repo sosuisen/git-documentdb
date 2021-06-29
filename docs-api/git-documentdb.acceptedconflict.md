@@ -19,7 +19,9 @@ export declare type AcceptedConflict = {
     operation: WriteOperation;
 };
 ```
-<b>References:</b> [FatDoc](./git-documentdb.fatdoc.md) , [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md) , [WriteOperation](./git-documentdb.writeoperation.md)
+<b>References:</b>
+
+[FatDoc](./git-documentdb.fatdoc.md) , [ConflictResolutionStrategyLabels](./git-documentdb.conflictresolutionstrategylabels.md) , [WriteOperation](./git-documentdb.writeoperation.md)
 
 ## Remarks
 

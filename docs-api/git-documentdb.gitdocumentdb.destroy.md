@@ -28,14 +28,6 @@ destroy(options?: DatabaseCloseOption): Promise<{
 
 Promise&lt;{ ok: true; }&gt;
 
-## Exceptions
-
-[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
-
-[Err.DatabaseCloseTimeoutError](./git-documentdb.err.databaseclosetimeouterror.md)
-
-[Err.FileRemoveTimeoutError](./git-documentdb.err.fileremovetimeouterror.md)
-
 ## Remarks
 
 - [GitDocumentDB.close()](./git-documentdb.gitdocumentdb.close.md) is called automatically before destroying.
@@ -45,4 +37,12 @@ Promise&lt;{ ok: true; }&gt;
 - destroy() removes the Git repository and the working directory from the filesystem.
 
 - destroy() does not remove localDir (which is specified in constructor).
+
+## Exceptions
+
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
+
+[Err.DatabaseCloseTimeoutError](./git-documentdb.err.databaseclosetimeouterror.md)
+
+[Err.FileRemoveTimeoutError](./git-documentdb.err.fileremovetimeouterror.md)
 

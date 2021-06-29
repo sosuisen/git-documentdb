@@ -14,7 +14,9 @@ hide_title: true
 ```typescript
 export class UndefinedSyncError extends BaseError 
 ```
-<b>Extends:</b> BaseError
+<b>Extends:</b>
+
+BaseError
 
 ## Constructors
 

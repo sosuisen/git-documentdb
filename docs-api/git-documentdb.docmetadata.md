@@ -15,5 +15,7 @@ Union type of Document metadata
 ```typescript
 export declare type DocMetadata = JsonDocMetadata | TextDocMetadata | BinaryDocMetadata;
 ```
-<b>References:</b> [JsonDocMetadata](./git-documentdb.jsondocmetadata.md) , [TextDocMetadata](./git-documentdb.textdocmetadata.md) , [BinaryDocMetadata](./git-documentdb.binarydocmetadata.md)
+<b>References:</b>
+
+[JsonDocMetadata](./git-documentdb.jsondocmetadata.md) , [TextDocMetadata](./git-documentdb.textdocmetadata.md) , [BinaryDocMetadata](./git-documentdb.binarydocmetadata.md)
 

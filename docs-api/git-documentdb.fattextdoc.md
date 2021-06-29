@@ -17,5 +17,7 @@ export declare type FatTextDoc = TextDocMetadata & {
     doc: string;
 };
 ```
-<b>References:</b> [TextDocMetadata](./git-documentdb.textdocmetadata.md)
+<b>References:</b>
+
+[TextDocMetadata](./git-documentdb.textdocmetadata.md)
 

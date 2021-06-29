@@ -14,7 +14,9 @@ hide_title: true
 ```typescript
 export class InvalidDocTypeError extends BaseError 
 ```
-<b>Extends:</b> BaseError
+<b>Extends:</b>
+
+BaseError
 
 ## Constructors
 

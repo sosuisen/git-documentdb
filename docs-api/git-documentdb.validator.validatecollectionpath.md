@@ -26,12 +26,6 @@ validateCollectionPath(collectionPath: string): void;
 
 void
 
-## Exceptions
-
-[Err.InvalidCollectionPathCharacterError](./git-documentdb.err.invalidcollectionpathcharactererror.md)
-
-[Err.InvalidCollectionPathLengthError](./git-documentdb.err.invalidcollectionpathlengtherror.md)
-
 ## Remarks
 
 CollectionPath must be NULL string or paths that match the following conditions:
@@ -46,4 +40,10 @@ CollectionPath must be NULL string or paths that match the following conditions:
 - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
 
 ```
+
+## Exceptions
+
+[Err.InvalidCollectionPathCharacterError](./git-documentdb.err.invalidcollectionpathcharactererror.md)
+
+[Err.InvalidCollectionPathLengthError](./git-documentdb.err.invalidcollectionpathlengtherror.md)
 

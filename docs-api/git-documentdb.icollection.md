@@ -20,5 +20,7 @@ export declare type ICollection = CollectionInterface & CRUDInterface & SyncEven
     generateId(): string;
 };
 ```
-<b>References:</b> [CollectionInterface](./git-documentdb.collectioninterface.md) , [CRUDInterface](./git-documentdb.crudinterface.md) , [SyncEventInterface](./git-documentdb.synceventinterface.md) , [CollectionOptions](./git-documentdb.collectionoptions.md) , [ICollection](./git-documentdb.icollection.md)
+<b>References:</b>
+
+[CollectionInterface](./git-documentdb.collectioninterface.md) , [CRUDInterface](./git-documentdb.crudinterface.md) , [SyncEventInterface](./git-documentdb.synceventinterface.md) , [CollectionOptions](./git-documentdb.collectionoptions.md) , [ICollection](./git-documentdb.icollection.md)
 

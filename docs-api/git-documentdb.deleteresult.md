@@ -15,7 +15,9 @@ Result of delete()
 ```typescript
 export declare type DeleteResult = DeleteResultJsonDoc | DeleteResultText | DeleteResultBinary;
 ```
-<b>References:</b> [DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md) , [DeleteResultText](./git-documentdb.deleteresulttext.md) , [DeleteResultBinary](./git-documentdb.deleteresultbinary.md)
+<b>References:</b>
+
+[DeleteResultJsonDoc](./git-documentdb.deleteresultjsondoc.md) , [DeleteResultText](./git-documentdb.deleteresulttext.md) , [DeleteResultBinary](./git-documentdb.deleteresultbinary.md)
 
 ## Remarks
 

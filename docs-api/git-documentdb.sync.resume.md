@@ -29,11 +29,11 @@ resume(options?: {
 
 boolean
 
-## Exceptions
-
-[Err.IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md)
-
 ## Remarks
 
 Give new settings if needed.
+
+## Exceptions
+
+[Err.IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md)
 

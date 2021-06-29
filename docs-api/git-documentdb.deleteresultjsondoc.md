@@ -20,5 +20,7 @@ export declare type DeleteResultJsonDoc = {
     type: 'json';
 };
 ```
-<b>References:</b> [NormalizedCommit](./git-documentdb.normalizedcommit.md)
+<b>References:</b>
+
+[NormalizedCommit](./git-documentdb.normalizedcommit.md)
 

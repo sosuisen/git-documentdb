@@ -28,6 +28,10 @@ validateId(_id: string): void;
 
 void
 
+## Remarks
+
+Spec of \_id is described at [JsonDoc](./git-documentdb.jsondoc.md) .
+
 ## Exceptions
 
 [Err.InvalidIdCharacterError](./git-documentdb.err.invalididcharactererror.md)
@@ -37,8 +41,4 @@ void
 [Err.InvalidCollectionPathLengthError](./git-documentdb.err.invalidcollectionpathlengtherror.md)
 
 [Err.InvalidIdLengthError](./git-documentdb.err.invalididlengtherror.md)
-
-## Remarks
-
-Spec of \_id is described at [JsonDoc](./git-documentdb.jsondoc.md) .
 

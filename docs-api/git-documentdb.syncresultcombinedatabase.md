@@ -18,7 +18,9 @@ export declare type SyncResultCombineDatabase = {
     duplicates: DuplicatedFile[];
 };
 ```
-<b>References:</b> [DuplicatedFile](./git-documentdb.duplicatedfile.md)
+<b>References:</b>
+
+[DuplicatedFile](./git-documentdb.duplicatedfile.md)
 
 ## Remarks
 

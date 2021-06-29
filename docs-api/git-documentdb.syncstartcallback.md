@@ -15,5 +15,7 @@ Callback of 'start' event
 ```typescript
 export declare type SyncStartCallback = (taskMetadata: TaskMetadata, currentRetries: number) => void;
 ```
-<b>References:</b> [TaskMetadata](./git-documentdb.taskmetadata.md)
+<b>References:</b>
+
+[TaskMetadata](./git-documentdb.taskmetadata.md)
 

@@ -28,6 +28,16 @@ insert(shortId: string | undefined | null, jsonDoc: JsonDoc, options?: PutOption
 
 Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
+## Remarks
+
+- Throws SameIdExistsError when a document that has the same \_id exists. It might be better to use put() instead of insert().
+
+- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json` .
+
+- If shortId is undefined, it is automatically generated.
+
+- \_id property of a JsonDoc is automatically set or overwritten by shortId parameter.
+
 ## Exceptions
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
@@ -49,14 +59,4 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 [Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md) (from putWorker)
 
 [Err.SameIdExistsError](./git-documentdb.err.sameidexistserror.md) (from putWorker)
-
-## Remarks
-
-- Throws SameIdExistsError when a document that has the same \_id exists. It might be better to use put() instead of insert().
-
-- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json` .
-
-- If shortId is undefined, it is automatically generated.
-
-- \_id property of a JsonDoc is automatically set or overwritten by shortId parameter.
 

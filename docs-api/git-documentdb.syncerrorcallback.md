@@ -15,5 +15,7 @@ Callback of 'error' event
 ```typescript
 export declare type SyncErrorCallback = (error: Error, taskMetadata: TaskMetadata) => void;
 ```
-<b>References:</b> [TaskMetadata](./git-documentdb.taskmetadata.md)
+<b>References:</b>
+
+[TaskMetadata](./git-documentdb.taskmetadata.md)
 

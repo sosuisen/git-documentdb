@@ -26,7 +26,9 @@ export declare type RemoteOptions = {
     includeCommits?: boolean;
 };
 ```
-<b>References:</b> [SyncDirection](./git-documentdb.syncdirection.md) , [ConnectionSettings](./git-documentdb.connectionsettings.md) , [ConflictResolutionStrategies](./git-documentdb.conflictresolutionstrategies.md) , [CombineDbStrategies](./git-documentdb.combinedbstrategies.md)
+<b>References:</b>
+
+[SyncDirection](./git-documentdb.syncdirection.md) , [ConnectionSettings](./git-documentdb.connectionsettings.md) , [ConflictResolutionStrategies](./git-documentdb.conflictresolutionstrategies.md) , [CombineDbStrategies](./git-documentdb.combinedbstrategies.md)
 
 ## Remarks
 
