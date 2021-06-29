@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncResultFastForwardMerge type
 
-Fast-forward action occurred in synchronization.
+Synchronization invoked fast-forward merge.
 
 <b>Signature:</b>
 
@@ -29,5 +29,5 @@ export declare type SyncResultFastForwardMerge = {
 
 - commits are sorted from old to new.
 
-- commits.local: List of commits which has been pulled to local
+- commits.local: List of commits that had been pulled to local
 

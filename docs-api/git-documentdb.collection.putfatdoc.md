@@ -8,7 +8,7 @@ hide_title: true
 
 ## Collection.putFatDoc() method
 
-Insert a data if not exists. Otherwise, update it.
+Insert data if not exists. Otherwise, update it.
 
 <b>Signature:</b>
 

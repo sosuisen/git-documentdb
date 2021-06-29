@@ -26,7 +26,7 @@ getCollections(dirPath?: string): Promise<ICollection[]>;
 
 Promise&lt;[ICollection](./git-documentdb.icollection.md) \[\]&gt;
 
-Array of Collections which does not include ''
+Array of Collections which does not include ''.
 
 ## Exceptions
 

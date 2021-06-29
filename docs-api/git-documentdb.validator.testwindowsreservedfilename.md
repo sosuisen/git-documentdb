@@ -8,7 +8,7 @@ hide_title: true
 
 ## Validator.testWindowsReservedFileName() method
 
-Return false if given name equals Windows reserved filename
+Return false if the given name equals Windows reserved filename
 
 <b>Signature:</b>
 

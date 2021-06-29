@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncStartCallback type
 
-Callback of start event
+Callback of 'start' event
 
 <b>Signature:</b>
 

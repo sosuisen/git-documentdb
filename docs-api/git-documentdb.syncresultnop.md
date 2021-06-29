@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncResultNop type
 
-No action occurs in synchronization.
+Synchronization did nothing.
 
 <b>Signature:</b>
 

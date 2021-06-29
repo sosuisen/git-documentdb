@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncChangeCallback type
 
-Callback of change event
+Callback of 'change' event
 
 <b>Signature:</b>
 

@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.saveAppInfo() method
 
-Save app specific info into .gitddb/app.json
+Save app-specific info into .gitddb/app.json
 
 <b>Signature:</b>
 

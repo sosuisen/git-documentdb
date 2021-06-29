@@ -35,7 +35,7 @@ const gitDDB = new GitDocumentDB({ db_name: 'db01' });
 gitDDB.put({ _id: 'Nara/flower', name: 'cherry blossoms' });
 gitDDB.collection('Nara').put({ _id: 'flower', name: 'cherry blossoms' })
 
-// Notice that APIs return different _id values in spite of the same source file.
+// Notice that APIs return different _id values despite the same source file.
 gitDDB.get({ _id: 'Nara/flower' }); // returns { _id: 'Nara/flower', name: 'cherry blossoms' }.
 gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', name: 'cherry blossoms' }.
 

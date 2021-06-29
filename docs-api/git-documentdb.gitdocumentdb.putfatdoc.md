@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.putFatDoc() method
 
-Insert a data if not exists. Otherwise, update it.
+Insert data if not exists. Otherwise, update it.
 
 <b>Signature:</b>
 
@@ -54,7 +54,7 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
 - The saved file path is `${GitDocumentDB#workingDir}/${name}.json` .
 
-- If name is undefined, it is automatically generated.
+- If a name parameter is undefined, it is automatically generated.
 
 - \_id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is removed.
 

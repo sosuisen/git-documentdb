@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncResumeCallback type
 
-Callback of resume event
+Callback of 'resume' event
 
 <b>Signature:</b>
 

@@ -38,7 +38,7 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
 ## Remarks
 
-- undefined if the document does not exists or the document is deleted.
+- undefined if a specified document does not exist or it is deleted.
 
 - This is an alias of GitDocumentDB\#rootCollection.getBackNumber()
 

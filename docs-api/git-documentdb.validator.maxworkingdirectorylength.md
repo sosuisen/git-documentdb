@@ -8,7 +8,7 @@ hide_title: true
 
 ## Validator.maxWorkingDirectoryLength() method
 
-Return max length of working directory path
+Return the max length of the working directory path
 
 <b>Signature:</b>
 

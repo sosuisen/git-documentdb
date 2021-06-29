@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.rootCollection property
 
-Default collection whose collectionPath is ''
+Default collection whose collectionPath is ''.
 
 <b>Signature:</b>
 

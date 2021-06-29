@@ -8,7 +8,7 @@ hide_title: true
 
 ## ChangedFileDelete type
 
-Deleted file in merge operation
+Deleted file in a merge operation
 
 <b>Signature:</b>
 

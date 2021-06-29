@@ -38,5 +38,5 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 
 ## Remarks
 
-- undefined if a document does not exists or a document is deleted. - See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions.
+- undefined if a specified document does not exists or it is deleted. - See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions.
 

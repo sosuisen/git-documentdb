@@ -8,7 +8,7 @@ hide_title: true
 
 ## Collection.options property
 
-Get clone of collection options
+Get a clone of collection options
 
 <b>Signature:</b>
 

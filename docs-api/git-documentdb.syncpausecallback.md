@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncPauseCallback type
 
-Callback of pause event
+Callback of 'pause' event
 
 <b>Signature:</b>
 

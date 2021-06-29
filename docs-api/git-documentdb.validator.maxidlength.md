@@ -8,7 +8,7 @@ hide_title: true
 
 ## Validator.maxIdLength() method
 
-Return max length of \_id
+Return the max length of \_id
 
 <b>Signature:</b>
 

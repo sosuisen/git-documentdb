@@ -8,7 +8,7 @@ hide_title: true
 
 ## Validator.normalizeCollectionPath() method
 
-Normalized collectionPath is '' or path strings that has a trailing slash and no heading slash. Root ('/') is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
+Normalized collectionPath is '' or path strings that have a trailing slash and no heading slash. Root ('/') is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
 
 <b>Signature:</b>
 

@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncCompleteCallback type
 
-Callback of compete event
+Callback of 'complete' event
 
 <b>Signature:</b>
 

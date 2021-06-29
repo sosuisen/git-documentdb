@@ -8,7 +8,7 @@ hide_title: true
 
 ## ChangedFileInsert type
 
-Inserted file in merge operation
+Inserted file in a merge operation
 
 <b>Signature:</b>
 

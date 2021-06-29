@@ -8,7 +8,7 @@ hide_title: true
 
 ## DocType type
 
-Doc type
+Type of document
 
 <b>Signature:</b>
 

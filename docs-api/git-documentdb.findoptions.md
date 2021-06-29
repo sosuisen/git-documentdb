@@ -24,9 +24,9 @@ export declare type FindOptions = {
 
 ## Remarks
 
-- descending: Sort \_id or name by descendant. Default is false (ascendant).
+- descending: Sort \_ids or names in descendant order. Default is false (ascending).
 
-- recursive: Get documents recursively from all sub directories. Default is true.
+- recursive: Get documents recursively from all subdirectories. Default is true.
 
 - prefix: Get documents whose \_ids or names start with the prefix.
 

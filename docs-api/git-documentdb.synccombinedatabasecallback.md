@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncCombineDatabaseCallback type
 
-Callback of combine event
+Callback of 'combine' event
 
 <b>Signature:</b>
 

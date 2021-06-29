@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncResult type
 
-Union type of results from trySync and tryPush
+Union type of results from trySync() and tryPush()
 
 <b>Signature:</b>
 

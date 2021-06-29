@@ -30,7 +30,7 @@ Promise&lt;([FatDoc](./git-documentdb.fatdoc.md) \| undefined)\[\]&gt;
 
 Array of FatDoc or undefined. - undefined if the document does not exists or the document is deleted.
 
-- Array of FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'. Be careful that JsonDoc may not have \_id property if it was not created by GitDocumentDB.
+- Array of FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'. Be careful that JsonDoc may not have \_id property when an app other than GitDocumentDB creates it.
 
 - Array of FatBinaryDoc if described in .gitattribtues, otherwise array of FatTextDoc.
 

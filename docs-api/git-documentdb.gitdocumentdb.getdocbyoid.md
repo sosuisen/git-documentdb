@@ -37,7 +37,7 @@ Promise&lt;[Doc](./git-documentdb.doc.md) \| undefined&gt;
 
 ## Remarks
 
-- undefined if not exists.
+- undefined if a specified oid does not exist.
 
 - This is an alias of GitDocumentDB\#rootCollection.getDocByOid()
 

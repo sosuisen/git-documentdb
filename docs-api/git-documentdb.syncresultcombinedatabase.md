@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncResultCombineDatabase type
 
-Combine action occurred in synchronization.
+Synchronization combined databases.
 
 <b>Signature:</b>
 

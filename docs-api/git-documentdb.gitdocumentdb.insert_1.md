@@ -52,7 +52,7 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 ## Remarks
 
-- Throws SameIdExistsError when a data which has the same id exists. It might be better to use put() instead of insert().
+- Throws SameIdExistsError when a document that has the same id exists. It might be better to use put() instead of insert().
 
 - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
 

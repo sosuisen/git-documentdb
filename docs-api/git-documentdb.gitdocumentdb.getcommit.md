@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.getCommit() method
 
-Get commit object
+Get a commit object
 
 <b>Signature:</b>
 

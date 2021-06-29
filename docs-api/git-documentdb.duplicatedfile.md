@@ -8,7 +8,7 @@ hide_title: true
 
 ## DuplicatedFile type
 
-Duplicated file in combine operation
+Duplicated file in combining operation
 
 <b>Signature:</b>
 

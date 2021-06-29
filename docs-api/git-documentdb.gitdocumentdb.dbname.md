@@ -8,7 +8,7 @@ hide_title: true
 
 ## GitDocumentDB.dbName property
 
-A name of a git repository
+A name of a Git repository
 
 <b>Signature:</b>
 

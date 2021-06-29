@@ -44,7 +44,7 @@ export declare type RemoteOptions = {
 
 - interval: Synchronization interval (milliseconds)
 
-- retry: Number of network retries. Retry does not occurred if retry is 0.
+- retry: Number of network retries. Retry does not occur if retry is 0.
 
 - retryInterval: Retry interval (milliseconds)
 

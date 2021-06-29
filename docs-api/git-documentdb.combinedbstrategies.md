@@ -8,7 +8,7 @@ hide_title: true
 
 ## CombineDbStrategies type
 
-Behavior when combine inconsistent DBs
+Behavior when combining inconsistent DBs
 
 Default is 'combine-head-with-theirs'.
 

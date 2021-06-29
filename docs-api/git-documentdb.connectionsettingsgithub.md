@@ -24,5 +24,5 @@ export declare type ConnectionSettingsGitHub = {
 
 - personalAccessToken: See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
-- private: Whether automatically created repository is private or not. Default is true.
+- private: Whether the automatically created repository is private or not. Default is true.
 

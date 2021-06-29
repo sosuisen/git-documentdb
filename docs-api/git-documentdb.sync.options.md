@@ -8,7 +8,7 @@ hide_title: true
 
 ## Sync.options property
 
-Get clone of remote options
+Get a clone of remote options
 
 <b>Signature:</b>
 

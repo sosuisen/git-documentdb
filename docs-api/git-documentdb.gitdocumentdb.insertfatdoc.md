@@ -52,11 +52,11 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
 ## Remarks
 
-- Throws SameIdExistsError when a data which has the same \_id exists. It might be better to use put() instead of insert().
+- Throws SameIdExistsError when data that has the same \_id exists. It might be better to use put() instead of insert().
 
 - The saved file path is `${GitDocumentDB#workingDir}/${name}.json` .
 
-- If name is undefined, it is automatically generated.
+- If a name parameter is undefined, it is automatically generated.
 
 - \_id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is omitted.
 

@@ -38,5 +38,5 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md) &gt;
 
 ## Remarks
 
-Call init() once just after creating instance.
+Call init() once just after creating an instance.
 

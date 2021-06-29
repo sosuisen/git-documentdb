@@ -20,11 +20,11 @@ export declare type JsonDoc = {
 
 ## Remarks
 
-A JSON document must be an JavaScript object that matches the following conditions:
+A JSON document must be a JavaScript object that matches the following conditions:
 
 ```
 - It must have an '_id' key that shows the unique identifier of a document
-- _id allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \0
+- _id allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \0
 - _id is better to be ASCII characters and a case-insensitive name for cross-platform.
 - _id cannot start or end with a slash.
 - _id can include paths separated by slashes.

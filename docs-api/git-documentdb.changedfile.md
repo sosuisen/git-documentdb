@@ -8,7 +8,7 @@ hide_title: true
 
 ## ChangedFile type
 
-Union type of changed files in merge operation
+Union type of changed files in a merge operation
 
 <b>Signature:</b>
 

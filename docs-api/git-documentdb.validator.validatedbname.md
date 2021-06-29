@@ -34,9 +34,8 @@ void
 
 
 ```
-- dbName allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " ¥ / \\ | ? * \\0
+- dbName allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " ¥ / \\ | ? * \\0
 - dbName cannot end with a period or a white space.
 - dbName does not allow '.' and '..'.
-
 ```
 

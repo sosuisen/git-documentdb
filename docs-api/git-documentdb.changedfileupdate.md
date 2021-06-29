@@ -8,7 +8,7 @@ hide_title: true
 
 ## ChangedFileUpdate type
 
-Updated file in merge operation
+Updated file in a merge operation
 
 <b>Signature:</b>
 

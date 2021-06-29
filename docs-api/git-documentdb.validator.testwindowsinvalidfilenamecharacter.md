@@ -8,7 +8,7 @@ hide_title: true
 
 ## Validator.testWindowsInvalidFileNameCharacter() method
 
-Return false if given name includes Windows invalid filename character
+Return false if the given name includes Windows invalid filename character
 
 <b>Signature:</b>
 

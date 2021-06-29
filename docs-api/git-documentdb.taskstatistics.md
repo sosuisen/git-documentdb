@@ -26,5 +26,5 @@ export declare type TaskStatistics = {
 
 ## Remarks
 
-The statistics is on memory and not persistent. It is cleared by GitDocumentDB\#close().
+The statistics are on memory and not persistent. They are cleared by GitDocumentDB\#close().
 

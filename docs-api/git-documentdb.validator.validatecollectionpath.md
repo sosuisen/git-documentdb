@@ -38,12 +38,11 @@ CollectionPath must be NULL string or paths that match the following conditions:
 
 ```
 - CollectionPath can include paths separated by slashes.
-- A directory name in paths allows Unicode characters excluding OS reserved filenames and following characters: \< \> : " | ? * \\0
+- A directory name in paths allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \\0
 - **It is recommended to use ASCII characters and case-insensitive names for cross-platform.**
 - A directory name in paths cannot end with a period or a white space.
 - A directory name in paths does not allow '.' and '..'.
 - CollectionPath cannot start with a slash.
 - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
-
 ```
 

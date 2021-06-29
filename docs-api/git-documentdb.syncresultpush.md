@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncResultPush type
 
-Push action occurred in synchronization.
+Synchronization pushed commits.
 
 <b>Signature:</b>
 
@@ -29,5 +29,5 @@ export declare type SyncResultPush = {
 
 - commits are sorted from old to new.
 
-- commits.remote: List of commits which has been pushed to remote
+- commits.remote: List of commits that had been pushed to remote
 

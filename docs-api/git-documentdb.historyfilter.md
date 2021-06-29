@@ -8,7 +8,7 @@ hide_title: true
 
 ## HistoryFilter type
 
-HistoryFilter
+Filter for file history
 
 <b>Signature:</b>
 

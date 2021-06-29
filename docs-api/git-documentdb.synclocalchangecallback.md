@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncLocalChangeCallback type
 
-Callback of localChange event
+Callback of 'localChange' event
 
 <b>Signature:</b>
 

@@ -27,9 +27,9 @@ collection(collectionPath: CollectionPath, options?: CollectionOptions): ICollec
 
 [ICollection](./git-documentdb.icollection.md)
 
-A child collection of this collection.
+A child collection of this collection
 
 ## Remarks
 
-- Notice that this function just read existing directory. It does not make a new sub-directory.
+- Notice that this function just read an existing directory. It does not make a new sub-directory.
 

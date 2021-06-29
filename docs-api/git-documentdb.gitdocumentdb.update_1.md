@@ -52,7 +52,7 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 ## Remarks
 
-- Throws DocumentNotFoundError if the data does not exist. It might be better to use put() instead of update().
+- Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
 
 - The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
 

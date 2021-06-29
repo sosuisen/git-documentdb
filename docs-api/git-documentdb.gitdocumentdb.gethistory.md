@@ -27,7 +27,7 @@ getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | und
 
 Promise&lt;([JsonDoc](./git-documentdb.jsondoc.md) \| undefined)\[\]&gt;
 
-Array of FatDoc or undefined. - undefined if the document does not exists or the document is deleted.
+Array of FatDoc or undefined. - undefined if a specified document does not exist or it is deleted.
 
 - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
 
@@ -51,28 +51,31 @@ Array of FatDoc or undefined. - undefined if the document does not exists or the
 
 ## Example
 
-
 ```
-commit 01 to 07 were committed in order. file_v1 and file_v2 are two revisions of a file.
+Commit-01 to 08 were committed in order. file_v1 and file_v2 are two revisions of a file.
 
-commit 07: not exists
-commit 06: deleted
-commit 05: file_v2
-commit 04: deleted
-commit 03: file_v2
-commit 02: file_v1
-commit 01: file_v1
+- Commit-08: Not exists
+- Commit-07: deleted
+- Commit-06: file_v2
+- Commit-05: deleted
+- Commit-04: file_v2
+- Commit-03: file_v1
+- Commit-02: file_v1
+- Commit-01: Not exists
 
-file_v1 was newly inserted in 01.
-The file was not changed in 02.
-The file was updated to file_v2 in 03
-The file was deleted in 04.
-The same file (file_v2) was inserted again in 05.
-The file was deleted again in 06, so the file does not exist in 07.
+Commit-02 newly inserted a file (file_v1).
+Commit-03 did not change about the file.
+Commit-04 updated the file from file_v1 to file_v2.
+Commit-05 deleted the file.
+Commit-06 inserted the deleted file (file_v2) again.
+Commit-07 deleted the file again.
+Commit-08 did not change about the file.
 
-Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1].
-Be careful that consecutive values are combined into one.
-(Thus, it will not return [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1].)
+Here, getHistory() will return [undefined, file_v2, undefined, file_v2, file_v1] as a history.
 
+NOTE:
+- Consecutive same values (commit-02 and commit-03) are combined into one.
+- getHistory() ignores commit-01 because it was committed before the first insert.
+Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
 ```
 

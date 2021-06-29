@@ -8,7 +8,7 @@ hide_title: true
 
 ## Collection.collectionPath property
 
-Normalized path of collection
+Normalized path of a collection
 
 <b>Signature:</b>
 
@@ -18,5 +18,5 @@ get collectionPath(): string;
 
 ## Remarks
 
-'' or path strings that has a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
+collectionPath is '' or path strings that have a trailing slash and no heading slash. '/' is not allowed. Backslash \\ or yen ¥ is replaced with slash /.
 

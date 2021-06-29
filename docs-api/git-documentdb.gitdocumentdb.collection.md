@@ -31,5 +31,5 @@ A child collection of [GitDocumentDB.rootCollection](./git-documentdb.gitdocumen
 
 ## Remarks
 
-- Notice that this function just read existing directory. It does not make a new sub-directory.
+- Notice that this function just read an existing directory. It does not make a new sub-directory.
 

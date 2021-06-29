@@ -8,7 +8,7 @@ hide_title: true
 
 ## DatabaseCloseOption type
 
-How to close database
+How to close a database
 
 <b>Signature:</b>
 

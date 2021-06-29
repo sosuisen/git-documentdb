@@ -8,7 +8,7 @@ hide_title: true
 
 ## Validator.maxCollectionPathLength() method
 
-Return max length of collectionPath
+Return the max length of collectionPath
 
 <b>Signature:</b>
 

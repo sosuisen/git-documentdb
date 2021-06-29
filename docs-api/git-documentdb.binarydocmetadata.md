@@ -26,5 +26,5 @@ export declare type BinaryDocMetadata = {
 
 - fileOid: SHA-1 hash of Git object (40 characters)
 
-- type: type shows a DocType. type of BinaryDocMetadata is fixed to 'binary'.
+- type: type shows a DocType. The type of BinaryDocMetadata is fixed to 'binary'.
 

@@ -8,7 +8,7 @@ hide_title: true
 
 ## SyncRemoteChangeCallback type
 
-Callback of remoteChange event
+Callback of 'remoteChange' event
 
 <b>Signature:</b>
 
