@@ -42,9 +42,9 @@
   },
   "homepage": "https://github.com/sosuisen/git-documentdb#readme",
   "devDependencies": {
-    "@sosuisen/api-documenter": "^7.13.24",
     "@microsoft/api-extractor": "^7.16.0",
     "@octokit/types": "^6.12.2",
+    "@sosuisen/api-documenter": "^7.13.25",    
     "@types/expect": "^24.3.0",
     "@types/fs-extra": "^9.0.6",
     "@types/mocha": "^8.2.2",
