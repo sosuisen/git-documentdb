@@ -88,16 +88,7 @@ const collection_example = async () => {
   console.log(`\n_id of the JSON document is automatically generated with a specified prefix.`);
   console.log(pencil);
   // log: { name: 'pencil', _id: 'item_XXXXXXXXXXXXXXXXXXXXXXXXXX' }
-
-  // Add a prefix to a new root collection whose collectionPath is ''.
-  const myCollection = new Collection(gitDDB, '', undefined, { namePrefix: 'fruit_' });
-  // '/your/path/to/the/example/git-documentdb/db_collection/item_XXXXXXXXXXXXXXXXXXXXXXXXXX.json' is created.
-  const durianResult = await myCollection.put({ name: 'durian' });
-  const durian = await gitDDB.get(durianResult._id);
-  console.log(`\nJSON document is created under the working directory with a specified prefix`);
-  console.log(durian);
-  // log: { name: 'durian', _id: 'fruit_XXXXXXXXXXXXXXXXXXXXXXXXXX' }
-   
+  
   await gitDDB.close();
 };
 collection_example();

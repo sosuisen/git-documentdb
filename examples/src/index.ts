@@ -9,7 +9,7 @@
 import { DEFAULT_SYNC_INTERVAL, GitDocumentDB, Err, Sync, Collection } from 'git-documentdb';
 
 const gitddb_example = async () => {
-  let gitDDB = new GitDocumentDB({
+  const gitDDB = new GitDocumentDB({
     dbName: 'db01', // Git working directory
   });
 
@@ -65,12 +65,26 @@ const gitddb_example = async () => {
   /**
    * Use an auto-generated _id
    */
-   const appleResult = await gitDDB.put({ name: 'apple' }); // _id does not exist.
-   const apple = await gitDDB.get(appleResult._id);
-   console.log(`\n_id of the JSON document is automatically generated`);
-   console.log(apple);
-   // log: { name: 'apple', _id: 'XXXXXXXXXXXXXXXXXXXXXXXXXX' }
- 
+  const appleResult = await gitDDB.put({ name: 'apple' }); // _id does not exist.
+  const apple = await gitDDB.get(appleResult._id);
+  console.log(`\n_id of the JSON document is automatically generated`);
+  console.log(apple);
+  // log: { name: 'apple', _id: 'XXXXXXXXXXXXXXXXXXXXXXXXXX' }
+
+  /**
+   * Set namePrefix to add a prefix to an auto-generated _id
+   */
+  const gitDDBPrefix = new GitDocumentDB({
+    dbName: 'db_prefix',
+    namePrefix: 'fruit_',
+  });
+  await gitDDBPrefix.open();
+  const fruitAppleResult = await gitDDBPrefix.put({ name: 'apple' });
+  const fruitApple = await gitDDBPrefix.get(fruitAppleResult._id);
+  console.log(fruitApple);
+  // log: { name: 'apple', _id: 'fruit_XXXXXXXXXXXXXXXXXXXXXXXXXX' }
+
+
   /**
    * Revisions 
    * 
@@ -102,7 +116,7 @@ const gitddb_example = async () => {
    *  - GITDDB_PERSONAL_ACCESS_TOKEN
    *      A personal access token of your GitHub account
    */
-   if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example.git';
+  if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example.git';
   if (process.env.GITDDB_PERSONAL_ACCESS_TOKEN) your_github_personal_access_token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN;
 
   let sync: Sync | undefined;
@@ -164,13 +178,14 @@ const gitddb_example = async () => {
     ]
   */
 
-  if (sync) {
+  if (sync !== undefined) {
     console.log('\n# Sync immediately..');
-    await sync.trySync(); 
+    await sync.trySync();
   }
   console.log('\n# All the local documents are pushed to the remote repository.');
 
   // Close database
   await gitDDB.close();
+  await gitDDBPrefix.close();
 };
 gitddb_example();
