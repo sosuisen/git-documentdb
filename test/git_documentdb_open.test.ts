@@ -217,11 +217,11 @@ describe('<git_documentdb>', () => {
         isCreatedByGitDDB: true,
         isValidVersion: true,
       });
-      expect(gitDDB.isOpened()).toBeTruthy();
+      expect(gitDDB.isOpened).toBeTruthy();
 
       // Destroy() closes db automatically
       await expect(gitDDB.destroy()).resolves.toEqual({ ok: true });
-      expect(gitDDB.isOpened()).toBeFalsy();
+      expect(gitDDB.isOpened).toBeFalsy();
     });
 
     it('opens a repository created by another app.', async () => {

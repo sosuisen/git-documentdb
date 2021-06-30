@@ -48,7 +48,7 @@ export async function getImpl (
     throw new Err.DatabaseClosingError();
   }
 
-  if (!gitDDB.isOpened()) {
+  if (!gitDDB.isOpened) {
     throw new Err.RepositoryNotOpenError();
   }
 

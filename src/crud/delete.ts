@@ -94,7 +94,7 @@ export async function deleteWorker (
     throw new Err.UndefinedDBError();
   }
 
-  if (!gitDDB.isOpened()) {
+  if (!gitDDB.isOpened) {
     throw new Err.RepositoryNotOpenError();
   }
 

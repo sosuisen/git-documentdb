@@ -656,7 +656,7 @@ export interface GitDDBInterface {
     // (undocumented)
     isClosing: boolean;
     // (undocumented)
-    isOpened(): boolean;
+    isOpened: boolean;
     // (undocumented)
     loadAppInfo(): {
         [key: string]: any;
@@ -738,7 +738,7 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     insert(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     insertFatDoc(name: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
     get isClosing(): boolean;
-    isOpened(): boolean;
+    get isOpened(): boolean;
     loadAppInfo(): Promise<JsonDoc | undefined>;
     loadAuthor(): Promise<void>;
     // @internal

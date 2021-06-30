@@ -1,21 +1,17 @@
 ---
-sidebar_label: isOpened()
-title: GitDocumentDB.isOpened() method
+sidebar_label: isOpened
+title: GitDocumentDB.isOpened property
 hide_title: true
 ---
 
 [Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [GitDocumentDB](./git-documentdb.gitdocumentdb.md) &gt; [isOpened](./git-documentdb.gitdocumentdb.isopened.md)
 
-## GitDocumentDB.isOpened() method
+## GitDocumentDB.isOpened property
 
 Test if a database is opened
 
 <b>Signature:</b>
 
 ```typescript
-isOpened(): boolean;
+get isOpened(): boolean;
 ```
-<b>Returns:</b>
-
-boolean
-

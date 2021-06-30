@@ -26,6 +26,7 @@ export interface GitDDBInterface
 |  [dbName](./git-documentdb.gitddbinterface.dbname.md) | string |  |
 |  [defaultBranch](./git-documentdb.gitddbinterface.defaultbranch.md) | string | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties (readonly) \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 |  [isClosing](./git-documentdb.gitddbinterface.isclosing.md) | boolean |  |
+|  [isOpened](./git-documentdb.gitddbinterface.isopened.md) | boolean |  |
 |  [localDir](./git-documentdb.gitddbinterface.localdir.md) | string |  |
 |  [logger](./git-documentdb.gitddbinterface.logger.md) | Logger |  |
 |  [logLevel](./git-documentdb.gitddbinterface.loglevel.md) | TLogLevelName | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
@@ -44,7 +45,6 @@ export interface GitDDBInterface
 |  [getCommit(oid)](./git-documentdb.gitddbinterface.getcommit.md) |  |
 |  [getRemoteURLs()](./git-documentdb.gitddbinterface.getremoteurls.md) |  |
 |  [getSync(remoteURL)](./git-documentdb.gitddbinterface.getsync.md) |  |
-|  [isOpened()](./git-documentdb.gitddbinterface.isopened.md) |  |
 |  [loadAppInfo()](./git-documentdb.gitddbinterface.loadappinfo.md) |  |
 |  [loadAuthor()](./git-documentdb.gitddbinterface.loadauthor.md) |  |
 |  [loadDbInfo()](./git-documentdb.gitddbinterface.loaddbinfo.md) |  |

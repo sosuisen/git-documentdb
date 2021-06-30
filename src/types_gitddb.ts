@@ -34,6 +34,7 @@ export interface GitDDBInterface {
   defaultBranch: string;
   localDir: string;
   dbName: string;
+  isOpened: boolean;
   workingDir: string;
   dbId: string;
   logger: Logger;
@@ -65,7 +66,6 @@ export interface GitDDBInterface {
   open(options?: OpenOptions): Promise<DatabaseOpenResult>;
   close(options?: DatabaseCloseOption): Promise<void>;
   destroy(options: DatabaseCloseOption): Promise<{ ok: true }>;
-  isOpened(): boolean;
 
   // Sync
   getRemoteURLs(): string[];

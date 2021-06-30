@@ -34,7 +34,7 @@ export async function getHistoryImpl (
     throw new Err.DatabaseClosingError();
   }
 
-  if (!gitDDB.isOpened()) {
+  if (!gitDDB.isOpened) {
     throw new Err.RepositoryNotOpenError();
   }
 

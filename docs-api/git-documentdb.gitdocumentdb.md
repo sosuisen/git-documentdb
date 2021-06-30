@@ -39,6 +39,7 @@ Call open() before using DB.
 |  [dbName](./git-documentdb.gitdocumentdb.dbname.md) |  | string | A name of a Git repository |
 |  [defaultBranch](./git-documentdb.gitdocumentdb.defaultbranch.md) |  | (not declared) | Default Git branch |
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | DB is going to close |
+|  [isOpened](./git-documentdb.gitdocumentdb.isopened.md) |  | boolean | Test if a database is opened |
 |  [localDir](./git-documentdb.gitdocumentdb.localdir.md) |  | string | A local directory path that stores repositories of GitDocumentDB |
 |  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | Get logger |
 |  [logLevel](./git-documentdb.gitdocumentdb.loglevel.md) |  | TLogLevelName | logLevel ('silly' \| 'trace' \| 'debug' \| 'info' \| 'warn' \| 'error' \| 'fatal') |
@@ -74,7 +75,6 @@ Call open() before using DB.
 |  [insert(jsonDoc, options)](./git-documentdb.gitdocumentdb.insert.md) |  | Insert a JSON document |
 |  [insert(\_id, jsonDoc, options)](./git-documentdb.gitdocumentdb.insert_1.md) |  | Insert a JSON document |
 |  [insertFatDoc(name, doc, options)](./git-documentdb.gitdocumentdb.insertfatdoc.md) |  | Insert a data |
-|  [isOpened()](./git-documentdb.gitdocumentdb.isopened.md) |  | Test if a database is opened |
 |  [loadAppInfo()](./git-documentdb.gitdocumentdb.loadappinfo.md) |  | Load app-specific info from .gitddb/app.json |
 |  [loadAuthor()](./git-documentdb.gitdocumentdb.loadauthor.md) |  | Load author from .git/config |
 |  [offSyncEvent(remoteURL, event, callback)](./git-documentdb.gitdocumentdb.offsyncevent.md) |  | Remove SyncEvent handler |

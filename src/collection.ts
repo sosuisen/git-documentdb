@@ -193,7 +193,7 @@ export class Collection implements ICollection {
    * @public
    */
   async getCollections (dirPath = ''): Promise<ICollection[]> {
-    if (!this._gitDDB.isOpened()) {
+    if (!this._gitDDB.isOpened) {
       throw new Err.RepositoryNotOpenError();
     }
     dirPath = Validator.normalizeCollectionPath(this.collectionPath + dirPath);

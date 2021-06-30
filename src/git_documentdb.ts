@@ -416,7 +416,7 @@ export class GitDocumentDB
     if (this.isClosing) {
       throw new Err.DatabaseClosingError();
     }
-    if (this.isOpened()) {
+    if (this.isOpened) {
       this._dbOpenResult.isNew = false;
       return this._dbOpenResult;
     }
@@ -595,7 +595,7 @@ export class GitDocumentDB
    *
    * @public
    */
-  isOpened () {
+  get isOpened (): boolean {
     return this._currentRepository !== undefined;
   }
 

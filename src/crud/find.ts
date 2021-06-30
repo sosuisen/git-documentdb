@@ -42,7 +42,7 @@ export async function findImpl (
     return Promise.reject(new Err.DatabaseClosingError());
   }
 
-  if (!gitDDB.isOpened()) {
+  if (!gitDDB.isOpened) {
     return Promise.reject(new Err.RepositoryNotOpenError());
   }
 

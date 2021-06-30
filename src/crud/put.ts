@@ -111,7 +111,7 @@ export async function putWorker (
     throw new Err.UndefinedDBError();
   }
 
-  if (!gitDDB.isOpened()) {
+  if (!gitDDB.isOpened) {
     throw new Err.RepositoryNotOpenError();
   }
   const fullDocPath = collectionPath + shortName;
