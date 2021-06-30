@@ -659,10 +659,13 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
         },
       });
       // eslint-disable-next-line dot-notation
-      await expect(remoteRepos['_checkPush'](remote, cred)).rejects.toThrowError(
+      const error = await remoteRepos['_checkPush'](remote, cred).catch(err => err);
+      if (error instanceof Err.PushConnectionFailedError) {
         // Notice that it sometimes throw Err.RemoteRepositoryNotFoundError
-        Err.PushPermissionDeniedError
-      );
+      }
+      else {
+        expect(error).toBeInstanceOf(Err.RemoteRepositoryNotFoundError);
+      }
 
       destroyDBs([gitDDB]);
     });

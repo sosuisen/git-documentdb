@@ -1,8 +1,8 @@
 <img alt="GitDocumentDB" src="https://github.com/sosuisen/git-documentdb/blob/main/assets/git-documentdb_icon-128x128.png" width=60 height=60 align="left"> 
 
 # [GitDocumentDB](https://gitddb.com)
- [![npm version](https://badge.fury.io/js/git-documentdb.svg)](https://badge.fury.io/js/git-documentdb)
- [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](LICENSE)
+ [![npm version](https://img.shields.io/npm/v/git-documentdb)](https://badge.fury.io/js/git-documentdb)
+ [![License: MPL 2.0](https://img.shields.io/github/license/sosuisen/git-documentdb)](LICENSE)
  [![Coverage Status](https://coveralls.io/repos/github/sosuisen/git-documentdb/badge.svg?branch=main)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
 Offline-first DocumentDB that Syncs with Git
