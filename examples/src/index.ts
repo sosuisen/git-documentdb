@@ -19,7 +19,7 @@ const gitddb_example = async () => {
    * Open or create a Git repository.
    * Git working directory is '/your/path/to/the/example/git-documentdb/db01/.git'.
    */
-  await gitDDB.open(); 
+  await gitDDB.open();
 
   /**
    * Create a document
@@ -80,7 +80,7 @@ const gitddb_example = async () => {
    * #1: 'double cherry blossoms'
    * #2: 'cherry blossoms'
    */
-  const oldDoc = await gitDDB.getOldRevision('nara', 2); 
+  const oldDoc = await gitDDB.getOldRevision('nara', 2);
 
   console.log(`\n$ gitDDB.get('nara', 2) # Get a document two revisions older than the latest.`);
   console.log(oldDoc);
@@ -132,7 +132,6 @@ const gitddb_example = async () => {
             └── mt_yoshino.json
 
   */
-  // Create documents by using filepath.
   await gitDDB.put({ _id: 'nara/nara_park', flower: 'double cherry blossoms' });
   await gitDDB.put({ _id: 'nara/tsukigase', flower: 'Japanese apricot' });
   await gitDDB.put({ _id: 'yoshino/mt_yoshino', flower: 'awesome cherry blossoms' });

@@ -44,7 +44,7 @@ const collection_example = async () => {
   const flowersInNaraCollection = await nara.find();
 
   console.log(`\n$ nara.find() # Search all`);
-  console.dir(flowersInNaraCollection, { depth: 3 });
+  console.log(flowersInNaraCollection);
   /* log: 
     [
       { flower: 'double cherry blossoms', _id: 'nara_park' },
