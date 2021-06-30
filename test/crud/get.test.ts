@@ -173,7 +173,7 @@ describe('<crud/get> getImpl()', () => {
     });
     await git.init({ fs, dir: gitDDB.workingDir });
     const stubIsOpened = sandbox.stub(gitDDB, 'isOpened');
-    stubIsOpened.returns(true);
+    stubIsOpened.value(true);
 
     const shortName = 'prof01.json';
     const collectionPath = '';
