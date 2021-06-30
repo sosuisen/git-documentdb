@@ -1,7 +1,7 @@
 <img alt="GitDocumentDB" src="https://github.com/sosuisen/git-documentdb/blob/main/assets/git-documentdb_icon-128x128.png" width=60 height=60 align="left"> 
 
 # [GitDocumentDB](https://gitddb.com)
- [![npm version](https://img.shields.io/npm/v/git-documentdb)](https://badge.fury.io/js/git-documentdb)
+ [![npm version](https://img.shields.io/npm/v/git-documentdb)](https://www.npmjs.com/package/git-documentdb)
  [![License: MPL 2.0](https://img.shields.io/github/license/sosuisen/git-documentdb)](LICENSE)
  [![Coverage Status](https://img.shields.io/coveralls/github/sosuisen/git-documentdb)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
