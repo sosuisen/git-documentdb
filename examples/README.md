@@ -1,17 +1,24 @@
 # Examples
-Install
+
+Firstly, you must build git-documentdb in the project root directory.
 ```
+$ npm run build
+```
+
+After that, cd to examples/ directory.
+```
+$ cd examples
 $ npm i
 ```
-Basic operations (src/index.ts)
+Start an example for basic operations.
 ```
 $ npm start
 ```
-Collection (src/collection.ts)
+Start an example for Collection.
 ```
 $ npm run collection
 ```
-Synchronization (src/sync.ts)
+Start an example for Synchronization.
 ```
 $ npm run sync
 ```

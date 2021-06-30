@@ -165,7 +165,7 @@ const gitDDB = new GitDocumentDB({
    * Read all the documents whose IDs start with the prefix.
    */ 
   const flowersInNara = await gitDDB.find({ prefix: 'nara/' });
-  console.dir(flowersInNara, { depth: 3 });
+  console.log(flowersInNara);
   /* log:
     [
       { flower: 'double cherry blossoms', _id: 'nara/nara_park' },
@@ -210,6 +210,7 @@ const gitDDB = new GitDocumentDB({
 # Examples:
 See [examples]((https://github.com/sosuisen/git-documentdb/blob/main/examples/)) directory.
 ```
+$ npm run build
 $ cd examples
 $ npm i
 $ npm start
