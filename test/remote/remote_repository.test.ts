@@ -626,7 +626,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       destroyDBs([gitDDB]);
     });
 
-    it('throws RemoteRepositoryNotFoundError when personalAccessToken is invalid', async () => {
+    it('throws PushPermissionDeniedError when personalAccessToken is invalid', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = monoId();
       const gitDDB = new GitDocumentDB({
@@ -660,8 +660,8 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       });
       // eslint-disable-next-line dot-notation
       await expect(remoteRepos['_checkPush'](remote, cred)).rejects.toThrowError(
-        // Err.PushPermissionDeniedError
-        Err.RemoteRepositoryNotFoundError
+        // Notice that it sometimes throw Err.RemoteRepositoryNotFoundError
+        Err.PushPermissionDeniedError
       );
 
       destroyDBs([gitDDB]);
