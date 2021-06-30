@@ -57,7 +57,7 @@ const sync_example = async () => {
   /**
    * Open a local repository, or create it if it does not exist.
    */
-  await dbA.open();  
+  await dbA.open();
 
   // Set options for synchronization
   const remoteOptions: RemoteOptions = {

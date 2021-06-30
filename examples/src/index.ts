@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { DEFAULT_SYNC_INTERVAL, GitDocumentDB, Err, Sync } from 'git-documentdb';
+import { DEFAULT_SYNC_INTERVAL, GitDocumentDB, Err, Sync, Collection } from 'git-documentdb';
 
 const gitddb_example = async () => {
   let gitDDB = new GitDocumentDB({
@@ -62,6 +62,15 @@ const gitddb_example = async () => {
   console.log(await gitDDB.get('nara'));
   // log: undefined
   
+  /**
+   * Use an auto-generated _id
+   */
+   const appleResult = await gitDDB.put({ name: 'apple' }); // _id does not exist.
+   const apple = await gitDDB.get(appleResult._id);
+   console.log(`\n_id of the JSON document is automatically generated`);
+   console.log(apple);
+   // log: { name: 'apple', _id: 'XXXXXXXXXXXXXXXXXXXXXXXXXX' }
+ 
   /**
    * Revisions 
    * 
