@@ -21,7 +21,7 @@ getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions):
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  \_id | string | \_id is a file path whose .json extension is omitted. |
-|  backNumber | number | Specify a number to go back to old revision. Default is 0. When backNumber equals 0, the latest revision is returned. See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions. |
+|  backNumber | number | Specify a number to go back to old revision. Default is 0. See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions. |
 |  historyOptions | [HistoryOptions](./git-documentdb.historyoptions.md) | The array of revisions is filtered by HistoryOptions.filter. |
 
 <b>Returns:</b>
@@ -33,6 +33,15 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 - undefined if a specified document does not exist or it is deleted.
 
 - This is an alias of GitDocumentDB\#rootCollection.getBackNumber()
+
+## Example
+
+
+```
+db.getBackNumber(_id, 0); // returns the latest document.
+db.getBackNumber(_id, 2); // returns a document two revisions older than the latest.
+
+```
 
 ## Exceptions
 

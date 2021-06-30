@@ -69,7 +69,7 @@ gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', na
 |  [findFatDoc(options)](./git-documentdb.collection.findfatdoc.md) |  | Get all the FatDoc data |
 |  [generateId()](./git-documentdb.collection.generateid.md) |  | Generate new \_id as monotonic ULID |
 |  [get(\_id)](./git-documentdb.collection.get.md) |  | Get a JSON document |
-|  [getBackNumber(\_id, backNumber, historyOptions)](./git-documentdb.collection.getbacknumber.md) |  | Get a back number of a JSON document |
+|  [getBackNumber(shortId, backNumber, historyOptions)](./git-documentdb.collection.getbacknumber.md) |  | Get a back number of a JSON document |
 |  [getCollections(dirPath)](./git-documentdb.collection.getcollections.md) |  | Get collections directly under the specified dirPath. |
 |  [getDocByOid(fileOid, docType)](./git-documentdb.collection.getdocbyoid.md) |  | Get a Doc which has specified oid |
 |  [getFatDoc(shortName, getOptions)](./git-documentdb.collection.getfatdoc.md) |  | Get a FatDoc data |

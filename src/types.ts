@@ -12,23 +12,31 @@ import { TLogLevelName } from 'tslog';
  * Database Options
  *
  * @remarks
- * localDir and dbName are OS-specific options. <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
+ * localDir and dbName are OS-specific options.
  *
- * ```
- * * localDir: A local directory path that stores repositories of GitDocumentDB.
+ * <b>It is recommended to use ASCII characters and case-insensitive names for cross-platform.</b>
+ *
+ * localDir - A local directory path that stores repositories of GitDocumentDB.
+ *
  *   - Default is './gitddb'.
- *   - A directory name allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \0.
+ *
+ *   - A directory name allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * ¥0.
+ *
  *   - A colon : is generally not allowed, but a Windows drive letter followed by a colon is allowed. e.g.) C: D:
+ *
  *   - A directory name cannot end with a period or a white space but the current directory . and the parent directory .. are allowed.
+ *
  *   - A trailing slash / could be omitted.
  *
- * * dbName: A name of a git repository
- *   - dbName allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " ¥ / \ | ? * \0.
+ * dbName - A name of a git repository
+ *
+ *   - dbName allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " ¥ / \\ | ? * ¥0.
+ *
  *   - dbName cannot end with a period or a white space.
+ *
  *   - dbName does not allow '.' and '..'.
  *
- * * logLevel: Default is 'info'.
- * ```
+ * logLevel - Default is 'info'.
  *
  * @public
  */
@@ -65,6 +73,8 @@ export type Schema = {
  *
  * @remarks
  *  - plainTextProperties: Only property whose key matches plainTextProperties uses text diff and patch algorithm (google-diff-match-patch).
+ *
+ * @example
  * ```
  * e.g.
  * { a: { b: true }, c: true } matches 'b' (whose ancestor is only 'a') and 'c'.
@@ -122,16 +132,23 @@ export type DatabaseInfo = {
 /**
  * The type for a JSON document that is stored in a database
  *
- * @remarks A JSON document must be a JavaScript object that matches the following conditions:
- *```
+ * @remarks
+ * A JSON document must be a JavaScript object that matches the following conditions:
+ *
  * - It must have an '_id' key that shows the unique identifier of a document
- * - _id allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \0
- * - _id is better to be ASCII characters and a case-insensitive name for cross-platform.
+ *
+ * - _id allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * ¥0.
+ *
+ * - _id and a filename are linked. So _id is better to be ASCII characters and a case-insensitive name for cross-platform.
+ *
  * - _id cannot start or end with a slash.
+ *
  * - _id can include paths separated by slashes.
+ *
  * - A directory name in paths cannot end with a period or a white space.
+ *
  * - A directory name in paths does not allow '.' and '..'.
- *```
+ *
  * @example
  * ```
  * {
@@ -268,16 +285,22 @@ export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
 /**
  * CollectionPath
  *
- * @remarks CollectionPath must be paths that match the following conditions:
- *```
+ * @remarks
+ * CollectionPath must be paths that match the following conditions:
+ *
  * - CollectionPath can include paths separated by slashes.
- * - A directory name in paths allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * \\0
+ *
+ * - A directory name in paths allows Unicode characters except for OS reserved filenames and the following characters: \< \> : " | ? * ¥0.
+ *
  * - CollectionPath is better to be ASCII characters and case-insensitive names for cross-platform.
+ *
  * - A directory name in paths cannot end with a period or a white space.
+ *
  * - A directory name in paths does not allow '.' and '..'.
+ *
  * - CollectionPath cannot start with a slash.
+ *
  * - Trailing slash could be omitted. e.g.) 'pages' and 'pages/' show the same CollectionPath.
- *```
  *
  * @public
  */
@@ -681,13 +704,13 @@ export type AcceptedConflict = {
  *
  * (automation)
  *
- * - live: Synchronization repeats automatically if true.
+ * - live: Synchronization repeats automatically if true. Default is false.
  *
- * - interval: Synchronization interval (milliseconds)
+ * - interval: Synchronization interval (milliseconds). This must be greater than MINIMUM_SYNC_INTERVAL(3000). Default is DEFAULT_SYNC_INTERVAL(30000).
  *
- * - retry: Number of network retries. Retry does not occur if retry is 0.
+ * - retry: Number of network retries. Retry does not occur if retry is 0. Default is NETWORK_RETRY(3).
  *
- * - retryInterval: Retry interval  (milliseconds)
+ * - retryInterval: Retry interval (milliseconds). Default is NETWORK_RETRY_INTERVAL(2000).
  *
  * (merge)
  *

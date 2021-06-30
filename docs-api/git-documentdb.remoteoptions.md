@@ -42,13 +42,13 @@ export declare type RemoteOptions = {
 
 (automation)
 
-- live: Synchronization repeats automatically if true.
+- live: Synchronization repeats automatically if true. Default is false.
 
-- interval: Synchronization interval (milliseconds)
+- interval: Synchronization interval (milliseconds). This must be greater than MINIMUM\_SYNC\_INTERVAL(3000). Default is DEFAULT\_SYNC\_INTERVAL(30000).
 
-- retry: Number of network retries. Retry does not occur if retry is 0.
+- retry: Number of network retries. Retry does not occur if retry is 0. Default is NETWORK\_RETRY(3).
 
-- retryInterval: Retry interval (milliseconds)
+- retryInterval: Retry interval (milliseconds). Default is NETWORK\_RETRY\_INTERVAL(2000).
 
 (merge)
 

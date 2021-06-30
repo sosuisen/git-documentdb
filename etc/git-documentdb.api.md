@@ -64,7 +64,7 @@ export class Collection implements ICollection {
     findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
     generateId(): string;
     get(_id: string): Promise<JsonDoc | undefined>;
-    getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
+    getBackNumber(shortId: string, backNumber: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
     getCollections(dirPath?: string): Promise<ICollection[]>;
     getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
     getFatDoc(shortName: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;

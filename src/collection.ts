@@ -853,13 +853,17 @@ export class Collection implements ICollection {
    *
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
-   * When backNumber equals 0, the latest revision is returned.
-   *
+   * See {@link git-documentdb#Collection.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if a specified document does not exist or it is deleted.
-   *  - See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
+   *
+   * @example
+   * ```
+   * collection.getBackNumber(_shortId, 0); // returns the latest document.
+   * collection.getBackNumber(_shortId, 2); // returns a document two revisions older than the latest.
+   * ```
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
@@ -868,11 +872,11 @@ export class Collection implements ICollection {
    * @public
    */
   getBackNumber (
-    _id: string,
+    shortId: string,
     backNumber: number,
     historyOptions?: HistoryOptions
   ): Promise<JsonDoc | undefined> {
-    const shortName = _id + JSON_EXT;
+    const shortName = shortId + JSON_EXT;
     return getImpl(
       this._gitDDB,
       shortName,
@@ -891,8 +895,7 @@ export class Collection implements ICollection {
    *
    * @param shortName - shortName is a file path whose collectionPath is omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
-   * When backNumber equals 0, the latest revision is returned.
-   *
+   * See {@link git-documentdb#Collection.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
@@ -904,7 +907,11 @@ export class Collection implements ICollection {
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
-   *  - See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
+   * @example
+   * ```
+   * collection.getFatDocBackNumber(shortName, 0); // returns the latest FatDoc.
+   * collection.getFatDocBackNumber(shortName, 2); // returns a FatDoc two revisions older than the latest.
+   * ```
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
@@ -940,6 +947,9 @@ export class Collection implements ICollection {
    * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
+   * @returns Array of JsonDoc or undefined.
+   *  - undefined if a specified document does not exist or it is deleted.
+   *
    * @example
    * ```
    * Commit-01 to 08 were committed in order. file_v1 and file_v2 are two revisions of a file.
@@ -968,8 +978,6 @@ export class Collection implements ICollection {
    * - getHistory() ignores commit-01 because it was committed before the first insert.
    * Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
    * ```
-   * @returns Array of JsonDoc or undefined.
-   *  - undefined if a specified document does not exist or it is deleted.
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}

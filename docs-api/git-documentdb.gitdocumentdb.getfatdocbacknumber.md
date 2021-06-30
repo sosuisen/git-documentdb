@@ -21,7 +21,7 @@ getFatDocBackNumber(name: string, backNumber: number, historyOptions?: HistoryOp
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  name | string | name is a file path. |
-|  backNumber | number | Specify a number to go back to old revision. Default is 0. When backNumber equals 0, the latest revision is returned. See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions. |
+|  backNumber | number | Specify a number to go back to old revision. Default is 0. See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions. |
 |  historyOptions | [HistoryOptions](./git-documentdb.historyoptions.md) | The array of revisions is filtered by HistoryOptions.filter. |
 |  getOptions | [GetOptions](./git-documentdb.getoptions.md) |  |
 
@@ -40,6 +40,15 @@ Promise&lt;[FatDoc](./git-documentdb.fatdoc.md) \| undefined&gt;
 - getOptions.forceDocType always overwrite return type.
 
 - This is an alias of GitDocumentDB\#rootCollection.getFatDocBackNumber()
+
+## Example
+
+
+```
+db.getFatDocBackNumber(name, 0); // returns the latest FatDoc.
+db.getFatDocBackNumber(name, 2); // returns a FatDoc two revisions older than the latest.
+
+```
 
 ## Exceptions
 

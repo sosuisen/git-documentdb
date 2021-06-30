@@ -100,6 +100,9 @@ export function generateDatabaseId () {
 /**
  * Main class of GitDocumentDB
  *
+ * @remarks
+ * Call open() before using DB.
+ *
  * @public
  */
 export class GitDocumentDB
@@ -1317,15 +1320,19 @@ export class GitDocumentDB
    *
    * @param _id - _id is a file path whose .json extension is omitted.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
-   * When backNumber equals 0, the latest revision is returned.
    * See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
-   *
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if a specified document does not exist or it is deleted.
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getBackNumber()
+   *
+   * @example
+   * ```
+   * db.getBackNumber(_id, 0); // returns the latest document.
+   * db.getBackNumber(_id, 2); // returns a document two revisions older than the latest.
+   * ```
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
@@ -1346,9 +1353,7 @@ export class GitDocumentDB
    *
    * @param name - name is a file path.
    * @param backNumber - Specify a number to go back to old revision. Default is 0.
-   * When backNumber equals 0, the latest revision is returned.
    * See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
-   *
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
@@ -1361,6 +1366,12 @@ export class GitDocumentDB
    *  - getOptions.forceDocType always overwrite return type.
    *
    *  - This is an alias of GitDocumentDB#rootCollection.getFatDocBackNumber()
+   *
+   * @example
+   * ```
+   * db.getFatDocBackNumber(name, 0); // returns the latest FatDoc.
+   * db.getFatDocBackNumber(name, 2); // returns a FatDoc two revisions older than the latest.
+   * ```
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
@@ -1385,13 +1396,22 @@ export class GitDocumentDB
   /**
    * Get revision history of a document
    *
+   * @param _id - _id is a file path whose .json extension is omitted.
+   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
+   *
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
    * - This is an alias of GitDocumentDB.rootCollection.getHistory().
    *
-   * @param _id - _id is a file path whose .json extension is omitted.
-   * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
+   * @returns Array of FatDoc or undefined.
+   *  - undefined if a specified document does not exist or it is deleted.
+   *
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+   *
+   *  - Uint8Array or string if isJsonDocCollection is false.
+   *
+   *  - getOptions.forceDocType always overwrite return type.
    *
    * @example
    * ```
@@ -1421,14 +1441,6 @@ export class GitDocumentDB
    * - getHistory() ignores commit-01 because it was committed before the first insert.
    * Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_v1, file_v1, undefined].
    * ```
-   * @returns Array of FatDoc or undefined.
-   *  - undefined if a specified document does not exist or it is deleted.
-   *
-   *  - JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
-   *
-   *  - Uint8Array or string if isJsonDocCollection is false.
-   *
-   *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotOpenError}
