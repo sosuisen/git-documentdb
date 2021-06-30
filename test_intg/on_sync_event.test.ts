@@ -27,7 +27,7 @@ import {
 import { sleep } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 
-const reposPrefix = 'test_3way_merge_ot___';
+const reposPrefix = 'test_on_sync_event___';
 const localDir = `./test_intg/database_on_sync_event`;
 
 let idCounter = 0;
