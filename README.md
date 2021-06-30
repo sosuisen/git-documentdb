@@ -241,16 +241,17 @@ https://github.com/sosuisen/inventory-manager
   - Automated combining of inconsistent repositories :feet:
 - v0.4 Work on both Node.js and browser
   - API renewal to manage any data types :feet:
-  - Remove native module (NodeGit) from default :dog2:(Next)
+  - Remove native module (NodeGit) from default install :dog2:(Next)
   - Connect with SSH key pair
   - Connect to GitHub with OAuth
+  - Work on browser
 
-- until v1.0
+- Until v1.0
   - Sync any data types
   - Replication
   - Grep
   - Transaction (bulk)
-  - Tag (Redo/Undo)
+  - Tag
   - Indexed Search
   - GitLab and Bitbucket
   - Push server
