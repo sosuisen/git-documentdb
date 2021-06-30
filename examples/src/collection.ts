@@ -60,7 +60,7 @@ const collection_example = async () => {
   // log: { flower: 'awesome cherry blossoms', _id: 'yoshino/mt_yoshino' }
 
   /*
-   * Actually, using a collection with shortId parameter is a sugar syntax of collectionPath + _id.
+   * Actually, using a collection with collectionPath and shortId is a sugar syntax of a long filepath _id.
    * 
    * Both put the same file on the same location in a Git repository.
    * 
