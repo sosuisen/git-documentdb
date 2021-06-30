@@ -93,7 +93,7 @@ const gitddb_example = async () => {
    *  - GITDDB_PERSONAL_ACCESS_TOKEN
    *      A personal access token of your GitHub account
    */
-  if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example.git';
+   if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example.git';
   if (process.env.GITDDB_PERSONAL_ACCESS_TOKEN) your_github_personal_access_token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN;
 
   let sync: Sync | undefined;

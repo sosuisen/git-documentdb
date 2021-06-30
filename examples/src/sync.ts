@@ -17,10 +17,14 @@ const sync_example = async () => {
    */
   let github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example-sync.git'; 
   let your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
-  // You can also set them from environment variables:
-  //  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
-  //    e.g.) https://github.com/foo/
-  //  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
+  /**
+   * You can also set them from environment variables:
+   *  - GITDDB_GITHUB_USER_URL
+   *      URL of your GitHub account
+   *      e.g.) https://github.com/foo/
+   *  - GITDDB_PERSONAL_ACCESS_TOKEN
+   *      A personal access token of your GitHub account
+   */
   if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example-sync.git';
   if (process.env.GITDDB_PERSONAL_ACCESS_TOKEN) your_github_personal_access_token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN;
 
@@ -29,14 +33,6 @@ const sync_example = async () => {
     console.log('Please set your personal access token.');
     return;
   }
-
-  // Set options for synchronization
-  const remoteOptions: RemoteOptions = {
-    live: true,
-    remoteUrl: github_repository,
-    interval: 10000, // Sync every 10,000 msec
-    connection: { type: 'github', personalAccessToken: your_github_personal_access_token },
-  };
 
   /**
    * Synchronize among database A <--> GitHub <--> database B
@@ -59,29 +55,29 @@ const sync_example = async () => {
     schema,
   });
   /**
-   * Open or create local and remote repositories.
-   * 
-   * - Open a local repository, or create it if not exists.
-   * 
-   * - createDB() creates a local repository and opens it.
-   * 
-   * - sync() connects to a remote repository on GitHub,
-   *   or creates it if not exists.
+   * Open a local repository, or create it if it does not exist.
    */
-  const resultA = await dbA.open();  
+  await dbA.open();  
 
+  // Set options for synchronization
+  const remoteOptions: RemoteOptions = {
+    live: true,
+    remoteUrl: github_repository,
+    interval: 10000, // Sync every 10,000 msec
+    connection: { type: 'github', personalAccessToken: your_github_personal_access_token },
+  };
   /**
-   * Sync between database A and GitHub
-   * every remoteOptions.interval msec (10,000 msec).
+   * sync() connects to a remote repository on GitHub,
+   * or creates it if it does not exist.
    */
   const syncA = await dbA.sync(remoteOptions);
 
-  // Create local database B
+  // Open or create local database B
   let dbB = new GitDocumentDB({
     dbName: 'dbB',
     schema,
   });
-  const resultB = await dbB.open();
+  await dbB.open();
   // Sync between database B and GitHub.
   const syncB = await dbB.sync(remoteOptions);
   
@@ -120,7 +116,7 @@ const sync_example = async () => {
   await dbA.insert(json01); 
   await dbA.insert(json02);
 
-  // Pushing to server or fetching from server occurs every 10sec.
+  // Fetching from server and pushing to server occur every 10sec.
   // Call trySync() manually if you cannot wait it!
   console.log('(1) Sync insert operations');
   await syncA.trySync(); // will invoke a change (push) on A.
@@ -149,7 +145,8 @@ const sync_example = async () => {
   /**
    * Automated conflict resolution
    * 
-   * Update the same id document on both A and B.
+   * Conflict occurs when the same _id documents are updated on both A and B.
+   * 
    * Default strategy is merging each JSON property by "last sync wins".
    * In other words a property synchronized later overwrites a previous one.
    * Set remoteOptions.conflict_resolution_strategy to change it.
@@ -172,7 +169,7 @@ const sync_example = async () => {
       console.log('\n(5) Resolved');
       console.log('result: ' + JSON.stringify(resultA) + '\n');
       // result: {"from":"B","profile":"My name is Hidekazu and I am from Nara. I love cherry blossoms.","_id":"01"}
-      // Sometimes it will be {"from": "A", ...} due to network reasons.
+      // Sometimes it starts with {"from": "A", ...} due to network reasons.
       break;
     }
     timeout -= remoteOptions.interval!;
