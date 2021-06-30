@@ -925,10 +925,10 @@ describe('<git_documentdb>', () => {
     await gitDDB.destroy();
   });
 
-  describe('getFatDocBackNumber()', () => {
+  describe('getFatDocOldRevision()', () => {
     it('with author.name', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 0, {
+        gitDDB.getFatDocOldRevision(targetName, 0, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
@@ -940,7 +940,7 @@ describe('<git_documentdb>', () => {
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 1, {
+        gitDDB.getFatDocOldRevision(targetName, 1, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
@@ -954,7 +954,7 @@ describe('<git_documentdb>', () => {
 
     it('with committer.name', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 0, {
+        gitDDB.getFatDocOldRevision(targetName, 0, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
@@ -966,7 +966,7 @@ describe('<git_documentdb>', () => {
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 1, {
+        gitDDB.getFatDocOldRevision(targetName, 1, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
@@ -980,7 +980,7 @@ describe('<git_documentdb>', () => {
 
     it('with author.name, author.email, committer.name, and committer.email', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 0, {
+        gitDDB.getFatDocOldRevision(targetName, 0, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -997,7 +997,7 @@ describe('<git_documentdb>', () => {
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 1, {
+        gitDDB.getFatDocOldRevision(targetName, 1, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -1010,7 +1010,7 @@ describe('<git_documentdb>', () => {
 
     it('with OR condition', async () => {
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 0, {
+        gitDDB.getFatDocOldRevision(targetName, 0, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -1025,7 +1025,7 @@ describe('<git_documentdb>', () => {
       });
 
       await expect(
-        gitDDB.getFatDocBackNumber(targetName, 1, {
+        gitDDB.getFatDocOldRevision(targetName, 1, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -1041,10 +1041,10 @@ describe('<git_documentdb>', () => {
     });
   });
 
-  describe('getBackNumber()', () => {
+  describe('getOldRevision()', () => {
     it('with author.name, author.email, committer.name, and committer.email', async () => {
       await expect(
-        gitDDB.getBackNumber(targetId, 0, {
+        gitDDB.getOldRevision(targetId, 0, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -1055,7 +1055,7 @@ describe('<git_documentdb>', () => {
       ).resolves.toEqual(json02);
 
       await expect(
-        gitDDB.getBackNumber(targetId, 1, {
+        gitDDB.getOldRevision(targetId, 1, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -1068,7 +1068,7 @@ describe('<git_documentdb>', () => {
 
     it('with OR condition', async () => {
       await expect(
-        gitDDB.getBackNumber(targetId, 0, {
+        gitDDB.getOldRevision(targetId, 0, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -1077,7 +1077,7 @@ describe('<git_documentdb>', () => {
       ).resolves.toEqual(json17);
 
       await expect(
-        gitDDB.getBackNumber(targetId, 1, {
+        gitDDB.getOldRevision(targetId, 1, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },

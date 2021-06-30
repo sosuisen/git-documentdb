@@ -1316,22 +1316,22 @@ export class GitDocumentDB
   }
 
   /**
-   * Get a back number of a document
+   * Get an old revision of a document
    *
    * @param _id - _id is a file path whose .json extension is omitted.
-   * @param backNumber - Specify a number to go back to old revision. Default is 0.
+   * @param revision - Specify a number to go back to old revision. Default is 0.
    * See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
    *  - undefined if a specified document does not exist or it is deleted.
    *
-   *  - This is an alias of GitDocumentDB#rootCollection.getBackNumber()
+   *  - This is an alias of GitDocumentDB#rootCollection.getOldRevision()
    *
    * @example
    * ```
-   * db.getBackNumber(_id, 0); // returns the latest document.
-   * db.getBackNumber(_id, 2); // returns a document two revisions older than the latest.
+   * db.getOldRevision(_id, 0); // returns the latest document.
+   * db.getOldRevision(_id, 2); // returns a document two revisions older than the latest.
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
@@ -1340,19 +1340,19 @@ export class GitDocumentDB
    *
    * @public
    */
-  getBackNumber (
+  getOldRevision (
     _id: string,
-    backNumber: number,
+    revision: number,
     historyOptions?: HistoryOptions
   ): Promise<JsonDoc | undefined> {
-    return this.rootCollection.getBackNumber(_id, backNumber, historyOptions);
+    return this.rootCollection.getOldRevision(_id, revision, historyOptions);
   }
 
   /**
-   * Get a back number of a FatDoc data
+   * Get an old revision of a FatDoc data
    *
    * @param name - name is a file path.
-   * @param backNumber - Specify a number to go back to old revision. Default is 0.
+   * @param revision - Specify a number to go back to old revision. Default is 0.
    * See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
@@ -1365,12 +1365,12 @@ export class GitDocumentDB
    *
    *  - getOptions.forceDocType always overwrite return type.
    *
-   *  - This is an alias of GitDocumentDB#rootCollection.getFatDocBackNumber()
+   *  - This is an alias of GitDocumentDB#rootCollection.getFatDocOldRevision()
    *
    * @example
    * ```
-   * db.getFatDocBackNumber(name, 0); // returns the latest FatDoc.
-   * db.getFatDocBackNumber(name, 2); // returns a FatDoc two revisions older than the latest.
+   * db.getFatDocOldRevision(name, 0); // returns the latest FatDoc.
+   * db.getFatDocOldRevision(name, 2); // returns a FatDoc two revisions older than the latest.
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
@@ -1379,15 +1379,15 @@ export class GitDocumentDB
    *
    * @public
    */
-  getFatDocBackNumber (
+  getFatDocOldRevision (
     name: string,
-    backNumber: number,
+    revision: number,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<FatDoc | undefined> {
-    return this.rootCollection.getFatDocBackNumber(
+    return this.rootCollection.getFatDocOldRevision(
       name,
-      backNumber,
+      revision,
       historyOptions,
       getOptions
     );

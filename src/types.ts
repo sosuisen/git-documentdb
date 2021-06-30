@@ -340,18 +340,18 @@ export type PutOptions = {
  * Internal options for get APIs
  *
  * @remarks
- * backNumber and oid are mutually exclusive options. oid has priority.
+ * revision and oid are mutually exclusive options. oid has priority.
  *
  * @internal
  */
 export type GetInternalOptions = {
-  backNumber?: number;
+  revision?: number;
   oid?: string;
   withMetadata?: boolean;
 };
 
 /**
- * Options for get APIs (get, getFatDoc, getBackNumber, getFatDocBackNumber, getHistory, getFatDocHistory)
+ * Options for get APIs (get, getFatDoc, getOldRevision, getFatDocOldRevision, getHistory, getFatDocHistory)
  *
  * @remarks
  * - forceDocType: Force return type.

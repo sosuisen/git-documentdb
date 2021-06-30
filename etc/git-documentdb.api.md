@@ -64,13 +64,13 @@ export class Collection implements ICollection {
     findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
     generateId(): string;
     get(_id: string): Promise<JsonDoc | undefined>;
-    getBackNumber(shortId: string, backNumber: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
     getCollections(dirPath?: string): Promise<ICollection[]>;
     getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
     getFatDoc(shortName: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
-    getFatDocBackNumber(shortName: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
     getFatDocHistory(shortName: string, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]>;
+    getFatDocOldRevision(shortName: string, revision: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
     getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | undefined)[]>;
+    getOldRevision(shortId: string, revision: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
     insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     insert(shortId: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     // @internal (undocumented)
@@ -167,17 +167,17 @@ export interface CRUDInterface {
     // (undocumented)
     get(_id: string, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
     // (undocumented)
-    getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
-    // (undocumented)
     getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
     // (undocumented)
     getFatDoc(name: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
     // (undocumented)
-    getFatDocBackNumber(name: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
-    // (undocumented)
     getFatDocHistory(name: string, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]>;
     // (undocumented)
+    getFatDocOldRevision(name: string, revision: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
+    // (undocumented)
     getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | undefined)[]>;
+    // (undocumented)
+    getOldRevision(_id: string, revision: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
     // (undocumented)
     insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResult>;
     // (undocumented)
@@ -605,7 +605,7 @@ export function generateDatabaseId(): string;
 //
 // @internal
 export type GetInternalOptions = {
-    backNumber?: number;
+    revision?: number;
     oid?: string;
     withMetadata?: boolean;
 };
@@ -724,14 +724,14 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     find(options?: FindOptions): Promise<JsonDoc[]>;
     findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
     get(_id: string): Promise<JsonDoc | undefined>;
-    getBackNumber(_id: string, backNumber: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
     getCollections(dirPath?: string): Promise<ICollection[]>;
     getCommit(oid: string): Promise<NormalizedCommit>;
     getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
     getFatDoc(name: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
-    getFatDocBackNumber(name: string, backNumber: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
     getFatDocHistory(name: string, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<(FatDoc | undefined)[]>;
+    getFatDocOldRevision(name: string, revision: number, historyOptions?: HistoryOptions, getOptions?: GetOptions): Promise<FatDoc | undefined>;
     getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | undefined)[]>;
+    getOldRevision(_id: string, revision: number, historyOptions?: HistoryOptions): Promise<JsonDoc | undefined>;
     getRemoteURLs(): string[];
     getSync(remoteURL: string): Sync;
     insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;

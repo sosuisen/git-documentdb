@@ -101,7 +101,7 @@ Offline-first Database that Syncs with Git
 |  [FatJsonDoc](./git-documentdb.fatjsondoc.md) | JsonDoc with metadata |
 |  [FatTextDoc](./git-documentdb.fattextdoc.md) | Text (string) with metadata |
 |  [FindOptions](./git-documentdb.findoptions.md) | Options for find and findFatDoc |
-|  [GetOptions](./git-documentdb.getoptions.md) | Options for get APIs (get, getFatDoc, getBackNumber, getFatDocBackNumber, getHistory, getFatDocHistory) |
+|  [GetOptions](./git-documentdb.getoptions.md) | Options for get APIs (get, getFatDoc, getOldRevision, getFatDocOldRevision, getHistory, getFatDocHistory) |
 |  [HistoryFilter](./git-documentdb.historyfilter.md) | Filter for file history |
 |  [HistoryOptions](./git-documentdb.historyoptions.md) | Options for getHistory() and getFatDocHistory() |
 |  [ICollection](./git-documentdb.icollection.md) | Type for Collection Class |

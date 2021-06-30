@@ -849,10 +849,10 @@ export class Collection implements ICollection {
   }
 
   /**
-   * Get a back number of a JSON document
+   * Get an old revision of a JSON document
    *
    * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
-   * @param backNumber - Specify a number to go back to old revision. Default is 0.
+   * @param revision - Specify a number to go back to old revision. Default is 0.
    * See {@link git-documentdb#Collection.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
@@ -861,8 +861,8 @@ export class Collection implements ICollection {
    *
    * @example
    * ```
-   * collection.getBackNumber(_shortId, 0); // returns the latest document.
-   * collection.getBackNumber(_shortId, 2); // returns a document two revisions older than the latest.
+   * collection.getOldRevision(_shortId, 0); // returns the latest document.
+   * collection.getOldRevision(_shortId, 2); // returns a document two revisions older than the latest.
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
@@ -871,9 +871,9 @@ export class Collection implements ICollection {
    *
    * @public
    */
-  getBackNumber (
+  getOldRevision (
     shortId: string,
-    backNumber: number,
+    revision: number,
     historyOptions?: HistoryOptions
   ): Promise<JsonDoc | undefined> {
     const shortName = shortId + JSON_EXT;
@@ -884,17 +884,17 @@ export class Collection implements ICollection {
       { forceDocType: 'json' },
       {
         withMetadata: false,
-        backNumber: backNumber,
+        revision: revision,
       },
       historyOptions
     ) as Promise<JsonDoc | undefined>;
   }
 
   /**
-   * Get a back number of a FatDoc data
+   * Get an old revision of a FatDoc data
    *
    * @param shortName - shortName is a file path whose collectionPath is omitted.
-   * @param backNumber - Specify a number to go back to old revision. Default is 0.
+   * @param revision - Specify a number to go back to old revision. Default is 0.
    * See {@link git-documentdb#Collection.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
@@ -909,8 +909,8 @@ export class Collection implements ICollection {
    *
    * @example
    * ```
-   * collection.getFatDocBackNumber(shortName, 0); // returns the latest FatDoc.
-   * collection.getFatDocBackNumber(shortName, 2); // returns a FatDoc two revisions older than the latest.
+   * collection.getFatDocOldRevision(shortName, 0); // returns the latest FatDoc.
+   * collection.getFatDocOldRevision(shortName, 2); // returns a FatDoc two revisions older than the latest.
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
@@ -919,9 +919,9 @@ export class Collection implements ICollection {
    *
    * @public
    */
-  getFatDocBackNumber (
+  getFatDocOldRevision (
     shortName: string,
-    backNumber: number,
+    revision: number,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<FatDoc | undefined> {
@@ -932,7 +932,7 @@ export class Collection implements ICollection {
       getOptions,
       {
         withMetadata: true,
-        backNumber: backNumber,
+        revision: revision,
       },
       historyOptions
     ) as Promise<FatDoc | undefined>;

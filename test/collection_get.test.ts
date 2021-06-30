@@ -556,10 +556,10 @@ describe('<crud/get>', () => {
     await gitDDB.destroy();
   });
 
-  describe('getFatDocBackNumber()', () => {
+  describe('getFatDocOldRevision()', () => {
     it('with author.name', async () => {
       await expect(
-        col.getFatDocBackNumber(targetName, 0, {
+        col.getFatDocOldRevision(targetName, 0, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
@@ -571,7 +571,7 @@ describe('<crud/get>', () => {
       });
 
       await expect(
-        col.getFatDocBackNumber(targetName, 1, {
+        col.getFatDocOldRevision(targetName, 1, {
           filter: [{ author: { name: 'authorA' } }],
         })
       ).resolves.toEqual({
@@ -585,7 +585,7 @@ describe('<crud/get>', () => {
 
     it('with committer.name', async () => {
       await expect(
-        col.getFatDocBackNumber(targetName, 0, {
+        col.getFatDocOldRevision(targetName, 0, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
@@ -597,7 +597,7 @@ describe('<crud/get>', () => {
       });
 
       await expect(
-        col.getFatDocBackNumber(targetName, 1, {
+        col.getFatDocOldRevision(targetName, 1, {
           filter: [{ committer: { name: 'committerA' } }],
         })
       ).resolves.toEqual({
@@ -612,7 +612,7 @@ describe('<crud/get>', () => {
 
     it('with author.name, author.email, committer.name, and committer.email', async () => {
       await expect(
-        col.getFatDocBackNumber(targetName, 0, {
+        col.getFatDocOldRevision(targetName, 0, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -629,7 +629,7 @@ describe('<crud/get>', () => {
       });
 
       await expect(
-        col.getFatDocBackNumber(targetName, 1, {
+        col.getFatDocOldRevision(targetName, 1, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -642,7 +642,7 @@ describe('<crud/get>', () => {
 
     it('with OR condition', async () => {
       await expect(
-        col.getFatDocBackNumber(targetName, 0, {
+        col.getFatDocOldRevision(targetName, 0, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -657,7 +657,7 @@ describe('<crud/get>', () => {
       });
 
       await expect(
-        col.getFatDocBackNumber(targetName, 1, {
+        col.getFatDocOldRevision(targetName, 1, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -673,10 +673,10 @@ describe('<crud/get>', () => {
     });
   });
 
-  describe('getBackNumber()', () => {
+  describe('getOldRevision()', () => {
     it('with author.name, author.email, committer.name, and committer.email', async () => {
       await expect(
-        col.getBackNumber(targetId, 0, {
+        col.getOldRevision(targetId, 0, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -687,7 +687,7 @@ describe('<crud/get>', () => {
       ).resolves.toEqual(json02_);
 
       await expect(
-        col.getBackNumber(targetId, 1, {
+        col.getOldRevision(targetId, 1, {
           filter: [
             {
               author: { name: 'authorA', email: 'authorEmailA' },
@@ -700,7 +700,7 @@ describe('<crud/get>', () => {
 
     it('with OR condition', async () => {
       await expect(
-        col.getBackNumber(targetId, 0, {
+        col.getOldRevision(targetId, 0, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },
@@ -709,7 +709,7 @@ describe('<crud/get>', () => {
       ).resolves.toEqual(json17_);
 
       await expect(
-        col.getBackNumber(targetId, 1, {
+        col.getOldRevision(targetId, 1, {
           filter: [
             { committer: { name: 'committerA', email: 'committerEmailA' } },
             { committer: { name: 'committerB', email: 'committerEmailB' } },

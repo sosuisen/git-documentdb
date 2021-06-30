@@ -69,13 +69,13 @@ gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', na
 |  [findFatDoc(options)](./git-documentdb.collection.findfatdoc.md) |  | Get all the FatDoc data |
 |  [generateId()](./git-documentdb.collection.generateid.md) |  | Generate new \_id as monotonic ULID |
 |  [get(\_id)](./git-documentdb.collection.get.md) |  | Get a JSON document |
-|  [getBackNumber(shortId, backNumber, historyOptions)](./git-documentdb.collection.getbacknumber.md) |  | Get a back number of a JSON document |
 |  [getCollections(dirPath)](./git-documentdb.collection.getcollections.md) |  | Get collections directly under the specified dirPath. |
 |  [getDocByOid(fileOid, docType)](./git-documentdb.collection.getdocbyoid.md) |  | Get a Doc which has specified oid |
 |  [getFatDoc(shortName, getOptions)](./git-documentdb.collection.getfatdoc.md) |  | Get a FatDoc data |
-|  [getFatDocBackNumber(shortName, backNumber, historyOptions, getOptions)](./git-documentdb.collection.getfatdocbacknumber.md) |  | Get a back number of a FatDoc data |
 |  [getFatDocHistory(shortName, historyOptions, getOptions)](./git-documentdb.collection.getfatdochistory.md) |  | Get revision history of a FatDoc data |
+|  [getFatDocOldRevision(shortName, revision, historyOptions, getOptions)](./git-documentdb.collection.getfatdocoldrevision.md) |  | Get an old revision of a FatDoc data |
 |  [getHistory(\_id, historyOptions)](./git-documentdb.collection.gethistory.md) |  | Get revision history of a JSON document |
+|  [getOldRevision(shortId, revision, historyOptions)](./git-documentdb.collection.getoldrevision.md) |  | Get an old revision of a JSON document |
 |  [insert(jsonDoc, options)](./git-documentdb.collection.insert.md) |  | Insert a JSON document |
 |  [insert(shortId, jsonDoc, options)](./git-documentdb.collection.insert_1.md) |  | Insert a JSON document |
 |  [insertFatDoc(shortName, doc, options)](./git-documentdb.collection.insertfatdoc.md) |  | Insert a data |

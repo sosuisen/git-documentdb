@@ -65,13 +65,13 @@ const gitddb_example = async () => {
   /**
    * Revisions 
    * 
-   * getBackNumber(id, 2) returns a document two revisions older than the latest.
+   * getOldRevision(id, 2) returns a document two revisions older than the latest.
    * 
    * #0 (latest): undefined (deleted)
    * #1: 'double cherry blossoms'
    * #2: 'cherry blossoms'
    */
-  const oldDoc = await gitDDB.getBackNumber('nara', 2); 
+  const oldDoc = await gitDDB.getOldRevision('nara', 2); 
 
   console.log(`\n$ gitDDB.get('nara', 2) # Get a document two revisions older than the latest.`);
   console.log(oldDoc);

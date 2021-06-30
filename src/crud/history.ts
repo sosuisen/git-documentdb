@@ -132,14 +132,14 @@ export async function getHistoryImpl (
 export async function readOldBlob (
   workingDir: string,
   fullDocPath: string,
-  backNumber: number,
+  revision: number,
   historyOptions?: HistoryOptions
 ): Promise<ReadBlobResult | undefined> {
   let readBlobResult: ReadBlobResult | undefined;
   let prevSHA: string | undefined = '';
   let oidCounter = -1;
 
-  if (backNumber < 0) {
+  if (revision < 0) {
     return undefined;
   }
 
@@ -183,11 +183,11 @@ export async function readOldBlob (
       prevSHA = oid;
       oidCounter++;
     }
-    if (oidCounter >= backNumber) {
+    if (oidCounter >= revision) {
       break;
     }
   }
-  if (oidCounter >= backNumber) {
+  if (oidCounter >= revision) {
     return readBlobResult;
   }
   return undefined;

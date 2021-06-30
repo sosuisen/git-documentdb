@@ -8,7 +8,7 @@ hide_title: true
 
 ## GetOptions type
 
-Options for get APIs (get, getFatDoc, getBackNumber, getFatDocBackNumber, getHistory, getFatDocHistory)
+Options for get APIs (get, getFatDoc, getOldRevision, getFatDocOldRevision, getHistory, getFatDocHistory)
 
 <b>Signature:</b>
 

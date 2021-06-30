@@ -19,6 +19,10 @@ export declare class GitDocumentDB implements GitDDBInterface, CRUDInterface, Co
 
 [GitDDBInterface](./git-documentdb.gitddbinterface.md) , [CRUDInterface](./git-documentdb.crudinterface.md) , [CollectionInterface](./git-documentdb.collectioninterface.md) , [SyncEventInterface](./git-documentdb.synceventinterface.md)
 
+## Remarks
+
+Call open() before using DB.
+
 ## Constructors
 
 |  Constructor | Modifiers | Description |
@@ -57,14 +61,14 @@ export declare class GitDocumentDB implements GitDDBInterface, CRUDInterface, Co
 |  [find(options)](./git-documentdb.gitdocumentdb.find.md) |  | Get all the JSON documents |
 |  [findFatDoc(options)](./git-documentdb.gitdocumentdb.findfatdoc.md) |  | Get all the FatDoc data |
 |  [get(\_id)](./git-documentdb.gitdocumentdb.get.md) |  | Get a JSON document |
-|  [getBackNumber(\_id, backNumber, historyOptions)](./git-documentdb.gitdocumentdb.getbacknumber.md) |  | Get a back number of a document |
 |  [getCollections(dirPath)](./git-documentdb.gitdocumentdb.getcollections.md) |  | Get collections |
 |  [getCommit(oid)](./git-documentdb.gitdocumentdb.getcommit.md) |  | Get a commit object |
 |  [getDocByOid(fileOid, docType)](./git-documentdb.gitdocumentdb.getdocbyoid.md) |  | Get a Doc which has specified oid |
 |  [getFatDoc(name, getOptions)](./git-documentdb.gitdocumentdb.getfatdoc.md) |  | Get a FatDoc data |
-|  [getFatDocBackNumber(name, backNumber, historyOptions, getOptions)](./git-documentdb.gitdocumentdb.getfatdocbacknumber.md) |  | Get a back number of a FatDoc data |
 |  [getFatDocHistory(name, historyOptions, getOptions)](./git-documentdb.gitdocumentdb.getfatdochistory.md) |  | Get revision history of a FatDoc data |
+|  [getFatDocOldRevision(name, revision, historyOptions, getOptions)](./git-documentdb.gitdocumentdb.getfatdocoldrevision.md) |  | Get an old revision of a FatDoc data |
 |  [getHistory(\_id, historyOptions)](./git-documentdb.gitdocumentdb.gethistory.md) |  | Get revision history of a document |
+|  [getOldRevision(\_id, revision, historyOptions)](./git-documentdb.gitdocumentdb.getoldrevision.md) |  | Get an old revision of a document |
 |  [getRemoteURLs()](./git-documentdb.gitdocumentdb.getremoteurls.md) |  | getRemoteURLs |
 |  [getSync(remoteURL)](./git-documentdb.gitdocumentdb.getsync.md) |  | Get synchronizer |
 |  [insert(jsonDoc, options)](./git-documentdb.gitdocumentdb.insert.md) |  | Insert a JSON document |

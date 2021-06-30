@@ -570,7 +570,7 @@ describe('<crud/history> readOldBlob()', () => {
     await destroyDBs([gitDDB]);
   });
 
-  it('returns undefined when get deleted document with backNumber #0.', async () => {
+  it('returns undefined when get deleted document with revision #0.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -590,7 +590,7 @@ describe('<crud/history> readOldBlob()', () => {
     await destroyDBs([gitDDB]);
   });
 
-  it('returns one revision before when get back number #1 of the deleted document.', async () => {
+  it('returns one revision before when get an old revision #1 of the deleted document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -613,7 +613,7 @@ describe('<crud/history> readOldBlob()', () => {
     await destroyDBs([gitDDB]);
   });
 
-  it('returns two revisions before when get back number #2 of the deleted document.', async () => {
+  it('returns two revisions before when get an old revision #2 of the deleted document.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -663,7 +663,7 @@ describe('<crud/history> readOldBlob()', () => {
     await destroyDBs([gitDDB]);
   });
 
-  it('returns undefined when get document with backNumber that was deleted once', async () => {
+  it('returns undefined when get document with revision that was deleted once', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -685,7 +685,7 @@ describe('<crud/history> readOldBlob()', () => {
     await destroyDBs([gitDDB]);
   });
 
-  it('returns undefined when get document with backNumber that does not exist', async () => {
+  it('returns undefined when get document with revision that does not exist', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,

@@ -309,15 +309,15 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: -1 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: -1 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
     });
   });
 
-  describe('with InternalOptions.backNumber', () => {
-    it('returns undefined when get deleted document with backNumber #0.', async () => {
+  describe('with InternalOptions.revision', () => {
+    it('returns undefined when get deleted document with revision #0.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -334,13 +334,13 @@ describe('<crud/get> getImpl()', () => {
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 0 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 0 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
     });
 
-    it('returns one revision before when get back number #1 of the deleted document.', async () => {
+    it('returns one revision before when get an old revision #1 of the deleted document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -357,13 +357,13 @@ describe('<crud/get> getImpl()', () => {
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 1 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 1 })
       ).resolves.toEqual(json);
 
       await gitDDB.destroy();
     });
 
-    it('returns two revisions before when get back number #2 of the deleted document.', async () => {
+    it('returns two revisions before when get an old revision #2 of the deleted document.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -382,7 +382,7 @@ describe('<crud/get> getImpl()', () => {
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 2 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 2 })
       ).resolves.toEqual(json01);
 
       await gitDDB.destroy();
@@ -407,13 +407,13 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 2 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 2 })
       ).resolves.toEqual(json01);
 
       await gitDDB.destroy();
     });
 
-    it('returns undefined when get document with backNumber that was deleted once', async () => {
+    it('returns undefined when get document with revision that was deleted once', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -432,13 +432,13 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 1 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 1 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
     });
 
-    it('returns undefined when get document with backNumber that does not exist', async () => {
+    it('returns undefined when get document with revision that does not exist', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -457,7 +457,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 3 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 3 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -475,7 +475,7 @@ describe('<crud/get> getImpl()', () => {
       const collectionPath = '';
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 0 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 0 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -500,7 +500,7 @@ describe('<crud/get> getImpl()', () => {
       stubReadBlob.rejects();
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, undefined, { backNumber: 0 })
+        getImpl(gitDDB, shortName, collectionPath, undefined, { revision: 0 })
       ).resolves.toBeUndefined();
 
       await gitDDB.destroy();
@@ -778,7 +778,7 @@ describe('<crud/get> getImpl()', () => {
           targetName,
           collectionPath,
           undefined,
-          { backNumber: 0 },
+          { revision: 0 },
           {
             filter: [
               {
@@ -796,7 +796,7 @@ describe('<crud/get> getImpl()', () => {
           targetName,
           collectionPath,
           undefined,
-          { backNumber: 1 },
+          { revision: 1 },
           {
             filter: [
               {
@@ -816,7 +816,7 @@ describe('<crud/get> getImpl()', () => {
           targetName,
           collectionPath,
           undefined,
-          { backNumber: 0 },
+          { revision: 0 },
           {
             filter: [
               { committer: { name: 'committerA', email: 'committerEmailA' } },
@@ -832,7 +832,7 @@ describe('<crud/get> getImpl()', () => {
           targetName,
           collectionPath,
           undefined,
-          { backNumber: 1 },
+          { revision: 1 },
           {
             filter: [
               { committer: { name: 'committerA', email: 'committerEmailA' } },

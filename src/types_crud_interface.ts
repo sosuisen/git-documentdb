@@ -93,9 +93,9 @@ export interface CRUDInterface {
 
   get(_id: string, getOptions?: GetOptions): Promise<JsonDoc | undefined>;
 
-  getBackNumber(
+  getOldRevision(
     _id: string,
-    backNumber: number,
+    revision: number,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<JsonDoc | undefined>;
@@ -107,9 +107,9 @@ export interface CRUDInterface {
 
   getFatDoc(name: string, getOptions?: GetOptions): Promise<FatDoc | undefined>;
 
-  getFatDocBackNumber(
+  getFatDocOldRevision(
     name: string,
-    backNumber: number,
+    revision: number,
     historyOptions?: HistoryOptions,
     getOptions?: GetOptions
   ): Promise<FatDoc | undefined>;

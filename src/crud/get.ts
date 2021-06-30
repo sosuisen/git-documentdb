@@ -58,11 +58,11 @@ export async function getImpl (
 
   internalOptions ??= {
     withMetadata: undefined,
-    backNumber: undefined,
+    revision: undefined,
     oid: undefined,
   };
   internalOptions.withMetadata ??= false;
-  internalOptions.backNumber ??= 0;
+  internalOptions.revision ??= 0;
   internalOptions.oid ??= '';
 
   const fullDocPath = collectionPath + shortName;
@@ -80,15 +80,15 @@ export async function getImpl (
   }
   else if (
     historyOptions === undefined &&
-    (!internalOptions.backNumber || internalOptions.backNumber === 0)
+    (!internalOptions.revision || internalOptions.revision === 0)
   ) {
     readBlobResult = await readLatestBlob(gitDDB.workingDir, fullDocPath);
   }
-  else if (internalOptions.backNumber >= 0) {
+  else if (internalOptions.revision >= 0) {
     readBlobResult = await readOldBlob(
       gitDDB.workingDir,
       fullDocPath,
-      internalOptions.backNumber,
+      internalOptions.revision,
       historyOptions
     );
   }
