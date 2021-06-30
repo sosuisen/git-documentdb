@@ -19,22 +19,17 @@ Use GitDocumentDB to ...
 
 :arrows_counterclockwise: CI/CD through GitHub.
 
-:dromedary_camel: Travel history of database.
+:dromedary_camel: Travel revisions.
 
 You do not need knowledge of Git to start. However, you make the most of GitDocumentDB if you understand Git.
 
 # API
-## Overview
-https://gitddb.com/docs/api/API_overview
-
-## Specifications
-https://github.com/sosuisen/git-documentdb/blob/doc-v1.0/docs-api/index.md
-
+https://gitddb.com/docs/api/git-documentdb.gitdocumentdb
 
 # Usage
 ## Getting started
 ### **Prerequisite**
-Node.js 10 or later
+Node.js 12 or later
 ### **Installation**
 ```
 npm i git-documentdb
@@ -65,56 +60,81 @@ const gitDDB = new GitDocumentDB({
 
 ## Basic CRUD
 ```typescript
-  // Open a repository at /your/path/to/the/example/git-documentdb/db01/.git
-  const result = await gitDDB.open(); 
-  // Create and open the repository if not exits.
-  if (!result.ok) await gitDDB.createDB(); 
+  /**
+   * Open a database
+   */
+  await gitDDB.open(); 
 
-  // Create
-  await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' }); 
-  // Git adds 'nara.json' under the working directory and commits it.
 
-  console.log(`$ gitDDB.put({ _id: 'nara' ... }) # Create`);
-  console.log(await gitDDB.get('nara')); // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
-  
-  // Update document if exists.
-  console.log(`\n$ gitDDB.put({ _id: 'nara' ... }) # Update`);
-  await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' });
-  // Git adds an updated file and commits it.
+  /**
+   * Create a document
+   */ 
+  await gitDDB.put({ _id: 'nara', flower: 'cherry blossoms', season: 'spring' });
 
-  // Read
+  console.log(`$ gitDDB.put({ flower: 'cherry blossoms' ... }) # Create`);
+  console.log(await gitDDB.get('nara')); 
+  // log: { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+
+  /**
+   * Update a document if it exists.
+   */
+  await gitDDB.put({ _id: 'nara', flower: 'double cherry blossoms', season: 'spring' }); 
+
+  /**
+   * Read a document
+   */
   const doc = await gitDDB.get('nara');
-  console.log(doc);
-  // { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
 
-  // Delete
+  console.log(`\n$ gitDDB.put({ flower: 'double cherry blossoms' ... }) # Update`);
+  console.log(doc);
+  // log: { flower: 'double cherry blossoms', season: 'spring', _id: 'nara' }
+
+  /**
+   * Delete a document
+   */
   await gitDDB.delete('nara');
-  // Git deletes a file and commits it.
-  
+
   console.log(`\n$ gitDDB.delete('nara') # Delete`);
-  console.log(await gitDDB.get('nara')); // undefined
-  ```
+  console.log(await gitDDB.get('nara'));
+  // log: undefined
+  
+  /**
+   * Use an auto-generated _id
+   */
+   const appleResult = await gitDDB.put({ name: 'apple' }); // _id does not exist.
+   const apple = await gitDDB.get(appleResult._id);
+   console.log(`\n_id of the JSON document is automatically generated`);
+   console.log(apple);
+   // log: { name: 'apple', _id: 'XXXXXXXXXXXXXXXXXXXXXXXXXX' }
+```
+
 ## Revisions
 ```typescript
-  // get(id, 2) returns two revisions before
-  const oldDoc = await gitDDB.get('nara', 2); 
+  /**
+   * Revisions 
+   * 
+   * getOldRevision(id, 2) returns a document two revisions older than the latest.
+   * 
+   * #0 (latest): undefined (deleted)
+   * #1: 'double cherry blossoms'
+   * #2: 'cherry blossoms'
+   */
+  const oldDoc = await gitDDB.getOldRevision('nara', 2); 
+
+  console.log(`\n$ gitDDB.get('nara', 2) # Get a document two revisions older than the latest.`);
   console.log(oldDoc);
-  // { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+  // log: { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
 ```
+
 ## Synchronization
 ```typescript
-  // Please enter your GitHub account name.
-  const github_repository = 'https://github.com/enter_your_accunt_name/git-documentdb-example.git';
-  // See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
-  const your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
   await gitDDB.sync({
     live: true,
-    remote_url: github_repository,
-    connection: { type: 'github', personal_access_token: your_github_personal_access_token },
+    remote_url: 'https://github.com/enter_your_accunt_name/git-documentdb-example.git',
+    connection: { type: 'github', personal_access_token: 'Enter your personal access token with checked [repo]' },
   });
 ```
-(You can find more examples in examples/src/sync.ts)
-
+(You can find more examples in [examples/src/sync.ts](https://github.com/sosuisen/git-documentdb/blob/main/examples/src/sync.ts))
 
 ## Prefix search
 ```typescript
@@ -130,7 +150,6 @@ const gitDDB = new GitDocumentDB({
             └── mt_yoshino.json
 
   */
-  // Put documents by using filepath.
   await gitDDB.put({ _id: 'nara/nara_park', flower: 'double cherry blossoms' });
   await gitDDB.put({ _id: 'nara/tsukigase', flower: 'Japanese apricot' });
   await gitDDB.put({ _id: 'yoshino/mt_yoshino', flower: 'cherry blossoms' });
@@ -138,42 +157,32 @@ const gitDDB = new GitDocumentDB({
   // Read
   const flowerInYoshino = await gitDDB.get('yoshino/mt_yoshino');
   console.log(flowerInYoshino);
-  // { flower: 'cherry blossoms', _id: 'yoshino/mt_yoshino' }
+  // log:: { flower: 'cherry blossoms', _id: 'yoshino/mt_yoshino' }
 
-  // Prefix search
-  
-  // Read all the documents whose IDs start with the prefix.
-  const flowersInNara = await gitDDB.allDocs({ prefix: 'nara/' });
+  /**
+   * Prefix search
+   * 
+   * Read all the documents whose IDs start with the prefix.
+   */ 
+  const flowersInNara = await gitDDB.find({ prefix: 'nara/' });
   console.dir(flowersInNara, { depth: 3 });
-  /* flowersInNara = 
-  {
-    total_rows: 2,
-    commitOid: 'xxxxx_commitOid_of_your_head_commit_xxxxx',
-    rows: [
-      {
-        id: 'nara/nara_park',
-        fileOid: '7448ca2f7f79d6bb585421c6c29446acb97e4a8c',
-        doc: { flower: 'double cherry blossoms', _id: 'nara/nara_park' }
-      },
-      {
-        id: 'nara/tsukigase',
-        fileOid: '1241d69c4e9cd7a27f592affce94ec60d3b2207c',
-        doc: { flower: 'Japanese apricot', _id: 'nara/tsukigase' }
-      }
+  /* log:
+    [
+      { flower: 'double cherry blossoms', _id: 'nara/nara_park' },
+      { flower: 'Japanese apricot', _id: 'nara/tsukigase' }
     ]
-  }
   */
  
   // destroy() closes DB and removes
-  // both the Git repository and the working directory if they exist.
+  // both the Git repository and the working directory.
   await gitDDB.destroy();
 ```
 
 ## Collections
 ```typescript
-  // Try it again by another way.
-  await gitDDB.create();
-  // Use collections to make it easier
+  // Try sub-directories again by another way.
+  await gitDDB.open();
+  // Use Collection Class to make them easier.
   const nara = gitDDB.collection('nara');
   const yoshino = gitDDB.collection('yoshino');
   await nara.put({ _id: 'nara_park', flower: 'double cherry blossoms' });
@@ -186,32 +195,20 @@ const gitDDB = new GitDocumentDB({
   // { flower: 'cherry blossoms', _id: 'mt_yoshino' }
 
   // Read all the documents in nara collection
-  const flowersInNaraCollection = await nara.allDocs();
-  console.dir(flowersInNaraCollection, { depth: 3 });
-  /* flowersInNaraCollection = 
-  {
-    total_rows: 2,
-    commitOid: 'xxxxx_commitOid_of_your_head_commit_xxxxx',
-    rows: [
-      {
-        id: 'nara_park',
-        fileOid: '7448ca2f7f79d6bb585421c6c29446acb97e4a8c',
-        doc: { flower: 'double cherry blossoms', _id: 'nara_park' }
-      },
-      {
-        id: 'tsukigase',
-        fileOid: '1241d69c4e9cd7a27f592affce94ec60d3b2207c',
-        doc: { flower: 'Japanese apricot', _id: 'tsukigase' }
-      }
+  const flowersInNaraCollection = await nara.find();
+  console.log(flowersInNaraCollection);
+  /* log: 
+    [
+      { flower: 'double cherry blossoms', _id: 'nara_park' },
+      { flower: 'Japanese apricot', _id: 'tsukigase' }
     ]
-  }
-  */
+  */  
   await gitDDB.close();
 ```
-(You can find more examples in examples/src/collection.ts)
+(You can find more examples in [examples/src/collection.ts](https://github.com/sosuisen/git-documentdb/blob/main/examples/src/collection.ts))
 
 # Examples:
-See examples directory.
+See [examples]((https://github.com/sosuisen/git-documentdb/blob/main/examples/)) directory.
 ```
 $ cd examples
 $ npm i
@@ -240,13 +237,15 @@ https://github.com/sosuisen/inventory-manager
   - Revisions :feet:
   - Automated conflict resolution :feet:
   - Automated JSON diff and patch :feet:
-  - Automated combining of inconsistent repositories :dog2:(Here now)
+  - Automated combining of inconsistent repositories :feet:
 - v0.4 Work on both Node.js and browser
+  - API renewal to manage any data types :feet:
+  - Remove native module (NodeGit) from default :dog2:(Next)
   - Connect with SSH key pair
   - Connect to GitHub with OAuth
 
 - until v1.0
-  - Operate other data types
+  - Sync any data types
   - Replication
   - Grep
   - Transaction (bulk)
