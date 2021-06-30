@@ -69,7 +69,6 @@ const sync_example = async () => {
    *   or creates it if not exists.
    */
   const resultA = await dbA.open();  
-  if (!resultA.ok) await dbA.createDB();
 
   /**
    * Sync between database A and GitHub
@@ -83,7 +82,6 @@ const sync_example = async () => {
     schema,
   });
   const resultB = await dbB.open();
-  if (!resultB.ok) await dbB.createDB();
   // Sync between database B and GitHub.
   const syncB = await dbB.sync(remoteOptions);
   
@@ -92,8 +90,8 @@ const sync_example = async () => {
     showChanges(syncResult, 'A'); 
   })
     .on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on A] ' + err.message))
-    .on('paused', () => console.log('[paused on A]'))
-    .on('active', () => console.log('[resumed on A]'))
+    .on('pause', () => console.log('[paused on A]'))
+    .on('resume', () => console.log('[resumed on A]'))
     .on('start', (taskMetadata: TaskMetadata, currentRetries: number) => console.log('[sync start on A] <' + taskMetadata.taskId + '> retries: ' + currentRetries))
     .on('complete', (taskMetadata: TaskMetadata) => console.log('[sync complete on A] <' + taskMetadata.taskId + '>'));
 
@@ -101,8 +99,8 @@ const sync_example = async () => {
     showChanges(syncResult, 'B');    
   })
     .on('error', (err: Error, taskMetadata: TaskMetadata) => console.log('[sync error on B] ' + err.message))
-    .on('paused', () => console.log('[paused on B]'))
-    .on('active', () => console.log('[resumed on B]'))
+    .on('pause', () => console.log('[paused on B]'))
+    .on('resume', () => console.log('[resumed on B]'))
     .on('start', (taskMetadata: TaskMetadata, currentRetries: number) => console.log('[sync start on B] <' + taskMetadata.taskId + '> retries: ' + currentRetries))
     .on('complete', (taskMetadata: TaskMetadata) => console.log('[sync complete on B] <' + taskMetadata.taskId + '>'));
 
@@ -136,7 +134,7 @@ const sync_example = async () => {
   await syncA.trySync(); // will invoke a change (push) on A.
 
   // Wait automated synchronization on B.
-  await sleep(syncB.options().interval + 5); 
+  await sleep(syncB.options.interval + 5); 
   // A change (fast-forward merge) on B will occur in sleep.
 
   console.log('\n(3) Pause and resume sync');

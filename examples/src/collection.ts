@@ -14,7 +14,6 @@ const collection_example = async () => {
   });
   // Open
   const result = await gitDDB.open(); // Open a repository if exists. (/your/path/to/the/example/git-documentdb/db_collection/.git)
-  if (!result.ok) await gitDDB.createDB(); // Git creates and opens a repository if not exits.
 
   // Use collection
   const nara = gitDDB.collection('nara');
@@ -38,9 +37,9 @@ const collection_example = async () => {
 
 
   // Read all the documents in nara collection
-  const flowersInNaraCollection = await nara.allDocs();
+  const flowersInNaraCollection = await nara.find();
 
-  console.log(`\n$ nara.allDocs() # Search all from collection`);
+  console.log(`\n$ nara.find() # Search all from collection`);
   console.dir(flowersInNaraCollection, { depth: 3 });
   /* flowersInNaraCollection = 
   {
@@ -82,7 +81,7 @@ const collection_example = async () => {
   console.log('\nCollections are');
   const cols = await gitDDB.getCollections();
   cols.forEach(col => {
-    console.log(` - ${col.collectionPath()}`); 
+    console.log(` - ${col.collectionPath}`); 
     // - nara/
     // - yoshino/
   });
