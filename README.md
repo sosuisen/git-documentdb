@@ -3,7 +3,7 @@
 # [GitDocumentDB](https://gitddb.com)
  [![npm version](https://img.shields.io/npm/v/git-documentdb)](https://badge.fury.io/js/git-documentdb)
  [![License: MPL 2.0](https://img.shields.io/github/license/sosuisen/git-documentdb)](LICENSE)
- [![Coverage Status](https://coveralls.io/repos/github/sosuisen/git-documentdb/badge.svg?branch=main)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
+ [![Coverage Status](https://img.shields.io/coveralls/github/sosuisen/git-documentdb)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
 Offline-first DocumentDB that Syncs with Git
 
