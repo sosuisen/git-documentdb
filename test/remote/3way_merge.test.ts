@@ -117,6 +117,7 @@ maybe('<remote/3way_merge>', () => {
         conflictResolutionStrategy: 'ours',
       }
     );
+    // dbB.logLevel = 'trace';
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };

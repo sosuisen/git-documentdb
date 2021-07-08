@@ -7,7 +7,6 @@
  * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
-import nodePath from 'path';
 import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
@@ -112,8 +111,6 @@ export async function syncWorker (
   // ahead: 1, behind 0 => Push : Local has new commits. Remote has not pushed new commits.
   // ahead: 1, behind 1 => Merge, may resolve conflict and push: Local has new commits. Remote has pushed new commits.
 
-  let conflictedIndex: nodegit.Index | undefined;
-  let newCommitOid: nodegit.Oid | string | undefined;
   if (distance.ahead === undefined || distance.behind === undefined) {
     throw new Err.NoMergeBaseFoundError();
   }
@@ -122,6 +119,14 @@ export async function syncWorker (
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
     // Fast forward
+    await git.writeRef({
+      fs,
+      dir: gitDDB.workingDir,
+      ref: gitDDB.defaultBranch,
+      value: oldRemoteCommitOid,
+    });
+    const newCommitOid = oldRemoteCommitOid;
+    /*
     const mergeResult = await git.merge({
       fs,
       dir: gitDDB.workingDir,
@@ -129,8 +134,8 @@ export async function syncWorker (
       theirs: 'remotes/origin/' + gitDDB.defaultBranch,
       fastForwardOnly: true,
     });
-    newCommitOid = mergeResult.oid;
-
+    const newCommitOid = mergeResult.oid;
+    */
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,
@@ -157,22 +162,6 @@ export async function syncWorker (
     }
     return syncResultFastForwardMerge;
   }
-  else if (distance.ahead > 0 && distance.behind > 0) {
-    newCommitOid = await repos
-      .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`)
-      .catch((res: nodegit.Index) => {
-        if (res instanceof Error) {
-          /*
-          if (res.message.startsWith('no merge base found')) {
-            throw new Err.NoMergeBaseFoundError();
-          }
-          */
-          throw new Err.GitMergeBranchError(res.message);
-        }
-        /* returns conflicted index */ conflictedIndex = res;
-        return undefined;
-      });
-  }
   else if (distance.ahead > 0 && distance.behind === 0) {
     // Push
     return await pushWorker(gitDDB, sync, taskMetadata, true).catch(err => {
@@ -180,11 +169,28 @@ export async function syncWorker (
     });
   }
 
-  if (newCommitOid instanceof nodegit.Oid) {
-    newCommitOid = newCommitOid.tostrS();
-  }
+  // distance.ahead > 0 && distance.behind > 0
 
-  if (conflictedIndex === undefined) {
+  const mergeResult = await git
+    .merge({
+      fs,
+      dir: gitDDB.workingDir,
+      ours: gitDDB.defaultBranch,
+      theirs: 'remotes/origin/' + gitDDB.defaultBranch,
+      author: gitDDB.author,
+      committer: gitDDB.committer,
+      message: 'merge',
+    })
+    .catch(e => {
+      if (e instanceof git.Errors.MergeNotSupportedError) {
+        // has conflict
+        return undefined;
+      }
+
+      throw new Err.GitMergeBranchError(e.message);
+    });
+
+  if (mergeResult !== undefined) {
     // Conflict has not been occurred.
     // Exec normal merge.
 
@@ -195,29 +201,13 @@ export async function syncWorker (
     // - remove a remote file, and insert/update another local file
     // - remove a remote file, and remove the same local file
 
+    const newCommitOid = mergeResult.oid;
+
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,
       newCommitOid!
     );
-
-    /**
-     * Amend (move HEAD and commit again)
-     */
-    const newCommit = await git.readCommit({
-      fs,
-      dir: gitDDB.workingDir,
-      oid: newCommitOid!,
-    });
-    const mergeParents = newCommit.commit.parent;
-    const amendedNewCommitOid = await git.commit({
-      fs,
-      dir: gitDDB.workingDir,
-      author: gitDDB.author,
-      committer: gitDDB.committer,
-      message: 'merge',
-      parent: mergeParents,
-    });
 
     let localCommits: NormalizedCommit[] | undefined;
 
@@ -226,7 +216,7 @@ export async function syncWorker (
       const amendedNewCommit = await git.readCommit({
         fs,
         dir: gitDDB.workingDir,
-        oid: amendedNewCommitOid,
+        oid: newCommitOid!,
       });
 
       const [baseCommitOid] = await git.findMergeBase({
@@ -289,6 +279,7 @@ export async function syncWorker (
    */
 
   const allFileObj: { [key: string]: boolean } = {};
+  /*
   conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
     const stage = nodegit.Index.entryStage(entry);
     gitDDB.logger.debug(
@@ -301,14 +292,7 @@ export async function syncWorker (
     allFileObj[entry.path] = true;
   });
 
-  /**
-   * NOTE:
-   * Index from Repository.mergeBranch, Merge.merge or Merge.commit is in-memory only.
-   * It cannot be used for commit operations.
-   * Create a new copy of index for commit.
-   *  Repository#refreshIndex() grabs copy of latest index
-   * See https://github.com/nodegit/nodegit/blob/master/examples/merge-with-conflicts.js
-   */
+
   const resolvedIndex = await repos.refreshIndex();
 
   const acceptedConflicts: AcceptedConflict[] = [];
@@ -449,6 +433,7 @@ export async function syncWorker (
       remote: syncResultPush.commits!.remote,
     };
   }
-
   return syncResultResolveConflictsAndPush;
+  */
+  return { action: 'nop' };
 }
