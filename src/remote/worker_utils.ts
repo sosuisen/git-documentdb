@@ -9,7 +9,7 @@
 import nodePath from 'path';
 import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { normalizeCommit } from '../utils';
+import { normalizeCommit, toSortedJSONString } from '../utils';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { Err } from '../error';
 import {
@@ -31,11 +31,11 @@ import { blobToBinary, blobToJsonDoc, blobToText } from '../crud/blob';
  * @throws {@link Err.CannotCreateDirectoryError}
  */
 export async function writeBlobToFile (
-  gitDDB: GitDDBInterface,
+  workingDir: string,
   name: string,
-  data: string
+  data: string | Uint8Array
 ) {
-  const filePath = nodePath.resolve(gitDDB.workingDir, name);
+  const filePath = nodePath.resolve(workingDir, name);
   const dir = nodePath.dirname(filePath);
   await fs.ensureDir(dir).catch((err: Error) => {
     return Promise.reject(new Err.CannotCreateDirectoryError(err.message));
@@ -191,6 +191,103 @@ export async function getChanges (
           old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
           new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
         };
+      }
+      else {
+        return;
+      }
+      return change;
+    },
+  });
+}
+
+/**
+ * Get and write changed files on local
+ *
+ * @throws {@link Err.InvalidJsonObjectError} (from getDocument())
+ *
+ * @internal
+ */
+export async function getAndWriteLocalChanges (
+  workingDir: string,
+  oldCommitOid: string,
+  newCommitOid: string
+) {
+  return await git.walk({
+    fs,
+    dir: workingDir,
+    trees: [git.TREE({ ref: oldCommitOid }), git.TREE({ ref: newCommitOid })],
+    // @ts-ignore
+    // eslint-disable-next-line complexity
+    map: async function (fullDocPath, [a, b]) {
+      // ignore directories
+      if (fullDocPath === '.') {
+        return;
+      }
+      if (fullDocPath.startsWith(GIT_DOCUMENTDB_METADATA_DIR)) {
+        return;
+      }
+
+      const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+      if (docType === 'text') {
+        // TODO: select binary or text by .gitattribtues
+      }
+
+      const aType = a === null ? undefined : await a.type();
+      const bType = b === null ? undefined : await b.type();
+
+      if (aType === 'tree' || bType === 'tree') {
+        return;
+      }
+      // generate ids
+      const aOid = a === null ? undefined : await a.oid();
+      const bOid = b === null ? undefined : await b.oid();
+
+      let change: ChangedFile;
+      if (bOid === undefined && aOid !== undefined) {
+        change = {
+          operation: 'delete',
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
+        };
+        await git.remove({ fs, dir: workingDir, filepath: fullDocPath });
+        const path = nodePath.resolve(workingDir, fullDocPath);
+        await fs.remove(path).catch(() => {
+          throw new Err.CannotDeleteDataError();
+        });
+      }
+      else if (aOid === undefined && bOid !== undefined) {
+        change = {
+          operation: 'insert',
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
+        };
+        if (change.new.type === 'json') {
+          await writeBlobToFile(
+            workingDir,
+            fullDocPath,
+            toSortedJSONString(change.new.doc)
+          );
+        }
+        else if (change.new.type === 'text' || change.new.type === 'binary') {
+          await writeBlobToFile(workingDir, fullDocPath, change.new.doc);
+        }
+        await git.add({ fs, dir: workingDir, filepath: fullDocPath });
+      }
+      else if (aOid !== undefined && bOid !== undefined && aOid !== bOid) {
+        change = {
+          operation: 'update',
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
+        };
+        if (change.new.type === 'json') {
+          await writeBlobToFile(
+            workingDir,
+            fullDocPath,
+            toSortedJSONString(change.new.doc)
+          );
+        }
+        else if (change.new.type === 'text' || change.new.type === 'binary') {
+          await writeBlobToFile(workingDir, fullDocPath, change.new.doc);
+        }
+        await git.add({ fs, dir: workingDir, filepath: fullDocPath });
       }
       else {
         return;

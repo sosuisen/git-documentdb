@@ -157,7 +157,7 @@ export async function threeWayMerge (
     // A new file has been inserted on theirs.
     // Write it to the file.
     // console.log(' #case 1 - Accept theirs (insert): ' + path);
-    await writeBlobToFile(gitDDB, fullDocPath, utf8decode(theirs!.blob));
+    await writeBlobToFile(gitDDB.workingDir, fullDocPath, utf8decode(theirs!.blob));
     await resolvedIndex.addByPath(fullDocPath);
   }
   else if (!base && ours && !theirs) {
@@ -192,7 +192,7 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(theirs!.blob))
         );
 
-        await writeBlobToFile(gitDDB, fullDocPath, data);
+        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
 
         await resolvedIndex.addByPath(fullDocPath);
 
@@ -215,7 +215,7 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(ours!.blob)),
           JSON.parse(utf8decode(theirs!.blob))
         );
-        await writeBlobToFile(gitDDB, fullDocPath, data);
+        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
 
         await resolvedIndex.addByPath(fullDocPath);
 
@@ -282,7 +282,7 @@ export async function threeWayMerge (
 
         const data = utf8decode(theirs!.blob);
 
-        await writeBlobToFile(gitDDB, fullDocPath, data);
+        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
 
         await resolvedIndex.addByPath(fullDocPath);
       }
@@ -322,7 +322,7 @@ export async function threeWayMerge (
 
         const data = utf8decode(ours!.blob);
 
-        await writeBlobToFile(gitDDB, fullDocPath, data);
+        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
 
         await resolvedIndex.addByPath(fullDocPath);
       }
@@ -359,7 +359,7 @@ export async function threeWayMerge (
       // Write theirs to the file.
       // console.log(' #case 14 - Accept theirs (update): ' + path);
       const data = utf8decode(theirs!.blob);
-      await writeBlobToFile(gitDDB, fullDocPath, data);
+      await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
       await resolvedIndex.addByPath(fullDocPath);
     }
     else if (base.oid === theirs.oid) {
@@ -386,7 +386,7 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(theirs!.blob))
         );
 
-        await writeBlobToFile(gitDDB, fullDocPath, data);
+        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
 
         await resolvedIndex.addByPath(fullDocPath);
 
@@ -410,7 +410,7 @@ export async function threeWayMerge (
           JSON.parse(utf8decode(theirs!.blob))
         );
 
-        await writeBlobToFile(gitDDB, fullDocPath, data);
+        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
 
         await resolvedIndex.addByPath(fullDocPath);
 

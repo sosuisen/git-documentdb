@@ -177,7 +177,7 @@ maybe('<remote/3way_merge>', () => {
 
     expect(getWorkingDirDocs(dbB)).toEqual([jsonB1, jsonA2, jsonB3]);
     // Sync dbA
-    const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
+    await syncA.trySync();
     expect(getWorkingDirDocs(dbA)).toEqual([jsonB1, jsonA2, jsonB3]);
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();

@@ -27,7 +27,13 @@ import {
 } from '../types';
 import { SyncInterface } from '../types_sync';
 import { pushWorker } from './push_worker';
-import { calcDistance, getChanges, getCommitLogs, writeBlobToFile } from './worker_utils';
+import {
+  calcDistance,
+  getAndWriteLocalChanges,
+  getChanges,
+  getCommitLogs,
+  writeBlobToFile,
+} from './worker_utils';
 import { threeWayMerge } from './3way_merge';
 
 /**
@@ -112,14 +118,29 @@ export async function syncWorker (
     return { action: 'nop' };
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
+    // Fast forward
+    const mergeResult = await git.merge({
+      fs,
+      dir: gitDDB.workingDir,
+      ours: gitDDB.defaultBranch,
+      theirs: 'remotes/origin/' + gitDDB.defaultBranch,
+      fastForwardOnly: true,
+    });
+    newCommitOid = mergeResult.oid;
+    /*
     newCommitOid = await repos.mergeBranches(
       gitDDB.defaultBranch,
       `origin/${gitDDB.defaultBranch}`
     );
-    if (newCommitOid instanceof nodegit.Oid) {
+        if (newCommitOid instanceof nodegit.Oid) {
       newCommitOid = newCommitOid.tostrS();
     }
-    const localChanges = await getChanges(gitDDB.workingDir, oldCommitOid, newCommitOid!);
+    */
+    const localChanges = await getAndWriteLocalChanges(
+      gitDDB.workingDir,
+      oldCommitOid,
+      newCommitOid!
+    );
 
     const syncResultFastForwardMerge: SyncResult = {
       action: 'fast-forward merge',
@@ -205,10 +226,13 @@ export async function syncWorker (
         const { blob } = await git.readBlob({
           fs,
           dir: gitDDB.workingDir,
+          /**
+           * NOTE: Is it true? change.new._id may be correct.
+           */
           oid: change.old._id,
         });
         const data = utf8decode(blob);
-        await writeBlobToFile(gitDDB, filename, data);
+        await writeBlobToFile(gitDDB.workingDir, filename, data);
         await currentIndex.addByPath(filename);
       }
     }
