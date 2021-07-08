@@ -114,7 +114,10 @@ export async function syncWorker (
 
   let conflictedIndex: nodegit.Index | undefined;
   let newCommitOid: nodegit.Oid | string | undefined;
-  if (distance.ahead === 0 && distance.behind === 0) {
+  if (distance.ahead === undefined || distance.behind === undefined) {
+    throw new Err.NoMergeBaseFoundError();
+  }
+  else if (distance.ahead === 0 && distance.behind === 0) {
     return { action: 'nop' };
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
@@ -158,13 +161,12 @@ export async function syncWorker (
     newCommitOid = await repos
       .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`)
       .catch((res: nodegit.Index) => {
-        // Exception locks files. Try cleanup
-        repos.cleanup();
-
         if (res instanceof Error) {
+          /*
           if (res.message.startsWith('no merge base found')) {
             throw new Err.NoMergeBaseFoundError();
           }
+          */
           throw new Err.GitMergeBranchError(res.message);
         }
         /* returns conflicted index */ conflictedIndex = res;

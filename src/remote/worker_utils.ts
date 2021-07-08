@@ -357,6 +357,12 @@ export async function calcDistance (
     dir: workingDir,
     oids: [localCommitOid, remoteCommitOid],
   });
+  if (baseCommitOid === undefined) {
+    return {
+      ahead: undefined,
+      behind: undefined,
+    };
+  }
   return {
     ahead: localCommitOid !== baseCommitOid ? 1 : 0,
     behind: remoteCommitOid !== baseCommitOid ? 1 : 0,

@@ -76,7 +76,16 @@ async function validatePushResult (
   });
   const distance = await calcDistance(gitDDB.workingDir, localCommitOid, remoteCommitOid);
 
-  if (distance.behind > 0) {
+  if (distance.behind === undefined) {
+    // This will not be occurred.
+    gitDDB.logger.debug(
+      CONSOLE_STYLE.bgWhite()
+        .fgBlack()
+        .tag()`sync_worker: push failed: cannot get merge base}`
+    );
+    throw new Err.NoMergeBaseFoundError();
+  }
+  else if (distance.behind > 0) {
     gitDDB.logger.debug(
       CONSOLE_STYLE.bgWhite()
         .fgBlack()
