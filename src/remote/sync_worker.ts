@@ -127,15 +127,7 @@ export async function syncWorker (
       fastForwardOnly: true,
     });
     newCommitOid = mergeResult.oid;
-    /*
-    newCommitOid = await repos.mergeBranches(
-      gitDDB.defaultBranch,
-      `origin/${gitDDB.defaultBranch}`
-    );
-        if (newCommitOid instanceof nodegit.Oid) {
-      newCommitOid = newCommitOid.tostrS();
-    }
-    */
+
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,
@@ -201,48 +193,12 @@ export async function syncWorker (
     // - remove a remote file, and insert/update another local file
     // - remove a remote file, and remove the same local file
 
-    // Compare trees before and after merge
-
-    // const currentIndex = await repos.refreshIndex();
-
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,
       newCommitOid!
     );
-    /**
-     * Repository.mergeBranches does not handle updating and deleting file.
-     * So a file updated/deleted on remote side is not applied to
-     * on both local filesystem and local index.
-     * Change them by hand.
-     */
-    /*
-    // Cannot use await in forEach. Use for-of.
-    for (const change of localChanges) {
-      if (change.operation === 'delete') {
-        const filename = change.old._id + JSON_EXT;
-        const path = nodePath.resolve(repos.workdir(), filename);
-        await fs.remove(path).catch(() => {
-          throw new Err.CannotDeleteDataError();
-        });
-        await currentIndex.removeByPath(filename);
-      }
-      else if (change.operation === 'update') {
-        const filename = change.old._id + JSON_EXT;
-        const { blob } = await git.readBlob({
-          fs,
-          dir: gitDDB.workingDir,
-          // NOTE: Is it true? change.new._id may be correct.
-          oid: change.old._id,
-        });
-        const data = utf8decode(blob);
-        await writeBlobToFile(gitDDB.workingDir, filename, data);
-        await currentIndex.addByPath(filename);
-      }
-    }
 
-    await currentIndex.write();
-*/
     /**
      * Amend (move HEAD and commit again)
      */
