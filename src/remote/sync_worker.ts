@@ -202,15 +202,21 @@ export async function syncWorker (
     // - remove a remote file, and remove the same local file
 
     // Compare trees before and after merge
-    const currentIndex = await repos.refreshIndex();
 
-    const localChanges = await getChanges(gitDDB.workingDir, oldCommitOid, newCommitOid!);
+    // const currentIndex = await repos.refreshIndex();
+
+    const localChanges = await getAndWriteLocalChanges(
+      gitDDB.workingDir,
+      oldCommitOid,
+      newCommitOid!
+    );
     /**
      * Repository.mergeBranches does not handle updating and deleting file.
      * So a file updated/deleted on remote side is not applied to
      * on both local filesystem and local index.
      * Change them by hand.
      */
+    /*
     // Cannot use await in forEach. Use for-of.
     for (const change of localChanges) {
       if (change.operation === 'delete') {
@@ -226,9 +232,7 @@ export async function syncWorker (
         const { blob } = await git.readBlob({
           fs,
           dir: gitDDB.workingDir,
-          /**
-           * NOTE: Is it true? change.new._id may be correct.
-           */
+          // NOTE: Is it true? change.new._id may be correct.
           oid: change.old._id,
         });
         const data = utf8decode(blob);
@@ -238,7 +242,7 @@ export async function syncWorker (
     }
 
     await currentIndex.write();
-
+*/
     /**
      * Amend (move HEAD and commit again)
      */
