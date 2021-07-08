@@ -660,7 +660,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       });
       // eslint-disable-next-line dot-notation
       const error = await remoteRepos['_checkPush'](remote, cred).catch(err => err);
-      if (error instanceof Err.PushConnectionFailedError) {
+      if (error instanceof Err.PushPermissionDeniedError) {
         // Notice that it sometimes throw Err.RemoteRepositoryNotFoundError
       }
       else {

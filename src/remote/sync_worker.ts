@@ -113,11 +113,11 @@ export async function syncWorker (
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
     newCommitOid = await repos
-      .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`)
-      .catch((res: nodegit.Index) => {
-        /* returns conflicted index */ conflictedIndex = res;
-        return undefined;
-      });
+      .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`);
+//      .catch((res: nodegit.Index) => {
+//        /* returns conflicted index */ conflictedIndex = res;
+//        return undefined;
+//      });
   }
   else if (distance.ahead > 0 && distance.behind > 0) {
     newCommitOid = await repos
