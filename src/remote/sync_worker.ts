@@ -112,12 +112,34 @@ export async function syncWorker (
     return { action: 'nop' };
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
-    newCommitOid = await repos
-      .mergeBranches(gitDDB.defaultBranch, `origin/${gitDDB.defaultBranch}`);
-//      .catch((res: nodegit.Index) => {
-//        /* returns conflicted index */ conflictedIndex = res;
-//        return undefined;
-//      });
+    newCommitOid = await repos.mergeBranches(
+      gitDDB.defaultBranch,
+      `origin/${gitDDB.defaultBranch}`
+    );
+    if (newCommitOid instanceof nodegit.Oid) {
+      newCommitOid = newCommitOid.tostrS();
+    }
+    const localChanges = await getChanges(gitDDB.workingDir, oldCommitOid, newCommitOid!);
+
+    const syncResultFastForwardMerge: SyncResult = {
+      action: 'fast-forward merge',
+      changes: {
+        local: localChanges,
+      },
+    };
+
+    if (sync.options.includeCommits) {
+      // Get list of commits which has been merged to local
+      const commitsFromRemote = await getCommitLogs(
+        gitDDB.workingDir,
+        oldRemoteCommitOid,
+        oldCommitOid
+      );
+      syncResultFastForwardMerge.commits = {
+        local: commitsFromRemote,
+      };
+    }
+    return syncResultFastForwardMerge;
   }
   else if (distance.ahead > 0 && distance.behind > 0) {
     newCommitOid = await repos
@@ -149,45 +171,7 @@ export async function syncWorker (
 
   if (conflictedIndex === undefined) {
     // Conflict has not been occurred.
-    // Exec fast-forward or normal merge.
-
-    // When a local file is removed and the same remote file is removed,
-    // they cannot be merged by fast-forward. They are merged as usual.
-    const distanceAgain = await calcDistance(
-      gitDDB.workingDir,
-      newCommitOid!,
-      await git.resolveRef({
-        fs,
-        dir: gitDDB.workingDir,
-        ref: 'refs/remotes/origin/main',
-      })
-    );
-
-    if (distanceAgain.ahead === 0) {
-      const localChanges = await getChanges(gitDDB.workingDir, oldCommitOid, newCommitOid!);
-
-      const syncResultFastForwardMerge: SyncResult = {
-        action: 'fast-forward merge',
-        changes: {
-          local: localChanges,
-        },
-      };
-
-      if (sync.options.includeCommits) {
-        // Get list of commits which has been merged to local
-        const commitsFromRemote = await getCommitLogs(
-          gitDDB.workingDir,
-          oldRemoteCommitOid,
-          oldCommitOid
-        );
-        syncResultFastForwardMerge.commits = {
-          local: commitsFromRemote,
-        };
-      }
-      return syncResultFastForwardMerge;
-    }
-
-    // distance_again.ahead > 0
+    // Exec normal merge.
 
     // This case is occurred when not fast-forward.
     // - insert/update a remote file, and insert/update another local file
