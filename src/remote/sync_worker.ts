@@ -103,7 +103,7 @@ export async function syncWorker (
   const oldRemoteCommitOid = await git.resolveRef({
     fs,
     dir: gitDDB.workingDir,
-    ref: 'refs/remotes/origin/main',
+    ref: 'refs/remotes/origin/' + gitDDB.defaultBranch,
   });
   const distance = await calcDistance(gitDDB.workingDir, oldCommitOid, oldRemoteCommitOid);
   // ahead: 0, behind 0 => Nothing to do: Local does not have new commits. Remote has not pushed new commits.
@@ -122,20 +122,12 @@ export async function syncWorker (
     await git.writeRef({
       fs,
       dir: gitDDB.workingDir,
-      ref: gitDDB.defaultBranch,
+      ref: 'refs/heads/' + gitDDB.defaultBranch,
       value: oldRemoteCommitOid,
+      force: true,
     });
     const newCommitOid = oldRemoteCommitOid;
-    /*
-    const mergeResult = await git.merge({
-      fs,
-      dir: gitDDB.workingDir,
-      ours: gitDDB.defaultBranch,
-      theirs: 'remotes/origin/' + gitDDB.defaultBranch,
-      fastForwardOnly: true,
-    });
-    const newCommitOid = mergeResult.oid;
-    */
+
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,

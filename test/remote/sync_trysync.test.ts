@@ -13,6 +13,7 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import { GitDocumentDB } from '../../src/git_documentdb';
@@ -248,7 +249,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       await syncA.tryPush();
 
       // B syncs
-      const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
+      const syncResult1 = (await syncB.trySync()) as SyncResultFastForwardMerge;
       expect(syncResult1.action).toBe('fast-forward merge');
       expect(syncResult1.commits!.local.length).toBe(2);
       expect(syncResult1.commits!.local[0].oid).toBe(putResult1.commit.oid);
@@ -269,6 +270,36 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      // Check HEAD
+      const headCommitA = await git.resolveRef({
+        fs,
+        dir: dbA.workingDir,
+        ref: 'HEAD',
+      });
+      expect(headCommitA).toBe(putResult2.commit.oid);
+
+      const headCommitB = await git.resolveRef({
+        fs,
+        dir: dbB.workingDir,
+        ref: 'HEAD',
+      });
+      expect(headCommitB).toBe(putResult2.commit.oid);
+
+      // Check defaultBranch
+      const mainBranchA = await git.resolveRef({
+        fs,
+        dir: dbA.workingDir,
+        ref: 'refs/heads/main',
+      });
+      expect(mainBranchA).toBe(putResult2.commit.oid);
+
+      const mainBranchB = await git.resolveRef({
+        fs,
+        dir: dbB.workingDir,
+        ref: 'refs/heads/main',
+      });
+      expect(mainBranchB).toBe(putResult2.commit.oid);
 
       await destroyDBs([dbA, dbB]);
     });
