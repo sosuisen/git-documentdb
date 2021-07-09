@@ -9,7 +9,7 @@
 import nodePath from 'path';
 import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { normalizeCommit, toSortedJSONString } from '../utils';
+import { normalizeCommit, toSortedJSONString, utf8decode } from '../utils';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { Err } from '../error';
 import {
@@ -56,7 +56,7 @@ async function getFatDocFromData (
   if (docType === 'json') {
     const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
     if (typeof data !== 'string') {
-      throw new Err.InvalidJsonObjectError(_id);
+      data = utf8decode(data);
     }
     try {
       const jsonDoc = (JSON.parse(data) as unknown) as JsonDoc;
@@ -76,6 +76,9 @@ async function getFatDocFromData (
     }
   }
   else if (docType === 'text') {
+    if (typeof data !== 'string') {
+      data = utf8decode(data);
+    }
     fatDoc = {
       name: fullDocPath,
       fileOid: oid,
@@ -347,16 +350,11 @@ export async function getCommitLogs (
 /**
  * Calc distance
  */
-export async function calcDistance (
-  workingDir: string,
+export function calcDistance (
+  baseCommitOid: string,
   localCommitOid: string,
   remoteCommitOid: string
 ) {
-  const [baseCommitOid] = await git.findMergeBase({
-    fs,
-    dir: workingDir,
-    oids: [localCommitOid, remoteCommitOid],
-  });
   if (baseCommitOid === undefined) {
     return {
       ahead: undefined,

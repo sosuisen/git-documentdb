@@ -74,7 +74,14 @@ async function validatePushResult (
     dir: gitDDB.workingDir,
     ref: 'refs/remotes/origin/main',
   });
-  const distance = await calcDistance(gitDDB.workingDir, localCommitOid, remoteCommitOid);
+
+  const [baseCommitOid] = await git.findMergeBase({
+    fs,
+    dir: gitDDB.workingDir,
+    oids: [localCommitOid, remoteCommitOid],
+  });
+
+  const distance = await calcDistance(baseCommitOid, localCommitOid, remoteCommitOid);
 
   if (distance.behind === undefined) {
     // This will not be occurred.

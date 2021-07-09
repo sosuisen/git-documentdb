@@ -33,7 +33,7 @@ import {
   getCommitLogs,
   writeBlobToFile,
 } from './worker_utils';
-import { threeWayMerge } from './3way_merge';
+import { merge, threeWayMerge } from './3way_merge';
 
 /**
  * git fetch
@@ -105,7 +105,14 @@ export async function syncWorker (
     dir: gitDDB.workingDir,
     ref: 'refs/remotes/origin/' + gitDDB.defaultBranch,
   });
-  const distance = await calcDistance(gitDDB.workingDir, oldCommitOid, oldRemoteCommitOid);
+
+  const [baseCommitOid] = await git.findMergeBase({
+    fs,
+    dir: gitDDB.workingDir,
+    oids: [oldCommitOid, oldRemoteCommitOid],
+  });
+
+  const distance = await calcDistance(baseCommitOid, oldCommitOid, oldRemoteCommitOid);
   // ahead: 0, behind 0 => Nothing to do: Local does not have new commits. Remote has not pushed new commits.
   // ahead: 0, behind 1 => Fast-forward merge : Local does not have new commits. Remote has pushed new commits.
   // ahead: 1, behind 0 => Push : Local has new commits. Remote has not pushed new commits.
@@ -161,8 +168,16 @@ export async function syncWorker (
     });
   }
 
-  // distance.ahead > 0 && distance.behind > 0
+  // Merge (distance.ahead > 0 && distance.behind > 0)
 
+  const [mergeCommitOid, acceptedConflicts] = await merge(
+    gitDDB,
+    sync,
+    baseCommitOid,
+    oldCommitOid,
+    oldRemoteCommitOid
+  );
+  /*
   const mergeResult = await git
     .merge({
       fs,
@@ -181,8 +196,8 @@ export async function syncWorker (
 
       throw new Err.GitMergeBranchError(e.message);
     });
-
-  if (mergeResult !== undefined) {
+*/
+  if (mergeCommitOid !== undefined) {
     // Conflict has not been occurred.
     // Exec normal merge.
 
@@ -193,28 +208,20 @@ export async function syncWorker (
     // - remove a remote file, and insert/update another local file
     // - remove a remote file, and remove the same local file
 
-    const newCommitOid = mergeResult.oid;
-
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,
-      newCommitOid!
+      mergeCommitOid!
     );
 
     let localCommits: NormalizedCommit[] | undefined;
 
     // Get list of commits which has been added to local
     if (sync.options.includeCommits) {
-      const amendedNewCommit = await git.readCommit({
+      const mergeCommit = await git.readCommit({
         fs,
         dir: gitDDB.workingDir,
-        oid: newCommitOid!,
-      });
-
-      const [baseCommitOid] = await git.findMergeBase({
-        fs,
-        dir: gitDDB.workingDir,
-        oids: [oldCommitOid, oldRemoteCommitOid],
+        oid: mergeCommitOid!,
       });
 
       const commitsFromRemote = await getCommitLogs(
@@ -223,7 +230,7 @@ export async function syncWorker (
         baseCommitOid
       );
       // Add merge commit
-      localCommits = [...commitsFromRemote, normalizeCommit(amendedNewCommit)];
+      localCommits = [...commitsFromRemote, normalizeCommit(mergeCommit)];
     }
     // Need push because it is merged normally.
     const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true).catch(
@@ -286,8 +293,6 @@ export async function syncWorker (
 
 
   const resolvedIndex = await repos.refreshIndex();
-
-  const acceptedConflicts: AcceptedConflict[] = [];
 
   // Try to check conflict for all files in conflicted index.
   // console.log('3-way merge..');

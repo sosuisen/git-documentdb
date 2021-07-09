@@ -433,6 +433,15 @@ Current value is '${type}'`);
   /**
    * @public
    */
+  export class InvalidConflictResolutionStrategyError extends BaseError {
+    constructor () {
+      super(`Conflict resolution strategy is invalid.`);
+    }
+  }
+
+  /**
+   * @public
+   */
   export class CannotOpenRepositoryError extends BaseError {
     constructor (err: unknown) {
       super(`Cannot open repository though .git directory exists. : ${err}`);
