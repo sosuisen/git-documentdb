@@ -24,6 +24,7 @@ import {
 import { toSortedJSONString, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { SyncInterface } from '../types_sync';
+import { Logger } from 'tslog';
 
 function getStrategy (
   strategy: ConflictResolutionStrategies | undefined,
@@ -270,6 +271,7 @@ export async function threeWayMerge (
   if (repos === undefined) {
     throw new Err.RepositoryNotOpenError();
   }
+  console.log(arguments);
 
   const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
   if (docType === 'text') {
@@ -392,6 +394,9 @@ export async function threeWayMerge (
       acceptedConflict,
     ];
   }
+
+  throw new Err.InvalidConflictStateError('Not implemented');
+  /*
   else if (base && !ours && !theirs) {
     // The same files are removed.
     // console.log(' #case 6 - Accept both (delete): ' + path);
@@ -587,4 +592,5 @@ export async function threeWayMerge (
       }
     }
   }
+  */
 }

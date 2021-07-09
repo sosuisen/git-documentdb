@@ -14,6 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
+import git, { WalkerEntry } from 'isomorphic-git';
 import expect from 'expect';
 import { Err } from '../../src/error';
 import { threeWayMerge } from '../../src/remote/3way_merge';
@@ -88,12 +89,10 @@ maybe('<remote/3way_merge>', () => {
         conflictResolutionStrategy: 'ours',
       }
     );
-    const jsonA1 = { _id: '1', name: 'fromA' };
-    const putResultA1 = await dbA.put(jsonA1);
-    const commit = putResultA1.commit.oid;
-    const index = await dbA.repository()?.refreshIndex();
+
     await expect(
-      threeWayMerge(dbA, syncA, 'ours-diff', index!, 'foo', commit!, commit!, commit!, [])
+      // @ts-ignore
+      threeWayMerge(dbA, syncA, 'ours-diff', 'foo', undefined, undefined, undefined)
     ).rejects.toThrowError(Err.InvalidConflictStateError);
   });
 
@@ -108,7 +107,7 @@ maybe('<remote/3way_merge>', () => {
    *   jsonA2: 1 - Accept theirs (insert)
    *   jsonB3: 2 - Accept ours (insert)
    */
-  it('resolves case 1 - Accept theirs (insert), case 2 - Accept ours (insert), case 4 - Conflict. Accept ours (insert)', async () => {
+  it.only('resolves case 1 - Accept theirs (insert), case 2 - Accept ours (insert), case 4 - Conflict. Accept ours (insert)', async () => {
     const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
       remoteURLBase,
       localDir,
@@ -117,7 +116,7 @@ maybe('<remote/3way_merge>', () => {
         conflictResolutionStrategy: 'ours',
       }
     );
-    // dbB.logLevel = 'trace';
+    dbB.logLevel = 'trace';
 
     // A puts and pushes
     const jsonA1 = { _id: '1', name: 'fromA' };
