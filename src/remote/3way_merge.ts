@@ -1,6 +1,5 @@
 import nodePath, { basename } from 'path';
-import nodegit, { Oid } from '@sosuisen/nodegit';
-import git, { TREE, TreeEntry, WalkerEntry } from 'isomorphic-git';
+import git, { TreeEntry, WalkerEntry } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY, JSON_EXT } from '../const';
 import { Err } from '../error';
@@ -8,23 +7,16 @@ import {
   AcceptedConflict,
   ConflictResolutionStrategies,
   ConflictResolutionStrategyLabels,
-  Doc,
   DocType,
   FatDoc,
   IJsonPatch,
   JsonDoc,
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
-import {
-  getFatDocFromData,
-  getFatDocFromOid,
-  getFatDocFromReadBlobResult,
-  writeBlobToFile,
-} from './worker_utils';
+import { getFatDocFromData, writeBlobToFile } from './worker_utils';
 import { toSortedJSONString, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { SyncInterface } from '../types_sync';
-import { Logger } from 'tslog';
 
 function getStrategy (
   strategy: ConflictResolutionStrategies | undefined,
@@ -195,18 +187,40 @@ export async function merge (
     fs,
     dir: gitDDB.workingDir,
     trees: [
-      TREE({ ref: baseCommitOid }),
-      TREE({ ref: oursCommitOid }),
-      TREE({ ref: theirsCommitOid }),
+      git.TREE({ ref: baseCommitOid }),
+      git.TREE({ ref: oursCommitOid }),
+      git.TREE({ ref: theirsCommitOid }),
     ],
     // @ts-ignore
     map: async function (fullDocPath, [base, ours, theirs]) {
       const baseType = base === null ? undefined : await base.type();
-      const oursType = ours === null ? undefined : await ours.type();
-      const theirsType = theirs === null ? undefined : await theirs.type();
+      if (baseType === 'tree') {
+        return {
+          mode: (await base.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: await base.oid(),
+          type: await base.type(),
+        };
+      }
 
-      if (baseType === 'tree' || oursType === 'tree' || theirsType === 'tree') {
-        return;
+      const oursType = ours === null ? undefined : await ours.type();
+      if (oursType === 'tree') {
+        return {
+          mode: (await ours.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: await ours.oid(),
+          type: await ours.type(),
+        };
+      }
+
+      const theirsType = theirs === null ? undefined : await theirs.type();
+      if (theirsType === 'tree') {
+        return {
+          mode: (await theirs.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: await theirs.oid(),
+          type: await theirs.type(),
+        };
       }
 
       const [treeEntry, conflict] = await threeWayMerge(
@@ -222,25 +236,32 @@ export async function merge (
         acceptedConflicts.push(conflict);
       }
 
+      if (treeEntry === undefined) {
+        return;
+      }
       return treeEntry;
     },
     reduce: async (parent, children) => {
       if (!parent) return;
 
-      const entries = children.filter(treeEntry => treeEntry !== undefined);
-      if (entries.length === 0) return;
+      if (parent.type === 'tree') {
+        if (children.length === 0) return;
 
-      const newTreeOid = await git.writeTree({ fs, dir: gitDDB.workingDir, tree: entries });
-      // eslint-disable-next-line require-atomic-updates
-      parent.oid = newTreeOid;
-
+        const newTreeOid = await git.writeTree({
+          fs,
+          dir: gitDDB.workingDir,
+          tree: children,
+        });
+        // eslint-disable-next-line require-atomic-updates
+        parent.oid = newTreeOid;
+      }
       return parent;
     },
   });
 
-  const mergeCommitOid = results.oid;
+  const mergedTreeOid = results.oid;
 
-  return [mergeCommitOid, acceptedConflicts];
+  return [mergedTreeOid, acceptedConflicts];
 }
 
 /**
@@ -266,12 +287,11 @@ export async function threeWayMerge (
   base: WalkerEntry,
   ours: WalkerEntry,
   theirs: WalkerEntry
-): Promise<[TreeEntry, AcceptedConflict | undefined]> {
+): Promise<[TreeEntry | undefined, AcceptedConflict | undefined]> {
   const repos = gitDDB.repository();
   if (repos === undefined) {
     throw new Err.RepositoryNotOpenError();
   }
-  console.log(arguments);
 
   const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
   if (docType === 'text') {
@@ -288,8 +308,9 @@ export async function threeWayMerge (
   else if (!base && !ours && theirs) {
     // A new file has been inserted on theirs.
     // Write it to the working directory.
-    // console.log(' #case 1 - Accept theirs (insert): ' + path);
+    // console.log(' #case 1 - Accept theirs (insert): ' + fullDocPath);
     await writeBlobToFile(gitDDB.workingDir, fullDocPath, (await theirs.content())!);
+    await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
     return [
       {
         mode: (await theirs.mode()).toString(8),
@@ -303,7 +324,7 @@ export async function threeWayMerge (
   else if (!base && ours && !theirs) {
     // A new file has been inserted on ours.
     // Just add it to the index.
-    // console.log(' #case 2 - Accept ours (insert): ' + path);
+    // console.log(' #case 2 - Accept ours (insert): ' + fullDocPath);
     return [
       {
         mode: (await ours.mode()).toString(8),
@@ -315,15 +336,17 @@ export async function threeWayMerge (
     ];
   }
   else if (!base && ours && theirs) {
-    if (ours.oid === theirs.oid) {
+    const oursOid = await ours.oid();
+    const theirsOid = await theirs.oid();
+    if (oursOid === theirsOid) {
       // The same filenames with exactly the same contents are inserted on both local and remote.
-      // console.log(' #case 3 - Accept both (insert): ' + path);
+      // console.log(' #case 3 - Accept both (insert): ' + fullDocPath);
       // Jut add it to the index.
       return [
         {
           mode: (await ours.mode()).toString(8),
           path: basename(fullDocPath),
-          oid: await ours.oid(),
+          oid: oursOid,
           type: 'blob',
         },
         undefined,
@@ -352,6 +375,7 @@ export async function threeWayMerge (
       // Can skip getMergedDocument().
       resultFatDoc = theirsFatDoc;
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
     }
     else {
       // Diff and patch
@@ -366,6 +390,7 @@ export async function threeWayMerge (
       );
       resultFatDoc = await getFatDocFromData(data, fullDocPath, docType);
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
     }
 
     const acceptedConflict: AcceptedConflict = {
@@ -376,11 +401,11 @@ export async function threeWayMerge (
 
     let mode = '';
     if (strategy === 'ours' || strategy === 'ours-diff') {
-      // console.log(' #case 4 - Conflict. Accept ours (insert): ' + path);
+      // console.log(' #case 4 - Conflict. Accept ours (insert): ' + fullDocPath);
       mode = (await ours.mode()).toString(8);
     }
     else if (strategy === 'theirs' || strategy === 'theirs-diff') {
-      // console.log(' #case 5 - Conflict. Accept theirs (insert): ' + path);
+      // console.log(' #case 5 - Conflict. Accept theirs (insert): ' + fullDocPath);
       mode = (await theirs.mode()).toString(8);
     }
 
@@ -394,203 +419,232 @@ export async function threeWayMerge (
       acceptedConflict,
     ];
   }
-
-  throw new Err.InvalidConflictStateError('Not implemented');
-  /*
   else if (base && !ours && !theirs) {
     // The same files are removed.
-    // console.log(' #case 6 - Accept both (delete): ' + path);
-    await resolvedIndex.removeByPath(fullDocPath);
+    // console.log(' #case 6 - Accept both (delete): ' + fullDocPath);
+
+    return [undefined, undefined];
   }
   else if (base && !ours && theirs) {
-    if (base.oid === theirs.oid) {
+    const baseOid = await base.oid();
+    const theirsOid = await theirs.oid();
+
+    if (baseOid === theirsOid) {
       // A file has been removed on ours.
-      // console.log(' #case 7 - Accept ours (delete): ' + path);
-      await resolvedIndex.removeByPath(fullDocPath);
+      // console.log(' #case 7 - Accept ours (delete): ' + fullDocPath);
+
+      return [undefined, undefined];
     }
-    else {
-      // ! Conflict
-      const strategy = await getStrategy(
-        conflictResolutionStrategy,
-        undefined,
-        getFatDocFromReadBlobResult(fullDocPath, theirs, docType)
-      );
-      if (strategy === 'ours' || strategy === 'ours-diff') {
-        // Just add it to the index.
-        // console.log(' #case 8 - Conflict. Accept ours (delete): ' + path);
-        const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir,
-          fullDocPath,
-          base.oid,
-          docType
-        );
 
-        acceptedConflicts.push({
-          fatDoc,
-          strategy: strategy,
-          operation: 'delete',
-        });
-        await resolvedIndex.removeByPath(fullDocPath);
-      }
-      else if (strategy === 'theirs' || strategy === 'theirs-diff') {
-        // Write theirs to the file.
-        // console.log(' #case 9 - Conflict. Accept theirs (update): ' + path);
-        const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir,
-          fullDocPath,
-          theirs.oid,
-          docType
-        );
+    // ! Conflict
 
-        acceptedConflicts.push({
-          fatDoc,
-          strategy: strategy,
-          operation: 'update',
-        });
+    const theirsData = (await theirs.content())!;
+    const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+    const strategy = await getStrategy(conflictResolutionStrategy, undefined, theirsFatDoc);
 
-        const data = utf8decode(theirs!.blob);
-
-        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
-
-        await resolvedIndex.addByPath(fullDocPath);
-      }
+    if (strategy === 'ours' || strategy === 'ours-diff') {
+      // Just add it to the index.
+      // console.log(' #case 8 - Conflict. Accept ours (delete): ' + fullDocPath);
+      const baseData = (await base.content())!;
+      const baseFatDoc = await getFatDocFromData(baseData, fullDocPath, docType);
+      const acceptedConflict: AcceptedConflict = {
+        fatDoc: baseFatDoc,
+        strategy: strategy,
+        operation: 'delete',
+      };
+      return [undefined, acceptedConflict];
+    }
+    else if (strategy === 'theirs' || strategy === 'theirs-diff') {
+      // Write theirs to the file.
+      // console.log(' #case 9 - Conflict. Accept theirs (update): ' + fullDocPath);
+      const acceptedConflict: AcceptedConflict = {
+        fatDoc: theirsFatDoc,
+        strategy: strategy,
+        operation: 'update',
+      };
+      await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
+      return [
+        {
+          mode: (await theirs.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: theirsFatDoc.fileOid,
+          type: 'blob',
+        },
+        acceptedConflict,
+      ];
     }
   }
   else if (base && ours && !theirs) {
-    if (base.oid === ours.oid) {
+    const baseOid = await base.oid();
+    const oursOid = await ours.oid();
+
+    if (baseOid === oursOid) {
       // A file has been removed on theirs.
-      // console.log(' #case 10 - Accept theirs (delete): ' + path);
+      // console.log(' #case 10 - Accept theirs (delete): ' + fullDocPath);
       await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
         throw new Err.CannotDeleteDataError();
       });
-      await resolvedIndex.removeByPath(fullDocPath);
+      await git.remove({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
+      return [undefined, undefined];
     }
-    else {
-      // ! Conflict
-      const strategy = await getStrategy(
-        conflictResolutionStrategy,
-        getFatDocFromReadBlobResult(fullDocPath, ours, docType),
-        undefined
-      );
-      if (strategy === 'ours' || strategy === 'ours-diff') {
-        // Just add to the index.
-        // console.log(' #case 11 - Conflict. Accept ours (update): ' + path);
-        const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir,
-          fullDocPath,
-          ours.oid,
-          docType
-        );
 
-        acceptedConflicts.push({
-          fatDoc,
-          strategy: strategy,
-          operation: 'update',
-        });
+    // ! Conflict
 
-        const data = utf8decode(ours!.blob);
+    const oursData = (await ours.content())!;
+    const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
+    const strategy = await getStrategy(conflictResolutionStrategy, oursFatDoc, undefined);
 
-        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
-
-        await resolvedIndex.addByPath(fullDocPath);
-      }
-      else if (strategy === 'theirs' || strategy === 'theirs-diff') {
-        // Remove file
-        // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + path);
-        const fatDoc: FatDoc = await getFatDocFromOid(
-          gitDDB.workingDir,
-          fullDocPath,
-          base.oid,
-          docType
-        );
-
-        acceptedConflicts.push({
-          fatDoc,
-          strategy: strategy,
-          operation: 'delete',
-        });
-        await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
-          throw new Err.CannotDeleteDataError();
-        });
-        await resolvedIndex.removeByPath(fullDocPath);
-      }
+    if (strategy === 'ours' || strategy === 'ours-diff') {
+      // Just add to the index.
+      // console.log(' #case 11 - Conflict. Accept ours (update): ' + fullDocPath);
+      const acceptedConflict: AcceptedConflict = {
+        fatDoc: oursFatDoc,
+        strategy: strategy,
+        operation: 'update',
+      };
+      await writeBlobToFile(gitDDB.workingDir, fullDocPath, oursData);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
+      return [
+        {
+          mode: (await ours.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: oursFatDoc.fileOid,
+          type: 'blob',
+        },
+        acceptedConflict,
+      ];
+    }
+    else if (strategy === 'theirs' || strategy === 'theirs-diff') {
+      // Remove file
+      // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + fullDocPath);
+      const baseData = (await base.content())!;
+      const baseFatDoc = await getFatDocFromData(baseData, fullDocPath, docType);
+      const acceptedConflicts: AcceptedConflict = {
+        fatDoc: baseFatDoc,
+        strategy: strategy,
+        operation: 'delete',
+      };
+      await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
+        throw new Err.CannotDeleteDataError();
+      });
+      await git.remove({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
+      return [undefined, acceptedConflicts];
     }
   }
   else if (base && ours && theirs) {
-    if (ours.oid === theirs.oid) {
+    const baseOid = await base.oid();
+    const oursOid = await ours.oid();
+    const theirsOid = await theirs.oid();
+
+    if (oursOid === theirsOid) {
       // The same filenames with exactly the same contents are inserted on both local and remote.
       // Jut add it to the index.
-      // console.log(' #case 13 - Accept both (update): ' + path);
-      await resolvedIndex.addByPath(fullDocPath);
+      // console.log(' #case 13 - Accept both (update): ' + fullDocPath);
+      return [
+        {
+          // TODO: check whether mode is the same.
+          mode: (await ours.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: oursOid,
+          type: 'blob',
+        },
+        undefined,
+      ];
     }
-    else if (base.oid === ours.oid) {
+    else if (baseOid === oursOid) {
       // Write theirs to the file.
-      // console.log(' #case 14 - Accept theirs (update): ' + path);
-      const data = utf8decode(theirs!.blob);
-      await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
-      await resolvedIndex.addByPath(fullDocPath);
+      // console.log(' #case 14 - Accept theirs (update): ' + fullDocPath);
+      const theirsData = (await theirs.content())!;
+      const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+      await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
+      await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
+      return [
+        {
+          mode: (await theirs.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: theirsFatDoc.fileOid,
+          type: 'blob',
+        },
+        undefined,
+      ];
     }
-    else if (base.oid === theirs.oid) {
+    else if (baseOid === theirsOid) {
       // Jut add it to the index.
-      // console.log(' #case 15 - Accept ours (update): ' + path);
-      await resolvedIndex.addByPath(fullDocPath);
+      // console.log(' #case 15 - Accept ours (update): ' + fullDocPath);
+      const oursData = (await ours.content())!;
+      const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
+      return [
+        {
+          mode: (await theirs.mode()).toString(8),
+          path: basename(fullDocPath),
+          oid: oursFatDoc.fileOid,
+          type: 'blob',
+        },
+        undefined,
+      ];
     }
-    else {
-      // ! Conflict
-      const strategy = await getStrategy(
-        conflictResolutionStrategy,
-        getFatDocFromReadBlobResult(fullDocPath, ours, docType),
-        getFatDocFromReadBlobResult(fullDocPath, theirs, docType)
-      );
-      if (strategy === 'ours' || strategy === 'ours-diff') {
-        // Just add it to the index.
-        // console.log(' #case 16 - Conflict. Accept ours (update): ' + path);
-        const data = await getMergedDocument(
-          sync.jsonDiff,
-          sync.jsonPatch,
-          strategy,
-          JSON.parse(utf8decode(base!.blob)),
-          JSON.parse(utf8decode(ours!.blob)),
-          JSON.parse(utf8decode(theirs!.blob))
-        );
 
-        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
+    // ! Conflict
 
-        await resolvedIndex.addByPath(fullDocPath);
+    const baseData = (await base.content())!;
+    const oursData = (await ours.content())!;
+    const theirsData = (await theirs.content())!;
+    const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
+    const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+    const strategy = await getStrategy(
+      conflictResolutionStrategy,
+      oursFatDoc,
+      theirsFatDoc
+    );
 
-        const fatDoc: FatDoc = await getFatDocFromData(data, fullDocPath, docType);
+    const data = await getMergedDocument(
+      sync.jsonDiff,
+      sync.jsonPatch,
+      strategy,
+      baseData,
+      oursData,
+      theirsData,
+      docType
+    );
+    const resultFatDoc = await getFatDocFromData(data, fullDocPath, docType);
+    await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
+    await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
-        acceptedConflicts.push({
-          fatDoc,
-          strategy: strategy,
-          operation: strategy === 'ours' ? 'update' : 'update-merge',
-        });
-      }
-      else if (strategy === 'theirs' || strategy === 'theirs-diff') {
-        // Write theirs to the file.
-        // console.log(' #case 17 - Conflict. Accept theirs (update): ' + path);
-        const data = await getMergedDocument(
-          sync.jsonDiff,
-          sync.jsonPatch,
-          strategy,
-          JSON.parse(utf8decode(base!.blob)),
-          JSON.parse(utf8decode(ours!.blob)),
-          JSON.parse(utf8decode(theirs!.blob))
-        );
+    let acceptedConflict: AcceptedConflict;
 
-        await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
+    let mode = '';
+    if (strategy === 'ours' || strategy === 'ours-diff') {
+      // Just add it to the index.
+      // console.log(' #case 16 - Conflict. Accept ours (update): ' + fullDocPath);
+      acceptedConflict = {
+        fatDoc: resultFatDoc,
+        strategy: strategy,
+        operation: strategy === 'ours' ? 'update' : 'update-merge',
+      };
 
-        await resolvedIndex.addByPath(fullDocPath);
-
-        const fatDoc: FatDoc = await getFatDocFromData(data, fullDocPath, docType);
-
-        acceptedConflicts.push({
-          fatDoc,
-          strategy: strategy,
-          operation: strategy === 'theirs' ? 'update' : 'update-merge',
-        });
-      }
+      mode = (await ours.mode()).toString(8);
     }
+    else if (strategy === 'theirs' || strategy === 'theirs-diff') {
+      // Write theirs to the file.
+      // console.log(' #case 17 - Conflict. Accept theirs (update): ' + fullDocPath);
+      acceptedConflict = {
+        fatDoc: resultFatDoc,
+        strategy: strategy,
+        operation: strategy === 'theirs' ? 'update' : 'update-merge',
+      };
+      mode = (await theirs.mode()).toString(8);
+    }
+
+    return [
+      {
+        mode,
+        path: basename(fullDocPath),
+        oid: resultFatDoc.fileOid,
+        type: 'blob',
+      },
+      acceptedConflict!,
+    ];
   }
-  */
+  throw new Err.InvalidConflictStateError('Invalid case');
 }

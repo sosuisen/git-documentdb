@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
+import git from 'isomorphic-git';
 import sinon from 'sinon';
 import expect from 'expect';
 import nodegit from '@sosuisen/nodegit';
@@ -333,8 +334,21 @@ export const compareWorkingDirAndBlobs = async (
 ): Promise<boolean> => {
   const files = listFiles(gitDDB, gitDDB.workingDir);
 
+  /*
+  const headCommitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
+  await git.walk({
+    fs,
+    dir: gitDDB.workingDir,
+    trees: [git.TREE({ ref: headCommitOid })],
+    // @ts-ignore
+    map: function (fullDocPath, [a]) {
+      console.log('myres: ' + fullDocPath);
+      return '';
+    },
+  }); */
+
   const currentIndex = await gitDDB.repository()?.refreshIndex();
-  const entryCount = currentIndex!.entryCount() - 1; // Reduce by 1 due to '.gitddb/lib_version'
+  const entryCount = currentIndex!.entryCount() - 1; // Reduce by 1 due to '.gitddb/info.json'
   // console.log('# check count: fromFiles: ' + files.length + ', fromIndex: ' + entryCount);
   if (files.length !== entryCount) {
     return false;

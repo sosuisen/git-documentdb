@@ -170,43 +170,24 @@ export async function syncWorker (
 
   // Merge (distance.ahead > 0 && distance.behind > 0)
 
-  const [mergeCommitOid, acceptedConflicts] = await merge(
+  const [mergedTreeOid, acceptedConflicts] = await merge(
     gitDDB,
     sync,
     baseCommitOid,
     oldCommitOid,
     oldRemoteCommitOid
   );
-  /*
-  const mergeResult = await git
-    .merge({
+
+  if (acceptedConflicts.length === 0) {
+    const mergeCommitOid = await git.commit({
       fs,
       dir: gitDDB.workingDir,
-      ours: gitDDB.defaultBranch,
-      theirs: 'remotes/origin/' + gitDDB.defaultBranch,
       author: gitDDB.author,
       committer: gitDDB.committer,
+      parent: [oldCommitOid, oldRemoteCommitOid],
       message: 'merge',
-    })
-    .catch(e => {
-      if (e instanceof git.Errors.MergeNotSupportedError) {
-        // has conflict
-        return undefined;
-      }
-
-      throw new Err.GitMergeBranchError(e.message);
+      tree: mergedTreeOid,
     });
-*/
-  if (mergeCommitOid !== undefined) {
-    // Conflict has not been occurred.
-    // Exec normal merge.
-
-    // This case is occurred when not fast-forward.
-    // - insert/update a remote file, and insert/update another local file
-    // - insert/update a remote file, and insert/update the same local file with the same contents
-    // - insert/update a remote file, and remove another local file
-    // - remove a remote file, and insert/update another local file
-    // - remove a remote file, and remove the same local file
 
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
@@ -277,56 +258,6 @@ export async function syncWorker (
    * https://git-scm.com/docs/git-merge#_true_merge
    */
 
-  const allFileObj: { [key: string]: boolean } = {};
-  /*
-  conflictedIndex.entries().forEach((entry: nodegit.IndexEntry) => {
-    const stage = nodegit.Index.entryStage(entry);
-    gitDDB.logger.debug(
-      CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: ${stage} : ${entry.path}`
-    );
-
-    // entries() returns all files in stage 0, 1, 2 and 3.
-    // A file may exist in multiple stages.
-    // Add once per file to allFileObj.
-    allFileObj[entry.path] = true;
-  });
-
-
-  const resolvedIndex = await repos.refreshIndex();
-
-  // Try to check conflict for all files in conflicted index.
-  // console.log('3-way merge..');
-  const [mergeBaseCommitOid] = await git.findMergeBase({
-    fs,
-    dir: gitDDB.workingDir,
-    oids: [oldCommitOid, oldRemoteCommitOid],
-  });
-
-  const resolvers: Promise<void>[] = [];
-  const strategy = sync.options.conflictResolutionStrategy;
-  // eslint-disable-next-line complexity
-  Object.keys(allFileObj).forEach(path => {
-    resolvers.push(
-      threeWayMerge(
-        gitDDB,
-        sync,
-        strategy!,
-        resolvedIndex,
-        path,
-        mergeBaseCommitOid,
-        oldCommitOid,
-        oldRemoteCommitOid,
-        acceptedConflicts
-      ).catch(err => {
-        throw new Err.ThreeWayMergeError(err.message);
-      })
-    );
-  });
-  await Promise.all(resolvers);
-  resolvedIndex.conflictCleanup();
-  await resolvedIndex.write();
-  await resolvedIndex.writeTree();
-
   acceptedConflicts.sort((a, b) => {
     return a.fatDoc.name === b.fatDoc.name ? 0 : a.fatDoc.name > b.fatDoc.name ? 1 : -1;
   });
@@ -343,33 +274,17 @@ export async function syncWorker (
     commitMessage = commitMessage.slice(0, -2);
   }
 
-  const overwriteCommitOid = await git.commit({
+  const mergeCommitOid = await git.commit({
     fs,
     dir: gitDDB.workingDir,
     author: gitDDB.author,
     committer: gitDDB.committer,
-    parent: [
-      await git.resolveRef({
-        fs,
-        dir: gitDDB.workingDir,
-        ref: 'HEAD',
-      }),
-      await git.resolveRef({
-        fs,
-        dir: gitDDB.workingDir,
-        ref: 'refs/remotes/origin/main',
-      }),
-    ],
+    parent: [oldCommitOid, oldRemoteCommitOid],
     message: commitMessage,
+    tree: mergedTreeOid,
   });
 
-  repos.stateCleanup();
-
-  const localChanges = await getChanges(
-    gitDDB.workingDir,
-    oldCommitOid,
-    overwriteCommitOid
-  );
+  const localChanges = await getChanges(gitDDB.workingDir, oldCommitOid, mergeCommitOid);
 
   // Get list of commits which has been added to local
   let localCommits: NormalizedCommit[] | undefined;
@@ -377,20 +292,16 @@ export async function syncWorker (
     const commitsFromRemote = await getCommitLogs(
       gitDDB.workingDir,
       oldRemoteCommitOid,
-      mergeBaseCommitOid
+      baseCommitOid
     );
     const overwriteCommit = await git.readCommit({
       fs,
       dir: gitDDB.workingDir,
-      oid: overwriteCommitOid,
+      oid: mergeCommitOid,
     });
     // Add merge commit
     localCommits = [...commitsFromRemote, normalizeCommit(overwriteCommit)];
   }
-
-  const opt = new nodegit.CheckoutOptions();
-  opt.checkoutStrategy = nodegit.Checkout.STRATEGY.FORCE;
-  await nodegit.Checkout.head(repos, opt);
 
   // Push
   const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true).catch(
@@ -431,6 +342,4 @@ export async function syncWorker (
     };
   }
   return syncResultResolveConflictsAndPush;
-  */
-  return { action: 'nop' };
 }
