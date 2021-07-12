@@ -35,6 +35,7 @@ import {
   JsonDoc,
   NormalizedCommit,
   OpenOptions,
+  PluginTypes,
   PutOptions,
   PutResult,
   PutResultJsonDoc,
@@ -107,6 +108,22 @@ export function generateDatabaseId () {
  */
 export class GitDocumentDB
   implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface {
+  static plugin (obj: any) {
+    const type: PluginTypes = obj.type;
+    if (type === 'sync') {
+      Object.keys(obj).forEach(function (id) {
+        // @ts-ignore
+        Sync.prototype[id] = obj[id];
+      });
+    }
+    else {
+      Object.keys(obj).forEach(function (id) {
+        // @ts-ignore
+        GitDocumentDB.prototype[id] = obj[id];
+      });
+    }
+  }
+
   /***********************************************
    * Private properties
    ***********************************************/

@@ -40,7 +40,7 @@
   "bugs": {
     "url": "https://github.com/sosuisen/git-documentdb/issues"
   },
-  "homepage": "https://github.com/sosuisen/git-documentdb#readme",
+  "homepage": "https://gitddb.com/",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.16.0",
     "@octokit/types": "^6.12.2",

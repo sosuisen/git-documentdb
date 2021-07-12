@@ -9,6 +9,11 @@
 import { TLogLevelName } from 'tslog';
 
 /**
+ * Plugin types
+ */
+export type PluginTypes = 'db' | 'sync';
+
+/**
  * Database Options
  *
  * @remarks

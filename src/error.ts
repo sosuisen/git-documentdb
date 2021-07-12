@@ -233,16 +233,6 @@ export namespace Err {
   /**
    * @public
    */
-  export class InvalidSSHKeyPathError extends BaseError {
-    constructor () {
-      const e = `Invalid SSH key path`;
-      super(e);
-    }
-  }
-
-  /**
-   * @public
-   */
   export class InvalidURLError extends BaseError {
     constructor (url: unknown) {
       super(`Invalid url: ${url}'`);

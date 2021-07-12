@@ -1048,4 +1048,22 @@ export class Sync implements SyncInterface {
     );
     return this;
   }
+
+  /**
+   * clone
+   * @internal
+   */
+  clone () {}
+
+  /**
+   * fetch
+   * @internal
+   */
+  fetch () {}
+
+  /**
+   * push
+   * @internal
+   */
+  push () {}
 }
