@@ -62,8 +62,8 @@ maybe('<remote/clone> clone', () => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
       // @ts-ignore
-      await expect(Remote.clone('tmp')).resolves.toBeUndefined();
-      await expect(Remote.clone('tmp', { remoteUrl: undefined })).resolves.toBeUndefined();
+      await expect(Remote.clone('tmp')).resolves.toBeFalsy();
+      await expect(Remote.clone('tmp', { remoteUrl: undefined })).resolves.toBeFalsy();
     });
 
     it('clones a repository by NodeGit', async () => {

@@ -30,7 +30,7 @@ import { Remote } from './remote';
 /**
  * Clone a remote repository and combine the current local working directory with it.
  *
- * @remarks Must catch errors
+ * TODO: Must catch errors
  */
 // eslint-disable-next-line complexity
 export async function combineDatabaseWithTheirs (
@@ -40,17 +40,10 @@ export async function combineDatabaseWithTheirs (
   // Clone repository if remoteURL exists
   const remoteDir = gitDDB.workingDir + '_' + ulid(Date.now());
   const tmpLocalDir = gitDDB.workingDir + '_' + ulid(Date.now());
-  let remoteRepository: nodegit.Repository | undefined;
+
   const duplicates: DuplicatedFile[] = [];
   try {
-    remoteRepository = await Remote.clone(remoteDir, remoteOptions, gitDDB.logger);
-    if (remoteRepository === undefined) {
-      // Remote repository not found.
-      // This will not occur after NoBaseMergeFoundError.
-      throw new Err.RemoteRepositoryNotFoundError(remoteOptions.remoteUrl!);
-    }
-
-    const index = await remoteRepository.refreshIndex();
+    await Remote.clone(remoteDir, remoteOptions, gitDDB.logger);
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.repository()!);
     const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteRepository);
