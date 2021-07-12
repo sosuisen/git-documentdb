@@ -200,30 +200,30 @@ export async function merge (
       const baseType = base === null ? undefined : await base.type();
       if (baseType === 'tree') {
         return {
-          mode: (await base.mode()).toString(8),
+          mode: (await base!.mode()).toString(8),
           path: basename(fullDocPath),
-          oid: await base.oid(),
-          type: await base.type(),
+          oid: await base!.oid(),
+          type: await base!.type(),
         };
       }
 
       const oursType = ours === null ? undefined : await ours.type();
       if (oursType === 'tree') {
         return {
-          mode: (await ours.mode()).toString(8),
+          mode: (await ours!.mode()).toString(8),
           path: basename(fullDocPath),
-          oid: await ours.oid(),
-          type: await ours.type(),
+          oid: await ours!.oid(),
+          type: await ours!.type(),
         };
       }
 
       const theirsType = theirs === null ? undefined : await theirs.type();
       if (theirsType === 'tree') {
         return {
-          mode: (await theirs.mode()).toString(8),
+          mode: (await theirs!.mode()).toString(8),
           path: basename(fullDocPath),
-          oid: await theirs.oid(),
-          type: await theirs.type(),
+          oid: await theirs!.oid(),
+          type: await theirs!.type(),
         };
       }
 
@@ -295,9 +295,9 @@ export async function threeWayMerge (
   sync: SyncInterface,
   conflictResolutionStrategy: ConflictResolutionStrategies,
   fullDocPath: string,
-  base: WalkerEntry,
-  ours: WalkerEntry,
-  theirs: WalkerEntry
+  base: WalkerEntry | null,
+  ours: WalkerEntry | null,
+  theirs: WalkerEntry | null
 ): Promise<
   [
     TreeEntry | undefined,
