@@ -18,6 +18,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import {
+  FatJsonDoc,
   SyncResult,
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
@@ -37,7 +38,7 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import { sleep } from '../../src/utils';
+import { sleep, toSortedJSONString } from '../../src/utils';
 
 const reposPrefix = 'test_sync_trysync___';
 const localDir = `./test/database_sync_trysync`;
@@ -763,6 +764,44 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
     await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+    await destroyDBs([dbA, dbB]);
+  });
+
+  it('syncs files under .gitddb', async () => {
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+
+    const dbNameB = serialId();
+    const dbB: GitDocumentDB = new GitDocumentDB({
+      dbName: dbNameB,
+      localDir,
+    });
+    // Clone dbA
+    await dbB.open();
+    const syncB = await dbB.sync(syncA.options);
+
+    const info = {
+      dbId: 'foo',
+      creator: 'bar',
+      version: 'baz',
+    };
+    const putResult = await dbA.putFatDoc('.gitddb/info.json', toSortedJSONString(info));
+
+    const appInfo = { ver: 1.0 };
+    await dbA.saveAppInfo(appInfo);
+
+    await syncA.tryPush();
+    await syncB.trySync();
+    await expect(dbB.loadAppInfo()).resolves.toEqual(appInfo);
+
+    const fatDoc = {
+      _id: '.gitddb/info',
+      name: '.gitddb/info.json',
+      fileOid: putResult.fileOid,
+      type: 'json',
+      doc: info,
+    };
+    await expect(dbB.getFatDoc('.gitddb/info.json')).resolves.toEqual(fatDoc);
 
     await destroyDBs([dbA, dbB]);
   });
