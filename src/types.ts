@@ -11,7 +11,7 @@ import { TLogLevelName } from 'tslog';
 /**
  * Plugin types
  */
-export type PluginTypes = 'db' | 'sync';
+export type PluginTypes = 'db' | 'remote';
 
 /**
  * Database Options

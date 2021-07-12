@@ -13,6 +13,7 @@ import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger, TLogLevelName } from 'tslog';
 import { ulid } from 'ulid';
+import { Remote } from './remote/remote';
 import { Err } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -110,14 +111,16 @@ export class GitDocumentDB
   implements GitDDBInterface, CRUDInterface, CollectionInterface, SyncEventInterface {
   static plugin (obj: any) {
     const type: PluginTypes = obj.type;
-    if (type === 'sync') {
+    if (type === 'remote') {
       Object.keys(obj).forEach(function (id) {
+        // Set to Remote object
         // @ts-ignore
-        Sync.prototype[id] = obj[id];
+        Remote[id] = obj[id];
       });
     }
     else {
       Object.keys(obj).forEach(function (id) {
+        // Set to Instance property
         // @ts-ignore
         GitDocumentDB.prototype[id] = obj[id];
       });

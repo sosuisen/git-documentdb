@@ -178,6 +178,9 @@ function filterChanges (syncResult: SyncResult, collectionPath: string): SyncRes
  * @public
  */
 export class Sync implements SyncInterface {
+  /**********************************************
+   * Private properties
+   ***********************************************/
   private _gitDDB: GitDDBInterface;
   private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
@@ -1048,22 +1051,4 @@ export class Sync implements SyncInterface {
     );
     return this;
   }
-
-  /**
-   * clone
-   * @internal
-   */
-  clone () {}
-
-  /**
-   * fetch
-   * @internal
-   */
-  fetch () {}
-
-  /**
-   * push
-   * @internal
-   */
-  push () {}
 }

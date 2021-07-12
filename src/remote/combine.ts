@@ -8,11 +8,11 @@
  */
 import path from 'path';
 import git from 'isomorphic-git';
-import nodegit from '@sosuisen/nodegit';
+import nodegit, { Repository } from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { ulid } from 'ulid';
 import rimraf from 'rimraf';
-import { cloneRepository } from './clone';
+import { Logger } from 'tslog';
 import {
   DocMetadata,
   DocType,
@@ -25,6 +25,7 @@ import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXT } from '../const';
 import { getAllMetadata, toSortedJSONString } from '../utils';
+import { Remote } from './remote';
 
 /**
  * Clone a remote repository and combine the current local working directory with it.
@@ -42,7 +43,7 @@ export async function combineDatabaseWithTheirs (
   let remoteRepository: nodegit.Repository | undefined;
   const duplicates: DuplicatedFile[] = [];
   try {
-    remoteRepository = await cloneRepository(remoteDir, remoteOptions, gitDDB.logger);
+    remoteRepository = await Remote.clone(remoteDir, remoteOptions, gitDDB.logger);
     if (remoteRepository === undefined) {
       // Remote repository not found.
       // This will not occur after NoBaseMergeFoundError.

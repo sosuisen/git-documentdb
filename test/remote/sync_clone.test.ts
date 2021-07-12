@@ -14,11 +14,17 @@
 import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
-import { cloneRepository } from '../../src/remote/clone';
-import { removeRemoteRepositories } from '../remote_utils';
+import { createDatabase, destroyDBs, removeRemoteRepositories } from '../remote_utils';
+import { GitDocumentDB } from '../../src/git_documentdb';
+import { Remote } from '../../src/remote/remote';
 
-const reposPrefix = 'test_clone___';
-const localDir = `./test/database_clone`;
+const reposPrefix = 'test_sync_clone___';
+const localDir = `./test/database_sync_clone`;
+
+let idCounter = 0;
+const serialId = () => {
+  return `${reposPrefix}${idCounter++}`;
+};
 
 beforeEach(function () {
   // @ts-ignore
@@ -40,7 +46,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('<remote/clone> cloneRepository', () => {
+maybe('<remote/clone> clone', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -51,9 +57,33 @@ maybe('<remote/clone> cloneRepository', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  it('returns undefined when invalid RemoteOptions', async () => {
-    // @ts-ignore
-    await expect(cloneRepository('tmp')).resolves.toBeUndefined();
-    await expect(cloneRepository('tmp', { remoteUrl: undefined })).resolves.toBeUndefined();
+  describe('using NodeGit', () => {
+    it('returns undefined when invalid RemoteOptions', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+      // @ts-ignore
+      await expect(Remote.clone('tmp')).resolves.toBeUndefined();
+      await expect(Remote.clone('tmp', { remoteUrl: undefined })).resolves.toBeUndefined();
+    });
+
+    it('clones a repository by NodeGit', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await syncA.tryPush();
+
+      const dbNameB = serialId();
+      const workingDir = localDir + '/' + dbNameB;
+      await Remote.clone(workingDir, syncA.options);
+
+      const dbB = new GitDocumentDB({ localDir, dbName: dbNameB });
+      await dbB.open();
+      await expect(dbB.get(jsonA1._id)).resolves.toEqual(jsonA1);
+
+      await destroyDBs([dbA, dbB]);
+    });
   });
 });

@@ -612,4 +612,14 @@ Current value is '${type}'`);
       super(`Combine database failed: ${mes})`);
     }
   }
+
+  /**
+   * @public
+   */
+  export class InvalidSSHKeyPathError extends BaseError {
+    constructor () {
+      const e = `Invalid SSH key path`;
+      super(e);
+    }
+  }
 }
