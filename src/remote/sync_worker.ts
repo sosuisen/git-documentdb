@@ -125,7 +125,9 @@ export async function syncWorker (
     return { action: 'nop' };
   }
   else if (distance.ahead === 0 && distance.behind > 0) {
-    // Fast forward
+    /**
+     * Fast forward
+     */
     await git.writeRef({
       fs,
       dir: gitDDB.workingDir,
@@ -162,15 +164,18 @@ export async function syncWorker (
     return syncResultFastForwardMerge;
   }
   else if (distance.ahead > 0 && distance.behind === 0) {
-    // Push
+    /**
+     * Push
+     */
     return await pushWorker(gitDDB, sync, taskMetadata, true).catch(err => {
       throw err;
     });
   }
 
-  // Merge (distance.ahead > 0 && distance.behind > 0)
-
-  const [mergedTreeOid, acceptedConflicts] = await merge(
+  /**
+   * Merge (distance.ahead > 0 && distance.behind > 0)
+   */
+  const [mergedTreeOid, localChanges, remoteChanges, acceptedConflicts] = await merge(
     gitDDB,
     sync,
     baseCommitOid,
@@ -189,12 +194,13 @@ export async function syncWorker (
       tree: mergedTreeOid,
     });
 
+    /*
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,
       mergeCommitOid!
     );
-
+    */
     let localCommits: NormalizedCommit[] | undefined;
 
     // Get list of commits which has been added to local
@@ -214,7 +220,7 @@ export async function syncWorker (
       localCommits = [...commitsFromRemote, normalizeCommit(mergeCommit)];
     }
     // Need push because it is merged normally.
-    const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true).catch(
+    const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
       (err: Error) => {
         return err;
       }
@@ -240,7 +246,8 @@ export async function syncWorker (
       action: 'merge and push',
       changes: {
         local: localChanges,
-        remote: syncResultPush.changes.remote,
+        // remote: syncResultPush.changes.remote,
+        remote: remoteChanges,
       },
     };
     if (localCommits) {
@@ -284,7 +291,7 @@ export async function syncWorker (
     tree: mergedTreeOid,
   });
 
-  const localChanges = await getChanges(gitDDB.workingDir, oldCommitOid, mergeCommitOid);
+  //   const localChanges = await getChanges(gitDDB.workingDir, oldCommitOid, mergeCommitOid);
 
   // Get list of commits which has been added to local
   let localCommits: NormalizedCommit[] | undefined;
@@ -304,7 +311,7 @@ export async function syncWorker (
   }
 
   // Push
-  const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true).catch(
+  const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
     (err: Error) => {
       return err;
     }
@@ -332,7 +339,8 @@ export async function syncWorker (
     conflicts: acceptedConflicts,
     changes: {
       local: localChanges,
-      remote: syncResultPush.changes.remote,
+      // remote: syncResultPush.changes.remote,
+      remote: remoteChanges,
     },
   };
   if (localCommits) {

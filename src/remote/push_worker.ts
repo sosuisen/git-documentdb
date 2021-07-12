@@ -12,7 +12,7 @@ import fs from 'fs-extra';
 import { CONSOLE_STYLE } from '../utils';
 import { Err } from '../error';
 import { GitDDBInterface } from '../types_gitddb';
-import { NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
+import { ChangedFile, NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
 import { SyncInterface } from '../types_sync';
 import { calcDistance, getChanges, getCommitLogs } from './worker_utils';
 
@@ -116,7 +116,8 @@ export async function pushWorker (
   gitDDB: GitDDBInterface,
   sync: SyncInterface,
   taskMetadata: TaskMetadata,
-  skipStartEvent = false
+  skipStartEvent = false,
+  skipGetChanges = false
 ): Promise<SyncResultPush> {
   if (!skipStartEvent) {
     sync.eventHandlers.start.forEach(listener => {
@@ -186,7 +187,13 @@ export async function pushWorker (
 
   // Push
   await push(gitDDB, sync);
-  const remoteChanges = await getChanges(gitDDB.workingDir, remoteCommitOid, headCommitOid);
+  let remoteChanges: ChangedFile[] | undefined;
+  if (skipGetChanges) {
+    remoteChanges = undefined;
+  }
+  else {
+    remoteChanges = await getChanges(gitDDB.workingDir, remoteCommitOid, headCommitOid);
+  }
 
   const syncResult: SyncResultPush = {
     action: 'push',
