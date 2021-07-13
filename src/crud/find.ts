@@ -7,7 +7,7 @@
  */
 
 import fs from 'fs';
-import { readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
+import { readBlob, readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
 import { Err } from '../error';
 import {
@@ -21,7 +21,7 @@ import {
   JsonDoc,
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
-import { blobToBinary, blobToJsonDoc, blobToText, readLatestBlob } from './blob';
+import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
 
 /**
  * Implementation of find()
@@ -57,7 +57,7 @@ export async function findImpl (
   options.prefix ??= '';
   options.prefix = collectionPath + options.prefix;
 
-  const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir, ref: 'main' });
+  const commitOid = await resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
 
   // Normalize prefix and targetDir
   let prefix = options!.prefix;
@@ -147,7 +147,13 @@ export async function findImpl (
           continue;
         }
         // eslint-disable-next-line no-await-in-loop
-        const readBlobResult = await readLatestBlob(gitDDB.workingDir, fullDocPath);
+        const readBlobResult = await readBlob({
+          fs,
+          dir: gitDDB.workingDir,
+          oid: commitOid,
+          filepath: fullDocPath,
+        }).catch(() => undefined);
+
         // Skip if cannot read
         if (readBlobResult) {
           const docType: DocType =
