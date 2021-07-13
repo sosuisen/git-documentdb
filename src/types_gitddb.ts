@@ -89,6 +89,4 @@ export interface GitDDBInterface {
 
   /* deprecate */
   repository(): nodegit.Repository | undefined;
-  /* deprecate */
-  setRepository(repos: nodegit.Repository): void;
 }
