@@ -376,7 +376,10 @@ maybe('<remote/sync> init()', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  it('throws RemoteRepositoryConnectError.', async () => {
+  it('throws RemoteCheckFetchError.', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
     const dbName = serialId();
     const remoteURL =
       'https://github.com/sosuisen/foobar_test_for_remote_repository_connect_error';
@@ -394,9 +397,7 @@ maybe('<remote/sync> init()', () => {
     };
     const sync = new Sync(gitDDB, options);
     //
-    await expect(sync.init(gitDDB.repository()!)).rejects.toThrowError(
-      Err.RemoteRepositoryConnectError
-    );
+    await expect(sync.init()).rejects.toThrowError(Err.RemoteCheckFetchError);
     await gitDDB.destroy();
   });
 });
@@ -412,7 +413,10 @@ maybe('<remote/sync> syncImpl()', () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
-  it('throws RepositoryNotOpenError.', async () => {
+  it('throws RemoteCheckFetchError.', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
     const dbName = serialId();
     const remoteURL = remoteURLBase + serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -424,11 +428,14 @@ maybe('<remote/sync> syncImpl()', () => {
         remoteUrl: remoteURL,
         connection: { type: 'github', personalAccessToken: token },
       })
-    ).rejects.toThrowError(Err.RepositoryNotOpenError);
+    ).rejects.toThrowError(Err.RemoteCheckFetchError);
     await gitDDB.destroy();
   });
 
   it('creates a remote repository on GitHub by using personal access token', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
     const remoteURL = remoteURLBase + serialId();
 
     const dbNameA = serialId();
@@ -470,6 +477,9 @@ maybe('<remote/sync> tryPush()', () => {
   });
 
   it('throws PushNotAllowedError.', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
     const remoteURL = remoteURLBase + serialId();
     const dbName = serialId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -486,9 +496,7 @@ maybe('<remote/sync> tryPush()', () => {
       syncDirection: 'pull',
     };
     const sync = new Sync(gitDDB, options);
-    await await expect(sync.init(gitDDB.repository()!)).rejects.toThrowError(
-      Err.PushNotAllowedError
-    );
+    await await expect(sync.init()).rejects.toThrowError(Err.PushNotAllowedError);
 
     destroyDBs([gitDDB]);
   });

@@ -551,9 +551,18 @@ Current value is '${type}'`);
   /**
    * @public
    */
-  export class RemoteRepositoryConnectError extends BaseError {
+  export class RemoteCheckPushError extends BaseError {
     constructor (mes: unknown) {
-      super(`Error in RemoteRepository#connect(): ${mes}`);
+      super(`Error in Remote.checkPush(): ${mes}`);
+    }
+  }
+
+  /**
+   * @public
+   */
+  export class RemoteCheckFetchError extends BaseError {
+    constructor (mes: unknown) {
+      super(`Error in Remote.checkFetch(): ${mes}`);
     }
   }
 

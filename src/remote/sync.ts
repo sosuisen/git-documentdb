@@ -10,7 +10,8 @@
  * ! Must import both clearInterval and setInterval from 'timers'
  */
 import { clearInterval, setInterval } from 'timers';
-import nodegit from '@sosuisen/nodegit';
+import git from 'isomorphic-git';
+import fs from 'fs-extra';
 import { CONSOLE_STYLE, sleep } from '../utils';
 import { Err } from '../error';
 import {
@@ -54,6 +55,7 @@ import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 import { Validator } from '../validator';
+import { Remote } from './remote';
 
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
@@ -74,12 +76,8 @@ export async function syncAndGetResultImpl (
   this: GitDDBInterface,
   options: RemoteOptions
 ): Promise<[Sync, SyncResult]> {
-  const repos = this.repository();
-  if (repos === undefined) {
-    throw new Err.RepositoryNotOpenError();
-  }
   const sync = new Sync(this, options);
-  const syncResult = await sync.init(repos);
+  const syncResult = await sync.init();
   return [sync, syncResult];
 }
 /**
@@ -101,12 +99,8 @@ export async function syncImpl (
   this: GitDDBInterface,
   options: RemoteOptions
 ): Promise<Sync> {
-  const repos = this.repository();
-  if (repos === undefined) {
-    throw new Err.RepositoryNotOpenError();
-  }
   const sync = new Sync(this, options);
-  await sync.init(repos);
+  await sync.init();
   return sync;
 }
 
@@ -182,7 +176,6 @@ export class Sync implements SyncInterface {
    * Private properties
    ***********************************************/
   private _gitDDB: GitDDBInterface;
-  private _checkoutOptions: nodegit.CheckoutOptions;
   private _syncTimer: NodeJS.Timeout | undefined;
   private _retrySyncCounter = 0; // Decremental count
 
@@ -297,6 +290,7 @@ export class Sync implements SyncInterface {
    *
    * @public
    */
+  // eslint-disable-next-line complexity
   constructor (gitDDB: GitDDBInterface, options?: RemoteOptions) {
     this._gitDDB = gitDDB;
 
@@ -318,10 +312,6 @@ export class Sync implements SyncInterface {
     this._options.conflictResolutionStrategy = options.conflictResolutionStrategy;
 
     if (this._options.remoteUrl === undefined || this._options.remoteUrl === '') {
-      /**
-       * TODO: Check upstream branch of this repository
-       * Set remoteUrl to the upstream branch and cloneRepository() if exists.
-       */
       throw new Err.UndefinedRemoteURLError();
     }
 
@@ -351,11 +341,6 @@ export class Sync implements SyncInterface {
     this.credentialCallbacks = createCredential(this._options);
 
     this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
-
-    this._checkoutOptions = new nodegit.CheckoutOptions();
-    // nodegit.Checkout.STRATEGY.USE_OURS: For unmerged files, checkout stage 2 from index
-    this._checkoutOptions.checkoutStrategy =
-      nodegit.Checkout.STRATEGY.FORCE | nodegit.Checkout.STRATEGY.USE_OURS;
 
     this._remoteRepository = new RemoteRepository({
       remoteUrl: this._options.remoteUrl,
@@ -399,18 +384,34 @@ export class Sync implements SyncInterface {
    *
    * @public
    */
-  async init (repos: nodegit.Repository): Promise<SyncResult> {
+  async init (): Promise<SyncResult> {
     const onlyFetch = this._options.syncDirection === 'pull';
-    const [gitResult, remoteResult] = await this.remoteRepository
-      .connect(this._gitDDB.repository()!, this.credentialCallbacks, onlyFetch)
-      .catch(err => {
-        throw new Err.RemoteRepositoryConnectError(err.message);
+
+    const remoteResult: 'exist' | 'not_exist' = await Remote.checkFetch(
+      this._gitDDB.workingDir,
+      this._options,
+      this.credentialCallbacks
+    ).catch((err: Error) => {
+      throw new Err.RemoteCheckFetchError(err.message);
+    });
+    if (remoteResult === 'not_exist') {
+      // Try to create repository by octokit
+      await this.remoteRepository.create().catch(err => {
+        // App may check permission or
+        throw new Err.CannotCreateRemoteRepositoryError(err.message);
       });
-    this._gitDDB.logger.debug('git remote: ' + gitResult);
-    this._gitDDB.logger.debug('remote repository: ' + remoteResult);
-    if (remoteResult === 'create') {
       this._upstreamBranch = '';
     }
+    if (!onlyFetch) {
+      await Remote.checkPush(
+        this._gitDDB.workingDir,
+        this._options,
+        this.credentialCallbacks
+      ).catch((err: Error) => {
+        throw new Err.RemoteCheckPushError(err.message);
+      });
+    }
+
     let syncResult: SyncResult = {
       action: 'nop',
     };
@@ -422,15 +423,32 @@ export class Sync implements SyncInterface {
     else if (this.upstreamBranch === '') {
       this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
       // Empty upstream_branch shows that an empty repository has been created on a remote site.
-      // _trySync() pushes local commits to the remote branch.
+      // trySync() pushes local commits to the remote branch.
       syncResult = await this.tryPush();
 
       // An upstream branch must be set to a local branch after the first push
       // because refs/remotes/origin/main is not created until the first push.
-      await nodegit.Branch.setUpstream(
-        await repos.getBranch(this._gitDDB.defaultBranch),
-        `origin/${this._gitDDB.defaultBranch}`
-      );
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `branch.${this._gitDDB.defaultBranch}.remote`,
+        value: 'origin',
+      });
+
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `branch.${this._gitDDB.defaultBranch}.merge`,
+        value: `refs/heads/${this._gitDDB.defaultBranch}`,
+      });
+
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `branch.${this._gitDDB.defaultBranch}.remote`,
+        value: 'origin',
+      });
+
       this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else if (this._options.syncDirection === 'push') {
@@ -505,12 +523,10 @@ export class Sync implements SyncInterface {
       this._options.retry = options.retry;
     }
 
-    if (this._gitDDB.repository() !== undefined) {
-      this._options.live = true;
-      this._syncTimer = setInterval(() => {
-        this.trySync().catch(() => undefined);
-      }, this._options.interval!);
-    }
+    this._options.live = true;
+    this._syncTimer = setInterval(() => {
+      this.trySync().catch(() => undefined);
+    }, this._options.interval!);
 
     this.eventHandlers.resume.forEach(listener => {
       listener.func();
