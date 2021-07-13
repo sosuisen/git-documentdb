@@ -155,9 +155,6 @@ export async function getChanges (
       if (fullDocPath === '.') {
         return;
       }
-      if (fullDocPath.startsWith(GIT_DOCUMENTDB_METADATA_DIR)) {
-        return;
-      }
 
       const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
       if (docType === 'text') {
@@ -223,9 +220,6 @@ export async function getAndWriteLocalChanges (
     map: async function (fullDocPath, [a, b]) {
       // ignore directories
       if (fullDocPath === '.') {
-        return;
-      }
-      if (fullDocPath.startsWith(GIT_DOCUMENTDB_METADATA_DIR)) {
         return;
       }
 
