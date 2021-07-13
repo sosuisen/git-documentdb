@@ -122,7 +122,7 @@ export async function combineDatabaseWithTheirs (
             type: docType,
           };
         }
-        git.add({ fs, dir: remoteDir, filepath: duplicatedFileName });
+        await git.add({ fs, dir: remoteDir, filepath: duplicatedFileName });
 
         duplicates.push({
           original,
@@ -132,7 +132,7 @@ export async function combineDatabaseWithTheirs (
       else {
         // Copy localFilePath to remoteFilePath if remoteFilePath not exists
         await fs.copyFile(localFilePath, remoteFilePath);
-        git.add({ fs, dir: remoteDir, filepath: meta.name });
+        await git.add({ fs, dir: remoteDir, filepath: meta.name });
       }
     }
 
