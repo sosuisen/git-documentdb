@@ -25,6 +25,7 @@ import {
   SyncResultPush,
 } from '../../src/types';
 import { Err } from '../../src/error';
+
 import {
   compareWorkingDirAndBlobs,
   createClonedDatabases,
@@ -789,12 +790,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     };
     const putResult = await dbA.putFatDoc('.gitddb/info.json', toSortedJSONString(info));
 
-    const appInfo = { ver: 1.0 };
-    await dbA.saveAppInfo(appInfo);
-
     await syncA.tryPush();
+
     await syncB.trySync();
-    await expect(dbB.loadAppInfo()).resolves.toEqual(appInfo);
 
     const fatDoc = {
       _id: '.gitddb/info',
