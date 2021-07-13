@@ -893,18 +893,6 @@ export class GitDocumentDB
     return this._currentRepository;
   }
 
-  /**
-   * Set repository
-   *
-   * @remarks Be aware that it can corrupt the database.
-   * @deprecated  This will be removed when NodeGit is replaced with isomorphic-git.
-   * @public
-   */
-  setRepository (repos: nodegit.Repository) {
-    this._currentRepository = undefined;
-    this._currentRepository = repos;
-  }
-
   /***********************************************
    * Public method (Implementation of CRUDInterface)
    ***********************************************/
