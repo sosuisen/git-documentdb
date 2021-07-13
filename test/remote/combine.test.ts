@@ -19,6 +19,7 @@ import expect from 'expect';
 import parse from 'parse-git-config';
 import { DuplicatedFile } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
+import { Remote } from '../../src/remote/remote';
 import { Err } from '../../src/error';
 import {
   compareWorkingDirAndBlobs,
@@ -45,6 +46,9 @@ beforeEach(function () {
 });
 
 before(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -77,9 +81,6 @@ maybe('<remote/combine>', () => {
    */
   describe('with NodeGit', () => {
     it('throws NoMergeBaseFoundError when combineDbStrategy is throw-error in [both] direction', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'throw-error',
         syncDirection: 'both',
@@ -93,7 +94,9 @@ maybe('<remote/combine>', () => {
       await dbB.open();
 
       // trySync throws NoMergeBaseFoundError
-      await expect(dbB.sync(syncA.options)).rejects.toThrowError(Err.NoMergeBaseFoundError);
+      await expect(dbB.sync(syncA.options)).rejects.toThrowError(
+        Remote.Err.NoMergeBaseFoundError
+      );
 
       //      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       //      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
@@ -102,9 +105,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('commits with valid commit message for combine-head-with-theirs', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -123,7 +123,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Err.NoMergeBaseFoundError
+        Remote.Err.NoMergeBaseFoundError
       );
 
       const headCommitOid = await git.resolveRef({
@@ -142,9 +142,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds when combine-head-with-theirs with empty local and empty remote', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -159,7 +156,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Err.NoMergeBaseFoundError
+        Remote.Err.NoMergeBaseFoundError
       );
 
       // Put new doc to combined db.
@@ -176,9 +173,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds combine-head-with-theirs with empty local and not empty remote', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -197,7 +191,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Err.NoMergeBaseFoundError
+        Remote.Err.NoMergeBaseFoundError
       );
 
       // Put new doc to combined db.
@@ -214,9 +208,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds when combine-head-with-theirs with not empty local and empty remote', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -234,7 +225,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Err.NoMergeBaseFoundError
+        Remote.Err.NoMergeBaseFoundError
       );
 
       // Put new doc to combined db.
@@ -251,9 +242,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -288,9 +276,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -359,9 +344,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('returns SyncResult with duplicates when combine-head-with-theirs with deep local and deep remote', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -433,9 +415,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('invokes combine event with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -515,9 +494,6 @@ maybe('<remote/combine>', () => {
     });
 
     it('copies author from local repository', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         combineDbStrategy: 'combine-head-with-theirs',
         syncDirection: 'both',
@@ -538,7 +514,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Err.NoMergeBaseFoundError
+        Remote.Err.NoMergeBaseFoundError
       );
 
       const config = parse.sync({ cwd: dbB.workingDir, path: '.git/config' });
