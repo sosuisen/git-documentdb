@@ -107,19 +107,6 @@ describe('<git_documentdb>', () => {
       await expect(gitDDB.open()).rejects.toThrowError(Err.CannotCreateDirectoryError);
     });
 
-    it('throws CannotCreateRepositoryError when tries to create a new repository on a readonly filesystem.', async () => {
-      const dbName = monoId();
-      const stubEnsureDir = sandbox.stub(fs_module, 'ensureDir');
-      stubEnsureDir.onFirstCall().resolves().onSecondCall().rejects();
-
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      // You don't have permission
-      await expect(gitDDB.open()).rejects.toThrowError(Err.CannotCreateRepositoryError);
-    });
-
     it('creates a new repository.', async () => {
       const dbName = monoId();
 
@@ -191,7 +178,7 @@ describe('<git_documentdb>', () => {
       });
       // Create empty .git directory
       await fs.ensureDir(gitDDB.workingDir + '/.git/');
-      await expect(gitDDB.open()).rejects.toThrowError(Err.CannotOpenRepositoryError);
+      await expect(gitDDB.open()).rejects.toThrowError(Err.CannotWriteDataError);
     });
 
     it('opens an existing repository.', async () => {

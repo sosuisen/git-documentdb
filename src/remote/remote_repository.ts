@@ -6,7 +6,6 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import nodegit from '@sosuisen/nodegit';
 import { Octokit } from '@octokit/rest';
 import { Err } from '../error';
 import { RemoteOptions } from '../types';

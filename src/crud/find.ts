@@ -27,7 +27,6 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
  * Implementation of find()
  *
  * @throws {@link Err.DatabaseClosingError}
- * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.InvalidJsonObjectError}
  */
 // eslint-disable-next-line complexity
@@ -40,10 +39,6 @@ export async function findImpl (
 ): Promise<(Doc | FatDoc)[]> {
   if (gitDDB.isClosing) {
     return Promise.reject(new Err.DatabaseClosingError());
-  }
-
-  if (!gitDDB.isOpened) {
-    return Promise.reject(new Err.RepositoryNotOpenError());
   }
 
   options ??= {

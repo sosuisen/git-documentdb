@@ -73,20 +73,6 @@ describe('<crud/get> getImpl()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws RepositoryNotOpenError', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    await gitDDB.close();
-    await expect(getImpl(gitDDB, 'tmp', '')).rejects.toThrowError(
-      Err.RepositoryNotOpenError
-    );
-    await gitDDB.destroy();
-  });
-
   it('throws InvalidJsonObjectError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({

@@ -59,18 +59,6 @@ describe('<collection> get()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws RepositoryNotOpenError', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
-    await gitDDB.close();
-    await expect(col.get('prof01')).rejects.toThrowError(Err.RepositoryNotOpenError);
-  });
-
   it('throws InvalidJsonObjectError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -854,21 +842,6 @@ describe('<crud/get> getFatDocHistory()', () => {
       // eslint-disable-next-line no-await-in-loop
       await sleep(100);
     }
-    await gitDDB.destroy();
-  });
-
-  it('throws RepositoryNotOpenError', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
-    await gitDDB.close();
-    await expect(col.getFatDocHistory('tmp')).rejects.toThrowError(
-      Err.RepositoryNotOpenError
-    );
     await gitDDB.destroy();
   });
 

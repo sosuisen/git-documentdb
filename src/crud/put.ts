@@ -22,7 +22,6 @@ import { Err } from '../error';
  * @throws {@link Err.TaskCancelError}
  *
  * @throws {@link Err.UndefinedDBError} (from putWorker)
- * @throws {@link Err.RepositoryNotOpenError} (from putWorker)
  * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
  * @throws {@link Err.SameIdExistsError} (from putWorker)
  * @throws {@link Err.DocumentNotFoundError} (from putWorker)
@@ -93,7 +92,6 @@ export function putImpl (
  * Add and commit a file
  *
  * @throws {@link Err.UndefinedDBError}
- * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.CannotCreateDirectoryError}
  * @throws {@link Err.SameIdExistsError}
  * @throws {@link Err.DocumentNotFoundError}
@@ -111,9 +109,6 @@ export async function putWorker (
     throw new Err.UndefinedDBError();
   }
 
-  if (!gitDDB.isOpened) {
-    throw new Err.RepositoryNotOpenError();
-  }
   const fullDocPath = collectionPath + shortName;
 
   let fileOid: string;

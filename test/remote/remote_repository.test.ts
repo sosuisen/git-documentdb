@@ -17,18 +17,14 @@ import { Octokit } from '@octokit/rest';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
-import { createCredential } from '../../src/remote/authentication';
-import { GitDocumentDB } from '../../src/git_documentdb';
 import { Err } from '../../src/error';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
 import {
   createRemoteRepository,
-  destroyDBs,
   destroyRemoteRepository,
   removeRemoteRepositories,
 } from '../remote_utils';
 import { RemoteRepository } from '../../src/remote/remote_repository';
-import { RemoteOptions } from '../../src/types';
 
 const ulid = monotonicFactory();
 const monoId = () => {

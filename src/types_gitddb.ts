@@ -6,7 +6,6 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import nodegit from '@sosuisen/nodegit';
 import { Logger, TLogLevelName } from 'tslog';
 import { TaskQueue } from './task_queue';
 import {
@@ -86,7 +85,4 @@ export interface GitDDBInterface {
   loadAppInfo(): { [key: string]: any };
 
   loadDbInfo(): void;
-
-  /* deprecate */
-  repository(): nodegit.Repository | undefined;
 }

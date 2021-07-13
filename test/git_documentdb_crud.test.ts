@@ -1221,20 +1221,6 @@ describe('<git_documentdb> getFatDocHistory()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws RepositoryNotOpenError', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    await gitDDB.close();
-    await expect(gitDDB.getFatDocHistory('tmp')).rejects.toThrowError(
-      Err.RepositoryNotOpenError
-    );
-    await gitDDB.destroy();
-  });
-
   it('throws InvalidJsonObjectError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({

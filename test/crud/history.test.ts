@@ -425,20 +425,6 @@ describe('<crud/history> getHistoryImpl', () => {
     await destroyDBs([gitDDB]);
   });
 
-  it('throws RepositoryNotOpenError', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    await gitDDB.close();
-    await expect(
-      getHistoryImpl(gitDDB, 'tmp', '', undefined, undefined, true)
-    ).rejects.toThrowError(Err.RepositoryNotOpenError);
-    await destroyDBs([gitDDB]);
-  });
-
   it('throws InvalidJsonObjectError.', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({

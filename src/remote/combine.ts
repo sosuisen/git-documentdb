@@ -148,7 +148,6 @@ export async function combineDatabaseWithTheirs (
       });
     }
 
-    gitDDB.repository()!.cleanup();
     await fs.rename(gitDDB.workingDir, tmpLocalDir);
 
     await fs.rename(remoteDir, gitDDB.workingDir);

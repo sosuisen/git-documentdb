@@ -967,14 +967,13 @@ maybe('<remote/sync> [event]', () => {
     };
     await dbA.open();
 
-    const repos = dbA.repository();
     const sync = new Sync(dbA, options);
     let resume = false;
     sync.on('resume', () => {
       resume = true;
     });
 
-    const syncResult = await sync.init(repos!);
+    const syncResult = await sync.init();
     console.log(JSON.stringify(syncResult));
     expect(resume).toBe(true);
 

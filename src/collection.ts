@@ -188,14 +188,10 @@ export class Collection implements ICollection {
    *
    * @param dirPath - dirPath is a relative path from collectionPath. Default is ''.
    * @returns Array of Collections which does not include ''.
-   * @throws {@link Err.RepositoryNotOpenError}
    *
    * @public
    */
   async getCollections (dirPath = ''): Promise<ICollection[]> {
-    if (!this._gitDDB.isOpened) {
-      throw new Err.RepositoryNotOpenError();
-    }
     dirPath = Validator.normalizeCollectionPath(this.collectionPath + dirPath);
     dirPath = dirPath.slice(0, -1);
 
@@ -246,7 +242,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -278,7 +273,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -390,7 +384,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -423,7 +416,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -491,7 +483,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -522,7 +513,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -591,7 +581,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -709,7 +698,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -752,7 +740,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -783,7 +770,6 @@ export class Collection implements ICollection {
    *  - JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -810,7 +796,6 @@ export class Collection implements ICollection {
    *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -830,7 +815,6 @@ export class Collection implements ICollection {
    *  - undefined if a specified oid does not exist.
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -866,7 +850,6 @@ export class Collection implements ICollection {
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -914,7 +897,6 @@ export class Collection implements ICollection {
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -980,7 +962,6 @@ export class Collection implements ICollection {
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1018,7 +999,6 @@ export class Collection implements ICollection {
    *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1047,7 +1027,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
    * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link Err.UndefinedDBError} (from deleteWorker)
    * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
    * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
@@ -1065,7 +1044,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
    * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link Err.UndefinedDBError} (from deleteWorker)
    * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
    * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
@@ -1119,7 +1097,6 @@ export class Collection implements ICollection {
    * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
    * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link Err.UndefinedDBError} (from deleteWorker)
    * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
    * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
@@ -1172,7 +1149,6 @@ export class Collection implements ICollection {
    * Get all the JSON documents
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1189,7 +1165,6 @@ export class Collection implements ICollection {
    * Get all the FatDoc data
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public

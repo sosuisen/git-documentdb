@@ -86,20 +86,6 @@ describe('<crud/find> find()', () => {
     await gitDDB.destroy();
   });
 
-  it('throws RepositoryNotOpenError', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await gitDDB.open();
-    await gitDDB.close();
-    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      Err.RepositoryNotOpenError
-    );
-    await gitDDB.destroy();
-  });
-
   it('throws InvalidJsonObjectError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -178,10 +164,6 @@ describe('<crud/find> find()', () => {
       dbName,
       localDir,
     });
-
-    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      Err.RepositoryNotOpenError
-    );
 
     await gitDDB.open();
 
@@ -308,10 +290,6 @@ describe('<crud/find> find()', () => {
       dbName,
       localDir,
     });
-
-    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-      Err.RepositoryNotOpenError
-    );
 
     await gitDDB.open();
 
@@ -560,10 +538,6 @@ describe('<crud/find> find()', () => {
         dbName,
         localDir,
       });
-
-      await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
-        Err.RepositoryNotOpenError
-      );
 
       await gitDDB.open();
 

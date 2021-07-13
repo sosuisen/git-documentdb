@@ -278,7 +278,6 @@ export async function merge (
 /**
  * 3-way merge
  *
- * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.InvalidConflictStateError}
  *
  * @throws {@link Err.InvalidDocTypeError}
@@ -306,11 +305,6 @@ export async function threeWayMerge (
     AcceptedConflict | undefined
   ]
 > {
-  const repos = gitDDB.repository();
-  if (repos === undefined) {
-    throw new Err.RepositoryNotOpenError();
-  }
-
   const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
@@ -562,7 +556,7 @@ export async function threeWayMerge (
     if (baseOid === oursOid) {
       // A file has been removed from theirs.
       // console.log(' #case 10 - Accept theirs (delete): ' + fullDocPath);
-      await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
+      await fs.remove(nodePath.resolve(gitDDB.workingDir, fullDocPath)).catch(() => {
         throw new Err.CannotDeleteDataError();
       });
       await git.remove({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
@@ -612,7 +606,7 @@ export async function threeWayMerge (
         strategy: strategy,
         operation: 'delete',
       };
-      await fs.remove(nodePath.resolve(repos.workdir(), fullDocPath)).catch(() => {
+      await fs.remove(nodePath.resolve(gitDDB.workingDir, fullDocPath)).catch(() => {
         throw new Err.CannotDeleteDataError();
       });
       await git.remove({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });

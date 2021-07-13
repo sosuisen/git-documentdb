@@ -7,7 +7,6 @@
  */
 
 import path from 'path';
-import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
@@ -68,28 +67,6 @@ import { SyncEventInterface, SyncInterface } from './types_sync';
 import { CRUDInterface } from './types_crud_interface';
 import { CollectionInterface, ICollection } from './types_collection';
 
-interface RepositoryInitOptions {
-  description?: string;
-  initialHead?: string;
-  flags?: number; // https://libgit2.org/libgit2/#HEAD/type/git_repository_init_flag_t
-  mode?: number; // https://libgit2.org/libgit2/#HEAD/type/git_repository_init_mode_t
-  originUrl?: string;
-  templatePath?: string;
-  version?: number;
-  workdirPath?: string;
-}
-/*
- const repositoryInitOptionFlags = {
-   GIT_REPOSITORY_INIT_BARE: 1,
-   GIT_REPOSITORY_INIT_NO_REINIT: 2,
-   GIT_REPOSITORY_INIT_NO_DOTGIT_DIR: 4,
-   GIT_REPOSITORY_INIT_MKDIR: 8,
-   GIT_REPOSITORY_INIT_MKPATH: 16,
-   GIT_REPOSITORY_INIT_EXTERNAL_TEMPLATE: 32,
-   GIT_REPOSITORY_INIT_RELATIVE_GITLINK: 64,
- };
- */
-
 /**
  * Get database ID
  *
@@ -98,6 +75,15 @@ interface RepositoryInitOptions {
 export function generateDatabaseId () {
   return ulid(Date.now());
 }
+
+const INITIAL_DATABASE_OPEN_RESULT = {
+  dbId: '',
+  creator: '',
+  version: '',
+  isNew: false,
+  isCreatedByGitDDB: true,
+  isValidVersion: true,
+};
 
 /**
  * Main class of GitDocumentDB
@@ -130,18 +116,9 @@ export class GitDocumentDB
   /***********************************************
    * Private properties
    ***********************************************/
-  private _currentRepository: nodegit.Repository | undefined;
-
   private _synchronizers: { [url: string]: Sync } = {};
 
-  private _dbOpenResult: DatabaseOpenResult = {
-    dbId: '',
-    creator: '',
-    version: '',
-    isNew: false,
-    isCreatedByGitDDB: true,
-    isValidVersion: true,
-  };
+  private _dbOpenResult: DatabaseOpenResult = { ...INITIAL_DATABASE_OPEN_RESULT };
 
   /***********************************************
    * Public properties (readonly)
@@ -373,24 +350,29 @@ export class GitDocumentDB
    ***********************************************/
 
   /**
+   * @throws {@link Err.CannotCreateDirectoryError}
+   *
+   * @throws {@link Err.UndefinedDBError} (from putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+
    * @internal
    */
   private async _createRepository () {
     /**
-     * Create a repository followed by first commit
+     * Create directory
      */
-    const options: RepositoryInitOptions = {
-      initialHead: this.defaultBranch,
-    };
-    this._dbOpenResult.isNew = true;
-
-    this._currentRepository = await nodegit.Repository.initExt(
-      this._workingDir,
-      // @ts-ignore
-      options
-    ).catch(err => {
-      return Promise.reject(err);
+    await fs.ensureDir(this._workingDir).catch((err: Error) => {
+      throw new Err.CannotCreateDirectoryError(err.message);
     });
+
+    await git
+      .init({ fs, dir: this._workingDir, defaultBranch: this.defaultBranch })
+      .catch(err => {
+        return Promise.reject(err);
+      });
 
     // First commit
     const info = {
@@ -406,6 +388,9 @@ export class GitDocumentDB
       toSortedJSONString(info),
       FIRST_COMMIT_MESSAGE
     );
+
+    this._dbOpenResult.isNew = true;
+
     this._dbOpenResult = { ...this._dbOpenResult, ...info };
   }
 
@@ -426,10 +411,16 @@ export class GitDocumentDB
    * - GitDocumentDB can also load a Git repository that is created by other apps. It almost works; however, correct behavior is not guaranteed if it does not have a valid '.gitddb/'.
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.CannotCreateDirectoryError}
-   * @throws {@link Err.CannotOpenRepositoryError}
    * @throws {@link Err.RepositoryNotFoundError} may occurs when openOptions.createIfNotExists is false.
    *
+   * @throws {@link Err.CannotCreateDirectoryError} (from _createRepository)
+   *
+   * @throws {@link Err.UndefinedDBError} (from putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+
    * @public
    */
   async open (openOptions?: OpenOptions): Promise<DatabaseOpenResult> {
@@ -447,43 +438,10 @@ export class GitDocumentDB
     }
     openOptions.createIfNotExists ??= true;
 
-    /**
-     * Create directory
-     */
-    await fs.ensureDir(this._workingDir).catch((err: Error) => {
-      throw new Err.CannotCreateDirectoryError(err.message);
-    });
-
-    /**
-     * Reset
-     */
-    this._synchronizers = {};
-    this._dbOpenResult = {
-      dbId: '',
-      creator: '',
-      version: '',
-      isNew: false,
-      isCreatedByGitDDB: true,
-      isValidVersion: true,
-    };
-    this.taskQueue.clear();
-
-    /**
-     * nodegit.Repository.open() throws an error if the specified repository does not exist.
-     * open() also throws an error if the path is invalid or not writable,
-     */
-    try {
-      this._currentRepository = await nodegit.Repository.open(this._workingDir);
-    } catch (err) {
-      const gitDir = this._workingDir + '/.git/';
-      if (fs.existsSync(gitDir)) {
-        // Cannot open though .git directory exists.
-        throw new Err.CannotOpenRepositoryError(this._workingDir);
-      }
+    const gitDir = this._workingDir + '/.git/';
+    if (!fs.existsSync(gitDir)) {
       if (openOptions.createIfNotExists) {
-        await this._createRepository().catch(e => {
-          throw new Err.CannotCreateRepositoryError(e.message);
-        });
+        await this._createRepository();
       }
       else {
         throw new Err.RepositoryNotFoundError(gitDir);
@@ -520,35 +478,22 @@ export class GitDocumentDB
     options.timeout ??= 10000;
 
     // Wait taskQueue
-    if (this._currentRepository instanceof nodegit.Repository) {
-      try {
-        this._isClosing = true;
-        if (!options.force) {
-          const isTimeout = await this.taskQueue.waitCompletion(options.timeout);
-          if (isTimeout) {
-            return Promise.reject(new Err.DatabaseCloseTimeoutError());
-          }
+    try {
+      this._isClosing = true;
+      if (!options.force) {
+        const isTimeout = await this.taskQueue.waitCompletion(options.timeout);
+        if (isTimeout) {
+          return Promise.reject(new Err.DatabaseCloseTimeoutError());
         }
-      } finally {
-        this.taskQueue.clear();
-
-        /**
-         * The types are wrong. Repository does not have free() method.
-         * See https://github.com/nodegit/nodegit/issues/1817#issuecomment-776844425
-         * https://github.com/nodegit/nodegit/pull/1570
-         *
-         * Use cleanup() instead.
-         * http://carlosmn.github.io/libgit2/#v0.23.0/group/repository/git_repository__cleanup
-         */
-        // this._currentRepository.free();
-
-        this._currentRepository.cleanup();
-        this._currentRepository = undefined;
-
-        this._synchronizers = {};
-
-        this._isClosing = false;
       }
+    } finally {
+      this.taskQueue.clear();
+
+      this._synchronizers = {};
+
+      this._dbOpenResult = { ...INITIAL_DATABASE_OPEN_RESULT };
+
+      this._isClosing = false;
     }
   }
 
@@ -577,13 +522,12 @@ export class GitDocumentDB
     }
 
     let closeError: Error | undefined;
-    if (this._currentRepository !== undefined) {
-      // NOTICE: options.force is true by default.
-      options.force = options.force ?? true;
-      await this.close(options).catch(err => {
-        closeError = err;
-      });
-    }
+    // NOTICE: options.force is true by default.
+    options.force = options.force ?? true;
+    await this.close(options).catch(err => {
+      closeError = err;
+    });
+
     // If the path does not exist, remove() silently does nothing.
     // https://github.com/jprichardson/node-fs-extra/blob/master/docs/remove.md
     //      await fs.remove(this._workingDir).catch(err => {
@@ -616,7 +560,7 @@ export class GitDocumentDB
    * @public
    */
   get isOpened (): boolean {
-    return this._currentRepository !== undefined;
+    return this._dbOpenResult.dbId !== '';
   }
 
   /**
@@ -640,7 +584,6 @@ export class GitDocumentDB
    *
    * @param dirPath - Get collections directly under the dirPath. dirPath is a relative path from localDir. Default is ''.
    * @returns Promise\<Collection[]\>
-   * @throws {@link Err.RepositoryNotOpenError}
    *
    * @public
    */
@@ -832,6 +775,12 @@ export class GitDocumentDB
   /**
    * Load DatabaseInfo from .gitddb/info.json
    *
+   * @throws {@link Err.UndefinedDBError} (from putWorker)
+   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.DocumentNotFoundError} (from putWorker)
+   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   *
    * @internal
    */
   async loadDbInfo () {
@@ -883,16 +832,6 @@ export class GitDocumentDB
     }
   }
 
-  /**
-   * Get a current repository
-   *
-   * @deprecated This will be removed when NodeGit is replaced with isomorphic-git.
-   * @public
-   */
-  repository (): nodegit.Repository | undefined {
-    return this._currentRepository;
-  }
-
   /***********************************************
    * Public method (Implementation of CRUDInterface)
    ***********************************************/
@@ -918,7 +857,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -951,7 +889,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -996,7 +933,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -1031,7 +967,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -1078,7 +1013,7 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
+
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -1111,7 +1046,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -1159,7 +1093,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -1198,7 +1131,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -1239,7 +1171,6 @@ export class GitDocumentDB
    * @throws {@link Err.TaskCancelError} (from putImpl)
    *
    * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.RepositoryNotOpenError} (fromm putWorker)
    * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
    * @throws {@link Err.CannotWriteDataError} (from putWorker)
    *
@@ -1268,7 +1199,6 @@ export class GitDocumentDB
    * - This is an alias of GitDocumentDB#rootCollection.get()
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1294,7 +1224,6 @@ export class GitDocumentDB
    *  - This is an alias of GitDocumentDB#rootCollection.getFatDoc()
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1314,7 +1243,7 @@ export class GitDocumentDB
    *  - This is an alias of GitDocumentDB#rootCollection.getDocByOid()
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
+
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1343,7 +1272,7 @@ export class GitDocumentDB
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
+
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1382,7 +1311,6 @@ export class GitDocumentDB
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1451,7 +1379,7 @@ export class GitDocumentDB
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
+
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1483,7 +1411,6 @@ export class GitDocumentDB
    *  - getOptions.forceDocType always overwrite return type.
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1508,7 +1435,6 @@ export class GitDocumentDB
    * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
    * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link Err.UndefinedDBError} (from deleteWorker)
    * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
    * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
@@ -1529,7 +1455,6 @@ export class GitDocumentDB
    * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
    * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link Err.UndefinedDBError} (from deleteWorker)
    * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
    * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
@@ -1556,7 +1481,6 @@ export class GitDocumentDB
    * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
    * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.RepositoryNotOpenError} (from deleteWorker)
    * @throws {@link Err.UndefinedDBError} (from deleteWorker)
    * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
    * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
@@ -1576,7 +1500,6 @@ export class GitDocumentDB
    * @param options - The options specify how to get documents.
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1594,7 +1517,6 @@ export class GitDocumentDB
    *  - This is an alias of GitDocumentDB#rootCollection.findFatDoc()
    *
    * @throws {@link Err.DatabaseClosingError}
-   * @throws {@link Err.RepositoryNotOpenError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public

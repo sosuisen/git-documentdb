@@ -328,18 +328,6 @@ describe('<crud/delete>', () => {
       await expect(deleteWorker(undefined)).rejects.toThrowError(Err.UndefinedDBError);
     });
 
-    it('throws RepositoryNotOpenError when a repository is not opened.', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await expect(deleteWorker(gitDDB, '', 'prof01', '')).rejects.toThrowError(
-        Err.RepositoryNotOpenError
-      );
-      await gitDDB.destroy();
-    });
-
     it('throws DocumentNotFoundError when collectionPath is undefined.', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({

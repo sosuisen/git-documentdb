@@ -22,7 +22,6 @@ import { normalizeCommit } from '../utils';
  * @throws {@link Err.TaskCancelError}
  *
  * @throws {@link Err.UndefinedDBError} (from deleteWorker)
- * @throws {@link Err.RepositoryNotOpenError} (deleteWorker)
  * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
  * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
  *
@@ -80,7 +79,6 @@ export function deleteImpl (
  * Remove and commit a file
  *
  * @throws {@link Err.UndefinedDBError}
- * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.DocumentNotFoundError}
  * @throws {@link Err.CannotDeleteDataError}
  */
@@ -92,10 +90,6 @@ export async function deleteWorker (
 ): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB === undefined) {
     throw new Err.UndefinedDBError();
-  }
-
-  if (!gitDDB.isOpened) {
-    throw new Err.RepositoryNotOpenError();
   }
 
   const fullDocPath = collectionPath + shortName;

@@ -1,4 +1,3 @@
-import nodegit from '@sosuisen/nodegit';
 import { JsonDiff } from './remote/json_diff';
 import { RemoteRepository } from './remote/remote_repository';
 import {
@@ -52,15 +51,13 @@ export interface SyncInterface {
     error: { collectionPath: string; func: SyncErrorCallback }[];
   };
 
-  credentialCallbacks: { [key: string]: any };
-
   jsonDiff: JsonDiff;
   jsonPatch: IJsonPatch;
 
   /***********************************************
    * Public methods
    ***********************************************/
-  init(repos: nodegit.Repository): Promise<SyncResult>;
+  init(): Promise<SyncResult>;
 
   pause(): void;
   resume(options?: { interval?: number; retry?: number }): void;

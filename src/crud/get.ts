@@ -32,7 +32,6 @@ import { readOldBlob } from './history';
  * Common implementation of get-like commands
  *
  * @throws {@link Err.DatabaseClosingError}
- * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.InvalidJsonObjectError}
  */
 // eslint-disable-next-line complexity
@@ -46,10 +45,6 @@ export async function getImpl (
 ): Promise<Doc | FatDoc | undefined> {
   if (gitDDB.isClosing) {
     throw new Err.DatabaseClosingError();
-  }
-
-  if (!gitDDB.isOpened) {
-    throw new Err.RepositoryNotOpenError();
   }
 
   options ??= {

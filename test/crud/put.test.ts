@@ -505,24 +505,6 @@ describe('<crud/put> putWorker', () => {
     await expect(putWorker(undefined)).rejects.toThrowError(Err.UndefinedDBError);
   });
 
-  it('throws RepositoryNotOpenError when a repository is not opened.', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-    });
-    await expect(
-      putWorker(
-        gitDDB,
-        '',
-        'prof01' + JSON_EXT,
-        '{ "_id": "prof01", "name": "Shirase" }',
-        'message'
-      )
-    ).rejects.toThrowError(Err.RepositoryNotOpenError);
-    await gitDDB.destroy();
-  });
-
   it('throws CannotCreateDirectoryError', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
