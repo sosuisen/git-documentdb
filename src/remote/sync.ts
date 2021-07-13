@@ -60,7 +60,7 @@ import { Remote } from './remote';
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
  *
  * @throws {@link Err.RepositoryNotFoundError}
- * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
+ * @throws {@link Remote.Err.UndefinedRemoteURLError} (from Sync#constructor())
  * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
  *
  * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
@@ -550,7 +550,7 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.PushNotAllowedError} (from this and enqueuePushTask)
    * @throws {@link Err.PushWorkerError} (from this and enqueuePushTask)
-   * @throws {@link Err.UnfetchedCommitExistsError} (from this and enqueuePushTask)
+   * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from this and enqueuePushTask)
    *
    * @public
    */
@@ -576,7 +576,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof Err.UnfetchedCommitExistsError) {
+      if (error instanceof Remote.Err.UnfetchedCommitExistsError) {
         if (this._options.syncDirection === 'push') {
           if (this._options.combineDbStrategy === 'replace-with-ours') {
             // TODO: Exec replace-with-ours instead of throw error
@@ -630,7 +630,7 @@ export class Sync implements SyncInterface {
    * @throws {@link Err.PushNotAllowedError} (from this and enqueueSyncTask)
    * @throws {@link Err.SyncWorkerError} (from enqueueSyncTask)
    * @throws {@link Err.NoMergeBaseFoundError} (from enqueueSyncTask)
-   * @throws {@link Err.UnfetchedCommitExistsError} (from enqueueSyncTask)
+   * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from enqueueSyncTask)
    *
    * @public
    */
@@ -663,7 +663,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof Err.NoMergeBaseFoundError) {
+      if (error instanceof Remote.Err.NoMergeBaseFoundError) {
         if (this._options.combineDbStrategy === 'throw-error') {
           throw error;
         }
@@ -705,7 +705,7 @@ export class Sync implements SyncInterface {
       if (
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
-        error instanceof Err.UnfetchedCommitExistsError
+        error instanceof Remote.Err.UnfetchedCommitExistsError
       ) {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
@@ -735,7 +735,7 @@ export class Sync implements SyncInterface {
    * Enqueue push task to TaskQueue
    *
    * @throws {@link Err.PushWorkerError}
-   * @throws {@link Err.UnfetchedCommitExistsError}
+   * @throws {@link Remote.Err.UnfetchedCommitExistsError}
    * @throws {@link Err.PushNotAllowedError}
    *
    * @public
@@ -792,7 +792,7 @@ export class Sync implements SyncInterface {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-          if (!(err instanceof Err.UnfetchedCommitExistsError)) {
+          if (!(err instanceof Remote.Err.UnfetchedCommitExistsError)) {
             err = new Err.PushWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(listener => {
@@ -836,7 +836,7 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.SyncWorkerError}
    * @throws {@link Err.NoMergeBaseFoundError}
-   * @throws {@link Err.UnfetchedCommitExistsError}
+   * @throws {@link Remote.Err.UnfetchedCommitExistsError}
    * @throws {@link Err.PushNotAllowedError}
    *
    * @public
@@ -934,8 +934,8 @@ export class Sync implements SyncInterface {
           // console.log(`Error in sync_worker: ${err}`);
           if (
             !(
-              err instanceof Err.NoMergeBaseFoundError ||
-              err instanceof Err.UnfetchedCommitExistsError
+              err instanceof Remote.Err.NoMergeBaseFoundError ||
+              err instanceof Remote.Err.UnfetchedCommitExistsError
             )
           ) {
             err = new Err.SyncWorkerError(err.message);

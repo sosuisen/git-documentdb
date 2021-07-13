@@ -376,26 +376,6 @@ Current value is '${type}'`);
   /**
    * @public
    */
-  export class NoMergeBaseFoundError extends BaseError {
-    constructor () {
-      super(`No merge base found`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class UnfetchedCommitExistsError extends BaseError {
-    constructor () {
-      super(
-        'Cannot push because a reference that you are trying to update on the remote contains commits that are not present locally.'
-      );
-    }
-  }
-
-  /**
-   * @public
-   */
   export class IntervalTooSmallError extends BaseError {
     constructor (min: unknown, current: unknown) {
       super(`Interval is too small. Minimum value is ${min}. Current value is ${current}.`);

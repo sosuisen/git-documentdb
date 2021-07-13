@@ -11,7 +11,6 @@ import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { SHORT_SHA_LENGTH } from '../const';
 import { normalizeCommit } from '../utils';
-import { Err } from '../error';
 import { GitDDBInterface } from '../types_gitddb';
 import {
   NormalizedCommit,
@@ -36,7 +35,7 @@ import { Remote } from './remote';
  * @throws {@link Err.ThreeWayMergeError}
  * @throws {@link Err.CannotDeleteDataError}
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
- * @throws {@link Err.UnfetchedCommitExistsError} (from push_worker())
+ * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from push_worker())
  * @throws {@link Err.InvalidJsonObjectError} (from push_worker())
  * @throws {@link Err.GitPushError} (from push_worker())
  *
@@ -68,6 +67,7 @@ export async function syncWorker (
     dir: gitDDB.workingDir,
     ref: 'HEAD',
   });
+
   const oldRemoteCommitOid = await git.resolveRef({
     fs,
     dir: gitDDB.workingDir,
@@ -87,7 +87,7 @@ export async function syncWorker (
   // ahead: 1, behind 1 => Merge, may resolve conflict and push: Local has new commits. Remote has pushed new commits.
 
   if (distance.ahead === undefined || distance.behind === undefined) {
-    throw new Err.NoMergeBaseFoundError();
+    throw new Remote.Err.NoMergeBaseFoundError();
   }
   else if (distance.ahead === 0 && distance.behind === 0) {
     return { action: 'nop' };
