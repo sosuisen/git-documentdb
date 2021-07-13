@@ -4,7 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/remote/3way_merge.test.js"],
+    "options": ["test/remote/sync_trysync.test.js"],
   }],
   "configurations": [
       {

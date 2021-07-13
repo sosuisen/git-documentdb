@@ -4,7 +4,6 @@ import { Octokit } from '@octokit/rest';
 import git from 'isomorphic-git';
 import sinon from 'sinon';
 import expect from 'expect';
-import nodegit from '@sosuisen/nodegit';
 import {
   ChangedFileDelete,
   ChangedFileInsert,
@@ -17,7 +16,7 @@ import {
 } from '../src/types';
 import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { FILE_REMOVE_TIMEOUT, JSON_EXT } from '../src/const';
+import { FILE_REMOVE_TIMEOUT, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
@@ -297,6 +296,7 @@ export async function removeRemoteRepositories (reposPrefix: string) {
           const repo = urlArray[1];
           return repo.startsWith(reposPrefix);
         }
+        return false;
       })
   );
   // console.log(` - Got ${reposArray.length} repositories`);
@@ -334,63 +334,45 @@ export const compareWorkingDirAndBlobs = async (
 ): Promise<boolean> => {
   const files = listFiles(gitDDB, gitDDB.workingDir);
 
-  /*
-  const headCommitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
-  await git.walk({
+  const entries: string[] = await git.walk({
     fs,
     dir: gitDDB.workingDir,
-    trees: [git.TREE({ ref: headCommitOid })],
+    trees: [git.STAGE()],
     // @ts-ignore
-    map: function (fullDocPath, [a]) {
-      console.log('myres: ' + fullDocPath);
-      return '';
+    // eslint-disable-next-line complexity
+    map: async function (fullDocPath, [entry]) {
+      if (fullDocPath.startsWith(GIT_DOCUMENTDB_METADATA_DIR)) return;
+      if ((await entry?.type()) === 'blob') {
+        return fullDocPath;
+      }
     },
-  }); */
+  });
 
-  const currentIndex = await gitDDB.repository()?.refreshIndex();
-  const entryCount = currentIndex!.entryCount() - 1; // Reduce by 1 due to '.gitddb/info.json'
   // console.log('# check count: fromFiles: ' + files.length + ', fromIndex: ' + entryCount);
-  if (files.length !== entryCount) {
+  if (files.length !== entries.length) {
     return false;
   }
 
-  /** Basic type (loose or packed) of any Git object.
-  // https://github.com/libgit2/libgit2/blob/HEAD/include/git2/types.h
-  typedef enum {
-	  GIT_OBJECT_ANY =      -2, // Object can be any of the following
-	  GIT_OBJECT_INVALID =  -1, // Object is invalid.
-	  GIT_OBJECT_COMMIT =    1, // A commit object.
-	  GIT_OBJECT_TREE =      2, // A tree (directory listing) object.
-	  GIT_OBJECT_BLOB =      3, // A file revision object.
-	  GIT_OBJECT_TAG =       4, // An annotated tag object.
-	  GIT_OBJECT_OFS_DELTA = 6, // A delta, base is given by an offset.
-	  GIT_OBJECT_REF_DELTA = 7, // A delta, base is given by object id.
-  } git_object_t;
-  */
   for (const file of files) {
     // console.log('# check:' + file);
-    // Type 3 means BLOB
-    // @ts-ignore
-    // eslint-disable-next-line no-await-in-loop
-    const hashFromFile = await nodegit.Odb.hashfile(
-      gitDDB.workingDir + '/' + file,
-      3
-    ).catch((err: Error) => console.log(err));
-    // console.log('  - fromFile:  ' + hashFromFile.tostrS());
-
     // Does index include blob?
-    const hashFromIndex = currentIndex?.getByPath(file).id;
-    // console.log('  - fromIndex: ' + hashFromIndex!.tostrS());
-    if (!hashFromIndex?.equal(hashFromFile)) {
+    if (!entries.includes(file)) {
       return false;
     }
+
+    // eslint-disable-next-line no-await-in-loop
+    const buf = await fs.readFile(gitDDB.workingDir + '/' + file)!;
+    const data = Uint8Array.from(buf);
+    // eslint-disable-next-line no-await-in-loop
+    const { oid } = await git.hashBlob({ object: data });
+
     // Does blob exist?
     // eslint-disable-next-line no-await-in-loop
-    const blob = await gitDDB
-      .repository()
-      ?.getBlob(hashFromIndex!)
+    const readBlobResult = await git
+      .readBlob({ fs, dir: gitDDB.workingDir, oid })
       .catch((err: Error) => console.log(err));
-    if (!blob || blob?.rawsize() === 0) {
+
+    if (readBlobResult === undefined) {
       return false;
     }
     // console.log('  - rawSize:' + blob?.rawsize());

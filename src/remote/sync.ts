@@ -379,7 +379,8 @@ export class Sync implements SyncInterface {
 
     const remoteResult: 'exist' | 'not_exist' = await Remote.checkFetch(
       this._gitDDB.workingDir,
-      this._options
+      this._options,
+      this._gitDDB.logger
     ).catch((err: Error) => {
       throw new Err.RemoteCheckFetchError(err.message);
     });
@@ -392,7 +393,11 @@ export class Sync implements SyncInterface {
       this._upstreamBranch = '';
     }
     if (!onlyFetch) {
-      await Remote.checkPush(this._gitDDB.workingDir, this._options).catch((err: Error) => {
+      await Remote.checkPush(
+        this._gitDDB.workingDir,
+        this._options,
+        this._gitDDB.logger
+      ).catch((err: Error) => {
         throw new Err.RemoteCheckPushError(err.message);
       });
     }

@@ -58,7 +58,7 @@ export async function syncWorker (
   /**
    * Fetch
    */
-  await Remote.fetch(gitDDB, sync, gitDDB.logger);
+  await Remote.fetch(gitDDB.workingDir, sync.options, gitDDB.logger);
 
   /**
    * Calc distance

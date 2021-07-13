@@ -95,7 +95,7 @@ export async function pushWorker (
   }
 
   // Push
-  await Remote.push(gitDDB, sync);
+  await Remote.push(gitDDB.workingDir, sync.options);
   let remoteChanges: ChangedFile[] | undefined;
   if (skipGetChanges) {
     remoteChanges = undefined;

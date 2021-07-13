@@ -18,12 +18,10 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import {
-  FatJsonDoc,
   SyncResult,
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
   SyncResultPush,
-  SyncResultResolveConflictsAndPush,
 } from '../../src/types';
 import { Err } from '../../src/error';
 import {
@@ -54,6 +52,9 @@ beforeEach(function () {
 });
 
 before(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -197,7 +198,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * dbB   :
      * after :  jsonA1
      */
-    it('which includes one local creation when a remote db creates a document', async () => {
+    it.only('which includes one local creation when a remote db creates a document', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,

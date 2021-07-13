@@ -28,6 +28,7 @@ import {
 } from '../remote_utils';
 import { SyncResultCancel, SyncResultPush } from '../../src/types';
 import { sleep } from '../../src/utils';
+import { GitDocumentDB } from '../../src/git_documentdb';
 
 const reposPrefix = 'test_sync_trypush___';
 const localDir = `./test/database_sync_trypush`;
@@ -43,6 +44,9 @@ beforeEach(function () {
 });
 
 before(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
   fs.removeSync(path.resolve(localDir));
 });
 

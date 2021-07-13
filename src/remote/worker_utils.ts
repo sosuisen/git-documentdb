@@ -22,7 +22,6 @@ import {
   JsonDoc,
   NormalizedCommit,
 } from '../types';
-import { GitDDBInterface } from '../types_gitddb';
 import { blobToBinary, blobToJsonDoc, blobToText } from '../crud/blob';
 
 /**
