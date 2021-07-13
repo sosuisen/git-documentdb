@@ -8,11 +8,9 @@
  */
 import path from 'path';
 import git from 'isomorphic-git';
-import nodegit, { Repository } from '@sosuisen/nodegit';
 import fs from 'fs-extra';
 import { ulid } from 'ulid';
 import rimraf from 'rimraf';
-import { Logger } from 'tslog';
 import {
   DocMetadata,
   DocType,
@@ -45,8 +43,8 @@ export async function combineDatabaseWithTheirs (
   try {
     await Remote.clone(remoteDir, remoteOptions, gitDDB.logger);
 
-    const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.repository()!);
-    const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteRepository);
+    const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.workingDir);
+    const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteDir);
     const remoteNames = remoteMetadataList.map(meta => meta.name);
 
     for (let i = 0; i < localMetadataList.length; i++) {
@@ -124,8 +122,7 @@ export async function combineDatabaseWithTheirs (
             type: docType,
           };
         }
-        await index.addByPath(duplicatedFileName);
-        await index.write();
+        git.add({ fs, dir: remoteDir, filepath: duplicatedFileName });
 
         duplicates.push({
           original,
@@ -135,14 +132,11 @@ export async function combineDatabaseWithTheirs (
       else {
         // Copy localFilePath to remoteFilePath if remoteFilePath not exists
         await fs.copyFile(localFilePath, remoteFilePath);
-        await index.addByPath(meta.name);
-        await index.write();
+        git.add({ fs, dir: remoteDir, filepath: meta.name });
       }
     }
 
     if (localMetadataList.length > 0) {
-      await index.writeTree();
-
       const commitMessage = 'combine database head with theirs';
 
       await git.commit({
@@ -156,9 +150,6 @@ export async function combineDatabaseWithTheirs (
 
     gitDDB.repository()!.cleanup();
     await fs.rename(gitDDB.workingDir, tmpLocalDir);
-
-    if (remoteRepository) remoteRepository.cleanup();
-    remoteRepository = undefined;
 
     await fs.rename(remoteDir, gitDDB.workingDir);
 
@@ -213,11 +204,8 @@ export async function combineDatabaseWithTheirs (
         resolve();
       });
     });
-    if (remoteRepository) remoteRepository.cleanup();
-    remoteRepository = undefined;
   }
-  const repos = await nodegit.Repository.open(gitDDB.workingDir);
-  gitDDB.setRepository(repos!);
+
   await gitDDB.loadDbInfo();
 
   const result: SyncResultCombineDatabase = {
