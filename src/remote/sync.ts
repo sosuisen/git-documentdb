@@ -432,13 +432,6 @@ export class Sync implements SyncInterface {
         value: `refs/heads/${this._gitDDB.defaultBranch}`,
       });
 
-      await git.setConfig({
-        fs,
-        dir: this._gitDDB.workingDir,
-        path: `branch.${this._gitDDB.defaultBranch}.remote`,
-        value: 'origin',
-      });
-
       this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else if (this._options.syncDirection === 'push') {
