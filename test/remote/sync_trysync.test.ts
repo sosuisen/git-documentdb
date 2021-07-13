@@ -17,6 +17,7 @@ import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import { GitDocumentDB } from '../../src/git_documentdb';
+import { Remote } from '../../src/remote/remote';
 import {
   SyncResult,
   SyncResultFastForwardMerge,
@@ -760,7 +761,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
 
     // tryPush throws UnfetchedCommitExistsError
     await expect(dbB.sync(syncA.options)).rejects.toThrowError(
-      Err.UnfetchedCommitExistsError
+      Remote.Err.UnfetchedCommitExistsError
     );
 
     await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
