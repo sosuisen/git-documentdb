@@ -39,7 +39,6 @@ import { SyncInterface } from '../types_sync';
 import { GitDDBInterface } from '../types_gitddb';
 import { syncWorker } from './sync_worker';
 import { pushWorker } from './push_worker';
-import { createCredential } from './authentication';
 import { RemoteRepository } from './remote_repository';
 import { checkHTTP } from './net';
 import {
@@ -261,13 +260,6 @@ export class Sync implements SyncInterface {
   };
 
   /**
-   * Callback for authentication
-   *
-   * @public
-   */
-  credentialCallbacks: { [key: string]: any };
-
-  /**
    * JsonDiff
    *
    * @public
@@ -338,8 +330,6 @@ export class Sync implements SyncInterface {
     this.jsonDiff = new JsonDiff(gitDDB.schema.json);
     this.jsonPatch = new JsonPatchOT();
 
-    this.credentialCallbacks = createCredential(this._options);
-
     this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
 
     this._remoteRepository = new RemoteRepository({
@@ -389,8 +379,7 @@ export class Sync implements SyncInterface {
 
     const remoteResult: 'exist' | 'not_exist' = await Remote.checkFetch(
       this._gitDDB.workingDir,
-      this._options,
-      this.credentialCallbacks
+      this._options
     ).catch((err: Error) => {
       throw new Err.RemoteCheckFetchError(err.message);
     });
@@ -403,11 +392,7 @@ export class Sync implements SyncInterface {
       this._upstreamBranch = '';
     }
     if (!onlyFetch) {
-      await Remote.checkPush(
-        this._gitDDB.workingDir,
-        this._options,
-        this.credentialCallbacks
-      ).catch((err: Error) => {
+      await Remote.checkPush(this._gitDDB.workingDir, this._options).catch((err: Error) => {
         throw new Err.RemoteCheckPushError(err.message);
       });
     }

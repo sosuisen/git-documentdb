@@ -7,15 +7,13 @@
  * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
-import nodegit from '@sosuisen/nodegit';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../const';
-import { CONSOLE_STYLE, normalizeCommit, utf8decode } from '../utils';
+import { SHORT_SHA_LENGTH } from '../const';
+import { normalizeCommit } from '../utils';
 import { Err } from '../error';
 import { GitDDBInterface } from '../types_gitddb';
 import {
-  AcceptedConflict,
   NormalizedCommit,
   SyncResult,
   SyncResultMergeAndPush,
@@ -26,38 +24,13 @@ import {
 } from '../types';
 import { SyncInterface } from '../types_sync';
 import { pushWorker } from './push_worker';
-import {
-  calcDistance,
-  getAndWriteLocalChanges,
-  getChanges,
-  getCommitLogs,
-  writeBlobToFile,
-} from './worker_utils';
-import { merge, threeWayMerge } from './3way_merge';
-
-/**
- * git fetch
- *
- * @throws {@link Err.SyncWorkerFetchError}
- */
-async function fetch (gitDDB: GitDDBInterface, sync: SyncInterface) {
-  gitDDB.logger.debug(
-    CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: fetch: ${sync.remoteURL}`
-  );
-  await gitDDB
-    .repository()!
-    .fetch('origin', {
-      callbacks: sync.credentialCallbacks,
-    })
-    .catch(err => {
-      throw new Err.SyncWorkerFetchError(err.message);
-    });
-}
+import { calcDistance, getAndWriteLocalChanges, getCommitLogs } from './worker_utils';
+import { merge } from './3way_merge';
+import { Remote } from './remote';
 
 /**
  * sync_worker
  *
- * @throws {@link Err.RepositoryNotOpenError} (from this and push_worker())
  * @throws {@link Err.SyncWorkerFetchError} (from fetch() and push_worker())
  * @throws {@link Err.NoMergeBaseFoundError}
  * @throws {@link Err.ThreeWayMergeError}
@@ -66,7 +39,6 @@ async function fetch (gitDDB: GitDDBInterface, sync: SyncInterface) {
  * @throws {@link Err.UnfetchedCommitExistsError} (from push_worker())
  * @throws {@link Err.InvalidJsonObjectError} (from push_worker())
  * @throws {@link Err.GitPushError} (from push_worker())
- * @throws {@link Err.GitMergeBranchError} (from NodeGit.repos.mergeBranches())
  *
  * @internal
  */
@@ -76,10 +48,6 @@ export async function syncWorker (
   sync: SyncInterface,
   taskMetadata: TaskMetadata
 ): Promise<SyncResult> {
-  const repos = gitDDB.repository();
-  if (repos === undefined) {
-    throw new Err.RepositoryNotOpenError();
-  }
   sync.eventHandlers.start.forEach(listener => {
     listener.func(
       { ...taskMetadata, collectionPath: listener.collectionPath },
@@ -90,7 +58,7 @@ export async function syncWorker (
   /**
    * Fetch
    */
-  await fetch(gitDDB, sync);
+  await Remote.fetch(gitDDB, sync, gitDDB.logger);
 
   /**
    * Calc distance
