@@ -200,11 +200,13 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
      * dbB   :
      * after :  jsonA1
      */
-    it.only('which includes one local creation when a remote db creates a document', async () => {
+    it('which includes one local creation when a remote db creates a document', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
-        serialId
+        serialId,
+        undefined,
+        'trace'
       );
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
@@ -694,6 +696,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   it('skips consecutive sync tasks', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     const results: SyncResult[] = [];
+    dbA.logLevel = 'trace';
     for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line promise/catch-or-return
       syncA.trySync().then(result => results.push(result));
@@ -771,9 +774,8 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await destroyDBs([dbA, dbB]);
   });
 
-  it('syncs files under .gitddb', async () => {
+  it.only('syncs files under .gitddb', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
-
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
       dbName: dbNameB,
@@ -782,6 +784,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     // Clone dbA
     await dbB.open();
     const syncB = await dbB.sync(syncA.options);
+
+    dbA.logLevel = 'trace';
+    dbB.logLevel = 'trace';
 
     const info = {
       dbId: 'foo',
@@ -801,7 +806,9 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
       type: 'json',
       doc: info,
     };
-    await expect(dbB.getFatDoc('.gitddb/info.json')).resolves.toEqual(fatDoc);
+    const mergedFatDoc = await dbB.getFatDoc('.gitddb/info.json');
+    console.log(mergedFatDoc);
+    expect(mergedFatDoc).toEqual(fatDoc);
 
     await destroyDBs([dbA, dbB]);
   });
