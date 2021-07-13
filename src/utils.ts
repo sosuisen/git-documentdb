@@ -6,10 +6,23 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import path from 'path';
-import nodegit from '@sosuisen/nodegit';
-import { ReadCommitResult } from 'isomorphic-git';
-import { DocMetadata, DocType, NormalizedCommit } from './types';
+import fs from 'fs-extra';
+import {
+  readBlob,
+  ReadCommitResult,
+  readTree,
+  resolveRef,
+  TreeEntry,
+  TreeObject,
+} from 'isomorphic-git';
+import {
+  BinaryDocMetadata,
+  DocMetadata,
+  DocType,
+  JsonDocMetadata,
+  NormalizedCommit,
+  TextDocMetadata,
+} from './types';
 import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from './const';
 
 /**
@@ -65,70 +78,92 @@ export function toSortedJSONString (obj: Record<string, any>) {
  * @internal
  */
 // eslint-disable-next-line complexity
-export async function getAllMetadata (repos: nodegit.Repository) {
+export async function getAllMetadata (workingDir: string): Promise<DocMetadata[]> {
   const files: DocMetadata[] = [];
-  const head = await nodegit.Reference.nameToId(repos, 'HEAD').catch(e => false);
-  if (head) {
-    const headCommit = await repos.getCommit(head as nodegit.Oid);
-    const localTree = await headCommit.getTree();
-    const directories: nodegit.Tree[] = [];
-    directories.push(localTree);
+  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'HEAD' });
 
-    while (directories.length > 0) {
-      const dir = directories.shift();
-      if (dir === undefined) break;
-      const entries = dir.entries(); // returns entry by alphabetical order
-      while (entries.length > 0) {
-        const entry = entries.shift();
-        if (entry?.isDirectory()) {
-          // eslint-disable-next-line max-depth
-          if (entry.name() !== GIT_DOCUMENTDB_METADATA_DIR) {
-            // eslint-disable-next-line no-await-in-loop
-            const subtree = await entry.getTree();
-            directories.push(subtree);
-          }
+  if (commitOid === undefined) return [];
+
+  const treeResult = (await readTree({
+    fs,
+    dir: workingDir,
+    oid: commitOid,
+  }).catch(() => undefined))!;
+
+  const directories: { path: string; entries: TreeObject }[] = []; // type TreeObject = Array<TreeEntry>
+  const targetDir = '';
+  if (treeResult) {
+    directories.push({ path: targetDir, entries: treeResult.tree });
+  }
+
+  const docs: DocMetadata[] = [];
+  while (directories.length > 0) {
+    const directory = directories.shift();
+    if (directory === undefined) break;
+
+    const entries: TreeEntry[] = directory.entries;
+
+    for (const entry of entries) {
+      const fullDocPath =
+        directory.path !== '' ? `${directory.path}/${entry.path}` : entry.path;
+      if (entry.type === 'tree') {
+        if (fullDocPath !== GIT_DOCUMENTDB_METADATA_DIR) {
+          // eslint-disable-next-line no-await-in-loop
+          const { tree } = await readTree({
+            fs,
+            dir: workingDir,
+            oid: entry.oid,
+          });
+          directories.push({ path: fullDocPath, entries: tree });
         }
-        else {
-          const entryPath = entry!.path();
+      }
+      else {
+        // eslint-disable-next-line no-await-in-loop
+        const readBlobResult = await readBlob({
+          fs,
+          dir: workingDir,
+          oid: commitOid,
+          filepath: fullDocPath,
+        }).catch(() => undefined);
 
-          const docType: DocType = entryPath.endsWith('.json') ? 'json' : 'text';
-          // eslint-disable-next-line max-depth
-          if (docType === 'text') {
-            // TODO: select binary or text by .gitattribtues
-          }
+        // Skip if cannot read
+        if (readBlobResult === undefined) continue;
 
-          let docMetadata: DocMetadata;
-          // eslint-disable-next-line max-depth
-          if (docType === 'json') {
-            const _id = entryPath.replace(new RegExp(JSON_EXT + '$'), '');
-            docMetadata = {
-              _id,
-              name: entryPath,
-              fileOid: entry!.id().tostrS(),
-              type: 'json',
-            };
-          }
-          else if (docType === 'text') {
-            docMetadata = {
-              name: entryPath,
-              fileOid: entry!.id().tostrS(),
-              type: 'text',
-            };
-          }
-          else if (docType === 'binary') {
-            docMetadata = {
-              name: entryPath,
-              fileOid: entry!.id().tostrS(),
-              type: 'binary',
-            };
-          }
-
-          files.push(docMetadata!);
+        const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+        if (docType === 'text') {
+          // TODO: select binary or text by .gitattribtues
+        }
+        if (docType === 'json') {
+          const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
+          const meta: JsonDocMetadata = {
+            _id,
+            name: fullDocPath,
+            fileOid: entry.oid,
+            type: 'json',
+          };
+          docs.push(meta);
+        }
+        else if (docType === 'text') {
+          const meta: TextDocMetadata = {
+            name: fullDocPath,
+            fileOid: entry.oid,
+            type: 'text',
+          };
+          docs.push(meta);
+        }
+        else if (docType === 'binary') {
+          const meta: BinaryDocMetadata = {
+            name: fullDocPath,
+            fileOid: entry.oid,
+            type: 'binary',
+          };
+          docs.push(meta);
         }
       }
     }
   }
-  return files;
+
+  return docs;
 }
 
 /**
