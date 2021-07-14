@@ -40,10 +40,11 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
+import { Remote } from '../../src/remote/remote';
 import { Sync } from '../../src/remote/sync';
 import { Err } from '../../src/error';
-import { MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../../src/const';
-import { pushWorker } from '../../src/remote/push_worker';
+import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pushWorker_module = require('../../src/remote/push_worker');
 
@@ -68,6 +69,9 @@ afterEach(function () {
 });
 
 before(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -226,7 +230,7 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new Err.UnfetchedCommitExistsError());
+      stubPush.onFirstCall().rejects(new Remote.Err.UnfetchedCommitExistsError());
 
       const resultsB: SyncResult[] = [];
       syncB.on('change', (result: SyncResult) => {
@@ -307,7 +311,7 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new Err.UnfetchedCommitExistsError());
+      stubPush.onFirstCall().rejects(new Remote.Err.UnfetchedCommitExistsError());
 
       const localChangesB: ChangedFile[][] = [];
       syncB.on('localChange', (changes: ChangedFile[]) => {
@@ -388,7 +392,7 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new Err.UnfetchedCommitExistsError());
+      stubPush.onFirstCall().rejects(new Remote.Err.UnfetchedCommitExistsError());
 
       let firstChange = true;
       syncB.on('change', (changes: ChangedFile[]) => {

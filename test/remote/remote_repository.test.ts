@@ -213,7 +213,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       ).rejects.toThrowError(Err.PersonalAccessTokenForAnotherAccountError);
     });
 
-    it(`throws CannotConnectError() with ${NETWORK_RETRY} retries`, async () => {
+    it(`throws CannotConnectRemoteRepositoryError() with ${NETWORK_RETRY} retries`, async () => {
       const remoteURL = remoteURLBase + serialId();
       await createRemoteRepository(remoteURL);
 
@@ -226,9 +226,9 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       })
         .create()
         .catch(err => err);
-      expect(error).toBeInstanceOf(Err.CannotConnectError);
+      expect(error).toBeInstanceOf(Err.CannotConnectRemoteRepositoryError);
       // This may be tested by using sinon.spy
-      expect((error as Err.CannotConnectError).retry).toBe(NETWORK_RETRY);
+      expect((error as Err.CannotConnectRemoteRepositoryError).retry).toBe(NETWORK_RETRY);
     });
 
     it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {
@@ -276,7 +276,7 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       ).rejects.toThrowError(Err.UndefinedPersonalAccessTokenError);
     });
 
-    it(`throws CannotConnectError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {
+    it(`throws CannotConnectRemoteRepositoryError() with ${NETWORK_RETRY_INTERVAL} retries`, async () => {
       const remoteURL = remoteURLBase + serialId();
 
       const error = await new RemoteRepository({
@@ -288,8 +288,8 @@ maybe('<remote/remote_repository> RemoteRepository', () => {
       })
         .destroy()
         .catch(err => err);
-      expect(error).toBeInstanceOf(Err.CannotConnectError);
-      expect((error as Err.CannotConnectError).retry).toBe(NETWORK_RETRY);
+      expect(error).toBeInstanceOf(Err.CannotConnectRemoteRepositoryError);
+      expect((error as Err.CannotConnectRemoteRepositoryError).retry).toBe(NETWORK_RETRY);
     });
 
     it('throws AuthenticationTypeNotAllowCreateRepositoryError()', async () => {

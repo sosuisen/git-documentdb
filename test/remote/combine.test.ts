@@ -20,7 +20,6 @@ import parse from 'parse-git-config';
 import { DuplicatedFile } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { Remote } from '../../src/remote/remote';
-import { Err } from '../../src/error';
 import {
   compareWorkingDirAndBlobs,
   createDatabase,

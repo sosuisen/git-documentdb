@@ -30,6 +30,8 @@ import {
 import { JSON_EXT, MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
 import { pushWorker } from '../src/remote/push_worker';
 import { syncWorker } from '../src/remote/sync_worker';
+import { Remote } from '../src/remote/remote';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pushWorker_module = require('../src/remote/push_worker');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -56,6 +58,9 @@ afterEach(function () {
 });
 
 before(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -211,7 +216,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbB.put(jsonB1);
 
         await expect(Promise.all([syncA.tryPush(), syncB.tryPush()])).rejects.toThrowError(
-          Err.UnfetchedCommitExistsError
+          Remote.Err.UnfetchedCommitExistsError
         );
 
         await destroyDBs([dbA, dbB]);
@@ -246,7 +251,9 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbB.put(jsonB1);
 
         await syncA.tryPush();
-        await expect(syncB.tryPush()).rejects.toThrowError(Err.UnfetchedCommitExistsError);
+        await expect(syncB.tryPush()).rejects.toThrowError(
+          Remote.Err.UnfetchedCommitExistsError
+        );
 
         await destroyDBs([dbA, dbB]);
       });
@@ -552,7 +559,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
+        await expect(sync.init()).rejects.toThrowError();
 
         expect(stubPush.callCount).toBe(NETWORK_RETRY + 1);
 
@@ -595,7 +602,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
             taskId: 'myTaskId',
           });
         });
-        const syncResult = await sync.init(dbA.repository()!);
+        const syncResult = await sync.init();
         expect(syncResult).toEqual(syncResultPush);
 
         expect(stubPush.callCount).toBe(2);
@@ -632,9 +639,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           });
         });
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError(
-          Err.PushWorkerError
-        );
+        await expect(sync.init()).rejects.toThrowError(Err.PushWorkerError);
 
         expect(stubPush.callCount).toBe(1);
 
@@ -665,7 +670,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         stubSync.rejects();
 
         // sync has already been initialized, so will run trySync()
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
+        await expect(sync.init()).rejects.toThrowError();
 
         expect(stubSync.callCount).toBe(NETWORK_RETRY + 1);
 
@@ -713,7 +718,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
           },
         };
 
-        await expect(sync.init(dbA.repository()!)).resolves.toEqual(syncResultPush);
+        await expect(sync.init()).resolves.toEqual(syncResultPush);
 
         expect(stubSync.callCount).toBe(2);
 
@@ -809,7 +814,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubSync = sandbox.stub(syncWorker_module, 'syncWorker');
         stubSync.rejects();
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
+        await expect(sync.init()).rejects.toThrowError();
 
         expect(stubSync.callCount).toBe(1);
 
@@ -840,7 +845,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
-        await expect(sync.init(dbA.repository()!)).rejects.toThrowError();
+        await expect(sync.init()).rejects.toThrowError();
 
         expect(stubPush.callCount).toBe(1);
 
@@ -875,7 +880,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
         stubPush.rejects();
 
-        sync.init(dbA.repository()!).catch(() => {});
+        sync.init().catch(() => {});
 
         await sleep(retryInterval - 500);
         expect(stubPush.callCount).toBe(1);

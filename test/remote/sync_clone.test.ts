@@ -32,6 +32,9 @@ beforeEach(function () {
 });
 
 before(() => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
+
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -59,17 +62,12 @@ maybe('<remote/clone> clone', () => {
 
   describe('using NodeGit', () => {
     it('returns undefined when invalid RemoteOptions', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
       // @ts-ignore
       await expect(Remote.clone('tmp')).resolves.toBeFalsy();
       await expect(Remote.clone('tmp', { remoteUrl: undefined })).resolves.toBeFalsy();
     });
 
     it('clones a repository by NodeGit', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);

@@ -24,7 +24,6 @@ import {
   SyncResultMergeAndPush,
   SyncResultPush,
 } from '../../src/types';
-import { Err } from '../../src/error';
 
 import {
   compareWorkingDirAndBlobs,
@@ -784,9 +783,6 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     // Clone dbA
     await dbB.open();
     const syncB = await dbB.sync(syncA.options);
-
-    dbA.logLevel = 'trace';
-    dbB.logLevel = 'trace';
 
     const info = {
       dbId: 'foo',
