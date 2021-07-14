@@ -322,7 +322,7 @@ export async function threeWayMerge (
     // A new file has been inserted into theirs.
     // Write it to the working directory.
     // Write it to the index.
-    console.log(' #case 1 - Accept theirs (insert): ' + fullDocPath);
+    // console.log(' #case 1 - Accept theirs (insert): ' + fullDocPath);
     const theirsData = (await theirs.content())!;
     const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
     await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
@@ -346,7 +346,7 @@ export async function threeWayMerge (
     // A new file has been inserted into ours.
     // It has already been created on the working directory.
     // It has already been added to the index.
-    console.log(' #case 2 - Accept ours (insert): ' + fullDocPath);
+    // console.log(' #case 2 - Accept ours (insert): ' + fullDocPath);
     const oursData = (await ours.content())!;
     const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
     return [
@@ -375,7 +375,7 @@ export async function threeWayMerge (
       // The same filenames with exactly the same contents are inserted on both local and remote.
       // It has already been created on the both working directory.
       // It has already been added to the both index.
-      console.log(' #case 3 - Accept both (insert): ' + fullDocPath);
+      // console.log(' #case 3 - Accept both (insert): ' + fullDocPath);
       return [
         {
           mode: oursMode,
@@ -403,11 +403,11 @@ export async function threeWayMerge (
 
     let mode = '';
     if (strategy === 'ours' || strategy === 'ours-diff') {
-      console.log(' #case 4 - Conflict. Accept ours (insert): ' + fullDocPath);
+      // console.log(' #case 4 - Conflict. Accept ours (insert): ' + fullDocPath);
       mode = oursMode;
     }
     else if (strategy === 'theirs' || strategy === 'theirs-diff') {
-      console.log(' #case 5 - Conflict. Accept theirs (insert): ' + fullDocPath);
+      // console.log(' #case 5 - Conflict. Accept theirs (insert): ' + fullDocPath);
       mode = theirsMode;
     }
 
@@ -488,7 +488,7 @@ export async function threeWayMerge (
   }
   else if (base && !ours && !theirs) {
     // The same files have been removed from both local and remote.
-    console.log(' #case 6 - Accept both (delete): ' + fullDocPath);
+    // console.log(' #case 6 - Accept both (delete): ' + fullDocPath);
     return [undefined, undefined, undefined, undefined];
   }
   else if (base && !ours && theirs) {
@@ -499,7 +499,7 @@ export async function threeWayMerge (
 
     if (baseOid === theirsOid) {
       // A file has been removed from ours.
-      console.log(' #case 7 - Accept ours (delete): ' + fullDocPath);
+      // console.log(' #case 7 - Accept ours (delete): ' + fullDocPath);
       return [
         undefined,
         undefined,
@@ -516,7 +516,7 @@ export async function threeWayMerge (
     const strategy = await getStrategy(conflictResolutionStrategy, undefined, theirsFatDoc);
 
     if (strategy === 'ours' || strategy === 'ours-diff') {
-      console.log(' #case 8 - Conflict. Accept ours (delete): ' + fullDocPath);
+      // console.log(' #case 8 - Conflict. Accept ours (delete): ' + fullDocPath);
       const baseData = (await base.content())!;
       const baseFatDoc = await getFatDocFromData(baseData, fullDocPath, docType);
       const acceptedConflict: AcceptedConflict = {
@@ -535,7 +535,7 @@ export async function threeWayMerge (
       ];
     }
     else if (strategy === 'theirs' || strategy === 'theirs-diff') {
-      console.log(' #case 9 - Conflict. Accept theirs (update): ' + fullDocPath);
+      // console.log(' #case 9 - Conflict. Accept theirs (update): ' + fullDocPath);
       const acceptedConflict: AcceptedConflict = {
         fatDoc: theirsFatDoc,
         strategy: strategy,
@@ -567,7 +567,7 @@ export async function threeWayMerge (
 
     if (baseOid === oursOid) {
       // A file has been removed from theirs.
-      console.log(' #case 10 - Accept theirs (delete): ' + fullDocPath);
+      // console.log(' #case 10 - Accept theirs (delete): ' + fullDocPath);
       await fs.remove(nodePath.resolve(gitDDB.workingDir, fullDocPath)).catch(() => {
         throw new Err.CannotDeleteDataError();
       });
@@ -588,7 +588,7 @@ export async function threeWayMerge (
     const strategy = await getStrategy(conflictResolutionStrategy, oursFatDoc, undefined);
 
     if (strategy === 'ours' || strategy === 'ours-diff') {
-      console.log(' #case 11 - Conflict. Accept ours (update): ' + fullDocPath);
+      // console.log(' #case 11 - Conflict. Accept ours (update): ' + fullDocPath);
       const acceptedConflict: AcceptedConflict = {
         fatDoc: oursFatDoc,
         strategy: strategy,
@@ -610,7 +610,7 @@ export async function threeWayMerge (
       ];
     }
     else if (strategy === 'theirs' || strategy === 'theirs-diff') {
-      console.log(' #case 12 - Conflict. Accept theirs (delete): ' + fullDocPath);
+      // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + fullDocPath);
       const baseData = (await base.content())!;
       const baseFatDoc = await getFatDocFromData(baseData, fullDocPath, docType);
       const acceptedConflicts: AcceptedConflict = {
@@ -640,7 +640,7 @@ export async function threeWayMerge (
 
     if (oursOid === theirsOid) {
       // The same filenames with exactly the same contents are inserted into both local and remote.
-      console.log(' #case 13 - Accept both (update): ' + fullDocPath);
+      // console.log(' #case 13 - Accept both (update): ' + fullDocPath);
       return [
         {
           // TODO: check whether mode is the same.
@@ -655,7 +655,7 @@ export async function threeWayMerge (
       ];
     }
     else if (baseOid === oursOid) {
-      console.log(' #case 14 - Accept theirs (update): ' + fullDocPath);
+      // console.log(' #case 14 - Accept theirs (update): ' + fullDocPath);
       const oursData = (await ours.content())!;
       const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
       const theirsData = (await theirs.content())!;
@@ -679,7 +679,7 @@ export async function threeWayMerge (
       ];
     }
     else if (baseOid === theirsOid) {
-      console.log(' #case 15 - Accept ours (update): ' + fullDocPath);
+      // console.log(' #case 15 - Accept ours (update): ' + fullDocPath);
       const oursData = (await ours.content())!;
       const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
       const theirsData = (await theirs.content())!;
@@ -715,7 +715,7 @@ export async function threeWayMerge (
     );
 
     if (strategy === 'ours') {
-      console.log(' #case 16 - Conflict. Accept ours (update): ' + fullDocPath);
+      // console.log(' #case 16 - Conflict. Accept ours (update): ' + fullDocPath);
       return [
         {
           mode: (await ours.mode()).toString(8),
@@ -737,7 +737,7 @@ export async function threeWayMerge (
       ];
     }
     else if (strategy === 'theirs') {
-      console.log(' #case 17 - Conflict. Accept theirs (update): ' + fullDocPath);
+      // console.log(' #case 17 - Conflict. Accept theirs (update): ' + fullDocPath);
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
       await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
@@ -777,11 +777,11 @@ export async function threeWayMerge (
 
     let mode = '';
     if (strategy === 'ours-diff') {
-      console.log(' #case 16 (diff) - Conflict. Accept ours (update): ' + fullDocPath);
+      // console.log(' #case 16 (diff) - Conflict. Accept ours (update): ' + fullDocPath);
       mode = (await ours.mode()).toString(8);
     }
     else if (strategy === 'theirs-diff') {
-      console.log(' #case 17 (diff) - Conflict. Accept theirs (update): ' + fullDocPath);
+      // console.log(' #case 17 (diff) - Conflict. Accept theirs (update): ' + fullDocPath);
       mode = (await theirs.mode()).toString(8);
     }
 
