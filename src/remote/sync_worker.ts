@@ -30,14 +30,14 @@ import { Remote } from './remote';
 /**
  * sync_worker
  *
- * @throws {@link Err.SyncWorkerFetchError} (from fetch() and push_worker())
+ * @throws {@link Err.SyncWorkerFetchError} (from fetch() and pushWorker())
  * @throws {@link Err.NoMergeBaseFoundError}
  * @throws {@link Err.ThreeWayMergeError}
  * @throws {@link Err.CannotDeleteDataError}
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
- * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from push_worker())
- * @throws {@link Err.InvalidJsonObjectError} (from push_worker())
- * @throws {@link Err.GitPushError} (from push_worker())
+ * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from pushWorker())
+ * @throws {@link Err.InvalidJsonObjectError} (from pushWorker())
+ * @throws {@link Err.GitPushError} (from pushWorker())
  *
  * @internal
  */
@@ -162,13 +162,6 @@ export async function syncWorker (
       tree: mergedTreeOid,
     });
 
-    /*
-    const localChanges = await getAndWriteLocalChanges(
-      gitDDB.workingDir,
-      oldCommitOid,
-      mergeCommitOid!
-    );
-    */
     let localCommits: NormalizedCommit[] | undefined;
 
     // Get list of commits which has been added to local
