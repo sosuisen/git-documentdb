@@ -21,7 +21,11 @@ Use GitDocumentDB to ...
 
 :dromedary_camel: Travel revisions.
 
-You do not need knowledge of Git to start. However, you make the most of GitDocumentDB if you understand Git.
+The throughput in GitDocumentDB is about the same as Git. It's not fast like typical databases. 
+
+However, GitDocumentDB is compatible with Git that enables distributed multi-primary databases with revision history. Besides, it has a fully automated diff, patch, and sync with remote Git repository, automated combining of inconsistent repositories, and accessible CRUD and collection APIs for operating JSON. 
+
+So, GitDocumentDB is helpful for people who develop Git-powered offline-first apps.
 
 # API
 https://gitddb.com/docs/api/git-documentdb.gitdocumentdb
