@@ -71,7 +71,7 @@ export interface SyncInterface {
   currentRetries(): number;
 
   on(event: SyncEvent, callback: SyncCallback, collectionPath?: string): SyncInterface;
-  off(event: SyncEvent, callback: SyncCallback): void;
+  off(event: SyncEvent, callback: SyncCallback): SyncInterface;
 }
 
 /**
