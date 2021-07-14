@@ -11,7 +11,7 @@ import { readBlob, ReadBlobResult, resolveRef } from 'isomorphic-git';
 import { JSON_EXT } from '../const';
 import { utf8decode } from '../utils';
 import { Err } from '../error';
-import { FatBinaryDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
+import { FatBinaryDoc, FatDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
 
 /**
  * blobToJsonDoc
@@ -135,4 +135,17 @@ export async function readLatestBlob (
     oid: commitOid,
     filepath: fullDocPath,
   }).catch(() => undefined);
+}
+
+/**
+ * Check if two FatDocs are the same.
+ */
+export function isSameFatDoc (a: FatDoc, b: FatDoc) {
+  if (a.type !== b.type) {
+    return false;
+  }
+  if (a.type === 'json') {
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+  return a === b;
 }

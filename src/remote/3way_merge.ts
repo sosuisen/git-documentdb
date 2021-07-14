@@ -18,6 +18,7 @@ import { getFatDocFromData, writeBlobToFile } from './worker_utils';
 import { toSortedJSONString, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { SyncInterface } from '../types_sync';
+import { isSameFatDoc } from '../crud/blob';
 
 function getStrategy (
   strategy: ConflictResolutionStrategies | undefined,
@@ -366,14 +367,18 @@ export async function threeWayMerge (
   else if (!base && ours && theirs) {
     const oursOid = await ours.oid();
     const theirsOid = await theirs.oid();
-    if (oursOid === theirsOid) {
+
+    const oursMode = (await ours.mode()).toString(8);
+    const theirsMode = (await theirs.mode()).toString(8);
+
+    if (oursOid === theirsOid && oursMode === theirsMode) {
       // The same filenames with exactly the same contents are inserted on both local and remote.
       // It has already been created on the both working directory.
       // It has already been added to the both index.
       console.log(' #case 3 - Accept both (insert): ' + fullDocPath);
       return [
         {
-          mode: (await ours.mode()).toString(8),
+          mode: oursMode,
           path: basename(fullDocPath),
           oid: oursOid,
           type: 'blob',
@@ -389,19 +394,21 @@ export async function threeWayMerge (
     const theirsData = (await theirs.content())!;
     const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
     const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+
     const strategy = await getStrategy(
       conflictResolutionStrategy,
       oursFatDoc,
       theirsFatDoc
     );
+
     let mode = '';
     if (strategy === 'ours' || strategy === 'ours-diff') {
       console.log(' #case 4 - Conflict. Accept ours (insert): ' + fullDocPath);
-      mode = (await ours.mode()).toString(8);
+      mode = oursMode;
     }
     else if (strategy === 'theirs' || strategy === 'theirs-diff') {
       console.log(' #case 5 - Conflict. Accept theirs (insert): ' + fullDocPath);
-      mode = (await theirs.mode()).toString(8);
+      mode = theirsMode;
     }
 
     let resultFatDoc: FatDoc;
@@ -444,16 +451,21 @@ export async function threeWayMerge (
       resultFatDoc = await getFatDocFromData(data, fullDocPath, docType);
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
       await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
-      localChange = {
-        operation: 'update',
-        old: oursFatDoc,
-        new: resultFatDoc,
-      };
-      remoteChange = {
-        operation: 'update',
-        old: theirsFatDoc,
-        new: resultFatDoc,
-      };
+
+      if (!isSameFatDoc(oursFatDoc, resultFatDoc)) {
+        localChange = {
+          operation: 'update',
+          old: oursFatDoc,
+          new: resultFatDoc,
+        };
+      }
+      if (!isSameFatDoc(theirsFatDoc, resultFatDoc)) {
+        remoteChange = {
+          operation: 'update',
+          old: theirsFatDoc,
+          new: resultFatDoc,
+        };
+      }
     }
 
     const acceptedConflict: AcceptedConflict = {
@@ -773,6 +785,23 @@ export async function threeWayMerge (
       mode = (await theirs.mode()).toString(8);
     }
 
+    let localChange: ChangedFile | undefined;
+    let remoteChange: ChangedFile | undefined;
+    if (!isSameFatDoc(oursFatDoc, resultFatDoc)) {
+      localChange = {
+        operation: 'update',
+        old: oursFatDoc,
+        new: resultFatDoc,
+      };
+    }
+    if (!isSameFatDoc(theirsFatDoc, resultFatDoc)) {
+      remoteChange = {
+        operation: 'update',
+        old: theirsFatDoc,
+        new: resultFatDoc,
+      };
+    }
+
     return [
       {
         mode,
@@ -780,16 +809,8 @@ export async function threeWayMerge (
         oid: resultFatDoc.fileOid,
         type: 'blob',
       },
-      {
-        operation: 'update',
-        old: oursFatDoc,
-        new: resultFatDoc,
-      },
-      {
-        operation: 'update',
-        old: theirsFatDoc,
-        new: resultFatDoc,
-      },
+      localChange,
+      remoteChange,
       {
         fatDoc: resultFatDoc,
         strategy: strategy,
