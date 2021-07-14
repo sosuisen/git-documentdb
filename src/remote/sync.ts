@@ -384,6 +384,7 @@ export class Sync implements SyncInterface {
    *
    * @public
    */
+  // eslint-disable-next-line complexity
   async init (): Promise<SyncResult> {
     this._isClosed = false;
 
@@ -403,11 +404,25 @@ export class Sync implements SyncInterface {
       this._upstreamBranch = '';
     }
     if (!onlyFetch) {
-      await RemoteEngine[this._engine]
-        .checkPush(this._gitDDB.workingDir, this._options, this._gitDDB.logger)
-        .catch((err: Error) => {
-          throw new Err.RemoteCheckPushError(err.message);
-        });
+      let result;
+      let retry = 0;
+      for (; retry < NETWORK_RETRY; retry++) {
+        // eslint-disable-next-line no-await-in-loop
+        result = await RemoteEngine[this._engine]
+          .checkPush(this._gitDDB.workingDir, this._options, this._gitDDB.logger)
+          .catch((err: Error) => {
+            return err;
+          });
+        if (!(result instanceof Error)) {
+          break;
+        }
+        console.log('retrying checkPush..');
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(NETWORK_RETRY_INTERVAL);
+      }
+      if (result instanceof Error) {
+        throw new Err.RemoteCheckPushError(result.message);
+      }
     }
 
     let syncResult: SyncResult = {
