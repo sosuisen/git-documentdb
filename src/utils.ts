@@ -80,7 +80,9 @@ export function toSortedJSONString (obj: Record<string, any>) {
 // eslint-disable-next-line complexity
 export async function getAllMetadata (workingDir: string): Promise<DocMetadata[]> {
   const files: DocMetadata[] = [];
-  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'HEAD' });
+  const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'HEAD' }).catch(
+    () => undefined
+  );
 
   if (commitOid === undefined) return [];
 
