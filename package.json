@@ -61,7 +61,7 @@
     "eslint-config-standardize": "^0.7.1",
     "eslint-plugin-prettierx": "^0.14.0",
     "expect": "^27.0.2",
-    "git-documentdb-plugin-remote-nodegit": "^1.0.0-alpha.12",
+    "git-documentdb-plugin-remote-nodegit": "^1.0.0-alpha.14",
     "mocha": "^8.3.2",
     "nyc": "^15.1.0",
     "parse-git-config": "^3.0.0",
