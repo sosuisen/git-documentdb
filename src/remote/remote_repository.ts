@@ -59,7 +59,7 @@ export class RemoteRepository {
    *
    * @throws {@link Err.UndefinedPersonalAccessTokenError}
    * @throws {@link Err.PersonalAccessTokenForAnotherAccountError}
-   * @throws {@link Err.CannotConnectError}
+   * @throws {@link Err.CannotConnectRemoteRepositoryError}
    *
    *  may include the following errors:
    *
@@ -115,7 +115,11 @@ export class RemoteRepository {
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new Err.CannotConnectError(retry, this._options.remoteUrl!, result.message);
+        throw new Err.CannotConnectRemoteRepositoryError(
+          retry,
+          this._options.remoteUrl!,
+          result.message
+        );
       }
     }
     else {
@@ -131,7 +135,7 @@ export class RemoteRepository {
    * connection.type must be 'github'
    *
    * @throws {@link Err.UndefinedPersonalAccessTokenError}
-   * @throws {@link Err.CannotConnectError}
+   * @throws {@link Err.CannotConnectRemoteRepositoryError}
    *
    *  may include the following errors:
    *
@@ -180,7 +184,11 @@ export class RemoteRepository {
         await sleep(NETWORK_RETRY_INTERVAL);
       }
       if (result instanceof Error) {
-        throw new Err.CannotConnectError(retry, this._options.remoteUrl!, result.message);
+        throw new Err.CannotConnectRemoteRepositoryError(
+          retry,
+          this._options.remoteUrl!,
+          result.message
+        );
       }
     }
     else {

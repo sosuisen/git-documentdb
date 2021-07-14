@@ -18,7 +18,7 @@ import { Remote } from './remote';
  * Push and get changes
  *
  * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from push() and validatePushResult())
- * @throws {@link Err.SyncWorkerFetchError} (from validatePushResult())
+ * @throws {@link Remote.Err.GitFetchError} (from validatePushResult())
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
  */
 export async function pushWorker (

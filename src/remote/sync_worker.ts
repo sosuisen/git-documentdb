@@ -30,14 +30,14 @@ import { Remote } from './remote';
 /**
  * sync_worker
  *
- * @throws {@link Err.SyncWorkerFetchError} (from fetch() and pushWorker())
- * @throws {@link Err.NoMergeBaseFoundError}
+ * @throws {@link Remote.Err.GitFetchError} (from fetch() and pushWorker())
+ * @throws {@link Remote.Err.NoMergeBaseFoundError}
  * @throws {@link Err.ThreeWayMergeError}
  * @throws {@link Err.CannotDeleteDataError}
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
  * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from pushWorker())
+ * @throws {@link Remote.Err.GitPushError} (from pushWorker())
  * @throws {@link Err.InvalidJsonObjectError} (from pushWorker())
- * @throws {@link Err.GitPushError} (from pushWorker())
  *
  * @internal
  */
