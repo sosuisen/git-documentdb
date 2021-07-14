@@ -148,6 +148,15 @@ export namespace Err {
   /**
    * @public
    */
+  export class UndefinedPersonalAccessTokenError extends BaseError {
+    constructor () {
+      super(`Personal Access Token of your GitHub account is needed.`);
+    }
+  }
+
+  /**
+   * @public
+   */
   export class UndefinedDocumentIdError extends BaseError {
     constructor (
       e = `Document id is undefined: A document must have an '_id' key` as unknown
@@ -233,65 +242,9 @@ export namespace Err {
   /**
    * @public
    */
-  export class InvalidURLError extends BaseError {
-    constructor (url: unknown) {
-      super(`Invalid url: ${url}'`);
-    }
-  }
-
-  /**
-   * @public
-   */
   export class UndefinedRemoteURLError extends BaseError {
     constructor () {
       super(`Remote URL is undefined.`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class RemoteRepositoryNotFoundError extends BaseError {
-    constructor (url: unknown) {
-      super(
-        `Repository does not exist, or you do not have permission to access the repository: ${url}`
-      );
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class PushPermissionDeniedError extends BaseError {
-    constructor (mes: unknown) {
-      super(`Permission denied to push to the repository: ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class FetchPermissionDeniedError extends BaseError {
-    constructor (mes: unknown) {
-      super(`Permission denied to fetch to the repository: ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class FetchConnectionFailedError extends BaseError {
-    constructor (mes: unknown) {
-      super(`Fetch connection failed: ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class PushConnectionFailedError extends BaseError {
-    constructor (mes: unknown) {
-      super(`Push connection failed: ${mes}`);
     }
   }
 
@@ -331,24 +284,6 @@ Current value is '${type}'`);
   /**
    * @public
    */
-  export class UndefinedPersonalAccessTokenError extends BaseError {
-    constructor () {
-      super(`Personal Access Token of your GitHub account is needed.`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class SyncWorkerFetchError extends BaseError {
-    constructor (mes: string) {
-      super(`Fetch error in sync worker: ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
   export class UndefinedDBError extends BaseError {
     constructor () {
       super(`GitDocumentDB is undefined.`);
@@ -361,15 +296,6 @@ Current value is '${type}'`);
   export class HttpProtocolRequiredError extends BaseError {
     constructor (url: unknown) {
       super(`HTTP protocol is required: ${url}`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class InvalidRepositoryURLError extends BaseError {
-    constructor (url: unknown) {
-      super(`Repository URL is invalid: ${url}`);
     }
   }
 
@@ -432,7 +358,7 @@ Current value is '${type}'`);
   /**
    * @public
    */
-  export class CannotConnectError extends BaseError {
+  export class CannotConnectRemoteRepositoryError extends BaseError {
     constructor (public retry: number, url: string, mes: string) {
       super(`Cannot connect to ${url}: ${mes}`);
     }
@@ -558,15 +484,6 @@ Current value is '${type}'`);
   /**
    * @public
    */
-  export class GitPushError extends BaseError {
-    constructor (mes: string) {
-      super(`Push error in Git : ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
   export class GitMergeBranchError extends BaseError {
     constructor (mes: string) {
       super(`Merge branch error in Git : ${mes}`);
@@ -599,16 +516,6 @@ Current value is '${type}'`);
   export class CombineDatabaseError extends BaseError {
     constructor (mes: string) {
       super(`Combine database failed: ${mes})`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class InvalidSSHKeyPathError extends BaseError {
-    constructor () {
-      const e = `Invalid SSH key path`;
-      super(e);
     }
   }
 }
