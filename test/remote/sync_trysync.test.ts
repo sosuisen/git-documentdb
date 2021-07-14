@@ -696,7 +696,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
   it('skips consecutive sync tasks', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     const results: SyncResult[] = [];
-    dbA.logLevel = 'trace';
+
     for (let i = 0; i < 3; i++) {
       // eslint-disable-next-line promise/catch-or-return
       syncA.trySync().then(result => results.push(result));
@@ -774,7 +774,7 @@ maybe('<remote/sync_trysync>: Sync#trySync()', () => {
     await destroyDBs([dbA, dbB]);
   });
 
-  it.only('syncs files under .gitddb', async () => {
+  it('syncs files under .gitddb', async () => {
     const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
     const dbNameB = serialId();
     const dbB: GitDocumentDB = new GitDocumentDB({
