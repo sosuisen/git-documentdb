@@ -12,8 +12,6 @@
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
-import path from 'path';
-import fs from 'fs-extra';
 import expect from 'expect';
 import {
   compareWorkingDirAndBlobs,
@@ -26,58 +24,18 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import {
-  ConnectionSettingsGitHub,
-  SyncResultCancel,
-  SyncResultPush,
-} from '../../src/types';
+import { ConnectionSettings, SyncResultCancel, SyncResultPush } from '../../src/types';
 import { sleep } from '../../src/utils';
-import { GitDocumentDB } from '../../src/git_documentdb';
 
-const reposPrefix = 'test_sync_trypush___';
-const localDir = `./test/database_sync_trypush`;
-
-let idCounter = 0;
-const serialId = () => {
-  return `${reposPrefix}${idCounter++}`;
-};
-
-beforeEach(function () {
-  // @ts-ignore
-  console.log(`... ${this.currentTest.fullTitle()}`);
-});
-
-before(() => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
-  fs.removeSync(path.resolve(localDir));
-});
-
-after(() => {
-  // It may throw error due to memory leak of getCommitLogs()
-  // fs.removeSync(path.resolve(localDir));
-});
-
-// This test needs environment variables:
-//  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
-// e.g.) https://github.com/foo/
-//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
-const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
-    ? describe
-    : describe.skip;
-
-maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
-  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
-    ? process.env.GITDDB_GITHUB_USER_URL
-    : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
-
-  const connection: ConnectionSettingsGitHub = {
-    type: 'github',
-    personalAccessToken: token,
-    engine: 'nodegit',
+export const syncTryPush = (
+  connection: ConnectionSettings,
+  remoteURLBase: string,
+  reposPrefix: string,
+  localDir: string
+) => () => {
+  let idCounter = 0;
+  const serialId = () => {
+    return `${reposPrefix}${idCounter++}`;
   };
 
   before(async () => {
@@ -427,4 +385,4 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
 
     await destroyDBs([dbA]);
   });
-});
+};
