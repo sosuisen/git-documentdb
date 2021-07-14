@@ -30,7 +30,7 @@ import {
 import { JSON_EXT, MINIMUM_SYNC_INTERVAL, NETWORK_RETRY } from '../src/const';
 import { pushWorker } from '../src/remote/push_worker';
 import { syncWorker } from '../src/remote/sync_worker';
-import { Remote } from '../src/remote/remote';
+import { RemoteEngine } from '../src/remote/remote_engine';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pushWorker_module = require('../src/remote/push_worker');
@@ -216,7 +216,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
         await dbB.put(jsonB1);
 
         await expect(Promise.all([syncA.tryPush(), syncB.tryPush()])).rejects.toThrowError(
-          Remote.Err.UnfetchedCommitExistsError
+          RemoteEngine[syncA.engine].Err.UnfetchedCommitExistsError
         );
 
         await destroyDBs([dbA, dbB]);
@@ -252,7 +252,7 @@ maybe('intg <sync_lifecycle> Sync', () => {
 
         await syncA.tryPush();
         await expect(syncB.tryPush()).rejects.toThrowError(
-          Remote.Err.UnfetchedCommitExistsError
+          RemoteEngine[syncB.engine].Err.UnfetchedCommitExistsError
         );
 
         await destroyDBs([dbA, dbB]);

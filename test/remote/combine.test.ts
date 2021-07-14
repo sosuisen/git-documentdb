@@ -19,7 +19,7 @@ import expect from 'expect';
 import parse from 'parse-git-config';
 import { DuplicatedFile } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { Remote } from '../../src/remote/remote';
+import { RemoteEngine } from '../../src/remote/remote_engine';
 import {
   compareWorkingDirAndBlobs,
   createDatabase,
@@ -94,7 +94,7 @@ maybe('<remote/combine>', () => {
 
       // trySync throws NoMergeBaseFoundError
       await expect(dbB.sync(syncA.options)).rejects.toThrowError(
-        Remote.Err.NoMergeBaseFoundError
+        RemoteEngine[syncA.engine].Err.NoMergeBaseFoundError
       );
 
       //      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
@@ -122,7 +122,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Remote.Err.NoMergeBaseFoundError
+        RemoteEngine[syncA.engine].Err.NoMergeBaseFoundError
       );
 
       const headCommitOid = await git.resolveRef({
@@ -155,7 +155,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Remote.Err.NoMergeBaseFoundError
+        RemoteEngine[syncA.engine].Err.NoMergeBaseFoundError
       );
 
       // Put new doc to combined db.
@@ -190,7 +190,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Remote.Err.NoMergeBaseFoundError
+        RemoteEngine[syncA.engine].Err.NoMergeBaseFoundError
       );
 
       // Put new doc to combined db.
@@ -224,7 +224,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Remote.Err.NoMergeBaseFoundError
+        RemoteEngine[syncA.engine].Err.NoMergeBaseFoundError
       );
 
       // Put new doc to combined db.
@@ -513,7 +513,7 @@ maybe('<remote/combine>', () => {
 
       // Combine with remote db
       await expect(dbB.sync(syncA.options)).resolves.not.toThrowError(
-        Remote.Err.NoMergeBaseFoundError
+        RemoteEngine[syncA.engine].Err.NoMergeBaseFoundError
       );
 
       const config = parse.sync({ cwd: dbB.workingDir, path: '.git/config' });

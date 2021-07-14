@@ -29,6 +29,7 @@ export interface SyncInterface {
    * Public properties (readonly)
    ***********************************************/
   remoteURL: string;
+  engine: string;
   remoteRepository: RemoteRepository;
   options: RemoteOptions;
   upstreamBranch: string;

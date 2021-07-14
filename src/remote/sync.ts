@@ -54,13 +54,13 @@ import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 import { Validator } from '../validator';
-import { Remote } from './remote';
+import { RemoteEngine } from './remote_engine';
 
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
  *
  * @throws {@link Err.RepositoryNotFoundError}
- * @throws {@link Remote.Err.UndefinedRemoteURLError} (from Sync#constructor())
+ * @throws {@link RemoteEngine.Err.UndefinedRemoteURLError} (from Sync#constructor())
  * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
  *
  * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
@@ -190,6 +190,14 @@ export class Sync implements SyncInterface {
    */
   get remoteURL (): string {
     return this._options.remoteUrl!;
+  }
+
+  /**
+   * Remote Engine
+   */
+  private _engine = 'iso';
+  get engine (): string {
+    return this._engine;
   }
 
   private _remoteRepository: RemoteRepository;
@@ -336,6 +344,8 @@ export class Sync implements SyncInterface {
       remoteUrl: this._options.remoteUrl,
       connection: this._options.connection,
     });
+
+    this._engine = this._options.connection?.engine ?? 'iso';
   }
 
   /***********************************************
@@ -379,13 +389,11 @@ export class Sync implements SyncInterface {
 
     const onlyFetch = this._options.syncDirection === 'pull';
 
-    const remoteResult: 'exist' | 'not_exist' = await Remote.checkFetch(
-      this._gitDDB.workingDir,
-      this._options,
-      this._gitDDB.logger
-    ).catch((err: Error) => {
-      throw new Err.RemoteCheckFetchError(err.message);
-    });
+    const remoteResult: 'exist' | 'not_exist' = await RemoteEngine[this._engine]
+      .checkFetch(this._gitDDB.workingDir, this._options, this._gitDDB.logger)
+      .catch((err: Error) => {
+        throw new Err.RemoteCheckFetchError(err.message);
+      });
     if (remoteResult === 'not_exist') {
       // Try to create repository by octokit
       await this.remoteRepository.create().catch(err => {
@@ -395,13 +403,11 @@ export class Sync implements SyncInterface {
       this._upstreamBranch = '';
     }
     if (!onlyFetch) {
-      await Remote.checkPush(
-        this._gitDDB.workingDir,
-        this._options,
-        this._gitDDB.logger
-      ).catch((err: Error) => {
-        throw new Err.RemoteCheckPushError(err.message);
-      });
+      await RemoteEngine[this._engine]
+        .checkPush(this._gitDDB.workingDir, this._options, this._gitDDB.logger)
+        .catch((err: Error) => {
+          throw new Err.RemoteCheckPushError(err.message);
+        });
     }
 
     let syncResult: SyncResult = {
@@ -547,7 +553,7 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.PushNotAllowedError} (from this and enqueuePushTask)
    * @throws {@link Err.PushWorkerError} (from this and enqueuePushTask)
-   * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from this and enqueuePushTask)
+   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from this and enqueuePushTask)
    *
    * @public
    */
@@ -574,7 +580,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof Remote.Err.UnfetchedCommitExistsError) {
+      if (error instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError) {
         if (this._options.syncDirection === 'push') {
           if (this._options.combineDbStrategy === 'replace-with-ours') {
             // TODO: Exec replace-with-ours instead of throw error
@@ -628,7 +634,7 @@ export class Sync implements SyncInterface {
    * @throws {@link Err.PushNotAllowedError} (from this and enqueueSyncTask)
    * @throws {@link Err.SyncWorkerError} (from enqueueSyncTask)
    * @throws {@link Err.NoMergeBaseFoundError} (from enqueueSyncTask)
-   * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from enqueueSyncTask)
+   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from enqueueSyncTask)
    *
    * @public
    */
@@ -662,7 +668,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof Remote.Err.NoMergeBaseFoundError) {
+      if (error instanceof RemoteEngine[this._engine].Err.NoMergeBaseFoundError) {
         if (this._options.combineDbStrategy === 'throw-error') {
           throw error;
         }
@@ -704,7 +710,7 @@ export class Sync implements SyncInterface {
       if (
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
-        error instanceof Remote.Err.UnfetchedCommitExistsError
+        error instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError
       ) {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
@@ -734,7 +740,7 @@ export class Sync implements SyncInterface {
    * Enqueue push task to TaskQueue
    *
    * @throws {@link Err.PushWorkerError}
-   * @throws {@link Remote.Err.UnfetchedCommitExistsError}
+   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError}
    * @throws {@link Err.PushNotAllowedError}
    *
    * @public
@@ -791,7 +797,7 @@ export class Sync implements SyncInterface {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-          if (!(err instanceof Remote.Err.UnfetchedCommitExistsError)) {
+          if (!(err instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError)) {
             err = new Err.PushWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(listener => {
@@ -835,7 +841,7 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.SyncWorkerError}
    * @throws {@link Err.NoMergeBaseFoundError}
-   * @throws {@link Remote.Err.UnfetchedCommitExistsError}
+   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError}
    * @throws {@link Err.PushNotAllowedError}
    *
    * @public
@@ -933,8 +939,8 @@ export class Sync implements SyncInterface {
           // console.log(`Error in sync_worker: ${err}`);
           if (
             !(
-              err instanceof Remote.Err.NoMergeBaseFoundError ||
-              err instanceof Remote.Err.UnfetchedCommitExistsError
+              err instanceof RemoteEngine[this._engine].Err.NoMergeBaseFoundError ||
+              err instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError
             )
           ) {
             err = new Err.SyncWorkerError(err.message);

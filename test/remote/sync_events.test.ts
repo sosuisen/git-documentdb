@@ -40,7 +40,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { Remote } from '../../src/remote/remote';
+import { RemoteEngine } from '../../src/remote/remote_engine';
 import { Sync } from '../../src/remote/sync';
 import { Err } from '../../src/error';
 import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
@@ -230,7 +230,9 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new Remote.Err.UnfetchedCommitExistsError());
+      stubPush
+        .onFirstCall()
+        .rejects(new RemoteEngine[syncB.engine].Err.UnfetchedCommitExistsError());
 
       const resultsB: SyncResult[] = [];
       syncB.on('change', (result: SyncResult) => {
@@ -311,7 +313,9 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new Remote.Err.UnfetchedCommitExistsError());
+      stubPush
+        .onFirstCall()
+        .rejects(new RemoteEngine[syncB.engine].Err.UnfetchedCommitExistsError());
 
       const localChangesB: ChangedFile[][] = [];
       syncB.on('localChange', (changes: ChangedFile[]) => {
@@ -392,7 +396,9 @@ maybe('<remote/sync> [event]', () => {
       await dbB.put({ _id: '2' });
 
       const stubPush = sandbox.stub(pushWorker_module, 'pushWorker');
-      stubPush.onFirstCall().rejects(new Remote.Err.UnfetchedCommitExistsError());
+      stubPush
+        .onFirstCall()
+        .rejects(new RemoteEngine[syncB.engine].Err.UnfetchedCommitExistsError());
 
       let firstChange = true;
       syncB.on('change', (changes: ChangedFile[]) => {

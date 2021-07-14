@@ -459,7 +459,7 @@ Current value is '${type}'`);
    */
   export class RemoteCheckPushError extends BaseError {
     constructor (mes: unknown) {
-      super(`Error in Remote.checkPush(): ${mes}`);
+      super(`Error in RemoteEngine.checkPush(): ${mes}`);
     }
   }
 
@@ -468,7 +468,7 @@ Current value is '${type}'`);
    */
   export class RemoteCheckFetchError extends BaseError {
     constructor (mes: unknown) {
-      super(`Error in Remote.checkFetch(): ${mes}`);
+      super(`Error in RemoteEngine.checkFetch(): ${mes}`);
     }
   }
 
