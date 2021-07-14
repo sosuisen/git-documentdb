@@ -177,7 +177,7 @@ export class Sync implements SyncInterface {
   private _gitDDB: GitDDBInterface;
   private _syncTimer: NodeJS.Timeout | undefined;
   private _retrySyncCounter = 0; // Decremental count
-
+  private _isClosed = false;
   /***********************************************
    * Public properties (readonly)
    ***********************************************/
@@ -375,6 +375,8 @@ export class Sync implements SyncInterface {
    * @public
    */
   async init (): Promise<SyncResult> {
+    this._isClosed = false;
+
     const onlyFetch = this._options.syncDirection === 'pull';
 
     const remoteResult: 'exist' | 'not_exist' = await Remote.checkFetch(
@@ -488,6 +490,7 @@ export class Sync implements SyncInterface {
    * @public
    */
   resume (options?: { interval?: number; retry?: number }) {
+    if (this._isClosed) return false;
     if (this._options.live) return false;
 
     options ??= {
@@ -524,6 +527,7 @@ export class Sync implements SyncInterface {
    * @public
    */
   close () {
+    this._isClosed = true;
     this.pause();
     this.eventHandlers = {
       change: [],
@@ -549,6 +553,7 @@ export class Sync implements SyncInterface {
    */
   // eslint-disable-next-line complexity
   async tryPush (): Promise<SyncResultPush | SyncResultCancel> {
+    if (this._isClosed) return { action: 'canceled' };
     if (this._options.syncDirection === 'pull') {
       throw new Err.PushNotAllowedError(this._options.syncDirection);
     }
@@ -629,6 +634,7 @@ export class Sync implements SyncInterface {
    */
   // eslint-disable-next-line complexity
   async trySync (): Promise<SyncResult> {
+    if (this._isClosed) return { action: 'canceled' };
     if (this._options.syncDirection === 'pull') {
       throw new Err.PushNotAllowedError(this._options.syncDirection);
     }
@@ -984,7 +990,9 @@ export class Sync implements SyncInterface {
    * @eventProperty
    * @public
    */
+  // eslint-disable-next-line complexity
   on (event: SyncEvent, callback: SyncCallback, collectionPath = '') {
+    if (this._isClosed) return this;
     collectionPath = Validator.normalizeCollectionPath(collectionPath);
     if (event === 'change')
       this.eventHandlers[event].push({
@@ -1042,6 +1050,7 @@ export class Sync implements SyncInterface {
    * @public
    */
   off (event: SyncEvent, callback: SyncCallback) {
+    if (this._isClosed) return this;
     // @ts-ignore
     this.eventHandlers[event] = this.eventHandlers[event].filter(
       (listener: { collectionPath: string; func: (res?: any) => void }) => {
