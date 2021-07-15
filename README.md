@@ -9,19 +9,19 @@ Offline-first DocumentDB that Syncs with Git
 
 Use GitDocumentDB to ...
 
-:green_book: Store JSON documents into Git repository. 
+:nut_and_bolt: Develop offline-first applications using Git.
 
-:art: Manage Git repository by document database API. 
+:green_book: Manage JSON documents in Git repository by CRUD and collection APIs. 
 
-:rocket: Synchronize, diff and patch automatically with a remote repository.
+:rocket: Synchronize automatically with a remote repository.
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(No need to resolve conflicts manually.)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*(No need to resolve conflicts manually!)*
 
-:arrows_counterclockwise: CI/CD through GitHub.
+:arrows_counterclockwise: Integrate CI/CD pipelines through GitHub.
 
-:dromedary_camel: Travel revisions.
+:dromedary_camel: Get revision history of a document.
 
-You do not need knowledge of Git to start. However, you make the most of GitDocumentDB if you understand Git.
+[(More...)](https://gitddb.com/)
 
 # API
 https://gitddb.com/docs/api/git-documentdb.gitdocumentdb
