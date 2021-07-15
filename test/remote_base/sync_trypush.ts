@@ -12,8 +12,6 @@
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
-import path from 'path';
-import fs from 'fs-extra';
 import expect from 'expect';
 import {
   compareWorkingDirAndBlobs,
@@ -26,49 +24,19 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import { SyncResultCancel, SyncResultPush } from '../../src/types';
+import { ConnectionSettings, SyncResultCancel, SyncResultPush } from '../../src/types';
 import { sleep } from '../../src/utils';
-import { GitDocumentDB } from '../../src/git_documentdb';
 
-const reposPrefix = 'test_sync_trypush___';
-const localDir = `./test/database_sync_trypush`;
-
-let idCounter = 0;
-const serialId = () => {
-  return `${reposPrefix}${idCounter++}`;
-};
-
-beforeEach(function () {
-  // @ts-ignore
-  console.log(`... ${this.currentTest.fullTitle()}`);
-});
-
-before(() => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
-  fs.removeSync(path.resolve(localDir));
-});
-
-after(() => {
-  // It may throw error due to memory leak of getCommitLogs()
-  // fs.removeSync(path.resolve(localDir));
-});
-
-// This test needs environment variables:
-//  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
-// e.g.) https://github.com/foo/
-//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
-const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
-    ? describe
-    : describe.skip;
-
-maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
-  const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
-    ? process.env.GITDDB_GITHUB_USER_URL
-    : process.env.GITDDB_GITHUB_USER_URL + '/';
-  const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+export const syncTryPush = (
+  connection: ConnectionSettings,
+  remoteURLBase: string,
+  reposPrefix: string,
+  localDir: string
+) => () => {
+  let idCounter = 0;
+  const serialId = () => {
+    return `${reposPrefix}${idCounter++}`;
+  };
 
   before(async () => {
     await removeRemoteRepositories(reposPrefix);
@@ -80,7 +48,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1
    */
   it('changes one remote creation when pushes after one put()', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
 
     // Put and push
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -112,7 +82,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1
    */
   it('does not change remote when pushes after put() the same document again', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
     await syncA.tryPush();
@@ -148,7 +120,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1
    */
   it('changes one remote update when pushes after put() updated document', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResultA1 = await dbA.put(jsonA1);
     await syncA.tryPush();
@@ -186,7 +160,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :  jsonA1  jsonA2
    */
   it('changes one remote creation when pushes after put() another document', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
     await syncA.tryPush();
@@ -226,7 +202,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after2:  jsonA1  jsonA2  jsonA3
    */
   it('changes two remote creations when pushes after put() two documents', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
 
     // Two put commands and push
     const jsonA1 = { _id: '1', name: 'fromA' };
@@ -264,7 +242,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after : +jsonA1  jsonA2
    */
   it('changes one remote creation and one remote update when pushes after put() updated document and another document', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     const putResult1 = await dbA.put(jsonA1);
@@ -305,7 +285,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :
    */
   it('changes one remote delete when pushes after one delete()', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
@@ -344,7 +326,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
    * after :
    */
   it('does not change remote when pushes after put() and delete()', async function () {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     // Put and delete the same document
@@ -373,7 +357,9 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
   });
 
   it('skips consecutive push tasks', async () => {
-    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId);
+    const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+      connection,
+    });
 
     const jsonA1 = { _id: '1', name: 'fromA' };
     await dbA.put(jsonA1);
@@ -399,4 +385,4 @@ maybe('<remote/sync_trypush>: Sync#tryPush()', () => {
 
     await destroyDBs([dbA]);
   });
-});
+};

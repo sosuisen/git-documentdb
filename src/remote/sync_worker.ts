@@ -25,18 +25,18 @@ import { SyncInterface } from '../types_sync';
 import { pushWorker } from './push_worker';
 import { calcDistance, getAndWriteLocalChanges, getCommitLogs } from './worker_utils';
 import { merge } from './3way_merge';
-import { Remote } from './remote';
+import { RemoteEngine } from './remote_engine';
 
 /**
  * sync_worker
  *
- * @throws {@link Remote.Err.GitFetchError} (from fetch() and pushWorker())
- * @throws {@link Remote.Err.NoMergeBaseFoundError}
+ * @throws {@link RemoteEngine.Err.GitFetchError} (from fetch() and pushWorker())
+ * @throws {@link RemoteEngine.Err.NoMergeBaseFoundError}
  * @throws {@link Err.ThreeWayMergeError}
  * @throws {@link Err.CannotDeleteDataError}
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
- * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from pushWorker())
- * @throws {@link Remote.Err.GitPushError} (from pushWorker())
+ * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from pushWorker())
+ * @throws {@link RemoteEngine.Err.GitPushError} (from pushWorker())
  * @throws {@link Err.InvalidJsonObjectError} (from pushWorker())
  *
  * @internal
@@ -57,7 +57,7 @@ export async function syncWorker (
   /**
    * Fetch
    */
-  await Remote.fetch(gitDDB.workingDir, sync.options, gitDDB.logger);
+  await RemoteEngine[sync.engine].fetch(gitDDB.workingDir, sync.options, gitDDB.logger);
 
   /**
    * Calc distance
@@ -87,7 +87,7 @@ export async function syncWorker (
   // ahead: 1, behind 1 => Merge, may resolve conflict and push: Local has new commits. Remote has pushed new commits.
 
   if (distance.ahead === undefined || distance.behind === undefined) {
-    throw new Remote.Err.NoMergeBaseFoundError();
+    throw new RemoteEngine[sync.engine].Err.NoMergeBaseFoundError();
   }
   else if (distance.ahead === 0 && distance.behind === 0) {
     return { action: 'nop' };

@@ -12,13 +12,13 @@ import { GitDDBInterface } from '../types_gitddb';
 import { ChangedFile, NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
 import { SyncInterface } from '../types_sync';
 import { getChanges, getCommitLogs } from './worker_utils';
-import { Remote } from './remote';
+import { RemoteEngine } from './remote_engine';
 
 /**
  * Push and get changes
  *
- * @throws {@link Remote.Err.UnfetchedCommitExistsError} (from push() and validatePushResult())
- * @throws {@link Remote.Err.GitFetchError} (from validatePushResult())
+ * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from push() and validatePushResult())
+ * @throws {@link RemoteEngine.Err.GitFetchError} (from validatePushResult())
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
  */
 export async function pushWorker (
@@ -95,7 +95,7 @@ export async function pushWorker (
   }
 
   // Push
-  await Remote.push(gitDDB.workingDir, sync.options);
+  await RemoteEngine[sync.engine].push(gitDDB.workingDir, sync.options);
   let remoteChanges: ChangedFile[] | undefined;
   if (skipGetChanges) {
     remoteChanges = undefined;

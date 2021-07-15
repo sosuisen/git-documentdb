@@ -19,7 +19,6 @@ import { sleep } from '../utils';
  */
 export class RemoteRepository {
   private _options: RemoteOptions;
-
   private _octokit: Octokit | undefined;
 
   /**

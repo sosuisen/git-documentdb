@@ -191,7 +191,6 @@ export async function createDatabase (
     includeCommits: true,
   };
   options.remoteUrl ??= remoteURL;
-  options.connection ??= { type: 'github', personalAccessToken: token };
   options.includeCommits ??= true;
 
   await dbA.open();

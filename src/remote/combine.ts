@@ -23,7 +23,7 @@ import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXT } from '../const';
 import { getAllMetadata, toSortedJSONString } from '../utils';
-import { Remote } from './remote';
+import { RemoteEngine } from './remote_engine';
 
 /**
  * Clone a remote repository and combine the current local working directory with it.
@@ -41,7 +41,11 @@ export async function combineDatabaseWithTheirs (
 
   const duplicates: DuplicatedFile[] = [];
   try {
-    await Remote.clone(remoteDir, remoteOptions, gitDDB.logger);
+    await RemoteEngine[remoteOptions.connection!.engine!].clone(
+      remoteDir,
+      remoteOptions,
+      gitDDB.logger
+    );
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.workingDir);
     const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteDir);

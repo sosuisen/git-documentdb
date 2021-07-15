@@ -16,7 +16,7 @@ import fs from 'fs-extra';
 import expect from 'expect';
 import { createDatabase, destroyDBs, removeRemoteRepositories } from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { Remote } from '../../src/remote/remote';
+import { RemoteEngine } from '../../src/remote/remote_engine';
 
 const reposPrefix = 'test_sync_clone___';
 const localDir = `./test/database_sync_clone`;
@@ -63,8 +63,10 @@ maybe('<remote/clone> clone', () => {
   describe('using NodeGit', () => {
     it('returns undefined when invalid RemoteOptions', async () => {
       // @ts-ignore
-      await expect(Remote.clone('tmp')).resolves.toBeFalsy();
-      await expect(Remote.clone('tmp', { remoteUrl: undefined })).resolves.toBeFalsy();
+      await expect(RemoteEngine.nodegit.clone('tmp')).resolves.toBeFalsy();
+      await expect(
+        RemoteEngine.nodegit.clone('tmp', { remoteUrl: undefined })
+      ).resolves.toBeFalsy();
     });
 
     it('clones a repository by NodeGit', async () => {
@@ -75,7 +77,7 @@ maybe('<remote/clone> clone', () => {
 
       const dbNameB = serialId();
       const workingDir = localDir + '/' + dbNameB;
-      await Remote.clone(workingDir, syncA.options);
+      await RemoteEngine[syncA.engine].clone(workingDir, syncA.options);
 
       const dbB = new GitDocumentDB({ localDir, dbName: dbNameB });
       await dbB.open();

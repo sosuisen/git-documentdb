@@ -12,7 +12,7 @@ import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { Logger, TLogLevelName } from 'tslog';
 import { ulid } from 'ulid';
-import { Remote } from './remote/remote';
+import { RemoteEngine } from './remote/remote_engine';
 import { Err } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -98,11 +98,14 @@ export class GitDocumentDB
   static plugin (obj: any) {
     const type: PluginTypes = obj.type;
     if (type === 'remote') {
-      Object.keys(obj).forEach(function (id) {
-        // Set to Remote object
-        // @ts-ignore
-        Remote[id] = obj[id];
-      });
+      if (obj.name !== undefined) {
+        RemoteEngine[obj.name] = {};
+        Object.keys(obj).forEach(function (id) {
+          // Set to Remote object
+          // @ts-ignore
+          RemoteEngine[obj.name][id] = obj[id];
+        });
+      }
     }
     else {
       Object.keys(obj).forEach(function (id) {

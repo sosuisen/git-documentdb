@@ -11,7 +11,7 @@ export * from './error';
 export * from './git_documentdb';
 export * from './types';
 export * from './validator';
-export * from './remote/remote';
+export * from './remote/remote_engine';
 export * from './remote/remote_repository';
 export * from './remote/sync';
 export * from './const';

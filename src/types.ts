@@ -572,6 +572,7 @@ export type SyncDirection = 'pull' | 'push' | 'both';
  */
 export type ConnectionSettingsGitHub = {
   type: 'github';
+  engine?: string;
   personalAccessToken?: string;
   private?: boolean;
 };
@@ -583,6 +584,7 @@ export type ConnectionSettingsGitHub = {
  */
 export type ConnectionSettingsSSH = {
   type: 'ssh';
+  engine?: string;
   privateKeyPath: string;
   publicKeyPath: string;
   passPhrase?: string;
@@ -595,6 +597,7 @@ export type ConnectionSettingsSSH = {
  */
 export type ConnectionSettingsNone = {
   type: 'none';
+  engine?: string;
 };
 
 /**
