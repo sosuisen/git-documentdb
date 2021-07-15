@@ -5,7 +5,7 @@
  [![License: MPL 2.0](https://img.shields.io/github/license/sosuisen/git-documentdb)](LICENSE)
  [![Coverage Status](https://img.shields.io/coveralls/github/sosuisen/git-documentdb)](https://coveralls.io/github/sosuisen/git-documentdb?branch=main)
 
-Offline-first DocumentDB that Syncs with Git
+TypeScript Ready Offline-first Database that Syncs with Git
 
 Use GitDocumentDB to ...
 
