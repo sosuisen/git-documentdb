@@ -55,6 +55,7 @@ import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 import { Validator } from '../validator';
 import { RemoteEngine } from './remote_engine';
+import { } from 'git-documentdb-remote-errors';
 
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
@@ -390,11 +391,13 @@ export class Sync implements SyncInterface {
 
     const onlyFetch = this._options.syncDirection === 'pull';
 
-    const remoteResult: 'exist' | 'not_exist' = await RemoteEngine[this._engine]
+    const remoteResult: boolean | Error = await RemoteEngine[this._engine]
       .checkFetch(this._gitDDB.workingDir, this._options, this._gitDDB.logger)
       .catch((err: Error) => {
         throw new Err.RemoteCheckFetchError(err.message);
       });
+
+    if (remoteResult instanceof CannotConnectError)
     if (remoteResult === 'not_exist') {
       // Try to create repository by octokit
       await this.remoteRepository.create().catch(err => {
@@ -694,13 +697,17 @@ export class Sync implements SyncInterface {
             this._gitDDB,
             this._options
           ).catch(err => {
-            throw new Err.CombineDatabaseError(err.message);
+            // throw new Err.CombineDatabaseError(err.message);
+            error = new Err.CombineDatabaseError(err.message);
+            return undefined;
           });
-          // eslint-disable-next-line no-loop-func
-          this.eventHandlers.combine.forEach(callback =>
-            callback.func(syncResultCombineDatabase.duplicates)
-          );
-          return syncResultCombineDatabase;
+          if (syncResultCombineDatabase !== undefined) {
+            // eslint-disable-next-line no-loop-func
+            this.eventHandlers.combine.forEach(callback =>
+              callback.func(syncResultCombineDatabase.duplicates)
+            );
+            return syncResultCombineDatabase;
+          }
         }
       }
 
