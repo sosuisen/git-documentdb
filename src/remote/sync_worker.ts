@@ -26,6 +26,7 @@ import { pushWorker } from './push_worker';
 import { calcDistance, getAndWriteLocalChanges, getCommitLogs } from './worker_utils';
 import { merge } from './3way_merge';
 import { RemoteEngine } from './remote_engine';
+import { Err } from '../error';
 
 /**
  * sync_worker
@@ -87,7 +88,7 @@ export async function syncWorker (
   // ahead: 1, behind 1 => Merge, may resolve conflict and push: Local has new commits. Remote has pushed new commits.
 
   if (distance.ahead === undefined || distance.behind === undefined) {
-    throw new RemoteEngine[sync.engine].Err.NoMergeBaseFoundError();
+    throw new Err.NoMergeBaseFoundError();
   }
   else if (distance.ahead === 0 && distance.behind === 0) {
     return { action: 'nop' };
