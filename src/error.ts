@@ -518,4 +518,13 @@ Current value is '${type}'`);
       super(`Combine database failed: ${mes})`);
     }
   }
+
+  /**
+   * @public
+   */
+  export class NoMergeBaseFoundError extends BaseError {
+    constructor () {
+      super(`No merge base found`);
+    }
+  }
 }
