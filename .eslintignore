@@ -1,3 +1,4 @@
 examples/
 types/sosuisen__nodegit/
 dist/
+*.mjs

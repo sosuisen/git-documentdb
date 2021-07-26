@@ -54,7 +54,7 @@ import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 import { Validator } from '../validator';
-import { RemoteEngine } from './remote_engine';
+import { RemoteEngine, RemoteErr } from './remote_engine';
 
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
@@ -390,39 +390,20 @@ export class Sync implements SyncInterface {
 
     const onlyFetch = this._options.syncDirection === 'pull';
 
-    const remoteResult: 'exist' | 'not_exist' = await RemoteEngine[this._engine]
-      .checkFetch(this._gitDDB.workingDir, this._options, this._gitDDB.logger)
-      .catch((err: Error) => {
-        throw new Err.RemoteCheckFetchError(err.message);
-      });
-    if (remoteResult === 'not_exist') {
+    const remoteResult: boolean | Error = await RemoteEngine[this._engine]
+      .checkFetch(this._gitDDB.workingDir, this._options, undefined, this._gitDDB.logger)
+      .catch(err => err);
+
+    if (typeof remoteResult === 'boolean') {
+      // nop
+    }
+    else if (remoteResult instanceof RemoteErr.CannotConnectError) {
       // Try to create repository by octokit
       await this.remoteRepository.create().catch(err => {
         // App may check permission or
         throw new Err.CannotCreateRemoteRepositoryError(err.message);
       });
       this._upstreamBranch = '';
-    }
-    if (!onlyFetch) {
-      let result;
-      let retry = 0;
-      for (; retry < NETWORK_RETRY; retry++) {
-        // eslint-disable-next-line no-await-in-loop
-        result = await RemoteEngine[this._engine]
-          .checkPush(this._gitDDB.workingDir, this._options, this._gitDDB.logger)
-          .catch((err: Error) => {
-            return err;
-          });
-        if (!(result instanceof Error)) {
-          break;
-        }
-        console.log('retrying checkPush..');
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(NETWORK_RETRY_INTERVAL);
-      }
-      if (result instanceof Error) {
-        throw new Err.RemoteCheckPushError(result.message);
-      }
     }
 
     let syncResult: SyncResult = {
@@ -595,7 +576,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError) {
+      if (error instanceof RemoteErr.UnfetchedCommitExistsError) {
         if (this._options.syncDirection === 'push') {
           if (this._options.combineDbStrategy === 'replace-with-ours') {
             // TODO: Exec replace-with-ours instead of throw error
@@ -683,7 +664,7 @@ export class Sync implements SyncInterface {
         result = resultOrError;
       }
 
-      if (error instanceof RemoteEngine[this._engine].Err.NoMergeBaseFoundError) {
+      if (error instanceof Err.NoMergeBaseFoundError) {
         if (this._options.combineDbStrategy === 'throw-error') {
           throw error;
         }
@@ -694,13 +675,17 @@ export class Sync implements SyncInterface {
             this._gitDDB,
             this._options
           ).catch(err => {
-            throw new Err.CombineDatabaseError(err.message);
+            // throw new Err.CombineDatabaseError(err.message);
+            error = new Err.CombineDatabaseError(err.message);
+            return undefined;
           });
-          // eslint-disable-next-line no-loop-func
-          this.eventHandlers.combine.forEach(callback =>
-            callback.func(syncResultCombineDatabase.duplicates)
-          );
-          return syncResultCombineDatabase;
+          if (syncResultCombineDatabase !== undefined) {
+            // eslint-disable-next-line no-loop-func
+            this.eventHandlers.combine.forEach(callback =>
+              callback.func(syncResultCombineDatabase.duplicates)
+            );
+            return syncResultCombineDatabase;
+          }
         }
       }
 
@@ -725,7 +710,7 @@ export class Sync implements SyncInterface {
       if (
         // eslint-disable-next-line no-await-in-loop
         !(await this.canNetworkConnection()) ||
-        error instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError
+        error instanceof RemoteErr.UnfetchedCommitExistsError
       ) {
         // Retry for the following reasons:
         // - Network connection may be improved next time.
@@ -812,7 +797,7 @@ export class Sync implements SyncInterface {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-          if (!(err instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError)) {
+          if (!(err instanceof RemoteErr.UnfetchedCommitExistsError)) {
             err = new Err.PushWorkerError(err.message);
           }
           this.eventHandlers.error.forEach(listener => {
@@ -954,8 +939,8 @@ export class Sync implements SyncInterface {
           // console.log(`Error in sync_worker: ${err}`);
           if (
             !(
-              err instanceof RemoteEngine[this._engine].Err.NoMergeBaseFoundError ||
-              err instanceof RemoteEngine[this._engine].Err.UnfetchedCommitExistsError
+              err instanceof Err.NoMergeBaseFoundError ||
+              err instanceof RemoteErr.UnfetchedCommitExistsError
             )
           ) {
             err = new Err.SyncWorkerError(err.message);

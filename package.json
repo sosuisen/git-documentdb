@@ -22,7 +22,8 @@
     "prepublishOnly": "npm run build && npm test",
     "api-extractor": "api-extractor run --local --verbose && npx api-documenter markdown -i ./temp -o ./docs-api",
     "lint": "eslint --fix --ext .ts .",
-    "crlf": "npx crlf --set=LF docs-api/* etc/* "
+    "crlf": "npx crlf --set=LF docs-api/* etc/* ",
+    "remove-remote": "node --experimental-modules --experimental-json-modules remove_remote_repositories.mjs"
   },
   "repository": {
     "type": "git",
