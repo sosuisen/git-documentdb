@@ -263,16 +263,6 @@ Call removeRemote() before register it again.`
   /**
    * @public
    */
-  export class InvalidAuthenticationTypeError extends BaseError {
-    constructor (type: string) {
-      super(`Authentication type must be one of the following values: 'github', 'ssh'.
-Current value is '${type}'`);
-    }
-  }
-
-  /**
-   * @public
-   */
   export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
     constructor (type: unknown) {
       super(
@@ -516,6 +506,15 @@ Current value is '${type}'`);
   export class CombineDatabaseError extends BaseError {
     constructor (mes: string) {
       super(`Combine database failed: ${mes})`);
+    }
+  }
+
+  /**
+   * @public
+   */
+  export class NoMergeBaseFoundError extends BaseError {
+    constructor () {
+      super(`No merge base found`);
     }
   }
 }
