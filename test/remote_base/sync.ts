@@ -13,7 +13,9 @@
  * These tests create a new repository on GitHub if not exists.
  */
 
+import fs from 'fs';
 import { Octokit } from '@octokit/rest';
+import git from 'isomorphic-git';
 import expect from 'expect';
 import sinon from 'sinon';
 import * as RemoteEngineErr from 'git-documentdb-remote-errors';
@@ -21,8 +23,13 @@ import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { ConnectionSettings, RemoteOptions } from '../../src/types';
 import { Err } from '../../src/error';
-import { Sync, syncImpl } from '../../src/remote/sync';
-import { destroyDBs, removeRemoteRepositories } from '../remote_utils';
+import {
+  decodeFromGitRemoteName,
+  encodeToGitRemoteName,
+  Sync,
+  syncImpl,
+} from '../../src/remote/sync';
+import { removeRemoteRepositories } from '../remote_utils';
 import { RemoteEngine, RemoteErr } from '../../src/remote/remote_engine';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -55,6 +62,12 @@ export const syncBase = (
     await removeRemoteRepositories(reposPrefix);
   });
 
+  it('encode and decode Git remote name', () => {
+    const remoteURL = 'https://github.com/foo-bar/foo_bar.git';
+    const encoded = encodeToGitRemoteName(remoteURL);
+    expect(decodeFromGitRemoteName(encoded)).toBe(remoteURL);
+  });
+
   /**
    * Tests for constructor
    */
@@ -74,7 +87,7 @@ export const syncBase = (
       const sync = new Sync(gitDDB, options);
       expect(sync.options.live).toBe(false);
 
-      destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
 
     it('set syncDirection to both by default', async () => {
@@ -92,7 +105,7 @@ export const syncBase = (
       const sync = new Sync(gitDDB, options);
       expect(sync.options.syncDirection).toBe('both');
 
-      destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
 
     it('set combineDbStrategy to combine-head-with-theirs by default', async () => {
@@ -110,7 +123,7 @@ export const syncBase = (
       const sync = new Sync(gitDDB, options);
       expect(sync.options.combineDbStrategy).toBe('combine-head-with-theirs');
 
-      destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
 
     it('set includeCommits to false by default', async () => {
@@ -128,7 +141,7 @@ export const syncBase = (
       const sync = new Sync(gitDDB, options);
       expect(sync.options.includeCommits).toBe(false);
 
-      destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
 
     it('set conflictResolutionStrategy to ours-diff by default', async () => {
@@ -146,7 +159,7 @@ export const syncBase = (
       const sync = new Sync(gitDDB, options);
       expect(sync.options.conflictResolutionStrategy).toBe('ours-diff');
 
-      destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
 
     it('accepts remoteURL which ends with .git', async () => {
@@ -163,7 +176,7 @@ export const syncBase = (
       };
       expect(() => new Sync(gitDDB, options)).not.toThrowError();
 
-      destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
 
     it('throws UndefinedRemoteURLError when remoteURL is undefined.', async () => {
@@ -375,7 +388,7 @@ export const syncBase = (
 
       const dbNameA = serialId();
 
-      const dbA: GitDocumentDB = new GitDocumentDB({
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameA,
         localDir: localDir,
       });
@@ -383,9 +396,9 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      await dbA.open();
+      await gitDDB.open();
 
-      const sync = new Sync(dbA, options);
+      const sync = new Sync(gitDDB, options);
 
       const stubReposCreate = sandbox.stub(sync.remoteRepository, 'create');
       stubReposCreate
@@ -394,7 +407,7 @@ export const syncBase = (
 
       await expect(sync.init()).rejects.toThrowError(Err.CannotCreateRemoteRepositoryError);
 
-      destroyDBs([dbA]);
+      await gitDDB.destroy();
     });
 
     it('creates a remote repository on GitHub by using personal access token', async () => {
@@ -402,7 +415,7 @@ export const syncBase = (
 
       const dbNameA = serialId();
 
-      const dbA: GitDocumentDB = new GitDocumentDB({
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameA,
         localDir: localDir,
       });
@@ -410,8 +423,8 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      await dbA.open();
-      await dbA.sync(options);
+      await gitDDB.open();
+      await gitDDB.sync(options);
 
       // Check remote
       const octokit = new Octokit({
@@ -422,7 +435,7 @@ export const syncBase = (
       const repo = urlArray[urlArray.length - 1];
       await expect(octokit.repos.listBranches({ owner, repo })).resolves.not.toThrowError();
 
-      destroyDBs([dbA]);
+      await gitDDB.destroy();
     });
 
     it('succeeds after retries when NetworkError', async () => {
@@ -454,7 +467,7 @@ export const syncBase = (
       await gitDDB.destroy();
     });
 
-    it.only('throws after retries when NetworkError', async () => {
+    it('throws after retries when NetworkError', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
 
@@ -479,7 +492,104 @@ export const syncBase = (
       await gitDDB.destroy();
     });
 
-    it('upstreamBranch');
+    it('sets Git remote in .git/config', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await gitDDB.open();
+      await gitDDB.sync(options);
+
+      const remoteName = encodeToGitRemoteName(remoteURL);
+
+      const url = await git.getConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.${remoteName}.url`,
+      });
+      expect(url).toBe(remoteURL);
+
+      const fetch = await git.getConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.${encodeToGitRemoteName(remoteURL)}.fetch`,
+      });
+      expect(fetch).toBe(`+refs/heads/*:refs/remotes/${remoteName}/*`);
+
+      const originUrl = await git.getConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.origin.url`,
+      });
+      expect(originUrl).toBe(remoteURL);
+
+      const originFetch = await git.getConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.origin.fetch`,
+      });
+      expect(originFetch).toBe(`+refs/heads/*:refs/remotes/origin/*`);
+
+      await gitDDB.destroy();
+    });
+
+    it('skip setting origin when it already exists.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await gitDDB.open();
+      await gitDDB.sync(options);
+
+      const remoteName = encodeToGitRemoteName(remoteURL);
+
+      // Set origin
+      await git.setConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.origin.url`,
+        value: 'http://example.com/originurl'
+      });
+
+      const url = await git.getConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.${remoteName}.url`,
+      });
+      expect(url).toBe(remoteURL);
+
+      const fetch = await git.getConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.${encodeToGitRemoteName(remoteURL)}.fetch`,
+      });
+      expect(fetch).toBe(`+refs/heads/*:refs/remotes/${remoteName}/*`);
+
+      const originUrl = await git.getConfig({
+        fs,
+        dir: gitDDB.workingDir,
+        path: `remote.origin.url`,
+      });
+      expect(originUrl).toBe('http://example.com/originurl');
+
+      await gitDDB.destroy();
+    });
 
     it('tryPush');
 
@@ -501,7 +611,7 @@ export const syncBase = (
       const sync = new Sync(gitDDB, options);
       // await await expect(sync.init()).rejects.toThrowError(Err.PushNotAllowedError);
 
-      destroyDBs([gitDDB]);
+      await gitDDB.destroy();
     });
   });
 
