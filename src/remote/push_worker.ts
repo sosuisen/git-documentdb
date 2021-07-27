@@ -17,8 +17,21 @@ import { RemoteEngine } from './remote_engine';
 /**
  * Push and get changes
  *
- * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from push() and validatePushResult())
- * @throws {@link RemoteEngine.Err.GitFetchError} (from validatePushResult())
+ * @throws {@link InvalidGitRemoteError} (from push())
+ * @throws {@link UnfetchedCommitExistsError} (from push())
+ * @throws {@link InvalidURLFormatError} (from push())
+ * @throws {@link NetworkError} (from push())
+ * @throws {@link HTTPError401AuthorizationRequired} (from push())
+ * @throws {@link HTTPError404NotFound} (from push())
+ * @throws {@link HTTPError403Forbidden} (from push())
+ * @throws {@link CannotConnectError} (from push())
+ * @throws {@link UnfetchedCommitExistsError} (from push())
+ * @throws {@link CannotConnectError} (from push())
+ * @throws {@link HttpProtocolRequiredError} (from push())
+ * @throws {@link InvalidRepositoryURLError} (from push())
+ * @throws {@link InvalidSSHKeyPathError} (from push())
+ * @throws {@link InvalidAuthenticationTypeError} (from push())
+ *
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
  */
 export async function pushWorker (

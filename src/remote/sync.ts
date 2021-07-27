@@ -411,15 +411,25 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.CannotCreateRemoteRepositoryError}
    *
-   * @throws {@link RemoteErr.InvalidURLFormatError} (from checkFetch)
-   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from checkFetch)
-   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from checkFetch)
-   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from checkFetch)
-   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from checkFetch)
-   * @throws {@link RemoteErr.NetworkError} (from checkFetch)
-   * @throws {@link RemoteErr.CannotConnectError} (from checkFetch)
+   * @throws {@link RemoteErr.InvalidGitRemoteError} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.InvalidURLFormatError} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.NetworkError} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.HTTPError404NotFound} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.CannotConnectError} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.HttpProtocolRequiredError} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from checkFetch(), trySync(), tryPush())
+   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from checkFetch, trySync(), tryPush())
+   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from checkFetch(), trySync(), tryPush())
    *
+   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from tryPush())
+   * @throws {@link RemoteErr.HTTPError403Forbidden} (from tryPush())
    *
+   * @throws {@link Err.NoMergeBaseFoundError} (from trySync())
+   * @throws {@link Err.ThreeWayMergeError} (from trySync())
+   * @throws {@link Err.CannotDeleteDataError} (from trySync())
+   *
+   * @throws {@link Err.InvalidJsonObjectError} (from trySync(), tryPush())
    *
    * @public
    */
@@ -658,9 +668,7 @@ export class Sync implements SyncInterface {
    * Try to push with retries
    *
    * @throws {@link Err.PushNotAllowedError} (from this and enqueuePushTask)
-   * @throws {@link Err.PushWorkerError} (from this and enqueuePushTask)
-   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from this and enqueuePushTask)
-   *
+   
    * @public
    */
   // eslint-disable-next-line complexity
@@ -736,11 +744,29 @@ export class Sync implements SyncInterface {
 
   /**
    * Try to sync with retries
+
+   * @throws {@link Err.PushNotAllowedError}
+   * @throws {@link Err.CombineDatabaseError}
    *
-   * @throws {@link Err.PushNotAllowedError} (from this and enqueueSyncTask)
-   * @throws {@link Err.SyncWorkerError} (from enqueueSyncTask)
-   * @throws {@link Err.NoMergeBaseFoundError} (from enqueueSyncTask)
-   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from enqueueSyncTask)
+   * @throws {@link Err.NoMergeBaseFoundError} (from syncWorker)
+   *
+   * @throws {@link RemoteErr.InvalidGitRemoteError} (from syncWorker)
+   * @throws {@link RemoteErr.InvalidURLFormatError} (from syncWorker)
+   * @throws {@link RemoteErr.NetworkError} (from syncWorker)
+   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from syncWorker)
+   * @throws {@link RemoteErr.HTTPError404NotFound} (from syncWorker)
+   *
+   * @throws {@link RemoteErr.CannotConnectError}  (from syncWorker)
+   * @throws {@link RemoteErr.HttpProtocolRequiredError}   (from syncWorker)
+   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from syncWorker)
+   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from syncWorker)
+   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from syncWorker)
+   *
+   * @throws {@link RemoteErr.HTTPError403Forbidden} (from syncWorker)
+   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from syncWorker)
+   * @throws {@link Err.ThreeWayMergeError} (from syncWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from syncWorker)
+   * @throws {@link Err.InvalidJsonObjectError} (from syncWorker)
    *
    * @public
    */
@@ -851,7 +877,7 @@ export class Sync implements SyncInterface {
    * Enqueue push task to TaskQueue
    *
    * @throws {@link Err.PushWorkerError}
-   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError}
+   * @throws {@link RemoteEErr.UnfetchedCommitExistsError}
    * @throws {@link Err.PushNotAllowedError}
    *
    * @public
@@ -950,10 +976,27 @@ export class Sync implements SyncInterface {
   /**
    * Enqueue sync task to TaskQueue
    *
-   * @throws {@link Err.SyncWorkerError}
-   * @throws {@link Err.NoMergeBaseFoundError}
-   * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError}
    * @throws {@link Err.PushNotAllowedError}
+   *
+   * @throws {@link Err.NoMergeBaseFoundError} (from syncWorker)
+   *
+   * @throws {@link RemoteErr.InvalidGitRemoteError} (from syncWorker)
+   * @throws {@link RemoteErr.InvalidURLFormatError} (from syncWorker)
+   * @throws {@link RemoteErr.NetworkError} (from syncWorker)
+   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from syncWorker)
+   * @throws {@link RemoteErr.HTTPError404NotFound} (from syncWorker)
+   *
+   * @throws {@link RemoteErr.CannotConnectError}  (from syncWorker)
+   * @throws {@link RemoteErr.HttpProtocolRequiredError}   (from syncWorker)
+   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from syncWorker)
+   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from syncWorker)
+   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from syncWorker)
+   *
+   * @throws {@link RemoteErr.HTTPError403Forbidden} (from syncWorker)
+   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from syncWorker)
+   * @throws {@link Err.ThreeWayMergeError} (from syncWorker)
+   * @throws {@link Err.CannotDeleteDataError} (from syncWorker)
+   * @throws {@link Err.InvalidJsonObjectError} (from syncWorker)
    *
    * @public
    */
@@ -972,9 +1015,9 @@ export class Sync implements SyncInterface {
     ) =>
       syncWorker(this._gitDDB, this, taskMetadata)
         // eslint-disable-next-line complexity
-        .then(syncResult => {
+        .then((syncResult: SyncResult) => {
           this._gitDDB.logger.debug(
-            CONSOLE_STYLE.bgWhite().fgBlack().tag()`sync_worker: ${JSON.stringify(
+            CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(
               syncResult
             )}`
           );
@@ -1046,8 +1089,8 @@ export class Sync implements SyncInterface {
           beforeResolve();
           resolve(syncResult);
         })
-        .catch(err => {
-          // console.log(`Error in sync_worker: ${err}`);
+        .catch((err: Error) => {
+          // console.log(`Error in syncWorker: ${err}`);
           if (
             !(
               err instanceof Err.NoMergeBaseFoundError ||

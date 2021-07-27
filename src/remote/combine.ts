@@ -27,8 +27,19 @@ import { RemoteEngine } from './remote_engine';
 
 /**
  * Clone a remote repository and combine the current local working directory with it.
- *
  * TODO: Must catch errors
+ *
+ * @throws {@link InvalidURLFormatError} (from clone())
+ * @throws {@link NetworkError} (from clone())
+ * @throws {@link HTTPError401AuthorizationRequired} (from clone())
+ * @throws {@link HTTPError404NotFound} (from clone())
+ * @throws {@link CannotConnectError} (from clone())
+ *
+ * @throws {@link HttpProtocolRequiredError}  (from clone())
+ * @throws {@link InvalidRepositoryURLError} (from clone())
+ * @throws {@link InvalidSSHKeyPathError} (from clone())
+ *
+ * @throws {@link InvalidAuthenticationTypeError} (from clone())
  */
 // eslint-disable-next-line complexity
 export async function combineDatabaseWithTheirs (

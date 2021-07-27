@@ -564,7 +564,7 @@ export const syncBase = (
         fs,
         dir: gitDDB.workingDir,
         path: `remote.origin.url`,
-        value: 'http://example.com/originurl'
+        value: 'http://example.com/originurl',
       });
 
       const url = await git.getConfig({
@@ -591,9 +591,15 @@ export const syncBase = (
       await gitDDB.destroy();
     });
 
-    it('tryPush');
+    it.skip('calls tryPush() after create remote repository');
 
-    it('trySync');
+    it.skip('calls tryPush() when remote repository exists');
+
+    it.skip('calls trySync() when remote repository exists');
+
+    it.skip('throws error in tryPush()');
+
+    it.skip('throws error in trySync()');
 
     it('throws PushNotAllowedError.', async () => {
       const remoteURL = remoteURLBase + serialId();
@@ -609,7 +615,7 @@ export const syncBase = (
         syncDirection: 'pull',
       };
       const sync = new Sync(gitDDB, options);
-      // await await expect(sync.init()).rejects.toThrowError(Err.PushNotAllowedError);
+      await expect(sync.init()).rejects.toThrowError(Err.PushNotAllowedError);
 
       await gitDDB.destroy();
     });

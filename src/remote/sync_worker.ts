@@ -31,14 +31,26 @@ import { Err } from '../error';
 /**
  * sync_worker
  *
- * @throws {@link RemoteEngine.Err.GitFetchError} (from fetch() and pushWorker())
- * @throws {@link RemoteEngine.Err.NoMergeBaseFoundError}
+ * @throws {@link RemoteErr.InvalidGitRemoteError} (from fetch(), push())
+ * @throws {@link RemoteErr.InvalidURLFormatError} (from fetch(), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.NetworkError} (from fetch(), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from fetch(), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.HTTPError404NotFound} (from fetch(), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.CannotConnectError} (from fetch()), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.HttpProtocolRequiredError} (from fetch(), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.InvalidRepositoryURLError} (from fetch(), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from fetch(), push(), combineDatabaseWithTheirs())
+ * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from fetch(), push(), combineDatabaseWithTheirs())
+ *
+ * @throws {@link HTTPError403Forbidden} (from push())
+ * @throws {@link UnfetchedCommitExistsError} (from push())
+ *
+ * @throws {@link Err.NoMergeBaseFoundError}
  * @throws {@link Err.ThreeWayMergeError}
  * @throws {@link Err.CannotDeleteDataError}
+ *
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
- * @throws {@link RemoteEngine.Err.UnfetchedCommitExistsError} (from pushWorker())
- * @throws {@link RemoteEngine.Err.GitPushError} (from pushWorker())
- * @throws {@link Err.InvalidJsonObjectError} (from pushWorker())
+ *
  *
  * @internal
  */
