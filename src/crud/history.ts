@@ -18,6 +18,7 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
  * Implementation of getHistory
  *
  * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.InvalidJsonObjectError} (from blobToJsonDoc)
  */
 // eslint-disable-next-line complexity
@@ -31,6 +32,9 @@ export async function getHistoryImpl (
 ): Promise<(FatDoc | Doc | undefined)[]> {
   if (gitDDB.isClosing) {
     throw new Err.DatabaseClosingError();
+  }
+  if (!gitDDB.isOpened) {
+    return Promise.reject(new Err.RepositoryNotOpenError());
   }
 
   options ??= {

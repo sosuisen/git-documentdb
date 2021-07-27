@@ -19,6 +19,7 @@ import { normalizeCommit } from '../utils';
  * Implementation of delete()
  *
  * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.TaskCancelError}
  *
  * @throws {@link Err.UndefinedDBError} (from deleteWorker)
@@ -36,6 +37,9 @@ export function deleteImpl (
 ): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new Err.DatabaseClosingError());
+  }
+  if (!gitDDB.isOpened) {
+    return Promise.reject(new Err.RepositoryNotOpenError());
   }
 
   options ??= {

@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/custom-error-definition */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Logger } from 'tslog';
 import * as RemoteErrors from 'git-documentdb-remote-errors';
@@ -29,75 +30,79 @@ export interface RemoteEngineInterface {
   clone: (
     workingDir: string,
     remoteOptions: RemoteOptions,
+    remoteName: string,
     logger?: Logger
   ) => Promise<void>;
 }
 
 export namespace RemoteErr {
+  /**
+   * Copy error message from parent
+   */
   export class CannotConnectError extends RemoteErrors.CannotConnectError {
     constructor (mes: unknown) {
-      super(mes);
-      this.name = 'CannotConnectError';
+      super('');
+      this.message = mes as string;
     }
   }
   export class HTTPError401AuthorizationRequired extends RemoteErrors.HTTPError401AuthorizationRequired {
     constructor (mes: unknown) {
-      super(mes);
-      this.name = 'HTTPError401AuthorizationRequired';
+      super('');
+      this.message = mes as string;
     }
   }
   export class HTTPError403Forbidden extends RemoteErrors.HTTPError403Forbidden {
     constructor (mes: unknown) {
-      super(mes);
-      this.name = 'HTTPError403Forbidden';
+      super('');
+      this.message = mes as string;
     }
   }
   export class HTTPError404NotFound extends RemoteErrors.HTTPError404NotFound {
     constructor (mes: unknown) {
-      super(mes);
-      this.name = 'HTTPError404NotFound';
+      super('');
+      this.message = mes as string;
     }
   }
   export class InvalidAuthenticationTypeError extends RemoteErrors.InvalidAuthenticationTypeError {
-    constructor (type: unknown) {
-      super(type);
-      this.name = 'InvalidAuthenticationTypeError';
+    constructor (mes: unknown) {
+      super('');
+      this.message = mes as string;
     }
   }
   export class InvalidGitRemoteError extends RemoteErrors.InvalidGitRemoteError {
     constructor (mes: unknown) {
-      super(mes);
-      this.name = 'InvalidGitRemoteError';
+      super('');
+      this.message = mes as string;
     }
   }
   export class InvalidRepositoryURLError extends RemoteErrors.InvalidRepositoryURLError {
-    constructor (url: unknown) {
-      super(url);
-      this.name = 'InvalidRepositoryURLError';
+    constructor (mes: unknown) {
+      super('');
+      this.message = mes as string;
     }
   }
   export class InvalidSSHKeyPathError extends RemoteErrors.InvalidSSHKeyPathError {
-    constructor () {
+    constructor (mes: unknown) {
       super();
-      this.name = 'InvalidSSHKeyPathError';
+      this.message = mes as string;
     }
   }
   export class InvalidURLFormatError extends RemoteErrors.InvalidURLFormatError {
     constructor (mes: unknown) {
-      super(mes);
-      this.name = 'InvalidURLFormatError';
+      super('');
+      this.message = mes as string;
     }
   }
   export class NetworkError extends RemoteErrors.NetworkError {
     constructor (mes: unknown) {
-      super(mes);
-      this.name = 'NetworkError';
+      super('');
+      this.message = mes as string;
     }
   }
   export class UnfetchedCommitExistsError extends RemoteErrors.UnfetchedCommitExistsError {
-    constructor () {
+    constructor (mes: unknown) {
       super();
-      this.name = 'UnfetchedCommitExistsError';
+      this.message = mes as string;
     }
   }
 }
@@ -120,13 +125,13 @@ export function wrappingRemoteEngineError (remoteEngineError: RemoteErrors.BaseE
     case remoteEngineError instanceof RemoteErrors.InvalidRepositoryURLError:
       return new RemoteErr.InvalidRepositoryURLError(remoteEngineError.message);
     case remoteEngineError instanceof RemoteErrors.InvalidSSHKeyPathError:
-      return new RemoteErr.InvalidSSHKeyPathError();
+      return new RemoteErr.InvalidSSHKeyPathError(remoteEngineError.message);
     case remoteEngineError instanceof RemoteErrors.InvalidURLFormatError:
       return new RemoteErr.InvalidURLFormatError(remoteEngineError.message);
     case remoteEngineError instanceof RemoteErrors.NetworkError:
       return new RemoteErr.NetworkError(remoteEngineError.message);
     case remoteEngineError instanceof RemoteErrors.UnfetchedCommitExistsError:
-      return new RemoteErr.UnfetchedCommitExistsError();
+      return new RemoteErr.UnfetchedCommitExistsError(remoteEngineError.message);
     default:
       return new Error(remoteEngineError.message);
   }

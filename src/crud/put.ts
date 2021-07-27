@@ -19,6 +19,7 @@ import { Err } from '../error';
  * Common implementation of put-like commands.
  *
  * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.TaskCancelError}
  *
  * @throws {@link Err.UndefinedDBError} (from putWorker)
@@ -40,6 +41,9 @@ export function putImpl (
 ): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new Err.DatabaseClosingError());
+  }
+  if (!gitDDB.isOpened) {
+    return Promise.reject(new Err.RepositoryNotOpenError());
   }
 
   options ??= {
