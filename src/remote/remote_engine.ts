@@ -101,3 +101,33 @@ export namespace RemoteErr {
     }
   }
 }
+
+// eslint-disable-next-line complexity
+export function wrappingRemoteEngineError (remoteEngineError: RemoteErrors.BaseError) {
+  switch (true) {
+    case remoteEngineError instanceof RemoteErrors.CannotConnectError:
+      return new RemoteErr.CannotConnectError(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.HTTPError401AuthorizationRequired:
+      return new RemoteErr.HTTPError401AuthorizationRequired(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.HTTPError403Forbidden:
+      return new RemoteErr.HTTPError403Forbidden(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.HTTPError404NotFound:
+      return new RemoteErr.HTTPError404NotFound(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.InvalidAuthenticationTypeError:
+      return new RemoteErr.InvalidAuthenticationTypeError(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.InvalidGitRemoteError:
+      return new RemoteErr.InvalidGitRemoteError(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.InvalidRepositoryURLError:
+      return new RemoteErr.InvalidRepositoryURLError(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.InvalidSSHKeyPathError:
+      return new RemoteErr.InvalidSSHKeyPathError();
+    case remoteEngineError instanceof RemoteErrors.InvalidURLFormatError:
+      return new RemoteErr.InvalidURLFormatError(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.NetworkError:
+      return new RemoteErr.NetworkError(remoteEngineError.message);
+    case remoteEngineError instanceof RemoteErrors.UnfetchedCommitExistsError:
+      return new RemoteErr.UnfetchedCommitExistsError();
+    default:
+      return new Error(remoteEngineError.message);
+  }
+}

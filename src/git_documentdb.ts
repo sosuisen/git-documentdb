@@ -99,6 +99,7 @@ export class GitDocumentDB
     const type: PluginTypes = obj.type;
     if (type === 'remote') {
       if (obj.name !== undefined) {
+        // @ts-ignore
         RemoteEngine[obj.name] = {};
         Object.keys(obj).forEach(function (id) {
           // Set to Remote object

@@ -24,8 +24,6 @@ export class RemoteRepository {
   /**
    * Constructor
    *
-   * @throws {@link Err.InvalidAuthenticationTypeError}
-   *
    * @public
    */
   constructor (options: RemoteOptions) {
@@ -45,9 +43,6 @@ export class RemoteRepository {
     }
     else if (this._options.connection.type === 'none') {
       // nop
-    }
-    else {
-      throw new Err.InvalidAuthenticationTypeError(this._options.connection.type);
     }
   }
 

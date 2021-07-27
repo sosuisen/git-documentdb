@@ -12,6 +12,7 @@
 import { clearInterval, setInterval } from 'timers';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
+import * as RemoteEngineError from 'git-documentdb-remote-errors';
 import { CONSOLE_STYLE, sleep } from '../utils';
 import { Err } from '../error';
 import {
@@ -54,7 +55,8 @@ import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 import { Validator } from '../validator';
-import { RemoteEngine, RemoteErr } from './remote_engine';
+import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_engine';
+import { NetworkError } from 'git-documentdb-remote-errors';
 
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
@@ -388,22 +390,46 @@ export class Sync implements SyncInterface {
   async init (): Promise<SyncResult> {
     this._isClosed = false;
 
-    const onlyFetch = this._options.syncDirection === 'pull';
+    for (let i = 0; i < NETWORK_RETRY; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const remoteResult: boolean | Error = await RemoteEngine[this._engine]
+        .checkFetch(this._gitDDB.workingDir, this._options, undefined, this._gitDDB.logger)
+        .catch(err => err);
 
-    const remoteResult: boolean | Error = await RemoteEngine[this._engine]
-      .checkFetch(this._gitDDB.workingDir, this._options, undefined, this._gitDDB.logger)
-      .catch(err => err);
-
-    if (typeof remoteResult === 'boolean') {
-      // nop
-    }
-    else if (remoteResult instanceof RemoteErr.CannotConnectError) {
-      // Try to create repository by octokit
-      await this.remoteRepository.create().catch(err => {
-        // App may check permission or
-        throw new Err.CannotCreateRemoteRepositoryError(err.message);
-      });
-      this._upstreamBranch = '';
+      if (typeof remoteResult === 'boolean') {
+        break;
+      }
+      else if (
+        remoteResult instanceof RemoteEngineError.InvalidURLFormatError ||
+        remoteResult instanceof RemoteEngineError.InvalidRepositoryURLError ||
+        remoteResult instanceof RemoteEngineError.InvalidSSHKeyPathError ||
+        remoteResult instanceof RemoteEngineError.InvalidAuthenticationTypeError ||
+        remoteResult instanceof RemoteEngineError.HTTPError401AuthorizationRequired
+      ) {
+        throw wrappingRemoteEngineError(remoteResult);
+      }
+      else if (
+        remoteResult instanceof RemoteEngineError.NetworkError ||
+        remoteResult instanceof RemoteEngineError.CannotConnectError
+      ) {
+        if (i === NETWORK_RETRY - 1) {
+          throw wrappingRemoteEngineError(remoteResult);
+        }
+        else {
+          // eslint-disable-next-line no-await-in-loop
+          await sleep(NETWORK_RETRY_INTERVAL);
+          continue;
+        }
+      }
+      else if (remoteResult instanceof RemoteErr.HTTPError404NotFound) {
+        // Try to create repository by octokit
+        // eslint-disable-next-line no-await-in-loop
+        await this.remoteRepository.create().catch(err => {
+          throw new Err.CannotCreateRemoteRepositoryError(err.message);
+        });
+        this._upstreamBranch = '';
+        break;
+      }
     }
 
     let syncResult: SyncResult = {

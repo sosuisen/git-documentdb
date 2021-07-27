@@ -447,24 +447,6 @@ Call removeRemote() before register it again.`
   /**
    * @public
    */
-  export class RemoteCheckPushError extends BaseError {
-    constructor (mes: unknown) {
-      super(`Error in RemoteEngine.checkPush(): ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
-  export class RemoteCheckFetchError extends BaseError {
-    constructor (mes: unknown) {
-      super(`Error in RemoteEngine.checkFetch(): ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
   export class PushNotAllowedError extends BaseError {
     constructor (direction: unknown) {
       super(`Push is not allowed. Current sync direction setting is : ${direction}`);
