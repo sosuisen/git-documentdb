@@ -56,7 +56,27 @@ import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 import { Validator } from '../validator';
 import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_engine';
-import { NetworkError } from 'git-documentdb-remote-errors';
+
+/**
+ * encodeToRemoteName
+ *
+ * @internal
+ */
+function encodeToRemoteName (remoteURL: string) {
+  // encodeURIComponent does not encode period.
+  // Encodes period to %2E for 'path' param of git.setConfig() API.
+  // Use toLowerCase() because git.setConfig() automatically converts the path to lowercase.
+  return encodeURIComponent(remoteURL).replace(/\./g, '%2E').toLowerCase();
+}
+
+/**
+ * decodeFromRemoteName
+ *
+ * @internal
+ */
+function decodeFromRemoteName (remoteName: string) {
+  return encodeURIComponent(remoteName);
+}
 
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
@@ -227,15 +247,15 @@ export class Sync implements SyncInterface {
     return newOptions;
   }
 
-  private _upstreamBranch = '';
+  private _remoteName = '';
   /**
-   * upstreamBranch
+   * remoteName
    *
    * @readonly
    * @public
    */
-  get upstreamBranch (): string {
-    return this._upstreamBranch;
+  get remoteName (): string {
+    return this._remoteName;
   }
 
   /***********************************************
@@ -340,12 +360,12 @@ export class Sync implements SyncInterface {
     this.jsonDiff = new JsonDiff(gitDDB.schema.json);
     this.jsonPatch = new JsonPatchOT();
 
-    this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
-
     this._remoteRepository = new RemoteRepository({
       remoteUrl: this._options.remoteUrl,
       connection: this._options.connection,
     });
+
+    this._remoteName = encodeToRemoteName(this.remoteURL);
 
     this._engine = this._options.connection?.engine ?? 'iso';
   }
@@ -421,13 +441,14 @@ export class Sync implements SyncInterface {
           continue;
         }
       }
-      else if (remoteResult instanceof RemoteErr.HTTPError404NotFound) {
+      else if (remoteResult instanceof RemoteEngineError.HTTPError404NotFound) {
         // Try to create repository by octokit
         // eslint-disable-next-line no-await-in-loop
         await this.remoteRepository.create().catch(err => {
           throw new Err.CannotCreateRemoteRepositoryError(err.message);
         });
-        this._upstreamBranch = '';
+
+        isNewRemoteRepository = true;
         break;
       }
     }
@@ -440,9 +461,8 @@ export class Sync implements SyncInterface {
        * TODO: Implement case when sync_direction is 'pull'.
        */
     }
-    else if (this.upstreamBranch === '') {
-      this._gitDDB.logger.debug('upstream_branch is empty. tryPush..');
-      // Empty upstream_branch shows that an empty repository has been created on a remote site.
+    else if (isNewRemoteRepository) {
+      this._gitDDB.logger.debug('upstream branch is not set yet. tryPush..');
       // trySync() pushes local commits to the remote branch.
       syncResult = await this.tryPush();
 
@@ -452,7 +472,7 @@ export class Sync implements SyncInterface {
         fs,
         dir: this._gitDDB.workingDir,
         path: `branch.${this._gitDDB.defaultBranch}.remote`,
-        value: 'origin',
+        value: this.remoteName,
       });
 
       await git.setConfig({
@@ -461,8 +481,6 @@ export class Sync implements SyncInterface {
         path: `branch.${this._gitDDB.defaultBranch}.merge`,
         value: `refs/heads/${this._gitDDB.defaultBranch}`,
       });
-
-      this._upstreamBranch = `origin/${this._gitDDB.defaultBranch}`;
     }
     else if (this._options.syncDirection === 'push') {
       this._gitDDB.logger.debug('upstream_branch exists. tryPush..');
@@ -699,7 +717,8 @@ export class Sync implements SyncInterface {
           // eslint-disable-next-line no-await-in-loop
           const syncResultCombineDatabase = await combineDatabaseWithTheirs(
             this._gitDDB,
-            this._options
+            this._options,
+            this.remoteName
           ).catch(err => {
             // throw new Err.CombineDatabaseError(err.message);
             error = new Err.CombineDatabaseError(err.message);
