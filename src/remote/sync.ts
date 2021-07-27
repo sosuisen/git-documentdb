@@ -104,7 +104,9 @@ export async function syncAndGetResultImpl (
 /**
  * Implementation of GitDocumentDB#sync(options)
  *
- * @throws {@link Err.RepositoryNotFoundError}
+ * @throws {@link DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ *
  * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
  * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
  *
@@ -120,6 +122,13 @@ export async function syncImpl (
   this: GitDDBInterface,
   options: RemoteOptions
 ): Promise<Sync> {
+  if (this.isClosing) {
+    throw new Err.DatabaseClosingError();
+  }
+  if (!this.isOpened) {
+    return Promise.reject(new Err.RepositoryNotOpenError());
+  }
+
   const sync = new Sync(this, options);
   await sync.init();
   return sync;
