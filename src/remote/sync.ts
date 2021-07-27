@@ -448,6 +448,29 @@ export class Sync implements SyncInterface {
       });
     }
 
+    /**
+     * Set origin if not exist
+     */
+    const originUrl = await git.getConfig({
+      fs,
+      dir: this._gitDDB.workingDir,
+      path: `remote.origin.url`,
+    });
+    if (originUrl === undefined) {
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `remote.origin.url`,
+        value: this.remoteURL,
+      });
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `remote.origin.fetch`,
+        value: `+refs/heads/*:refs/remotes/origin/*`,
+      });
+    }
+
     for (let i = 0; i < NETWORK_RETRY; i++) {
       // eslint-disable-next-line no-await-in-loop
       const remoteResult: boolean | Error = await RemoteEngine[this._engine]
