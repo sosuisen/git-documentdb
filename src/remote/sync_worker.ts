@@ -61,7 +61,7 @@ export async function syncWorker (
   await RemoteEngine[sync.engine].fetch(
     gitDDB.workingDir,
     sync.options,
-    undefined,
+    sync.remoteName,
     gitDDB.logger
   );
 
@@ -77,7 +77,7 @@ export async function syncWorker (
   const oldRemoteCommitOid = await git.resolveRef({
     fs,
     dir: gitDDB.workingDir,
-    ref: 'refs/remotes/origin/' + gitDDB.defaultBranch,
+    ref: `refs/remotes/${sync.remoteName}/${gitDDB.defaultBranch}`,
   });
 
   const [baseCommitOid] = await git.findMergeBase({

@@ -33,7 +33,8 @@ import { RemoteEngine } from './remote_engine';
 // eslint-disable-next-line complexity
 export async function combineDatabaseWithTheirs (
   gitDDB: GitDDBInterface,
-  remoteOptions: RemoteOptions
+  remoteOptions: RemoteOptions,
+  remoteName: string
 ): Promise<SyncResultCombineDatabase> {
   // Clone repository if remoteURL exists
   const remoteDir = gitDDB.workingDir + '_' + ulid(Date.now());
@@ -44,6 +45,7 @@ export async function combineDatabaseWithTheirs (
     await RemoteEngine[remoteOptions.connection!.engine!].clone(
       remoteDir,
       remoteOptions,
+      remoteName,
       gitDDB.logger
     );
 

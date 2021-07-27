@@ -408,21 +408,54 @@ export class Sync implements SyncInterface {
    * @remarks
    * Call init() once just after creating an instance.
    *
-   * @throws {@link Err.RemoteRepositoryConnectError}
-   * @throws {@link Err.PushWorkerError}
-   * @throws {@link Err.NoMergeBaseFoundError}
-   * @throws {@link Err.SyncWorkerError}
+   * @throws {@link Err.CannotCreateRemoteRepositoryError}
+   *
+   * @throws {@link RemoteErr.InvalidURLFormatError} (from checkFetch)
+   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from checkFetch)
+   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from checkFetch)
+   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from checkFetch)
+   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from checkFetch)
+   * @throws {@link RemoteErr.NetworkError} (from checkFetch)
+   * @throws {@link RemoteErr.CannotConnectError} (from checkFetch)
+   *
+   *
    *
    * @public
    */
   // eslint-disable-next-line complexity
   async init (): Promise<SyncResult> {
     this._isClosed = false;
+    let isNewRemoteRepository = false;
+
+    const urlOfRemote = await git.getConfig({
+      fs,
+      dir: this._gitDDB.workingDir,
+      path: `remote.${this.remoteName}.url`,
+    });
+    if (urlOfRemote !== this.remoteURL) {
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `remote.${this.remoteName}.url`,
+        value: this.remoteURL,
+      });
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `remote.${this.remoteName}.fetch`,
+        value: `+refs/heads/*:refs/remotes/${this.remoteName}/*`,
+      });
+    }
 
     for (let i = 0; i < NETWORK_RETRY; i++) {
       // eslint-disable-next-line no-await-in-loop
       const remoteResult: boolean | Error = await RemoteEngine[this._engine]
-        .checkFetch(this._gitDDB.workingDir, this._options, undefined, this._gitDDB.logger)
+        .checkFetch(
+          this._gitDDB.workingDir,
+          this._options,
+          this.remoteName,
+          this._gitDDB.logger
+        )
         .catch(err => err);
 
       if (typeof remoteResult === 'boolean') {

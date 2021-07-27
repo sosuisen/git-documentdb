@@ -19,7 +19,7 @@ import { GitDocumentDB } from '../../src/git_documentdb';
 import { syncBase } from '../remote_base/sync';
 
 const reposPrefix = 'test_sync_constructor_nodegit__';
-const localDir = `./test_intg/database_sync_constructor_nodegit`;
+const localDir = `./test/database_sync_constructor_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -34,7 +34,7 @@ before(() => {
 });
 
 after(() => {
-  fs.removeSync(path.resolve(localDir));
+  //  fs.removeSync(path.resolve(localDir));
 });
 
 // This test needs environment variables:

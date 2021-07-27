@@ -12,7 +12,7 @@
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
-import { relative } from 'path';
+
 import { Octokit } from '@octokit/rest';
 import expect from 'expect';
 import sinon from 'sinon';
@@ -23,7 +23,8 @@ import { ConnectionSettings, RemoteOptions } from '../../src/types';
 import { Err } from '../../src/error';
 import { Sync, syncImpl } from '../../src/remote/sync';
 import { destroyDBs, removeRemoteRepositories } from '../remote_utils';
-import { RemoteErr } from '../../src/remote/remote_engine';
+import { RemoteEngine, RemoteErr } from '../../src/remote/remote_engine';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const remote_nodegit_module = require('git-documentdb-plugin-remote-nodegit');
 
@@ -253,12 +254,12 @@ export const syncBase = (
     });
   });
 
-  describe.only('<remote/sync> init()', () => {
+  describe('<remote/sync> init()', () => {
     it('throws RemoteErr.InvalidURLFormatError.', async () => {
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId;
 
-      const stubCheckFetch = sandbox.stub(remote_nodegit_module, 'checkFetch');
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
       stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidURLFormatError(''));
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -277,9 +278,9 @@ export const syncBase = (
 
     it('throws RemoteErr.InvalidRepositoryURLError.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId;
+      const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(remote_nodegit_module, 'checkFetch');
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
       stubCheckFetch
         .onFirstCall()
         .rejects(new RemoteEngineErr.InvalidRepositoryURLError(''));
@@ -300,9 +301,9 @@ export const syncBase = (
 
     it('throws RemoteErr.InvalidSSHKeyPathError.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId;
+      const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(remote_nodegit_module, 'checkFetch');
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
       stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidSSHKeyPathError());
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -321,9 +322,9 @@ export const syncBase = (
 
     it('throws RemoteErr.InvalidAuthenticationTypeError.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId;
+      const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(remote_nodegit_module, 'checkFetch');
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
       stubCheckFetch
         .onFirstCall()
         .rejects(new RemoteEngineErr.InvalidAuthenticationTypeError(''));
@@ -346,9 +347,9 @@ export const syncBase = (
 
     it('throws RemoteErr.HTTPError401AuthorizationRequired.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId;
+      const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(remote_nodegit_module, 'checkFetch');
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
       stubCheckFetch
         .onFirstCall()
         .rejects(new RemoteEngineErr.HTTPError401AuthorizationRequired(''));
@@ -368,23 +369,32 @@ export const syncBase = (
       );
       await gitDDB.destroy();
     });
-  });
 
-  describe('<remote/sync> syncImpl()', () => {
-    it('throws RemoteCheckFetchError.', async () => {
-      const dbName = serialId();
+    it('throws CannotCreateRemoteRepositoryError', async () => {
       const remoteURL = remoteURLBase + serialId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
       });
-      await expect(
-        syncImpl.call(gitDDB, {
-          remoteUrl: remoteURL,
-          connection: { type: 'github', personalAccessToken: token },
-        })
-      ).rejects.toThrowError(RemoteErr.InvalidURLFormatError);
-      await gitDDB.destroy();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await dbA.open();
+
+      const sync = new Sync(dbA, options);
+
+      const stubReposCreate = sandbox.stub(sync.remoteRepository, 'create');
+      stubReposCreate
+        .onFirstCall()
+        .rejects(new Err.CannotConnectRemoteRepositoryError(0, '', ''));
+
+      await expect(sync.init()).rejects.toThrowError(Err.CannotCreateRemoteRepositoryError);
+
+      destroyDBs([dbA]);
     });
 
     it('creates a remote repository on GitHub by using personal access token', async () => {
@@ -398,10 +408,9 @@ export const syncBase = (
       });
       const options: RemoteOptions = {
         remoteUrl: remoteURL,
-        connection: { type: 'github', personalAccessToken: token },
+        connection,
       };
       await dbA.open();
-      // Check dbInfo
       await dbA.sync(options);
 
       // Check remote
@@ -415,13 +424,66 @@ export const syncBase = (
 
       destroyDBs([dbA]);
     });
-  });
 
-  describe('<remote/sync> tryPush()', () => {
-    before(async () => {
-      // Remove remote
-      await removeRemoteRepositories(reposPrefix);
+    it('succeeds after retries when NetworkError', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + serialId();
+
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.NetworkError(''));
+      stubCheckFetch.onSecondCall().rejects(new RemoteEngineErr.HTTPError404NotFound(''));
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const sync = new Sync(gitDDB, options);
+
+      await expect(sync.init()).resolves.toEqual({
+        action: 'push',
+        changes: { remote: [] },
+      });
+
+      expect(stubCheckFetch.callCount).toBe(2);
+
+      await gitDDB.destroy();
     });
+
+    it.only('throws after retries when NetworkError', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + serialId();
+
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch.rejects(new RemoteEngineErr.NetworkError(''));
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const sync = new Sync(gitDDB, options);
+
+      await expect(sync.init()).rejects.toThrowError(RemoteErr.NetworkError);
+
+      expect(stubCheckFetch.callCount).toBe(3);
+
+      await gitDDB.destroy();
+    });
+
+    it('upstreamBranch');
+
+    it('tryPush');
+
+    it('trySync');
 
     it('throws PushNotAllowedError.', async () => {
       const remoteURL = remoteURLBase + serialId();
@@ -440,6 +502,24 @@ export const syncBase = (
       // await await expect(sync.init()).rejects.toThrowError(Err.PushNotAllowedError);
 
       destroyDBs([gitDDB]);
+    });
+  });
+
+  describe('<remote/sync> syncImpl()', () => {
+    it('throws RepositoryNotOpenError.', async () => {
+      const dbName = serialId();
+      const remoteURL = remoteURLBase + serialId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await expect(
+        syncImpl.call(gitDDB, {
+          remoteUrl: remoteURL,
+          connection,
+        })
+      ).rejects.toThrowError(Err.RepositoryNotOpenError);
+      await gitDDB.destroy();
     });
   });
 };

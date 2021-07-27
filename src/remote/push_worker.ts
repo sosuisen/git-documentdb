@@ -66,7 +66,11 @@ export async function pushWorker (
   let localCommitOid: string;
 
   let remoteCommitOid = await git
-    .resolveRef({ fs, dir: gitDDB.workingDir, ref: 'refs/remotes/origin/main' })
+    .resolveRef({
+      fs,
+      dir: gitDDB.workingDir,
+      ref: `refs/remotes/${sync.remoteName}/${gitDDB.defaultBranch}`,
+    })
     .catch(() => undefined);
 
   if (headCommit.commit.parent.length === 2) {
@@ -95,7 +99,13 @@ export async function pushWorker (
   }
 
   // Push
-  await RemoteEngine[sync.engine].push(gitDDB.workingDir, sync.options);
+  await RemoteEngine[sync.engine].push(
+    gitDDB.workingDir,
+    sync.options,
+    sync.remoteName,
+    gitDDB.defaultBranch,
+    gitDDB.defaultBranch
+  );
   let remoteChanges: ChangedFile[] | undefined;
   if (skipGetChanges) {
     remoteChanges = undefined;
