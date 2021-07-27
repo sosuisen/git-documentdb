@@ -1,7 +1,7 @@
 import nodePath, { basename } from 'path';
 import git, { TreeEntry, WalkerEntry } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY, JSON_EXT } from '../const';
+import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
 import { Err } from '../error';
 import {
   AcceptedConflict,
