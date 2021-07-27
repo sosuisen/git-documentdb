@@ -67,7 +67,7 @@
     "nyc": "^15.1.0",
     "parse-git-config": "^3.0.0",
     "sinon": "^10.0.0",
-    "ts-node": "^9.1.1",
+    "ts-node": "^10.1.0",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.3.4"
   },
@@ -80,6 +80,7 @@
     "cross-blob": "^2.0.0",
     "fs-extra": "^9.1.0",
     "git-documentdb-remote-errors": "^1.0.3",
+    "hi-base32": "^0.5.1",
     "isomorphic-git": "^1.8.2",
     "ot-json1": "^1.0.2",
     "rimraf": "^3.0.2",

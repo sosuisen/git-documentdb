@@ -13,7 +13,9 @@ import { clearInterval, setInterval } from 'timers';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import * as RemoteEngineError from 'git-documentdb-remote-errors';
-import { CONSOLE_STYLE, sleep } from '../utils';
+import * as base32 from 'hi-base32';
+
+import { CONSOLE_STYLE, sleep, utf8decode, utf8encode } from '../utils';
 import { Err } from '../error';
 import {
   ChangedFile,
@@ -60,22 +62,21 @@ import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_eng
 /**
  * encodeToRemoteName
  *
- * @internal
+ * @public
  */
-function encodeToRemoteName (remoteURL: string) {
-  // encodeURIComponent does not encode period.
-  // Encodes period to %2E for 'path' param of git.setConfig() API.
-  // Use toLowerCase() because git.setConfig() automatically converts the path to lowercase.
-  return encodeURIComponent(remoteURL).replace(/\./g, '%2E').toLowerCase();
+export function encodeToGitRemoteName (remoteURL: string) {
+  // - Use toLowerCase() because git.setConfig() automatically converts the path to lowercase.
+  // - Use base32 because base64 and encodeURL are case sensitive.
+  return base32.encode(remoteURL).toLowerCase();
 }
 
 /**
  * decodeFromRemoteName
  *
- * @internal
+ * @public
  */
-function decodeFromRemoteName (remoteName: string) {
-  return encodeURIComponent(remoteName);
+export function decodeFromGitRemoteName (remoteName: string) {
+  return base32.decode(remoteName.toUpperCase());
 }
 
 /**
@@ -374,7 +375,7 @@ export class Sync implements SyncInterface {
       connection: this._options.connection,
     });
 
-    this._remoteName = encodeToRemoteName(this.remoteURL);
+    this._remoteName = encodeToGitRemoteName(this.remoteURL);
 
     this._engine = this._options.connection?.engine ?? 'iso';
   }
