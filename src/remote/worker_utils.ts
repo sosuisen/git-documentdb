@@ -10,7 +10,7 @@ import nodePath from 'path';
 import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { normalizeCommit, toSortedJSONString, utf8decode } from '../utils';
-import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
+import { JSON_EXT } from '../const';
 import { Err } from '../error';
 import {
   ChangedFile,
@@ -42,10 +42,12 @@ export async function writeBlobToFile (
   await fs.writeFile(filePath, data);
 }
 
-export /**
+/**
+ * getFatDocFromData
+ *
  * @throws {@link Err.InvalidJsonObjectError}
  */
-async function getFatDocFromData (
+export async function getFatDocFromData (
   data: string | Uint8Array,
   fullDocPath: string,
   docType: DocType
@@ -96,6 +98,11 @@ async function getFatDocFromData (
   return fatDoc!;
 }
 
+/**
+ * getFatDocFromOid
+ *
+ * @throws {@link Err.InvalidJsonObjectError} (from getFatDocFromReadBlobResult)
+ */
 export async function getFatDocFromOid (
   workingDir: string,
   fullDocPath: string,
@@ -111,6 +118,8 @@ export async function getFatDocFromOid (
 }
 
 /**
+ * getFatDocFromReadBlobResult
+ *
  * @throws {@link Err.InvalidJsonObjectError}
  */
 export function getFatDocFromReadBlobResult (
@@ -135,7 +144,7 @@ export function getFatDocFromReadBlobResult (
 /**
  * Get changed files
  *
- * @throws {@link Err.InvalidJsonObjectError} (from getDocument())
+ * @throws {@link Err.InvalidJsonObjectError} (from getFatDocFromOid)
  *
  * @internal
  */
@@ -202,7 +211,8 @@ export async function getChanges (
 /**
  * Get and write changed files on local
  *
- * @throws {@link Err.InvalidJsonObjectError} (from getDocument())
+ * @throws {@link Err.InvalidJsonObjectError} (from getFatDocFromOid)
+ * @throws {@link Err.CannotCreateDirectoryError} (from writeBlobToFile)
  *
  * @internal
  */
