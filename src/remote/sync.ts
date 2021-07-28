@@ -505,6 +505,10 @@ export class Sync implements SyncInterface {
       if (typeof remoteResult === 'boolean') {
         break;
       }
+      else if (remoteResult instanceof RemoteEngineError.InvalidGitRemoteError) {
+        // checkFetch hardly invoke this error because checkFetch is called just after addRemote.
+        throw wrappingRemoteEngineError(remoteResult);
+      }
       else if (
         remoteResult instanceof RemoteEngineError.InvalidURLFormatError ||
         remoteResult instanceof RemoteEngineError.InvalidRepositoryURLError ||
