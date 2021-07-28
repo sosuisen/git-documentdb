@@ -66,8 +66,6 @@ export interface SyncInterface {
 
   tryPush(): Promise<SyncResultPush | SyncResultCancel>;
   trySync(): Promise<SyncResult>;
-  enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
-  enqueueSyncTask(): Promise<SyncResult>;
 
   currentRetries(): number;
 

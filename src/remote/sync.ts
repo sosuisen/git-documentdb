@@ -665,10 +665,26 @@ export class Sync implements SyncInterface {
   }
 
   /**
-   * Try to push with retries
+   * Try to push
    *
-   * @throws {@link Err.PushNotAllowedError} (from this and enqueuePushTask)
-   
+   * @throws {@link Err.PushNotAllowedError}
+   *
+   * @throws {@link InvalidGitRemoteError} (from pushWorker())
+   * @throws {@link UnfetchedCommitExistsError} (from pushWorker())
+   * @throws {@link InvalidURLFormatError} (from pushWorker())
+   * @throws {@link NetworkError} (from pushWorker())
+   * @throws {@link HTTPError401AuthorizationRequired} (from pushWorker())
+   * @throws {@link HTTPError404NotFound} (from pushWorker())
+   * @throws {@link HTTPError403Forbidden} (from pushWorker())
+   * @throws {@link CannotConnectError} (from pushWorker())
+   * @throws {@link UnfetchedCommitExistsError} (from pushWorker())
+   * @throws {@link CannotConnectError} (from pushWorker())
+   * @throws {@link HttpProtocolRequiredError} (from pushWorker())
+   * @throws {@link InvalidRepositoryURLError} (from pushWorker())
+   * @throws {@link InvalidSSHKeyPathError} (from pushWorker())
+   * @throws {@link InvalidAuthenticationTypeError} (from pushWorker())
+   * @throws {@link Err.InvalidJsonObjectError} (from pushWorker())
+   *
    * @public
    */
   // eslint-disable-next-line complexity
@@ -677,215 +693,10 @@ export class Sync implements SyncInterface {
     if (this._options.syncDirection === 'pull') {
       throw new Err.PushNotAllowedError(this._options.syncDirection);
     }
-    if (this._retrySyncCounter === 0) {
-      this._retrySyncCounter = this._options.retry! + 1;
-    }
 
-    while (this._retrySyncCounter > 0) {
-      // eslint-disable-next-line no-await-in-loop
-      const resultOrError = await this.enqueuePushTask().catch((err: Error) => err);
-
-      let error: Error | undefined;
-      let result: SyncResultPush | SyncResultCancel | undefined;
-      if (resultOrError instanceof Error) {
-        error = resultOrError;
-      }
-      else {
-        result = resultOrError;
-      }
-
-      if (error instanceof RemoteErr.UnfetchedCommitExistsError) {
-        if (this._options.syncDirection === 'push') {
-          if (this._options.combineDbStrategy === 'replace-with-ours') {
-            // TODO: Exec replace-with-ours instead of throw error
-          }
-          else {
-            throw error;
-          }
-        }
-      }
-
-      if (error) {
-        this._gitDDB.logger.debug('Push failed: ' + error.message);
-        this._retrySyncCounter--;
-        if (this._retrySyncCounter === 0) {
-          throw error;
-        }
-      }
-
-      if (result && result.action === 'canceled') {
-        return result;
-      }
-
-      if (error === undefined && result !== undefined) {
-        this._retrySyncCounter = 0;
-        return result;
-      }
-
-      // eslint-disable-next-line no-await-in-loop
-      if (!(await this.canNetworkConnection())) {
-        // Retry to connect due to network error.
-        this._gitDDB.logger.debug(
-          CONSOLE_STYLE.bgRed().tag()`...retryPush: ${this.currentRetries().toString()}`
-        );
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(this._options.retryInterval!);
-      }
-      else {
-        this._retrySyncCounter = 0;
-        throw error;
-      }
-    }
-    // This line is reached when cancel() set _retrySyncCounter to 0;
-    const cancel: SyncResultCancel = { action: 'canceled' };
-    this._retrySyncCounter = 0;
-    return cancel;
-  }
-
-  /**
-   * Try to sync with retries
-
-   * @throws {@link Err.PushNotAllowedError}
-   * @throws {@link Err.CombineDatabaseError}
-   *
-   * @throws {@link Err.NoMergeBaseFoundError} (from syncWorker)
-   *
-   * @throws {@link RemoteErr.InvalidGitRemoteError} (from syncWorker)
-   * @throws {@link RemoteErr.InvalidURLFormatError} (from syncWorker)
-   * @throws {@link RemoteErr.NetworkError} (from syncWorker)
-   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from syncWorker)
-   * @throws {@link RemoteErr.HTTPError404NotFound} (from syncWorker)
-   *
-   * @throws {@link RemoteErr.CannotConnectError}  (from syncWorker)
-   * @throws {@link RemoteErr.HttpProtocolRequiredError}   (from syncWorker)
-   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from syncWorker)
-   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from syncWorker)
-   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from syncWorker)
-   *
-   * @throws {@link RemoteErr.HTTPError403Forbidden} (from syncWorker)
-   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from syncWorker)
-   * @throws {@link Err.ThreeWayMergeError} (from syncWorker)
-   * @throws {@link Err.CannotDeleteDataError} (from syncWorker)
-   * @throws {@link Err.InvalidJsonObjectError} (from syncWorker)
-   *
-   * @public
-   */
-  // eslint-disable-next-line complexity
-  async trySync (): Promise<SyncResult> {
-    if (this._isClosed) return { action: 'canceled' };
-    if (this._options.syncDirection === 'pull') {
-      throw new Err.PushNotAllowedError(this._options.syncDirection);
-    }
-    if (this._retrySyncCounter === 0) {
-      this._retrySyncCounter = this._options.retry! + 1;
-    }
-
-    while (this._retrySyncCounter > 0) {
-      // eslint-disable-next-line no-await-in-loop
-      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => err);
-
-      let error: Error | undefined;
-      let result: SyncResult | undefined;
-      if (resultOrError instanceof Error) {
-        error = resultOrError;
-      }
-      else if (
-        resultOrError.action === 'merge and push error' ||
-        resultOrError.action === 'resolve conflicts and push error'
-      ) {
-        result = resultOrError;
-        error = resultOrError.error;
-      }
-      else {
-        result = resultOrError;
-      }
-
-      if (error instanceof Err.NoMergeBaseFoundError) {
-        if (this._options.combineDbStrategy === 'throw-error') {
-          throw error;
-        }
-        else if (this._options.combineDbStrategy === 'combine-head-with-theirs') {
-          // return SyncResultCombineDatabase
-          // eslint-disable-next-line no-await-in-loop
-          const syncResultCombineDatabase = await combineDatabaseWithTheirs(
-            this._gitDDB,
-            this._options,
-            this.remoteName
-          ).catch(err => {
-            // throw new Err.CombineDatabaseError(err.message);
-            error = new Err.CombineDatabaseError(err.message);
-            return undefined;
-          });
-          if (syncResultCombineDatabase !== undefined) {
-            // eslint-disable-next-line no-loop-func
-            this.eventHandlers.combine.forEach(callback =>
-              callback.func(syncResultCombineDatabase.duplicates)
-            );
-            return syncResultCombineDatabase;
-          }
-        }
-      }
-
-      if (error) {
-        this._gitDDB.logger.debug('Sync or push failed: ' + error.message);
-        this._retrySyncCounter--;
-        if (this._retrySyncCounter === 0) {
-          throw error;
-        }
-      }
-
-      if (result && result.action === 'canceled') {
-        return result;
-      }
-
-      if (error === undefined && result !== undefined) {
-        // No error
-        this._retrySyncCounter = 0;
-        return result;
-      }
-
-      if (
-        // eslint-disable-next-line no-await-in-loop
-        !(await this.canNetworkConnection()) ||
-        error instanceof RemoteErr.UnfetchedCommitExistsError
-      ) {
-        // Retry for the following reasons:
-        // - Network connection may be improved next time.
-        // - Problem will be resolved by sync again.
-        //   - 'push' action throws UnfetchedCommitExistsError
-        //   - push_worker in 'merge and push' action throws UnfetchedCommitExistsError
-        //   - push_worker in 'resolve conflicts and push' action throws UnfetchedCommitExistsError
-        this._gitDDB.logger.debug(
-          CONSOLE_STYLE.bgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
-        );
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(this._options.retryInterval!);
-      }
-      else {
-        // Throw error
-        this._retrySyncCounter = 0;
-        throw error;
-      }
-    }
-    // This line is reached when cancel() set _retrySyncCounter to 0;
-    const cancel: SyncResultCancel = { action: 'canceled' };
-    this._retrySyncCounter = 0;
-    return cancel;
-  }
-
-  /**
-   * Enqueue push task to TaskQueue
-   *
-   * @throws {@link Err.PushWorkerError}
-   * @throws {@link RemoteEErr.UnfetchedCommitExistsError}
-   * @throws {@link Err.PushNotAllowedError}
-   *
-   * @public
-   */
-  enqueuePushTask (): Promise<SyncResultPush | SyncResultCancel> {
-    if (this._options.syncDirection === 'pull') {
-      throw new Err.PushNotAllowedError(this._options.syncDirection);
-    }
+    /**
+     * Enqueue pushWorker
+     */
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResultPush | SyncResultCancel) => void,
@@ -934,9 +745,6 @@ export class Sync implements SyncInterface {
         })
         .catch(err => {
           // console.log(`Error in push_worker: ${err}`);
-          if (!(err instanceof RemoteErr.UnfetchedCommitExistsError)) {
-            err = new Err.PushWorkerError(err.message);
-          }
           this.eventHandlers.error.forEach(listener => {
             listener.func(err, {
               ...taskMetadata,
@@ -965,45 +773,163 @@ export class Sync implements SyncInterface {
       };
     };
 
-    return new Promise(
+    const resultOrError = await new Promise(
       (resolve: (value: SyncResultPush | SyncResultCancel) => void, reject) => {
         this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
         // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
       }
-    );
+    ).catch((err: Error) => err);
+
+    if (resultOrError instanceof Error) {
+      if (resultOrError instanceof RemoteErr.UnfetchedCommitExistsError) {
+        if (this._options.syncDirection === 'push') {
+          if (this._options.combineDbStrategy === 'replace-with-ours') {
+            // TODO: Exec replace-with-ours instead of throw error
+          }
+        }
+      }
+      // Fatal error. Don't retry.
+      this.pause();
+      throw resultOrError;
+    }
+
+    return resultOrError;
+  }
+
+  /**
+   * Try to sync with retries
+   *
+   * @throws {@link Err.PushNotAllowedError}
+   * @throws {@link Err.CombineDatabaseError}
+   *
+   * @throws {@link Err.NoMergeBaseFoundError} (from syncWorker())
+   * @throws {@link RemoteErr.InvalidGitRemoteError} (from syncWorker())
+   * @throws {@link RemoteErr.InvalidURLFormatError} (from syncWorker())
+   * @throws {@link RemoteErr.NetworkError} (from syncWorker())
+   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from syncWorker())
+   * @throws {@link RemoteErr.HTTPError404NotFound} (from syncWorker())
+   * @throws {@link RemoteErr.CannotConnectError}  (from syncWorker())
+   * @throws {@link RemoteErr.HttpProtocolRequiredError}   (from syncWorker())
+   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from syncWorker())
+   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from syncWorker())
+   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from syncWorker())
+   * @throws {@link RemoteErr.HTTPError403Forbidden} (from syncWorker())
+   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from syncWorker())
+   * @throws {@link Err.InvalidConflictStateError} (from syncWorker())
+   * @throws {@link Err.CannotDeleteDataError} (from syncWorker())
+   * @throws {@link Err.InvalidDocTypeError} (from syncWorker())
+   * @throws {@link Err.InvalidConflictResolutionStrategyError} (from syncWorker())
+   * @throws {@link Err.CannotCreateDirectoryError} (from syncWorker())
+   * @throws {@link Err.InvalidJsonObjectError} (from syncWorker())
+   *
+   * @throws {@link InvalidURLFormatError} (from combineDatabaseWithTheirs())
+   * @throws {@link NetworkError} (from combineDatabaseWithTheirs())
+   * @throws {@link HTTPError401AuthorizationRequired} (from combineDatabaseWithTheirs())
+   * @throws {@link HTTPError404NotFound} (from combineDatabaseWithTheirs())
+   * @throws {@link CannotConnectError} (from combineDatabaseWithTheirs())
+   * @throws {@link HttpProtocolRequiredError}  (from combineDatabaseWithTheirs())
+   * @throws {@link InvalidRepositoryURLError} (from combineDatabaseWithTheirs())
+   * @throws {@link InvalidSSHKeyPathError} (from combineDatabaseWithTheirs())
+   * @throws {@link InvalidAuthenticationTypeError} (from combineDatabaseWithTheirs())
+   *
+   * @public
+   */
+  // eslint-disable-next-line complexity
+  async trySync (): Promise<SyncResult> {
+    if (this._isClosed) return { action: 'canceled' };
+    if (this._options.syncDirection === 'pull') {
+      throw new Err.PushNotAllowedError(this._options.syncDirection);
+    }
+    if (this._retrySyncCounter === 0) {
+      this._retrySyncCounter = this._options.retry! + 1;
+    }
+
+    while (this._retrySyncCounter > 0) {
+      // eslint-disable-next-line no-await-in-loop
+      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => err);
+
+      let error: Error | undefined;
+      let result: SyncResult | undefined;
+      if (resultOrError instanceof Error) {
+        error = resultOrError;
+      }
+      else if (
+        resultOrError.action === 'merge and push error' ||
+        resultOrError.action === 'resolve conflicts and push error'
+      ) {
+        result = resultOrError;
+        error = resultOrError.error;
+      }
+      else {
+        result = resultOrError;
+      }
+
+      if (error instanceof Err.NoMergeBaseFoundError) {
+        if (this._options.combineDbStrategy === 'throw-error') {
+          // nop
+        }
+        else if (this._options.combineDbStrategy === 'combine-head-with-theirs') {
+          // return SyncResultCombineDatabase
+          // eslint-disable-next-line no-await-in-loop
+          const syncResultCombineDatabase = await combineDatabaseWithTheirs(
+            this._gitDDB,
+            this._options,
+            this.remoteName
+          ).catch(err => {
+            if (err)
+              // throw new Err.CombineDatabaseError(err.message);
+              error = new Err.CombineDatabaseError(err.message);
+            return undefined;
+          });
+          if (syncResultCombineDatabase !== undefined) {
+            // eslint-disable-next-line no-loop-func
+            this.eventHandlers.combine.forEach(callback =>
+              callback.func(syncResultCombineDatabase.duplicates)
+            );
+            return syncResultCombineDatabase;
+          }
+        }
+      }
+
+      if (error !== undefined) {
+        this._gitDDB.logger.debug('trySync failed: ' + error.message);
+        if (error instanceof RemoteErr.UnfetchedCommitExistsError) {
+          this._retrySyncCounter--;
+          if (this._retrySyncCounter === 0) {
+            this.pause();
+            throw error;
+          }
+          this._gitDDB.logger.debug(
+            CONSOLE_STYLE.bgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
+          );
+          // eslint-disable-next-line no-await-in-loop
+          await sleep(this._options.retryInterval!);
+        }
+        else {
+          // Throw error
+          this._retrySyncCounter = 0;
+          this.pause();
+          throw error;
+        }
+      }
+      else if (result !== undefined) {
+        // No error
+        this._retrySyncCounter = 0;
+        return result;
+      }
+    }
+    // This line is reached when cancel() set _retrySyncCounter to 0;
+    const cancel: SyncResultCancel = { action: 'canceled' };
+    this._retrySyncCounter = 0;
+    return cancel;
   }
 
   /**
    * Enqueue sync task to TaskQueue
    *
-   * @throws {@link Err.PushNotAllowedError}
-   *
-   * @throws {@link Err.NoMergeBaseFoundError} (from syncWorker)
-   *
-   * @throws {@link RemoteErr.InvalidGitRemoteError} (from syncWorker)
-   * @throws {@link RemoteErr.InvalidURLFormatError} (from syncWorker)
-   * @throws {@link RemoteErr.NetworkError} (from syncWorker)
-   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from syncWorker)
-   * @throws {@link RemoteErr.HTTPError404NotFound} (from syncWorker)
-   *
-   * @throws {@link RemoteErr.CannotConnectError}  (from syncWorker)
-   * @throws {@link RemoteErr.HttpProtocolRequiredError}   (from syncWorker)
-   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from syncWorker)
-   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from syncWorker)
-   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from syncWorker)
-   *
-   * @throws {@link RemoteErr.HTTPError403Forbidden} (from syncWorker)
-   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from syncWorker)
-   * @throws {@link Err.ThreeWayMergeError} (from syncWorker)
-   * @throws {@link Err.CannotDeleteDataError} (from syncWorker)
-   * @throws {@link Err.InvalidJsonObjectError} (from syncWorker)
-   *
    * @public
    */
   enqueueSyncTask (): Promise<SyncResult> {
-    if (this._options.syncDirection === 'pull') {
-      throw new Err.PushNotAllowedError(this._options.syncDirection);
-    }
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResult) => void,
@@ -1091,14 +1017,6 @@ export class Sync implements SyncInterface {
         })
         .catch((err: Error) => {
           // console.log(`Error in syncWorker: ${err}`);
-          if (
-            !(
-              err instanceof Err.NoMergeBaseFoundError ||
-              err instanceof RemoteErr.UnfetchedCommitExistsError
-            )
-          ) {
-            err = new Err.SyncWorkerError(err.message);
-          }
           this.eventHandlers.error.forEach(listener => {
             listener.func(err, {
               ...taskMetadata,
@@ -1129,7 +1047,6 @@ export class Sync implements SyncInterface {
 
     return new Promise((resolve: (value: SyncResult) => void, reject) => {
       this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
-      // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
     });
   }
 
