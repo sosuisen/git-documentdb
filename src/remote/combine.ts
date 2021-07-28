@@ -23,23 +23,23 @@ import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXT } from '../const';
 import { getAllMetadata, toSortedJSONString } from '../utils';
-import { RemoteEngine } from './remote_engine';
+import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 
 /**
  * Clone a remote repository and combine the current local working directory with it.
  * TODO: Must catch errors
  *
- * @throws {@link InvalidURLFormatError} (from clone())
- * @throws {@link NetworkError} (from clone())
- * @throws {@link HTTPError401AuthorizationRequired} (from clone())
- * @throws {@link HTTPError404NotFound} (from clone())
- * @throws {@link CannotConnectError} (from clone())
+ * @throws {@link RemoteErr.InvalidURLFormatError} (from clone())
+ * @throws {@link RemoteErr.NetworkError} (from clone())
+ * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from clone())
+ * @throws {@link RemoteErr.HTTPError404NotFound} (from clone())
+ * @throws {@link RemoteErr.CannotConnectError} (from clone())
  *
- * @throws {@link HttpProtocolRequiredError}  (from clone())
- * @throws {@link InvalidRepositoryURLError} (from clone())
- * @throws {@link InvalidSSHKeyPathError} (from clone())
+ * @throws {@link RemoteErr.HttpProtocolRequiredError}  (from clone())
+ * @throws {@link RemoteErr.InvalidRepositoryURLError} (from clone())
+ * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from clone())
  *
- * @throws {@link InvalidAuthenticationTypeError} (from clone())
+ * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from clone())
  */
 // eslint-disable-next-line complexity
 export async function combineDatabaseWithTheirs (
@@ -53,12 +53,11 @@ export async function combineDatabaseWithTheirs (
 
   const duplicates: DuplicatedFile[] = [];
   try {
-    await RemoteEngine[remoteOptions.connection!.engine!].clone(
-      remoteDir,
-      remoteOptions,
-      remoteName,
-      gitDDB.logger
-    );
+    await RemoteEngine[remoteOptions.connection!.engine!]
+      .clone(remoteDir, remoteOptions, remoteName, gitDDB.logger)
+      .catch(err => {
+        throw wrappingRemoteEngineError(err);
+      });
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.workingDir);
     const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteDir);

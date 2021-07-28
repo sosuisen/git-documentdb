@@ -12,7 +12,7 @@ import { GitDDBInterface } from '../types_gitddb';
 import { ChangedFile, NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
 import { SyncInterface } from '../types_sync';
 import { getChanges, getCommitLogs } from './worker_utils';
-import { RemoteEngine } from './remote_engine';
+import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 
 /**
  * Push and get changes
@@ -112,13 +112,17 @@ export async function pushWorker (
   }
 
   // Push
-  await RemoteEngine[sync.engine].push(
-    gitDDB.workingDir,
-    sync.options,
-    sync.remoteName,
-    gitDDB.defaultBranch,
-    gitDDB.defaultBranch
-  );
+  await RemoteEngine[sync.engine]
+    .push(
+      gitDDB.workingDir,
+      sync.options,
+      sync.remoteName,
+      gitDDB.defaultBranch,
+      gitDDB.defaultBranch
+    )
+    .catch(err => {
+      throw wrappingRemoteEngineError(err);
+    });
   let remoteChanges: ChangedFile[] | undefined;
   if (skipGetChanges) {
     remoteChanges = undefined;

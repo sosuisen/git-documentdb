@@ -25,30 +25,37 @@ import { SyncInterface } from '../types_sync';
 import { pushWorker } from './push_worker';
 import { calcDistance, getAndWriteLocalChanges, getCommitLogs } from './worker_utils';
 import { merge } from './3way_merge';
-import { RemoteEngine } from './remote_engine';
+import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 import { Err } from '../error';
 
 /**
  * sync_worker
  *
- * @throws {@link RemoteErr.InvalidGitRemoteError} (from fetch(), push())
- * @throws {@link RemoteErr.InvalidURLFormatError} (from fetch(), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.NetworkError} (from fetch(), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from fetch(), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.HTTPError404NotFound} (from fetch(), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.CannotConnectError} (from fetch()), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.HttpProtocolRequiredError} (from fetch(), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.InvalidRepositoryURLError} (from fetch(), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from fetch(), push(), combineDatabaseWithTheirs())
- * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from fetch(), push(), combineDatabaseWithTheirs())
- *
- * @throws {@link HTTPError403Forbidden} (from push())
- * @throws {@link UnfetchedCommitExistsError} (from push())
- *
  * @throws {@link Err.NoMergeBaseFoundError}
  * @throws {@link Err.ThreeWayMergeError}
  * @throws {@link Err.CannotDeleteDataError}
  *
+ * @throws {@link RemoteErr.InvalidGitRemoteError} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.InvalidURLFormatError} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.NetworkError} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.HTTPError404NotFound} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.CannotConnectError} (from fetch()), pushWorker())
+ * @throws {@link RemoteErr.HttpProtocolRequiredError} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.InvalidRepositoryURLError} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from fetch(), pushWorker())
+ * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from fetch(), pushWorker())
+ *
+ * @throws {@link HTTPError403Forbidden} (from pushWorker())
+ * @throws {@link UnfetchedCommitExistsError} (from pushWorker())
+ *
+ * @throws {@link Err.InvalidConflictStateError} (from merge())
+ * @throws {@link Err.CannotDeleteDataError} (from merge())
+ * @throws {@link Err.InvalidDocTypeError} (from merge())
+ * @throws {@link Err.InvalidConflictResolutionStrategyError} (from merge())
+ * @throws {@link Err.CannotCreateDirectoryError} (from merge())
+ * @throws {@link Err.InvalidJsonObjectError} (from merge())
+
  * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
  *
  *
@@ -70,12 +77,11 @@ export async function syncWorker (
   /**
    * Fetch
    */
-  await RemoteEngine[sync.engine].fetch(
-    gitDDB.workingDir,
-    sync.options,
-    sync.remoteName,
-    gitDDB.logger
-  );
+  await RemoteEngine[sync.engine]
+    .fetch(gitDDB.workingDir, sync.options, sync.remoteName, gitDDB.logger)
+    .catch(err => {
+      throw wrappingRemoteEngineError(err);
+    });
 
   /**
    * Calc distance
