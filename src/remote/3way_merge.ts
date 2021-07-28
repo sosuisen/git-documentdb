@@ -132,8 +132,10 @@ function getMergedBinaryDoc (
 }
 
 /**
+ * getMergedDocument
+ *
  * @throws {@link Err.InvalidDocTypeError}
- * @throws {@link Err.InvalidConflictResolutionStrategyError}
+ * @throws {@link Err.InvalidConflictResolutionStrategyError} (from getMergedJsonDoc, getMergedTextDoc, getMergedBinaryDoc)
  */
 function getMergedDocument (
   jsonDiff: JsonDiff,
@@ -175,6 +177,16 @@ function getMergedDocument (
   throw new Err.InvalidDocTypeError(docType);
 }
 
+/**
+ * merge
+ *
+ * @throws {@link Err.InvalidConflictStateError} (from threeWayMerge())
+ * @throws {@link Err.CannotDeleteDataError} (from threeWayMerge())
+ * @throws {@link Err.InvalidDocTypeError} (from threeWayMerge())
+ * @throws {@link Err.InvalidConflictResolutionStrategyError} (from threeWayMerge())
+ * @throws {@link Err.CannotCreateDirectoryError} (from threeWayMerge())
+ * @throws {@link Err.InvalidJsonObjectError} (from threeWayMerge())
+ */
 export async function merge (
   gitDDB: GitDDBInterface,
   sync: SyncInterface,
@@ -280,11 +292,11 @@ export async function merge (
  * 3-way merge
  *
  * @throws {@link Err.InvalidConflictStateError}
- *
- * @throws {@link Err.InvalidDocTypeError}
- * @throws {@link Err.InvalidConflictResolutionStrategyError}
- *
  * @throws {@link Err.CannotDeleteDataError}
+ *
+ * @throws {@link Err.InvalidDocTypeError} (from getMergedDocument())
+ * @throws {@link Err.InvalidConflictResolutionStrategyError} (from getMergedDocument())
+ *
  * @throws {@link Err.CannotCreateDirectoryError} (from writeBlobToFile)
  * @throws {@link Err.InvalidJsonObjectError} (from getFatDocFromData, getFatDocFromReadBlobResult)
  *
