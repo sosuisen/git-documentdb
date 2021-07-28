@@ -13,22 +13,19 @@
  * These tests create a new repository on GitHub if not exists.
  */
 
+import crypto from 'crypto';
 import fs from 'fs';
 import { Octokit } from '@octokit/rest';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import sinon from 'sinon';
 import * as RemoteEngineErr from 'git-documentdb-remote-errors';
+import { sleep } from '../../src/utils';
 import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { ConnectionSettings, RemoteOptions } from '../../src/types';
 import { Err } from '../../src/error';
-import {
-  decodeFromGitRemoteName,
-  encodeToGitRemoteName,
-  Sync,
-  syncImpl,
-} from '../../src/remote/sync';
+import { encodeToGitRemoteName, Sync, syncImpl } from '../../src/remote/sync';
 import { removeRemoteRepositories } from '../remote_utils';
 import { RemoteEngine, RemoteErr } from '../../src/remote/remote_engine';
 
@@ -62,10 +59,80 @@ export const syncBase = (
     await removeRemoteRepositories(reposPrefix);
   });
 
-  it('encode and decode Git remote name', () => {
-    const remoteURL = 'https://github.com/foo-bar/foo_bar.git';
-    const encoded = encodeToGitRemoteName(remoteURL);
-    expect(decodeFromGitRemoteName(encoded)).toBe(remoteURL);
+  describe('encode Git remote name', () => {
+    it('always generates the same name', async () => {
+      const remoteURL = 'ssh://user@github.com:443/foo-bar/baz.git';
+      const encoded = encodeToGitRemoteName(remoteURL);
+      await sleep(1500);
+      const encoded2 = encodeToGitRemoteName(remoteURL);
+      expect(encoded).toBe(encoded2);
+    });
+
+    it('ssh://user@github.com:443/foo-bar/baz.git', () => {
+      const remoteURL = 'ssh://user@github.com:443/foo-bar/baz.git';
+      const encoded = encodeToGitRemoteName(remoteURL);
+      const shortHash = crypto
+        .createHash('sha1')
+        .update(remoteURL)
+        .digest('hex')
+        .substr(0, 7);
+      expect(encoded).toBe('github_com_' + shortHash);
+    });
+
+    it('ssh://user@127.0.0.1:443/foo-bar/baz.git', () => {
+      const remoteURL = 'ssh://user@127.0.0.1:443/foo-bar/baz.git';
+      const encoded = encodeToGitRemoteName(remoteURL);
+      const shortHash = crypto
+        .createHash('sha1')
+        .update(remoteURL)
+        .digest('hex')
+        .substr(0, 7);
+      expect(encoded).toBe('127_0_0_1_' + shortHash);
+    });
+
+    it('https://github.com:80/foo-bar/baz.git', () => {
+      const remoteURL = 'https://github.com:80/foo-bar/baz.git';
+      const encoded = encodeToGitRemoteName(remoteURL);
+      const shortHash = crypto
+        .createHash('sha1')
+        .update(remoteURL)
+        .digest('hex')
+        .substr(0, 7);
+      expect(encoded).toBe('github_com_' + shortHash);
+    });
+
+    it('ssh://user@github.com/foo-bar/baz.git', () => {
+      const remoteURL = 'ssh://user@github.com/foo-bar/baz.git';
+      const encoded = encodeToGitRemoteName(remoteURL);
+      const shortHash = crypto
+        .createHash('sha1')
+        .update(remoteURL)
+        .digest('hex')
+        .substr(0, 7);
+      expect(encoded).toBe('github_com_' + shortHash);
+    });
+
+    it('https://github.com/foo-bar/baz.git', () => {
+      const remoteURL = 'https://github.com/foo-bar/baz.git';
+      const encoded = encodeToGitRemoteName(remoteURL);
+      const shortHash = crypto
+        .createHash('sha1')
+        .update(remoteURL)
+        .digest('hex')
+        .substr(0, 7);
+      expect(encoded).toBe('github_com_' + shortHash);
+    });
+
+    it('git@github.com:foo-bar/baz.git', () => {
+      const remoteURL = 'git@github.com:foo-bar/baz.git';
+      const encoded = encodeToGitRemoteName(remoteURL);
+      const shortHash = crypto
+        .createHash('sha1')
+        .update(remoteURL)
+        .digest('hex')
+        .substr(0, 7);
+      expect(encoded).toBe('github_com_' + shortHash);
+    });
   });
 
   /**

@@ -10,12 +10,12 @@
  * ! Must import both clearInterval and setInterval from 'timers'
  */
 import { clearInterval, setInterval } from 'timers';
+import crypto from 'crypto';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import * as RemoteEngineError from 'git-documentdb-remote-errors';
-import * as base32 from 'hi-base32';
 
-import { CONSOLE_STYLE, sleep, utf8decode, utf8encode } from '../utils';
+import { CONSOLE_STYLE, sleep } from '../utils';
 import { Err } from '../error';
 import {
   ChangedFile,
@@ -62,21 +62,43 @@ import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_eng
 /**
  * encodeToRemoteName
  *
- * @public
- */
-export function encodeToGitRemoteName (remoteURL: string) {
-  // - Use toLowerCase() because git.setConfig() automatically converts the path to lowercase.
-  // - Use base32 because base64 and encodeURL are case sensitive.
-  return base32.encode(remoteURL).toLowerCase();
-}
-
-/**
- * decodeFromRemoteName
+ * @remarks
+ * Remote name consists of host_name + hash.
+ * hash is generated from remoteURL.
+ * Capitalize host name of remoteURL manually when hashes collide because host name is not case sensitive.
  *
  * @public
  */
-export function decodeFromGitRemoteName (remoteName: string) {
-  return base32.decode(remoteName.toUpperCase());
+export function encodeToGitRemoteName (remoteURL: string) {
+  let host: string;
+  if (/:\/\/.+?@(.+?):/.test(remoteURL)) {
+    // ssh://user@foo.bar:xxx/path/repos.git
+    host = RegExp.$1;
+  }
+  else if (/:\/\/(.+?):/.test(remoteURL)) {
+    // http://foo.bar:xxx/path/repos.git
+    host = RegExp.$1;
+  }
+  else if (/:\/\/.+?@(.+?)\//.test(remoteURL)) {
+    // ssh://user@foo.bar/path/repos.git
+    host = RegExp.$1;
+  }
+  else if (/:\/\/(.+?)\//.test(remoteURL)) {
+    // http://foo.bar/user/repos.git
+    host = RegExp.$1;
+  }
+  else if (/^.+?@(.+?):/.test(remoteURL)) {
+    // user@foo.bar:path/repos.git
+    host = RegExp.$1;
+  }
+  else {
+    throw new RemoteErr.InvalidURLFormatError(`URL format is invalid: ${remoteURL}`);
+  }
+
+  const shortHash = crypto.createHash('sha1').update(remoteURL).digest('hex').substr(0, 7);
+
+  // Use toLowerCase() because git.setConfig() and git.addRemote() automatically converts the path to lowercase.
+  return host.toLowerCase().replace(/\./g, '_') + '_' + shortHash;
 }
 
 /**
@@ -444,17 +466,11 @@ export class Sync implements SyncInterface {
       path: `remote.${this.remoteName}.url`,
     });
     if (urlOfRemote !== this.remoteURL) {
-      await git.setConfig({
+      await git.addRemote({
         fs,
         dir: this._gitDDB.workingDir,
-        path: `remote.${this.remoteName}.url`,
-        value: this.remoteURL,
-      });
-      await git.setConfig({
-        fs,
-        dir: this._gitDDB.workingDir,
-        path: `remote.${this.remoteName}.fetch`,
-        value: `+refs/heads/*:refs/remotes/${this.remoteName}/*`,
+        remote: this.remoteName,
+        url: this.remoteURL,
       });
     }
 
@@ -467,17 +483,11 @@ export class Sync implements SyncInterface {
       path: `remote.origin.url`,
     });
     if (originUrl === undefined) {
-      await git.setConfig({
+      await git.addRemote({
         fs,
         dir: this._gitDDB.workingDir,
-        path: `remote.origin.url`,
-        value: this.remoteURL,
-      });
-      await git.setConfig({
-        fs,
-        dir: this._gitDDB.workingDir,
-        path: `remote.origin.fetch`,
-        value: `+refs/heads/*:refs/remotes/origin/*`,
+        remote: 'origin',
+        url: this.remoteURL,
       });
     }
 
