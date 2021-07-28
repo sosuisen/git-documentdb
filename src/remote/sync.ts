@@ -112,6 +112,7 @@ export function encodeToGitRemoteName (remoteURL: string) {
  * @throws {@link Err.PushWorkerError} (from Sync#init())
  * @throws {@link Err.SyncWorkerError} (from Sync#init())
  * @throws {@link Err.NoMergeBaseFoundError}
+ *
  * @throws {@link Err.PushNotAllowedError}  (from Sync#init())
  *
  * @internal
@@ -491,56 +492,41 @@ export class Sync implements SyncInterface {
       });
     }
 
-    for (let i = 0; i < NETWORK_RETRY; i++) {
+    // eslint-disable-next-line no-await-in-loop
+    const remoteResult: boolean | Error = await RemoteEngine[this._engine]
+      .checkFetch(
+        this._gitDDB.workingDir,
+        this._options,
+        this.remoteName,
+        this._gitDDB.logger
+      )
+      .catch(err => err);
+
+    if (typeof remoteResult === 'boolean') {
+      // nop
+    }
+    else if (remoteResult instanceof RemoteEngineError.InvalidGitRemoteError) {
+      // checkFetch hardly invoke this error because checkFetch is called just after addRemote.
+      throw wrappingRemoteEngineError(remoteResult);
+    }
+    else if (
+      remoteResult instanceof RemoteEngineError.InvalidURLFormatError ||
+      remoteResult instanceof RemoteEngineError.InvalidRepositoryURLError ||
+      remoteResult instanceof RemoteEngineError.InvalidSSHKeyPathError ||
+      remoteResult instanceof RemoteEngineError.InvalidAuthenticationTypeError ||
+      remoteResult instanceof RemoteEngineError.HTTPError401AuthorizationRequired ||
+      remoteResult instanceof RemoteEngineError.NetworkError ||
+      remoteResult instanceof RemoteEngineError.CannotConnectError
+    ) {
+      throw wrappingRemoteEngineError(remoteResult);
+    }
+    else if (remoteResult instanceof RemoteEngineError.HTTPError404NotFound) {
+      // Try to create repository by octokit
       // eslint-disable-next-line no-await-in-loop
-      const remoteResult: boolean | Error = await RemoteEngine[this._engine]
-        .checkFetch(
-          this._gitDDB.workingDir,
-          this._options,
-          this.remoteName,
-          this._gitDDB.logger
-        )
-        .catch(err => err);
-
-      if (typeof remoteResult === 'boolean') {
-        break;
-      }
-      else if (remoteResult instanceof RemoteEngineError.InvalidGitRemoteError) {
-        // checkFetch hardly invoke this error because checkFetch is called just after addRemote.
-        throw wrappingRemoteEngineError(remoteResult);
-      }
-      else if (
-        remoteResult instanceof RemoteEngineError.InvalidURLFormatError ||
-        remoteResult instanceof RemoteEngineError.InvalidRepositoryURLError ||
-        remoteResult instanceof RemoteEngineError.InvalidSSHKeyPathError ||
-        remoteResult instanceof RemoteEngineError.InvalidAuthenticationTypeError ||
-        remoteResult instanceof RemoteEngineError.HTTPError401AuthorizationRequired
-      ) {
-        throw wrappingRemoteEngineError(remoteResult);
-      }
-      else if (
-        remoteResult instanceof RemoteEngineError.NetworkError ||
-        remoteResult instanceof RemoteEngineError.CannotConnectError
-      ) {
-        if (i === NETWORK_RETRY - 1) {
-          throw wrappingRemoteEngineError(remoteResult);
-        }
-        else {
-          // eslint-disable-next-line no-await-in-loop
-          await sleep(NETWORK_RETRY_INTERVAL);
-          continue;
-        }
-      }
-      else if (remoteResult instanceof RemoteEngineError.HTTPError404NotFound) {
-        // Try to create repository by octokit
-        // eslint-disable-next-line no-await-in-loop
-        await this.remoteRepository.create().catch(err => {
-          throw new Err.CannotCreateRemoteRepositoryError(err.message);
-        });
-
-        isNewRemoteRepository = true;
-        break;
-      }
+      await this.remoteRepository.create().catch(err => {
+        throw new Err.CannotCreateRemoteRepositoryError(err.message);
+      });
+      isNewRemoteRepository = true;
     }
 
     let syncResult: SyncResult = {
