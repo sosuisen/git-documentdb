@@ -27,35 +27,29 @@ Call init() once just after creating an instance.
 
 [Err.CannotCreateRemoteRepositoryError](./git-documentdb.err.cannotcreateremoterepositoryerror.md)
 
-[RemoteErr.InvalidGitRemoteError](./git-documentdb.remoteerr.invalidgitremoteerror.md) (from checkFetch(), trySync(), tryPush())
+\# Errors from RemoteEngine\[engineName\].checkFetch
 
-[RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md) (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.InvalidGitRemoteError](./git-documentdb.remoteerr.invalidgitremoteerror.md)
 
-[RemoteErr.NetworkError](./git-documentdb.remoteerr.networkerror.md) (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
 
-[RemoteErr.HTTPError401AuthorizationRequired](./git-documentdb.remoteerr.httperror401authorizationrequired.md) (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.NetworkError](./git-documentdb.remoteerr.networkerror.md)
 
-[RemoteErr.HTTPError404NotFound](./git-documentdb.remoteerr.httperror404notfound.md) (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.HTTPError401AuthorizationRequired](./git-documentdb.remoteerr.httperror401authorizationrequired.md)
 
-[RemoteErr.CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md) (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.HTTPError404NotFound](./git-documentdb.remoteerr.httperror404notfound.md)
 
- (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md)
 
-[RemoteErr.InvalidRepositoryURLError](./git-documentdb.remoteerr.invalidrepositoryurlerror.md) (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
 
-[RemoteErr.InvalidSSHKeyPathError](./git-documentdb.remoteerr.invalidsshkeypatherror.md) (from checkFetch, trySync(), tryPush())
+- [RemoteErr.InvalidRepositoryURLError](./git-documentdb.remoteerr.invalidrepositoryurlerror.md)
 
-[RemoteErr.InvalidAuthenticationTypeError](./git-documentdb.remoteerr.invalidauthenticationtypeerror.md) (from checkFetch(), trySync(), tryPush())
+- [RemoteErr.InvalidSSHKeyPathError](./git-documentdb.remoteerr.invalidsshkeypatherror.md)
 
-[RemoteErr.UnfetchedCommitExistsError](./git-documentdb.remoteerr.unfetchedcommitexistserror.md) (from tryPush())
+- [RemoteErr.InvalidAuthenticationTypeError](./git-documentdb.remoteerr.invalidauthenticationtypeerror.md)
 
-[RemoteErr.HTTPError403Forbidden](./git-documentdb.remoteerr.httperror403forbidden.md) (from tryPush())
+Errors from [Sync.trySync()](./git-documentdb.sync.trysync.md)
 
-[Err.NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md) (from trySync())
-
-[Err.ThreeWayMergeError](./git-documentdb.err.threewaymergeerror.md) (from trySync())
-
-[Err.CannotDeleteDataError](./git-documentdb.err.cannotdeletedataerror.md) (from trySync())
-
-[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md) (from trySync(), tryPush())
+Errors from [Sync.tryPush()](./git-documentdb.sync.trypush.md)
 

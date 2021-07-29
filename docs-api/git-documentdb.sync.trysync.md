@@ -25,59 +25,57 @@ Promise&lt;[SyncResult](./git-documentdb.syncresult.md) &gt;
 
 [Err.CombineDatabaseError](./git-documentdb.err.combinedatabaseerror.md)
 
-[Err.NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md) (from syncWorker())
+\# Errors from syncWorker
 
-[RemoteErr.InvalidGitRemoteError](./git-documentdb.remoteerr.invalidgitremoteerror.md) (from syncWorker())
+- [Err.NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md)
 
-[RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md) (from syncWorker())
+- [Err.ThreeWayMergeError](./git-documentdb.err.threewaymergeerror.md)
 
-[RemoteErr.NetworkError](./git-documentdb.remoteerr.networkerror.md) (from syncWorker())
+- [Err.CannotDeleteDataError](./git-documentdb.err.cannotdeletedataerror.md)
 
-[RemoteErr.HTTPError401AuthorizationRequired](./git-documentdb.remoteerr.httperror401authorizationrequired.md) (from syncWorker())
+\# Errors from fetch, pushWorker
 
-[RemoteErr.HTTPError404NotFound](./git-documentdb.remoteerr.httperror404notfound.md) (from syncWorker())
+- [RemoteErr.InvalidGitRemoteError](./git-documentdb.remoteerr.invalidgitremoteerror.md)
 
-[RemoteErr.CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md) (from syncWorker())
+- [RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
 
- (from syncWorker())
+- [RemoteErr.NetworkError](./git-documentdb.remoteerr.networkerror.md)
 
-[RemoteErr.InvalidRepositoryURLError](./git-documentdb.remoteerr.invalidrepositoryurlerror.md) (from syncWorker())
+- [RemoteErr.HTTPError401AuthorizationRequired](./git-documentdb.remoteerr.httperror401authorizationrequired.md)
 
-[RemoteErr.InvalidSSHKeyPathError](./git-documentdb.remoteerr.invalidsshkeypatherror.md) (from syncWorker())
+- [RemoteErr.HTTPError404NotFound](./git-documentdb.remoteerr.httperror404notfound.md)
 
-[RemoteErr.InvalidAuthenticationTypeError](./git-documentdb.remoteerr.invalidauthenticationtypeerror.md) (from syncWorker())
+- [RemoteErr.CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md)
 
-[RemoteErr.HTTPError403Forbidden](./git-documentdb.remoteerr.httperror403forbidden.md) (from syncWorker())
+- [RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
 
-[RemoteErr.UnfetchedCommitExistsError](./git-documentdb.remoteerr.unfetchedcommitexistserror.md) (from syncWorker())
+- [RemoteErr.InvalidRepositoryURLError](./git-documentdb.remoteerr.invalidrepositoryurlerror.md)
 
-[Err.InvalidConflictStateError](./git-documentdb.err.invalidconflictstateerror.md) (from syncWorker())
+- [RemoteErr.InvalidSSHKeyPathError](./git-documentdb.remoteerr.invalidsshkeypatherror.md)
 
-[Err.CannotDeleteDataError](./git-documentdb.err.cannotdeletedataerror.md) (from syncWorker())
+- [RemoteErr.InvalidAuthenticationTypeError](./git-documentdb.remoteerr.invalidauthenticationtypeerror.md)
 
-[Err.InvalidDocTypeError](./git-documentdb.err.invaliddoctypeerror.md) (from syncWorker())
+\# Errors from pushWorker
 
-[Err.InvalidConflictResolutionStrategyError](./git-documentdb.err.invalidconflictresolutionstrategyerror.md) (from syncWorker())
+- [RemoteErr.HTTPError403Forbidden](./git-documentdb.remoteerr.httperror403forbidden.md)
 
-[Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md) (from syncWorker())
+- [RemoteErr.UnfetchedCommitExistsError](./git-documentdb.remoteerr.unfetchedcommitexistserror.md)
 
-[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md) (from syncWorker())
+\# Errors from merge
 
- (from combineDatabaseWithTheirs())
+- [Err.InvalidConflictStateError](./git-documentdb.err.invalidconflictstateerror.md)
 
- (from combineDatabaseWithTheirs())
+- [Err.CannotDeleteDataError](./git-documentdb.err.cannotdeletedataerror.md)
 
- (from combineDatabaseWithTheirs())
+- [Err.InvalidDocTypeError](./git-documentdb.err.invaliddoctypeerror.md)
 
- (from combineDatabaseWithTheirs())
+- [Err.InvalidConflictResolutionStrategyError](./git-documentdb.err.invalidconflictresolutionstrategyerror.md)
 
- (from combineDatabaseWithTheirs())
+- [Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md)
 
- (from combineDatabaseWithTheirs())
+- [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 
- (from combineDatabaseWithTheirs())
+\# Errors from getChanges
 
- (from combineDatabaseWithTheirs())
-
- (from combineDatabaseWithTheirs())
+- [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

@@ -29,4 +29,5 @@ constructor(gitDDB: GitDDBInterface, options?: RemoteOptions);
 
 [Err.IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md)
 
+[Err.SyncIntervalLessThanOrEqualToRetryIntervalError](./git-documentdb.err.syncintervallessthanorequaltoretryintervalerror.md)
 

@@ -61,9 +61,23 @@ import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_eng
  * encodeToRemoteName
  *
  * @remarks
- * Remote name consists of host_name + hash.
- * hash is generated from remoteURL.
- * Capitalize host name of remoteURL manually when hashes collide because host name is not case sensitive.
+ * The first default name of Git remote is "origin".
+ *
+ * GitDocumentDB adds an alias of "origin",
+ * whose name is generated automatically by this function.
+ * The second and subsequent remotes are also named in the same way.
+ *
+ * A remote name consists of [remote address]_[hash].
+ * Periods are replaced with underscores.
+ * e.g.) github_com_a0b1c23
+ * It is human-readable.
+ *
+ * [remote address] is [hostname + domain name] or [ip address].
+ * [hash] is calculated from remoteURL.
+ *
+ * [hash] is the first seven characters of SHA-1 so that it may collide.
+ * Capitalize one of the remote addresses when hashes collide
+ * because a hostname and a domain name are not case sensitive.
  *
  * @public
  */
@@ -105,27 +119,8 @@ export function encodeToGitRemoteName (remoteURL: string) {
  * @throws {@link Err.DatabaseClosingError}
  * @throws {@link Err.RepositoryNotOpenError}
  *
- * @throws {@link Err.UndefinedRemoteURLError} (from constructor)
- * @throws {@link Err.IntervalTooSmallError}  (from constructor)
- * @throws {@link Err.SyncIntervalLessThanOrEqualToRetryIntervalError}  (from sync#constructor)
- *
- * @throws {@link Err.CannotCreateRemoteRepositoryError} (from init)
- * @throws {@link RemoteErr.InvalidGitRemoteError} (from init)
- * @throws {@link RemoteErr.InvalidURLFormatError} (from init)
- * @throws {@link RemoteErr.NetworkError} (from init)
- * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from init)
- * @throws {@link RemoteErr.HTTPError404NotFound} (from init)
- * @throws {@link RemoteErr.CannotConnectError} (from init)
- * @throws {@link RemoteErr.HttpProtocolRequiredError} (from init)
- * @throws {@link RemoteErr.InvalidRepositoryURLError} (from init)
- * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from init)
- * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from inti)
- * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from init)
- * @throws {@link RemoteErr.HTTPError403Forbidden} (from init)
- * @throws {@link Err.NoMergeBaseFoundError} (from init)
- * @throws {@link Err.ThreeWayMergeError} (from init)
- * @throws {@link Err.CannotDeleteDataError} (from init)
- * @throws {@link Err.InvalidJsonObjectError} (from init)
+ * @throws # Errors from constructor of {@link Sync} class.
+ * @throws # Errors from {@link Sync.init}
  *
  * @internal
  */
@@ -147,6 +142,12 @@ export async function syncAndGetResultImpl (
 /**
  * Implementation of GitDocumentDB#sync(options)
  *
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ *
+ * @throws # Errors from constructor of {@link Sync} class.
+ * @throws # Errors from {@link Sync.init}
+ *
  * @internal
  */
 export async function syncImpl (
@@ -158,6 +159,8 @@ export async function syncImpl (
 }
 
 /**
+ * Filter file changes by collectionPath
+ *
  * @internal
  */
 function filterChanges (syncResult: SyncResult, collectionPath: string): SyncResult {
@@ -340,7 +343,7 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.UndefinedRemoteURLError}
    * @throws {@link Err.IntervalTooSmallError}
-   * @throws {@link Err.InvalidAuthenticationTypeError}
+   * @throws {@link Err.SyncIntervalLessThanOrEqualToRetryIntervalError}
    *
    * @public
    */
@@ -414,25 +417,20 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.CannotCreateRemoteRepositoryError}
    *
-   * @throws {@link RemoteErr.InvalidGitRemoteError} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.InvalidURLFormatError} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.NetworkError} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.HTTPError404NotFound} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.CannotConnectError} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.HttpProtocolRequiredError} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from checkFetch(), trySync(), tryPush())
-   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from checkFetch, trySync(), tryPush())
-   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from checkFetch(), trySync(), tryPush())
+   * @throws # Errors from RemoteEngine[engineName].checkFetch
+   * @throws - {@link RemoteErr.InvalidGitRemoteError}
+   * @throws - {@link RemoteErr.InvalidURLFormatError}
+   * @throws - {@link RemoteErr.NetworkError}
+   * @throws - {@link RemoteErr.HTTPError401AuthorizationRequired}
+   * @throws - {@link RemoteErr.HTTPError404NotFound}
+   * @throws - {@link RemoteErr.CannotConnectError}
+   * @throws - {@link RemoteErr.InvalidURLFormatError}
+   * @throws - {@link RemoteErr.InvalidRepositoryURLError}
+   * @throws - {@link RemoteErr.InvalidSSHKeyPathError}
+   * @throws - {@link RemoteErr.InvalidAuthenticationTypeError}
    *
-   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from tryPush())
-   * @throws {@link RemoteErr.HTTPError403Forbidden} (from tryPush())
-   *
-   * @throws {@link Err.NoMergeBaseFoundError} (from trySync())
-   * @throws {@link Err.ThreeWayMergeError} (from trySync())
-   * @throws {@link Err.CannotDeleteDataError} (from trySync())
-   *
-   * @throws {@link Err.InvalidJsonObjectError} (from trySync(), tryPush())
+   * @throws Errors from {@link Sync.trySync}
+   * @throws Errors from {@link Sync.tryPush}
    *
    * @public
    */
@@ -649,21 +647,24 @@ export class Sync implements SyncInterface {
    *
    * @throws {@link Err.PushNotAllowedError}
    *
-   * @throws {@link InvalidGitRemoteError} (from pushWorker())
-   * @throws {@link UnfetchedCommitExistsError} (from pushWorker())
-   * @throws {@link InvalidURLFormatError} (from pushWorker())
-   * @throws {@link NetworkError} (from pushWorker())
-   * @throws {@link HTTPError401AuthorizationRequired} (from pushWorker())
-   * @throws {@link HTTPError404NotFound} (from pushWorker())
-   * @throws {@link HTTPError403Forbidden} (from pushWorker())
-   * @throws {@link CannotConnectError} (from pushWorker())
-   * @throws {@link UnfetchedCommitExistsError} (from pushWorker())
-   * @throws {@link CannotConnectError} (from pushWorker())
-   * @throws {@link HttpProtocolRequiredError} (from pushWorker())
-   * @throws {@link InvalidRepositoryURLError} (from pushWorker())
-   * @throws {@link InvalidSSHKeyPathError} (from pushWorker())
-   * @throws {@link InvalidAuthenticationTypeError} (from pushWorker())
-   * @throws {@link Err.InvalidJsonObjectError} (from pushWorker())
+   * @throws # Errors from push
+   * @throws - {@link RemoteErr.InvalidGitRemoteError}
+   * @throws - {@link RemoteErr.UnfetchedCommitExistsError}
+   * @throws - {@link RemoteErr.InvalidURLFormatError}
+   * @throws - {@link RemoteErr.NetworkError}
+   * @throws - {@link RemoteErr.HTTPError401AuthorizationRequired}
+   * @throws - {@link RemoteErr.HTTPError404NotFound}
+   * @throws - {@link RemoteErr.HTTPError403Forbidden}
+   * @throws - {@link RemoteErr.CannotConnectError}
+   * @throws - {@link RemoteErr.UnfetchedCommitExistsError}
+   * @throws - {@link RemoteErr.CannotConnectError}
+   * @throws - {@link RemoteErr.InvalidURLFormatError}
+   * @throws - {@link RemoteErr.InvalidRepositoryURLError}
+   * @throws - {@link RemoteErr.InvalidSSHKeyPathError}
+   * @throws - {@link RemoteErr.InvalidAuthenticationTypeError}
+   *
+   * @throws # Errors from getChanges
+   * @throws - {@link Err.InvalidJsonObjectError}
    *
    * @public
    */
@@ -782,35 +783,37 @@ export class Sync implements SyncInterface {
    * @throws {@link Err.PushNotAllowedError}
    * @throws {@link Err.CombineDatabaseError}
    *
-   * @throws {@link Err.NoMergeBaseFoundError} (from syncWorker())
-   * @throws {@link RemoteErr.InvalidGitRemoteError} (from syncWorker())
-   * @throws {@link RemoteErr.InvalidURLFormatError} (from syncWorker())
-   * @throws {@link RemoteErr.NetworkError} (from syncWorker())
-   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from syncWorker())
-   * @throws {@link RemoteErr.HTTPError404NotFound} (from syncWorker())
-   * @throws {@link RemoteErr.CannotConnectError}  (from syncWorker())
-   * @throws {@link RemoteErr.HttpProtocolRequiredError}   (from syncWorker())
-   * @throws {@link RemoteErr.InvalidRepositoryURLError} (from syncWorker())
-   * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from syncWorker())
-   * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from syncWorker())
-   * @throws {@link RemoteErr.HTTPError403Forbidden} (from syncWorker())
-   * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from syncWorker())
-   * @throws {@link Err.InvalidConflictStateError} (from syncWorker())
-   * @throws {@link Err.CannotDeleteDataError} (from syncWorker())
-   * @throws {@link Err.InvalidDocTypeError} (from syncWorker())
-   * @throws {@link Err.InvalidConflictResolutionStrategyError} (from syncWorker())
-   * @throws {@link Err.CannotCreateDirectoryError} (from syncWorker())
-   * @throws {@link Err.InvalidJsonObjectError} (from syncWorker())
+   * @throws # Errors from syncWorker
+   * @throws - {@link Err.NoMergeBaseFoundError}
+   * @throws - {@link Err.ThreeWayMergeError}
+   * @throws - {@link Err.CannotDeleteDataError}
    *
-   * @throws {@link InvalidURLFormatError} (from combineDatabaseWithTheirs())
-   * @throws {@link NetworkError} (from combineDatabaseWithTheirs())
-   * @throws {@link HTTPError401AuthorizationRequired} (from combineDatabaseWithTheirs())
-   * @throws {@link HTTPError404NotFound} (from combineDatabaseWithTheirs())
-   * @throws {@link CannotConnectError} (from combineDatabaseWithTheirs())
-   * @throws {@link HttpProtocolRequiredError}  (from combineDatabaseWithTheirs())
-   * @throws {@link InvalidRepositoryURLError} (from combineDatabaseWithTheirs())
-   * @throws {@link InvalidSSHKeyPathError} (from combineDatabaseWithTheirs())
-   * @throws {@link InvalidAuthenticationTypeError} (from combineDatabaseWithTheirs())
+   * @throws # Errors from fetch, pushWorker
+   * @throws - {@link RemoteErr.InvalidGitRemoteError}
+   * @throws - {@link RemoteErr.InvalidURLFormatError}
+   * @throws - {@link RemoteErr.NetworkError}
+   * @throws - {@link RemoteErr.HTTPError401AuthorizationRequired}
+   * @throws - {@link RemoteErr.HTTPError404NotFound}
+   * @throws - {@link RemoteErr.CannotConnectError}
+   * @throws - {@link RemoteErr.InvalidURLFormatError}
+   * @throws - {@link RemoteErr.InvalidRepositoryURLError}
+   * @throws - {@link RemoteErr.InvalidSSHKeyPathError}
+   * @throws - {@link RemoteErr.InvalidAuthenticationTypeError}
+   *
+   * @throws # Errors from pushWorker
+   * @throws - {@link RemoteErr.HTTPError403Forbidden}
+   * @throws - {@link RemoteErr.UnfetchedCommitExistsError}
+   *
+   * @throws # Errors from merge
+   * @throws - {@link Err.InvalidConflictStateError}
+   * @throws - {@link Err.CannotDeleteDataError}
+   * @throws - {@link Err.InvalidDocTypeError}
+   * @throws - {@link Err.InvalidConflictResolutionStrategyError}
+   * @throws - {@link Err.CannotCreateDirectoryError}
+   * @throws - {@link Err.InvalidJsonObjectError}
+   *
+   * @throws # Errors from getChanges
+   * @throws - {@link Err.InvalidJsonObjectError}
    *
    * @public
    */

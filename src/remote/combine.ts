@@ -40,6 +40,8 @@ import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
  * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from clone())
  *
  * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from clone())
+ *
+ * @public
  */
 // eslint-disable-next-line complexity
 export async function combineDatabaseWithTheirs (

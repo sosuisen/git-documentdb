@@ -23,33 +23,37 @@ Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCa
 
 [Err.PushNotAllowedError](./git-documentdb.err.pushnotallowederror.md)
 
- (from pushWorker())
+\# Errors from push
 
- (from pushWorker())
+- [RemoteErr.InvalidGitRemoteError](./git-documentdb.remoteerr.invalidgitremoteerror.md)
 
- (from pushWorker())
+- [RemoteErr.UnfetchedCommitExistsError](./git-documentdb.remoteerr.unfetchedcommitexistserror.md)
 
- (from pushWorker())
+- [RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
 
- (from pushWorker())
+- [RemoteErr.NetworkError](./git-documentdb.remoteerr.networkerror.md)
 
- (from pushWorker())
+- [RemoteErr.HTTPError401AuthorizationRequired](./git-documentdb.remoteerr.httperror401authorizationrequired.md)
 
- (from pushWorker())
+- [RemoteErr.HTTPError404NotFound](./git-documentdb.remoteerr.httperror404notfound.md)
 
- (from pushWorker())
+- [RemoteErr.HTTPError403Forbidden](./git-documentdb.remoteerr.httperror403forbidden.md)
 
- (from pushWorker())
+- [RemoteErr.CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md)
 
- (from pushWorker())
+- [RemoteErr.UnfetchedCommitExistsError](./git-documentdb.remoteerr.unfetchedcommitexistserror.md)
 
- (from pushWorker())
+- [RemoteErr.CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md)
 
- (from pushWorker())
+- [RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
 
- (from pushWorker())
+- [RemoteErr.InvalidRepositoryURLError](./git-documentdb.remoteerr.invalidrepositoryurlerror.md)
 
- (from pushWorker())
+- [RemoteErr.InvalidSSHKeyPathError](./git-documentdb.remoteerr.invalidsshkeypatherror.md)
 
-[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md) (from pushWorker())
+- [RemoteErr.InvalidAuthenticationTypeError](./git-documentdb.remoteerr.invalidauthenticationtypeerror.md)
+
+\# Errors from getChanges
+
+- [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

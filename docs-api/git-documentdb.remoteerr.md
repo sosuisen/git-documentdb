@@ -8,6 +8,8 @@ hide_title: true
 
 ## RemoteErr namespace
 
+RemoteError
+
 <b>Signature:</b>
 
 ```typescript

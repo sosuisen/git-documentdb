@@ -4,8 +4,18 @@ import { Logger } from 'tslog';
 import * as RemoteErrors from 'git-documentdb-remote-errors';
 import { RemoteOptions } from '../types';
 
+/**
+ * RemoteEngine
+ *
+ * @public
+ */
 export const RemoteEngine: { [key: string]: RemoteEngineInterface } = {};
 
+/**
+ * RemoteEngineInterface
+ *
+ * @public
+ */
 export interface RemoteEngineInterface {
   checkFetch: (
     workingDir: string,
@@ -35,6 +45,11 @@ export interface RemoteEngineInterface {
   ) => Promise<void>;
 }
 
+/**
+ * RemoteError
+ *
+ * @public
+ */
 export namespace RemoteErr {
   /**
    * Copy error message from parent
@@ -107,6 +122,11 @@ export namespace RemoteErr {
   }
 }
 
+/**
+ * wrappingRemoteEngineError
+ *
+ * @public
+ */
 // eslint-disable-next-line complexity
 export function wrappingRemoteEngineError (remoteEngineError: RemoteErrors.BaseError) {
   switch (true) {

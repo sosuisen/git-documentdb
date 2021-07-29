@@ -868,12 +868,12 @@ export type PutResultText = {
     type: 'text';
 };
 
-// @public (undocumented)
+// @public
 export const RemoteEngine: {
     [key: string]: RemoteEngineInterface;
 };
 
-// @public (undocumented)
+// @public
 export interface RemoteEngineInterface {
     // (undocumented)
     checkFetch: (workingDir: string, options: RemoteOptions, remoteName?: string, logger?: Logger) => Promise<boolean>;
@@ -885,7 +885,7 @@ export interface RemoteEngineInterface {
     push: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, localBranch?: string, remoteBranch?: string, logger?: Logger) => Promise<void>;
 }
 
-// @public (undocumented)
+// @public
 export namespace RemoteErr {
     export class CannotConnectError extends RemoteErrors.CannotConnectError {
         constructor(mes: unknown);
@@ -1350,7 +1350,7 @@ export class Validator {
     validateLocalDir(localDir: string): void;
 }
 
-// @public (undocumented)
+// @public
 export function wrappingRemoteEngineError(remoteEngineError: RemoteErrors.BaseError): Error;
 
 // @public

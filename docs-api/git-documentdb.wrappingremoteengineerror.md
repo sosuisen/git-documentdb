@@ -8,6 +8,8 @@ hide_title: true
 
 ## wrappingRemoteEngineError() function
 
+wrappingRemoteEngineError
+
 <b>Signature:</b>
 
 ```typescript

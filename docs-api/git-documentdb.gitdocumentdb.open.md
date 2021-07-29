@@ -42,19 +42,19 @@ Promise&lt;[DatabaseOpenResult](./git-documentdb.databaseopenresult.md) &gt;
 
 [Err.RepositoryNotFoundError](./git-documentdb.err.repositorynotfounderror.md) may occurs when openOptions.createIfNotExists is false.
 
-\# from \_createRepository
+\# Errors from \_createRepository
 
-[Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md)
+- [Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md)
 
-\# from putWorker
+\# Errors from putWorker
 
-[Err.UndefinedDBError](./git-documentdb.err.undefineddberror.md)
+- [Err.UndefinedDBError](./git-documentdb.err.undefineddberror.md)
 
-[Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md)
+- [Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md)
 
-[Err.SameIdExistsError](./git-documentdb.err.sameidexistserror.md)
+- [Err.SameIdExistsError](./git-documentdb.err.sameidexistserror.md)
 
-[Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md)
+- [Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md)
 
-[Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md)
+- [Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md)
 

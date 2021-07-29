@@ -20,6 +20,9 @@ import { JsonDiff } from './json_diff';
 import { SyncInterface } from '../types_sync';
 import { isSameFatDoc } from '../crud/blob';
 
+/**
+ * @internal
+ */
 function getStrategy (
   strategy: ConflictResolutionStrategies | undefined,
   oursDoc?: FatDoc,
@@ -46,6 +49,8 @@ function getStrategy (
 
 /**
  * @throws {@link Err.InvalidConflictResolutionStrategyError}
+ *
+ * @internal
  */
 function getMergedJsonDoc (
   jsonDiff: JsonDiff,
@@ -88,6 +93,8 @@ function getMergedJsonDoc (
 
 /**
  * @throws {@link Err.InvalidConflictResolutionStrategyError}
+ *
+ * @internal
  */
 function getMergedTextDoc (
   strategy: ConflictResolutionStrategyLabels,
@@ -115,6 +122,8 @@ function getMergedTextDoc (
 
 /**
  * @throws {@link Err.InvalidConflictResolutionStrategyError}
+ *
+ * @internal
  */
 function getMergedBinaryDoc (
   strategy: ConflictResolutionStrategyLabels,
@@ -135,7 +144,11 @@ function getMergedBinaryDoc (
  * getMergedDocument
  *
  * @throws {@link Err.InvalidDocTypeError}
- * @throws {@link Err.InvalidConflictResolutionStrategyError} (from getMergedJsonDoc, getMergedTextDoc, getMergedBinaryDoc)
+ *
+ * @throws # Errors from getMergedJsonDoc, getMergedTextDoc, getMergedBinaryDoc
+ * @throws - {@link Err.InvalidConflictResolutionStrategyError}
+ *
+ * @internal
  */
 function getMergedDocument (
   jsonDiff: JsonDiff,
@@ -180,12 +193,9 @@ function getMergedDocument (
 /**
  * merge
  *
- * @throws {@link Err.InvalidConflictStateError} (from threeWayMerge())
- * @throws {@link Err.CannotDeleteDataError} (from threeWayMerge())
- * @throws {@link Err.InvalidDocTypeError} (from threeWayMerge())
- * @throws {@link Err.InvalidConflictResolutionStrategyError} (from threeWayMerge())
- * @throws {@link Err.CannotCreateDirectoryError} (from threeWayMerge())
- * @throws {@link Err.InvalidJsonObjectError} (from threeWayMerge())
+ * @throws Errors from {@link threeWayMerge}
+ *
+ * @internal
  */
 export async function merge (
   gitDDB: GitDDBInterface,
@@ -294,11 +304,15 @@ export async function merge (
  * @throws {@link Err.InvalidConflictStateError}
  * @throws {@link Err.CannotDeleteDataError}
  *
- * @throws {@link Err.InvalidDocTypeError} (from getMergedDocument())
- * @throws {@link Err.InvalidConflictResolutionStrategyError} (from getMergedDocument())
+ * @throws # Errors from getMergedDocument
+ * @throws - {@link Err.InvalidDocTypeError}
+ * @throws - {@link Err.InvalidConflictResolutionStrategyError}
  *
- * @throws {@link Err.CannotCreateDirectoryError} (from writeBlobToFile)
- * @throws {@link Err.InvalidJsonObjectError} (from getFatDocFromData, getFatDocFromReadBlobResult)
+ * @throws # Errors from writeBlobToFile
+ * @throws - {@link Err.CannotCreateDirectoryError}
+ *
+ * @throws # Errors from getFatDocFromData, getFatDocFromReadBlobResult
+ * @throws - {@link Err.InvalidJsonObjectError}
  *
  */
 // eslint-disable-next-line complexity

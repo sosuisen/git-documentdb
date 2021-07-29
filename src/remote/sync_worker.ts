@@ -35,29 +35,35 @@ import { Err } from '../error';
  * @throws {@link Err.ThreeWayMergeError}
  * @throws {@link Err.CannotDeleteDataError}
  *
- * @throws {@link RemoteErr.InvalidGitRemoteError} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.InvalidURLFormatError} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.NetworkError} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.HTTPError404NotFound} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.CannotConnectError} (from fetch()), pushWorker())
- * @throws {@link RemoteErr.HttpProtocolRequiredError} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.InvalidRepositoryURLError} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from fetch(), pushWorker())
- * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from fetch(), pushWorker())
+ * @throws # Errors from fetch, pushWorker
+ * @throws - {@link RemoteErr.InvalidGitRemoteError}
+ * @throws - {@link RemoteErr.InvalidURLFormatError}
+ * @throws - {@link RemoteErr.NetworkError}
+ * @throws - {@link RemoteErr.HTTPError401AuthorizationRequired}
+ * @throws - {@link RemoteErr.HTTPError404NotFound}
+ * @throws - {@link RemoteErr.CannotConnectError}
+ * @throws - {@link RemoteErr.HttpProtocolRequiredError}
+ * @throws - {@link RemoteErr.InvalidRepositoryURLError}
+ * @throws - {@link RemoteErr.InvalidSSHKeyPathError}
+ * @throws - {@link RemoteErr.InvalidAuthenticationTypeError}
  *
- * @throws {@link HTTPError403Forbidden} (from pushWorker())
- * @throws {@link UnfetchedCommitExistsError} (from pushWorker())
+ * @throws # Errors from pushWorker
+ * @throws - {@link RemoteErr.HTTPError403Forbidden}
+ * @throws - {@link RemoteErr.UnfetchedCommitExistsError}
  *
- * @throws {@link Err.InvalidConflictStateError} (from merge())
- * @throws {@link Err.CannotDeleteDataError} (from merge())
- * @throws {@link Err.InvalidDocTypeError} (from merge())
- * @throws {@link Err.InvalidConflictResolutionStrategyError} (from merge())
- * @throws {@link Err.CannotCreateDirectoryError} (from merge())
- * @throws {@link Err.InvalidJsonObjectError} (from merge())
-
- * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
+ * @throws # Errors from merge
+ * @throws - {@link Err.InvalidConflictStateError}
+ * @throws - {@link Err.CannotDeleteDataError}
+ * @throws ## Errors from getMergedDocument
+ * @throws - {@link Err.InvalidDocTypeError}
+ * @throws - {@link Err.InvalidConflictResolutionStrategyError}
+ * @throws ## Errors from writeBlobToFile
+ * @throws - {@link Err.CannotCreateDirectoryError}
+ * @throws ## Errors from getFatDocFromData, getFatDocFromReadBlobResult
+ * @throws - {@link Err.InvalidJsonObjectError}
  *
+ * @throws # Errors from getChanges
+ * @throws - {@link Err.InvalidJsonObjectError}
  *
  * @internal
  */

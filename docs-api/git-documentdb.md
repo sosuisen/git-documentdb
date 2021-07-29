@@ -26,7 +26,7 @@ Offline-first Database that Syncs with Git
 |  Function | Description |
 |  --- | --- |
 |  [encodeToGitRemoteName(remoteURL)](./git-documentdb.encodetogitremotename.md) | encodeToRemoteName |
-|  [wrappingRemoteEngineError(remoteEngineError)](./git-documentdb.wrappingremoteengineerror.md) |  |
+|  [wrappingRemoteEngineError(remoteEngineError)](./git-documentdb.wrappingremoteengineerror.md) | wrappingRemoteEngineError |
 
 ## Interfaces
 
@@ -35,7 +35,7 @@ Offline-first Database that Syncs with Git
 |  [CollectionInterface](./git-documentdb.collectioninterface.md) | Interface for Collection |
 |  [CRUDInterface](./git-documentdb.crudinterface.md) | Interface for GitDocumentDB CRUD |
 |  [GitDDBInterface](./git-documentdb.gitddbinterface.md) | Interface of GitDocumentDB body |
-|  [RemoteEngineInterface](./git-documentdb.remoteengineinterface.md) |  |
+|  [RemoteEngineInterface](./git-documentdb.remoteengineinterface.md) | RemoteEngineInterface |
 |  [SyncEventInterface](./git-documentdb.synceventinterface.md) | Interface for SyncEvent |
 |  [SyncInterface](./git-documentdb.syncinterface.md) | Interface of Sync |
 
@@ -44,7 +44,7 @@ Offline-first Database that Syncs with Git
 |  Namespace | Description |
 |  --- | --- |
 |  [Err](./git-documentdb.err.md) | Namespace for errors |
-|  [RemoteErr](./git-documentdb.remoteerr.md) |  |
+|  [RemoteErr](./git-documentdb.remoteerr.md) | RemoteError |
 
 ## Variables
 
@@ -70,7 +70,7 @@ Offline-first Database that Syncs with Git
 |  [NETWORK\_RETRY](./git-documentdb.network_retry.md) |  |
 |  [NETWORK\_TIMEOUT](./git-documentdb.network_timeout.md) |  |
 |  [PUT\_APP\_INFO\_MESSAGE](./git-documentdb.put_app_info_message.md) |  |
-|  [RemoteEngine](./git-documentdb.remoteengine.md) |  |
+|  [RemoteEngine](./git-documentdb.remoteengine.md) | RemoteEngine |
 |  [SET\_DATABASE\_ID\_MESSAGE](./git-documentdb.set_database_id_message.md) |  |
 |  [SHORT\_SHA\_LENGTH](./git-documentdb.short_sha_length.md) |  |
 

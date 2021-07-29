@@ -17,22 +17,26 @@ import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 /**
  * Push and get changes
  *
- * @throws {@link InvalidGitRemoteError} (from push())
- * @throws {@link UnfetchedCommitExistsError} (from push())
- * @throws {@link InvalidURLFormatError} (from push())
- * @throws {@link NetworkError} (from push())
- * @throws {@link HTTPError401AuthorizationRequired} (from push())
- * @throws {@link HTTPError404NotFound} (from push())
- * @throws {@link HTTPError403Forbidden} (from push())
- * @throws {@link CannotConnectError} (from push())
- * @throws {@link UnfetchedCommitExistsError} (from push())
- * @throws {@link CannotConnectError} (from push())
- * @throws {@link HttpProtocolRequiredError} (from push())
- * @throws {@link InvalidRepositoryURLError} (from push())
- * @throws {@link InvalidSSHKeyPathError} (from push())
- * @throws {@link InvalidAuthenticationTypeError} (from push())
+ * @throws # Errors from push
+ * @throws - {@link InvalidGitRemoteError}
+ * @throws - {@link UnfetchedCommitExistsError}
+ * @throws - {@link InvalidURLFormatError}
+ * @throws - {@link NetworkError}
+ * @throws - {@link HTTPError401AuthorizationRequired}
+ * @throws - {@link HTTPError404NotFound}
+ * @throws - {@link HTTPError403Forbidden}
+ * @throws - {@link CannotConnectError}
+ * @throws - {@link UnfetchedCommitExistsError}
+ * @throws - {@link CannotConnectError}
+ * @throws - {@link HttpProtocolRequiredError}
+ * @throws - {@link InvalidRepositoryURLError}
+ * @throws - {@link InvalidSSHKeyPathError}
+ * @throws - {@link InvalidAuthenticationTypeError}
  *
- * @throws {@link Err.InvalidJsonObjectError} (from getChanges())
+ * @throws # Errors from getChanges
+ * @throws - {@link Err.InvalidJsonObjectError}
+ *
+ * @internal
  */
 export async function pushWorker (
   gitDDB: GitDDBInterface,
