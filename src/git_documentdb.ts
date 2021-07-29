@@ -354,13 +354,16 @@ export class GitDocumentDB
    ***********************************************/
 
   /**
+   * Create local repository
+   * 
    * @throws {@link Err.CannotCreateDirectoryError}
    *
-   * @throws {@link Err.UndefinedDBError} (from putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
-   * @throws {@link Err.DocumentNotFoundError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.SameIdExistsError}
+   * @throws {@link Err.DocumentNotFoundError}
+   * @throws {@link Err.CannotWriteDataError}
 
    * @internal
    */
@@ -417,13 +420,15 @@ export class GitDocumentDB
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.RepositoryNotFoundError} may occurs when openOptions.createIfNotExists is false.
    *
-   * @throws {@link Err.CannotCreateDirectoryError} (from _createRepository)
+   * @throws # from _createRepository
+   * @throws {@link Err.CannotCreateDirectoryError}
    *
-   * @throws {@link Err.UndefinedDBError} (from putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
-   * @throws {@link Err.DocumentNotFoundError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.SameIdExistsError}
+   * @throws {@link Err.DocumentNotFoundError}
+   * @throws {@link Err.CannotWriteDataError}
 
    * @public
    */
@@ -465,6 +470,7 @@ export class GitDocumentDB
    * - Queued operations are executed before the database is closed unless it times out.
    *
    * @param options - The options specify how to close database.
+   *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.DatabaseCloseTimeoutError}
    *
@@ -514,6 +520,7 @@ export class GitDocumentDB
    * - destroy() does not remove localDir (which is specified in constructor).
    *
    * @param options - The options specify how to close database.
+   *
    * @throws {@link Err.DatabaseClosingError}
    * @throws {@link Err.DatabaseCloseTimeoutError}
    * @throws {@link Err.FileRemoveTimeoutError}
@@ -626,13 +633,31 @@ export class GitDocumentDB
   /**
    * Synchronize with a remote repository
    *
-   * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
-   * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
+   * @throws {@link Err.RemoteAlreadyRegisteredError}
    *
-   * @throws {@link Err.RepositoryNotFoundError} (from Sync#syncImpl())
-   * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
-   * @throws {@link Err.PushWorkerError} (from Sync#init())
-   * @throws {@link Err.SyncWorkerError} (from Sync#init())
+   * @throws # from Sync#syncAndGetResultImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.UndefinedRemoteURLError}
+   * @throws {@link Err.IntervalTooSmallError}
+   * @throws {@link Err.SyncIntervalLessThanOrEqualToRetryIntervalError}
+   * @throws {@link Err.CannotCreateRemoteRepositoryError}
+   * @throws {@link RemoteErr.InvalidGitRemoteError}
+   * @throws {@link RemoteErr.InvalidURLFormatError}
+   * @throws {@link RemoteErr.NetworkError}
+   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired}
+   * @throws {@link RemoteErr.HTTPError404NotFound}
+   * @throws {@link RemoteErr.CannotConnectError}
+   * @throws {@link RemoteErr.HttpProtocolRequiredError}
+   * @throws {@link RemoteErr.InvalidRepositoryURLError}
+   * @throws {@link RemoteErr.InvalidSSHKeyPathError}
+   * @throws {@link RemoteErr.InvalidAuthenticationTypeError}
+   * @throws {@link RemoteErr.UnfetchedCommitExistsError}
+   * @throws {@link RemoteErr.HTTPError403Forbidden}
+   * @throws {@link Err.NoMergeBaseFoundError}
+   * @throws {@link Err.ThreeWayMergeError}
+   * @throws {@link Err.CannotDeleteDataError}
+   * @throws {@link Err.InvalidJsonObjectError}
    *
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
@@ -643,17 +668,35 @@ export class GitDocumentDB
   /**
    * Synchronize with a remote repository
    *
-   * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
-   * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
-   *
-   * @throws {@link Err.RepositoryNotFoundError} (from Sync#syncAndGetResultImpl())
-   * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
-   * @throws {@link Err.PushWorkerError} (from Sync#init())
-   * @throws {@link Err.SyncWorkerError} (from Sync#init())
-   *
    * @remarks
    * Register and synchronize with a remote repository. Do not register the same remote repository again. Call unregisterRemote() before register it again.
    *
+   * @throws {@link Err.RemoteAlreadyRegisteredError}
+   *
+   * @throws # from Sync#syncAndGetResultImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.RepositoryNotOpenError}
+   * @throws {@link Err.UndefinedRemoteURLError}
+   * @throws {@link Err.IntervalTooSmallError}
+   * @throws {@link Err.SyncIntervalLessThanOrEqualToRetryIntervalError}
+   * @throws {@link Err.CannotCreateRemoteRepositoryError}
+   * @throws {@link RemoteErr.InvalidGitRemoteError}
+   * @throws {@link RemoteErr.InvalidURLFormatError}
+   * @throws {@link RemoteErr.NetworkError}
+   * @throws {@link RemoteErr.HTTPError401AuthorizationRequired}
+   * @throws {@link RemoteErr.HTTPError404NotFound}
+   * @throws {@link RemoteErr.CannotConnectError}
+   * @throws {@link RemoteErr.HttpProtocolRequiredError}
+   * @throws {@link RemoteErr.InvalidRepositoryURLError}
+   * @throws {@link RemoteErr.InvalidSSHKeyPathError}
+   * @throws {@link RemoteErr.InvalidAuthenticationTypeError}
+   * @throws {@link RemoteErr.UnfetchedCommitExistsError}
+   * @throws {@link RemoteErr.HTTPError403Forbidden}
+   * @throws {@link Err.NoMergeBaseFoundError}
+   * @throws {@link Err.ThreeWayMergeError}
+   * @throws {@link Err.CannotDeleteDataError}
+   * @throws {@link Err.InvalidJsonObjectError}
+
    * @public
    */
   async sync (options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
@@ -779,11 +822,12 @@ export class GitDocumentDB
   /**
    * Load DatabaseInfo from .gitddb/info.json
    *
-   * @throws {@link Err.UndefinedDBError} (from putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
-   * @throws {@link Err.DocumentNotFoundError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.SameIdExistsError}
+   * @throws {@link Err.DocumentNotFoundError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @internal
    */
@@ -854,15 +898,18 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @public
    */
@@ -886,15 +933,18 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @public
    */
@@ -930,17 +980,20 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError}
    *
    * @public
    */
@@ -964,17 +1017,20 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError}
    *
    * @public
    */
@@ -1010,16 +1066,18 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @throws {@link Err.DocumentNotFoundError}
    *
@@ -1043,15 +1101,18 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @throws {@link Err.DocumentNotFoundError}
    *
@@ -1090,15 +1151,18 @@ export class GitDocumentDB
    * @throws {@link Err.InvalidJsonFileExtensionError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @public
    */
@@ -1128,17 +1192,20 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError}
    *
    * @public
    */
@@ -1168,15 +1235,18 @@ export class GitDocumentDB
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # fromm putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @throws {@link Err.DocumentNotFoundError}
    *
@@ -1247,7 +1317,6 @@ export class GitDocumentDB
    *  - This is an alias of GitDocumentDB#rootCollection.getDocByOid()
    *
    * @throws {@link Err.DatabaseClosingError}
-
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1276,7 +1345,6 @@ export class GitDocumentDB
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1383,7 +1451,6 @@ export class GitDocumentDB
    * ```
    *
    * @throws {@link Err.DatabaseClosingError}
-
    * @throws {@link Err.InvalidJsonObjectError}
    *
    * @public
@@ -1435,13 +1502,16 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.delete()
    *
-   * @throws {@link Err.UndefinedDocumentIdError} (from Collection#delete)
-   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
-   * @throws {@link Err.TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError}
    *
-   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
-   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
+   * @throws from deleteImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
+   *
+   * @throws from deleteWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.DocumentNotFoundError}
+   * @throws {@link Err.CannotDeleteDataError}
    *
    * @public
    */
@@ -1455,13 +1525,16 @@ export class GitDocumentDB
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.delete()
    *
-   * @throws {@link Err.UndefinedDocumentIdError} (from Collection#delete)
-   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
-   * @throws {@link Err.TaskCancelError} (from deleteImpl)
+   * @throws {@link Err.UndefinedDocumentIdError}
    *
-   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
-   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
+   * @throws from deleteImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
+   *
+   * @throws from deleteWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.DocumentNotFoundError}
+   * @throws {@link Err.CannotDeleteDataError}
    *
    * @public
    */

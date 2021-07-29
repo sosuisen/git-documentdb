@@ -77,7 +77,5 @@ Thus, a history is not [undefined, undefined, file_v2, undefined, file_v2, file_
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

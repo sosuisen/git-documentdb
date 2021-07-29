@@ -22,7 +22,7 @@ export declare namespace Err
 |  --- | --- |
 |  [AuthenticationTypeNotAllowCreateRepositoryError](./git-documentdb.err.authenticationtypenotallowcreaterepositoryerror.md) |  |
 |  [BaseError](./git-documentdb.err.baseerror.md) | BaseError |
-|  [CannotConnectError](./git-documentdb.err.cannotconnecterror.md) |  |
+|  [CannotConnectRemoteRepositoryError](./git-documentdb.err.cannotconnectremoterepositoryerror.md) |  |
 |  [CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md) |  |
 |  [CannotCreateRemoteRepositoryError](./git-documentdb.err.cannotcreateremoterepositoryerror.md) |  |
 |  [CannotCreateRepositoryError](./git-documentdb.err.cannotcreaterepositoryerror.md) |  |
@@ -34,17 +34,14 @@ export declare namespace Err
 |  [DatabaseCloseTimeoutError](./git-documentdb.err.databaseclosetimeouterror.md) |  |
 |  [DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md) |  |
 |  [DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md) |  |
-|  [FetchConnectionFailedError](./git-documentdb.err.fetchconnectionfailederror.md) |  |
-|  [FetchPermissionDeniedError](./git-documentdb.err.fetchpermissiondeniederror.md) |  |
 |  [FileRemoveTimeoutError](./git-documentdb.err.fileremovetimeouterror.md) |  |
 |  [GitMergeBranchError](./git-documentdb.err.gitmergebrancherror.md) |  |
-|  [GitPushError](./git-documentdb.err.gitpusherror.md) |  |
 |  [HTTPNetworkError](./git-documentdb.err.httpnetworkerror.md) |  |
 |  [HttpProtocolRequiredError](./git-documentdb.err.httpprotocolrequirederror.md) |  |
 |  [IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md) |  |
-|  [InvalidAuthenticationTypeError](./git-documentdb.err.invalidauthenticationtypeerror.md) |  |
 |  [InvalidCollectionPathCharacterError](./git-documentdb.err.invalidcollectionpathcharactererror.md) |  |
 |  [InvalidCollectionPathLengthError](./git-documentdb.err.invalidcollectionpathlengtherror.md) |  |
+|  [InvalidConflictResolutionStrategyError](./git-documentdb.err.invalidconflictresolutionstrategyerror.md) |  |
 |  [InvalidConflictStateError](./git-documentdb.err.invalidconflictstateerror.md) |  |
 |  [InvalidDbNameCharacterError](./git-documentdb.err.invaliddbnamecharactererror.md) |  |
 |  [InvalidDocTypeError](./git-documentdb.err.invaliddoctypeerror.md) |  |
@@ -53,19 +50,12 @@ export declare namespace Err
 |  [InvalidJsonFileExtensionError](./git-documentdb.err.invalidjsonfileextensionerror.md) |  |
 |  [InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md) |  |
 |  [InvalidLocalDirCharacterError](./git-documentdb.err.invalidlocaldircharactererror.md) |  |
-|  [InvalidRepositoryURLError](./git-documentdb.err.invalidrepositoryurlerror.md) |  |
-|  [InvalidSSHKeyPathError](./git-documentdb.err.invalidsshkeypatherror.md) |  |
-|  [InvalidURLError](./git-documentdb.err.invalidurlerror.md) |  |
 |  [InvalidWorkingDirectoryPathLengthError](./git-documentdb.err.invalidworkingdirectorypathlengtherror.md) |  |
 |  [NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md) |  |
 |  [PersonalAccessTokenForAnotherAccountError](./git-documentdb.err.personalaccesstokenforanotheraccounterror.md) |  |
-|  [PushConnectionFailedError](./git-documentdb.err.pushconnectionfailederror.md) |  |
 |  [PushNotAllowedError](./git-documentdb.err.pushnotallowederror.md) |  |
-|  [PushPermissionDeniedError](./git-documentdb.err.pushpermissiondeniederror.md) |  |
 |  [PushWorkerError](./git-documentdb.err.pushworkererror.md) |  |
 |  [RemoteAlreadyRegisteredError](./git-documentdb.err.remotealreadyregisterederror.md) |  |
-|  [RemoteRepositoryConnectError](./git-documentdb.err.remoterepositoryconnecterror.md) |  |
-|  [RemoteRepositoryNotFoundError](./git-documentdb.err.remoterepositorynotfounderror.md) |  |
 |  [RepositoryNotFoundError](./git-documentdb.err.repositorynotfounderror.md) |  |
 |  [RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md) |  |
 |  [RequestTimeoutError](./git-documentdb.err.requesttimeouterror.md) |  |
@@ -73,7 +63,6 @@ export declare namespace Err
 |  [SocketTimeoutError](./git-documentdb.err.sockettimeouterror.md) |  |
 |  [SyncIntervalLessThanOrEqualToRetryIntervalError](./git-documentdb.err.syncintervallessthanorequaltoretryintervalerror.md) |  |
 |  [SyncWorkerError](./git-documentdb.err.syncworkererror.md) |  |
-|  [SyncWorkerFetchError](./git-documentdb.err.syncworkerfetcherror.md) |  |
 |  [TaskCancelError](./git-documentdb.err.taskcancelerror.md) |  |
 |  [ThreeWayMergeError](./git-documentdb.err.threewaymergeerror.md) |  |
 |  [UndefinedDatabaseNameError](./git-documentdb.err.undefineddatabasenameerror.md) |  |
@@ -82,5 +71,4 @@ export declare namespace Err
 |  [UndefinedPersonalAccessTokenError](./git-documentdb.err.undefinedpersonalaccesstokenerror.md) |  |
 |  [UndefinedRemoteURLError](./git-documentdb.err.undefinedremoteurlerror.md) |  |
 |  [UndefinedSyncError](./git-documentdb.err.undefinedsyncerror.md) |  |
-|  [UnfetchedCommitExistsError](./git-documentdb.err.unfetchedcommitexistserror.md) |  |
 

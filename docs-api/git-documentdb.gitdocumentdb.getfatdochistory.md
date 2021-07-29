@@ -46,7 +46,5 @@ Array of FatDoc or undefined. - undefined if a specified data does not exist or 
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

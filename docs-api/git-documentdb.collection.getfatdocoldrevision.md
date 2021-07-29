@@ -52,7 +52,5 @@ collection.getFatDocOldRevision(shortName, 2); // returns a FatDoc two revisions
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

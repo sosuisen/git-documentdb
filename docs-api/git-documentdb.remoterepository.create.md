@@ -29,7 +29,7 @@ connection.type must be 'github'
 
 [Err.PersonalAccessTokenForAnotherAccountError](./git-documentdb.err.personalaccesstokenforanotheraccounterror.md)
 
-[Err.CannotConnectError](./git-documentdb.err.cannotconnecterror.md)
+[Err.CannotConnectRemoteRepositoryError](./git-documentdb.err.cannotconnectremoterepositoryerror.md)
 
 may include the following errors:
 

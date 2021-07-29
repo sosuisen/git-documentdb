@@ -50,10 +50,8 @@ export interface GitDDBInterface
 |  [loadDbInfo()](./git-documentdb.gitddbinterface.loaddbinfo.md) |  |
 |  [open(options)](./git-documentdb.gitddbinterface.open.md) | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public methods \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 |  [removeSync(remoteURL)](./git-documentdb.gitddbinterface.removesync.md) |  |
-|  [repository()](./git-documentdb.gitddbinterface.repository.md) |  |
 |  [saveAppInfo(info)](./git-documentdb.gitddbinterface.saveappinfo.md) |  |
 |  [saveAuthor()](./git-documentdb.gitddbinterface.saveauthor.md) |  |
-|  [setRepository(repos)](./git-documentdb.gitddbinterface.setrepository.md) |  |
 |  [sync(options, getSyncResult)](./git-documentdb.gitddbinterface.sync.md) |  |
 |  [sync(options)](./git-documentdb.gitddbinterface.sync_1.md) |  |
 

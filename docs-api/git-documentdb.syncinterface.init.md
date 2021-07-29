@@ -13,15 +13,8 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-init(repos: nodegit.Repository): Promise<SyncResult>;
+init(): Promise<SyncResult>;
 ```
-
-## Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  repos | nodegit.Repository |  |
-
 <b>Returns:</b>
 
 Promise&lt;[SyncResult](./git-documentdb.syncresult.md) &gt;

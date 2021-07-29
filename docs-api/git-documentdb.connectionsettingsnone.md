@@ -15,5 +15,6 @@ Connection settings do not exist.
 ```typescript
 export declare type ConnectionSettingsNone = {
     type: 'none';
+    engine?: string;
 };
 ```

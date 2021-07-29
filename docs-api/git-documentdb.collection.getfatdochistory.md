@@ -44,7 +44,5 @@ See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) f
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 

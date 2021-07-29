@@ -7,11 +7,6 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-/**
- * Test push
- * by using GitHub Personal Access Token
- * These tests create a new repository on GitHub if not exists.
- */
 import path from 'path';
 import fs from 'fs-extra';
 import { ConnectionSettingsGitHub } from '../../src/types';

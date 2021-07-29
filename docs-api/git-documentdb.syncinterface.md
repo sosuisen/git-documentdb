@@ -20,13 +20,13 @@ export interface SyncInterface
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [credentialCallbacks](./git-documentdb.syncinterface.credentialcallbacks.md) | { \[key: string\]: any; } |  |
+|  [engine](./git-documentdb.syncinterface.engine.md) | string |  |
 |  [jsonDiff](./git-documentdb.syncinterface.jsondiff.md) | JsonDiff |  |
 |  [jsonPatch](./git-documentdb.syncinterface.jsonpatch.md) | IJsonPatch |  |
 |  [options](./git-documentdb.syncinterface.options.md) | [RemoteOptions](./git-documentdb.remoteoptions.md) |  |
+|  [remoteName](./git-documentdb.syncinterface.remotename.md) | string |  |
 |  [remoteRepository](./git-documentdb.syncinterface.remoterepository.md) | [RemoteRepository](./git-documentdb.remoterepository.md) |  |
 |  [remoteURL](./git-documentdb.syncinterface.remoteurl.md) | string | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties (readonly) \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
-|  [upstreamBranch](./git-documentdb.syncinterface.upstreambranch.md) | string |  |
 
 ## Methods
 
@@ -34,9 +34,7 @@ export interface SyncInterface
 |  --- | --- |
 |  [close()](./git-documentdb.syncinterface.close.md) |  |
 |  [currentRetries()](./git-documentdb.syncinterface.currentretries.md) |  |
-|  [enqueuePushTask()](./git-documentdb.syncinterface.enqueuepushtask.md) |  |
-|  [enqueueSyncTask()](./git-documentdb.syncinterface.enqueuesynctask.md) |  |
-|  [init(repos)](./git-documentdb.syncinterface.init.md) | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public methods \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
+|  [init()](./git-documentdb.syncinterface.init.md) | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public methods \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 |  [off(event, callback)](./git-documentdb.syncinterface.off.md) |  |
 |  [on(event, callback, collectionPath)](./git-documentdb.syncinterface.on.md) |  |
 |  [pause()](./git-documentdb.syncinterface.pause.md) |  |

@@ -15,6 +15,7 @@ Connection settings for SSH
 ```typescript
 export declare type ConnectionSettingsSSH = {
     type: 'ssh';
+    engine?: string;
     privateKeyPath: string;
     publicKeyPath: string;
     passPhrase?: string;

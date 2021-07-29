@@ -43,7 +43,6 @@ import { GitDDBInterface } from '../types_gitddb';
 import { syncWorker } from './sync_worker';
 import { pushWorker } from './push_worker';
 import { RemoteRepository } from './remote_repository';
-import { checkHTTP } from './net';
 import {
   DEFAULT_COMBINE_DB_STRATEGY,
   DEFAULT_CONFLICT_RESOLUTION_STRATEGY,
@@ -51,7 +50,6 @@ import {
   MINIMUM_SYNC_INTERVAL,
   NETWORK_RETRY,
   NETWORK_RETRY_INTERVAL,
-  NETWORK_TIMEOUT,
 } from '../const';
 import { JsonDiff } from './json_diff';
 import { JsonPatchOT } from './json_patch_ot';
@@ -104,16 +102,30 @@ export function encodeToGitRemoteName (remoteURL: string) {
 /**
  * Implementation of GitDocumentDB#sync(options, get_sync_result)
  *
- * @throws {@link Err.RepositoryNotFoundError}
- * @throws {@link RemoteEngine.Err.UndefinedRemoteURLError} (from Sync#constructor())
- * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
  *
- * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
- * @throws {@link Err.PushWorkerError} (from Sync#init())
- * @throws {@link Err.SyncWorkerError} (from Sync#init())
- * @throws {@link Err.NoMergeBaseFoundError}
+ * @throws {@link Err.UndefinedRemoteURLError} (from constructor)
+ * @throws {@link Err.IntervalTooSmallError}  (from constructor)
+ * @throws {@link Err.SyncIntervalLessThanOrEqualToRetryIntervalError}  (from sync#constructor)
  *
- * @throws {@link Err.PushNotAllowedError}  (from Sync#init())
+ * @throws {@link Err.CannotCreateRemoteRepositoryError} (from init)
+ * @throws {@link RemoteErr.InvalidGitRemoteError} (from init)
+ * @throws {@link RemoteErr.InvalidURLFormatError} (from init)
+ * @throws {@link RemoteErr.NetworkError} (from init)
+ * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from init)
+ * @throws {@link RemoteErr.HTTPError404NotFound} (from init)
+ * @throws {@link RemoteErr.CannotConnectError} (from init)
+ * @throws {@link RemoteErr.HttpProtocolRequiredError} (from init)
+ * @throws {@link RemoteErr.InvalidRepositoryURLError} (from init)
+ * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from init)
+ * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from inti)
+ * @throws {@link RemoteErr.UnfetchedCommitExistsError} (from init)
+ * @throws {@link RemoteErr.HTTPError403Forbidden} (from init)
+ * @throws {@link Err.NoMergeBaseFoundError} (from init)
+ * @throws {@link Err.ThreeWayMergeError} (from init)
+ * @throws {@link Err.CannotDeleteDataError} (from init)
+ * @throws {@link Err.InvalidJsonObjectError} (from init)
  *
  * @internal
  */
@@ -121,31 +133,6 @@ export async function syncAndGetResultImpl (
   this: GitDDBInterface,
   options: RemoteOptions
 ): Promise<[Sync, SyncResult]> {
-  const sync = new Sync(this, options);
-  const syncResult = await sync.init();
-  return [sync, syncResult];
-}
-/**
- * Implementation of GitDocumentDB#sync(options)
- *
- * @throws {@link DatabaseClosingError}
- * @throws {@link Err.RepositoryNotOpenError}
- *
- * @throws {@link Err.UndefinedRemoteURLError} (from Sync#constructor())
- * @throws {@link Err.IntervalTooSmallError}  (from Sync#constructor())
- *
- * @throws {@link Err.RemoteRepositoryConnectError} (from Sync#init())
- * @throws {@link Err.PushWorkerError} (from Sync#init())
- * @throws {@link Err.SyncWorkerError} (from Sync#init())
- * @throws {@link Err.NoMergeBaseFoundError}
- * @throws {@link Err.PushNotAllowedError}  (from Sync#init())
- *
- * @internal
- */
-export async function syncImpl (
-  this: GitDDBInterface,
-  options: RemoteOptions
-): Promise<Sync> {
   if (this.isClosing) {
     throw new Err.DatabaseClosingError();
   }
@@ -154,7 +141,19 @@ export async function syncImpl (
   }
 
   const sync = new Sync(this, options);
-  await sync.init();
+  const syncResult = await sync.init();
+  return [sync, syncResult];
+}
+/**
+ * Implementation of GitDocumentDB#sync(options)
+ *
+ * @internal
+ */
+export async function syncImpl (
+  this: GitDDBInterface,
+  options: RemoteOptions
+): Promise<Sync> {
+  const [sync, syncResult] = await syncAndGetResultImpl.call(this, options);
   return sync;
 }
 
@@ -404,30 +403,11 @@ export class Sync implements SyncInterface {
   }
 
   /***********************************************
-   * Private properties
-   ***********************************************/
-
-  /**
-   * Check network connection
-   *
-   * @internal
-   */
-  async canNetworkConnection (): Promise<boolean> {
-    const okOrNetworkError = await checkHTTP(
-      this._options.remoteUrl!,
-      NETWORK_TIMEOUT
-    ).catch(() => {
-      return { ok: false };
-    });
-    return okOrNetworkError.ok;
-  }
-
-  /***********************************************
    * Public properties
    ***********************************************/
 
   /**
-   * Create remote connection
+   * Initialize remote connection
    *
    * @remarks
    * Call init() once just after creating an instance.

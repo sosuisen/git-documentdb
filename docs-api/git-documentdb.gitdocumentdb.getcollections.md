@@ -28,7 +28,3 @@ Promise&lt;[ICollection](./git-documentdb.icollection.md) \[\]&gt;
 
 Promise &lt; Collection\[\] &gt;
 
-## Exceptions
-
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-

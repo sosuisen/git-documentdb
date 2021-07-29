@@ -6,7 +6,7 @@
 
 import { JSONOp } from 'ot-json1';
 import { Logger } from 'tslog';
-import nodegit from '@sosuisen/nodegit';
+import * as RemoteErrors from 'git-documentdb-remote-errors';
 import { TLogLevelName } from 'tslog';
 
 // @public
@@ -44,11 +44,6 @@ export type ChangedFileUpdate = {
     old: FatDoc;
     new: FatDoc;
 };
-
-// Warning: (ae-internal-missing-underscore) The name "cloneRepository" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function cloneRepository(workingDir: string, remoteOptions: RemoteOptions, logger?: Logger): Promise<nodegit.Repository | undefined>;
 
 // @public
 export class Collection implements ICollection {
@@ -133,6 +128,7 @@ export type ConnectionSettings = ConnectionSettingsNone | ConnectionSettingsGitH
 // @public
 export type ConnectionSettingsGitHub = {
     type: 'github';
+    engine?: string;
     personalAccessToken?: string;
     private?: boolean;
 };
@@ -140,11 +136,13 @@ export type ConnectionSettingsGitHub = {
 // @public
 export type ConnectionSettingsNone = {
     type: 'none';
+    engine?: string;
 };
 
 // @public
 export type ConnectionSettingsSSH = {
     type: 'ssh';
+    engine?: string;
     privateKeyPath: string;
     publicKeyPath: string;
     passPhrase?: string;
@@ -307,6 +305,9 @@ export type DuplicatedFile = {
 };
 
 // @public
+export function encodeToGitRemoteName(remoteURL: string): string;
+
+// @public
 export namespace Err {
     // (undocumented)
     export class AuthenticationTypeNotAllowCreateRepositoryError extends BaseError {
@@ -316,7 +317,7 @@ export namespace Err {
         constructor(e: string);
     }
     // (undocumented)
-    export class CannotConnectError extends BaseError {
+    export class CannotConnectRemoteRepositoryError extends BaseError {
         constructor(retry: number, url: string, mes: string);
         // (undocumented)
         retry: number;
@@ -366,23 +367,11 @@ export namespace Err {
         constructor(e?: unknown);
     }
     // (undocumented)
-    export class FetchConnectionFailedError extends BaseError {
-        constructor(mes: unknown);
-    }
-    // (undocumented)
-    export class FetchPermissionDeniedError extends BaseError {
-        constructor(mes: unknown);
-    }
-    // (undocumented)
     export class FileRemoveTimeoutError extends BaseError {
         constructor();
     }
     // (undocumented)
     export class GitMergeBranchError extends BaseError {
-        constructor(mes: string);
-    }
-    // (undocumented)
-    export class GitPushError extends BaseError {
         constructor(mes: string);
     }
     // (undocumented)
@@ -398,16 +387,16 @@ export namespace Err {
         constructor(min: unknown, current: unknown);
     }
     // (undocumented)
-    export class InvalidAuthenticationTypeError extends BaseError {
-        constructor(type: string);
-    }
-    // (undocumented)
     export class InvalidCollectionPathCharacterError extends BaseError {
         constructor(name: unknown);
     }
     // (undocumented)
     export class InvalidCollectionPathLengthError extends BaseError {
         constructor(collectionPath: unknown, minLength: unknown, maxLength: unknown);
+    }
+    // (undocumented)
+    export class InvalidConflictResolutionStrategyError extends BaseError {
+        constructor();
     }
     // (undocumented)
     export class InvalidConflictStateError extends BaseError {
@@ -442,18 +431,6 @@ export namespace Err {
         constructor(name: unknown);
     }
     // (undocumented)
-    export class InvalidRepositoryURLError extends BaseError {
-        constructor(url: unknown);
-    }
-    // (undocumented)
-    export class InvalidSSHKeyPathError extends BaseError {
-        constructor();
-    }
-    // (undocumented)
-    export class InvalidURLError extends BaseError {
-        constructor(url: unknown);
-    }
-    // (undocumented)
     export class InvalidWorkingDirectoryPathLengthError extends BaseError {
         constructor(path: unknown, minLength: unknown, maxLength: unknown);
     }
@@ -466,16 +443,8 @@ export namespace Err {
         constructor();
     }
     // (undocumented)
-    export class PushConnectionFailedError extends BaseError {
-        constructor(mes: unknown);
-    }
-    // (undocumented)
     export class PushNotAllowedError extends BaseError {
         constructor(direction: unknown);
-    }
-    // (undocumented)
-    export class PushPermissionDeniedError extends BaseError {
-        constructor(mes: unknown);
     }
     // (undocumented)
     export class PushWorkerError extends BaseError {
@@ -483,14 +452,6 @@ export namespace Err {
     }
     // (undocumented)
     export class RemoteAlreadyRegisteredError extends BaseError {
-        constructor(url: unknown);
-    }
-    // (undocumented)
-    export class RemoteRepositoryConnectError extends BaseError {
-        constructor(mes: unknown);
-    }
-    // (undocumented)
-    export class RemoteRepositoryNotFoundError extends BaseError {
         constructor(url: unknown);
     }
     // (undocumented)
@@ -520,10 +481,6 @@ export namespace Err {
     // (undocumented)
     export class SyncWorkerError extends BaseError {
         constructor(mes: unknown);
-    }
-    // (undocumented)
-    export class SyncWorkerFetchError extends BaseError {
-        constructor(mes: string);
     }
     // (undocumented)
     export class TaskCancelError extends BaseError {
@@ -557,11 +514,7 @@ export namespace Err {
     export class UndefinedSyncError extends BaseError {
         constructor(e?: unknown);
     }
-    // (undocumented)
-    export class UnfetchedCommitExistsError extends BaseError {
-        constructor();
-    }
-    {};
+        {};
 }
 
 // @public
@@ -674,8 +627,6 @@ export interface GitDDBInterface {
     // (undocumented)
     removeSync(remoteURL: string): void;
     // (undocumented)
-    repository(): nodegit.Repository | undefined;
-    // (undocumented)
     rootCollection: ICollection;
     // (undocumented)
     saveAppInfo(info: {
@@ -685,8 +636,6 @@ export interface GitDDBInterface {
     saveAuthor(): Promise<void>;
     // (undocumented)
     schema: Schema;
-    // (undocumented)
-    setRepository(repos: nodegit.Repository): void;
     // (undocumented)
     sync(options: RemoteOptions, getSyncResult: boolean): Promise<[SyncInterface, SyncResult]>;
     // (undocumented)
@@ -756,20 +705,18 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     // @eventProperty
     onSyncEvent(sync: SyncInterface, event: SyncEvent, callback: SyncCallback): SyncInterface;
     open(openOptions?: OpenOptions): Promise<DatabaseOpenResult>;
+    // (undocumented)
+    static plugin(obj: any): void;
     put(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     put(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     putFatDoc(name: string | undefined | null, doc: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResult>;
     removeSync(remoteURL: string): void;
-    // @deprecated
-    repository(): nodegit.Repository | undefined;
     get rootCollection(): ICollection;
     saveAppInfo(info: {
         [key: string]: any;
     }): Promise<void>;
     saveAuthor(): Promise<void>;
     get schema(): Schema;
-    // @deprecated
-    setRepository(repos: nodegit.Repository): void;
     sync(options: RemoteOptions): Promise<Sync>;
     sync(options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
     get taskQueue(): TaskQueue;
@@ -778,7 +725,7 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     updateFatDoc(name: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
     get validator(): Validator;
     get workingDir(): string;
-    }
+}
 
 // @public
 export type HistoryFilter = {
@@ -879,6 +826,9 @@ export type OpenOptions = {
     createIfNotExists?: boolean;
 };
 
+// @public
+export type PluginTypes = 'db' | 'remote';
+
 // @public (undocumented)
 export const PUT_APP_INFO_MESSAGE = "put appinfo";
 
@@ -918,6 +868,70 @@ export type PutResultText = {
     type: 'text';
 };
 
+// @public (undocumented)
+export const RemoteEngine: {
+    [key: string]: RemoteEngineInterface;
+};
+
+// @public (undocumented)
+export interface RemoteEngineInterface {
+    // (undocumented)
+    checkFetch: (workingDir: string, options: RemoteOptions, remoteName?: string, logger?: Logger) => Promise<boolean>;
+    // (undocumented)
+    clone: (workingDir: string, remoteOptions: RemoteOptions, remoteName: string, logger?: Logger) => Promise<void>;
+    // (undocumented)
+    fetch: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, logger?: Logger) => Promise<void>;
+    // (undocumented)
+    push: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, localBranch?: string, remoteBranch?: string, logger?: Logger) => Promise<void>;
+}
+
+// @public (undocumented)
+export namespace RemoteErr {
+    export class CannotConnectError extends RemoteErrors.CannotConnectError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class HTTPError401AuthorizationRequired extends RemoteErrors.HTTPError401AuthorizationRequired {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class HTTPError403Forbidden extends RemoteErrors.HTTPError403Forbidden {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class HTTPError404NotFound extends RemoteErrors.HTTPError404NotFound {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class InvalidAuthenticationTypeError extends RemoteErrors.InvalidAuthenticationTypeError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class InvalidGitRemoteError extends RemoteErrors.InvalidGitRemoteError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class InvalidRepositoryURLError extends RemoteErrors.InvalidRepositoryURLError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class InvalidSSHKeyPathError extends RemoteErrors.InvalidSSHKeyPathError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class InvalidURLFormatError extends RemoteErrors.InvalidURLFormatError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class NetworkError extends RemoteErrors.NetworkError {
+        constructor(mes: unknown);
+    }
+    // (undocumented)
+    export class UnfetchedCommitExistsError extends RemoteErrors.UnfetchedCommitExistsError {
+        constructor(mes: unknown);
+    }
+}
+
 // @public
 export type RemoteOptions = {
     remoteUrl?: string;
@@ -935,13 +949,9 @@ export type RemoteOptions = {
 // @public
 export class RemoteRepository {
     constructor(options: RemoteOptions);
-    // Warning: (ae-forgotten-export) The symbol "GitRemoteAction" needs to be exported by the entry point main.d.ts
-    connect(repos: nodegit.Repository, credentialCallbacks: {
-        [key: string]: any;
-    }, onlyFetch?: boolean): Promise<[GitRemoteAction, 'exist' | 'create']>;
     create(): Promise<void>;
     destroy(): Promise<void>;
-    }
+}
 
 // @public
 export type Schema = {
@@ -957,14 +967,10 @@ export const SHORT_SHA_LENGTH = 7;
 // @public
 export class Sync implements SyncInterface {
     constructor(gitDDB: GitDDBInterface, options?: RemoteOptions);
-    // @internal
-    canNetworkConnection(): Promise<boolean>;
     close(): void;
-    credentialCallbacks: {
-        [key: string]: any;
-    };
     currentRetries(): number;
-    enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
+    // (undocumented)
+    get engine(): string;
     enqueueSyncTask(): Promise<SyncResult>;
     // @internal
     eventHandlers: {
@@ -1005,7 +1011,7 @@ export class Sync implements SyncInterface {
             func: SyncErrorCallback;
         }[];
     };
-    init(repos: nodegit.Repository): Promise<SyncResult>;
+    init(): Promise<SyncResult>;
     // Warning: (ae-forgotten-export) The symbol "JsonDiff" needs to be exported by the entry point main.d.ts
     jsonDiff: JsonDiff;
     // Warning: (ae-forgotten-export) The symbol "JsonPatchOT" needs to be exported by the entry point main.d.ts
@@ -1016,6 +1022,7 @@ export class Sync implements SyncInterface {
     on(event: SyncEvent, callback: SyncCallback, collectionPath?: string): this;
     get options(): Required<RemoteOptions>;
     pause(): boolean;
+    get remoteName(): string;
     get remoteRepository(): RemoteRepository;
     get remoteURL(): string;
     resume(options?: {
@@ -1024,8 +1031,7 @@ export class Sync implements SyncInterface {
     }): boolean;
     tryPush(): Promise<SyncResultPush | SyncResultCancel>;
     trySync(): Promise<SyncResult>;
-    get upstreamBranch(): string;
-    }
+}
 
 // Warning: (ae-internal-missing-underscore) The name "syncAndGetResultImpl" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1079,15 +1085,9 @@ export interface SyncInterface {
     // (undocumented)
     close(): void;
     // (undocumented)
-    credentialCallbacks: {
-        [key: string]: any;
-    };
-    // (undocumented)
     currentRetries(): number;
     // (undocumented)
-    enqueuePushTask(): Promise<SyncResultPush | SyncResultCancel>;
-    // (undocumented)
-    enqueueSyncTask(): Promise<SyncResult>;
+    engine: string;
     // @internal (undocumented)
     eventHandlers: {
         change: {
@@ -1127,7 +1127,7 @@ export interface SyncInterface {
             func: SyncErrorCallback;
         }[];
     };
-    init(repos: nodegit.Repository): Promise<SyncResult>;
+    init(): Promise<SyncResult>;
     // (undocumented)
     jsonDiff: JsonDiff;
     // Warning: (ae-incompatible-release-tags) The symbol "jsonPatch" is marked as @public, but its signature references "IJsonPatch" which is marked as @internal
@@ -1135,13 +1135,15 @@ export interface SyncInterface {
     // (undocumented)
     jsonPatch: IJsonPatch;
     // (undocumented)
-    off(event: SyncEvent, callback: SyncCallback): void;
+    off(event: SyncEvent, callback: SyncCallback): SyncInterface;
     // (undocumented)
     on(event: SyncEvent, callback: SyncCallback, collectionPath?: string): SyncInterface;
     // (undocumented)
     options: RemoteOptions;
     // (undocumented)
     pause(): void;
+    // (undocumented)
+    remoteName: string;
     // (undocumented)
     remoteRepository: RemoteRepository;
     remoteURL: string;
@@ -1154,8 +1156,6 @@ export interface SyncInterface {
     tryPush(): Promise<SyncResultPush | SyncResultCancel>;
     // (undocumented)
     trySync(): Promise<SyncResult>;
-    // (undocumented)
-    upstreamBranch: string;
 }
 
 // @public
@@ -1348,10 +1348,12 @@ export class Validator {
     validateDocument(doc: JsonDoc): void;
     validateId(_id: string): void;
     validateLocalDir(localDir: string): void;
-    }
+}
+
+// @public (undocumented)
+export function wrappingRemoteEngineError(remoteEngineError: RemoteErrors.BaseError): Error;
 
 // @public
 export type WriteOperation = 'insert' | 'update' | 'delete' | 'insert-merge' | 'update-merge';
-
 
 ```

@@ -28,7 +28,3 @@ Promise&lt;[ICollection](./git-documentdb.icollection.md) \[\]&gt;
 
 Array of Collections which does not include ''.
 
-## Exceptions
-
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-

@@ -35,8 +35,6 @@ Promise&lt;[DeleteResult](./git-documentdb.deleteresult.md) &gt;
 
 [Err.TaskCancelError](./git-documentdb.err.taskcancelerror.md) (from deleteImpl)
 
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md) (from deleteWorker)
-
 [Err.UndefinedDBError](./git-documentdb.err.undefineddberror.md) (from deleteWorker)
 
 [Err.DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md) (from deleteWorker)

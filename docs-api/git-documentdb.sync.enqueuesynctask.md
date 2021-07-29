@@ -19,13 +19,3 @@ enqueueSyncTask(): Promise<SyncResult>;
 
 Promise&lt;[SyncResult](./git-documentdb.syncresult.md) &gt;
 
-## Exceptions
-
-[Err.SyncWorkerError](./git-documentdb.err.syncworkererror.md)
-
-[Err.NoMergeBaseFoundError](./git-documentdb.err.nomergebasefounderror.md)
-
-[Err.UnfetchedCommitExistsError](./git-documentdb.err.unfetchedcommitexistserror.md)
-
-[Err.PushNotAllowedError](./git-documentdb.err.pushnotallowederror.md)
-

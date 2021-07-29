@@ -11,7 +11,7 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-off(event: SyncEvent, callback: SyncCallback): void;
+off(event: SyncEvent, callback: SyncCallback): SyncInterface;
 ```
 
 ## Parameters
@@ -23,5 +23,5 @@ off(event: SyncEvent, callback: SyncCallback): void;
 
 <b>Returns:</b>
 
-void
+[SyncInterface](./git-documentdb.syncinterface.md)
 

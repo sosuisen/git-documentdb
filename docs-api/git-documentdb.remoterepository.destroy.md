@@ -27,7 +27,7 @@ connection.type must be 'github'
 
 [Err.UndefinedPersonalAccessTokenError](./git-documentdb.err.undefinedpersonalaccesstokenerror.md)
 
-[Err.CannotConnectError](./git-documentdb.err.cannotconnecterror.md)
+[Err.CannotConnectRemoteRepositoryError](./git-documentdb.err.cannotconnectremoterepositoryerror.md)
 
 may include the following errors:
 

@@ -235,16 +235,18 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
-   *
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    * @public
    */
   put (jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
@@ -265,16 +267,18 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidCollectionPathCharacterError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @public
    */
@@ -377,17 +381,20 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError}
    *
    * @public
    */
@@ -409,17 +416,20 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError}
    *
    * @public
    */
@@ -476,15 +486,18 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @throws {@link Err.DocumentNotFoundError}
    *
@@ -506,15 +519,18 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @throws {@link Err.DocumentNotFoundError}
    *
@@ -574,15 +590,18 @@ export class Collection implements ICollection {
    * @throws {@link Err.InvalidJsonFileExtensionError}
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # from putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @public
    */
@@ -691,17 +710,20 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # fromm putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
-   * @throws {@link Err.SameIdExistsError} (from putWorker)
+   * @throws {@link Err.SameIdExistsError}
    *
    * @public
    */
@@ -733,15 +755,18 @@ export class Collection implements ICollection {
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
-   * @throws {@link Err.InvalidIdCharacterError} (from validateDocument, validateId)
-   * @throws {@link Err.InvalidIdLengthError} (from validateDocument, validateId)
+   * @throws # from validateDocument, validateId
+   * @throws {@link Err.InvalidIdCharacterError}
+   * @throws {@link Err.InvalidIdLengthError}
    *
-   * @throws {@link Err.DatabaseClosingError} (fromm putImpl)
-   * @throws {@link Err.TaskCancelError} (from putImpl)
+   * @throws # fromm putImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
    *
-   * @throws {@link Err.UndefinedDBError} (fromm putWorker)
-   * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
-   * @throws {@link Err.CannotWriteDataError} (from putWorker)
+   * @throws # from putWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.CannotCreateDirectoryError}
+   * @throws {@link Err.CannotWriteDataError}
    *
    * @throws {@link Err.DocumentNotFoundError}
    *
@@ -1024,12 +1049,15 @@ export class Collection implements ICollection {
    * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
    *
    * @throws {@link Err.UndefinedDocumentIdError}
-   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
-   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
-   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
+   * @throws from deleteImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
+   *
+   * @throws from deleteWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.DocumentNotFoundError}
+   * @throws {@link Err.CannotDeleteDataError}
    *
    * @public
    */
@@ -1041,12 +1069,15 @@ export class Collection implements ICollection {
    * @param jsonDoc - JsonDoc whose _id is shortId. Only the _id property is referenced. shortId is a file path whose collectionPath and .json extension are omitted.
    *
    * @throws {@link Err.UndefinedDocumentIdError}
-   * @throws {@link Err.DatabaseClosingError} (from deleteImpl)
-   * @throws {@link Err.TaskCancelError} (from deleteImpl)
    *
-   * @throws {@link Err.UndefinedDBError} (from deleteWorker)
-   * @throws {@link Err.DocumentNotFoundError} (from deleteWorker)
-   * @throws {@link Err.CannotDeleteDataError} (from deleteWorker)
+   * @throws from deleteImpl
+   * @throws {@link Err.DatabaseClosingError}
+   * @throws {@link Err.TaskCancelError}
+   *
+   * @throws from deleteWorker
+   * @throws {@link Err.UndefinedDBError}
+   * @throws {@link Err.DocumentNotFoundError}
+   * @throws {@link Err.CannotDeleteDataError}
    *
    * @public
    */

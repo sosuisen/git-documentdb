@@ -42,21 +42,23 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 
-[Err.InvalidIdCharacterError](./git-documentdb.err.invalididcharactererror.md) (from validateDocument, validateId)
+\# from validateDocument, validateId
 
-[Err.InvalidIdLengthError](./git-documentdb.err.invalididlengtherror.md) (from validateDocument, validateId)
+[Err.InvalidIdCharacterError](./git-documentdb.err.invalididcharactererror.md)
 
-[Err.InvalidCollectionPathCharacterError](./git-documentdb.err.invalidcollectionpathcharactererror.md) (from validateDocument, validateId)
+[Err.InvalidIdLengthError](./git-documentdb.err.invalididlengtherror.md)
 
-[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md) (fromm putImpl)
+\# from putImpl
 
-[Err.TaskCancelError](./git-documentdb.err.taskcancelerror.md) (from putImpl)
+[Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[Err.UndefinedDBError](./git-documentdb.err.undefineddberror.md) (fromm putWorker)
+[Err.TaskCancelError](./git-documentdb.err.taskcancelerror.md)
 
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md) (fromm putWorker)
+\# from putWorker
 
-[Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md) (from putWorker)
+[Err.UndefinedDBError](./git-documentdb.err.undefineddberror.md)
 
-[Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md) (from putWorker)
+[Err.CannotCreateDirectoryError](./git-documentdb.err.cannotcreatedirectoryerror.md)
+
+[Err.CannotWriteDataError](./git-documentdb.err.cannotwritedataerror.md)
 

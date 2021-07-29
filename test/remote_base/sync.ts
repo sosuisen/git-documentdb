@@ -29,9 +29,6 @@ import { encodeToGitRemoteName, Sync, syncImpl } from '../../src/remote/sync';
 import { removeRemoteRepositories } from '../remote_utils';
 import { RemoteEngine, RemoteErr } from '../../src/remote/remote_engine';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const remote_nodegit_module = require('git-documentdb-plugin-remote-nodegit');
-
 export const syncBase = (
   connection: ConnectionSettings,
   remoteURLBase: string,

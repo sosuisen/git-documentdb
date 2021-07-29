@@ -15,6 +15,7 @@ Connection settings for GitHub
 ```typescript
 export declare type ConnectionSettingsGitHub = {
     type: 'github';
+    engine?: string;
     personalAccessToken?: string;
     private?: boolean;
 };

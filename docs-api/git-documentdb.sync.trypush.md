@@ -8,7 +8,7 @@ hide_title: true
 
 ## Sync.tryPush() method
 
-Try to push with retries
+Try to push
 
 <b>Signature:</b>
 
@@ -21,9 +21,35 @@ Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCa
 
 ## Exceptions
 
-[Err.PushNotAllowedError](./git-documentdb.err.pushnotallowederror.md) (from this and enqueuePushTask)
+[Err.PushNotAllowedError](./git-documentdb.err.pushnotallowederror.md)
 
-[Err.PushWorkerError](./git-documentdb.err.pushworkererror.md) (from this and enqueuePushTask)
+ (from pushWorker())
 
-[Err.UnfetchedCommitExistsError](./git-documentdb.err.unfetchedcommitexistserror.md) (from this and enqueuePushTask)
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+ (from pushWorker())
+
+[Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md) (from pushWorker())
 

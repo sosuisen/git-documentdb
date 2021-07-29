@@ -30,7 +30,5 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \[\]&gt;
 
 [Err.DatabaseClosingError](./git-documentdb.err.databaseclosingerror.md)
 
-[Err.RepositoryNotOpenError](./git-documentdb.err.repositorynotopenerror.md)
-
 [Err.InvalidJsonObjectError](./git-documentdb.err.invalidjsonobjecterror.md)
 
