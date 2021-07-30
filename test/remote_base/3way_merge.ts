@@ -38,9 +38,6 @@ import {
 } from '../remote_utils';
 import { JSON_EXT } from '../../src/const';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pushWorker_module = require('../../src/remote/push_worker');
-
 export const syncThreeWayMergeBase = (
   connection: ConnectionSettings,
   remoteURLBase: string,
