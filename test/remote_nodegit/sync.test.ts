@@ -29,7 +29,7 @@ before(() => {
 });
 
 after(() => {
-  //  fs.removeSync(path.resolve(localDir));
+  fs.removeSync(path.resolve(localDir));
 });
 
 // This test needs environment variables:
