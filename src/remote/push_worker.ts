@@ -98,14 +98,16 @@ export async function pushWorker (
     localCommitOid = headCommitOid;
   }
 
-  let baseCommitOid: string;
+  let baseCommitOid: string | undefined;
 
   if (remoteCommitOid === undefined) {
     // This is the first push in this repository.
     // Get the first commit.
     const logs = await git.log({ fs, dir: gitDDB.workingDir });
     baseCommitOid = logs[logs.length - 1].oid;
-    remoteCommitOid = baseCommitOid;
+    if (baseCommitOid === localCommitOid) {
+      baseCommitOid = undefined;
+    }
   }
   else {
     [baseCommitOid] = await git.findMergeBase({

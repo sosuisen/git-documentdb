@@ -150,7 +150,7 @@ export function getFatDocFromReadBlobResult (
  */
 export async function getChanges (
   workingDir: string,
-  oldCommitOid: string,
+  oldCommitOid: string | undefined,
   newCommitOid: string
 ) {
   return await git.walk({
@@ -164,6 +164,14 @@ export async function getChanges (
       if (fullDocPath === '.') {
         return;
       }
+      if (oldCommitOid === undefined) {
+        // Must set null explicitly.
+        a = null;
+      }
+      console.log(oldCommitOid + ',' + newCommitOid);
+      console.log(fullDocPath);
+      console.log(a);
+      console.log(b);
 
       const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
       if (docType === 'text') {
@@ -321,7 +329,7 @@ export async function getAndWriteLocalChanges (
 export async function getCommitLogs (
   workingDir: string,
   walkFromCommitOid: string,
-  walkToCommitOid: string,
+  walkToCommitOid?: string,
   walkToCommitOid2?: string
 ): Promise<NormalizedCommit[]> {
   // Return partial logs.
