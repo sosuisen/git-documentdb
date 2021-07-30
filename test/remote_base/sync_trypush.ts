@@ -13,6 +13,7 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import expect from 'expect';
+import sinon from 'sinon';
 import {
   compareWorkingDirAndBlobs,
   createDatabase,
@@ -26,6 +27,7 @@ import {
 } from '../remote_utils';
 import { ConnectionSettings, SyncResultCancel, SyncResultPush } from '../../src/types';
 import { sleep } from '../../src/utils';
+import { RemoteEngine, RemoteErr } from '../../src/remote/remote_engine';
 
 export const syncTryPushBase = (
   connection: ConnectionSettings,
@@ -38,6 +40,16 @@ export const syncTryPushBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use sandbox to restore stub and spy in parallel mocha tests
+  let sandbox: sinon.SinonSandbox;
+  beforeEach(function () {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(function () {
+    sandbox.restore();
+  });
+
   before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
@@ -48,7 +60,7 @@ export const syncTryPushBase = (
      * dbA   : +jsonA1
      * after :  jsonA1
      */
-    it('changes one remote creation when pushes after one put()', async function () {
+    it('changes one remote insertion when pushes after one put()', async function () {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
       });
@@ -60,7 +72,7 @@ export const syncTryPushBase = (
       expect(syncResult.action).toBe('push');
       if (syncResult.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
       expect(syncResult.commits).toMatchObject({
         remote: getCommitInfo([putResult]),
@@ -98,7 +110,7 @@ export const syncTryPushBase = (
       expect(syncResult.action).toBe('push');
       if (syncResult.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
 
       expect(syncResult.commits).toMatchObject({
@@ -135,7 +147,7 @@ export const syncTryPushBase = (
       expect(syncResult.action).toBe('push');
       if (syncResult.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
 
       expect(syncResult.commits).toMatchObject({
@@ -160,7 +172,7 @@ export const syncTryPushBase = (
      * dbA   :         +jsonA2
      * after :  jsonA1  jsonA2
      */
-    it('changes one remote creation when pushes after put() another document', async function () {
+    it('changes one remote insertion when pushes after put() another document', async function () {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
       });
@@ -175,7 +187,7 @@ export const syncTryPushBase = (
       expect(syncResult.action).toBe('push');
       if (syncResult.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
 
       expect(syncResult.commits).toMatchObject({
@@ -202,7 +214,7 @@ export const syncTryPushBase = (
      * dbA   : +jsonA1         +jsonA3
      * after2:  jsonA1  jsonA2  jsonA3
      */
-    it('changes two remote creations when pushes after put() two documents', async function () {
+    it('changes two remote insertions when pushes after put() two documents', async function () {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
       });
@@ -216,7 +228,7 @@ export const syncTryPushBase = (
       expect(syncResult.action).toBe('push');
       if (syncResult.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
 
       expect(syncResult.commits).toMatchObject({
@@ -242,7 +254,7 @@ export const syncTryPushBase = (
      * dbA   : +jsonA1  jsonA2
      * after : +jsonA1  jsonA2
      */
-    it('changes one remote creation and one remote update when pushes after put() updated document and another document', async function () {
+    it('changes one remote insertion and one remote update when pushes after put() updated document and another document', async function () {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
       });
@@ -259,7 +271,7 @@ export const syncTryPushBase = (
       expect(syncResult.action).toBe('push');
       if (syncResult.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
 
       expect(syncResult.commits).toMatchObject({
@@ -300,7 +312,7 @@ export const syncTryPushBase = (
       expect(syncResult1.action).toBe('push');
       if (syncResult1.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
 
       expect(syncResult1.commits).toMatchObject({
@@ -340,7 +352,7 @@ export const syncTryPushBase = (
       expect(syncResult1.action).toBe('push');
       if (syncResult1.action !== 'push') {
         // Check discriminated union
-        return;
+        throw new Error('invalid result');
       }
 
       expect(syncResult1.commits).toMatchObject({
@@ -383,6 +395,37 @@ export const syncTryPushBase = (
 
       // 3 or less tryPushes will be executed
       expect(dbA.taskQueue.currentStatistics().push).toBeLessThanOrEqual(3);
+
+      await destroyDBs([dbA]);
+    });
+
+    it('pauses live sync after error', async () => {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        connection,
+        live: true,
+        interval: 3000,
+      });
+      expect(syncA.options.live).toBeTruthy();
+
+      dbA.put({ name: 'fromA' });
+
+      let error: Error | undefined;
+      syncA.on('error', (err: Error) => {
+        error = err;
+      });
+      const stubPush = sandbox.stub(RemoteEngine[syncA.engine], 'push');
+      stubPush.onFirstCall().throwsException(new RemoteErr.NetworkError('foo'));
+
+      for (let i = 0; i < 10; i++) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(1000);
+        if (error instanceof Error) {
+          break;
+        }
+      }
+
+      expect(error).toBeInstanceOf(RemoteErr.NetworkError);
+      expect(syncA.options.live).toBeFalsy();
 
       await destroyDBs([dbA]);
     });
