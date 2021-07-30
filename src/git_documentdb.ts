@@ -800,7 +800,7 @@ export class GitDocumentDB
    * @internal
    */
   async loadDbInfo () {
-    let info: DatabaseInfo;
+    let info: DatabaseInfo | undefined;
 
     // Don't use get() because isOpened is false.
     const readBlobResult = await readLatestBlob(
@@ -808,7 +808,9 @@ export class GitDocumentDB
       GIT_DOCUMENTDB_INFO_ID + JSON_EXT
     ).catch(() => undefined);
     if (readBlobResult !== undefined) {
-      info = blobToJsonDoc(GIT_DOCUMENTDB_INFO_ID, readBlobResult, false) as DatabaseInfo;
+      try {
+        info = blobToJsonDoc(GIT_DOCUMENTDB_INFO_ID, readBlobResult, false) as DatabaseInfo;
+      } catch (e) {}
     }
 
     info ??= {
