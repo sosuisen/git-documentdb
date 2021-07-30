@@ -168,10 +168,6 @@ export async function getChanges (
         // Must set null explicitly.
         a = null;
       }
-      console.log(oldCommitOid + ',' + newCommitOid);
-      console.log(fullDocPath);
-      console.log(a);
-      console.log(b);
 
       const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
       if (docType === 'text') {

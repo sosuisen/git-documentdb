@@ -82,7 +82,7 @@ export async function pushWorker (
 
   let localCommitOid: string;
 
-  let remoteCommitOid = await git
+  const remoteCommitOid = await git
     .resolveRef({
       fs,
       dir: gitDDB.workingDir,
