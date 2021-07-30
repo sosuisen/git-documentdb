@@ -772,6 +772,37 @@ export const syncBase = (
 
       await gitDDB.destroy();
     });
+
+    it('After dbA created remote repository, dbB clones it.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+
+      await dbA.open();
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await dbA.sync(options);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir: localDir,
+      });
+      await dbB.open();
+      await dbB.sync(options);
+
+      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
+
+      await destroyDBs([dbA, dbB]);
+    });
   });
 
   describe('<remote/sync> syncImpl()', () => {
