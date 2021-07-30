@@ -48,6 +48,7 @@ export class RemoteRepository {
 
   /**
    * Create a repository on a remote site
+   *
    * @remarks
    * connection.type must be 'github'
    *
@@ -125,6 +126,7 @@ export class RemoteRepository {
 
   /**
    * Delete a repository on a remote site
+   *
    * @remarks
    * connection.type must be 'github'
    *
