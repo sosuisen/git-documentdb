@@ -79,6 +79,8 @@ import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_eng
  * Capitalize one of the remote addresses when hashes collide
  * because a hostname and a domain name are not case sensitive.
  *
+ * @throws {@link RemoteErr.InvalidURLFormatError}
+ *
  * @public
  */
 export function encodeToGitRemoteName (remoteURL: string) {
@@ -344,6 +346,9 @@ export class Sync implements SyncInterface {
    * @throws {@link Err.UndefinedRemoteURLError}
    * @throws {@link Err.IntervalTooSmallError}
    * @throws {@link Err.SyncIntervalLessThanOrEqualToRetryIntervalError}
+   *
+   * @throws # Errors from encodeToGitRemoteName
+   * @throws - {@link RemoteErr.InvalidURLFormatError}
    *
    * @public
    */

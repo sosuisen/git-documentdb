@@ -56,7 +56,7 @@ export const syncBase = (
     await removeRemoteRepositories(reposPrefix);
   });
 
-  describe('encode Git remote name', () => {
+  describe.only('encodeToGitRemoteName', () => {
     it('always generates the same name', async () => {
       const remoteURL = 'ssh://user@github.com:443/foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
@@ -65,7 +65,7 @@ export const syncBase = (
       expect(encoded).toBe(encoded2);
     });
 
-    it('ssh://user@github.com:443/foo-bar/baz.git', () => {
+    it('encodes ssh://user@github.com:443/foo-bar/baz.git', () => {
       const remoteURL = 'ssh://user@github.com:443/foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
       const shortHash = crypto
@@ -76,7 +76,7 @@ export const syncBase = (
       expect(encoded).toBe('github_com_' + shortHash);
     });
 
-    it('ssh://user@127.0.0.1:443/foo-bar/baz.git', () => {
+    it('encodes ssh://user@127.0.0.1:443/foo-bar/baz.git', () => {
       const remoteURL = 'ssh://user@127.0.0.1:443/foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
       const shortHash = crypto
@@ -87,7 +87,7 @@ export const syncBase = (
       expect(encoded).toBe('127_0_0_1_' + shortHash);
     });
 
-    it('https://github.com:80/foo-bar/baz.git', () => {
+    it('encodes https://github.com:80/foo-bar/baz.git', () => {
       const remoteURL = 'https://github.com:80/foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
       const shortHash = crypto
@@ -98,7 +98,7 @@ export const syncBase = (
       expect(encoded).toBe('github_com_' + shortHash);
     });
 
-    it('ssh://user@github.com/foo-bar/baz.git', () => {
+    it('encodes ssh://user@github.com/foo-bar/baz.git', () => {
       const remoteURL = 'ssh://user@github.com/foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
       const shortHash = crypto
@@ -109,7 +109,7 @@ export const syncBase = (
       expect(encoded).toBe('github_com_' + shortHash);
     });
 
-    it('https://github.com/foo-bar/baz.git', () => {
+    it('encodes https://github.com/foo-bar/baz.git', () => {
       const remoteURL = 'https://github.com/foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
       const shortHash = crypto
@@ -120,7 +120,7 @@ export const syncBase = (
       expect(encoded).toBe('github_com_' + shortHash);
     });
 
-    it('git@github.com:foo-bar/baz.git', () => {
+    it('encodes git@github.com:foo-bar/baz.git', () => {
       const remoteURL = 'git@github.com:foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
       const shortHash = crypto
@@ -129,6 +129,13 @@ export const syncBase = (
         .digest('hex')
         .substr(0, 7);
       expect(encoded).toBe('github_com_' + shortHash);
+    });
+
+    it('throws InvalidURLFormatError', () => {
+      const remoteURL = 'foo.bar';
+      expect(() => {
+        encodeToGitRemoteName(remoteURL);
+      }).toThrowError(RemoteErr.InvalidURLFormatError);
     });
   });
 
