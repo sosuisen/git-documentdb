@@ -894,4 +894,6 @@ export const syncBase = (
       await gitDDB.destroy();
     });
   });
+
+  it.skip('Multiple Sync object');
 };
