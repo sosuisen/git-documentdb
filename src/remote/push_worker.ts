@@ -124,7 +124,8 @@ export async function pushWorker (
       sync.options,
       sync.remoteName,
       gitDDB.defaultBranch,
-      gitDDB.defaultBranch
+      gitDDB.defaultBranch,
+      gitDDB.logger
     )
     .catch(err => {
       throw wrappingRemoteEngineError(err);
