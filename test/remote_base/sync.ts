@@ -25,7 +25,7 @@ import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { ConnectionSettings, RemoteOptions } from '../../src/types';
 import { Err } from '../../src/error';
-import { encodeToGitRemoteName, Sync, syncAndGetResultImpl, syncImpl } from '../../src/remote/sync';
+import { encodeToGitRemoteName, Sync, syncImpl } from '../../src/remote/sync';
 import {
   createClonedDatabases,
   destroyDBs,
