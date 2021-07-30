@@ -13,7 +13,6 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import expect from 'expect';
-import sinon from 'sinon';
 import { Err } from '../../src/error';
 import { threeWayMerge } from '../../src/remote/3way_merge';
 import { GitDocumentDB } from '../../src/git_documentdb';
@@ -48,16 +47,6 @@ export const syncThreeWayMergeBase = (
   const serialId = () => {
     return `${reposPrefix}${idCounter++}`;
   };
-
-  // Use sandbox to restore stub and spy in parallel mocha tests
-  let sandbox: sinon.SinonSandbox;
-  beforeEach(function () {
-    sandbox = sinon.createSandbox();
-  });
-
-  afterEach(function () {
-    sandbox.restore();
-  });
 
   before(async () => {
     await removeRemoteRepositories(reposPrefix);

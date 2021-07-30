@@ -14,7 +14,6 @@
  */
 
 import expect from 'expect';
-import sinon from 'sinon';
 import { ConnectionSettings } from '../../src/types';
 import {
   createClonedDatabases,
@@ -25,7 +24,7 @@ import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
 import { JSON_EXT } from '../../src/const';
 import { getHistoryImpl, readOldBlob } from '../../src/crud/history';
 
-export const networkHistory = (
+export const networkHistoryBase = (
   connection: ConnectionSettings,
   remoteURLBase: string,
   reposPrefix: string,

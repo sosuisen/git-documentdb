@@ -17,7 +17,6 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import parse from 'parse-git-config';
-import sinon from 'sinon';
 import { Err } from '../../src/error';
 import { ConnectionSettings, DuplicatedFile } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
@@ -32,7 +31,7 @@ import {
 import { sleep } from '../../src/utils';
 import { JSON_EXT } from '../../src/const';
 
-export const syncCombine = (
+export const syncCombineBase = (
   connection: ConnectionSettings,
   remoteURLBase: string,
   reposPrefix: string,
@@ -42,16 +41,6 @@ export const syncCombine = (
   const serialId = () => {
     return `${reposPrefix}${idCounter++}`;
   };
-
-  // Use sandbox to restore stub and spy in parallel mocha tests
-  let sandbox: sinon.SinonSandbox;
-  beforeEach(function () {
-    sandbox = sinon.createSandbox();
-  });
-
-  afterEach(function () {
-    sandbox.restore();
-  });
 
   before(async () => {
     await removeRemoteRepositories(reposPrefix);

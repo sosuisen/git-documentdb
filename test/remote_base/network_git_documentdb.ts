@@ -13,14 +13,13 @@
  * These tests create a new repository on GitHub if not exists.
  */
 
-import sinon from 'sinon';
 import expect from 'expect';
 import { ConnectionSettings, RemoteOptions } from '../../src/types';
 import { destroyDBs, removeRemoteRepositories } from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { Err } from '../../src/error';
 
-export const networkGitDocumentDB = (
+export const networkGitDocumentDBBase = (
   connection: ConnectionSettings,
   remoteURLBase: string,
   reposPrefix: string,
@@ -30,16 +29,6 @@ export const networkGitDocumentDB = (
   const serialId = () => {
     return `${reposPrefix}${idCounter++}`;
   };
-
-  // Use sandbox to restore stub and spy in parallel mocha tests
-  let sandbox: sinon.SinonSandbox;
-  beforeEach(function () {
-    sandbox = sinon.createSandbox();
-  });
-
-  afterEach(function () {
-    sandbox.restore();
-  });
 
   before(async () => {
     await removeRemoteRepositories(reposPrefix);

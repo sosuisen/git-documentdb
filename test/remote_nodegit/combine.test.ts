@@ -14,7 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { syncCombine } from '../remote_base/combine';
+import { syncCombineBase } from '../remote_base/combine';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 
@@ -58,4 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', syncCombine(connection, remoteURLBase, reposPrefix, localDir));
+maybe('NodeGit', syncCombineBase(connection, remoteURLBase, reposPrefix, localDir));

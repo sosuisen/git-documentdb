@@ -14,19 +14,10 @@
  */
 
 import expect from 'expect';
-import sinon from 'sinon';
 import { ConnectionSettings } from '../../src/types';
-import {
-  createClonedDatabases,
-  createDatabase,
-  destroyDBs,
-  removeRemoteRepositories,
-} from '../remote_utils';
-import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
-import { JSON_EXT } from '../../src/const';
-import { getHistoryImpl, readOldBlob } from '../../src/crud/history';
+import { createDatabase, destroyDBs, removeRemoteRepositories } from '../remote_utils';
 
-export const networkHistory = (
+export const networkTaskQueueBase = (
   connection: ConnectionSettings,
   remoteURLBase: string,
   reposPrefix: string,

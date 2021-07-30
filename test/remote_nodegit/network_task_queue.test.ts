@@ -16,7 +16,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { networkHistory } from '../remote_base/network_history';
+import { networkTaskQueueBase } from '../remote_base/network_task_queue';
 
 const reposPrefix = 'test_network_task_queue_nodegit__';
 const localDir = `./test/database_network_task_queue_nodegit`;
@@ -58,4 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', networkHistory(connection, remoteURLBase, reposPrefix, localDir));
+maybe('NodeGit', networkTaskQueueBase(connection, remoteURLBase, reposPrefix, localDir));

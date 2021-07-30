@@ -14,7 +14,7 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { networkGitDocumentDB } from '../remote_base/network_git_documentdb';
+import { networkGitDocumentDBBase } from '../remote_base/network_git_documentdb';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 
@@ -58,4 +58,7 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', networkGitDocumentDB(connection, remoteURLBase, reposPrefix, localDir));
+maybe(
+  'NodeGit',
+  networkGitDocumentDBBase(connection, remoteURLBase, reposPrefix, localDir)
+);
