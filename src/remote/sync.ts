@@ -523,7 +523,26 @@ export class Sync implements SyncInterface {
     else if (isNewRemoteRepository) {
       this._gitDDB.logger.debug('upstream branch is not set yet. tryPush..');
       // trySync() pushes local commits to the remote branch.
-      syncResult = await this.tryPush();
+
+      // Remote repository may not be created yet due to internal delay of GitHub.
+      // Retry if not exist.
+      for (let i = 0; i < this._options.retry! + 1; i++) {
+        // eslint-disable-next-line no-await-in-loop
+        const syncResultOrError = await this.tryPush().catch(err => err);
+        if (syncResultOrError instanceof Error) {
+          if (syncResultOrError instanceof RemoteErr.HTTPError404NotFound) {
+            // eslint-disable-next-line no-await-in-loop
+            await sleep(this._options.retryInterval!);
+            if (i === this._options.retry!) {
+              throw syncResultOrError;
+            }
+            continue;
+          }
+          throw syncResultOrError;
+        }
+        syncResult = syncResultOrError;
+        break;
+      }
 
       // An upstream branch must be set to a local branch after the first push
       // because refs/remotes/origin/main is not created until the first push.

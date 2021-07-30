@@ -25,7 +25,7 @@ import { MINIMUM_SYNC_INTERVAL } from '../../src/const';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { ConnectionSettings, RemoteOptions } from '../../src/types';
 import { Err } from '../../src/error';
-import { encodeToGitRemoteName, Sync, syncImpl } from '../../src/remote/sync';
+import { encodeToGitRemoteName, Sync, syncAndGetResultImpl, syncImpl } from '../../src/remote/sync';
 import {
   createClonedDatabases,
   destroyDBs,
@@ -688,6 +688,78 @@ export const syncBase = (
           path: `branch.${gitDDB.defaultBranch}.merge`,
         })
       ).resolves.toBe(`refs/heads/${gitDDB.defaultBranch}`);
+
+      await gitDDB.destroy();
+    });
+
+    it('retries tryPush() for 404 not found after create remote repository', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await gitDDB.open();
+
+      const sync = new Sync(gitDDB, options);
+
+      const stubTryPush = sandbox.stub(sync, 'tryPush');
+      stubTryPush.onCall(0).rejects(new RemoteErr.HTTPError404NotFound(''));
+      stubTryPush.onCall(1).rejects(new RemoteErr.HTTPError404NotFound(''));
+      stubTryPush.onCall(2).rejects(new RemoteErr.HTTPError404NotFound(''));
+      // @ts-ignore
+      stubTryPush.onCall(3).resolves({ action: 'push' });
+
+      const stubConfig = sandbox.stub(git, 'setConfig');
+      stubConfig.returns(Promise.resolve());
+
+      const syncResult = await sync.init();
+
+      expect(syncResult).toMatchObject({
+        action: 'push',
+      });
+
+      expect(stubTryPush.callCount).toBe(4);
+
+      await gitDDB.destroy();
+    });
+
+    it('retries tryPush() for 404 not found and throws after create remote repository', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await gitDDB.open();
+
+      const sync = new Sync(gitDDB, options);
+
+      const stubTryPush = sandbox.stub(sync, 'tryPush');
+      stubTryPush.onCall(0).rejects(new RemoteErr.HTTPError404NotFound(''));
+      stubTryPush.onCall(1).rejects(new RemoteErr.HTTPError404NotFound(''));
+      stubTryPush.onCall(2).rejects(new RemoteErr.HTTPError404NotFound(''));
+      // @ts-ignore
+      stubTryPush.onCall(3).rejects(new RemoteErr.HTTPError404NotFound(''));
+
+      const stubConfig = sandbox.stub(git, 'setConfig');
+      stubConfig.returns(Promise.resolve());
+
+      await expect(sync.init()).rejects.toThrowError(RemoteErr.HTTPError404NotFound);
+
+      expect(stubTryPush.callCount).toBe(4);
 
       await gitDDB.destroy();
     });
