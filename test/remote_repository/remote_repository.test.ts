@@ -26,11 +26,6 @@ import {
 } from '../remote_utils';
 import { RemoteRepository } from '../../src/remote/remote_repository';
 
-const ulid = monotonicFactory();
-const monoId = () => {
-  return ulid(Date.now());
-};
-
 const reposPrefix = 'test_remote_repository___';
 const localDir = `./test/database_remote_repository`;
 
@@ -59,7 +54,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('<remote/remote_repository> RemoteRepository', () => {
+maybe('<remote_repository/remote_repository> RemoteRepository', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
