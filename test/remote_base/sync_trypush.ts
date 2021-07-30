@@ -14,6 +14,7 @@
  */
 import expect from 'expect';
 import sinon from 'sinon';
+import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   compareWorkingDirAndBlobs,
   createDatabase,
@@ -25,7 +26,12 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import { ConnectionSettings, SyncResultCancel, SyncResultPush } from '../../src/types';
+import {
+  ConnectionSettings,
+  RemoteOptions,
+  SyncResultCancel,
+  SyncResultPush,
+} from '../../src/types';
 import { sleep } from '../../src/utils';
 import { RemoteEngine, RemoteErr } from '../../src/remote/remote_engine';
 
@@ -399,11 +405,12 @@ export const syncTryPushBase = (
       await destroyDBs([dbA]);
     });
 
-    it('pauses live sync after error', async () => {
+    it('pauses live push after error', async () => {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
         live: true,
         interval: 3000,
+        syncDirection: 'push',
       });
       expect(syncA.options.live).toBeTruthy();
 
@@ -428,6 +435,77 @@ export const syncTryPushBase = (
       expect(syncA.options.live).toBeFalsy();
 
       await destroyDBs([dbA]);
+    });
+
+    it('Race condition of two tryPush() calls throws UnfetchedCommitExistsError.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir: localDir,
+      });
+      await dbB.open();
+      const syncB = await dbB.sync(options);
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      await dbB.put(jsonB1);
+
+      await expect(Promise.all([syncA.tryPush(), syncB.tryPush()])).rejects.toThrowError(
+        RemoteErr.UnfetchedCommitExistsError
+      );
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it('Ordered condition of two tryPush() calls throws UnfetchedCommitExistsError.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir: localDir,
+      });
+      await dbB.open();
+      const syncB = await dbB.sync(options);
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      await dbB.put(jsonB1);
+
+      await syncA.tryPush();
+      await expect(syncB.tryPush()).rejects.toThrowError(
+        RemoteErr.UnfetchedCommitExistsError
+      );
+
+      await destroyDBs([dbA, dbB]);
     });
   });
 };
