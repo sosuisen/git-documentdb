@@ -66,6 +66,7 @@ import { normalizeCommit, toSortedJSONString } from './utils';
 import { SyncEventInterface, SyncInterface } from './types_sync';
 import { CRUDInterface } from './types_crud_interface';
 import { CollectionInterface, ICollection } from './types_collection';
+import { blobToJsonDoc, readLatestBlob } from './crud/blob';
 
 /**
  * Get database ID
@@ -799,9 +800,16 @@ export class GitDocumentDB
    * @internal
    */
   async loadDbInfo () {
-    let info = (await this.get(GIT_DOCUMENTDB_INFO_ID).catch(
-      () => undefined
-    )) as DatabaseInfo;
+    let info: DatabaseInfo;
+
+    // Don't use get() because isOpened is false.
+    const readBlobResult = await readLatestBlob(
+      this.workingDir,
+      GIT_DOCUMENTDB_INFO_ID + JSON_EXT
+    ).catch(() => undefined);
+    if (readBlobResult !== undefined) {
+      info = blobToJsonDoc(GIT_DOCUMENTDB_INFO_ID, readBlobResult, false) as DatabaseInfo;
+    }
 
     info ??= {
       dbId: '',
