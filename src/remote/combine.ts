@@ -29,17 +29,20 @@ import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
  * Clone a remote repository and combine the current local working directory with it.
  * TODO: Must catch errors
  *
- * @throws {@link RemoteErr.InvalidURLFormatError} (from clone())
- * @throws {@link RemoteErr.NetworkError} (from clone())
- * @throws {@link RemoteErr.HTTPError401AuthorizationRequired} (from clone())
- * @throws {@link RemoteErr.HTTPError404NotFound} (from clone())
- * @throws {@link RemoteErr.CannotConnectError} (from clone())
+ * @throws {@link Err.FileRemoveTimeoutError}
  *
- * @throws {@link RemoteErr.HttpProtocolRequiredError}  (from clone())
- * @throws {@link RemoteErr.InvalidRepositoryURLError} (from clone())
- * @throws {@link RemoteErr.InvalidSSHKeyPathError} (from clone())
+ * @throws # Errors from RemoteEngine[engineName].clone
+ * @throws - {@link RemoteErr.InvalidURLFormatError}
+ * @throws - {@link RemoteErr.NetworkError}
+ * @throws - {@link RemoteErr.HTTPError401AuthorizationRequired}
+ * @throws - {@link RemoteErr.HTTPError404NotFound}
+ * @throws - {@link RemoteErr.CannotConnectError}
  *
- * @throws {@link RemoteErr.InvalidAuthenticationTypeError} (from clone())
+ * @throws - {@link RemoteErr.HttpProtocolRequiredError}
+ * @throws - {@link RemoteErr.InvalidRepositoryURLError}
+ * @throws - {@link RemoteErr.InvalidSSHKeyPathError}
+ *
+ * @throws - {@link RemoteErr.InvalidAuthenticationTypeError}
  *
  * @public
  */

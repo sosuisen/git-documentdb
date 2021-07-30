@@ -19,7 +19,9 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
  *
  * @throws {@link Err.DatabaseClosingError}
  * @throws {@link Err.RepositoryNotOpenError}
- * @throws {@link Err.InvalidJsonObjectError} (from blobToJsonDoc)
+ *
+ * @throws # Errors from blobToJsonDoc
+ * @throws {@link Err.InvalidJsonObjectError}
  */
 // eslint-disable-next-line complexity
 export async function getHistoryImpl (

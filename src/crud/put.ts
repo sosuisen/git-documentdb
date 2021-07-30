@@ -22,11 +22,12 @@ import { Err } from '../error';
  * @throws {@link Err.RepositoryNotOpenError}
  * @throws {@link Err.TaskCancelError}
  *
- * @throws {@link Err.UndefinedDBError} (from putWorker)
- * @throws {@link Err.CannotCreateDirectoryError} (from putWorker)
- * @throws {@link Err.SameIdExistsError} (from putWorker)
- * @throws {@link Err.DocumentNotFoundError} (from putWorker)
- * @throws {@link Err.CannotWriteDataError} (from putWorker)
+ * @throws # Errors from putWorker
+ * @throws {@link Err.UndefinedDBError}
+ * @throws {@link Err.CannotCreateDirectoryError}
+ * @throws {@link Err.SameIdExistsError}
+ * @throws {@link Err.DocumentNotFoundError}
+ * @throws {@link Err.CannotWriteDataError}
  *
  * @internal
  */
