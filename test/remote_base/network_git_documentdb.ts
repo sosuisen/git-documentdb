@@ -49,7 +49,7 @@ export const networkGitDocumentDB = (
    * Initialize synchronization by open() with remoteURL
    * Initialize means creating local and remote repositories by using a remoteUrl
    */
-  describe('is initialized from GitDocumentDB():', () => {
+  describe('<remote/network_git_documentdb> Sync is initialized from GitDocumentDB():', () => {
     it('sync() returns an instance of Sync.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();

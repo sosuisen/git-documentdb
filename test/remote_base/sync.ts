@@ -60,7 +60,7 @@ export const syncBase = (
     await removeRemoteRepositories(reposPrefix);
   });
 
-  describe('encodeToGitRemoteName', () => {
+  describe('<remote/sync> encodeToGitRemoteName', () => {
     it('always generates the same name', async () => {
       const remoteURL = 'ssh://user@github.com:443/foo-bar/baz.git';
       const encoded = encodeToGitRemoteName(remoteURL);
