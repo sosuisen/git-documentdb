@@ -556,7 +556,12 @@ export class Sync implements SyncInterface {
           listener.func();
         });
         this._syncTimer = setInterval(() => {
-          this.trySync().catch(() => undefined);
+          if (this._options.syncDirection === 'push') {
+            this.tryPush().catch(() => undefined);
+          }
+          else if (this._options.syncDirection === 'both') {
+            this.trySync().catch(() => undefined);
+          }
         }, this._options.interval!);
       }
     }
@@ -616,7 +621,12 @@ export class Sync implements SyncInterface {
 
     this._options.live = true;
     this._syncTimer = setInterval(() => {
-      this.trySync().catch(() => undefined);
+      if (this._options.syncDirection === 'push') {
+        this.tryPush().catch(() => undefined);
+      }
+      else if (this._options.syncDirection === 'both') {
+        this.trySync().catch(() => undefined);
+      }
     }, this._options.interval!);
 
     this.eventHandlers.resume.forEach(listener => {
