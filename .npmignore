@@ -33,7 +33,6 @@ node_modules/
 # test
 coverage/
 test/
-test_intg/
 dist/test/
 .nyc_output/
 
