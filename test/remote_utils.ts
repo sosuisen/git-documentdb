@@ -224,10 +224,8 @@ export async function createClonedDatabases (
   options.remoteUrl ??= remoteURL;
   options.connection ??= { type: 'github', personalAccessToken: token };
   options.includeCommits ??= true;
-
   await dbA.open();
   await dbA.sync(options);
-
   const dbNameB = serialId();
   const dbB: GitDocumentDB = new GitDocumentDB({
     dbName: dbNameB,
@@ -237,7 +235,6 @@ export async function createClonedDatabases (
   // Clone dbA
   await dbB.open();
   await dbB.sync(options);
-
   const remoteA = dbA.getSync(remoteURL);
   const remoteB = dbB.getSync(remoteURL);
 

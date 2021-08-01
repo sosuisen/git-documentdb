@@ -17,7 +17,6 @@ import {
   InvalidAuthenticationTypeError,
   InvalidGitRemoteError,
   InvalidRepositoryURLError,
-  InvalidSSHKeyPathError,
   InvalidURLFormatError,
   NetworkError,
 } from 'git-documentdb-remote-errors';
@@ -197,6 +196,24 @@ maybe('<remote-nodegit> fetch', () => {
       localDir,
     });
     await dbA.open();
+
+    const remoteUrl = 'foo-bar';
+    const err = await fetch(dbA.workingDir, { remoteUrl }).catch(error => error);
+
+    expect(err).toBeInstanceOf(InvalidGitRemoteError);
+
+    await destroyDBs([dbA]);
+  });
+
+  it('throws InvalidGitRemoteError by NoRefspecError', async () => {
+    const dbA: GitDocumentDB = new GitDocumentDB({
+      dbName: serialId(),
+      localDir,
+    });
+    await dbA.open();
+
+    const stubPush = sandbox.stub(git, 'fetch');
+    stubPush.rejects(new Error('NoRefspecError'));
 
     const remoteUrl = 'foo-bar';
     const err = await fetch(dbA.workingDir, { remoteUrl }).catch(error => error);
