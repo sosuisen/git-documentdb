@@ -302,9 +302,7 @@ maybe('<remote-nodegit> checkFetch', () => {
 
       const remoteUrl = remoteURLBase + 'test-private.git';
 
-      // eslint-disable-next-line no-await-in-loop
       await createGitRemote(dbA.workingDir, remoteUrl);
-      // eslint-disable-next-line no-await-in-loop
       const err = await checkFetch(dbA.workingDir, { remoteUrl }).catch(error => error);
 
       expect(err).toBeInstanceOf(HTTPError401AuthorizationRequired);
