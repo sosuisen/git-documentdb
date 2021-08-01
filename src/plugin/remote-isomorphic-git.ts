@@ -146,7 +146,7 @@ export async function clone (
 
     let error = '';
     if (res instanceof Error) {
-      error = res.message;
+      error = res.toString();
     }
     else {
       break;
@@ -350,6 +350,8 @@ export async function fetch (
   remoteOptions.retryInterval ??= NETWORK_RETRY_INTERVAL;
 
   const fetchOption: any = {
+    fs,
+    dir: workingDir,
     http: httpClient,
     url: remoteOptions.remoteUrl!,
   };
@@ -364,7 +366,7 @@ export async function fetch (
 
     let error = '';
     if (res instanceof Error) {
-      error = res.message;
+      error = res.toString();
     }
     else {
       break;
@@ -455,17 +457,20 @@ export async function push (
     throw new InvalidGitRemoteError(`remote '${remoteName}' does not exist`);
   }
 
-  const localBranch = 'refs/heads/' + localBranchName;
-  const remoteBranch = 'refs/heads/' + remoteBranchName;
+  // const localBranch = 'refs/heads/' + localBranchName;
+  // const remoteBranch = 'refs/heads/' + remoteBranchName;
 
   remoteOptions.retry ??= NETWORK_RETRY;
   remoteOptions.retryInterval ??= NETWORK_RETRY_INTERVAL;
 
   const pushOption: any = {
+    fs,
+    dir: workingDir,
     http: httpClient,
     url: remoteOptions.remoteUrl!,
-    ref: localBranch,
-    remoteRef: remoteBranch,
+    remote: remoteName,
+    ref: localBranchName,
+    remoteRef: remoteBranchName,
   };
   const cred = createCredentialCallback(remoteOptions);
   if (cred) {
@@ -478,7 +483,7 @@ export async function push (
 
     let error = '';
     if (res instanceof Error) {
-      error = res.message;
+      error = res.toString();
     }
     else {
       break;

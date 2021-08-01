@@ -14,6 +14,7 @@ import crypto from 'crypto';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import * as RemoteEngineError from 'git-documentdb-remote-errors';
+import { name as default_engine_name } from '../plugin/remote-isomorphic-git';
 
 import { CONSOLE_STYLE, sleep } from '../utils';
 import { Err } from '../error';
@@ -254,7 +255,7 @@ export class Sync implements SyncInterface {
   /**
    * Remote Engine
    */
-  private _engine = 'iso';
+  private _engine = default_engine_name;
   get engine (): string {
     return this._engine;
   }
@@ -407,7 +408,7 @@ export class Sync implements SyncInterface {
 
     this._remoteName = encodeToGitRemoteName(this.remoteURL);
 
-    this._engine = this._options.connection?.engine ?? 'iso';
+    this._engine = this._options.connection?.engine ?? default_engine_name;
   }
 
   /***********************************************
@@ -560,13 +561,43 @@ export class Sync implements SyncInterface {
         value: `refs/heads/${this._gitDDB.defaultBranch}`,
       });
     }
-    else if (this._options.syncDirection === 'push') {
-      this._gitDDB.logger.debug('upstream_branch exists. tryPush..');
-      syncResult = await this.tryPush();
-    }
-    else if (this._options.syncDirection === 'both') {
-      this._gitDDB.logger.debug('upstream_branch exists. trySync..');
-      syncResult = await this.trySync();
+    else {
+      const branchRemote = await git.getConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `branch.${this._gitDDB.defaultBranch}.remote`,
+      });
+      if (branchRemote === undefined) {
+        await git.setConfig({
+          fs,
+          dir: this._gitDDB.workingDir,
+          path: `branch.${this._gitDDB.defaultBranch}.remote`,
+          value: this.remoteName,
+        });
+      }
+
+      const branchMerge = await git.getConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `branch.${this._gitDDB.defaultBranch}.merge`,
+      });
+      if (branchMerge === undefined) {
+        await git.setConfig({
+          fs,
+          dir: this._gitDDB.workingDir,
+          path: `branch.${this._gitDDB.defaultBranch}.merge`,
+          value: `refs/heads/${this._gitDDB.defaultBranch}`,
+        });
+      }
+
+      if (this._options.syncDirection === 'push') {
+        this._gitDDB.logger.debug('upstream_branch exists. tryPush..');
+        syncResult = await this.tryPush();
+      }
+      else if (this._options.syncDirection === 'both') {
+        this._gitDDB.logger.debug('upstream_branch exists. trySync..');
+        syncResult = await this.trySync();
+      }
     }
 
     if (this._options.live) {

@@ -68,6 +68,8 @@ import { CRUDInterface } from './types_crud_interface';
 import { CollectionInterface, ICollection } from './types_collection';
 import { blobToJsonDoc, readLatestBlob } from './crud/blob';
 
+import * as remote_isomorphic_git from './plugin/remote-isomorphic-git';
+
 /**
  * Get database ID
  *
@@ -348,6 +350,15 @@ export class GitDocumentDB
       namePrefix: options?.namePrefix ?? '',
     };
     this._rootCollection = new Collection(this, '', undefined, collectionOptions);
+
+    // @ts-ignore
+    RemoteEngine[remote_isomorphic_git.name] = {};
+    Object.keys(remote_isomorphic_git).forEach(function (id) {
+      // Set to Remote object
+      // @ts-ignore
+      // eslint-disable-next-line import/namespace
+      RemoteEngine[remote_isomorphic_git.name][id] = remote_isomorphic_git[id];
+    });
   }
 
   /***********************************************
