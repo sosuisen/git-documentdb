@@ -402,3 +402,22 @@ export const destroyDBs = async (DBs: GitDocumentDB[]) => {
   await clock.tickAsync(FILE_REMOVE_TIMEOUT);
   clock.restore();
 };
+
+export async function createGitRemote (
+  localDir: string,
+  remoteUrl: string,
+  remoteName = 'origin'
+) {
+  await git.setConfig({
+    fs,
+    dir: localDir,
+    path: `remote.${remoteName}.url`,
+    value: remoteUrl,
+  });
+  await git.setConfig({
+    fs,
+    dir: localDir,
+    path: `remote.${remoteName}.fetch`,
+    value: `+refs/heads/*:refs/remotes/${remoteName}/*`,
+  });
+}

@@ -14,6 +14,7 @@ import {
   HTTPError401AuthorizationRequired,
   HTTPError403Forbidden,
   HTTPError404NotFound,
+  InvalidAuthenticationTypeError,
   InvalidGitRemoteError,
   InvalidRepositoryURLError,
   InvalidURLFormatError,
@@ -100,11 +101,11 @@ export function createCredentialCallback (options: RemoteOptions) {
  * @throws {@link CannotConnectError}
  *
  * @throws # Errors from createCredentialForGitHub
- * @throws {@link HttpProtocolRequiredError}
- * @throws {@link InvalidRepositoryURLError}
+ * @throws - {@link HttpProtocolRequiredError}
+ * @throws - {@link InvalidRepositoryURLError}
  *
  * @throws # Errors from createCredential
- * @throws {@link InvalidAuthenticationTypeError}
+ * @throws - {@link InvalidAuthenticationTypeError}
  *
  * @internal
  */
@@ -158,6 +159,7 @@ export async function clone (
         throw new InvalidURLFormatError(error);
 
       case error.startsWith('Error: connect EACCES'):
+      case error.startsWith('Error: connect ECONNREFUSED'):
         // isomorphic-git throws this when network is limited.
         if (i >= remoteOptions.retry!) {
           throw new NetworkError(error);
@@ -210,11 +212,11 @@ export async function clone (
  * @throws {@link CannotConnectError}
  *
  * @throws # Errors from createCredentialForGitHub
- * @throws {@link HttpProtocolRequiredError}
- * @throws {@link InvalidRepositoryURLError}
+ * @throws - {@link HttpProtocolRequiredError}
+ * @throws - {@link InvalidRepositoryURLError}
  *
  * @throws # Errors from createCredential
- * @throws {@link InvalidAuthenticationTypeError}
+ * @throws - {@link InvalidAuthenticationTypeError}
  *
  * @internal
  */
@@ -256,23 +258,24 @@ export async function checkFetch (
   }
 
   for (let i = 0; i < remoteOptions.retry! + 1; i++) {
-    const res = git.getRemoteInfo2(checkOption).catch(err => err);
+    // eslint-disable-next-line no-await-in-loop
+    const res = await git.getRemoteInfo2(checkOption).catch(err => err);
 
     let error = '';
     if (res instanceof Error) {
-      error = res.message;
+      error = res.toString();
     }
     else {
       break;
     }
 
-    // if (error !== 'undefined') console.warn('connect fetch error: ' + error);
     switch (true) {
       case error.startsWith('UrlParseError:'):
       case error.startsWith('Error: getaddrinfo ENOTFOUND'):
         throw new InvalidURLFormatError(error);
 
       case error.startsWith('Error: connect EACCES'):
+      case error.startsWith('Error: connect ECONNREFUSED'):
         // isomorphic-git throws this when network is limited.
         if (i >= remoteOptions.retry!) {
           throw new NetworkError(error);
@@ -308,11 +311,11 @@ export async function checkFetch (
  * @throws {@link CannotConnectError}
  *
  * @throws # Errors from createCredentialForGitHub
- * @throws {@link HttpProtocolRequiredError}
- * @throws {@link InvalidRepositoryURLError}
+ * @throws - {@link HttpProtocolRequiredError}
+ * @throws - {@link InvalidRepositoryURLError}
  *
  * @throws # Errors from createCredential
- * @throws {@link InvalidAuthenticationTypeError}
+ * @throws - {@link InvalidAuthenticationTypeError}
  *
  * @internal
  */
@@ -357,7 +360,7 @@ export async function fetch (
 
   for (let i = 0; i < remoteOptions.retry! + 1; i++) {
     // eslint-disable-next-line no-await-in-loop
-    const res = git.getRemoteInfo2(fetchOption).catch(err => err);
+    const res = await git.fetch(fetchOption).catch(err => err);
 
     let error = '';
     if (res instanceof Error) {
@@ -377,6 +380,7 @@ export async function fetch (
         throw new InvalidURLFormatError(error);
 
       case error.startsWith('Error: connect EACCES'):
+      case error.startsWith('Error: connect ECONNREFUSED'):
         // isomorphic-git throws this when network is limited.
         if (i >= remoteOptions.retry!) {
           throw new NetworkError(error);
@@ -494,6 +498,7 @@ export async function push (
         throw new InvalidURLFormatError(error);
 
       case error.startsWith('Error: connect EACCES'):
+      case error.startsWith('Error: connect ECONNREFUSED'):
         // isomorphic-git throws this when network is limited.
         if (i >= remoteOptions.retry!) {
           throw new NetworkError(error);
