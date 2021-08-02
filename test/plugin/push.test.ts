@@ -19,7 +19,6 @@ import {
   InvalidAuthenticationTypeError,
   InvalidGitRemoteError,
   InvalidRepositoryURLError,
-  InvalidSSHKeyPathError,
   InvalidURLFormatError,
   NetworkError,
   UnfetchedCommitExistsError,
@@ -81,7 +80,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('<remote-nodegit> push', () => {
+maybe('<plugin/remote-isomorphic-git> push', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';

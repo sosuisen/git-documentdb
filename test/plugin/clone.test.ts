@@ -70,7 +70,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('<remote-nodegit> clone', () => {
+maybe('<plugin/remote-isomorphic-git> clone', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
