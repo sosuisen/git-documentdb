@@ -17,6 +17,9 @@ export const RemoteEngine: { [key: string]: RemoteEngineInterface } = {};
  * @public
  */
 export interface RemoteEngineInterface {
+  type: string;
+  name: string;
+
   checkFetch: (
     workingDir: string,
     options: RemoteOptions,
