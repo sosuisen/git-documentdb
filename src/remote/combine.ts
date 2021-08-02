@@ -63,6 +63,32 @@ export async function combineDatabaseWithTheirs (
       .catch(err => {
         throw wrappingRemoteEngineError(err);
       });
+    // Add refs to remote branch
+    const remoteCommitOid = await git.resolveRef({
+      fs,
+      dir: remoteDir,
+      ref: `refs/remotes/origin/${gitDDB.defaultBranch}`,
+    });
+    await git.writeRef({
+      fs,
+      dir: remoteDir,
+      ref: `refs/remotes/${remoteName}/${gitDDB.defaultBranch}`,
+      value: remoteCommitOid,
+      force: true,
+    });
+    // Overwrite upstream branch
+    await git.setConfig({
+      fs,
+      dir: remoteDir,
+      path: `branch.${gitDDB.defaultBranch}.remote`,
+      value: remoteName,
+    });
+    await git.setConfig({
+      fs,
+      dir: remoteDir,
+      path: `branch.${gitDDB.defaultBranch}.merge`,
+      value: `refs/heads/${gitDDB.defaultBranch}`,
+    });
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.workingDir);
     const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteDir);
