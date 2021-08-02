@@ -401,6 +401,9 @@ export class Sync implements SyncInterface {
     this.jsonDiff = new JsonDiff(gitDDB.schema.json);
     this.jsonPatch = new JsonPatchOT();
 
+    this._options.connection ??= { type: 'none' };
+    this._options.connection.engine ??= default_engine_name;
+
     this._remoteRepository = new RemoteRepository({
       remoteUrl: this._options.remoteUrl,
       connection: this._options.connection,
@@ -408,7 +411,7 @@ export class Sync implements SyncInterface {
 
     this._remoteName = encodeToGitRemoteName(this.remoteURL);
 
-    this._engine = this._options.connection?.engine ?? default_engine_name;
+    this._engine = this._options.connection.engine;
   }
 
   /***********************************************
