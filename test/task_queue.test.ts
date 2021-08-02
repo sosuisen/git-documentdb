@@ -37,9 +37,6 @@ beforeEach(function () {
 });
 
 before(() => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
   fs.removeSync(path.resolve(localDir));
 });
 

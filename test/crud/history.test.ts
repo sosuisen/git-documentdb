@@ -53,9 +53,6 @@ beforeEach(function () {
 });
 
 before(() => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  GitDocumentDB.plugin(require('git-documentdb-plugin-remote-nodegit'));
-
   fs.removeSync(path.resolve(localDir));
 });
 
@@ -66,15 +63,6 @@ afterEach(function () {
 after(() => {
   fs.removeSync(path.resolve(localDir));
 });
-
-// This test needs environment variables:
-//  - GITDDB_GITHUB_USER_URL: URL of your GitHub account
-// e.g.) https://github.com/foo/
-//  - GITDDB_PERSONAL_ACCESS_TOKEN: A personal access token of your GitHub account
-const maybe =
-  process.env.GITDDB_GITHUB_USER_URL && process.env.GITDDB_PERSONAL_ACCESS_TOKEN
-    ? describe
-    : describe.skip;
 
 describe('<crud/history> getHistoryImpl', () => {
   it('gets all revisions', async () => {
