@@ -347,9 +347,6 @@ export const syncBase = (
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId;
 
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidURLFormatError(''));
-
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
@@ -359,6 +356,9 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidURLFormatError(''));
+
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(RemoteErr.InvalidURLFormatError);
       await gitDDB.destroy();
@@ -368,11 +368,6 @@ export const syncBase = (
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch
-        .onFirstCall()
-        .rejects(new RemoteEngineErr.InvalidRepositoryURLError(''));
-
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
@@ -382,6 +377,11 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch
+        .onFirstCall()
+        .rejects(new RemoteEngineErr.InvalidRepositoryURLError(''));
+
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(RemoteErr.InvalidRepositoryURLError);
       await gitDDB.destroy();
@@ -391,9 +391,6 @@ export const syncBase = (
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidSSHKeyPathError());
-
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
@@ -403,6 +400,9 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidSSHKeyPathError());
+
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(RemoteErr.InvalidSSHKeyPathError);
       await gitDDB.destroy();
@@ -412,11 +412,6 @@ export const syncBase = (
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch
-        .onFirstCall()
-        .rejects(new RemoteEngineErr.InvalidAuthenticationTypeError(''));
-
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
@@ -426,6 +421,11 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch
+        .onFirstCall()
+        .rejects(new RemoteEngineErr.InvalidAuthenticationTypeError(''));
+
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(
         RemoteErr.InvalidAuthenticationTypeError
@@ -437,11 +437,6 @@ export const syncBase = (
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch
-        .onFirstCall()
-        .rejects(new RemoteEngineErr.HTTPError401AuthorizationRequired(''));
-
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
@@ -451,6 +446,11 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch
+        .onFirstCall()
+        .rejects(new RemoteEngineErr.HTTPError401AuthorizationRequired(''));
+
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(
         RemoteErr.HTTPError401AuthorizationRequired
@@ -462,9 +462,6 @@ export const syncBase = (
       const dbName = serialId();
       const remoteURL = remoteURLBase + serialId();
 
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch.rejects(new RemoteEngineErr.NetworkError(''));
-
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
@@ -474,6 +471,9 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
+      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
+      stubCheckFetch.rejects(new RemoteEngineErr.NetworkError(''));
+
       const sync = new Sync(gitDDB, options);
 
       await expect(sync.init()).rejects.toThrowError(RemoteErr.NetworkError);
