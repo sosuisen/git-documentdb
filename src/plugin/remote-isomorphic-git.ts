@@ -181,24 +181,22 @@ export async function clone (
     await sleep(remoteOptions.retryInterval!);
   }
 
-  // Rewrite remote
-
-  // default is 'origin'
+  // Add remote
+  // (default is 'origin')
   if (remoteName !== 'origin') {
-    // Add remote
-    await git.setConfig({
+    await git.addRemote({
       fs,
       dir: workingDir,
-      path: `remote.${remoteName}.url`,
-      value: remoteOptions.remoteUrl!,
-    });
-    await git.setConfig({
-      fs,
-      dir: workingDir,
-      path: `remote.${remoteName}.fetch`,
-      value: `+refs/heads/*:refs/remotes/${remoteName}/*`,
+      remote: 'origin',
+      url: remoteOptions.remoteUrl!,
     });
   }
+  await git.addRemote({
+    fs,
+    dir: workingDir,
+    remote: remoteName,
+    url: remoteOptions.remoteUrl!,
+  });
 }
 
 /**
