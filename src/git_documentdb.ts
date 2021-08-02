@@ -768,37 +768,6 @@ export class GitDocumentDB
   }
 
   /**
-   * Save app-specific info into .gitddb/app.json
-   *
-   * @public
-   */
-  async saveAppInfo (info: { [key: string]: any }) {
-    // Do not use this.put() because it increments TaskQueue.statistics.put.
-    await putWorker(
-      this,
-      '',
-      GIT_DOCUMENTDB_APP_INFO_ID + JSON_EXT,
-      toSortedJSONString(info),
-      PUT_APP_INFO_MESSAGE
-    );
-  }
-
-  /**
-   * Load app-specific info from .gitddb/app.json
-   *
-   * @returns JSON object. It returns undefined if app.json does not exist.
-   *
-   * @public
-   */
-  async loadAppInfo () {
-    const info = await this.get(GIT_DOCUMENTDB_APP_INFO_ID).catch(() => undefined);
-    if (info?._id) {
-      delete info._id;
-    }
-    return info;
-  }
-
-  /**
    * Load DatabaseInfo from .gitddb/info.json
    *
    * @throws # Errors from putWorker

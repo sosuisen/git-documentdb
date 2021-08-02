@@ -81,8 +81,5 @@ export interface GitDDBInterface {
   saveAuthor(): Promise<void>;
   loadAuthor(): Promise<void>;
 
-  saveAppInfo(info: { [key: string]: any }): void;
-  loadAppInfo(): { [key: string]: any };
-
   loadDbInfo(): void;
 }
