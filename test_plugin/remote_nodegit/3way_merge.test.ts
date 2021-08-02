@@ -7,14 +7,19 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+/**
+ * Test tryPush
+ * by using GitHub Personal Access Token
+ * These tests create a new repository on GitHub if not exists.
+ */
 import path from 'path';
 import fs from 'fs-extra';
+import { syncThreeWayMergeBase } from '../../test/remote_base/3way_merge';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { syncBase } from '../remote_base/sync';
 
-const reposPrefix = 'test_sync_constructor_nodegit__';
-const localDir = `./test/database_sync_constructor_nodegit`;
+const reposPrefix = 'test_3way_merge_nodegit__';
+const localDir = `./test_plugin/database_3way_merge_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -53,4 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', syncBase(connection, remoteURLBase, reposPrefix, localDir, token));
+maybe('NodeGit', syncThreeWayMergeBase(connection, remoteURLBase, reposPrefix, localDir));

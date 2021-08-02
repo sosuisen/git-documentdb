@@ -8,18 +8,18 @@
  */
 
 /**
- * Test tryPush
+ * Test trySync
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { syncThreeWayMergeBase } from '../remote_base/3way_merge';
+import { syncTrySyncBase } from '../../test/remote_base/sync_trysync';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 
-const reposPrefix = 'test_3way_merge_nodegit__';
-const localDir = `./test/database_3way_merge_nodegit`;
+const reposPrefix = 'test_sync_trysync_nodegit___';
+const localDir = `./test_plugin/database_sync_trysync_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -58,4 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', syncThreeWayMergeBase(connection, remoteURLBase, reposPrefix, localDir));
+maybe('NodeGit', syncTrySyncBase(connection, remoteURLBase, reposPrefix, localDir));

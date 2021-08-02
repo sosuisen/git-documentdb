@@ -16,10 +16,10 @@ import path from 'path';
 import fs from 'fs-extra';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { networkHistoryBase } from '../remote_base/network_history';
+import { networkHistoryBase } from '../../test/remote_base/network_history';
 
 const reposPrefix = 'test_network_history_nodegit__';
-const localDir = `./test/database_network_history_nodegit`;
+const localDir = `./test_plugin/database_network_history_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore

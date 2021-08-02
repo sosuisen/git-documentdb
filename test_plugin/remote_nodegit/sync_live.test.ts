@@ -8,18 +8,18 @@
  */
 
 /**
- * Network test for GitDocumentDB class
+ * Test Sync live
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { networkGitDocumentDBBase } from '../remote_base/network_git_documentdb';
+import { syncLiveBase } from '../../test/remote_base/sync_live';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 
-const reposPrefix = 'test_network_git_documentdb_nodegit__';
-const localDir = `./test/database_network_git_documentdb_nodegit`;
+const reposPrefix = 'test_sync_live_nodegit___';
+const localDir = `./test_plugin/database_sync_live_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -58,7 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe(
-  'NodeGit',
-  networkGitDocumentDBBase(connection, remoteURLBase, reposPrefix, localDir)
-);
+maybe('NodeGit', syncLiveBase(connection, remoteURLBase, reposPrefix, localDir));

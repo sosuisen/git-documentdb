@@ -8,18 +8,18 @@
  */
 
 /**
- * Test Sync Events
+ * Network test for TaskQueue
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { syncEventsBase } from '../remote_base/sync_events';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
+import { networkTaskQueueBase } from '../../test/remote_base/network_task_queue';
 
-const reposPrefix = 'test_sync_events_nodegit___';
-const localDir = `./test/database_sync_events_nodegit`;
+const reposPrefix = 'test_network_task_queue_nodegit__';
+const localDir = `./test_plugin/database_network_task_queue_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -58,4 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', syncEventsBase(connection, remoteURLBase, reposPrefix, localDir));
+maybe('NodeGit', networkTaskQueueBase(connection, remoteURLBase, reposPrefix, localDir));

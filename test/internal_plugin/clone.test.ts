@@ -8,35 +8,25 @@
  */
 
 import path from 'path';
-import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import {
-  CannotConnectError,
   HTTPError401AuthorizationRequired,
-  HTTPError403Forbidden,
   HTTPError404NotFound,
   InvalidAuthenticationTypeError,
-  InvalidGitRemoteError,
   InvalidRepositoryURLError,
+  InvalidSSHKeyPathError,
   InvalidURLFormatError,
   NetworkError,
-  UnfetchedCommitExistsError,
 } from 'git-documentdb-remote-errors';
+import git from 'isomorphic-git';
 import sinon from 'sinon';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { RemoteOptions } from '../../src/types';
-import { clone, push } from '../../src/plugin/remote-isomorphic-git';
-import {
-  createClonedDatabases,
-  createGitRemote,
-  createRemoteRepository,
-  destroyDBs,
-  removeRemoteRepositories,
-} from '../remote_utils';
+import { clone } from '../../src/plugin/remote-isomorphic-git';
+import { destroyDBs, removeRemoteRepositories } from '../remote_utils';
 
-const reposPrefix = 'test_remote_isomorphic_git_push___';
-const localDir = `./test/database_push`;
+const reposPrefix = 'test_remote_isomorphic_git_clone___';
+const localDir = `./test/database_clone`;
 
 let idCounter = 0;
 const serialId = () => {
@@ -60,7 +50,7 @@ before(() => {
 });
 
 after(() => {
-  //  fs.removeSync(path.resolve(localDir));
+  fs.removeSync(path.resolve(localDir));
 });
 
 /**
@@ -80,7 +70,7 @@ const maybe =
     ? describe
     : describe.skip;
 
-maybe('<plugin/remote-isomorphic-git> push', () => {
+maybe('<internal_plugin/remote-isomorphic-git> clone', () => {
   const remoteURLBase = process.env.GITDDB_GITHUB_USER_URL?.endsWith('/')
     ? process.env.GITDDB_GITHUB_USER_URL
     : process.env.GITDDB_GITHUB_USER_URL + '/';
@@ -88,69 +78,37 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
 
   before(async () => {
     // Remove remote
-    await removeRemoteRepositories(reposPrefix).catch(err => console.log(err));
-  });
-
-  it('throws InvalidGitRemoteError', async () => {
-    const dbA: GitDocumentDB = new GitDocumentDB({
-      dbName: serialId(),
-      localDir,
-    });
-    await dbA.open();
-
-    const remoteUrl = 'foo-bar';
-
-    const err = await push(dbA.workingDir, { remoteUrl }, undefined, undefined).catch(
-      error => error
-    );
-
-    expect(err).toBeInstanceOf(InvalidGitRemoteError);
-
-    await destroyDBs([dbA]);
+    await removeRemoteRepositories(reposPrefix);
   });
 
   describe('succeeds', () => {
-    it('when connect to empty repository with valid personal access token', async () => {
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        dbName: serialId(),
-        localDir,
-      });
-      const remoteUrl = remoteURLBase + serialId();
-      await dbA.open();
-      await dbA.put({ name: 'fromA' });
-
-      await createRemoteRepository(remoteUrl);
-      await createGitRemote(dbA.workingDir, remoteUrl);
-      const res = await push(dbA.workingDir, {
-        remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      }).catch(error => error);
-
-      expect(res).toBeUndefined();
-
-      await destroyDBs([dbA]);
-    });
-
-    it('when connect to cloned repository with valid personal access token', async () => {
+    it('when connect to public repository with no personal access token', async () => {
       const dbA: GitDocumentDB = new GitDocumentDB({
         dbName: serialId(),
         localDir,
       });
       const remoteUrl = remoteURLBase + 'test-public.git';
       fs.ensureDirSync(dbA.workingDir);
-      await clone(dbA.workingDir, {
-        remoteUrl: remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      });
-      await dbA.open();
-      await dbA.put({ name: 'fromA' });
-      // await createGitRemote(dbA.workingDir, remoteUrl); // Not need because cloned repository.
+      const res = await clone(dbA.workingDir, {
+        remoteUrl,
+        connection: { type: 'github' },
+      }).catch(error => error);
+      expect(res).toBeUndefined();
 
-      const res = await push(dbA.workingDir, {
+      await destroyDBs([dbA]);
+    });
+
+    it('when connect to public repository with valid personal access token', async () => {
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: serialId(),
+        localDir,
+      });
+      const remoteUrl = remoteURLBase + 'test-public.git';
+      fs.ensureDirSync(dbA.workingDir);
+      const res = await clone(dbA.workingDir, {
         remoteUrl,
         connection: { type: 'github', personalAccessToken: token },
       }).catch(error => error);
-
       expect(res).toBeUndefined();
 
       await destroyDBs([dbA]);
@@ -161,18 +119,9 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
         dbName: serialId(),
         localDir,
       });
-
       const remoteUrl = remoteURLBase + 'test-private.git';
       fs.ensureDirSync(dbA.workingDir);
-      await clone(dbA.workingDir, {
-        remoteUrl: remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      });
-      await dbA.open();
-      await dbA.put({ name: 'fromA' });
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const res = await push(dbA.workingDir, {
+      const res = await clone(dbA.workingDir, {
         remoteUrl,
         connection: { type: 'github', personalAccessToken: token },
       }).catch(error => error);
@@ -181,77 +130,115 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
       await destroyDBs([dbA]);
     });
 
-    it('after retrying push()', async () => {
+    it('set default and another remote name', async () => {
       const dbA: GitDocumentDB = new GitDocumentDB({
         dbName: serialId(),
         localDir,
       });
-      const remoteUrl = remoteURLBase + serialId();
-      await dbA.open();
-      await dbA.put({ name: 'fromA' });
-      await createRemoteRepository(remoteUrl);
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const stubPush = sandbox.stub(git, 'push');
-      stubPush.onCall(0).rejects(new Error('connect EACCES'));
-      stubPush.onCall(1).rejects(new Error('connect EACCES'));
-      stubPush.onCall(2).rejects(new Error('connect EACCES'));
-      stubPush.onCall(3).resolves(undefined);
-
-      const res = await push(dbA.workingDir, {
-        remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      }).catch((error: Error) => error);
-
+      const remoteUrl = remoteURLBase + 'test-public.git';
+      fs.ensureDirSync(dbA.workingDir);
+      const res = await clone(
+        dbA.workingDir,
+        {
+          remoteUrl,
+          connection: { type: 'github' },
+        },
+        'another'
+      ).catch(error => error);
       expect(res).toBeUndefined();
 
-      expect(stubPush.callCount).toBe(4);
+      const urlDefault = await git.getConfig({
+        fs,
+        dir: dbA.workingDir,
+        path: 'remote.origin.url',
+      });
+      expect(urlDefault).toBe(remoteUrl);
+
+      const fetchDefault = await git.getConfig({
+        fs,
+        dir: dbA.workingDir,
+        path: 'remote.origin.fetch',
+      });
+      expect(fetchDefault).toBe(`+refs/heads/*:refs/remotes/origin/*`);
+
+      const url = await git.getConfig({
+        fs,
+        dir: dbA.workingDir,
+        path: 'remote.another.url',
+      });
+      expect(url).toBe(remoteUrl);
+
+      const fetch = await git.getConfig({
+        fs,
+        dir: dbA.workingDir,
+        path: 'remote.another.fetch',
+      });
+      expect(fetch).toBe(`+refs/heads/*:refs/remotes/another/*`);
+
+      await destroyDBs([dbA]);
+    });
+
+    it('after retries', async () => {
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: serialId(),
+        localDir,
+      });
+      const remoteUrl = remoteURLBase + 'test-public.git';
+      fs.ensureDirSync(dbA.workingDir);
+
+      const cloneStub = sandbox.stub(git, 'clone');
+      cloneStub.onCall(0).rejects(new Error('connect EACCES'));
+      cloneStub.onCall(1).rejects(new Error('connect EACCES'));
+      cloneStub.onCall(2).rejects(new Error('connect EACCES'));
+      cloneStub.onCall(3).resolves(undefined);
+
+      // Skip addRemote because repository is empty
+      const remoteStub = sandbox.stub(git, 'addRemote');
+      remoteStub.resolves();
+
+      const res = await clone(dbA.workingDir, {
+        remoteUrl,
+        connection: { type: 'github' },
+      }).catch(error => error);
+      expect(res).toBeUndefined();
+
+      expect(cloneStub.callCount).toBe(4);
 
       await destroyDBs([dbA]);
     });
   });
 
-  it('throws NetworkError after retrying push()', async () => {
+  it('throws NetworkError after retries', async () => {
     const dbA: GitDocumentDB = new GitDocumentDB({
       dbName: serialId(),
       localDir,
     });
-    const remoteUrl = remoteURLBase + serialId();
-    await dbA.open();
-    await dbA.put({ name: 'fromA' });
-    await createRemoteRepository(remoteUrl);
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    const remoteUrl = remoteURLBase + 'test-public.git';
+    fs.ensureDirSync(dbA.workingDir);
 
-    const stubPush = sandbox.stub(git, 'push');
-    stubPush.rejects(new Error('connect EACCES'));
+    const cloneStub = sandbox.stub(git, 'clone');
+    cloneStub.rejects(new Error('connect EACCES'));
 
-    const res = await push(dbA.workingDir, {
+    const res = await clone(dbA.workingDir, {
       remoteUrl,
-      connection: { type: 'github', personalAccessToken: token },
-    }).catch((error: Error) => error);
-
+      connection: { type: 'github' },
+    }).catch(error => error);
     expect(res).toBeInstanceOf(NetworkError);
 
-    expect(stubPush.callCount).toBe(4);
+    expect(cloneStub.callCount).toBe(4);
 
     await destroyDBs([dbA]);
   });
 
-  it('throws InvalidURLFormat by push when http protocol is missing', async () => {
+  it('throws InvalidURLFormat by clone when http protocol is missing', async () => {
     const dbA: GitDocumentDB = new GitDocumentDB({
       dbName: serialId(),
       localDir,
     });
-    await dbA.open();
-
     const remoteUrl = 'foo-bar';
-    await createGitRemote(dbA.workingDir, remoteUrl);
-
-    // type is 'none'
-    const err = await push(dbA.workingDir, {
-      remoteUrl,
-      connection: { type: 'none' },
-    }).catch(error => error);
+    fs.ensureDirSync(dbA.workingDir);
+    const err = await clone(dbA.workingDir, { remoteUrl }).catch(error => error);
+    await dbA.open();
 
     expect(err).toBeInstanceOf(InvalidURLFormatError);
     expect(err.message).toMatch(/^URL format is invalid: UrlParseError:/);
@@ -259,21 +246,14 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
     await destroyDBs([dbA]);
   });
 
-  it('throws InvalidURLFormatError by push when URL is malformed', async () => {
+  it('throws InvalidURLFormatError by clone when URL is malformed', async () => {
     const dbA: GitDocumentDB = new GitDocumentDB({
       dbName: serialId(),
       localDir,
     });
-    await dbA.open();
-
     const remoteUrl = 'https://foo.example.com:xxxx';
-    await createGitRemote(dbA.workingDir, remoteUrl);
-
-    const err = await push(dbA.workingDir, {
-      remoteUrl,
-      connection: { type: 'none' },
-    }).catch(error => error);
-
+    fs.ensureDirSync(dbA.workingDir);
+    const err = await clone(dbA.workingDir, { remoteUrl }).catch(error => error);
     expect(err).toBeInstanceOf(InvalidURLFormatError);
     expect(err.message).toMatch(/^URL format is invalid: Error: getaddrinfo ENOTFOUND/);
 
@@ -285,16 +265,9 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
       dbName: serialId(),
       localDir,
     });
-    await dbA.open();
-
     const remoteUrl = 'https://foo.bar.example.com/gitddb-plugin/sync-test-invalid.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
-
-    const err = await push(dbA.workingDir, {
-      remoteUrl,
-      connection: { type: 'none' },
-    }).catch(error => error);
-
+    fs.ensureDirSync(dbA.workingDir);
+    const err = await clone(dbA.workingDir, { remoteUrl }).catch(error => error);
     expect(err).toBeInstanceOf(InvalidURLFormatError);
     expect(err.message).toMatch(/^URL format is invalid: Error: getaddrinfo ENOTFOUND/);
 
@@ -307,18 +280,9 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
         dbName: serialId(),
         localDir,
       });
-      await dbA.open();
-
       const remoteUrl = 'https://127.0.0.1/gitddb-plugin/sync-test-invalid.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const err = await push(dbA.workingDir, {
-        remoteUrl,
-        connection: {
-          type: 'github',
-        },
-      }).catch(error => error);
-
+      fs.ensureDirSync(dbA.workingDir);
+      const err = await clone(dbA.workingDir, { remoteUrl }).catch(error => error);
       expect(err).toBeInstanceOf(NetworkError);
       expect(err.message).toMatch(/^Network error: Error: connect ECONNREFUSED/);
 
@@ -332,12 +296,9 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
         dbName: serialId(),
         localDir,
       });
-      await dbA.open();
-
-      const remoteUrl = remoteURLBase + 'test-public.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const err = await push(dbA.workingDir, {
+      const remoteUrl = remoteURLBase + 'test-private.git';
+      fs.ensureDirSync(dbA.workingDir);
+      const err = await clone(dbA.workingDir, {
         remoteUrl,
         connection: { type: 'github' },
       }).catch(error => error);
@@ -353,13 +314,9 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
         dbName: serialId(),
         localDir,
       });
-      await dbA.open();
-
-      const remoteUrl = remoteURLBase + 'test-public.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const err = await push(dbA.workingDir, { remoteUrl }).catch(error => error);
-
+      const remoteUrl = remoteURLBase + 'test-private.git';
+      fs.ensureDirSync(dbA.workingDir);
+      const err = await clone(dbA.workingDir, { remoteUrl }).catch(error => error);
       expect(err).toBeInstanceOf(HTTPError401AuthorizationRequired);
       expect(err.message).toMatch(/^HTTP Error: 401 Authorization required/);
 
@@ -371,12 +328,9 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
         dbName: serialId(),
         localDir,
       });
-      await dbA.open();
-
       const remoteUrl = remoteURLBase + 'test-private.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const err = await push(dbA.workingDir, {
+      fs.ensureDirSync(dbA.workingDir);
+      const err = await clone(dbA.workingDir, {
         remoteUrl,
         connection: { type: 'github', personalAccessToken: 'foo-bar' },
       }).catch(error => error);
@@ -394,12 +348,9 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
         dbName: serialId(),
         localDir,
       });
-      await dbA.open();
-
       const remoteUrl = remoteURLBase + 'sync-test-invalid.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const err = await push(dbA.workingDir, {
+      fs.ensureDirSync(dbA.workingDir);
+      const err = await clone(dbA.workingDir, {
         remoteUrl,
         connection: { type: 'github', personalAccessToken: token },
       }).catch(error => error);
@@ -410,17 +361,18 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
     });
   });
 
+  describe.skip('throws CannotFetchError', () => {
+    // Other cases
+  });
+
   it('throws InvalidURLFormatError by createCredentialForGitHub', async () => {
     const dbA: GitDocumentDB = new GitDocumentDB({
       dbName: serialId(),
       localDir,
     });
-    await dbA.open();
-
     const remoteUrl = 'foo-bar';
-    await createGitRemote(dbA.workingDir, remoteUrl);
-
-    const err = await push(dbA.workingDir, {
+    fs.ensureDirSync(dbA.workingDir);
+    const err = await clone(dbA.workingDir, {
       remoteUrl,
       connection: { type: 'github', personalAccessToken: token },
     }).catch(error => error);
@@ -437,13 +389,10 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
       dbName: serialId(),
       localDir,
     });
-    await dbA.open();
-
     const remoteUrl = remoteURLBase + 'foo/bar/test.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
-
+    fs.ensureDirSync(dbA.workingDir);
     await expect(
-      push(dbA.workingDir, {
+      clone(dbA.workingDir, {
         remoteUrl,
         connection: { type: 'github', personalAccessToken: token },
       })
@@ -457,14 +406,11 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
       dbName: serialId(),
       localDir,
     });
-    await dbA.open();
-
     const remoteUrl = remoteURLBase + 'test-private.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
-
+    fs.ensureDirSync(dbA.workingDir);
     await expect(
       // @ts-ignore
-      push(dbA.workingDir, { remoteUrl, connection: { type: 'foo' } })
+      clone(dbA.workingDir, { remoteUrl, connection: { type: 'foo' } })
     ).rejects.toThrowError(InvalidAuthenticationTypeError);
 
     await destroyDBs([dbA]);
@@ -477,12 +423,11 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
     });
     await dbA.open();
 
-    const remoteUrl = remoteURLBase + 'test-private.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
-
+    const remoteUrl = 'git@foo.example.com:bar/sync-test.git';
+    fs.ensureDirSync(dbA.workingDir);
     await expect(
       // @ts-ignore
-      push(dbA.workingDir, {
+      clone(dbA.workingDir, {
         remoteUrl,
         connection: {
           type: 'ssh',
@@ -494,114 +439,6 @@ maybe('<plugin/remote-isomorphic-git> push', () => {
     ).rejects.toThrowError(InvalidAuthenticationTypeError);
 
     await destroyDBs([dbA]);
-  });
-
-  describe('throws HttpError403Forbidden', () => {
-    it('when access repository of another account with your account', async () => {
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        dbName: serialId(),
-        localDir,
-      });
-      await dbA.open();
-
-      // const remoteUrl = privateRepositoryOfAnotherUser;
-      const remoteUrl = 'https://github.com/sosuisen/git-documentdb.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const err = await push(dbA.workingDir, {
-        remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      }).catch(error => error);
-      expect(err).toBeInstanceOf(HTTPError403Forbidden);
-      expect(err.message).toMatch(/^HTTP Error: 403 Forbidden/);
-
-      await destroyDBs([dbA]);
-    });
-  });
-
-  describe('throws UnfetchedCommitExistsError', () => {
-    it('when unfetched commit exists', async () => {
-      console.log('#start');
-      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
-        remoteURLBase,
-        localDir,
-        serialId,
-        {
-          connection: {
-            type: 'github',
-            personalAccessToken: token,
-            engine: 'isomorphic-git',
-          },
-        }
-      );
-      console.log('#end');
-      await dbB.put({ name: 'foo' });
-      await syncB.tryPush();
-
-      const err = await push(dbA.workingDir, {
-        remoteUrl: syncA.remoteURL,
-        connection: { type: 'github', personalAccessToken: token },
-      }).catch(error => error);
-      expect(err).toBeInstanceOf(UnfetchedCommitExistsError);
-
-      await destroyDBs([dbA, dbB]);
-    });
-
-    it('Race condition of two push() calls throws UnfetchedCommitExistsError in validatePushResult', async () => {
-      const remoteURL = remoteURLBase + serialId();
-
-      const dbNameA = serialId();
-
-      const dbA: GitDocumentDB = new GitDocumentDB({
-        dbName: dbNameA,
-        localDir: localDir,
-      });
-      const options: RemoteOptions = {
-        remoteUrl: remoteURL,
-        connection: {
-          type: 'github',
-          personalAccessToken: token,
-          engine: 'isomorphic-git',
-        },
-      };
-      await dbA.open();
-      const syncA = await dbA.sync(options);
-      const jsonA1 = { _id: '1', name: 'fromA' };
-      await dbA.put(jsonA1);
-
-      const dbNameB = serialId();
-      const dbB: GitDocumentDB = new GitDocumentDB({
-        dbName: dbNameB,
-        localDir: localDir,
-      });
-      await dbB.open();
-      const syncB = await dbB.sync(options);
-      const jsonB1 = { _id: '1', name: 'fromB' };
-      await dbB.put(jsonB1);
-
-      await expect(
-        Promise.all([
-          push(dbA.workingDir, {
-            remoteUrl: syncA.remoteURL,
-            connection: {
-              type: 'github',
-              personalAccessToken: token,
-              engine: 'isomorphic-git',
-            },
-          }),
-          push(dbB.workingDir, {
-            remoteUrl: syncB.remoteURL,
-            connection: {
-              type: 'github',
-              personalAccessToken: token,
-              engine: 'isomorphic-git',
-            },
-          }),
-        ])
-      ).rejects.toThrowError(UnfetchedCommitExistsError);
-
-      await destroyDBs([dbA, dbB]);
-    });
   });
 
   describe('throws CannotConnectError', () => {

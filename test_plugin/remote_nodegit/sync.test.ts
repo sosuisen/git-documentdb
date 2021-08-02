@@ -7,19 +7,14 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-/**
- * Test Sync live
- * by using GitHub Personal Access Token
- * These tests create a new repository on GitHub if not exists.
- */
 import path from 'path';
 import fs from 'fs-extra';
-import { syncLiveBase } from '../remote_base/sync_live';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
+import { syncBase } from '../../test/remote_base/sync';
 
-const reposPrefix = 'test_sync_live_nodegit___';
-const localDir = `./test/database_sync_live_nodegit`;
+const reposPrefix = 'test_sync_constructor_nodegit__';
+const localDir = `./test_plugin/database_sync_constructor_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -58,4 +53,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', syncLiveBase(connection, remoteURLBase, reposPrefix, localDir));
+maybe('NodeGit', syncBase(connection, remoteURLBase, reposPrefix, localDir, token));

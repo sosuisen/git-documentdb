@@ -3,6 +3,7 @@
   "include": [
     "src/**/*",
     "test/**/*",
+    "test_plugin/**/*",
     "webpack.*"
   ],
 }

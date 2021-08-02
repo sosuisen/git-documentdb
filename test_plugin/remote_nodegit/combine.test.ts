@@ -8,18 +8,18 @@
  */
 
 /**
- * Test tryPush
+ * Test combine databases
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { syncTryPushBase } from '../remote_base/sync_trypush';
+import { syncCombineBase } from '../../test/remote_base/combine';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 
-const reposPrefix = 'test_sync_trypush_nodegit___';
-const localDir = `./test/database_sync_trypush_nodegit`;
+const reposPrefix = 'test_combine_nodegit__';
+const localDir = `./test_plugin/database_combine_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -58,4 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', syncTryPushBase(connection, remoteURLBase, reposPrefix, localDir));
+maybe('NodeGit', syncCombineBase(connection, remoteURLBase, reposPrefix, localDir));

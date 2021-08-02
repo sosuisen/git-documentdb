@@ -14,12 +14,12 @@
  */
 import path from 'path';
 import fs from 'fs-extra';
-import { syncTrySyncBase } from '../remote_base/sync_trysync';
 import { ConnectionSettingsGitHub } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
+import { threeWayMergeOtBase } from '../../test/remote_base/3way_merge_ot';
 
-const reposPrefix = 'test_sync_trysync_nodegit___';
-const localDir = `./test/database_sync_trysync_nodegit`;
+const reposPrefix = 'test_3way_merge_ot_nodegit__';
+const localDir = `./test_plugin/database_3way_merge_ot_nodegit`;
 
 beforeEach(function () {
   // @ts-ignore
@@ -58,4 +58,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'nodegit',
 };
 
-maybe('NodeGit', syncTrySyncBase(connection, remoteURLBase, reposPrefix, localDir));
+maybe('NodeGit', threeWayMergeOtBase(connection, remoteURLBase, reposPrefix, localDir));
