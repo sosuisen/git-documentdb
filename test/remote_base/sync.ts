@@ -356,8 +356,8 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidURLFormatError(''));
+      const stubFetch = sandbox.stub(RemoteEngine[connection.engine!], 'fetch');
+      stubFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidURLFormatError(''));
 
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(RemoteErr.InvalidURLFormatError);
@@ -377,10 +377,8 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch
-        .onFirstCall()
-        .rejects(new RemoteEngineErr.InvalidRepositoryURLError(''));
+      const stubFetch = sandbox.stub(RemoteEngine[connection.engine!], 'fetch');
+      stubFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidRepositoryURLError(''));
 
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(RemoteErr.InvalidRepositoryURLError);
@@ -400,8 +398,8 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidSSHKeyPathError());
+      const stubFetch = sandbox.stub(RemoteEngine[connection.engine!], 'fetch');
+      stubFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidSSHKeyPathError());
 
       const sync = new Sync(gitDDB, options);
       await expect(sync.init()).rejects.toThrowError(RemoteErr.InvalidSSHKeyPathError);
@@ -421,8 +419,8 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch
+      const stubFetch = sandbox.stub(RemoteEngine[connection.engine!], 'fetch');
+      stubFetch
         .onFirstCall()
         .rejects(new RemoteEngineErr.InvalidAuthenticationTypeError(''));
 
@@ -446,8 +444,8 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch
+      const stubFetch = sandbox.stub(RemoteEngine[connection.engine!], 'fetch');
+      stubFetch
         .onFirstCall()
         .rejects(new RemoteEngineErr.HTTPError401AuthorizationRequired(''));
 
@@ -471,8 +469,8 @@ export const syncBase = (
         remoteUrl: remoteURL,
         connection,
       };
-      const stubCheckFetch = sandbox.stub(RemoteEngine[connection.engine!], 'checkFetch');
-      stubCheckFetch.rejects(new RemoteEngineErr.NetworkError(''));
+      const stubFetch = sandbox.stub(RemoteEngine[connection.engine!], 'fetch');
+      stubFetch.rejects(new RemoteEngineErr.NetworkError(''));
 
       const sync = new Sync(gitDDB, options);
 

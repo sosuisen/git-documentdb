@@ -23,7 +23,13 @@ import {
 import sinon from 'sinon';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { fetch } from '../../src/plugin/remote-isomorphic-git';
-import { createGitRemote, destroyDBs, removeRemoteRepositories } from '../remote_utils';
+import {
+  createGitRemote,
+  createRemoteRepository,
+  destroyDBs,
+  destroyRemoteRepository,
+  removeRemoteRepositories,
+} from '../remote_utils';
 import { Sync } from '../../src/remote/sync';
 import { ConnectionSettingsGitHub } from '../../src/types';
 
@@ -64,6 +70,8 @@ after(() => {
  *   GITDDB_PERSONAL_ACCESS_TOKEN: The personal access token of your GitHub account
  * GitHub repositories:
  *   remoteURLBase + 'test-private.git' must be a private repository.
+ *   remoteURLBase + 'test-public.git' must be a public repository.
+ *   remoteURLBase + 'test-public2.git' must be a public repository.
  */
 const userHome = process.env[process.platform === 'win32' ? 'USERPROFILE' : 'HOME'] ?? '';
 
@@ -216,18 +224,23 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await destroyDBs([dbA]);
     });
 
-    it('when fetch from multiple Sync instances', async () => {
+    it('when fetch from empty repository', async () => {
       const dbA: GitDocumentDB = new GitDocumentDB({
         dbName: serialId(),
         localDir,
       });
       await dbA.open();
 
-      const remoteUrl = remoteURLBase + 'test-public.git';
+      const remoteUrl = remoteURLBase + serialId();
+      await destroyRemoteRepository(remoteUrl).catch(() => {});
+      await createRemoteRepository(remoteUrl);
       const remoteOptions = {
         remoteUrl,
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        connection: { type: 'github' } as ConnectionSettingsGitHub,
+        connection: {
+          type: 'github',
+          personalAccessToken: token,
+        } as ConnectionSettingsGitHub,
       };
       const sync = new Sync(dbA, remoteOptions);
       await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
@@ -240,6 +253,60 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
         dbA.defaultBranch
       ).catch(error => error);
       expect(res).toBeUndefined();
+
+      await destroyDBs([dbA]);
+    });
+
+    it('when fetch from multiple Sync instances', async () => {
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: serialId(),
+        localDir,
+      });
+      await dbA.open();
+
+      const remoteUrl = remoteURLBase + 'test-public.git';
+      const remoteOptions = {
+        remoteUrl,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        connection: {
+          type: 'github',
+          personalAccessToken: token,
+        } as ConnectionSettingsGitHub,
+      };
+      const sync = new Sync(dbA, remoteOptions);
+      await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
+
+      const res = await fetch(
+        dbA.workingDir,
+        remoteOptions,
+        sync.remoteName,
+        dbA.defaultBranch,
+        dbA.defaultBranch
+      ).catch(error => error);
+      expect(res).toBeUndefined();
+
+      const remoteUrl2 = remoteURLBase + 'test-public2.git';
+      await destroyRemoteRepository(remoteUrl2);
+      await createRemoteRepository(remoteUrl2);
+      const remoteOptions2 = {
+        remoteUrl: remoteUrl2,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        connection: {
+          type: 'github',
+          personalAccessToken: token,
+        } as ConnectionSettingsGitHub,
+      };
+      const sync2 = new Sync(dbA, remoteOptions2);
+      await createGitRemote(dbA.workingDir, remoteUrl2, sync2.remoteName);
+
+      const res2 = await fetch(
+        dbA.workingDir,
+        remoteOptions2,
+        sync2.remoteName,
+        dbA.defaultBranch,
+        dbA.defaultBranch
+      ).catch(error => error);
+      expect(res2).toBeUndefined();
 
       await destroyDBs([dbA]);
     });

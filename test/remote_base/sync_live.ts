@@ -190,6 +190,7 @@ export const syncLiveBase = (
           dbName: dbNameA,
           localDir: localDir,
         });
+        dbA.logLevel = 'trace';
         const interval = MINIMUM_SYNC_INTERVAL;
         const options: RemoteOptions = {
           remoteUrl: remoteURL,

@@ -67,7 +67,7 @@ const remote_plugin_example = async () => {
     connection: { 
       type: 'github',
       personalAccessToken: your_github_personal_access_token,
-      engine: 'nodegit'
+      //engine: 'nodegit'
     },
   };
   const syncNodeGit= await gitDDB.sync(remoteOptionsNodeGit);

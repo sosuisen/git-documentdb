@@ -368,7 +368,6 @@ export async function fetch (
   for (let i = 0; i < remoteOptions.retry! + 1; i++) {
     // eslint-disable-next-line no-await-in-loop
     const res = await git.fetch(fetchOption).catch(err => err);
-
     let error = '';
     if (res instanceof Error) {
       error = res.toString();

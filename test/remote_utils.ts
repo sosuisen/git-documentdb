@@ -265,10 +265,7 @@ export const destroyRemoteRepository = async (remoteURL: string) => {
     },
   })
     .destroy()
-    .catch(err => {
-      console.debug('Cannot delete: ' + remoteURL);
-      console.debug(err);
-    });
+    .catch(() => {});
 };
 
 export async function removeRemoteRepositories (reposPrefix: string) {

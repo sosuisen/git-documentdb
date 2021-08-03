@@ -479,15 +479,32 @@ export class Sync implements SyncInterface {
       });
     }
 
-    // eslint-disable-next-line no-await-in-loop
-    const remoteResult: boolean | Error = await RemoteEngine[this._engine]
-      .checkFetch(
-        this._gitDDB.workingDir,
-        this._options,
-        this.remoteName,
-        this._gitDDB.logger
-      )
-      .catch(err => err);
+    let remoteResult: boolean | Error;
+    if (this._options === 'push') {
+      // Do not download remote.
+      // eslint-disable-next-line no-await-in-loop
+      remoteResult = await RemoteEngine[this._engine]
+        .checkFetch(
+          this._gitDDB.workingDir,
+          this._options,
+          this.remoteName,
+          this._gitDDB.logger
+        )
+        .catch(err => err);
+    }
+    else {
+      // eslint-disable-next-line no-await-in-loop
+      remoteResult = await RemoteEngine[this._engine]
+        .fetch(
+          this._gitDDB.workingDir,
+          this._options,
+          this.remoteName,
+          this._gitDDB.defaultBranch,
+          this._gitDDB.defaultBranch,
+          this._gitDDB.logger
+        )
+        .catch(err => err);
+    }
 
     if (typeof remoteResult === 'boolean') {
       // nop
@@ -520,80 +537,51 @@ export class Sync implements SyncInterface {
       action: 'nop',
     };
     if (this._options === 'pull') {
+      // Do not create a new remote repository because the direction is 'pull'.
       /**
        * TODO: Implement case when sync_direction is 'pull'.
        */
     }
-    else if (isNewRemoteRepository) {
-      this._gitDDB.logger.debug('upstream branch is not set yet. tryPush..');
-      // trySync() pushes local commits to the remote branch.
-
-      // Remote repository may not be created yet due to internal delay of GitHub.
-      // Retry if not exist.
-      for (let i = 0; i < this._options.retry! + 1; i++) {
-        // eslint-disable-next-line no-await-in-loop
-        const syncResultOrError = await this.tryPush().catch(err => err);
-        if (syncResultOrError instanceof Error) {
-          if (syncResultOrError instanceof RemoteErr.HTTPError404NotFound) {
-            // eslint-disable-next-line no-await-in-loop
-            await sleep(this._options.retryInterval!);
-            if (i === this._options.retry!) {
-              throw syncResultOrError;
-            }
-            continue;
-          }
-          throw syncResultOrError;
-        }
-        syncResult = syncResultOrError;
-        break;
-      }
-
-      // An upstream branch must be set to a local branch after the first push
-      // because refs/remotes/origin/main is not created until the first push.
-      await git.setConfig({
-        fs,
-        dir: this._gitDDB.workingDir,
-        path: `branch.${this._gitDDB.defaultBranch}.remote`,
-        value: this.remoteName,
-      });
-
-      await git.setConfig({
-        fs,
-        dir: this._gitDDB.workingDir,
-        path: `branch.${this._gitDDB.defaultBranch}.merge`,
-        value: `refs/heads/${this._gitDDB.defaultBranch}`,
-      });
-    }
     else {
-      const branchRemote = await git.getConfig({
-        fs,
-        dir: this._gitDDB.workingDir,
-        path: `branch.${this._gitDDB.defaultBranch}.remote`,
-      });
-      if (branchRemote === undefined) {
-        await git.setConfig({
-          fs,
-          dir: this._gitDDB.workingDir,
-          path: `branch.${this._gitDDB.defaultBranch}.remote`,
-          value: this.remoteName,
-        });
+      // push or both
+      if (this._options === 'both') {
+        // Check remote branch after fetching.
+        const remoteCommitOid = await git
+          .resolveRef({
+            fs,
+            dir: this._gitDDB.workingDir,
+            ref: `refs/remotes/${this.remoteName}/${this._gitDDB.defaultBranch}`,
+          })
+          .catch(() => undefined);
+        if (remoteCommitOid === undefined) {
+          // Remote repository is empty.
+          isNewRemoteRepository = true;
+        }
       }
+      if (isNewRemoteRepository) {
+        this._gitDDB.logger.debug('upstream branch is not set yet. tryPush..');
 
-      const branchMerge = await git.getConfig({
-        fs,
-        dir: this._gitDDB.workingDir,
-        path: `branch.${this._gitDDB.defaultBranch}.merge`,
-      });
-      if (branchMerge === undefined) {
-        await git.setConfig({
-          fs,
-          dir: this._gitDDB.workingDir,
-          path: `branch.${this._gitDDB.defaultBranch}.merge`,
-          value: `refs/heads/${this._gitDDB.defaultBranch}`,
-        });
+        // Remote repository may not be created yet due to internal delay of GitHub.
+        // Retry if not exist.
+        for (let i = 0; i < this._options.retry! + 1; i++) {
+          // eslint-disable-next-line no-await-in-loop
+          const syncResultOrError = await this.tryPush().catch(err => err);
+          if (syncResultOrError instanceof Error) {
+            if (syncResultOrError instanceof RemoteErr.HTTPError404NotFound) {
+              // eslint-disable-next-line no-await-in-loop
+              await sleep(this._options.retryInterval!);
+              if (i === this._options.retry!) {
+                throw syncResultOrError;
+              }
+              continue;
+            }
+            throw syncResultOrError;
+          }
+          syncResult = syncResultOrError;
+          break;
+        }
       }
-
-      if (this._options.syncDirection === 'push') {
+      else if (this._options.syncDirection === 'push') {
         this._gitDDB.logger.debug('upstream_branch exists. tryPush..');
         syncResult = await this.tryPush();
       }
@@ -601,6 +589,34 @@ export class Sync implements SyncInterface {
         this._gitDDB.logger.debug('upstream_branch exists. trySync..');
         syncResult = await this.trySync();
       }
+    }
+
+    const branchRemote = await git.getConfig({
+      fs,
+      dir: this._gitDDB.workingDir,
+      path: `branch.${this._gitDDB.defaultBranch}.remote`,
+    });
+    if (branchRemote === undefined) {
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `branch.${this._gitDDB.defaultBranch}.remote`,
+        value: this.remoteName,
+      });
+    }
+
+    const branchMerge = await git.getConfig({
+      fs,
+      dir: this._gitDDB.workingDir,
+      path: `branch.${this._gitDDB.defaultBranch}.merge`,
+    });
+    if (branchMerge === undefined) {
+      await git.setConfig({
+        fs,
+        dir: this._gitDDB.workingDir,
+        path: `branch.${this._gitDDB.defaultBranch}.merge`,
+        value: `refs/heads/${this._gitDDB.defaultBranch}`,
+      });
     }
 
     if (this._options.live) {
