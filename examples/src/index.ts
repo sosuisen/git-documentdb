@@ -30,7 +30,7 @@ const gitddb_example = async () => {
 
   console.log(`$ gitDDB.put({ flower: 'cherry blossoms' ... }) # Create`);
   console.log(await gitDDB.get('nara')); 
-  // log: { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+  // log: { flower: 'cherry blossoms', season: 'spring', _id: 'nara' }
 
   // Note that _id and a filename are linked.
   // So _id is better to be ASCII characters and a case-insensitive name for cross-platform.
@@ -98,7 +98,7 @@ const gitddb_example = async () => {
 
   console.log(`\n$ gitDDB.get('nara', 2) # Get a document two revisions older than the latest.`);
   console.log(oldDoc);
-  // log: { _id: 'nara', flower: 'cherry blossoms', season: 'spring' }
+  // log: { flower: 'cherry blossoms', season: 'spring', _id: 'nara' }
 
   /**
    * Synchronization
