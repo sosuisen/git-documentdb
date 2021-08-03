@@ -322,6 +322,8 @@ export async function fetch (
   workingDir: string,
   remoteOptions: RemoteOptions,
   remoteName?: string,
+  localBranchName?: string,
+  remoteBranchName?: string,
   logger?: Logger
 ): Promise<void> {
   logger ??= new Logger({
@@ -334,6 +336,8 @@ export async function fetch (
   logger.debug(`remote-isomorphic-git: fetch: ${remoteOptions.remoteUrl}`);
 
   remoteName ??= 'origin';
+  localBranchName ??= 'main';
+  remoteBranchName ??= 'main';
 
   const urlOfRemote = await git.getConfig({
     fs,
@@ -352,6 +356,9 @@ export async function fetch (
     dir: workingDir,
     http: httpClient,
     url: remoteOptions.remoteUrl!,
+    remote: remoteName,
+    ref: localBranchName,
+    remoteRef: remoteBranchName,
   };
   const cred = createCredentialCallback(remoteOptions);
   if (cred) {

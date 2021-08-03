@@ -30,6 +30,8 @@ export interface RemoteEngineInterface {
     workingDir: string,
     remoteOptions: RemoteOptions,
     remoteName?: string,
+    localBranchName?: string,
+    remoteBranchName?: string,
     logger?: Logger
   ) => Promise<void>;
   push: (

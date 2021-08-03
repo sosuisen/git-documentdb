@@ -84,7 +84,14 @@ export async function syncWorker (
    * Fetch
    */
   await RemoteEngine[sync.engine]
-    .fetch(gitDDB.workingDir, sync.options, sync.remoteName, gitDDB.logger)
+    .fetch(
+      gitDDB.workingDir,
+      sync.options,
+      sync.remoteName,
+      gitDDB.defaultBranch,
+      gitDDB.defaultBranch,
+      gitDDB.logger
+    )
     .catch(err => {
       throw wrappingRemoteEngineError(err);
     });
