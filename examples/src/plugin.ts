@@ -71,6 +71,7 @@ const remote_plugin_example = async () => {
     },
   };
   const syncNodeGit= await gitDDB.sync(remoteOptionsNodeGit);
+
   console.log('## Current RemoteEngine: ' + syncNodeGit.engine);
   syncNodeGit.on('start', () => { console.log('[NodeGit] synchronizing...')});  
   syncNodeGit.on('complete', () => { console.log('[NodeGit] completed')});
