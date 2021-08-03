@@ -24,6 +24,8 @@ import sinon from 'sinon';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { fetch } from '../../src/plugin/remote-isomorphic-git';
 import { createGitRemote, destroyDBs, removeRemoteRepositories } from '../remote_utils';
+import { Sync } from '../../src/remote/sync';
+import { ConnectionSettingsGitHub } from '../../src/types';
 
 const reposPrefix = 'test_remote_isomorphic_git_fetch___';
 const localDir = `./test/database_fetch`;
@@ -90,11 +92,21 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = remoteURLBase + 'test-public.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-      const res = await fetch(dbA.workingDir, {
+      const remoteOptions = {
         remoteUrl,
-        connection: { type: 'github' },
-      }).catch(error => error);
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        connection: { type: 'github' } as ConnectionSettingsGitHub,
+      };
+      const sync = new Sync(dbA, remoteOptions);
+      await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
+
+      const res = await fetch(
+        dbA.workingDir,
+        remoteOptions,
+        sync.remoteName,
+        dbA.defaultBranch,
+        dbA.defaultBranch
+      ).catch(error => error);
       expect(res).toBeUndefined();
 
       await destroyDBs([dbA]);
@@ -108,12 +120,25 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = remoteURLBase + 'test-public.git';
-
-      await createGitRemote(dbA.workingDir, remoteUrl);
-      const res = await fetch(dbA.workingDir, {
+      const remoteOptions = {
         remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      }).catch(error => error);
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        connection: {
+          type: 'github',
+          personalAccessToken: token,
+        } as ConnectionSettingsGitHub,
+      };
+      const sync = new Sync(dbA, remoteOptions);
+      await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
+
+      const res = await fetch(
+        dbA.workingDir,
+        remoteOptions,
+        sync.remoteName,
+        dbA.defaultBranch,
+        dbA.defaultBranch
+      ).catch(error => error);
+
       expect(res).toBeUndefined();
 
       await destroyDBs([dbA]);
@@ -127,12 +152,25 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = remoteURLBase + 'test-private.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
-
-      const res = await fetch(dbA.workingDir, {
+      const remoteOptions = {
         remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      }).catch(error => error);
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        connection: {
+          type: 'github',
+          personalAccessToken: token,
+        } as ConnectionSettingsGitHub,
+      };
+      const sync = new Sync(dbA, remoteOptions);
+      await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
+
+      const res = await fetch(
+        dbA.workingDir,
+        remoteOptions,
+        sync.remoteName,
+        dbA.defaultBranch,
+        dbA.defaultBranch
+      ).catch(error => error);
+
       expect(res).toBeUndefined();
 
       await destroyDBs([dbA]);
@@ -146,7 +184,16 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = remoteURLBase + 'test-private.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
+      const remoteOptions = {
+        remoteUrl,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        connection: {
+          type: 'github',
+          personalAccessToken: token,
+        } as ConnectionSettingsGitHub,
+      };
+      const sync = new Sync(dbA, remoteOptions);
+      await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
 
       const stubFetch = sandbox.stub(git, 'fetch');
       stubFetch.onCall(0).rejects(new Error('connect EACCES'));
@@ -154,13 +201,45 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       stubFetch.onCall(2).rejects(new Error('connect EACCES'));
       stubFetch.onCall(3).resolves(undefined);
 
-      const res = await fetch(dbA.workingDir, {
-        remoteUrl,
-        connection: { type: 'github', personalAccessToken: token },
-      }).catch(error => error);
+      const res = await fetch(
+        dbA.workingDir,
+        remoteOptions,
+        sync.remoteName,
+        dbA.defaultBranch,
+        dbA.defaultBranch
+      ).catch(error => error);
+
       expect(res).toBeUndefined();
 
       expect(stubFetch.callCount).toBe(4);
+
+      await destroyDBs([dbA]);
+    });
+
+    it('when fetch from multiple Sync instances', async () => {
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: serialId(),
+        localDir,
+      });
+      await dbA.open();
+
+      const remoteUrl = remoteURLBase + 'test-public.git';
+      const remoteOptions = {
+        remoteUrl,
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        connection: { type: 'github' } as ConnectionSettingsGitHub,
+      };
+      const sync = new Sync(dbA, remoteOptions);
+      await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
+
+      const res = await fetch(
+        dbA.workingDir,
+        remoteOptions,
+        sync.remoteName,
+        dbA.defaultBranch,
+        dbA.defaultBranch
+      ).catch(error => error);
+      expect(res).toBeUndefined();
 
       await destroyDBs([dbA]);
     });
@@ -174,15 +253,28 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = remoteURLBase + 'test-private.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    const remoteOptions = {
+      remoteUrl,
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      connection: {
+        type: 'github',
+        personalAccessToken: token,
+      } as ConnectionSettingsGitHub,
+    };
+    const sync = new Sync(dbA, remoteOptions);
+    await createGitRemote(dbA.workingDir, remoteUrl, sync.remoteName);
 
     const stubFetch = sandbox.stub(git, 'fetch');
     stubFetch.rejects(new Error('connect EACCES'));
 
-    const res = await fetch(dbA.workingDir, {
-      remoteUrl,
-      connection: { type: 'github', personalAccessToken: token },
-    }).catch(error => error);
+    const res = await fetch(
+      dbA.workingDir,
+      remoteOptions,
+      sync.remoteName,
+      dbA.defaultBranch,
+      dbA.defaultBranch
+    ).catch(error => error);
+
     expect(res).toBeInstanceOf(NetworkError);
 
     expect(stubFetch.callCount).toBe(4);
@@ -231,7 +323,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = 'foo-bar';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
     const err = await fetch(dbA.workingDir, { remoteUrl }).catch(error => error);
 
@@ -249,7 +341,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = 'https://foo.example.com:xxxx';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
     const err = await fetch(dbA.workingDir, { remoteUrl }).catch(error => error);
     expect(err).toBeInstanceOf(InvalidURLFormatError);
@@ -266,7 +358,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = 'https://foo.bar.example.com/gitddb-plugin/sync-test-invalid.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
     const err = await fetch(dbA.workingDir, { remoteUrl }).catch(error => error);
     expect(err).toBeInstanceOf(InvalidURLFormatError);
     expect(err.message).toMatch(/^URL format is invalid: Error: getaddrinfo ENOTFOUND/);
@@ -283,7 +375,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = 'https://127.0.0.1/gitddb-plugin/sync-test-invalid.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
+      await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
       const err = await fetch(dbA.workingDir, {
         remoteUrl,
@@ -309,7 +401,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
 
       const remoteUrl = remoteURLBase + 'test-private.git';
 
-      await createGitRemote(dbA.workingDir, remoteUrl);
+      await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
       const err = await fetch(dbA.workingDir, {
         remoteUrl,
@@ -330,7 +422,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = remoteURLBase + 'test-private.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
+      await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
       const err = await fetch(dbA.workingDir, { remoteUrl }).catch(error => error);
 
@@ -348,7 +440,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = remoteURLBase + 'test-private.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
+      await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
       const err = await fetch(dbA.workingDir, {
         remoteUrl,
@@ -371,7 +463,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
       await dbA.open();
 
       const remoteUrl = remoteURLBase + 'sync-test-invalid.git';
-      await createGitRemote(dbA.workingDir, remoteUrl);
+      await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
       const err = await fetch(dbA.workingDir, {
         remoteUrl,
@@ -392,7 +484,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = 'foo-bar';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
     const err = await fetch(dbA.workingDir, {
       remoteUrl,
@@ -414,7 +506,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = remoteURLBase + 'foo/bar/test.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
     await expect(
       fetch(dbA.workingDir, {
@@ -434,7 +526,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = remoteURLBase + 'test-private.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
     await expect(
       // @ts-ignore
@@ -452,7 +544,7 @@ maybe('<internal_plugin/remote-isomorphic-git> fetch', () => {
     await dbA.open();
 
     const remoteUrl = remoteURLBase + 'test-private.git';
-    await createGitRemote(dbA.workingDir, remoteUrl);
+    await createGitRemote(dbA.workingDir, remoteUrl, 'origin');
 
     await expect(
       // @ts-ignore

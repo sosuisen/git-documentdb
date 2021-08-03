@@ -403,8 +403,15 @@ export const destroyDBs = async (DBs: GitDocumentDB[]) => {
 export async function createGitRemote (
   localDir: string,
   remoteUrl: string,
-  remoteName = 'origin'
+  remoteName: string
 ) {
+  await git.addRemote({
+    fs,
+    dir: localDir,
+    remote: remoteName,
+    url: remoteUrl,
+  });
+  /*
   await git.setConfig({
     fs,
     dir: localDir,
@@ -417,4 +424,5 @@ export async function createGitRemote (
     path: `remote.${remoteName}.fetch`,
     value: `+refs/heads/*:refs/remotes/${remoteName}/*`,
   });
+*/
 }
