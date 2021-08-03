@@ -461,9 +461,6 @@ export async function push (
     throw new InvalidGitRemoteError(`remote '${remoteName}' does not exist`);
   }
 
-  // const localBranch = 'refs/heads/' + localBranchName;
-  // const remoteBranch = 'refs/heads/' + remoteBranchName;
-
   remoteOptions.retry ??= NETWORK_RETRY;
   remoteOptions.retryInterval ??= NETWORK_RETRY_INTERVAL;
 
