@@ -895,7 +895,7 @@ export const syncBase = (
 
   it('Multiple Sync object', async () => {
     const gitDDB = new GitDocumentDB({
-      dbName: 'db_plugin', // Git working directory
+      dbName: serialId(),
     });
     await gitDDB.open();
     await gitDDB.put({ name: 'foo' });

@@ -13,7 +13,6 @@ import { clearInterval, setInterval } from 'timers';
 import crypto from 'crypto';
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
-import * as RemoteEngineError from 'git-documentdb-remote-errors';
 import { name as default_engine_name } from '../plugin/remote-isomorphic-git';
 
 import { CONSOLE_STYLE, sleep } from '../utils';
@@ -510,25 +509,33 @@ export class Sync implements SyncInterface {
         .catch(err => err);
     }
 
+    /**
+     * Do not use 'instanceof' to compare git-documentdb-remote-errors
+     * because an error from RemoteEngine plugin may not have the same prototype
+     * in its prototype chain.
+     * - https://nodejs.org/en/blog/npm/peer-dependencies/
+     * - https://stackoverflow.com/questions/46618852/require-and-instanceof/46630766
+     * Use name property instead.
+     */
     if (typeof remoteResult === 'boolean' || remoteResult === undefined) {
       // nop
     }
-    else if (remoteResult instanceof RemoteEngineError.InvalidGitRemoteError) {
+    else if (remoteResult.name === 'InvalidGitRemoteError') {
       // checkFetch hardly invoke this error because checkFetch is called just after addRemote.
       throw wrappingRemoteEngineError(remoteResult);
     }
     else if (
-      remoteResult instanceof RemoteEngineError.InvalidURLFormatError ||
-      remoteResult instanceof RemoteEngineError.InvalidRepositoryURLError ||
-      remoteResult instanceof RemoteEngineError.InvalidSSHKeyPathError ||
-      remoteResult instanceof RemoteEngineError.InvalidAuthenticationTypeError ||
-      remoteResult instanceof RemoteEngineError.HTTPError401AuthorizationRequired ||
-      remoteResult instanceof RemoteEngineError.NetworkError ||
-      remoteResult instanceof RemoteEngineError.CannotConnectError
+      remoteResult.name === 'InvalidURLFormatError' ||
+      remoteResult.name === 'InvalidRepositoryURLError' ||
+      remoteResult.name === 'InvalidSSHKeyPathError' ||
+      remoteResult.name === 'InvalidAuthenticationTypeError' ||
+      remoteResult.name === 'HTTPError401AuthorizationRequired' ||
+      remoteResult.name === 'NetworkError' ||
+      remoteResult.name === 'CannotConnectError'
     ) {
       throw wrappingRemoteEngineError(remoteResult);
     }
-    else if (remoteResult instanceof RemoteEngineError.HTTPError404NotFound) {
+    else if (remoteResult.name === 'HTTPError404NotFound') {
       // Try to create repository by octokit
       // eslint-disable-next-line no-await-in-loop
       await this.remoteRepository.create().catch(err => {
