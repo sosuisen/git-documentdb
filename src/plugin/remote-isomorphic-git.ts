@@ -490,7 +490,7 @@ export async function push (
       break;
     }
 
-    // console.warn('connect push error: ' + error);
+    // console.log('connect push error: ' + error);
     switch (true) {
       // NoRefspecError does not invoke because push does not need Remote when url is specified.
       // case error.startsWith('NoRefspecError'):

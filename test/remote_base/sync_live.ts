@@ -34,225 +34,305 @@ export const syncLiveBase = (
     await removeRemoteRepositories(reposPrefix);
   });
 
-  // Test live
-  describe('<sync_live> Sync', () => {
-    /**
-     * Repetitive Sync (live)
-     */
-    describe('Repetitive Sync (live)', () => {
-      it('starts and pushes after interval when called from open() with live option.', async () => {
-        const remoteURL = remoteURLBase + serialId();
+  /**
+   * Test periodic Sync (live)
+   */
 
-        const dbNameA = serialId();
+  describe('<sync_live> periodic Sync', () => {
+    it('starts and pushes after interval when called from open() with live option.', async () => {
+      const remoteURL = remoteURLBase + serialId();
 
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameA,
-          localDir: localDir,
-        });
-        const interval = MINIMUM_SYNC_INTERVAL;
-        const options: RemoteOptions = {
-          remoteUrl: remoteURL,
-          live: true,
-          syncDirection: 'both',
-          interval,
-          connection,
-        };
-        await dbA.open();
-        const syncA = await dbA.sync(options);
+      const dbNameA = serialId();
 
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-
-        expect(syncA.options.live).toBeTruthy();
-        expect(syncA.options.interval).toBe(interval);
-
-        // Wait live sync()
-        while (dbA.taskQueue.currentStatistics().sync === 0) {
-          // eslint-disable-next-line no-await-in-loop
-          await sleep(500);
-        }
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameB,
-          localDir: localDir,
-        });
-        await dbB.open();
-        await dbB.sync(options);
-        await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
-
-        await destroyDBs([dbA, dbB]);
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
       });
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
 
-      it('stops by pause()', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
 
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameA,
-          localDir: localDir,
-        });
-        const interval = MINIMUM_SYNC_INTERVAL;
-        const options: RemoteOptions = {
-          remoteUrl: remoteURL,
-          live: true,
-          syncDirection: 'both',
-          interval,
-          connection,
-        };
-        await dbA.open();
-        const syncA = await dbA.sync(options);
+      expect(syncA.options.live).toBeTruthy();
+      expect(syncA.options.interval).toBe(interval);
 
-        expect(syncA.options.live).toBeTruthy();
-        const count = dbA.taskQueue.currentStatistics().sync;
-        syncA.pause();
-        await sleep(interval * 2);
-        expect(syncA.options.live).toBeFalsy();
-        expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
+      // Wait live sync()
+      while (dbA.taskQueue.currentStatistics().sync === 0) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(500);
+      }
 
-        await destroyDBs([dbA]);
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir: localDir,
       });
+      await dbB.open();
+      await dbB.sync(options);
+      await expect(dbB.get(jsonA1._id)).resolves.toMatchObject(jsonA1);
 
-      it('pause() and resume()', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
+      await destroyDBs([dbA, dbB]);
+    });
 
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameA,
-          localDir: localDir,
-        });
-        const interval = MINIMUM_SYNC_INTERVAL;
-        const options: RemoteOptions = {
-          remoteUrl: remoteURL,
-          live: true,
-          syncDirection: 'both',
-          interval,
-          connection,
-        };
-        await dbA.open();
-        const syncA = await dbA.sync(options);
+    it('stops by pause()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
 
-        expect(syncA.options.live).toBeTruthy();
-        const count = dbA.taskQueue.currentStatistics().sync;
-        expect(syncA.pause()).toBeTruthy();
-        expect(syncA.pause()).toBeFalsy(); // ignored
-
-        await sleep(interval * 2);
-        expect(syncA.options.live).toBeFalsy();
-        expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
-
-        expect(syncA.resume()).toBeTruthy();
-        expect(syncA.resume()).toBeFalsy(); // ignored
-        await sleep(interval * 2);
-        expect(syncA.options.live).toBeTruthy();
-        expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThan(count);
-
-        await destroyDBs([dbA]);
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
       });
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
 
-      it('stops by gitDDB.close()', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
+      expect(syncA.options.live).toBeTruthy();
+      const count = dbA.taskQueue.currentStatistics().sync;
+      syncA.pause();
+      await sleep(interval * 2);
+      expect(syncA.options.live).toBeFalsy();
+      expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameA,
-          localDir: localDir,
-        });
-        const interval = MINIMUM_SYNC_INTERVAL;
-        const options: RemoteOptions = {
-          remoteUrl: remoteURL,
-          live: true,
-          syncDirection: 'both',
-          interval,
-          connection,
-        };
-        await dbA.open();
-        const syncA = await dbA.sync(options);
+      await destroyDBs([dbA]);
+    });
 
-        expect(syncA.options.live).toBeTruthy();
-        const count = dbA.taskQueue.currentStatistics().sync;
-        await dbA.close();
+    it('pause() and resume()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
 
-        syncA.resume(); // resume() must be ignored after close();
-
-        await sleep(interval * 2);
-        expect(syncA.options.live).toBeFalsy();
-        expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
-
-        await destroyDBs([dbA]);
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
       });
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
 
-      it('changes interval when resume() is called with new interval.', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
+      expect(syncA.options.live).toBeTruthy();
+      const count = dbA.taskQueue.currentStatistics().sync;
+      expect(syncA.pause()).toBeTruthy();
+      expect(syncA.pause()).toBeFalsy(); // ignored
 
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameA,
-          localDir: localDir,
-        });
-        dbA.logLevel = 'trace';
-        const interval = MINIMUM_SYNC_INTERVAL;
-        const options: RemoteOptions = {
-          remoteUrl: remoteURL,
-          live: true,
-          syncDirection: 'both',
-          interval,
-          connection,
-        };
-        await dbA.open();
-        const syncA = await dbA.sync(options);
+      await sleep(interval * 2);
+      expect(syncA.options.live).toBeFalsy();
+      expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
-        expect(syncA.options.interval).toBe(interval);
+      expect(syncA.resume()).toBeTruthy();
+      expect(syncA.resume()).toBeFalsy(); // ignored
+      await sleep(interval * 2);
+      expect(syncA.options.live).toBeTruthy();
+      expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThan(count);
 
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        // Wait live sync()
-        while (dbA.taskQueue.currentStatistics().sync === 0) {
-          // eslint-disable-next-line no-await-in-loop
-          await sleep(500);
-        }
-        syncA.pause();
+      await destroyDBs([dbA]);
+    });
 
-        const jsonA2 = { _id: '2', name: 'fromA' };
-        await dbA.put(jsonA2);
+    it('stops by gitDDB.close()', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
 
-        const currentCount = dbA.taskQueue.currentStatistics().sync;
-        // Change interval
-        syncA.resume({
-          interval: interval * 3,
-        });
-        expect(syncA.options.interval).toBe(interval * 3);
-        await sleep(interval);
-        // Check count before next sync()
-        expect(dbA.taskQueue.currentStatistics().sync).toBe(currentCount);
-
-        await destroyDBs([dbA]);
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
       });
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
 
-      it('repeats trySync() automatically.', async () => {
-        const remoteURL = remoteURLBase + serialId();
-        const dbNameA = serialId();
+      expect(syncA.options.live).toBeTruthy();
+      const count = dbA.taskQueue.currentStatistics().sync;
+      await dbA.close();
 
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameA,
-          localDir: localDir,
-        });
-        const interval = MINIMUM_SYNC_INTERVAL;
-        const options: RemoteOptions = {
-          remoteUrl: remoteURL,
-          live: true,
-          syncDirection: 'both',
-          interval,
-          connection,
-        };
-        await dbA.open();
-        const syncA = await dbA.sync(options);
+      syncA.resume(); // resume() must be ignored after close();
 
-        await sleep(interval * 5);
-        expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(3);
+      await sleep(interval * 2);
+      expect(syncA.options.live).toBeFalsy();
+      expect(dbA.taskQueue.currentStatistics().sync).toBe(count);
 
-        await destroyDBs([dbA]);
+      await destroyDBs([dbA]);
+    });
+
+    it('changes interval when resume() is called with new interval.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
       });
+      dbA.logLevel = 'trace';
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+
+      expect(syncA.options.interval).toBe(interval);
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      // Wait live sync()
+      while (dbA.taskQueue.currentStatistics().sync === 0) {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(500);
+      }
+      syncA.pause();
+
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      await dbA.put(jsonA2);
+
+      const currentCount = dbA.taskQueue.currentStatistics().sync;
+      // Change interval
+      syncA.resume({
+        interval: interval * 3,
+      });
+      expect(syncA.options.interval).toBe(interval * 3);
+      await sleep(interval);
+      // Check count before next sync()
+      expect(dbA.taskQueue.currentStatistics().sync).toBe(currentCount);
+
+      await destroyDBs([dbA]);
+    });
+
+    it('repeats tryPush() automatically.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'push',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+      syncA.on('error', (err: Error) => {
+        console.log(err);
+      });
+      await sleep(interval * 5);
+      expect(dbA.taskQueue.currentStatistics().push).toBeGreaterThanOrEqual(2);
+
+      await destroyDBs([dbA]);
+    });
+
+    it('repeats trySync() automatically.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+      syncA.on('error', (err: Error) => {
+        console.log(err);
+      });
+      await sleep(interval * 5);
+      expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(2);
+
+      await destroyDBs([dbA]);
+    });
+
+    it.only('skips pushWorker after pause.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'push',
+        interval: 30000,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+      await dbA.put({ name: 'foo' });      
+
+//      syncA.pause();
+//      await expect(syncA.tryPushImpl(true)).resolves.toEqual({ action: 'canceled' });
+//      syncA.resume();
+await syncA.tryPushImpl(true);
+      await expect(syncA.tryPushImpl(true)).resolves.toMatchObject({ action: 'nop' });
+
+//      await destroyDBs([dbA]);
+    });
+
+    it('skips syncWorker after pause.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval: 1000000,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+      syncA.pause();
+      await expect(syncA.trySyncImpl(true)).resolves.toEqual({ action: 'canceled' });
+      syncA.resume();
+      await expect(syncA.trySyncImpl(true)).resolves.toMatchObject({ action: 'nop' });
+
+      await destroyDBs([dbA]);
     });
   });
 };
