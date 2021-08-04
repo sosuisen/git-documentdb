@@ -762,7 +762,7 @@ export const syncBase = (
       await gitDDB.destroy();
     });
 
-    it('calls tryPush() when remote repository exists', async () => {
+    it('throws UnfetchedCommitExistsError when tryPush to updated repository', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
@@ -800,7 +800,7 @@ export const syncBase = (
       await destroyDBs([dbA, dbB]);
     });
 
-    it('calls trySync() when remote repository exists', async () => {
+    it('succeeds when trySync to updated repository', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
@@ -824,7 +824,7 @@ export const syncBase = (
       await destroyDBs([dbA, dbB]);
     });
 
-    it('throws PushNotAllowedError.', async () => {
+    it('throws PushNotAllowedError when syncDirection is pull', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -873,6 +873,13 @@ export const syncBase = (
 
       await destroyDBs([dbA, dbB]);
     });
+
+    it('succeeds when a local repository does not exist and a remote repository does not exist.', async () => {});
+    it('succeeds when a local repository does not exist and a remote empty repository exists.', async () => {});
+    it('succeeds when a local repository does not exist and a remote fulfilled repository exists.', async () => {});
+    it('succeeds when a local repository exists and a remote repository does not exist.', async () => {});
+    it('succeeds when a local repository exists and a remote empty repository exists.', async () => {});
+    it('succeeds when a local repository exists and a remote fulfilled repository exists.', async () => {});
   });
 
   describe('<remote/sync> syncImpl()', () => {
