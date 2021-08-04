@@ -4,7 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test_plugin/remote_nodegit/sync.test.js"],
+    "options": ["test/remote_isomorphic_git/sync.test.js"],
   }],
   "configurations": [
       {

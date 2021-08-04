@@ -28,6 +28,7 @@ import { Err } from '../../src/error';
 import { encodeToGitRemoteName, Sync, syncImpl } from '../../src/remote/sync';
 import {
   createClonedDatabases,
+  createRemoteRepository,
   destroyDBs,
   removeRemoteRepositories,
 } from '../remote_utils';
@@ -874,12 +875,214 @@ export const syncBase = (
       await destroyDBs([dbA, dbB]);
     });
 
-    it('succeeds when a local repository does not exist and a remote repository does not exist.', async () => {});
-    it('succeeds when a local repository does not exist and a remote empty repository exists.', async () => {});
-    it('succeeds when a local repository does not exist and a remote fulfilled repository exists.', async () => {});
-    it('succeeds when a local repository exists and a remote repository does not exist.', async () => {});
-    it('succeeds when a local repository exists and a remote empty repository exists.', async () => {});
-    it('succeeds when a local repository exists and a remote fulfilled repository exists.', async () => {});
+    it('succeeds when a local repository does not exist and a remote repository does not exist.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      await dbA.open();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const sync = await dbA.sync(options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      await expect(sync.trySync()).resolves.toMatchObject({ action: 'push' });
+
+      await destroyDBs([dbA]);
+    });
+
+    it('succeeds when a local repository does not exist and a remote empty repository exists.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      await createRemoteRepository(remoteURL);
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      await dbA.open();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const [sync, result] = await dbA.sync(options, true);
+
+      expect(result).toMatchObject({ action: 'push' });
+
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      await expect(sync.trySync()).resolves.toMatchObject({ action: 'push' });
+
+      await destroyDBs([dbA]);
+    });
+
+    it('succeeds when a local repository does not exist and a remote fulfilled repository exists.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      await dbA.open();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const sync = await dbA.sync(options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await sync.trySync();
+
+      // Destroy local DB
+      await dbA.destroy();
+
+      // Create it again
+      await dbA.open();
+      const [sync_again, result] = await dbA.sync(options, true);
+      expect(result).toMatchObject({ action: 'combine database' });
+
+      await dbA.put(jsonA1);
+      await expect(sync_again.trySync()).resolves.toMatchObject({ action: 'push' });
+
+      await dbA.destroy();
+    });
+
+    it('succeeds when a local repository exists and a remote repository does not exist.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      await dbA.open();
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const [sync, result] = await dbA.sync(options, true);
+      expect(result).toMatchObject({ action: 'push' });
+
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      await dbA.put(jsonA2);
+      await expect(sync.trySync()).resolves.toMatchObject({ action: 'push' });
+
+      await dbA.destroy();
+    });
+
+    it('succeeds when a local repository exists and a remote empty repository exists.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      await createRemoteRepository(remoteURL);
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      await dbA.open();
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const [sync, result] = await dbA.sync(options, true);
+      expect(result).toMatchObject({ action: 'push' });
+
+      const jsonA2 = { _id: '2', name: 'fromA' };
+      await dbA.put(jsonA2);
+      await expect(sync.trySync()).resolves.toMatchObject({ action: 'push' });
+
+      await dbA.destroy();
+    });
+
+    it('succeeds when a local repository exists and a remote consistent repository exists.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      await dbA.open();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const sync = await dbA.sync(options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await sync.trySync();
+
+      // Close local DB
+      await dbA.close();
+
+      // Open it again
+      await dbA.open();
+
+      const [sync_again, result] = await dbA.sync(options, true);
+      expect(result).toMatchObject({ action: 'nop' });
+
+      await dbA.put(jsonA1);
+      await expect(sync_again.trySync()).resolves.toMatchObject({ action: 'push' });
+
+      await dbA.destroy();
+    });
+
+    it('succeeds when a local repository exists and a remote inconsistent repository exists.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      await dbA.open();
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      const sync = await dbA.sync(options);
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      await dbA.put(jsonA1);
+      await sync.trySync();
+
+      // Destroy local DB
+      await dbA.destroy();
+
+      // Create another db
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir: localDir,
+      });
+      await dbB.open();
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      await dbB.put(jsonB1);
+
+      const [sync_again, result] = await dbB.sync(options, true);
+      expect(result).toMatchObject({ action: 'combine database' });
+
+      const jsonB2 = { _id: '2', name: 'fromB' };
+      await dbB.put(jsonB2);
+      await expect(sync_again.trySync()).resolves.toMatchObject({ action: 'push' });
+
+      await dbB.destroy();
+    });
   });
 
   describe('<remote/sync> syncImpl()', () => {
