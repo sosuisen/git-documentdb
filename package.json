@@ -13,7 +13,7 @@
     "mocha": "npm run rm-test-db && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha",
     "mocha-unit-parallel": "npm run rm-test-db && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha --retries 0",
     "mocha-unit": "npm run rm-test-db && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha --retries 0 --no-parallel",
-    "compile-tests": "tsc --project test/tsconfig.json",
+    "compile-tests": "tsc --project test/tsconfig.json && tsc --project test_plugin/tsconfig.json ",
     "rm-test-db": "rm -rf test/database* test_plugin/database*",
     "test": "npx nyc npm run mocha \"test/**/*.test.ts\" && npm run rm-test-db",
     "test-plugin": "npm run mocha \"test_plugin/**/*.test.ts\" && npm run rm-test-db",

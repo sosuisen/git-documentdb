@@ -893,5 +893,38 @@ export const syncBase = (
     });
   });
 
-  it.skip('Multiple Sync object');
+  it('Multiple Sync object', async () => {
+    const gitDDB = new GitDocumentDB({
+      dbName: 'db_plugin', // Git working directory
+    });
+    await gitDDB.open();
+    await gitDDB.put({ name: 'foo' });
+
+    const remoteOptions01: RemoteOptions = {
+      live: true,
+      remoteUrl: remoteURLBase + serialId(),
+      interval: 5000, // Sync every 5,000 msec
+      connection: {
+        type: 'github',
+        personalAccessToken: token,
+      },
+    };
+
+    const sync01 = await gitDDB.sync(remoteOptions01);
+
+    const remoteOptions02: RemoteOptions = {
+      live: true,
+      remoteUrl: remoteURLBase + serialId(),
+      interval: 5000, // Sync every 5,000 msec
+      connection: {
+        type: 'github',
+        personalAccessToken: token,
+      },
+    };
+    // Add extra synchronizer to DB
+    const sync02 = await gitDDB.sync(remoteOptions02);
+    expect(sync02).toBeInstanceOf(Sync);
+
+    await gitDDB.destroy();
+  });
 };

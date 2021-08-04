@@ -480,7 +480,9 @@ export class Sync implements SyncInterface {
     }
 
     let remoteResult: boolean | Error;
-    if (this._options === 'push') {
+    if (this._options.syncDirection === 'push') {
+      // Will return undefined
+
       // Do not download remote.
       // eslint-disable-next-line no-await-in-loop
       remoteResult = await RemoteEngine[this._engine]
@@ -493,6 +495,8 @@ export class Sync implements SyncInterface {
         .catch(err => err);
     }
     else {
+      // Will return true
+
       // eslint-disable-next-line no-await-in-loop
       remoteResult = await RemoteEngine[this._engine]
         .fetch(
@@ -506,7 +510,7 @@ export class Sync implements SyncInterface {
         .catch(err => err);
     }
 
-    if (typeof remoteResult === 'boolean') {
+    if (typeof remoteResult === 'boolean' || remoteResult === undefined) {
       // nop
     }
     else if (remoteResult instanceof RemoteEngineError.InvalidGitRemoteError) {
@@ -536,7 +540,7 @@ export class Sync implements SyncInterface {
     let syncResult: SyncResult = {
       action: 'nop',
     };
-    if (this._options === 'pull') {
+    if (this._options.syncDirection === 'pull') {
       // Do not create a new remote repository because the direction is 'pull'.
       /**
        * TODO: Implement case when sync_direction is 'pull'.
@@ -544,7 +548,7 @@ export class Sync implements SyncInterface {
     }
     else {
       // push or both
-      if (this._options === 'both') {
+      if (this._options.syncDirection === 'both') {
         // Check remote branch after fetching.
         const remoteCommitOid = await git
           .resolveRef({
