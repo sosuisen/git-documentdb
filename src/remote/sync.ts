@@ -481,7 +481,7 @@ export class Sync implements SyncInterface {
 
     let remoteResult: boolean | Error;
     if (this._options.syncDirection === 'push') {
-      // Will return undefined
+      // checkFetch will return undefined if succeeds.
 
       // Do not download remote.
       // eslint-disable-next-line no-await-in-loop
@@ -495,7 +495,7 @@ export class Sync implements SyncInterface {
         .catch(err => err);
     }
     else {
-      // Will return true
+      // fetch will return true if succeeds.
 
       // eslint-disable-next-line no-await-in-loop
       remoteResult = await RemoteEngine[this._engine]
