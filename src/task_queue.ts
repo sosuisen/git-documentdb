@@ -109,9 +109,12 @@ export class TaskQueue {
         // Skip consecutive sync/push events
         if (
           (this._taskQueue.length === 0 &&
+            this._currentTask?.syncRemoteName === task.syncRemoteName &&
             ((this._currentTask?.label === 'sync' && task.label === 'sync') ||
               (this._currentTask?.label === 'push' && task.label === 'push'))) ||
           (this._taskQueue.length > 0 &&
+            this._taskQueue[this._taskQueue.length - 1].syncRemoteName ===
+              task.syncRemoteName &&
             ((this._taskQueue[this._taskQueue.length - 1].label === 'sync' &&
               task.label === 'sync') ||
               (this._taskQueue[this._taskQueue.length - 1].label === 'push' &&
@@ -133,6 +136,7 @@ export class TaskQueue {
           shortName: task.shortName,
           collectionPath: task.collectionPath,
           enqueueTime: task.enqueueTime,
+          syncRemoteName: task.syncRemoteName,
         };
         if (task.enqueueCallback) {
           try {
@@ -232,6 +236,7 @@ export class TaskQueue {
         const collectionPath = this._currentTask.collectionPath;
         const fullDocPath = collectionPath ? collectionPath + shortName : '';
         const taskId = this._currentTask.taskId;
+        const syncRemoteName = this._currentTask.syncRemoteName;
 
         this._isTaskQueueWorking = true;
         this._logger.debug(
@@ -261,6 +266,7 @@ export class TaskQueue {
           shortName,
           collectionPath,
           enqueueTime: this._currentTask.enqueueTime,
+          syncRemoteName,
         };
 
         this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {

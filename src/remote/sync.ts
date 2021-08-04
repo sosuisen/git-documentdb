@@ -844,6 +844,7 @@ export class Sync implements SyncInterface {
       return {
         label: 'push',
         taskId: taskId!,
+        syncRemoteName: this.remoteName,
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };
@@ -1118,6 +1119,7 @@ export class Sync implements SyncInterface {
       return {
         label: 'sync',
         taskId: taskId!,
+        syncRemoteName: this.remoteName,
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };

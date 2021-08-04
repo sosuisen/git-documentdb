@@ -1103,9 +1103,10 @@ export const syncBase = (
     });
   });
 
-  it('Multiple Sync object', async () => {
+  it('Multiple Sync objects', async () => {
     const gitDDB = new GitDocumentDB({
       dbName: serialId(),
+      localDir,
     });
     await gitDDB.open();
     await gitDDB.put({ name: 'foo' });
@@ -1113,19 +1114,19 @@ export const syncBase = (
     const remoteOptions01: RemoteOptions = {
       live: true,
       remoteUrl: remoteURLBase + serialId(),
-      interval: 5000, // Sync every 5,000 msec
+      interval: 3000,
       connection: {
         type: 'github',
         personalAccessToken: token,
       },
     };
 
-    const sync01 = await gitDDB.sync(remoteOptions01);
+    await gitDDB.sync(remoteOptions01);
 
     const remoteOptions02: RemoteOptions = {
       live: true,
       remoteUrl: remoteURLBase + serialId(),
-      interval: 5000, // Sync every 5,000 msec
+      interval: 3000,
       connection: {
         type: 'github',
         personalAccessToken: token,
@@ -1135,6 +1136,32 @@ export const syncBase = (
     const sync02 = await gitDDB.sync(remoteOptions02);
     expect(sync02).toBeInstanceOf(Sync);
 
-    await gitDDB.destroy();
+    // Update remote from other DBs
+    const dbA = new GitDocumentDB({
+      dbName: serialId(),
+      localDir,
+    });
+    await dbA.open();
+    const syncA = await dbA.sync(remoteOptions01);
+    const jsonA1 = { _id: '1', name: 'fromA' };
+    await dbA.put(jsonA1);
+    await syncA.trySync();
+
+    const dbB = new GitDocumentDB({
+      dbName: serialId(),
+      localDir,
+    });
+    await dbB.open();
+    const syncB = await dbB.sync(remoteOptions02);
+    const jsonB2 = { _id: '2', name: 'fromB' };
+    await dbB.put(jsonB2);
+    await syncB.trySync();
+
+    await sleep(remoteOptions01.interval! * 2);
+
+    await expect(gitDDB.get('1')).resolves.toEqual(jsonA1);
+    await expect(gitDDB.get('2')).resolves.toEqual(jsonB2);
+
+    await destroyDBs([gitDDB, dbA, dbB]);
   });
 };
