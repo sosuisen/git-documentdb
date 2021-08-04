@@ -838,7 +838,7 @@ export const syncBase = (
         syncDirection: 'pull',
       };
       const sync = new Sync(gitDDB, options);
-      await expect(sync.init()).rejects.toThrowError(Err.PushNotAllowedError);
+      await expect(sync.init()).resolves.toEqual({ action: 'nop' });
 
       await gitDDB.destroy();
     });

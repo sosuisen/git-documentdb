@@ -295,6 +295,31 @@ export async function merge (
 
   const mergedTreeOid = results.oid;
 
+  // Entries in walk are traversed in alphabetical order
+  // (https://isomorphic-git.org/docs/en/walk),
+  // but sometimes the order collapse.
+
+  // eslint-disable-next-line complexity
+  const sortChangedFile = (a: ChangedFile, b: ChangedFile) => {
+    if (a.operation === 'insert' && b.operation === 'insert') {
+      if (a.new.name > b.new.name) return 1;
+      if (a.new.name < b.new.name) return -1;
+      return 0;
+    }
+    else if (
+      (a.operation === 'update' || a.operation === 'delete') &&
+      (b.operation === 'update' || b.operation === 'delete')
+    ) {
+      if (a.old.name > b.old.name) return 1;
+      if (a.old.name < b.old.name) return -1;
+      return 0;
+    }
+    // This line must not be reached.
+    return 0;
+  };
+  localChanges.sort(sortChangedFile);
+  remoteChanges.sort(sortChangedFile);
+
   return [mergedTreeOid, localChanges, remoteChanges, acceptedConflicts];
 }
 
