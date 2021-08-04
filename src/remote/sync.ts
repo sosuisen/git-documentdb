@@ -637,10 +637,10 @@ export class Sync implements SyncInterface {
         });
         this._syncTimer = setInterval(() => {
           if (this._options.syncDirection === 'push') {
-            this.tryPush().catch(() => undefined);
+            this.tryPushImpl(true).catch(() => undefined);
           }
           else if (this._options.syncDirection === 'both') {
-            this.trySync().catch(() => undefined);
+            this.trySyncImpl(true).catch(() => undefined);
           }
         }, this._options.interval!);
       }
@@ -702,10 +702,10 @@ export class Sync implements SyncInterface {
     this._options.live = true;
     this._syncTimer = setInterval(() => {
       if (this._options.syncDirection === 'push') {
-        this.tryPush().catch(() => undefined);
+        this.tryPushImpl(true).catch(() => undefined);
       }
       else if (this._options.syncDirection === 'both') {
-        this.trySync().catch(() => undefined);
+        this.trySyncImpl(true).catch(() => undefined);
       }
     }, this._options.interval!);
 
@@ -763,8 +763,19 @@ export class Sync implements SyncInterface {
    *
    * @public
    */
-  // eslint-disable-next-line complexity
   async tryPush (): Promise<SyncResultPush | SyncResultCancel> {
+    return await this.tryPushImpl(false);
+  }
+
+  /**
+   * tryPushImpl
+   *
+   * @internal
+   */
+  // eslint-disable-next-line complexity
+  async tryPushImpl (
+    calledAsPeriodicTask: boolean
+  ): Promise<SyncResultPush | SyncResultCancel> {
     if (this._isClosed) return { action: 'canceled' };
     if (this._options.syncDirection === 'pull') {
       throw new Err.PushNotAllowedError(this._options.syncDirection);
@@ -783,24 +794,25 @@ export class Sync implements SyncInterface {
       taskMetadata: TaskMetadata
     ) =>
       pushWorker(this._gitDDB, this, taskMetadata)
-        .then((syncResultPush: SyncResultPush) => {
+        .then((syncResultPush: SyncResultPush | SyncResultCancel) => {
           this._gitDDB.logger.debug(
-            CONSOLE_STYLE.bgWhite().fgBlack().tag()`push_worker: ${JSON.stringify(
+            CONSOLE_STYLE.bgWhite().fgBlack().tag()`pushWorker: ${JSON.stringify(
               syncResultPush
             )}`
           );
 
-          this.eventHandlers.change.forEach(listener => {
-            const filteredSyncResultPush = filterChanges(
-              JSON.parse(JSON.stringify(syncResultPush)),
-              listener.collectionPath
-            ) as SyncResultPush;
-            listener.func(filteredSyncResultPush, {
-              ...taskMetadata,
-              collectionPath: listener.collectionPath,
-            });
-          });
           if (syncResultPush.action === 'push') {
+            this.eventHandlers.change.forEach(listener => {
+              const filteredSyncResultPush = filterChanges(
+                JSON.parse(JSON.stringify(syncResultPush)),
+                listener.collectionPath
+              ) as SyncResultPush;
+              listener.func(filteredSyncResultPush, {
+                ...taskMetadata,
+                collectionPath: listener.collectionPath,
+              });
+            });
+
             this.eventHandlers.remoteChange.forEach(listener => {
               const filteredSyncResultPush = filterChanges(
                 JSON.parse(JSON.stringify(syncResultPush)),
@@ -812,9 +824,12 @@ export class Sync implements SyncInterface {
               });
             });
           }
-          this.eventHandlers.complete.forEach(listener => {
-            listener.func({ ...taskMetadata, collectionPath: listener.collectionPath });
-          });
+
+          if (syncResultPush.action !== 'canceled') {
+            this.eventHandlers.complete.forEach(listener => {
+              listener.func({ ...taskMetadata, collectionPath: listener.collectionPath });
+            });
+          }
 
           beforeResolve();
           resolve(syncResultPush);
@@ -834,6 +849,9 @@ export class Sync implements SyncInterface {
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
       const result: SyncResultCancel = { action: 'canceled' };
+      this._gitDDB.logger.debug(
+        CONSOLE_STYLE.bgWhite().fgBlack().tag()`pushWorker: ${JSON.stringify(result)}`
+      );
       resolve(result);
     };
 
@@ -845,6 +863,7 @@ export class Sync implements SyncInterface {
         label: 'push',
         taskId: taskId!,
         syncRemoteName: this.remoteName,
+        periodic: calledAsPeriodicTask,
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };
@@ -913,8 +932,17 @@ export class Sync implements SyncInterface {
    *
    * @public
    */
-  // eslint-disable-next-line complexity
   async trySync (): Promise<SyncResult> {
+    return await this.trySyncImpl(false);
+  }
+
+  /**
+   * trySyncImpl
+   *
+   * @internal
+   */
+  // eslint-disable-next-line complexity
+  async trySyncImpl (calledAsPeriodicTask: boolean): Promise<SyncResult> {
     if (this._isClosed) return { action: 'canceled' };
     if (this._options.syncDirection === 'pull') {
       throw new Err.PushNotAllowedError(this._options.syncDirection);
@@ -925,7 +953,9 @@ export class Sync implements SyncInterface {
 
     while (this._retrySyncCounter > 0) {
       // eslint-disable-next-line no-await-in-loop
-      const resultOrError = await this.enqueueSyncTask().catch((err: Error) => err);
+      const resultOrError = await this.enqueueSyncTask(calledAsPeriodicTask).catch(
+        (err: Error) => err
+      );
 
       let error: Error | undefined;
       let result: SyncResult | undefined;
@@ -999,6 +1029,9 @@ export class Sync implements SyncInterface {
     }
     // This line is reached when cancel() set _retrySyncCounter to 0;
     const cancel: SyncResultCancel = { action: 'canceled' };
+    this._gitDDB.logger.debug(
+      CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(cancel)}`
+    );
     this._retrySyncCounter = 0;
     return cancel;
   }
@@ -1008,7 +1041,7 @@ export class Sync implements SyncInterface {
    *
    * @public
    */
-  enqueueSyncTask (): Promise<SyncResult> {
+  enqueueSyncTask (calledAsPeriodicTask: boolean): Promise<SyncResult> {
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
       resolve: (value: SyncResult) => void,
@@ -1087,9 +1120,11 @@ export class Sync implements SyncInterface {
             });
           }
 
-          this.eventHandlers.complete.forEach(listener =>
-            listener.func({ ...taskMetadata, collectionPath: listener.collectionPath })
-          );
+          if (syncResult.action !== 'canceled') {
+            this.eventHandlers.complete.forEach(listener =>
+              listener.func({ ...taskMetadata, collectionPath: listener.collectionPath })
+            );
+          }
 
           beforeResolve();
           resolve(syncResult);
@@ -1109,6 +1144,9 @@ export class Sync implements SyncInterface {
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
       const result: SyncResultCancel = { action: 'canceled' };
+      this._gitDDB.logger.debug(
+        CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(result)}`
+      );
       resolve(result);
     };
 
@@ -1120,6 +1158,7 @@ export class Sync implements SyncInterface {
         label: 'sync',
         taskId: taskId!,
         syncRemoteName: this.remoteName,
+        periodic: calledAsPeriodicTask,
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };

@@ -9,7 +9,13 @@
 import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { GitDDBInterface } from '../types_gitddb';
-import { ChangedFile, NormalizedCommit, SyncResultPush, TaskMetadata } from '../types';
+import {
+  ChangedFile,
+  NormalizedCommit,
+  SyncResultCancel,
+  SyncResultPush,
+  TaskMetadata,
+} from '../types';
 import { SyncInterface } from '../types_sync';
 import { getChanges, getCommitLogs } from './worker_utils';
 import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
@@ -26,7 +32,6 @@ import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
  * @throws - {@link HTTPError404NotFound}
  * @throws - {@link HTTPError403Forbidden}
  * @throws - {@link CannotConnectError}
- * @throws - {@link UnfetchedCommitExistsError}
  * @throws - {@link CannotConnectError}
  * @throws - {@link HttpProtocolRequiredError}
  * @throws - {@link InvalidRepositoryURLError}
@@ -43,8 +48,15 @@ export async function pushWorker (
   sync: SyncInterface,
   taskMetadata: TaskMetadata,
   skipStartEvent = false,
-  skipGetChanges = false
-): Promise<SyncResultPush> {
+  afterMerge = false
+): Promise<SyncResultPush | SyncResultCancel> {
+  const syncOptions = sync.options;
+  if (!afterMerge && taskMetadata.periodic && !syncOptions.live) {
+    const resultCancel: SyncResultCancel = {
+      action: 'canceled',
+    };
+    return resultCancel;
+  }
   if (!skipStartEvent) {
     sync.eventHandlers.start.forEach(listener => {
       listener.func(
@@ -121,7 +133,7 @@ export async function pushWorker (
   await RemoteEngine[sync.engine]
     .push(
       gitDDB.workingDir,
-      sync.options,
+      syncOptions,
       sync.remoteName,
       gitDDB.defaultBranch,
       gitDDB.defaultBranch,
@@ -131,7 +143,7 @@ export async function pushWorker (
       throw wrappingRemoteEngineError(err);
     });
   let remoteChanges: ChangedFile[] | undefined;
-  if (skipGetChanges) {
+  if (afterMerge) {
     remoteChanges = undefined;
   }
   else {
@@ -147,7 +159,7 @@ export async function pushWorker (
 
   // Get a list of commits which will be pushed to remote.
   let commitListRemote: NormalizedCommit[] | undefined;
-  if (sync.options.includeCommits) {
+  if (syncOptions.includeCommits) {
     commitListRemote = await getCommitLogs(
       gitDDB.workingDir,
       headCommitOid,

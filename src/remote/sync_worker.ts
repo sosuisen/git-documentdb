@@ -15,8 +15,10 @@ import { GitDDBInterface } from '../types_gitddb';
 import {
   NormalizedCommit,
   SyncResult,
+  SyncResultCancel,
   SyncResultMergeAndPush,
   SyncResultMergeAndPushError,
+  SyncResultPush,
   SyncResultResolveConflictsAndPush,
   SyncResultResolveConflictsAndPushError,
   TaskMetadata,
@@ -73,6 +75,13 @@ export async function syncWorker (
   sync: SyncInterface,
   taskMetadata: TaskMetadata
 ): Promise<SyncResult> {
+  const syncOptions = sync.options;
+  if (taskMetadata.periodic && !syncOptions.live) {
+    const resultCancel: SyncResultCancel = {
+      action: 'canceled',
+    };
+    return resultCancel;
+  }
   sync.eventHandlers.start.forEach(listener => {
     listener.func(
       { ...taskMetadata, collectionPath: listener.collectionPath },
@@ -86,7 +95,7 @@ export async function syncWorker (
   await RemoteEngine[sync.engine]
     .fetch(
       gitDDB.workingDir,
-      sync.options,
+      syncOptions,
       sync.remoteName,
       gitDDB.defaultBranch,
       gitDDB.defaultBranch,
@@ -155,7 +164,7 @@ export async function syncWorker (
       },
     };
 
-    if (sync.options.includeCommits) {
+    if (syncOptions.includeCommits) {
       // Get list of commits which has been merged to local
       const commitsFromRemote = await getCommitLogs(
         gitDDB.workingDir,
@@ -202,7 +211,7 @@ export async function syncWorker (
     let localCommits: NormalizedCommit[] | undefined;
 
     // Get list of commits which has been added to local
-    if (sync.options.includeCommits) {
+    if (syncOptions.includeCommits) {
       const mergeCommit = await git.readCommit({
         fs,
         dir: gitDDB.workingDir,
@@ -218,11 +227,12 @@ export async function syncWorker (
       localCommits = [...commitsFromRemote, normalizeCommit(mergeCommit)];
     }
     // Need push because it is merged normally.
-    const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
+    // Set afterMerge option true not to return SyncResultCancel.
+    const syncResultPush = (await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
       (err: Error) => {
         return err;
       }
-    );
+    )) as SyncResultPush;
 
     if (syncResultPush instanceof Error) {
       const syncResultMergeAndPushError: SyncResultMergeAndPushError = {
@@ -293,7 +303,7 @@ export async function syncWorker (
 
   // Get list of commits which has been added to local
   let localCommits: NormalizedCommit[] | undefined;
-  if (sync.options.includeCommits) {
+  if (syncOptions.includeCommits) {
     const commitsFromRemote = await getCommitLogs(
       gitDDB.workingDir,
       oldRemoteCommitOid,
@@ -309,11 +319,12 @@ export async function syncWorker (
   }
 
   // Push
-  const syncResultPush = await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
+  // Set afterMerge option true not to return SyncResultCancel.
+  const syncResultPush = (await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
     (err: Error) => {
       return err;
     }
-  );
+  )) as SyncResultPush;
 
   if (syncResultPush instanceof Error) {
     const syncResultResolveConflictsAndPushError: SyncResultResolveConflictsAndPushError = {
