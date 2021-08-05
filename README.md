@@ -228,6 +228,7 @@ https://github.com/sosuisen/inventory-manager
 - v0.4 Work on both Node.js and browser
   - API renewal to manage any data types :feet:
   - Remove native module (NodeGit) from default install :feet:
+  - Add plugin system for remote connection (isomorphic-git or NodeGit) :feet:
   - Connect with SSH key pair :dog2:(Next)
   - Connect to GitHub with OAuth
   - Work on browser
@@ -242,6 +243,5 @@ https://github.com/sosuisen/inventory-manager
   - GitLab and Bitbucket
   - Push server
   - Migration
-  - Plugins
 
 (https://github.com/sosuisen/git-documentdb/projects/2)
