@@ -26,7 +26,6 @@ Offline-first Database that Syncs with Git
 |  Function | Description |
 |  --- | --- |
 |  [encodeToGitRemoteName(remoteURL)](./git-documentdb.encodetogitremotename.md) | encodeToRemoteName |
-|  [wrappingRemoteEngineError(remoteEngineError)](./git-documentdb.wrappingremoteengineerror.md) | wrappingRemoteEngineError |
 
 ## Interfaces
 
@@ -35,7 +34,6 @@ Offline-first Database that Syncs with Git
 |  [CollectionInterface](./git-documentdb.collectioninterface.md) | Interface for Collection |
 |  [CRUDInterface](./git-documentdb.crudinterface.md) | Interface for GitDocumentDB CRUD |
 |  [GitDDBInterface](./git-documentdb.gitddbinterface.md) | Interface of GitDocumentDB body |
-|  [RemoteEngineInterface](./git-documentdb.remoteengineinterface.md) | RemoteEngineInterface |
 |  [SyncEventInterface](./git-documentdb.synceventinterface.md) | Interface for SyncEvent |
 |  [SyncInterface](./git-documentdb.syncinterface.md) | Interface of Sync |
 

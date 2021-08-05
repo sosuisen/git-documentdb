@@ -374,10 +374,6 @@ export namespace Err {
         constructor(mes: string);
     }
     // (undocumented)
-    export class HTTPNetworkError extends BaseError {
-        constructor(mes: unknown);
-    }
-    // (undocumented)
     export class HttpProtocolRequiredError extends BaseError {
         constructor(url: unknown);
     }
@@ -860,7 +856,9 @@ export const RemoteEngine: {
     [key: string]: RemoteEngineInterface;
 };
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "RemoteEngineInterface" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface RemoteEngineInterface {
     // (undocumented)
     checkFetch: (workingDir: string, options: RemoteOptions, remoteName?: string, logger?: Logger) => Promise<boolean>;
@@ -879,6 +877,8 @@ export interface RemoteEngineInterface {
 // @public
 export namespace RemoteErr {
     // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
+    //
+    // (undocumented)
     export class CannotConnectError extends BaseError {
         constructor(mes: unknown);
     }
@@ -1347,10 +1347,16 @@ export class Validator {
     validateLocalDir(localDir: string): void;
 }
 
-// @public
+// Warning: (ae-internal-missing-underscore) The name "wrappingRemoteEngineError" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export function wrappingRemoteEngineError(remoteEngineError: BaseError): Error;
 
 // @public
 export type WriteOperation = 'insert' | 'update' | 'delete' | 'insert-merge' | 'update-merge';
+
+// Warnings were encountered during analysis:
+//
+// src/remote/remote_engine.ts:11:30 - (ae-incompatible-release-tags) The symbol "__index" is marked as @public, but its signature references "RemoteEngineInterface" which is marked as @internal
 
 ```

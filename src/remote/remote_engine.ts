@@ -13,7 +13,7 @@ export const RemoteEngine: { [key: string]: RemoteEngineInterface } = {};
 /**
  * RemoteEngineInterface
  *
- * @public
+ * @internal
  */
 export interface RemoteEngineInterface {
   type: string;
@@ -64,6 +64,7 @@ class BaseError extends Error {
  */
 export namespace RemoteErr {
   /**
+   * @privateRemarks
    * Copy error message from parent
    */
   export class CannotConnectError extends BaseError {
@@ -137,7 +138,7 @@ export namespace RemoteErr {
 /**
  * wrappingRemoteEngineError
  *
- * @public
+ * @internal
  */
 // eslint-disable-next-line complexity
 export function wrappingRemoteEngineError (remoteEngineError: BaseError) {

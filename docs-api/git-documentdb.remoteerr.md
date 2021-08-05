@@ -20,7 +20,7 @@ export declare namespace RemoteErr
 
 |  Class | Description |
 |  --- | --- |
-|  [CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md) | Copy error message from parent |
+|  [CannotConnectError](./git-documentdb.remoteerr.cannotconnecterror.md) |  |
 |  [HTTPError401AuthorizationRequired](./git-documentdb.remoteerr.httperror401authorizationrequired.md) |  |
 |  [HTTPError403Forbidden](./git-documentdb.remoteerr.httperror403forbidden.md) |  |
 |  [HTTPError404NotFound](./git-documentdb.remoteerr.httperror404notfound.md) |  |

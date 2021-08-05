@@ -8,8 +8,6 @@ hide_title: true
 
 ## RemoteErr.CannotConnectError class
 
-Copy error message from parent
-
 <b>Signature:</b>
 
 ```typescript

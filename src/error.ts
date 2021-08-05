@@ -375,15 +375,6 @@ Call removeRemote() before register it again.`
   /**
    * @public
    */
-  export class HTTPNetworkError extends BaseError {
-    constructor (mes: unknown) {
-      super(`HTTPNetworkError: ${mes}`);
-    }
-  }
-
-  /**
-   * @public
-   */
   export class CannotCreateRepositoryError extends BaseError {
     constructor (reason: unknown) {
       super(`Cannot create repository: ${reason}`);

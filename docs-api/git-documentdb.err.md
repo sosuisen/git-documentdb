@@ -36,7 +36,6 @@ export declare namespace Err
 |  [DocumentNotFoundError](./git-documentdb.err.documentnotfounderror.md) |  |
 |  [FileRemoveTimeoutError](./git-documentdb.err.fileremovetimeouterror.md) |  |
 |  [GitMergeBranchError](./git-documentdb.err.gitmergebrancherror.md) |  |
-|  [HTTPNetworkError](./git-documentdb.err.httpnetworkerror.md) |  |
 |  [HttpProtocolRequiredError](./git-documentdb.err.httpprotocolrequirederror.md) |  |
 |  [IntervalTooSmallError](./git-documentdb.err.intervaltoosmallerror.md) |  |
 |  [InvalidCollectionPathCharacterError](./git-documentdb.err.invalidcollectionpathcharactererror.md) |  |
