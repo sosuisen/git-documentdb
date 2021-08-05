@@ -12,14 +12,13 @@ import { GitDDBInterface } from '../types_gitddb';
 import {
   ChangedFile,
   NormalizedCommit,
-  SyncResultCancel,
   SyncResultNop,
   SyncResultPush,
   TaskMetadata,
 } from '../types';
 import { SyncInterface } from '../types_sync';
 import { getChanges, getCommitLogs } from './worker_utils';
-import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
+import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_engine';
 
 /**
  * Push and get changes
@@ -108,10 +107,6 @@ export async function pushWorker (
 
   let baseCommitOid: string | undefined;
 
-  if (localCommitOid === remoteCommitOid) {
-    return { action: 'nop' };
-  }
-
   if (remoteCommitOid === undefined) {
     // This is the first push in this repository.
     // Get the first commit.
@@ -130,7 +125,7 @@ export async function pushWorker (
   }
 
   // Push
-  await RemoteEngine[sync.engine]
+  const res = await RemoteEngine[sync.engine]
     .push(
       gitDDB.workingDir,
       syncOptions,
@@ -139,9 +134,23 @@ export async function pushWorker (
       gitDDB.defaultBranch,
       gitDDB.logger
     )
-    .catch(err => {
-      throw wrappingRemoteEngineError(err);
-    });
+    .catch(err => err);
+
+  if (res instanceof Error) {
+    const error = wrappingRemoteEngineError(res);
+    if (error instanceof RemoteErr.UnfetchedCommitExistsError) {
+      if (localCommitOid === remoteCommitOid) {
+        return { action: 'nop' };
+      }
+    }
+    throw error;
+  }
+  // NodeGit does not throw UnfetchedCommitExistsError when localCommitOid equals remoteCommitOid,
+  // So check it again here.
+  if (localCommitOid === remoteCommitOid) {
+    return { action: 'nop' };
+  }
+
   let remoteChanges: ChangedFile[] | undefined;
   if (afterMerge) {
     remoteChanges = undefined;

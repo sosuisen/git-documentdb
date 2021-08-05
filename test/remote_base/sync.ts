@@ -763,7 +763,7 @@ export const syncBase = (
       await gitDDB.destroy();
     });
 
-    it('throws UnfetchedCommitExistsError when tryPush to updated repository', async () => {
+    it('succeeds when tryPush to updated repository', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
@@ -794,9 +794,10 @@ export const syncBase = (
 
       await dbA.close();
       await dbA.open();
-      await expect(dbA.sync(optionA, true)).rejects.toThrowError(
-        RemoteErr.UnfetchedCommitExistsError
-      );
+      const [sync, result] = await dbA.sync(optionA, true);
+      expect(result).toEqual({
+        action: 'nop',
+      });
 
       await destroyDBs([dbA, dbB]);
     });
