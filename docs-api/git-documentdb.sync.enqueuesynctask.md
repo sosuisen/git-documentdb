@@ -13,8 +13,15 @@ Enqueue sync task to TaskQueue
 <b>Signature:</b>
 
 ```typescript
-enqueueSyncTask(): Promise<SyncResult>;
+enqueueSyncTask(calledAsPeriodicTask: boolean): Promise<SyncResult>;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  calledAsPeriodicTask | boolean |  |
+
 <b>Returns:</b>
 
 Promise&lt;[SyncResult](./git-documentdb.syncresult.md) &gt;

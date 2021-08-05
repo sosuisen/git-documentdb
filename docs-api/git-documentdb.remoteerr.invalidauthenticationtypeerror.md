@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class InvalidAuthenticationTypeError extends RemoteErrors.InvalidAuthenticationTypeError 
+class InvalidAuthenticationTypeError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.InvalidAuthenticationTypeError
+BaseError
 
 ## Constructors
 

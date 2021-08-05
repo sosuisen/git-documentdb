@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class InvalidSSHKeyPathError extends RemoteErrors.InvalidSSHKeyPathError 
+class InvalidSSHKeyPathError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.InvalidSSHKeyPathError
+BaseError
 
 ## Constructors
 

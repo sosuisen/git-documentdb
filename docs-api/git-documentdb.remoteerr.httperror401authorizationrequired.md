@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class HTTPError401AuthorizationRequired extends RemoteErrors.HTTPError401AuthorizationRequired 
+class HTTPError401AuthorizationRequired extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.HTTPError401AuthorizationRequired
+BaseError
 
 ## Constructors
 

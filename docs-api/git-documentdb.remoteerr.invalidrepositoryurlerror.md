@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class InvalidRepositoryURLError extends RemoteErrors.InvalidRepositoryURLError 
+class InvalidRepositoryURLError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.InvalidRepositoryURLError
+BaseError
 
 ## Constructors
 

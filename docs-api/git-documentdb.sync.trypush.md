@@ -13,11 +13,11 @@ Try to push
 <b>Signature:</b>
 
 ```typescript
-tryPush(): Promise<SyncResultPush | SyncResultCancel>;
+tryPush(): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
 ```
 <b>Returns:</b>
 
-Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCancel](./git-documentdb.syncresultcancel.md) &gt;
+Promise&lt;[SyncResultPush](./git-documentdb.syncresultpush.md) \| [SyncResultCancel](./git-documentdb.syncresultcancel.md) \| [SyncResultNop](./git-documentdb.syncresultnop.md) &gt;
 
 ## Exceptions
 

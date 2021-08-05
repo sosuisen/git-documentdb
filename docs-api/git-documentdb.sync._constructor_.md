@@ -31,3 +31,7 @@ constructor(gitDDB: GitDDBInterface, options?: RemoteOptions);
 
 [Err.SyncIntervalLessThanOrEqualToRetryIntervalError](./git-documentdb.err.syncintervallessthanorequaltoretryintervalerror.md)
 
+\# Errors from encodeToGitRemoteName
+
+- [RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
+

@@ -10,6 +10,8 @@ import { TLogLevelName } from 'tslog';
 
 /**
  * Plugin types
+ *
+ * @public
  */
 export type PluginTypes = 'db' | 'remote';
 

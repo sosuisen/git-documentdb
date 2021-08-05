@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class UnfetchedCommitExistsError extends RemoteErrors.UnfetchedCommitExistsError 
+class UnfetchedCommitExistsError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.UnfetchedCommitExistsError
+BaseError
 
 ## Constructors
 

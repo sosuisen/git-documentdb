@@ -13,11 +13,11 @@ Copy error message from parent
 <b>Signature:</b>
 
 ```typescript
-class CannotConnectError extends RemoteErrors.CannotConnectError 
+class CannotConnectError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.CannotConnectError
+BaseError
 
 ## Constructors
 

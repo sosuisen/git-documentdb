@@ -45,12 +45,10 @@ export interface GitDDBInterface
 |  [getCommit(oid)](./git-documentdb.gitddbinterface.getcommit.md) |  |
 |  [getRemoteURLs()](./git-documentdb.gitddbinterface.getremoteurls.md) |  |
 |  [getSync(remoteURL)](./git-documentdb.gitddbinterface.getsync.md) |  |
-|  [loadAppInfo()](./git-documentdb.gitddbinterface.loadappinfo.md) |  |
 |  [loadAuthor()](./git-documentdb.gitddbinterface.loadauthor.md) |  |
 |  [loadDbInfo()](./git-documentdb.gitddbinterface.loaddbinfo.md) |  |
 |  [open(options)](./git-documentdb.gitddbinterface.open.md) | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public methods \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 |  [removeSync(remoteURL)](./git-documentdb.gitddbinterface.removesync.md) |  |
-|  [saveAppInfo(info)](./git-documentdb.gitddbinterface.saveappinfo.md) |  |
 |  [saveAuthor()](./git-documentdb.gitddbinterface.saveauthor.md) |  |
 |  [sync(options, getSyncResult)](./git-documentdb.gitddbinterface.sync.md) |  |
 |  [sync(options)](./git-documentdb.gitddbinterface.sync_1.md) |  |

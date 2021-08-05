@@ -6,7 +6,6 @@
 
 import { JSONOp } from 'ot-json1';
 import { Logger } from 'tslog';
-import * as RemoteErrors from 'git-documentdb-remote-errors';
 import { TLogLevelName } from 'tslog';
 
 // @public
@@ -611,10 +610,6 @@ export interface GitDDBInterface {
     // (undocumented)
     isOpened: boolean;
     // (undocumented)
-    loadAppInfo(): {
-        [key: string]: any;
-    };
-    // (undocumented)
     loadAuthor(): Promise<void>;
     // (undocumented)
     loadDbInfo(): void;
@@ -628,10 +623,6 @@ export interface GitDDBInterface {
     removeSync(remoteURL: string): void;
     // (undocumented)
     rootCollection: ICollection;
-    // (undocumented)
-    saveAppInfo(info: {
-        [key: string]: any;
-    }): void;
     // (undocumented)
     saveAuthor(): Promise<void>;
     // (undocumented)
@@ -688,7 +679,6 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     insertFatDoc(name: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
     get isClosing(): boolean;
     get isOpened(): boolean;
-    loadAppInfo(): Promise<JsonDoc | undefined>;
     loadAuthor(): Promise<void>;
     // @internal
     loadDbInfo(): Promise<void>;
@@ -712,9 +702,6 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     putFatDoc(name: string | undefined | null, doc: JsonDoc | Uint8Array | string, options?: PutOptions): Promise<PutResult>;
     removeSync(remoteURL: string): void;
     get rootCollection(): ICollection;
-    saveAppInfo(info: {
-        [key: string]: any;
-    }): Promise<void>;
     saveAuthor(): Promise<void>;
     get schema(): Schema;
     sync(options: RemoteOptions): Promise<Sync>;
@@ -880,54 +867,59 @@ export interface RemoteEngineInterface {
     // (undocumented)
     clone: (workingDir: string, remoteOptions: RemoteOptions, remoteName: string, logger?: Logger) => Promise<void>;
     // (undocumented)
-    fetch: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, logger?: Logger) => Promise<void>;
+    fetch: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, localBranchName?: string, remoteBranchName?: string, logger?: Logger) => Promise<void>;
+    // (undocumented)
+    name: string;
     // (undocumented)
     push: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, localBranch?: string, remoteBranch?: string, logger?: Logger) => Promise<void>;
+    // (undocumented)
+    type: string;
 }
 
 // @public
 export namespace RemoteErr {
-    export class CannotConnectError extends RemoteErrors.CannotConnectError {
+    // Warning: (ae-forgotten-export) The symbol "BaseError" needs to be exported by the entry point main.d.ts
+    export class CannotConnectError extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class HTTPError401AuthorizationRequired extends RemoteErrors.HTTPError401AuthorizationRequired {
+    export class HTTPError401AuthorizationRequired extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class HTTPError403Forbidden extends RemoteErrors.HTTPError403Forbidden {
+    export class HTTPError403Forbidden extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class HTTPError404NotFound extends RemoteErrors.HTTPError404NotFound {
+    export class HTTPError404NotFound extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class InvalidAuthenticationTypeError extends RemoteErrors.InvalidAuthenticationTypeError {
+    export class InvalidAuthenticationTypeError extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class InvalidGitRemoteError extends RemoteErrors.InvalidGitRemoteError {
+    export class InvalidGitRemoteError extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class InvalidRepositoryURLError extends RemoteErrors.InvalidRepositoryURLError {
+    export class InvalidRepositoryURLError extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class InvalidSSHKeyPathError extends RemoteErrors.InvalidSSHKeyPathError {
+    export class InvalidSSHKeyPathError extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class InvalidURLFormatError extends RemoteErrors.InvalidURLFormatError {
+    export class InvalidURLFormatError extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class NetworkError extends RemoteErrors.NetworkError {
+    export class NetworkError extends BaseError {
         constructor(mes: unknown);
     }
     // (undocumented)
-    export class UnfetchedCommitExistsError extends RemoteErrors.UnfetchedCommitExistsError {
+    export class UnfetchedCommitExistsError extends BaseError {
         constructor(mes: unknown);
     }
 }
@@ -971,7 +963,7 @@ export class Sync implements SyncInterface {
     currentRetries(): number;
     // (undocumented)
     get engine(): string;
-    enqueueSyncTask(): Promise<SyncResult>;
+    enqueueSyncTask(calledAsPeriodicTask: boolean): Promise<SyncResult>;
     // @internal
     eventHandlers: {
         change: {
@@ -1029,8 +1021,12 @@ export class Sync implements SyncInterface {
         interval?: number;
         retry?: number;
     }): boolean;
-    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
+    tryPush(): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
+    // @internal
+    tryPushImpl(calledAsPeriodicTask: boolean): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
     trySync(): Promise<SyncResult>;
+    // @internal
+    trySyncImpl(calledAsPeriodicTask: boolean): Promise<SyncResult>;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "syncAndGetResultImpl" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1153,7 +1149,7 @@ export interface SyncInterface {
         retry?: number;
     }): void;
     // (undocumented)
-    tryPush(): Promise<SyncResultPush | SyncResultCancel>;
+    tryPush(): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
     // (undocumented)
     trySync(): Promise<SyncResult>;
 }
@@ -1286,6 +1282,7 @@ export type TaskMetadata = {
     shortName?: string;
     collectionPath?: string;
     enqueueTime?: string;
+    syncRemoteName?: string;
 };
 
 // @public
@@ -1351,7 +1348,7 @@ export class Validator {
 }
 
 // @public
-export function wrappingRemoteEngineError(remoteEngineError: RemoteErrors.BaseError): Error;
+export function wrappingRemoteEngineError(remoteEngineError: BaseError): Error;
 
 // @public
 export type WriteOperation = 'insert' | 'update' | 'delete' | 'insert-merge' | 'update-merge';

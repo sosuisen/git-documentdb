@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class InvalidURLFormatError extends RemoteErrors.InvalidURLFormatError 
+class InvalidURLFormatError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.InvalidURLFormatError
+BaseError
 
 ## Constructors
 

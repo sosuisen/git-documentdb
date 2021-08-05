@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class InvalidGitRemoteError extends RemoteErrors.InvalidGitRemoteError 
+class InvalidGitRemoteError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.InvalidGitRemoteError
+BaseError
 
 ## Constructors
 

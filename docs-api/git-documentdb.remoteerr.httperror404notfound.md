@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class HTTPError404NotFound extends RemoteErrors.HTTPError404NotFound 
+class HTTPError404NotFound extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.HTTPError404NotFound
+BaseError
 
 ## Constructors
 

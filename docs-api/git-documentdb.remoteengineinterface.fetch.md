@@ -11,5 +11,5 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-fetch: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, logger?: Logger) => Promise<void>;
+fetch: (workingDir: string, remoteOptions: RemoteOptions, remoteName?: string, localBranchName?: string, remoteBranchName?: string, logger?: Logger) => Promise<void>;
 ```

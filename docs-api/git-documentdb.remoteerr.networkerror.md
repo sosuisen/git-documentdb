@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class NetworkError extends RemoteErrors.NetworkError 
+class NetworkError extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.NetworkError
+BaseError
 
 ## Constructors
 

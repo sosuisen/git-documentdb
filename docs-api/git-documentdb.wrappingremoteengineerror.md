@@ -13,14 +13,14 @@ wrappingRemoteEngineError
 <b>Signature:</b>
 
 ```typescript
-export declare function wrappingRemoteEngineError(remoteEngineError: RemoteErrors.BaseError): Error;
+export declare function wrappingRemoteEngineError(remoteEngineError: BaseError): Error;
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  remoteEngineError | RemoteErrors.BaseError |  |
+|  remoteEngineError | BaseError |  |
 
 <b>Returns:</b>
 

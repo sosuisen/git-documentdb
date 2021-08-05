@@ -43,7 +43,7 @@ export declare class Sync implements SyncInterface
 |  --- | --- | --- |
 |  [close()](./git-documentdb.sync.close.md) |  | Stop and clear remote connection |
 |  [currentRetries()](./git-documentdb.sync.currentretries.md) |  | Return current retry count (incremental) |
-|  [enqueueSyncTask()](./git-documentdb.sync.enqueuesynctask.md) |  | Enqueue sync task to TaskQueue |
+|  [enqueueSyncTask(calledAsPeriodicTask)](./git-documentdb.sync.enqueuesynctask.md) |  | Enqueue sync task to TaskQueue |
 |  [init()](./git-documentdb.sync.init.md) |  | Initialize remote connection |
 |  [off(event, callback)](./git-documentdb.sync.off.md) |  | Remove SyncEvent handler |
 |  [on(event, callback, collectionPath)](./git-documentdb.sync.on.md) |  | Add SyncEvent handler |

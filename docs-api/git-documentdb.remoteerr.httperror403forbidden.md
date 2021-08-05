@@ -11,11 +11,11 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-class HTTPError403Forbidden extends RemoteErrors.HTTPError403Forbidden 
+class HTTPError403Forbidden extends BaseError 
 ```
 <b>Extends:</b>
 
-RemoteErrors.HTTPError403Forbidden
+BaseError
 
 ## Constructors
 

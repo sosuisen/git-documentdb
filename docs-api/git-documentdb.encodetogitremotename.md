@@ -38,3 +38,7 @@ A remote name consists of \[remote address\]\_\[hash\]. Periods are replaced wit
 
 \[hash\] is the first seven characters of SHA-1 so that it may collide. Capitalize one of the remote addresses when hashes collide because a hostname and a domain name are not case sensitive.
 
+## Exceptions
+
+[RemoteErr.InvalidURLFormatError](./git-documentdb.remoteerr.invalidurlformaterror.md)
+
