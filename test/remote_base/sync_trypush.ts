@@ -30,6 +30,7 @@ import {
   ConnectionSettings,
   RemoteOptions,
   SyncResultCancel,
+  SyncResultNop,
   SyncResultPush,
 } from '../../src/types';
 import { sleep } from '../../src/utils';
@@ -375,6 +376,25 @@ export const syncTryPushBase = (
       await destroyDBs([dbA]);
     });
 
+    it('returns SyncResultNop when local does not have ahead commits.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        connection,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+      await expect(syncA.tryPush()).resolves.toEqual({ action: 'nop' });
+
+      await destroyDBs([dbA]);
+    });
+
     it('skips consecutive push tasks', async () => {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
@@ -382,7 +402,7 @@ export const syncTryPushBase = (
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
-      const results: (SyncResultPush | SyncResultCancel)[] = [];
+      const results: (SyncResultPush | SyncResultCancel | SyncResultNop)[] = [];
       for (let i = 0; i < 10; i++) {
         // eslint-disable-next-line promise/catch-or-return
         syncA.tryPush().then(result => results.push(result));

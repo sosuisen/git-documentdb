@@ -14,6 +14,7 @@ import {
   SyncRemoteChangeCallback,
   SyncResult,
   SyncResultCancel,
+  SyncResultNop,
   SyncResultPush,
   SyncResumeCallback,
   SyncStartCallback,
@@ -64,7 +65,7 @@ export interface SyncInterface {
   resume(options?: { interval?: number; retry?: number }): void;
   close(): void;
 
-  tryPush(): Promise<SyncResultPush | SyncResultCancel>;
+  tryPush(): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
   trySync(): Promise<SyncResult>;
 
   currentRetries(): number;

@@ -189,7 +189,6 @@ export const syncLiveBase = (
         dbName: dbNameA,
         localDir: localDir,
       });
-      dbA.logLevel = 'trace';
       const interval = MINIMUM_SYNC_INTERVAL;
       const options: RemoteOptions = {
         remoteUrl: remoteURL,
@@ -250,7 +249,7 @@ export const syncLiveBase = (
         console.log(err);
       });
       await sleep(interval * 5);
-      expect(dbA.taskQueue.currentStatistics().push).toBeGreaterThanOrEqual(2);
+      expect(dbA.taskQueue.currentStatistics().push).toBeGreaterThanOrEqual(3);
 
       await destroyDBs([dbA]);
     });
@@ -277,12 +276,12 @@ export const syncLiveBase = (
         console.log(err);
       });
       await sleep(interval * 5);
-      expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(2);
+      expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(3);
 
       await destroyDBs([dbA]);
     });
 
-    it.only('skips pushWorker after pause.', async () => {
+    it('skips pushWorker after pause.', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
 
@@ -294,20 +293,17 @@ export const syncLiveBase = (
         remoteUrl: remoteURL,
         live: true,
         syncDirection: 'push',
-        interval: 30000,
+        interval: 1000000,
         connection,
       };
       await dbA.open();
       const syncA = await dbA.sync(options);
-      await dbA.put({ name: 'foo' });      
-
-//      syncA.pause();
-//      await expect(syncA.tryPushImpl(true)).resolves.toEqual({ action: 'canceled' });
-//      syncA.resume();
-await syncA.tryPushImpl(true);
+      syncA.pause();
+      await expect(syncA.tryPushImpl(true)).resolves.toEqual({ action: 'canceled' });
+      syncA.resume();
       await expect(syncA.tryPushImpl(true)).resolves.toMatchObject({ action: 'nop' });
 
-//      await destroyDBs([dbA]);
+      await destroyDBs([dbA]);
     });
 
     it('skips syncWorker after pause.', async () => {

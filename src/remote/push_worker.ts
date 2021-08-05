@@ -13,6 +13,7 @@ import {
   ChangedFile,
   NormalizedCommit,
   SyncResultCancel,
+  SyncResultNop,
   SyncResultPush,
   TaskMetadata,
 } from '../types';
@@ -43,13 +44,14 @@ import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
  *
  * @internal
  */
+// eslint-disable-next-line complexity
 export async function pushWorker (
   gitDDB: GitDDBInterface,
   sync: SyncInterface,
   taskMetadata: TaskMetadata,
   skipStartEvent = false,
   afterMerge = false
-): Promise<SyncResultPush | SyncResultCancel> {
+): Promise<SyncResultPush | SyncResultCancel | SyncResultNop> {
   const syncOptions = sync.options;
   if (!afterMerge && taskMetadata.periodic && !syncOptions.live) {
     const resultCancel: SyncResultCancel = {
@@ -111,6 +113,10 @@ export async function pushWorker (
   }
 
   let baseCommitOid: string | undefined;
+
+  if (localCommitOid === remoteCommitOid) {
+    return { action: 'nop' };
+  }
 
   if (remoteCommitOid === undefined) {
     // This is the first push in this repository.

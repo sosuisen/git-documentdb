@@ -32,6 +32,7 @@ import {
   SyncRemoteChangeCallback,
   SyncResult,
   SyncResultCancel,
+  SyncResultNop,
   SyncResultPush,
   SyncResumeCallback,
   SyncStartCallback,
@@ -763,7 +764,7 @@ export class Sync implements SyncInterface {
    *
    * @public
    */
-  async tryPush (): Promise<SyncResultPush | SyncResultCancel> {
+  async tryPush (): Promise<SyncResultPush | SyncResultCancel | SyncResultNop> {
     return await this.tryPushImpl(false);
   }
 
@@ -775,7 +776,7 @@ export class Sync implements SyncInterface {
   // eslint-disable-next-line complexity
   async tryPushImpl (
     calledAsPeriodicTask: boolean
-  ): Promise<SyncResultPush | SyncResultCancel> {
+  ): Promise<SyncResultPush | SyncResultCancel | SyncResultNop> {
     if (this._isClosed) return { action: 'canceled' };
     if (this._options.syncDirection === 'pull') {
       throw new Err.PushNotAllowedError(this._options.syncDirection);
@@ -786,7 +787,7 @@ export class Sync implements SyncInterface {
      */
     const taskId = this._gitDDB.taskQueue.newTaskId();
     const callback = (
-      resolve: (value: SyncResultPush | SyncResultCancel) => void,
+      resolve: (value: SyncResultPush | SyncResultCancel | SyncResultNop) => void,
       reject: (reason: any) => void
     ) => (
       beforeResolve: () => void,
@@ -794,7 +795,7 @@ export class Sync implements SyncInterface {
       taskMetadata: TaskMetadata
     ) =>
       pushWorker(this._gitDDB, this, taskMetadata)
-        .then((syncResultPush: SyncResultPush | SyncResultCancel) => {
+        .then((syncResultPush: SyncResultPush | SyncResultCancel | SyncResultNop) => {
           this._gitDDB.logger.debug(
             CONSOLE_STYLE.bgWhite().fgBlack().tag()`pushWorker: ${JSON.stringify(
               syncResultPush
@@ -825,7 +826,7 @@ export class Sync implements SyncInterface {
             });
           }
 
-          if (syncResultPush.action !== 'canceled') {
+          if (syncResultPush.action === 'push') {
             this.eventHandlers.complete.forEach(listener => {
               listener.func({ ...taskMetadata, collectionPath: listener.collectionPath });
             });
@@ -856,7 +857,7 @@ export class Sync implements SyncInterface {
     };
 
     const task = (
-      resolve: (value: SyncResultPush | SyncResultCancel) => void,
+      resolve: (value: SyncResultPush | SyncResultCancel | SyncResultNop) => void,
       reject: (reason: any) => void
     ): Task => {
       return {
@@ -870,7 +871,10 @@ export class Sync implements SyncInterface {
     };
 
     const resultOrError = await new Promise(
-      (resolve: (value: SyncResultPush | SyncResultCancel) => void, reject) => {
+      (
+        resolve: (value: SyncResultPush | SyncResultCancel | SyncResultNop) => void,
+        reject
+      ) => {
         this._gitDDB.taskQueue.pushToTaskQueue(task(resolve, reject));
         // this._gitDDB.taskQueue.unshiftSyncTaskToTaskQueue(task(resolve, reject));
       }
