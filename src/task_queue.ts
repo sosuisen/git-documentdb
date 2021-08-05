@@ -137,7 +137,6 @@ export class TaskQueue {
           collectionPath: task.collectionPath,
           enqueueTime: task.enqueueTime,
           syncRemoteName: task.syncRemoteName,
-          periodic: !!task.periodic,
         };
         if (task.enqueueCallback) {
           try {
@@ -238,7 +237,6 @@ export class TaskQueue {
         const fullDocPath = collectionPath ? collectionPath + shortName : '';
         const taskId = this._currentTask.taskId;
         const syncRemoteName = this._currentTask.syncRemoteName;
-        const periodic = !!this._currentTask.periodic;
 
         this._isTaskQueueWorking = true;
         this._logger.debug(
@@ -269,7 +267,6 @@ export class TaskQueue {
           collectionPath,
           enqueueTime: this._currentTask.enqueueTime,
           syncRemoteName,
-          periodic,
         };
 
         this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {

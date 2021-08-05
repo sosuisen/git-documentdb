@@ -15,7 +15,6 @@ import { GitDDBInterface } from '../types_gitddb';
 import {
   NormalizedCommit,
   SyncResult,
-  SyncResultCancel,
   SyncResultMergeAndPush,
   SyncResultMergeAndPushError,
   SyncResultPush,
@@ -76,12 +75,6 @@ export async function syncWorker (
   taskMetadata: TaskMetadata
 ): Promise<SyncResult> {
   const syncOptions = sync.options;
-  if (taskMetadata.periodic && !syncOptions.live) {
-    const resultCancel: SyncResultCancel = {
-      action: 'canceled',
-    };
-    return resultCancel;
-  }
   sync.eventHandlers.start.forEach(listener => {
     listener.func(
       { ...taskMetadata, collectionPath: listener.collectionPath },
@@ -227,7 +220,6 @@ export async function syncWorker (
       localCommits = [...commitsFromRemote, normalizeCommit(mergeCommit)];
     }
     // Need push because it is merged normally.
-    // Set afterMerge option true not to return SyncResultCancel.
     const syncResultPush = (await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
       (err: Error) => {
         return err;
@@ -319,7 +311,6 @@ export async function syncWorker (
   }
 
   // Push
-  // Set afterMerge option true not to return SyncResultCancel.
   const syncResultPush = (await pushWorker(gitDDB, sync, taskMetadata, true, true).catch(
     (err: Error) => {
       return err;

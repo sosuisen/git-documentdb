@@ -793,9 +793,18 @@ export class Sync implements SyncInterface {
       beforeResolve: () => void,
       beforeReject: () => void,
       taskMetadata: TaskMetadata
-    ) =>
-      pushWorker(this._gitDDB, this, taskMetadata)
-        .then((syncResultPush: SyncResultPush | SyncResultCancel | SyncResultNop) => {
+    ) => {
+      if (calledAsPeriodicTask && !this._options.live) {
+        return Promise.resolve().then(() => {
+          const resultCancel: SyncResultCancel = {
+            action: 'canceled',
+          };
+          beforeResolve();
+          resolve(resultCancel);
+        });
+      }
+      return pushWorker(this._gitDDB, this, taskMetadata)
+        .then((syncResultPush: SyncResultPush | SyncResultNop) => {
           this._gitDDB.logger.debug(
             CONSOLE_STYLE.bgWhite().fgBlack().tag()`pushWorker: ${JSON.stringify(
               syncResultPush
@@ -847,6 +856,7 @@ export class Sync implements SyncInterface {
           beforeReject();
           reject(err);
         });
+    };
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
       const result: SyncResultCancel = { action: 'canceled' };
@@ -864,7 +874,6 @@ export class Sync implements SyncInterface {
         label: 'push',
         taskId: taskId!,
         syncRemoteName: this.remoteName,
-        periodic: calledAsPeriodicTask,
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };
@@ -1054,97 +1063,111 @@ export class Sync implements SyncInterface {
       beforeResolve: () => void,
       beforeReject: () => void,
       taskMetadata: TaskMetadata
-    ) =>
-      syncWorker(this._gitDDB, this, taskMetadata)
-        // eslint-disable-next-line complexity
-        .then((syncResult: SyncResult) => {
-          this._gitDDB.logger.debug(
-            CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(
-              syncResult
-            )}`
-          );
-
-          if (
-            syncResult.action === 'resolve conflicts and push' ||
-            syncResult.action === 'merge and push' ||
-            syncResult.action === 'resolve conflicts and push error' ||
-            syncResult.action === 'merge and push error' ||
-            syncResult.action === 'fast-forward merge' ||
-            syncResult.action === 'push'
-          ) {
-            this.eventHandlers.change.forEach(listener => {
-              let syncResultForChangeEvent = JSON.parse(JSON.stringify(syncResult));
-              syncResultForChangeEvent = filterChanges(
-                syncResultForChangeEvent,
-                listener.collectionPath
-              ) as SyncResult;
-
-              listener.func(syncResultForChangeEvent, {
-                ...taskMetadata,
-                collectionPath: listener.collectionPath,
-              });
-            });
-          }
-
-          if (
-            syncResult.action === 'resolve conflicts and push' ||
-            syncResult.action === 'merge and push' ||
-            syncResult.action === 'resolve conflicts and push error' ||
-            syncResult.action === 'merge and push error' ||
-            syncResult.action === 'fast-forward merge'
-          ) {
-            this.eventHandlers.localChange.forEach(listener => {
-              let syncResultForLocalChangeEvent = JSON.parse(JSON.stringify(syncResult));
-              syncResultForLocalChangeEvent = filterChanges(
-                syncResultForLocalChangeEvent,
-                listener.collectionPath
-              ) as SyncResult;
-              listener.func(syncResultForLocalChangeEvent.changes.local, {
-                ...taskMetadata,
-                collectionPath: listener.collectionPath,
-              });
-            });
-          }
-
-          if (
-            syncResult.action === 'resolve conflicts and push' ||
-            syncResult.action === 'merge and push' ||
-            syncResult.action === 'push'
-          ) {
-            this.eventHandlers.remoteChange.forEach(listener => {
-              let syncResultForRemoteChangeEvent = JSON.parse(JSON.stringify(syncResult));
-              syncResultForRemoteChangeEvent = filterChanges(
-                syncResultForRemoteChangeEvent,
-                listener.collectionPath
-              ) as SyncResult;
-              listener.func(syncResultForRemoteChangeEvent.changes.remote, {
-                ...taskMetadata,
-                collectionPath: listener.collectionPath,
-              });
-            });
-          }
-
-          if (syncResult.action !== 'canceled') {
-            this.eventHandlers.complete.forEach(listener =>
-              listener.func({ ...taskMetadata, collectionPath: listener.collectionPath })
-            );
-          }
-
+    ) => {
+      if (calledAsPeriodicTask && !this._options.live) {
+        return Promise.resolve().then(() => {
+          const resultCancel: SyncResultCancel = {
+            action: 'canceled',
+          };
           beforeResolve();
-          resolve(syncResult);
-        })
-        .catch((err: Error) => {
-          // console.log(`Error in syncWorker: ${err}`);
-          this.eventHandlers.error.forEach(listener => {
-            listener.func(err, {
-              ...taskMetadata,
-              collectionPath: listener.collectionPath,
-            });
-          });
-
-          beforeReject();
-          reject(err);
+          resolve(resultCancel);
         });
+      }
+
+      return (
+        syncWorker(this._gitDDB, this, taskMetadata)
+          // eslint-disable-next-line complexity
+          .then((syncResult: SyncResult) => {
+            this._gitDDB.logger.debug(
+              CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(
+                syncResult
+              )}`
+            );
+
+            if (
+              syncResult.action === 'resolve conflicts and push' ||
+              syncResult.action === 'merge and push' ||
+              syncResult.action === 'resolve conflicts and push error' ||
+              syncResult.action === 'merge and push error' ||
+              syncResult.action === 'fast-forward merge' ||
+              syncResult.action === 'push'
+            ) {
+              this.eventHandlers.change.forEach(listener => {
+                let syncResultForChangeEvent = JSON.parse(JSON.stringify(syncResult));
+                syncResultForChangeEvent = filterChanges(
+                  syncResultForChangeEvent,
+                  listener.collectionPath
+                ) as SyncResult;
+
+                listener.func(syncResultForChangeEvent, {
+                  ...taskMetadata,
+                  collectionPath: listener.collectionPath,
+                });
+              });
+            }
+
+            if (
+              syncResult.action === 'resolve conflicts and push' ||
+              syncResult.action === 'merge and push' ||
+              syncResult.action === 'resolve conflicts and push error' ||
+              syncResult.action === 'merge and push error' ||
+              syncResult.action === 'fast-forward merge'
+            ) {
+              this.eventHandlers.localChange.forEach(listener => {
+                let syncResultForLocalChangeEvent = JSON.parse(JSON.stringify(syncResult));
+                syncResultForLocalChangeEvent = filterChanges(
+                  syncResultForLocalChangeEvent,
+                  listener.collectionPath
+                ) as SyncResult;
+                listener.func(syncResultForLocalChangeEvent.changes.local, {
+                  ...taskMetadata,
+                  collectionPath: listener.collectionPath,
+                });
+              });
+            }
+
+            if (
+              syncResult.action === 'resolve conflicts and push' ||
+              syncResult.action === 'merge and push' ||
+              syncResult.action === 'push'
+            ) {
+              this.eventHandlers.remoteChange.forEach(listener => {
+                let syncResultForRemoteChangeEvent = JSON.parse(JSON.stringify(syncResult));
+                syncResultForRemoteChangeEvent = filterChanges(
+                  syncResultForRemoteChangeEvent,
+                  listener.collectionPath
+                ) as SyncResult;
+                listener.func(syncResultForRemoteChangeEvent.changes.remote, {
+                  ...taskMetadata,
+                  collectionPath: listener.collectionPath,
+                });
+              });
+            }
+
+            this.eventHandlers.complete.forEach(listener =>
+              listener.func({
+                ...taskMetadata,
+                collectionPath: listener.collectionPath,
+              })
+            );
+
+            beforeResolve();
+            resolve(syncResult);
+          })
+          .catch((err: Error) => {
+            // console.log(`Error in syncWorker: ${err}`);
+            this.eventHandlers.error.forEach(listener => {
+              listener.func(err, {
+                ...taskMetadata,
+                collectionPath: listener.collectionPath,
+              });
+            });
+
+            beforeReject();
+            reject(err);
+          })
+      );
+    };
 
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
       const result: SyncResultCancel = { action: 'canceled' };
@@ -1162,7 +1185,6 @@ export class Sync implements SyncInterface {
         label: 'sync',
         taskId: taskId!,
         syncRemoteName: this.remoteName,
-        periodic: calledAsPeriodicTask,
         func: callback(resolve, reject),
         cancel: cancel(resolve),
       };

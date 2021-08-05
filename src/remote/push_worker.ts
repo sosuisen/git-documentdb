@@ -51,14 +51,8 @@ export async function pushWorker (
   taskMetadata: TaskMetadata,
   skipStartEvent = false,
   afterMerge = false
-): Promise<SyncResultPush | SyncResultCancel | SyncResultNop> {
+): Promise<SyncResultPush | SyncResultNop> {
   const syncOptions = sync.options;
-  if (!afterMerge && taskMetadata.periodic && !syncOptions.live) {
-    const resultCancel: SyncResultCancel = {
-      action: 'canceled',
-    };
-    return resultCancel;
-  }
   if (!skipStartEvent) {
     sync.eventHandlers.start.forEach(listener => {
       listener.func(

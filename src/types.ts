@@ -790,7 +790,6 @@ export type TaskMetadata = {
   collectionPath?: string;
   enqueueTime?: string;
   syncRemoteName?: string;
-  periodic?: boolean;
 };
 
 /**
