@@ -13,7 +13,7 @@ Use GitDocumentDB to ...
 
 :green_book: Manage JSON documents in Git repository by CRUD and collection APIs. 
 
-:rocket: Synchronize automatically with a remote repository.
+:rocket: Synchronize automatically with remote repositories.
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*(No need to resolve conflicts manually!)*
 
@@ -34,20 +34,6 @@ Node.js 12 or later
 ```
 npm i git-documentdb
 ```
-**NOTE:**<br>
-GitDocumentDB uses native addon (libgit2).<br>
-If you receive errors about installation, you probably miss building tools and libraries.<br>
-**In Ubuntu 18:**<br>
-```
-sudo apt update
-sudo apt install build-essential libssl-dev libkrb5-dev libc++-dev 
-```
-**In Windows 10:**<br>
-The list below shows typical environments.
-- Node.js 12, Python 2.7.x, and Visual Studio 2017 Community (with Desktop development with C++).
-- npm config set msvs_version 2017
-
-If you are still encountering install problems, documents about [NodeGit](https://github.com/nodegit/nodegit#getting-started) and [Building NodeGit from source](https://www.nodegit.org/guides/install/from-source/) may also help you.
 
 ## Import
 ```typescript
@@ -241,8 +227,8 @@ https://github.com/sosuisen/inventory-manager
   - Automated combining of inconsistent repositories :feet:
 - v0.4 Work on both Node.js and browser
   - API renewal to manage any data types :feet:
-  - Remove native module (NodeGit) from default install :dog2:(Next)
-  - Connect with SSH key pair
+  - Remove native module (NodeGit) from default install :feet:
+  - Connect with SSH key pair :dog2:(Next)
   - Connect to GitHub with OAuth
   - Work on browser
 
