@@ -229,8 +229,8 @@ https://github.com/sosuisen/inventory-manager
   - API renewal to manage any data types :feet:
   - Remove native module (NodeGit) from default install :feet:
   - Add plugin system for remote connection (isomorphic-git or NodeGit) :feet:
-  - Connect with SSH key pair :dog2:(Next)
-  - Connect to GitHub with OAuth
+  - Connect with SSH key pair :feet:
+  - Connect to GitHub with OAuth :dog2:(Next)
   - Work on browser
 
 - Until v1.0
