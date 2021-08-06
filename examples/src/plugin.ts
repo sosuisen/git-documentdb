@@ -14,19 +14,36 @@ import { sleep } from './utils';
  * (See https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token )
  */
 let github_repository = 'https://github.com/enter_your_account_name/git-documentdb-example-sync.git'; 
-let github_repository2 = 'https://github.com/enter_your_account_name/git-documentdb-example-sync2.git';     
+let github_repository2 = 'git@github.com:enter_your_account_name/git-documentdb-example-sync2.git';
+
 let your_github_personal_access_token = 'Enter your personal access token with checked [repo]';
+
+let your_public_key_path = '/Enter/your/private/key/path';
+let your_private_key_path = '/Enter/your/public/key/path';
 /**
  * You can also set them from environment variables:
  *  - GITDDB_GITHUB_USER_URL
  *      URL of your GitHub account
  *      e.g.) https://github.com/foo/
+ * 
  *  - GITDDB_PERSONAL_ACCESS_TOKEN
  *      A personal access token of your GitHub account
+ * 
+ *  - GITDDB_GITHUB_USER_SSH
+ *      SSH URL of your GitHub account
+ *      e.g.) git@github.com:foo/
+ *            
+ *  - SSH_PUBLIC_KEY_PATH
+ *      ssk public key of your GitHub account
+ *
+ *  - SSH_PRIVATE_KEY_PATH
+ *      ssk private key of your GitHub account
  */
 if (process.env.GITDDB_GITHUB_USER_URL) github_repository = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example-sync.git';
-if (process.env.GITDDB_GITHUB_USER_URL) github_repository2 = process.env.GITDDB_GITHUB_USER_URL + 'git-documentdb-example-sync2.git';
+if (process.env.GITDDB_GITHUB_USER_SSH) github_repository2 = process.env.GITDDB_GITHUB_USER_SSH + 'git-documentdb-example-sync2.git';
 if (process.env.GITDDB_PERSONAL_ACCESS_TOKEN) your_github_personal_access_token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN;
+if (process.env.SSH_PUBLIC_KEY_PATH) your_public_key_path = process.env.SSH_PUBLIC_KEY_PATH;
+if (process.env.SSH_PRIVATE_KEY_PATH) your_private_key_path = process.env.SSH_PRIVATE_KEY_PATH;
 
     
 /**
@@ -63,11 +80,14 @@ const remote_plugin_example = async () => {
     remoteUrl: github_repository2,
     interval: 5000, // Sync every 5,000 msec
     connection: { 
-      type: 'github',
-      personalAccessToken: your_github_personal_access_token,
+      type: 'ssh',
+      publicKeyPath: your_public_key_path,
+      privateKeyPath: your_private_key_path,
+      passPhrase: '',
       engine: 'nodegit'
     },
   };
+  console.log(remoteOptionsNodeGit);
   // Add extra synchronizer to DB
   const syncNodeGit= await gitDDB.sync(remoteOptionsNodeGit);
 
