@@ -42,15 +42,15 @@ export const DUPLICATED_FILE_POSTFIX = '-from-';
 /**
  * @public
  */
+export const FILE_CREATE_TIMEOUT = 2000;
+/**
+ * @public
+ */
 export const FILE_REMOVE_TIMEOUT = 7000;
 /**
  * @public
  */
 export const FIRST_COMMIT_MESSAGE = 'first commit';
-/**
- * @public
- */
-export const GIT_DOCUMENTDB_APP_INFO_ID = '.gitddb/app';
 /**
  * @public
  */

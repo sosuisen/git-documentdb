@@ -105,6 +105,40 @@ describe('<git_documentdb>', () => {
       });
       // You don't have permission
       await expect(gitDDB.open()).rejects.toThrowError(Err.CannotCreateDirectoryError);
+      expect(stubEnsureDir.callCount).toBe(4); // try 1 + retry 3
+    });
+
+    it('succeeds after retry ensureDir in createRepository.', async () => {
+      const dbName = monoId();
+
+      const stubEnsureDir = sandbox.stub(fs_module, 'ensureDir');
+      stubEnsureDir.onCall(0).rejects();
+      stubEnsureDir.onCall(1).rejects();
+      stubEnsureDir.onCall(2).rejects();
+      stubEnsureDir.onCall(3).callsFake(function (dir: string) {
+        return stubEnsureDir.wrappedMethod(dir);
+      });
+      // for push_worker
+      stubEnsureDir.onCall(4).callsFake(function (dir: string) {
+        return stubEnsureDir.wrappedMethod(dir);
+      });
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      gitDDB.logLevel = 'trace';
+      // You don't have permission
+      await expect(gitDDB.open()).resolves.toMatchObject({
+        // dbId: dbOpenResult.dbId,
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+        isNew: true,
+        isCreatedByGitDDB: true,
+        isValidVersion: true,
+      });
+
+      expect(stubEnsureDir.callCount).toBe(5); // try 1 + retry 3 + push_worker 1
     });
 
     it('creates a new repository.', async () => {
@@ -155,6 +189,35 @@ describe('<git_documentdb>', () => {
       // Destroy db
       await gitDDB.destroy().catch(e => console.error(e));
       fs.removeSync(path.resolve(defaultLocalDir));
+    });
+
+    it('succeeds after retry git.init in createRepository.', async () => {
+      const dbName = monoId();
+
+      const stubInit = sandbox.stub(git, 'init');
+      stubInit.onCall(0).rejects();
+      stubInit.onCall(1).rejects();
+      stubInit.onCall(2).rejects();
+      stubInit.onCall(3).callsFake(function (options: any) {
+        return stubInit.wrappedMethod(options);
+      });
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      gitDDB.logLevel = 'trace';
+      // You don't have permission
+      await expect(gitDDB.open()).resolves.toMatchObject({
+        // dbId: dbOpenResult.dbId,
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+        isNew: true,
+        isCreatedByGitDDB: true,
+        isValidVersion: true,
+      });
+
+      expect(stubInit.callCount).toBe(4); // try 1 + retry 3
     });
   });
 

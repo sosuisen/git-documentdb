@@ -54,15 +54,14 @@ import {
   DATABASE_VERSION,
   DEFAULT_LOCAL_DIR,
   DEFAULT_LOG_LEVEL,
+  FILE_CREATE_TIMEOUT,
   FILE_REMOVE_TIMEOUT,
   FIRST_COMMIT_MESSAGE,
-  GIT_DOCUMENTDB_APP_INFO_ID,
   GIT_DOCUMENTDB_INFO_ID,
   JSON_EXT,
-  PUT_APP_INFO_MESSAGE,
   SET_DATABASE_ID_MESSAGE,
 } from './const';
-import { normalizeCommit, toSortedJSONString } from './utils';
+import { normalizeCommit, sleep, toSortedJSONString } from './utils';
 import { SyncEventInterface, SyncInterface } from './types_sync';
 import { CRUDInterface } from './types_crud_interface';
 import { CollectionInterface, ICollection } from './types_collection';
@@ -380,18 +379,38 @@ export class GitDocumentDB
    * @internal
    */
   private async _createRepository () {
-    /**
-     * Create directory
-     */
-    await fs.ensureDir(this._workingDir).catch((err: Error) => {
-      throw new Err.CannotCreateDirectoryError(err.message);
-    });
-
-    await git
-      .init({ fs, dir: this._workingDir, defaultBranch: this.defaultBranch })
-      .catch(err => {
-        return Promise.reject(err);
+    // Retry three times.
+    // Creating system files sometimes fail just after installing from Squirrel installer of Electron.
+    const retry = 3;
+    for (let i = 0; i < retry + 1; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      const resEnsure = await fs.ensureDir(this._workingDir).catch((err: Error) => {
+        if (i >= retry) throw new Err.CannotCreateDirectoryError(err.message);
+        return 'cannot_create';
       });
+      if (resEnsure === 'cannot_create') {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(FILE_CREATE_TIMEOUT);
+        this.logger.debug('retrying ensureDir in createRepository');
+        continue;
+      }
+
+      // eslint-disable-next-line no-await-in-loop
+      const resInit = await git
+        .init({ fs, dir: this._workingDir, defaultBranch: this.defaultBranch })
+        .catch(err => {
+          if (i >= retry) throw err;
+          return 'cannot_init';
+        });
+      if (resInit === 'cannot_init') {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(FILE_CREATE_TIMEOUT);
+        this.logger.debug('retrying git.init in createRepository');
+        continue;
+      }
+
+      break;
+    }
 
     // First commit
     const info = {
