@@ -531,6 +531,9 @@ export type FatTextDoc = TextDocMetadata & {
 };
 
 // @public (undocumented)
+export const FILE_CREATE_TIMEOUT = 2000;
+
+// @public (undocumented)
 export const FILE_REMOVE_TIMEOUT = 7000;
 
 // @public
@@ -562,9 +565,6 @@ export type GetInternalOptions = {
 export type GetOptions = {
     forceDocType?: DocType;
 };
-
-// @public (undocumented)
-export const GIT_DOCUMENTDB_APP_INFO_ID = ".gitddb/app";
 
 // @public (undocumented)
 export const GIT_DOCUMENTDB_INFO_ID = ".gitddb/info";

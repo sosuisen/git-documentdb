@@ -56,9 +56,9 @@ Offline-first Database that Syncs with Git
 |  [DEFAULT\_LOG\_LEVEL](./git-documentdb.default_log_level.md) |  |
 |  [DEFAULT\_SYNC\_INTERVAL](./git-documentdb.default_sync_interval.md) |  |
 |  [DUPLICATED\_FILE\_POSTFIX](./git-documentdb.duplicated_file_postfix.md) |  |
+|  [FILE\_CREATE\_TIMEOUT](./git-documentdb.file_create_timeout.md) |  |
 |  [FILE\_REMOVE\_TIMEOUT](./git-documentdb.file_remove_timeout.md) |  |
 |  [FIRST\_COMMIT\_MESSAGE](./git-documentdb.first_commit_message.md) |  |
-|  [GIT\_DOCUMENTDB\_APP\_INFO\_ID](./git-documentdb.git_documentdb_app_info_id.md) |  |
 |  [GIT\_DOCUMENTDB\_INFO\_ID](./git-documentdb.git_documentdb_info_id.md) |  |
 |  [GIT\_DOCUMENTDB\_METADATA\_DIR](./git-documentdb.git_documentdb_metadata_dir.md) |  |
 |  [JSON\_EXT](./git-documentdb.json_ext.md) |  |
