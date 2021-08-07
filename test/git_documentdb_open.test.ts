@@ -27,6 +27,8 @@ import { sleep } from '../src/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs_module = require('fs-extra');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const put_worker_module = require('../src/crud/put');
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -218,6 +220,35 @@ describe('<git_documentdb>', () => {
       });
 
       expect(stubInit.callCount).toBe(4); // try 1 + retry 3
+    });
+
+    it('succeeds after retry putWorker in createRepository.', async () => {
+      const dbName = monoId();
+
+      const stubPut = sandbox.stub(put_worker_module, 'putWorker');
+      stubPut.onCall(0).rejects();
+      stubPut.onCall(1).rejects();
+      stubPut.onCall(2).rejects();
+      stubPut.onCall(3).callsFake(function (...options: any) {
+        return stubPut.wrappedMethod(...options);
+      });
+
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      gitDDB.logLevel = 'trace';
+      // You don't have permission
+      await expect(gitDDB.open()).resolves.toMatchObject({
+        // dbId: dbOpenResult.dbId,
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+        isNew: true,
+        isCreatedByGitDDB: true,
+        isValidVersion: true,
+      });
+
+      expect(stubPut.callCount).toBe(4); // try 1 + retry 3
     });
   });
 

@@ -379,6 +379,13 @@ export class GitDocumentDB
    * @internal
    */
   private async _createRepository () {
+    // First commit
+    const info = {
+      dbId: generateDatabaseId(),
+      creator: DATABASE_CREATOR,
+      version: DATABASE_VERSION,
+    };
+
     // Retry three times.
     // Creating system files sometimes fail just after installing from Squirrel installer of Electron.
     const retry = 3;
@@ -409,23 +416,28 @@ export class GitDocumentDB
         continue;
       }
 
+      // Do not use this.put() because it increments TaskQueue.statistics.put.
+      // eslint-disable-next-line no-await-in-loop
+      const resPut = await putWorker(
+        this,
+        '',
+        GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
+        toSortedJSONString(info),
+        FIRST_COMMIT_MESSAGE
+      ).catch(err => {
+        if (i >= retry) throw err;
+        return 'cannot_put';
+      });
+      if (resPut === 'cannot_put') {
+        // eslint-disable-next-line no-await-in-loop
+        await sleep(FILE_CREATE_TIMEOUT);
+        fs.removeSync(this._workingDir);
+        this.logger.debug('retrying putWorker in createRepository');
+        continue;
+      }
+
       break;
     }
-
-    // First commit
-    const info = {
-      dbId: generateDatabaseId(),
-      creator: DATABASE_CREATOR,
-      version: DATABASE_VERSION,
-    };
-    // Do not use this.put() because it increments TaskQueue.statistics.put.
-    await putWorker(
-      this,
-      '',
-      GIT_DOCUMENTDB_INFO_ID + JSON_EXT,
-      toSortedJSONString(info),
-      FIRST_COMMIT_MESSAGE
-    );
 
     this._dbOpenResult.isNew = true;
 
