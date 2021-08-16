@@ -1038,6 +1038,73 @@ sighed Meg, looking down at her old dress.`,
       expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
+    it('merges non ASCII text 2', () => {
+      const base = {
+        _id: 'wagahai',
+        text: '吾輩は猫である。',
+      };
+
+      const ours = {
+        _id: 'wagahai',
+        text: `吾輩は猫だよ。`,
+      };
+
+      const theirs = {
+        _id: 'wagahai',
+        text: `吾輩は犬である。`,
+      };
+
+      const merged = {
+        _id: 'wagahai',
+        text: `吾輩は犬だよ。`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
+
+    it('merges non ASCII text 3', () => {
+      const base = {
+        _id: 'wagahai',
+        text: '吾輩は猫である。',
+      };
+
+      const ours = {
+        _id: 'wagahai',
+        text: `吾輩は猫だよ。`,
+      };
+
+      const theirs = {
+        _id: 'wagahai',
+        text: `吾輩は犬だよ。`,
+      };
+
+      // ! NOTE: Not good result
+      const merged = {
+        _id: 'wagahai',
+        text: `吾輩はだよ犬だよ。`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
+
     it.skip('merges conflicted primitives: add', () => {});
   });
 });
