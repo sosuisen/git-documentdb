@@ -96,7 +96,7 @@ export class JsonPatchOT implements IJsonPatch {
   }
 
   fromDiff (diff: { [key: string]: any }): JSONOp {
-    const operations: JSONOp = [];
+    const operations: JSONOp[] = [];
     const procTree = (ancestors: string[], tree: JsonDoc) => {
       const keys = Object.keys(tree);
       let sortedKeys: string[];
@@ -115,6 +115,7 @@ export class JsonPatchOT implements IJsonPatch {
       else {
         sortedKeys = keys.sort();
       }
+      // eslint-disable-next-line complexity
       sortedKeys.forEach(key => {
         if (Array.isArray(tree[key])) {
           const arr = tree[key] as any[];
@@ -141,13 +142,23 @@ export class JsonPatchOT implements IJsonPatch {
             }
           }
         }
+        else if (typeof tree[key] === 'object') {
+          procTree(ancestors.concat(key), tree[key]);
+        }
       });
     };
     procTree([], diff);
     if (operations.length === 1) {
       return (operations[0] as unknown) as JSONOp;
     }
-    return operations;
+    /**
+     * A path can be a flat array format in the specification. e.g.) ['x', 'y', {i:2}]
+     * https://github.com/ottypes/json1/blob/master/spec.md
+     * However type.transform function does not accept the flat array format.
+     * Use a nested array format instead. e.g.) ['x', ['y', {i:2}]].
+     * type.compose converts the flat array format to the nested array format.
+     */
+    return operations.reduce(type.compose, null);
   }
 
   apply (doc: JsonDoc, op: JSONOp): JsonDoc {
@@ -190,8 +201,8 @@ export class JsonPatchOT implements IJsonPatch {
   ): [JSONOp, JSONOp, JSONOp | undefined] {
     let transformedOp;
     try {
-      // console.log('trying ours: ' + JSON.stringify(_opOurs));
-      // console.log('trying theirs: ' + JSON.stringify(_opTheirs));
+      // console.log('trying ours: ' + JSON.stringify(opOurs));
+      // console.log('trying theirs: ' + JSON.stringify(opTheirs));
       if (strategy.startsWith('ours')) {
         transformedOp = type.transform(opTheirs, opOurs, 'right');
       }
@@ -215,59 +226,66 @@ export class JsonPatchOT implements IJsonPatch {
           conflictedOperation = conflict.op2;
           targetOperations = JSON.parse(JSON.stringify(opOurs));
         }
-        // Location is array.
-        const conflictedLocation = conflictedOperation.slice(0, -1);
+        // Get JSON array of conflicted path
+        const conflictedPath = JSON.stringify(conflictedOperation.slice(0, -1));
+
         // Get p, r, d, i, e
         const conflictedCommands = Object.keys(
           conflictedOperation[conflictedOperation.length - 1]
         );
 
-        if (targetOperations.length > 1 && !Array.isArray(targetOperations[0])) {
-          // Operation (e.g. {p: 0})
-          const op: { [command: string]: string } =
-            targetOperations[targetOperations.length - 1];
-          conflictedCommands.forEach(command => delete op[command]);
-          targetOperations[targetOperations.length - 1] = op;
-        }
-        else if (targetOperations.length > 1) {
-          // Search conflictedLocation in targetOperations
-          let loc = -1;
-          for (let i = 0; i < targetOperations.length; i++) {
-            if (targetOperations[i].length - 1 === conflictedLocation.length) {
-              for (let j = 0; j < conflictedLocation.length; j++) {
-                if (targetOperations[i][j] !== conflictedLocation[j]) {
-                  break;
-                }
-                if (j === conflictedLocation.length - 1) {
-                  loc = i;
-                }
-              }
-              if (loc >= 0) {
-                break;
-              }
+        const resolvedOperations: any[] = [];
+
+        const stack: { pathFromRoot: string[]; opArray: any[] }[] = [
+          {
+            pathFromRoot: [],
+            opArray: targetOperations,
+          },
+        ];
+        while (stack.length > 0) {
+          const { pathFromRoot, opArray } = stack.pop()!;
+
+          if (opArray.length === 0) continue;
+
+          const opPath: string[] = [];
+          for (const opElm of opArray) {
+            if (typeof opElm === 'string') {
+              pathFromRoot.push(opElm);
             }
-          }
-          if (loc >= 0) {
-            const op: { [command: string]: string } =
-              targetOperations[loc][targetOperations[loc].length - 1];
-            // delete command
-            conflictedCommands.forEach(command => delete op[command]);
-            if (Object.keys(op).length > 0) {
-              targetOperations[loc][targetOperations[loc].length - 1] = op;
+            else if (Array.isArray(opElm)) {
+              stack.push({
+                pathFromRoot: [...pathFromRoot],
+                opArray: JSON.parse(JSON.stringify(opElm)),
+              });
             }
             else {
-              targetOperations.splice(loc, 1);
+              // Operation (e.g. {p: 0})
+              if (JSON.stringify(pathFromRoot) === conflictedPath) {
+                conflictedCommands.forEach(command => delete opElm[command]);
+              }
+              if (Object.keys(opElm).length > 0) {
+                const resolvedOp = pathFromRoot.concat(opElm);
+                resolvedOperations.push(resolvedOp);
+              }
             }
-            if (targetOperations.length === 1) {
-              targetOperations = targetOperations[0];
-            }
-            // console.log('# resolved: ' + JSON.stringify(targetOperations));
           }
         }
+        // console.log('# resolved: ' + JSON.stringify(resolvedOperations));
+        const resolvedOperationsComposed = resolvedOperations.reduce(type.compose, null);
+        // console.log('# resolved composed: ' + JSON.stringify(resolvedOperationsComposed));
+
         if (strategy.startsWith('ours')) {
-          return [JSON.parse(JSON.stringify(opOurs)), targetOperations, undefined];
+          return [
+            JSON.parse(JSON.stringify(opOurs)),
+            resolvedOperationsComposed,
+            undefined,
+          ];
         }
-        return [targetOperations, JSON.parse(JSON.stringify(opTheirs)), undefined];
+        return [
+          resolvedOperationsComposed,
+          JSON.parse(JSON.stringify(opTheirs)),
+          undefined,
+        ];
       }
       throw err;
     }

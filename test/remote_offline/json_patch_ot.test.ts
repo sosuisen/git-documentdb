@@ -435,7 +435,7 @@ describe('<remote/ot> OT', () => {
       expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
     });
 
-    it('returns patch from diff (add to tail of text', () => {
+    it('returns patch from diff (add to tail of text)', () => {
       const oldDoc = {
         _id: 'nara',
         text: 'abc',
@@ -524,7 +524,7 @@ describe('<remote/ot> OT', () => {
       expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
     });
 
-    it('returns patch from diff (delete from tail of text', () => {
+    it('returns patch from diff (delete from tail of text)', () => {
       const oldDoc = {
         _id: 'nara',
         text: 'abcdef',
@@ -1105,6 +1105,175 @@ sighed Meg, looking down at her old dress.`,
       expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
     });
 
-    it.skip('merges conflicted primitives: add', () => {});
+    it('merges non ASCII text', () => {
+      const base = {
+        _id: 'wagahai',
+        author: 'なし',
+        text: '吾輩は猫である。',
+      };
+
+      const ours = {
+        _id: 'wagahai',
+        author: '夏目漱石',
+        text: `吾輩は猫である。名前はまだ無い。`,
+      };
+
+      const theirs = {
+        _id: 'wagahai',
+        author: '太宰治',
+        text: `吾輩は犬である。`,
+      };
+
+      const merged = {
+        _id: 'wagahai',
+        author: '夏目漱石',
+        text: `吾輩は犬である。名前はまだ無い。`,
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
   });
+
+  describe('merge nested object', () => {
+    it('merges simple structure', () => {
+      const base = {
+        geometry: {
+          height: 300,
+        },
+      };
+
+      const ours = {
+        geometry: {
+          height: 374,
+        },
+      };
+
+      const theirs = {
+        geometry: {
+          height: 310,
+        },
+      };
+
+      const merged = {
+        geometry: {
+          height: 374,
+        },
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
+
+    it('merges complex structure', () => {
+      const base = {
+        condition: {
+          locked: false,
+        },
+        geometry: {
+          height: 300,
+          width: 434,
+          x: 70,
+          y: 70,
+          z: 2,
+        },
+        style: {
+          backgroundColor: '#ffffff',
+          opacity: 1,
+          uiColor: '#f5f5f5',
+          zoom: 0.85,
+        },
+        _id: 'note/n01FCXJV361VCX5SEEY45V8X604/c01FCXJV1DPAJZ7X6M8YYF17TZF',
+      };
+
+      const ours = {
+        condition: {
+          locked: false,
+        },
+        geometry: {
+          height: 374,
+          width: 324,
+          x: 64,
+          y: 80,
+          z: 2,
+        },
+        style: {
+          backgroundColor: '#fff8d0',
+          opacity: 1,
+          uiColor: '#f5eec8',
+          zoom: 0.85,
+        },
+        _id: 'note/n01FCXJV361VCX5SEEY45V8X604/c01FCXJV1DPAJZ7X6M8YYF17TZF',
+      };
+
+      const theirs = {
+        condition: {
+          locked: false,
+        },
+        geometry: {
+          height: 300,
+          width: 434,
+          x: 250,
+          y: 54,
+          z: 160,
+        },
+        style: {
+          backgroundColor: '#ffffff',
+          opacity: 1,
+          uiColor: '#f5f5f5',
+          zoom: 0.85,
+        },
+        _id: 'note/n01FCXJV361VCX5SEEY45V8X604/c01FCXJV1DPAJZ7X6M8YYF17TZF',
+      };
+
+      const merged = {
+        condition: {
+          locked: false,
+        },
+        geometry: {
+          height: 374,
+          width: 324,
+          x: 64,
+          y: 80,
+          z: 160,
+        },
+        style: {
+          backgroundColor: '#fff8d0',
+          opacity: 1,
+          uiColor: '#f5eec8',
+          zoom: 0.85,
+        },
+        _id: 'note/n01FCXJV361VCX5SEEY45V8X604/c01FCXJV1DPAJZ7X6M8YYF17TZF',
+      };
+
+      const diffOurs = textOTDiff.diff(base, ours);
+      // console.log(diffOurs);
+      const diffTheirs = textOTDiff.diff(base, theirs);
+      // console.log(diffTheirs);
+      const patchOurs = jPatch.fromDiff(diffOurs!);
+      // console.log(patchOurs);
+      const patchTheirs = jPatch.fromDiff(diffTheirs!);
+      // console.log(patchTheirs);
+
+      expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
+  });
+
+  it.skip('merges conflicted primitives: add', () => {});
 });
