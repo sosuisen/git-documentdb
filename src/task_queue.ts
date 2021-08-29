@@ -25,8 +25,9 @@ export class TaskQueue {
 
   private _logger: Logger;
 
-  // @ts-ignore
-  private _taskQueue: Task[] = [];
+  private _collectionQueue: { [collectionPath: string]: Task[] } = {};
+  private _syncQueue: Task[] = [];
+  private _pushQueue: Task[] = [];
   private _isTaskQueueWorking = false;
 
   /**
@@ -107,19 +108,39 @@ export class TaskQueue {
       // eslint-disable-next-line complexity
       .acquire('taskQueue', () => {
         // Skip consecutive sync/push events
+        if (this._currentTask?.label === 'sync') {
+          if ((this._syncQueue.length === 0 &&
+            this._currentTask?.syncRemoteName === task.syncRemoteName &&
+            this._currentTask?.label === 'sync' && task.label === 'sync') || 
+            (this._syncQueue.length > 0 &&
+              this._syncQueue[this._syncQueue.length - 1].syncRemoteName ===
+                task.syncRemoteName &&
+              ((this._taskQueue[this._taskQueue.length - 1].label === 'sync' &&
+                task.label === 'sync') ||
+                (this._taskQueue[this._taskQueue.length - 1].label === 'push' &&
+                  task.label === 'push')))
+  
+
+            }
+
+
+        }
         if (
           (this._taskQueue.length === 0 &&
             this._currentTask?.syncRemoteName === task.syncRemoteName &&
             ((this._currentTask?.label === 'sync' && task.label === 'sync') ||
-              (this._currentTask?.label === 'push' && task.label === 'push'))) ||
-          (this._taskQueue.length > 0 &&
-            this._taskQueue[this._taskQueue.length - 1].syncRemoteName ===
-              task.syncRemoteName &&
-            ((this._taskQueue[this._taskQueue.length - 1].label === 'sync' &&
-              task.label === 'sync') ||
-              (this._taskQueue[this._taskQueue.length - 1].label === 'push' &&
-                task.label === 'push')))
-        ) {
+              (this._currentTask?.label === 'push' && task.label === 'push')))
+              
+              
+              ||
+              (this._taskQueue.length > 0 &&
+                this._taskQueue[this._taskQueue.length - 1].syncRemoteName ===
+                  task.syncRemoteName &&
+                ((this._taskQueue[this._taskQueue.length - 1].label === 'sync' &&
+                  task.label === 'sync') ||
+                  (this._taskQueue[this._taskQueue.length - 1].label === 'push' &&
+                    task.label === 'push')))
+            ) {
           task.cancel();
           this._statistics.cancel++;
           throw new Err.ConsecutiveSyncSkippedError(task.label, task.taskId);
@@ -270,6 +291,18 @@ export class TaskQueue {
         };
 
         this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {
+          /*
+          this._lock
+          // eslint-disable-next-line complexity
+          .acquire('taskQueue', () => {
+            if (this._taskQueue.length > 0) {
+              const nextTask: Task;
+              for (const task of this._taskQueue)
+                if (this._currentTask?.collectionPath === task.collectionPath) {
+
+              }
+            }      
+          */
           this._execTaskQueue();
         });
       }

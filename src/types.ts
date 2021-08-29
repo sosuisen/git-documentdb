@@ -790,6 +790,7 @@ export type TaskMetadata = {
   shortId?: string;
   shortName?: string;
   collectionPath?: string;
+  debounceTime?: string;
   enqueueTime?: string;
   syncRemoteName?: string;
 };
