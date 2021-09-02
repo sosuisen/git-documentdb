@@ -1,6 +1,6 @@
 {
   "name": "git-documentdb",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Offline-first database that syncs with Git",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
