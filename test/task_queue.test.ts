@@ -13,23 +13,25 @@ import expect from 'expect';
 import fs from 'fs-extra';
 import { Logger } from 'tslog';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { createDatabase, destroyDBs, removeRemoteRepositories } from './remote_utils';
 import { sleep } from '../src/utils';
 import { TaskQueue } from '../src/task_queue';
 import { TaskMetadata } from '../src/types';
+import { Err } from '../src/error';
 
 const ulid = monotonicFactory();
 const monoId = () => {
   return ulid(Date.now());
 };
 
-const reposPrefix = 'test_task_queue___';
 const localDir = './test/database_task_queue';
 
-let idCounter = 0;
-const serialId = () => {
-  return `${reposPrefix}${idCounter++}`;
-};
+const logger = new Logger({
+  name: monoId(),
+  minLevel: 'info',
+  displayDateTime: false,
+  displayFunctionName: false,
+  displayFilePath: 'hidden',
+});
 
 beforeEach(function () {
   // @ts-ignore
@@ -45,6 +47,42 @@ after(() => {
 });
 
 describe('<task_queue>', () => {
+  it.only('debounces consecutive put to the same _id', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      debounceTime: 3000,
+    });
+    await gitDDB.open();
+    let skippedTask00 = false;
+    gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTask00 = true;
+    });
+    let skippedTask01 = false;
+    gitDDB.put({ _id: 'a', name: '1' }, { taskId: '1' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTask01 = true;
+    });
+    let skippedTask02 = false;
+    gitDDB.put({ _id: 'a', name: '2' }, { taskId: '2' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTask02 = true;
+    });
+    let skippedTask03 = false;
+    gitDDB.put({ _id: 'a', name: '3' }, { taskId: '3' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTask03 = true;
+    });
+    await sleep(3300);
+    expect(skippedTask00).toBeFalsy();
+    expect(skippedTask01).toBeTruthy();
+    expect(skippedTask02).toBeTruthy();
+    expect(skippedTask03).toBeFalsy();
+
+    const json = await gitDDB.get('a');
+    expect(json!.name).toEqual('3');
+
+    await gitDDB.destroy();
+  });
+
   it('increments statistics: put', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
@@ -149,16 +187,7 @@ describe('<task_queue>', () => {
   });
 
   it('returns newTaskId', () => {
-    const dbName = monoId();
-    const taskQueue = new TaskQueue(
-      new Logger({
-        name: dbName,
-        minLevel: 'info',
-        displayDateTime: false,
-        displayFunctionName: false,
-        displayFilePath: 'hidden',
-      })
-    );
+    const taskQueue = new TaskQueue(logger);
     // e.g.) 01BX5ZZKBKACTAV9WEVGEMMVRZ
     let prevId = '';
     for (let i = 0; i < 30; i++) {

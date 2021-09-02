@@ -52,6 +52,7 @@ export type DatabaseOptions = {
   dbName: string;
   logLevel?: TLogLevelName;
   schema?: Schema;
+  debounceTime?: number;
 };
 
 /**

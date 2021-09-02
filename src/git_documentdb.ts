@@ -340,7 +340,8 @@ export class GitDocumentDB
       );
     }
 
-    this._taskQueue = new TaskQueue(this.logger);
+    options.debounceTime ??= -1;
+    this._taskQueue = new TaskQueue(this.logger, options.debounceTime);
 
     // Set logLevel after initializing taskQueue.
     this.logLevel = options.logLevel ?? DEFAULT_LOG_LEVEL;
