@@ -53,6 +53,7 @@ describe('<task_queue>', () => {
       dbName,
       localDir,
       debounceTime: 3000,
+      logLevel: 'trace',
     });
     await gitDDB.open();
     let skippedTask00 = false;

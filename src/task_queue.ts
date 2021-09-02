@@ -13,6 +13,8 @@ import { Task, TaskMetadata, TaskStatistics } from './types';
 import { CONSOLE_STYLE, sleep } from './utils';
 import { Err } from './error';
 
+type DebounceType = 'exec' | 'skip' | 'exec-after-skip';
+
 /**
  * TaskQueue
  *
@@ -110,7 +112,7 @@ export class TaskQueue {
     // Critical section
     this._lock
       // eslint-disable-next-line complexity
-      .acquire('taskQueue', () => {
+      .acquire('pushToQueue', () => {
         // Skip consecutive sync/push events
         if (
           (this._taskQueue.length === 0 &&
@@ -156,12 +158,7 @@ export class TaskQueue {
             );
           }
         }
-        // Reentrant lock cannot be used in current AsyncLock
-        // because 'domain' module of Node.js is deprecated.
-        // Use setTimeout not to be deadlock.
-        setTimeout(() => {
-          this._execTaskQueue();
-        }, 100);
+        this._execTaskQueue();
       })
       .catch(e => {
         if (e instanceof Err.ConsecutiveSyncSkippedError) {
@@ -233,128 +230,135 @@ export class TaskQueue {
     return isTimeout;
   }
 
+  private _checkDebouncedTask (task: Task): [DebounceType, number?] {
+    // Check label
+    if (task.label !== 'put' && task.label !== 'update') return ['exec'];
+
+    const nextTaskTime = decodeTime(task.enqueueTime!);
+    const lastTaskTime = this._lastTaskTime[task.collectionPath + task.shortName!];
+    this._logger.debug(
+      `# task [${task.taskId}]: debounce ${
+        lastTaskTime + this._debounceTime
+      } : enqueue ${nextTaskTime}`
+    );
+    // Check fullDocPath
+    if (lastTaskTime === undefined) return ['exec'];
+
+    if (nextTaskTime <= lastTaskTime + this._debounceTime) {
+      return ['skip', lastTaskTime];
+    }
+
+    return ['exec-after-skip'];
+  }
+
   /**
    * @internal
    */
   // eslint-disable-next-line complexity
-  private _execTaskQueue () {
-    if (this._taskQueue.length > 0 && !this._isTaskQueueWorking) {
-      this._lock
-        // eslint-disable-next-line complexity
-        .acquire('taskQueue', async () => {
+  private async _execTaskQueue () {
+    if (this._taskQueue.length === 0 || this._isTaskQueueWorking) return;
+
+    this._isTaskQueueWorking = true;
+
+    if (this._debounceTime > 0) {
+      // put and update may be debounced.
+      const [debounceType, lastTime] = this._checkDebouncedTask(this._taskQueue[0]);
+      if (debounceType === 'skip') {
+        // Wait until debounced time
+        const sleepTime = lastTime! + this._debounceTime - Date.now();
+        this._logger.debug('# wait until debounceTime: ' + sleepTime);
+        await sleep(sleepTime);
+      }
+    }
+
+    const skippedTasks: string[] = [];
+    let taskAfterSkip = '';
+    this._logger.debug(`# checkDebouncedTask for task [${this._taskQueue[0].taskId}]`);
+    for (const task of this._taskQueue) {
+      const [debounceType] = this._checkDebouncedTask(task);
+      if (debounceType === 'skip') {
+        skippedTasks.push(task.taskId);
+      }
+      else if (debounceType === 'exec-after-skip') {
+        taskAfterSkip = task.taskId;
+      }
+    }
+    if (taskAfterSkip !== '') {
+      // Exclude the last task
+      skippedTasks.pop();
+    }
+
+    let nextTask = this._taskQueue.shift();
+    do {
+      if (skippedTasks.includes(nextTask!.taskId)) {
+        nextTask!.cancel();
+        nextTask = this._taskQueue.shift();
+      }
+      else if (nextTask!.taskId === taskAfterSkip) {
+        delete this._lastTaskTime[nextTask!.collectionPath + nextTask!.shortName!];
+        break;
+      }
+      else {
+        break;
+      }
+    } while (this._taskQueue.length > 0);
+
+    this._currentTask = nextTask;
+
+    if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
+      const label = this._currentTask.label;
+      const shortId = this._currentTask.shortId;
+      const shortName = this._currentTask.shortName;
+      const collectionPath = this._currentTask.collectionPath;
+      const fullDocPath = collectionPath ? collectionPath + shortName : '';
+      const taskId = this._currentTask.taskId;
+      const syncRemoteName = this._currentTask.syncRemoteName;
+
+      this._logger.debug(
+        CONSOLE_STYLE.bgYellow().fgBlack().tag()`Start: ${label}(${fullDocPath})`
+      );
+
+      const beforeResolve = () => {
+        this._logger.debug(
+          CONSOLE_STYLE.bgGreen().fgBlack().tag()`End: ${label}(${fullDocPath})`
+        );
+        this._statistics[label]++;
+
+        if (taskMetadata.label === 'put' || taskMetadata.label === 'update') {
           // put and update may be debounced.
-          if (this._debounceTime > 0) {
-            const skippedTasks: Task[] = [];
-            let nextTaskIndex = 0;
-            let lastTaskTime = 0;
-            let taskExistAfterDebounceTime = false;
-            do {
-              const nextTask = this._taskQueue[nextTaskIndex];
-              // Check label
-              if (nextTask.label !== 'put' && nextTask.label !== 'update') continue;
+          this._logger.debug(
+            `# Set lastTaskTime of [${
+              taskMetadata.collectionPath! + taskMetadata.shortName!
+            }]: ${decodeTime(taskMetadata.enqueueTime!)}`
+          );
+          this._lastTaskTime[
+            taskMetadata.collectionPath! + taskMetadata.shortName!
+          ] = decodeTime(taskMetadata.enqueueTime!);
+        }
+        this._isTaskQueueWorking = false;
+        this._currentTask = undefined;
+      };
+      const beforeReject = () => {
+        this._logger.debug(
+          CONSOLE_STYLE.bgGreen().fgRed().tag()`End with error: ${label}(${fullDocPath})`
+        );
+        this._statistics[label]++;
+        this._isTaskQueueWorking = false;
+        this._currentTask = undefined;
+      };
+      const taskMetadata: TaskMetadata = {
+        label,
+        taskId,
+        shortId,
+        shortName,
+        collectionPath,
+        enqueueTime: this._currentTask.enqueueTime,
+        syncRemoteName,
+      };
 
-              const nextTaskTime = decodeTime(nextTask.enqueueTime!);
-              lastTaskTime = this._lastTaskTime[
-                nextTask.collectionPath + nextTask.shortName!
-              ];
-              console.log(
-                `# ${nextTask.taskId}: ${
-                  lastTaskTime + this._debounceTime
-                } : ${nextTaskTime}`
-              );
-              // Check fullDocPath
-              if (lastTaskTime === undefined) continue;
-
-              if (nextTaskTime <= lastTaskTime + this._debounceTime) {
-                skippedTasks.push(nextTask);
-              }
-              else {
-                taskExistAfterDebounceTime = true;
-              }
-              nextTaskIndex++;
-            } while (nextTaskIndex > this._taskQueue.length - 1);
-            if (skippedTasks.length > 0) {
-              const currentTime = Date.now();
-              if (currentTime < lastTaskTime + this._debounceTime) {
-                // Wait until debounced time
-                console.log('# wait: ' + (lastTaskTime + this._debounceTime - currentTime));
-                await sleep(lastTaskTime + this._debounceTime - currentTime);
-              }
-              if (!taskExistAfterDebounceTime) {
-                // Exclude the last one
-                skippedTasks.pop();
-              }
-              // Remove skipped task
-              this._taskQueue = this._taskQueue.filter(
-                task => !skippedTasks.includes(task)
-              );
-              for (const skippedTask of skippedTasks) {
-                // Skipped task throws TaskCancelError
-                skippedTask.cancel();
-              }
-              skippedTasks.length = 0;
-            }
-          }
-
-          this._currentTask = this._taskQueue.shift();
-        })
-        .finally(() => {
-          if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
-            const label = this._currentTask.label;
-            const shortId = this._currentTask.shortId;
-            const shortName = this._currentTask.shortName;
-            const collectionPath = this._currentTask.collectionPath;
-            const fullDocPath = collectionPath ? collectionPath + shortName : '';
-            const taskId = this._currentTask.taskId;
-            const syncRemoteName = this._currentTask.syncRemoteName;
-
-            this._isTaskQueueWorking = true;
-            this._logger.debug(
-              CONSOLE_STYLE.bgYellow().fgBlack().tag()`Start: ${label}(${fullDocPath})`
-            );
-
-            const beforeResolve = () => {
-              this._logger.debug(
-                CONSOLE_STYLE.bgGreen().fgBlack().tag()`End: ${label}(${fullDocPath})`
-              );
-              this._statistics[label]++;
-              this._isTaskQueueWorking = false;
-              this._currentTask = undefined;
-            };
-            const beforeReject = () => {
-              this._logger.debug(
-                CONSOLE_STYLE.bgGreen()
-                  .fgRed()
-                  .tag()`End with error: ${label}(${fullDocPath})`
-              );
-              this._statistics[label]++;
-              this._isTaskQueueWorking = false;
-              this._currentTask = undefined;
-            };
-            const taskMetadata: TaskMetadata = {
-              label,
-              taskId,
-              shortId,
-              shortName,
-              collectionPath,
-              enqueueTime: this._currentTask.enqueueTime,
-              syncRemoteName,
-            };
-
-            this._currentTask
-              .func(beforeResolve, beforeReject, taskMetadata)
-              .finally(() => {
-                // put and update may be debounced.
-                console.log(`task complete: ${taskMetadata.taskId}`);
-                if (taskMetadata.label === 'put' || taskMetadata.label === 'update') {
-                  this._lastTaskTime[
-                    taskMetadata.collectionPath! + taskMetadata.shortName!
-                  ] = decodeTime(taskMetadata.enqueueTime!);
-                }
-                this._execTaskQueue();
-              });
-          }
-        });
+      this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {
+        this._execTaskQueue();
+      });
     }
   }
 }
