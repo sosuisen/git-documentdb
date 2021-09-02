@@ -41,6 +41,7 @@ import {
 } from '../remote_utils';
 import { sleep, toSortedJSONString } from '../../src/utils';
 import { JSON_EXT } from '../../src/const';
+import { Err } from '../../src/error';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pushWorker_module = require('../../src/remote/push_worker');
@@ -804,7 +805,7 @@ export const syncTrySyncBase = (
       }
       await sleep(10000);
 
-      // results will be include 9 cancels
+      // results will be include cancels
       let cancelCount = 0;
       results.forEach(res => {
         if (res.action === 'canceled') cancelCount++;
@@ -816,6 +817,68 @@ export const syncTrySyncBase = (
       expect(dbA.taskQueue.currentStatistics().cancel).toBeGreaterThanOrEqual(1);
 
       // Only one trySync() will be executed
+      expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(1);
+
+      await destroyDBs([dbA]);
+    });
+
+    it('skips consecutive put tasks mixed with sync tasks', async () => {
+      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
+        connection,
+      });
+      dbA.taskQueue.debounceTime = 7000;
+
+      let skippedTask00 = false;
+      dbA.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask00 = true;
+      });
+      const putter: Promise<any>[] = [];
+      const validResult: (boolean | Record<string, any>)[] = [];
+      for (let i = 1; i < 10; i++) {
+        putter.push(
+          dbA.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+      }
+
+      const syncResults: SyncResult[] = [];
+      for (let i = 0; i < 3; i++) {
+        // eslint-disable-next-line promise/catch-or-return
+        syncA.trySync().then(result => syncResults.push(result));
+      }
+
+      for (let i = 10; i < 20; i++) {
+        putter.push(
+          dbA.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+      }
+      putter.push(
+        dbA.put({ _id: 'a', name: '20' }, { taskId: '20' }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return true;
+        })
+      );
+      validResult.push({ _id: 'a' });
+      const results = await Promise.all(putter);
+
+      await sleep(10000);
+
+      // Check skipped put()
+      expect(skippedTask00).toBeFalsy();
+      expect(results).toMatchObject(validResult);
+      const json = await dbA.get('a');
+      expect(json!.name).toEqual('20');
+
+      // Check sync
+      let cancelCount = 0;
+      syncResults.forEach(res => {
+        if (res.action === 'canceled') cancelCount++;
+      });
+      expect(cancelCount).toBeGreaterThanOrEqual(1);
       expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(1);
 
       await destroyDBs([dbA]);

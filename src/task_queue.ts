@@ -6,6 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import { exit } from 'process';
 import { decodeTime, monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
 import AsyncLock from 'async-lock';
@@ -30,7 +31,7 @@ export class TaskQueue {
   private _taskQueue: Task[] = [];
   private _isTaskQueueWorking = false;
 
-  private _debounceTime = -1;
+  public debounceTime = -1;
   private _lastTaskTime: { [fullDocPath: string]: number } = {};
 
   /**
@@ -58,7 +59,7 @@ export class TaskQueue {
   constructor (logger: Logger, debounceTime?: number) {
     this._logger = logger;
     if (debounceTime !== undefined) {
-      this._debounceTime = debounceTime;
+      this.debounceTime = debounceTime;
     }
   }
 
@@ -232,19 +233,20 @@ export class TaskQueue {
 
   private _checkDebouncedTask (task: Task): [DebounceType, number?] {
     // Check label
-    if (task.label !== 'put' && task.label !== 'update') return ['exec'];
+    if (task.label !== 'put' && task.label !== 'update' && task.label !== 'insert')
+      return ['exec'];
 
     const nextTaskTime = decodeTime(task.enqueueTime!);
     const lastTaskTime = this._lastTaskTime[task.collectionPath + task.shortName!];
     this._logger.debug(
       `# task [${task.taskId}]: debounce ${
-        lastTaskTime + this._debounceTime
+        lastTaskTime + this.debounceTime
       } : enqueue ${nextTaskTime}`
     );
     // Check fullDocPath
     if (lastTaskTime === undefined) return ['exec'];
 
-    if (nextTaskTime <= lastTaskTime + this._debounceTime) {
+    if (nextTaskTime <= lastTaskTime + this.debounceTime) {
       return ['skip', lastTaskTime];
     }
 
@@ -260,50 +262,64 @@ export class TaskQueue {
 
     this._isTaskQueueWorking = true;
 
-    if (this._debounceTime > 0) {
-      // put and update may be debounced.
-      const [debounceType, lastTime] = this._checkDebouncedTask(this._taskQueue[0]);
-      if (debounceType === 'skip') {
+    if (this.debounceTime > 0) {
+      // put, update, insert may be debounced.
+      const [dType, lastTime] = this._checkDebouncedTask(this._taskQueue[0]);
+      if (dType === 'skip') {
         // Wait until debounced time
-        const sleepTime = lastTime! + this._debounceTime - Date.now();
+        const sleepTime = lastTime! + this.debounceTime - Date.now();
         this._logger.debug('# wait until debounceTime: ' + sleepTime);
         await sleep(sleepTime);
       }
-    }
 
-    const skippedTasks: string[] = [];
-    let taskAfterSkip = '';
-    this._logger.debug(`# checkDebouncedTask for task [${this._taskQueue[0].taskId}]`);
-    for (const task of this._taskQueue) {
-      const [debounceType] = this._checkDebouncedTask(task);
-      if (debounceType === 'skip') {
-        skippedTasks.push(task.taskId);
-      }
-      else if (debounceType === 'exec-after-skip') {
-        taskAfterSkip = task.taskId;
-      }
-    }
-    if (taskAfterSkip !== '') {
-      // Exclude the last task
-      skippedTasks.pop();
-    }
+      const skippedTasks: { [fullDocPath: string]: string[] } = {};
+      const taskAfterSkip: { [fullDocPath: string]: string } = {};
 
-    let nextTask = this._taskQueue.shift();
-    do {
-      if (skippedTasks.includes(nextTask!.taskId)) {
-        nextTask!.cancel();
-        nextTask = this._taskQueue.shift();
+      this._logger.debug(`# checkDebouncedTask for task [${this._taskQueue[0].taskId}]`);
+      for (const task of this._taskQueue) {
+        const [debounceType] = this._checkDebouncedTask(task);
+        const fullDocPath = task.collectionPath + task.shortName!;
+        if (debounceType === 'skip') {
+          if (skippedTasks[fullDocPath] === undefined) {
+            skippedTasks[fullDocPath] = [];
+          }
+          skippedTasks[fullDocPath].push(task.taskId);
+        }
+        else if (debounceType === 'exec-after-skip') {
+          taskAfterSkip[fullDocPath] = task.taskId;
+        }
       }
-      else if (nextTask!.taskId === taskAfterSkip) {
-        delete this._lastTaskTime[nextTask!.collectionPath + nextTask!.shortName!];
-        break;
-      }
-      else {
-        break;
-      }
-    } while (this._taskQueue.length > 0);
 
-    this._currentTask = nextTask;
+      for (const fullDocPath of Object.keys(skippedTasks)) {
+        // Exclude the last task
+        if (taskAfterSkip[fullDocPath] === undefined) {
+          skippedTasks[fullDocPath].pop();
+        }
+      }
+      let nextTask = this._taskQueue.shift();
+      do {
+        const fullDocPath = nextTask!.collectionPath + nextTask!.shortName!;
+        if (
+          skippedTasks[fullDocPath] &&
+          skippedTasks[fullDocPath].includes(nextTask!.taskId)
+        ) {
+          nextTask!.cancel();
+          nextTask = this._taskQueue.shift();
+        }
+        else if (nextTask!.taskId === taskAfterSkip[fullDocPath]) {
+          delete this._lastTaskTime[fullDocPath];
+          break;
+        }
+        else {
+          break;
+        }
+      } while (this._taskQueue.length > 0);
+
+      this._currentTask = nextTask;
+    }
+    else {
+      this._currentTask = this._taskQueue.shift();
+    }
 
     if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
       const label = this._currentTask.label;
@@ -324,7 +340,11 @@ export class TaskQueue {
         );
         this._statistics[label]++;
 
-        if (taskMetadata.label === 'put' || taskMetadata.label === 'update') {
+        if (
+          taskMetadata.label === 'put' ||
+          taskMetadata.label === 'update' ||
+          taskMetadata.label === 'insert'
+        ) {
           // put and update may be debounced.
           this._logger.debug(
             `# Set lastTaskTime of [${

@@ -47,7 +47,7 @@ after(() => {
 });
 
 describe('<task_queue>', () => {
-  it.only('debounces consecutive put to the same _id', async () => {
+  it('debounces consecutive puts to the same _id', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -80,6 +80,181 @@ describe('<task_queue>', () => {
 
     const json = await gitDDB.get('a');
     expect(json!.name).toEqual('3');
+
+    await gitDDB.destroy();
+  });
+
+  it('debounces a lot of consecutive puts to the same _id', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      debounceTime: 7000,
+      logLevel: 'trace',
+    });
+    await gitDDB.open();
+    let skippedTask00 = false;
+    gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTask00 = true;
+    });
+    const putter: Promise<any>[] = [];
+    const validResult: (boolean | Record<string, any>)[] = [];
+    for (let i = 1; i < 50; i++) {
+      putter.push(
+        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return true;
+        })
+      );
+      validResult.push(true);
+    }
+    putter.push(
+      gitDDB.put({ _id: 'a', name: '50' }, { taskId: '50' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) return true;
+      })
+    );
+    validResult.push({ _id: 'a' });
+
+    const results = await Promise.all(putter);
+
+    expect(skippedTask00).toBeFalsy();
+    expect(results).toMatchObject(validResult);
+
+    const json = await gitDDB.get('a');
+    expect(json!.name).toEqual('50');
+
+    await gitDDB.destroy();
+  });
+
+  it('debounces a lot of consecutive puts to the mixed _ids', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      debounceTime: 7000,
+      logLevel: 'trace',
+    });
+    await gitDDB.open();
+    let skippedTaskA00 = false;
+    gitDDB.put({ _id: 'a', name: '0' }, { taskId: 'a0' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTaskA00 = true;
+    });
+    let skippedTaskB00 = false;
+    gitDDB.put({ _id: 'b', name: '0' }, { taskId: 'b0' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTaskB00 = true;
+    });
+    let skippedTaskC00 = false;
+    gitDDB.put({ _id: 'c', name: '0' }, { taskId: 'c0' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTaskC00 = true;
+    });
+    const putter: Promise<any>[] = [];
+    const validResult: (boolean | Record<string, any>)[] = [];
+    for (let i = 1; i < 50; i++) {
+      putter.push(
+        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `a${i}` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return true;
+        })
+      );
+      validResult.push(true);
+      putter.push(
+        gitDDB.put({ _id: 'b', name: `${i}` }, { taskId: `b${i}` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return true;
+        })
+      );
+      validResult.push(true);
+      putter.push(
+        gitDDB.put({ _id: 'c', name: `${i}` }, { taskId: `c${i}` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return true;
+        })
+      );
+      validResult.push(true);
+    }
+    putter.push(
+      gitDDB.put({ _id: 'a', name: '50' }, { taskId: 'a50' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) return true;
+      })
+    );
+    validResult.push({ _id: 'a' });
+    putter.push(
+      gitDDB.put({ _id: 'b', name: '50' }, { taskId: 'b50' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) return true;
+      })
+    );
+    validResult.push({ _id: 'b' });
+    putter.push(
+      gitDDB.put({ _id: 'c', name: '50' }, { taskId: 'c50' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) return true;
+      })
+    );
+    validResult.push({ _id: 'c' });
+
+    const results = await Promise.all(putter);
+
+    expect(skippedTaskA00).toBeFalsy();
+    expect(skippedTaskB00).toBeFalsy();
+    expect(skippedTaskC00).toBeFalsy();
+    expect(results).toMatchObject(validResult);
+
+    const jsonA = await gitDDB.get('a');
+    expect(jsonA!.name).toEqual('50');
+    const jsonB = await gitDDB.get('b');
+    expect(jsonB!.name).toEqual('50');
+    const jsonC = await gitDDB.get('c');
+    expect(jsonC!.name).toEqual('50');
+
+    await gitDDB.destroy();
+  });
+
+  it('debounces a lot of consecutive puts mixed with a delete command', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      debounceTime: 7000,
+      logLevel: 'trace',
+    });
+    await gitDDB.open();
+    let skippedTask00 = false;
+    gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
+      if (err instanceof Err.TaskCancelError) skippedTask00 = true;
+    });
+    const putter: Promise<any>[] = [];
+    const validResult: (boolean | Record<string, any>)[] = [];
+    for (let i = 1; i < 10; i++) {
+      putter.push(
+        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return true;
+        })
+      );
+      validResult.push(true);
+    }
+    // Delete
+    putter.push(gitDDB.delete('a'));
+    validResult.push({
+      _id: 'a',
+    });
+
+    for (let i = 10; i < 20; i++) {
+      putter.push(
+        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return true;
+        })
+      );
+      validResult.push(true);
+    }
+    putter.push(
+      gitDDB.put({ _id: 'a', name: '20' }, { taskId: '20' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) return true;
+      })
+    );
+    validResult.push({ _id: 'a' });
+
+    const results = await Promise.all(putter);
+
+    expect(skippedTask00).toBeFalsy();
+    expect(results).toMatchObject(validResult);
+
+    const json = await gitDDB.get('a');
+    expect(json!.name).toEqual('20');
 
     await gitDDB.destroy();
   });
