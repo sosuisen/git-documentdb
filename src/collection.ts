@@ -142,7 +142,7 @@ export class Collection implements ICollection {
       this._parent = undefined;
       options ??= {
         namePrefix: '',
-        debounceTime: 0,
+        debounceTime: -1,
       };
     }
     else {

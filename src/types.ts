@@ -319,7 +319,7 @@ export type CollectionPath = string;
  * @remarks
  * - namePrefix: Automatically generated _id has a specified prefix in the collection.
  *
- * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds in the collection. Default is 0.
+ * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds in the collection. Default is -1 (do not debounce).
  *
  * @public
  */
@@ -340,7 +340,7 @@ export type CollectionOptions = {
  *
  * - enqueueCallback: A callback function called just after this put task is enqueued to TaskQueue.
  *
- * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds. This overwrite the same option in Collection Class.
+ * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds. This overwrite the same option in Collection Class. Default is -1 (do not debounce).
  *
  * @public
  */

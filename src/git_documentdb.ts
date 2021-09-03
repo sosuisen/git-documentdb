@@ -348,7 +348,7 @@ export class GitDocumentDB
 
     const collectionOptions = {
       namePrefix: options?.namePrefix ?? '',
-      debounceTime: options?.debounceTime ?? 0,
+      debounceTime: options?.debounceTime ?? -1,
     };
     this._rootCollection = new Collection(this, '', undefined, collectionOptions);
 

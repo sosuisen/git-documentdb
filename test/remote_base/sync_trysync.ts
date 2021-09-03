@@ -826,19 +826,16 @@ export const syncTrySyncBase = (
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
       });
-      dbA.taskQueue.debounceTime = 7000;
 
-      let skippedTask00 = false;
-      dbA.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
-        if (err instanceof Err.TaskCancelError) skippedTask00 = true;
-      });
       const putter: Promise<any>[] = [];
       const validResult: (boolean | Record<string, any>)[] = [];
       for (let i = 1; i < 10; i++) {
         putter.push(
-          dbA.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
-            if (err instanceof Err.TaskCancelError) return true;
-          })
+          dbA
+            .put({ _id: 'a', name: `${i}` }, { taskId: `${i}`, debounceTime: 3000 })
+            .catch(err => {
+              if (err instanceof Err.TaskCancelError) return true;
+            })
         );
         validResult.push(true);
       }
@@ -851,16 +848,20 @@ export const syncTrySyncBase = (
 
       for (let i = 10; i < 20; i++) {
         putter.push(
-          dbA.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
-            if (err instanceof Err.TaskCancelError) return true;
-          })
+          dbA
+            .put({ _id: 'a', name: `${i}` }, { taskId: `${i}`, debounceTime: 3000 })
+            .catch(err => {
+              if (err instanceof Err.TaskCancelError) return true;
+            })
         );
         validResult.push(true);
       }
       putter.push(
-        dbA.put({ _id: 'a', name: '20' }, { taskId: '20' }).catch(err => {
-          if (err instanceof Err.TaskCancelError) return true;
-        })
+        dbA
+          .put({ _id: 'a', name: '20' }, { taskId: '20', debounceTime: 3000 })
+          .catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
       );
       validResult.push({ _id: 'a' });
       const results = await Promise.all(putter);
@@ -868,7 +869,6 @@ export const syncTrySyncBase = (
       await sleep(10000);
 
       // Check skipped put()
-      expect(skippedTask00).toBeFalsy();
       expect(results).toMatchObject(validResult);
       const json = await dbA.get('a');
       expect(json!.name).toEqual('20');
@@ -880,6 +880,8 @@ export const syncTrySyncBase = (
       });
       expect(cancelCount).toBeGreaterThanOrEqual(1);
       expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(1);
+
+      dbA.taskQueue.clear();
 
       await destroyDBs([dbA]);
     });

@@ -255,7 +255,13 @@ export class TaskQueue {
       let taskIndex = 0;
       while (taskIndex < this._taskQueue.length) {
         const targetTask = this._taskQueue[taskIndex];
-        console.log('# check task: ' + targetTask.taskId);
+
+        if (targetTask.debounceTime! < 0) {
+          this._currentTask = this._pullTargetTask(taskIndex);
+          if (this._currentTask !== undefined) this._execTask();
+          return;
+        }
+
         if (
           targetTask.label !== 'put' &&
           targetTask.label !== 'update' &&
@@ -268,34 +274,42 @@ export class TaskQueue {
         const targetFullDocPath = targetTask.collectionPath! + targetTask.shortName!;
         const expiredTime = decodeTime(targetTask.enqueueTime!) + targetTask.debounceTime!;
         const current = Date.now();
-        if (expiredTime <= current) {
-          let nextPutExist = false;
-          for (let i = taskIndex + 1; i < this._taskQueue.length; i++) {
-            const tmpTask = this._taskQueue[i];
-            if (decodeTime(tmpTask.enqueueTime!) > expiredTime) break;
 
-            if (
-              (tmpTask.label === 'put' ||
-                tmpTask.label === 'insert' ||
-                tmpTask.label === 'update' ||
-                tmpTask.label === 'delete') &&
-              targetFullDocPath === tmpTask.collectionPath! + tmpTask.shortName!
-            ) {
-              // eslint-disable-next-line max-depth
-              if (tmpTask.label === 'delete') {
-                console.log('# delete found!!');
-                break;
-              }
-              nextPutExist = true;
+        let nextPutExist = false;
+        let nextDeleteExist = false;
+        for (let i = taskIndex + 1; i < this._taskQueue.length; i++) {
+          const tmpTask = this._taskQueue[i];
+          if (decodeTime(tmpTask.enqueueTime!) > expiredTime) break;
+
+          if (
+            (tmpTask.label === 'put' ||
+              tmpTask.label === 'insert' ||
+              tmpTask.label === 'update' ||
+              tmpTask.label === 'delete') &&
+            targetFullDocPath === tmpTask.collectionPath! + tmpTask.shortName!
+          ) {
+            // eslint-disable-next-line max-depth
+            if (tmpTask.label === 'delete') {
+              nextDeleteExist = true;
               break;
             }
+            nextPutExist = true;
+            break;
           }
-          if (nextPutExist) {
-            const cancelTask = this._pullTargetTask(taskIndex);
-            console.log('# skip: ' + cancelTask?.taskId);
-            cancelTask?.cancel();
-            continue;
-          }
+        }
+
+        if (nextPutExist) {
+          const cancelTask = this._pullTargetTask(taskIndex);
+          cancelTask?.cancel();
+          continue;
+        }
+        else if (nextDeleteExist) {
+          this._currentTask = this._pullTargetTask(taskIndex);
+          if (this._currentTask !== undefined) this._execTask();
+          return;
+        }
+
+        if (expiredTime <= current) {
           this._currentTask = this._pullTargetTask(taskIndex);
           if (this._currentTask !== undefined) this._execTask();
           return;

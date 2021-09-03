@@ -210,7 +210,7 @@ describe('<task_queue>', () => {
     await gitDDB.destroy();
   });
 
-  it.only('debounces a lot of consecutive puts mixed with a delete command', async () => {
+  it('debounces a lot of consecutive puts mixed with a delete command', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -237,7 +237,7 @@ describe('<task_queue>', () => {
         if (err instanceof Err.TaskCancelError) return false;
       })
     );
-    validResult.push(true);
+    validResult.push({ _id: 'a' });
 
     // Delete
     putter.push(gitDDB.delete('a'));
@@ -386,6 +386,9 @@ describe('<task_queue>', () => {
       }
       prevId = id;
     }
+
+    // clear() must be called to clear setInterval
+    taskQueue.clear();
   });
 
   it('clear() statistics', async () => {
