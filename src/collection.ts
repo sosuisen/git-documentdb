@@ -142,6 +142,7 @@ export class Collection implements ICollection {
       this._parent = undefined;
       options ??= {
         namePrefix: '',
+        debounceTime: 0,
       };
     }
     else {
@@ -350,6 +351,9 @@ export class Collection implements ICollection {
       return Promise.reject(err);
     }
 
+    options ??= {};
+    options.debounceTime ??= this._options.debounceTime;
+
     return putImpl(
       this._gitDDB,
       this.collectionPath,
@@ -466,10 +470,12 @@ export class Collection implements ICollection {
     ) {
       options ??= {};
       options.insertOrUpdate = 'insert';
+      options.debounceTime ??= this._options.debounceTime;
     }
     else {
       jsonDocOrOptions ??= {};
       (jsonDocOrOptions as PutOptions).insertOrUpdate = 'insert';
+      (jsonDocOrOptions as PutOptions).debounceTime ??= this._options.debounceTime;
     }
 
     return this.put(shortIdOrDoc, jsonDocOrOptions, options);
@@ -569,10 +575,12 @@ export class Collection implements ICollection {
     ) {
       options ??= {};
       options.insertOrUpdate = 'update';
+      options.debounceTime ??= this._options.debounceTime;
     }
     else {
       jsonDocOrOptions ??= {};
       (jsonDocOrOptions as PutOptions).insertOrUpdate = 'update';
+      (jsonDocOrOptions as PutOptions).debounceTime ??= this._options.debounceTime;
     }
 
     return this.put(shortIdOrDoc, jsonDocOrOptions, options);
@@ -665,6 +673,9 @@ export class Collection implements ICollection {
       return Promise.reject(err);
     }
 
+    options ??= {};
+    options.debounceTime ??= this._options.debounceTime;
+
     return putImpl(
       this._gitDDB,
       this.collectionPath,
@@ -740,6 +751,7 @@ export class Collection implements ICollection {
     // Resolve overloads
     options ??= {};
     options.insertOrUpdate = 'insert';
+    options.debounceTime ??= this._options.debounceTime;
 
     return this.putFatDoc(shortName, doc, options);
   }
@@ -785,6 +797,7 @@ export class Collection implements ICollection {
     // Resolve overloads
     options ??= {};
     options.insertOrUpdate = 'update';
+    options.debounceTime ??= this._options.debounceTime;
 
     return this.putFatDoc(shortName, doc, options);
   }

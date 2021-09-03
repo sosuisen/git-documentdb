@@ -52,7 +52,6 @@ export type DatabaseOptions = {
   dbName: string;
   logLevel?: TLogLevelName;
   schema?: Schema;
-  debounceTime?: number;
 };
 
 /**
@@ -317,10 +316,16 @@ export type CollectionPath = string;
 /**
  * Options for Collection constructor
  *
+ * @remarks
+ * - namePrefix: Automatically generated _id has a specified prefix in the collection.
+ *
+ * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds in the collection. Default is 0.
+ *
  * @public
  */
 export type CollectionOptions = {
   namePrefix?: string;
+  debounceTime?: number;
 };
 
 /**
@@ -335,6 +340,8 @@ export type CollectionOptions = {
  *
  * - enqueueCallback: A callback function called just after this put task is enqueued to TaskQueue.
  *
+ * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds. This overwrite the same option in Collection Class.
+ *
  * @public
  */
 export type PutOptions = {
@@ -342,6 +349,7 @@ export type PutOptions = {
   insertOrUpdate?: 'insert' | 'update';
   taskId?: string;
   enqueueCallback?: (taskMetadata: TaskMetadata) => void;
+  debounceTime?: number;
 };
 
 /**
@@ -793,6 +801,7 @@ export type TaskMetadata = {
   collectionPath?: string;
   enqueueTime?: string;
   syncRemoteName?: string;
+  debounceTime?: number;
 };
 
 /**

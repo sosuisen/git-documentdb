@@ -6,15 +6,12 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { exit } from 'process';
 import { decodeTime, monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
 import AsyncLock from 'async-lock';
 import { Task, TaskMetadata, TaskStatistics } from './types';
 import { CONSOLE_STYLE, sleep } from './utils';
 import { Err } from './error';
-
-type DebounceType = 'exec' | 'skip' | 'exec-after-skip';
 
 /**
  * TaskQueue
@@ -30,9 +27,6 @@ export class TaskQueue {
 
   private _taskQueue: Task[] = [];
   private _isTaskQueueWorking = false;
-
-  public debounceTime = -1;
-  private _lastTaskTime: { [fullDocPath: string]: number } = {};
 
   /**
    * Task Statistics
@@ -51,16 +45,17 @@ export class TaskQueue {
 
   private _currentTask: Task | undefined = undefined;
 
+  private _checkTimer: NodeJS.Timeout;
   /**
    * Constructor
    *
    * @public
    */
-  constructor (logger: Logger, debounceTime?: number) {
+  constructor (logger: Logger) {
     this._logger = logger;
-    if (debounceTime !== undefined) {
-      this.debounceTime = debounceTime;
-    }
+    this._checkTimer = setInterval(() => {
+      this._checkTaskQueue();
+    }, 100);
   }
 
   /**
@@ -113,7 +108,7 @@ export class TaskQueue {
     // Critical section
     this._lock
       // eslint-disable-next-line complexity
-      .acquire('pushToQueue', () => {
+      .acquire('TaskQueue', () => {
         // Skip consecutive sync/push events
         if (
           (this._taskQueue.length === 0 &&
@@ -145,7 +140,9 @@ export class TaskQueue {
           collectionPath: task.collectionPath,
           enqueueTime: task.enqueueTime,
           syncRemoteName: task.syncRemoteName,
+          debounceTime: task.debounceTime,
         };
+
         if (task.enqueueCallback) {
           try {
             task.enqueueCallback(taskMetadata);
@@ -159,7 +156,6 @@ export class TaskQueue {
             );
           }
         }
-        this._execTaskQueue();
       })
       .catch(e => {
         if (e instanceof Err.ConsecutiveSyncSkippedError) {
@@ -178,6 +174,9 @@ export class TaskQueue {
    */
   clear () {
     // Clear not queued jobs
+
+    clearInterval(this._checkTimer);
+
     // @ts-ignore
     this._lock.queues.taskQueue = null;
 
@@ -231,96 +230,87 @@ export class TaskQueue {
     return isTimeout;
   }
 
-  private _checkDebouncedTask (task: Task): [DebounceType, number?] {
-    // Check label
-    if (task.label !== 'put' && task.label !== 'update' && task.label !== 'insert')
-      return ['exec'];
-
-    const nextTaskTime = decodeTime(task.enqueueTime!);
-    const lastTaskTime = this._lastTaskTime[task.collectionPath + task.shortName!];
-    this._logger.debug(
-      `# task [${task.taskId}]: debounce ${
-        lastTaskTime + this.debounceTime
-      } : enqueue ${nextTaskTime}`
-    );
-    // Check fullDocPath
-    if (lastTaskTime === undefined) return ['exec'];
-
-    if (nextTaskTime <= lastTaskTime + this.debounceTime) {
-      return ['skip', lastTaskTime];
+  private _pullTargetTask (targetIndex: number) {
+    if (targetIndex >= this._taskQueue.length) {
+      return undefined;
     }
-
-    return ['exec-after-skip'];
+    if (targetIndex === 0) {
+      return this._taskQueue.shift();
+    }
+    const [task] = this._taskQueue.splice(targetIndex, 1);
+    return task;
   }
 
   /**
+   * checkTaskQueue
+   * @internal
+   */
+  private _checkTaskQueue () {
+    if (this._lock.isBusy()) return;
+
+    // eslint-disable-next-line complexity
+    this._lock.acquire('TaskQueue', () => {
+      if (this._taskQueue.length === 0 || this._isTaskQueueWorking) return;
+
+      let taskIndex = 0;
+      while (taskIndex < this._taskQueue.length) {
+        const targetTask = this._taskQueue[taskIndex];
+        console.log('# check task: ' + targetTask.taskId);
+        if (
+          targetTask.label !== 'put' &&
+          targetTask.label !== 'update' &&
+          targetTask.label !== 'insert'
+        ) {
+          this._currentTask = this._pullTargetTask(taskIndex);
+          if (this._currentTask !== undefined) this._execTask();
+          return;
+        }
+        const targetFullDocPath = targetTask.collectionPath! + targetTask.shortName!;
+        const expiredTime = decodeTime(targetTask.enqueueTime!) + targetTask.debounceTime!;
+        const current = Date.now();
+        if (expiredTime <= current) {
+          let nextPutExist = false;
+          for (let i = taskIndex + 1; i < this._taskQueue.length; i++) {
+            const tmpTask = this._taskQueue[i];
+            if (decodeTime(tmpTask.enqueueTime!) > expiredTime) break;
+
+            if (
+              (tmpTask.label === 'put' ||
+                tmpTask.label === 'insert' ||
+                tmpTask.label === 'update' ||
+                tmpTask.label === 'delete') &&
+              targetFullDocPath === tmpTask.collectionPath! + tmpTask.shortName!
+            ) {
+              // eslint-disable-next-line max-depth
+              if (tmpTask.label === 'delete') {
+                console.log('# delete found!!');
+                break;
+              }
+              nextPutExist = true;
+              break;
+            }
+          }
+          if (nextPutExist) {
+            const cancelTask = this._pullTargetTask(taskIndex);
+            console.log('# skip: ' + cancelTask?.taskId);
+            cancelTask?.cancel();
+            continue;
+          }
+          this._currentTask = this._pullTargetTask(taskIndex);
+          if (this._currentTask !== undefined) this._execTask();
+          return;
+        }
+        taskIndex++;
+      }
+    });
+  }
+
+  /**
+   * execTask
    * @internal
    */
   // eslint-disable-next-line complexity
-  private async _execTaskQueue () {
-    if (this._taskQueue.length === 0 || this._isTaskQueueWorking) return;
-
-    this._isTaskQueueWorking = true;
-
-    if (this.debounceTime > 0) {
-      // put, update, insert may be debounced.
-      const [dType, lastTime] = this._checkDebouncedTask(this._taskQueue[0]);
-      if (dType === 'skip') {
-        // Wait until debounced time
-        const sleepTime = lastTime! + this.debounceTime - Date.now();
-        this._logger.debug('# wait until debounceTime: ' + sleepTime);
-        await sleep(sleepTime);
-      }
-
-      const skippedTasks: { [fullDocPath: string]: string[] } = {};
-      const taskAfterSkip: { [fullDocPath: string]: string } = {};
-
-      this._logger.debug(`# checkDebouncedTask for task [${this._taskQueue[0].taskId}]`);
-      for (const task of this._taskQueue) {
-        const [debounceType] = this._checkDebouncedTask(task);
-        const fullDocPath = task.collectionPath + task.shortName!;
-        if (debounceType === 'skip') {
-          if (skippedTasks[fullDocPath] === undefined) {
-            skippedTasks[fullDocPath] = [];
-          }
-          skippedTasks[fullDocPath].push(task.taskId);
-        }
-        else if (debounceType === 'exec-after-skip') {
-          taskAfterSkip[fullDocPath] = task.taskId;
-        }
-      }
-
-      for (const fullDocPath of Object.keys(skippedTasks)) {
-        // Exclude the last task
-        if (taskAfterSkip[fullDocPath] === undefined) {
-          skippedTasks[fullDocPath].pop();
-        }
-      }
-      let nextTask = this._taskQueue.shift();
-      do {
-        const fullDocPath = nextTask!.collectionPath + nextTask!.shortName!;
-        if (
-          skippedTasks[fullDocPath] &&
-          skippedTasks[fullDocPath].includes(nextTask!.taskId)
-        ) {
-          nextTask!.cancel();
-          nextTask = this._taskQueue.shift();
-        }
-        else if (nextTask!.taskId === taskAfterSkip[fullDocPath]) {
-          delete this._lastTaskTime[fullDocPath];
-          break;
-        }
-        else {
-          break;
-        }
-      } while (this._taskQueue.length > 0);
-
-      this._currentTask = nextTask;
-    }
-    else {
-      this._currentTask = this._taskQueue.shift();
-    }
-
+  private _execTask () {
     if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
       const label = this._currentTask.label;
       const shortId = this._currentTask.shortId;
@@ -340,21 +330,6 @@ export class TaskQueue {
         );
         this._statistics[label]++;
 
-        if (
-          taskMetadata.label === 'put' ||
-          taskMetadata.label === 'update' ||
-          taskMetadata.label === 'insert'
-        ) {
-          // put and update may be debounced.
-          this._logger.debug(
-            `# Set lastTaskTime of [${
-              taskMetadata.collectionPath! + taskMetadata.shortName!
-            }]: ${decodeTime(taskMetadata.enqueueTime!)}`
-          );
-          this._lastTaskTime[
-            taskMetadata.collectionPath! + taskMetadata.shortName!
-          ] = decodeTime(taskMetadata.enqueueTime!);
-        }
         this._isTaskQueueWorking = false;
         this._currentTask = undefined;
       };
@@ -376,9 +351,7 @@ export class TaskQueue {
         syncRemoteName,
       };
 
-      this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {
-        this._execTaskQueue();
-      });
+      this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {});
     }
   }
 }

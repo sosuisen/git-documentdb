@@ -68,6 +68,7 @@ export function putImpl (
       shortId,
       shortName,
       collectionPath,
+      debounceTime: options!.debounceTime,
       func: (beforeResolve, beforeReject) =>
         putWorker(
           gitDDB,

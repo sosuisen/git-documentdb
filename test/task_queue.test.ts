@@ -72,8 +72,8 @@ describe('<task_queue>', () => {
     gitDDB.put({ _id: 'a', name: '3' }, { taskId: '3' }).catch(err => {
       if (err instanceof Err.TaskCancelError) skippedTask03 = true;
     });
-    await sleep(3300);
-    expect(skippedTask00).toBeFalsy();
+    await sleep(4000);
+    expect(skippedTask00).toBeTruthy();
     expect(skippedTask01).toBeTruthy();
     expect(skippedTask02).toBeTruthy();
     expect(skippedTask03).toBeFalsy();
@@ -89,7 +89,7 @@ describe('<task_queue>', () => {
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      debounceTime: 7000,
+      debounceTime: 3000,
       logLevel: 'trace',
     });
     await gitDDB.open();
@@ -97,9 +97,11 @@ describe('<task_queue>', () => {
     gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
       if (err instanceof Err.TaskCancelError) skippedTask00 = true;
     });
+    await sleep(4000);
+
     const putter: Promise<any>[] = [];
     const validResult: (boolean | Record<string, any>)[] = [];
-    for (let i = 1; i < 50; i++) {
+    for (let i = 1; i < 25; i++) {
       putter.push(
         gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
           if (err instanceof Err.TaskCancelError) return true;
@@ -108,7 +110,7 @@ describe('<task_queue>', () => {
       validResult.push(true);
     }
     putter.push(
-      gitDDB.put({ _id: 'a', name: '50' }, { taskId: '50' }).catch(err => {
+      gitDDB.put({ _id: 'a', name: '25' }, { taskId: '25' }).catch(err => {
         if (err instanceof Err.TaskCancelError) return true;
       })
     );
@@ -117,10 +119,11 @@ describe('<task_queue>', () => {
     const results = await Promise.all(putter);
 
     expect(skippedTask00).toBeFalsy();
+
     expect(results).toMatchObject(validResult);
 
     const json = await gitDDB.get('a');
-    expect(json!.name).toEqual('50');
+    expect(json!.name).toEqual('25');
 
     await gitDDB.destroy();
   });
@@ -130,7 +133,7 @@ describe('<task_queue>', () => {
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      debounceTime: 7000,
+      debounceTime: 3000,
       logLevel: 'trace',
     });
     await gitDDB.open();
@@ -146,6 +149,8 @@ describe('<task_queue>', () => {
     gitDDB.put({ _id: 'c', name: '0' }, { taskId: 'c0' }).catch(err => {
       if (err instanceof Err.TaskCancelError) skippedTaskC00 = true;
     });
+    await sleep(4000);
+
     const putter: Promise<any>[] = [];
     const validResult: (boolean | Record<string, any>)[] = [];
     for (let i = 1; i < 50; i++) {
@@ -192,6 +197,7 @@ describe('<task_queue>', () => {
     expect(skippedTaskA00).toBeFalsy();
     expect(skippedTaskB00).toBeFalsy();
     expect(skippedTaskC00).toBeFalsy();
+
     expect(results).toMatchObject(validResult);
 
     const jsonA = await gitDDB.get('a');
@@ -204,22 +210,19 @@ describe('<task_queue>', () => {
     await gitDDB.destroy();
   });
 
-  it('debounces a lot of consecutive puts mixed with a delete command', async () => {
+  it.only('debounces a lot of consecutive puts mixed with a delete command', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      debounceTime: 7000,
+      debounceTime: 3000,
       logLevel: 'trace',
     });
     await gitDDB.open();
-    let skippedTask00 = false;
-    gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTask00 = true;
-    });
+
     const putter: Promise<any>[] = [];
     const validResult: (boolean | Record<string, any>)[] = [];
-    for (let i = 1; i < 10; i++) {
+    for (let i = 0; i < 9; i++) {
       putter.push(
         gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
           if (err instanceof Err.TaskCancelError) return true;
@@ -227,6 +230,15 @@ describe('<task_queue>', () => {
       );
       validResult.push(true);
     }
+
+    // put task just before delete task will be executed.
+    putter.push(
+      gitDDB.put({ _id: 'a', name: `9` }, { taskId: `9` }).catch(err => {
+        if (err instanceof Err.TaskCancelError) return false;
+      })
+    );
+    validResult.push(true);
+
     // Delete
     putter.push(gitDDB.delete('a'));
     validResult.push({
@@ -250,7 +262,6 @@ describe('<task_queue>', () => {
 
     const results = await Promise.all(putter);
 
-    expect(skippedTask00).toBeFalsy();
     expect(results).toMatchObject(validResult);
 
     const json = await gitDDB.get('a');

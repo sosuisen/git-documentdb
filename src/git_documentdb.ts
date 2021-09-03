@@ -306,6 +306,7 @@ export class GitDocumentDB
    *
    * @public
    */
+  // eslint-disable-next-line complexity
   constructor (options: DatabaseOptions & CollectionOptions) {
     if (options.dbName === undefined || options.dbName === '') {
       throw new Err.UndefinedDatabaseNameError();
@@ -340,14 +341,14 @@ export class GitDocumentDB
       );
     }
 
-    options.debounceTime ??= -1;
-    this._taskQueue = new TaskQueue(this.logger, options.debounceTime);
+    this._taskQueue = new TaskQueue(this.logger);
 
     // Set logLevel after initializing taskQueue.
     this.logLevel = options.logLevel ?? DEFAULT_LOG_LEVEL;
 
     const collectionOptions = {
       namePrefix: options?.namePrefix ?? '',
+      debounceTime: options?.debounceTime ?? 0,
     };
     this._rootCollection = new Collection(this, '', undefined, collectionOptions);
 
