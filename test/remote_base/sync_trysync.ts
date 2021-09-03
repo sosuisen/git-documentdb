@@ -881,7 +881,7 @@ export const syncTrySyncBase = (
       expect(cancelCount).toBeGreaterThanOrEqual(1);
       expect(dbA.taskQueue.currentStatistics().sync).toBeGreaterThanOrEqual(1);
 
-      dbA.taskQueue.clear();
+      dbA.taskQueue.stop();
 
       await destroyDBs([dbA]);
     });

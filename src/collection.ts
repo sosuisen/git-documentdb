@@ -142,13 +142,13 @@ export class Collection implements ICollection {
       this._parent = undefined;
       options ??= {
         namePrefix: '',
-        debounceTime: -1,
+        debounceTime: undefined,
       };
+      options.debounceTime ??= -1;
     }
     else {
       this._parent = parent;
     }
-
     this._options = { ...parent?.options!, ...options };
   }
 
@@ -351,7 +351,9 @@ export class Collection implements ICollection {
       return Promise.reject(err);
     }
 
-    options ??= {};
+    options ??= {
+      debounceTime: undefined,
+    };
     options.debounceTime ??= this._options.debounceTime;
 
     return putImpl(
@@ -468,12 +470,16 @@ export class Collection implements ICollection {
       shortIdOrDoc === undefined ||
       shortIdOrDoc === null
     ) {
-      options ??= {};
+      options ??= {
+        debounceTime: undefined,
+      };
       options.insertOrUpdate = 'insert';
       options.debounceTime ??= this._options.debounceTime;
     }
     else {
-      jsonDocOrOptions ??= {};
+      jsonDocOrOptions ??= {
+        debounceTime: undefined,
+      };
       (jsonDocOrOptions as PutOptions).insertOrUpdate = 'insert';
       (jsonDocOrOptions as PutOptions).debounceTime ??= this._options.debounceTime;
     }
@@ -573,12 +579,16 @@ export class Collection implements ICollection {
       shortIdOrDoc === undefined ||
       shortIdOrDoc === null
     ) {
-      options ??= {};
+      options ??= {
+        debounceTime: undefined,
+      };
       options.insertOrUpdate = 'update';
       options.debounceTime ??= this._options.debounceTime;
     }
     else {
-      jsonDocOrOptions ??= {};
+      jsonDocOrOptions ??= {
+        debounceTime: undefined,
+      };
       (jsonDocOrOptions as PutOptions).insertOrUpdate = 'update';
       (jsonDocOrOptions as PutOptions).debounceTime ??= this._options.debounceTime;
     }
@@ -673,7 +683,9 @@ export class Collection implements ICollection {
       return Promise.reject(err);
     }
 
-    options ??= {};
+    options ??= {
+      debounceTime: undefined,
+    };
     options.debounceTime ??= this._options.debounceTime;
 
     return putImpl(
@@ -749,7 +761,9 @@ export class Collection implements ICollection {
     options?: PutOptions
   ): Promise<PutResult> {
     // Resolve overloads
-    options ??= {};
+    options ??= {
+      debounceTime: undefined,
+    };
     options.insertOrUpdate = 'insert';
     options.debounceTime ??= this._options.debounceTime;
 
@@ -795,7 +809,9 @@ export class Collection implements ICollection {
     options?: PutOptions
   ): Promise<PutResult> {
     // Resolve overloads
-    options ??= {};
+    options ??= {
+      debounceTime: undefined,
+    };
     options.insertOrUpdate = 'update';
     options.debounceTime ??= this._options.debounceTime;
 

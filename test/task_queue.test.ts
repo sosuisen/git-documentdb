@@ -375,6 +375,7 @@ describe('<task_queue>', () => {
 
   it('returns newTaskId', () => {
     const taskQueue = new TaskQueue(logger);
+    taskQueue.start();
     // e.g.) 01BX5ZZKBKACTAV9WEVGEMMVRZ
     let prevId = '';
     for (let i = 0; i < 30; i++) {
@@ -388,7 +389,7 @@ describe('<task_queue>', () => {
     }
 
     // clear() must be called to clear setInterval
-    taskQueue.clear();
+    taskQueue.stop();
   });
 
   it('clear() statistics', async () => {
@@ -412,7 +413,7 @@ describe('<task_queue>', () => {
       sync: 0,
       cancel: 0,
     });
-    gitDDB.taskQueue.clear();
+    gitDDB.taskQueue.stop();
     expect(gitDDB.taskQueue.currentStatistics()).toEqual({
       put: 0,
       insert: 0,

@@ -492,7 +492,7 @@ describe('<crud/put> put', () => {
         }
       );
     }
-    gitDDB.taskQueue.clear();
+    gitDDB.taskQueue.stop();
     await sleep(3000);
     expect(taskCancelErrorCount).toBeGreaterThan(0);
     await gitDDB.destroy();

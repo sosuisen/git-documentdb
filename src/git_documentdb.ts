@@ -481,6 +481,8 @@ export class GitDocumentDB
     if (this.isClosing) {
       throw new Err.DatabaseClosingError();
     }
+    this._taskQueue.start();
+
     if (this.isOpened) {
       this._dbOpenResult.isNew = false;
       return this._dbOpenResult;
@@ -542,7 +544,7 @@ export class GitDocumentDB
         }
       }
     } finally {
-      this.taskQueue.clear();
+      this.taskQueue.stop();
 
       this._synchronizers = {};
 

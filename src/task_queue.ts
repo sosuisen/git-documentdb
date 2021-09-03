@@ -6,6 +6,11 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+/**
+ * ! Must import both clearInterval and setInterval from 'timers'
+ */
+import { clearInterval, setInterval } from 'timers';
+
 import { decodeTime, monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
 import AsyncLock from 'async-lock';
@@ -21,7 +26,7 @@ import { Err } from './error';
 export class TaskQueue {
   // Monotonic counter
   private _ulid = monotonicFactory();
-  private _lock = new AsyncLock();
+  private _lock: AsyncLock | undefined = new AsyncLock();
 
   private _logger: Logger;
 
@@ -45,17 +50,19 @@ export class TaskQueue {
 
   private _currentTask: Task | undefined = undefined;
 
-  private _checkTimer: NodeJS.Timeout;
+  private _checkTimer: NodeJS.Timeout | undefined;
+  private _checkTimerInterval = 100;
+
   /**
    * Constructor
+   *
+   * @remarks
+   * Must call start() after new TaskQueue()
    *
    * @public
    */
   constructor (logger: Logger) {
     this._logger = logger;
-    this._checkTimer = setInterval(() => {
-      this._checkTaskQueue();
-    }, 100);
   }
 
   /**
@@ -106,8 +113,7 @@ export class TaskQueue {
   // eslint-disable-next-line complexity
   pushToTaskQueue (task: Task) {
     // Critical section
-    this._lock
-      // eslint-disable-next-line complexity
+    this._lock! // eslint-disable-next-line complexity
       .acquire('TaskQueue', () => {
         // Skip consecutive sync/push events
         if (
@@ -168,17 +174,40 @@ export class TaskQueue {
   }
 
   /**
-   * Clear TaskQueue
+   * Start TaskQueue
    *
    * @public
    */
-  clear () {
-    // Clear not queued jobs
+  start () {
+    if (this._lock === undefined) {
+      this._lock = new AsyncLock();
+    }
 
-    clearInterval(this._checkTimer);
+    if (this._checkTimer === undefined) {
+      this._checkTimer = setInterval(() => {
+        this._checkTaskQueue();
+      }, this._checkTimerInterval);
+    }
+  }
 
-    // @ts-ignore
-    this._lock.queues.taskQueue = null;
+  /**
+   * Stop TaskQueue
+   *
+   * @public
+   */
+  stop () {
+    // Clear not queued job
+
+    if (this._checkTimer !== undefined) {
+      clearInterval(this._checkTimer);
+      this._checkTimer = undefined;
+    }
+
+    if (this._lock !== undefined) {
+      // @ts-ignore
+      this._lock.queues.taskQueue = null;
+    }
+    this._lock = undefined;
 
     // Cancel queued tasks
     this._taskQueue.forEach(task => task.cancel());
@@ -246,17 +275,18 @@ export class TaskQueue {
    * @internal
    */
   private _checkTaskQueue () {
+    if (this._lock === undefined) return;
     if (this._lock.isBusy()) return;
 
     // eslint-disable-next-line complexity
-    this._lock.acquire('TaskQueue', () => {
+    this._lock!.acquire('TaskQueue', () => {
       if (this._taskQueue.length === 0 || this._isTaskQueueWorking) return;
 
       let taskIndex = 0;
       while (taskIndex < this._taskQueue.length) {
         const targetTask = this._taskQueue[taskIndex];
 
-        if (targetTask.debounceTime! < 0) {
+        if (targetTask.debounceTime === undefined || targetTask.debounceTime! < 0) {
           this._currentTask = this._pullTargetTask(taskIndex);
           if (this._currentTask !== undefined) this._execTask();
           return;
@@ -326,6 +356,8 @@ export class TaskQueue {
   // eslint-disable-next-line complexity
   private _execTask () {
     if (this._currentTask !== undefined && this._currentTask.func !== undefined) {
+      this._isTaskQueueWorking = true;
+
       const label = this._currentTask.label;
       const shortId = this._currentTask.shortId;
       const shortName = this._currentTask.shortName;
@@ -343,17 +375,12 @@ export class TaskQueue {
           CONSOLE_STYLE.bgGreen().fgBlack().tag()`End: ${label}(${fullDocPath})`
         );
         this._statistics[label]++;
-
-        this._isTaskQueueWorking = false;
-        this._currentTask = undefined;
       };
       const beforeReject = () => {
         this._logger.debug(
           CONSOLE_STYLE.bgGreen().fgRed().tag()`End with error: ${label}(${fullDocPath})`
         );
         this._statistics[label]++;
-        this._isTaskQueueWorking = false;
-        this._currentTask = undefined;
       };
       const taskMetadata: TaskMetadata = {
         label,
@@ -365,7 +392,10 @@ export class TaskQueue {
         syncRemoteName,
       };
 
-      this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {});
+      this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {
+        this._isTaskQueueWorking = false;
+        this._currentTask = undefined;
+      });
     }
   }
 }

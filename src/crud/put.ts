@@ -52,7 +52,9 @@ export function putImpl (
     insertOrUpdate: undefined,
     taskId: undefined,
     enqueueCallback: undefined,
+    debounceTime: undefined,
   };
+  options.debounceTime ??= -1;
 
   const fullDocPath = collectionPath + shortName;
 

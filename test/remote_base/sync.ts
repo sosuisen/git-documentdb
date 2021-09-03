@@ -776,13 +776,14 @@ export const syncBase = (
         syncDirection: 'push',
         connection,
       };
-      await dbA.sync(optionA);
+      await dbA.sync(optionA, true);
 
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameB,
         localDir,
       });
+
       // Clone dbA
       await dbB.open();
       const syncB = await dbB.sync({
@@ -793,6 +794,7 @@ export const syncBase = (
       await syncB.tryPush();
 
       await dbA.close();
+
       await dbA.open();
       const [sync, result] = await dbA.sync(optionA, true);
       expect(result).toEqual({

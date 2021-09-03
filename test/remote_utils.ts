@@ -392,7 +392,9 @@ export const destroyDBs = async (DBs: GitDocumentDB[]) => {
         /* throws FileRemoveTimeoutError */
       })
     )
-  ).catch(() => {});
+  ).catch(err => {
+    console.log(err);
+  });
   await clock.tickAsync(FILE_REMOVE_TIMEOUT);
   clock.restore();
 };

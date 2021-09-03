@@ -77,7 +77,7 @@ export const networkTaskQueueBase = (
         sync: 1,
         cancel: 0,
       });
-      dbA.taskQueue.clear();
+      dbA.taskQueue.stop();
       expect(dbA.taskQueue.currentStatistics()).toEqual({
         put: 0,
         insert: 0,
