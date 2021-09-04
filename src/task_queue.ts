@@ -292,11 +292,7 @@ export class TaskQueue {
           return;
         }
 
-        if (
-          targetTask.label !== 'put' &&
-          targetTask.label !== 'update' &&
-          targetTask.label !== 'insert'
-        ) {
+        if (targetTask.label !== 'put' && targetTask.label !== 'update') {
           this._currentTask = this._pullTargetTask(taskIndex);
           if (this._currentTask !== undefined) this._execTask();
           return;
@@ -305,8 +301,9 @@ export class TaskQueue {
         const expiredTime = decodeTime(targetTask.enqueueTime!) + targetTask.debounceTime!;
         const current = Date.now();
 
-        let nextPutExist = false;
+        let nextPutUpdateExist = false;
         let nextDeleteExist = false;
+        let nextInsertExist = false;
         for (let i = taskIndex + 1; i < this._taskQueue.length; i++) {
           const tmpTask = this._taskQueue[i];
           if (decodeTime(tmpTask.enqueueTime!) > expiredTime) break;
@@ -323,17 +320,26 @@ export class TaskQueue {
               nextDeleteExist = true;
               break;
             }
-            nextPutExist = true;
+            if (tmpTask.label === 'insert') {
+              nextInsertExist = true;
+              break;
+            }
+            nextPutUpdateExist = true;
             break;
           }
         }
 
-        if (nextPutExist) {
+        if (nextPutUpdateExist) {
           const cancelTask = this._pullTargetTask(taskIndex);
           cancelTask?.cancel();
           continue;
         }
         else if (nextDeleteExist) {
+          this._currentTask = this._pullTargetTask(taskIndex);
+          if (this._currentTask !== undefined) this._execTask();
+          return;
+        }
+        else if (nextInsertExist) {
           this._currentTask = this._pullTargetTask(taskIndex);
           if (this._currentTask !== undefined) this._execTask();
           return;
