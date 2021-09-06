@@ -26,9 +26,10 @@ export declare class TaskQueue
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [clear()](./git-documentdb.taskqueue.clear.md) |  | Clear TaskQueue |
 |  [currentStatistics()](./git-documentdb.taskqueue.currentstatistics.md) |  | Get current statistics |
 |  [currentTaskId()](./git-documentdb.taskqueue.currenttaskid.md) |  | Get current task ID |
 |  [getEnqueueTime()](./git-documentdb.taskqueue.getenqueuetime.md) |  | Get enqueue time |
 |  [length()](./git-documentdb.taskqueue.length.md) |  | Get length of TaskQueue |
+|  [start()](./git-documentdb.taskqueue.start.md) |  | Start TaskQueue |
+|  [stop()](./git-documentdb.taskqueue.stop.md) |  | Stop TaskQueue |
 

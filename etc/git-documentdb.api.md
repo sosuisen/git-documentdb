@@ -107,6 +107,7 @@ export interface CollectionInterface {
 // @public
 export type CollectionOptions = {
     namePrefix?: string;
+    debounceTime?: number;
 };
 
 // @public
@@ -821,6 +822,7 @@ export type PutOptions = {
     insertOrUpdate?: 'insert' | 'update';
     taskId?: string;
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
+    debounceTime?: number;
 };
 
 // @public
@@ -1283,12 +1285,12 @@ export type TaskMetadata = {
     collectionPath?: string;
     enqueueTime?: string;
     syncRemoteName?: string;
+    debounceTime?: number;
 };
 
 // @public
 export class TaskQueue {
     constructor(logger: Logger);
-    clear(): void;
     currentStatistics(): TaskStatistics;
     currentTaskId(): string | undefined;
     getEnqueueTime(): string;
@@ -1299,6 +1301,8 @@ export class TaskQueue {
     pushToTaskQueue(task: Task): void;
     // @internal
     setLogger(logger: Logger): void;
+    start(): void;
+    stop(): void;
     // @internal (undocumented)
     waitCompletion(timeoutMsec: number): Promise<boolean>;
 }

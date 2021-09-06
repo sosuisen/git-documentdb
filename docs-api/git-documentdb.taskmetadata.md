@@ -21,6 +21,7 @@ export declare type TaskMetadata = {
     collectionPath?: string;
     enqueueTime?: string;
     syncRemoteName?: string;
+    debounceTime?: number;
 };
 ```
 <b>References:</b>

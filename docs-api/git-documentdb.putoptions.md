@@ -18,6 +18,7 @@ export declare type PutOptions = {
     insertOrUpdate?: 'insert' | 'update';
     taskId?: string;
     enqueueCallback?: (taskMetadata: TaskMetadata) => void;
+    debounceTime?: number;
 };
 ```
 <b>References:</b>
@@ -33,4 +34,6 @@ export declare type PutOptions = {
 - taskId: taskId is used in TaskQueue to distinguish CRUD and synchronization tasks. It is usually generated automatically. Set it if you would like to monitor this put task explicitly.
 
 - enqueueCallback: A callback function called just after this put task is enqueued to TaskQueue.
+
+- debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds. This overwrite the same option in Collection Class. Default is -1 (do not debounce).
 

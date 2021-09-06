@@ -22,3 +22,7 @@ constructor(logger: Logger);
 |  --- | --- | --- |
 |  logger | Logger |  |
 
+## Remarks
+
+Must call start() after new TaskQueue()
+
