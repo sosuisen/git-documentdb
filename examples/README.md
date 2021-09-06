@@ -22,3 +22,7 @@ Start an example for Synchronization.
 ```
 $ npm run sync
 ```
+Start an example for Plugin.
+```
+$ npm run plugin
+```
