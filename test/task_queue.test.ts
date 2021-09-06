@@ -47,227 +47,347 @@ after(() => {
 });
 
 describe('<task_queue>', () => {
-  it('debounces consecutive puts to the same _id', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-      debounceTime: 3000,
-      logLevel: 'trace',
-    });
-    await gitDDB.open();
-    let skippedTask00 = false;
-    gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTask00 = true;
-    });
-    let skippedTask01 = false;
-    gitDDB.put({ _id: 'a', name: '1' }, { taskId: '1' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTask01 = true;
-    });
-    let skippedTask02 = false;
-    gitDDB.put({ _id: 'a', name: '2' }, { taskId: '2' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTask02 = true;
-    });
-    let skippedTask03 = false;
-    gitDDB.put({ _id: 'a', name: '3' }, { taskId: '3' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTask03 = true;
-    });
-    await sleep(4000);
-    expect(skippedTask00).toBeTruthy();
-    expect(skippedTask01).toBeTruthy();
-    expect(skippedTask02).toBeTruthy();
-    expect(skippedTask03).toBeFalsy();
+  describe('debounce', () => {
+    it('debounces consecutive puts to the same _id', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        debounceTime: 3000,
+        logLevel: 'trace',
+      });
+      await gitDDB.open();
+      let skippedTask00 = false;
+      gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask00 = true;
+      });
+      let skippedTask01 = false;
+      gitDDB.put({ _id: 'a', name: '1' }, { taskId: '1' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask01 = true;
+      });
+      let skippedTask02 = false;
+      gitDDB.put({ _id: 'a', name: '2' }, { taskId: '2' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask02 = true;
+      });
+      let skippedTask03 = false;
+      gitDDB.put({ _id: 'a', name: '3' }, { taskId: '3' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask03 = true;
+      });
+      await sleep(4000);
+      expect(skippedTask00).toBeTruthy();
+      expect(skippedTask01).toBeTruthy();
+      expect(skippedTask02).toBeTruthy();
+      expect(skippedTask03).toBeFalsy();
 
-    const json = await gitDDB.get('a');
-    expect(json!.name).toEqual('3');
+      const json = await gitDDB.get('a');
+      expect(json!.name).toEqual('3');
 
-    await gitDDB.destroy();
-  });
-
-  it('debounces a lot of consecutive puts to the same _id', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-      debounceTime: 3000,
-      logLevel: 'trace',
+      await gitDDB.destroy();
     });
-    await gitDDB.open();
-    let skippedTask00 = false;
-    gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTask00 = true;
-    });
-    await sleep(4000);
 
-    const putter: Promise<any>[] = [];
-    const validResult: (boolean | Record<string, any>)[] = [];
-    for (let i = 1; i < 25; i++) {
+    it('debounces a lot of consecutive puts to the same _id', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        debounceTime: 3000,
+        logLevel: 'trace',
+      });
+      await gitDDB.open();
+      let skippedTask00 = false;
+      gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask00 = true;
+      });
+      await sleep(4000);
+
+      const putter: Promise<any>[] = [];
+      const validResult: (boolean | Record<string, any>)[] = [];
+      for (let i = 1; i < 25; i++) {
+        putter.push(
+          gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+      }
       putter.push(
-        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+        gitDDB.put({ _id: 'a', name: '25' }, { taskId: '25' }).catch(err => {
           if (err instanceof Err.TaskCancelError) return true;
         })
       );
-      validResult.push(true);
-    }
-    putter.push(
-      gitDDB.put({ _id: 'a', name: '25' }, { taskId: '25' }).catch(err => {
-        if (err instanceof Err.TaskCancelError) return true;
-      })
-    );
-    validResult.push({ _id: 'a' });
+      validResult.push({ _id: 'a' });
 
-    const results = await Promise.all(putter);
+      const results = await Promise.all(putter);
 
-    expect(skippedTask00).toBeFalsy();
+      expect(skippedTask00).toBeFalsy();
 
-    expect(results).toMatchObject(validResult);
+      expect(results).toMatchObject(validResult);
 
-    const json = await gitDDB.get('a');
-    expect(json!.name).toEqual('25');
+      const json = await gitDDB.get('a');
+      expect(json!.name).toEqual('25');
 
-    await gitDDB.destroy();
-  });
-
-  it('debounces a lot of consecutive puts to the mixed _ids', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-      debounceTime: 3000,
-      logLevel: 'trace',
+      await gitDDB.destroy();
     });
-    await gitDDB.open();
-    let skippedTaskA00 = false;
-    gitDDB.put({ _id: 'a', name: '0' }, { taskId: 'a0' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTaskA00 = true;
-    });
-    let skippedTaskB00 = false;
-    gitDDB.put({ _id: 'b', name: '0' }, { taskId: 'b0' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTaskB00 = true;
-    });
-    let skippedTaskC00 = false;
-    gitDDB.put({ _id: 'c', name: '0' }, { taskId: 'c0' }).catch(err => {
-      if (err instanceof Err.TaskCancelError) skippedTaskC00 = true;
-    });
-    await sleep(4000);
 
-    const putter: Promise<any>[] = [];
-    const validResult: (boolean | Record<string, any>)[] = [];
-    for (let i = 1; i < 50; i++) {
+    it('debounces a lot of consecutive puts to the mixed _ids', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        debounceTime: 3000,
+        logLevel: 'trace',
+      });
+      await gitDDB.open();
+      let skippedTaskA00 = false;
+      gitDDB.put({ _id: 'a', name: '0' }, { taskId: 'a0' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTaskA00 = true;
+      });
+      let skippedTaskB00 = false;
+      gitDDB.put({ _id: 'b', name: '0' }, { taskId: 'b0' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTaskB00 = true;
+      });
+      let skippedTaskC00 = false;
+      gitDDB.put({ _id: 'c', name: '0' }, { taskId: 'c0' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTaskC00 = true;
+      });
+      await sleep(4000);
+
+      const putter: Promise<any>[] = [];
+      const validResult: (boolean | Record<string, any>)[] = [];
+      for (let i = 1; i < 50; i++) {
+        putter.push(
+          gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `a${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+        putter.push(
+          gitDDB.put({ _id: 'b', name: `${i}` }, { taskId: `b${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+        putter.push(
+          gitDDB.put({ _id: 'c', name: `${i}` }, { taskId: `c${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+      }
       putter.push(
-        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `a${i}` }).catch(err => {
+        gitDDB.put({ _id: 'a', name: '50' }, { taskId: 'a50' }).catch(err => {
           if (err instanceof Err.TaskCancelError) return true;
         })
       );
-      validResult.push(true);
+      validResult.push({ _id: 'a' });
       putter.push(
-        gitDDB.put({ _id: 'b', name: `${i}` }, { taskId: `b${i}` }).catch(err => {
+        gitDDB.put({ _id: 'b', name: '50' }, { taskId: 'b50' }).catch(err => {
           if (err instanceof Err.TaskCancelError) return true;
         })
       );
-      validResult.push(true);
+      validResult.push({ _id: 'b' });
       putter.push(
-        gitDDB.put({ _id: 'c', name: `${i}` }, { taskId: `c${i}` }).catch(err => {
+        gitDDB.put({ _id: 'c', name: '50' }, { taskId: 'c50' }).catch(err => {
           if (err instanceof Err.TaskCancelError) return true;
         })
       );
-      validResult.push(true);
-    }
-    putter.push(
-      gitDDB.put({ _id: 'a', name: '50' }, { taskId: 'a50' }).catch(err => {
-        if (err instanceof Err.TaskCancelError) return true;
-      })
-    );
-    validResult.push({ _id: 'a' });
-    putter.push(
-      gitDDB.put({ _id: 'b', name: '50' }, { taskId: 'b50' }).catch(err => {
-        if (err instanceof Err.TaskCancelError) return true;
-      })
-    );
-    validResult.push({ _id: 'b' });
-    putter.push(
-      gitDDB.put({ _id: 'c', name: '50' }, { taskId: 'c50' }).catch(err => {
-        if (err instanceof Err.TaskCancelError) return true;
-      })
-    );
-    validResult.push({ _id: 'c' });
+      validResult.push({ _id: 'c' });
 
-    const results = await Promise.all(putter);
+      const results = await Promise.all(putter);
 
-    expect(skippedTaskA00).toBeFalsy();
-    expect(skippedTaskB00).toBeFalsy();
-    expect(skippedTaskC00).toBeFalsy();
+      expect(skippedTaskA00).toBeFalsy();
+      expect(skippedTaskB00).toBeFalsy();
+      expect(skippedTaskC00).toBeFalsy();
 
-    expect(results).toMatchObject(validResult);
+      expect(results).toMatchObject(validResult);
 
-    const jsonA = await gitDDB.get('a');
-    expect(jsonA!.name).toEqual('50');
-    const jsonB = await gitDDB.get('b');
-    expect(jsonB!.name).toEqual('50');
-    const jsonC = await gitDDB.get('c');
-    expect(jsonC!.name).toEqual('50');
+      const jsonA = await gitDDB.get('a');
+      expect(jsonA!.name).toEqual('50');
+      const jsonB = await gitDDB.get('b');
+      expect(jsonB!.name).toEqual('50');
+      const jsonC = await gitDDB.get('c');
+      expect(jsonC!.name).toEqual('50');
 
-    await gitDDB.destroy();
-  });
-
-  it('debounces a lot of consecutive puts mixed with a delete command', async () => {
-    const dbName = monoId();
-    const gitDDB: GitDocumentDB = new GitDocumentDB({
-      dbName,
-      localDir,
-      debounceTime: 3000,
-      logLevel: 'trace',
-    });
-    await gitDDB.open();
-
-    const putter: Promise<any>[] = [];
-    const validResult: (boolean | Record<string, any>)[] = [];
-    for (let i = 0; i < 9; i++) {
-      putter.push(
-        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
-          if (err instanceof Err.TaskCancelError) return true;
-        })
-      );
-      validResult.push(true);
-    }
-
-    // put task just before delete task will be executed.
-    putter.push(
-      gitDDB.put({ _id: 'a', name: `9` }, { taskId: `9` }).catch(err => {
-        if (err instanceof Err.TaskCancelError) return false;
-      })
-    );
-    validResult.push({ _id: 'a' });
-
-    // Delete
-    putter.push(gitDDB.delete('a'));
-    validResult.push({
-      _id: 'a',
+      await gitDDB.destroy();
     });
 
-    for (let i = 10; i < 20; i++) {
+    it('debounces a lot of consecutive puts mixed with a delete command', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        debounceTime: 3000,
+        logLevel: 'trace',
+      });
+      await gitDDB.open();
+
+      const putter: Promise<any>[] = [];
+      const validResult: (boolean | Record<string, any>)[] = [];
+      for (let i = 0; i < 9; i++) {
+        putter.push(
+          gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+      }
+
+      // put task just before delete task will be executed.
       putter.push(
-        gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+        gitDDB.put({ _id: 'a', name: `9` }, { taskId: `9` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return false;
+        })
+      );
+      validResult.push({ _id: 'a' });
+
+      // Delete
+      putter.push(gitDDB.delete('a'));
+      validResult.push({
+        _id: 'a',
+      });
+
+      for (let i = 10; i < 20; i++) {
+        putter.push(
+          gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+      }
+      putter.push(
+        gitDDB.put({ _id: 'a', name: '20' }, { taskId: '20' }).catch(err => {
           if (err instanceof Err.TaskCancelError) return true;
         })
       );
-      validResult.push(true);
-    }
-    putter.push(
-      gitDDB.put({ _id: 'a', name: '20' }, { taskId: '20' }).catch(err => {
-        if (err instanceof Err.TaskCancelError) return true;
-      })
-    );
-    validResult.push({ _id: 'a' });
+      validResult.push({ _id: 'a' });
 
-    const results = await Promise.all(putter);
+      const results = await Promise.all(putter);
 
-    expect(results).toMatchObject(validResult);
+      expect(results).toMatchObject(validResult);
 
-    const json = await gitDDB.get('a');
-    expect(json!.name).toEqual('20');
+      const json = await gitDDB.get('a');
+      expect(json!.name).toEqual('20');
 
-    await gitDDB.destroy();
+      await gitDDB.destroy();
+    });
+
+    it('debounces a lot of consecutive puts mixed with an insert command', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        debounceTime: 3000,
+        logLevel: 'trace',
+      });
+      await gitDDB.open();
+
+      const putter: Promise<any>[] = [];
+      const validResult: (boolean | undefined | Record<string, any>)[] = [];
+      for (let i = 0; i < 9; i++) {
+        putter.push(
+          gitDDB.put({ _id: 'a', name: `${i}` }, { taskId: `${i}` }).catch(err => {
+            if (err instanceof Err.TaskCancelError) return true;
+          })
+        );
+        validResult.push(true);
+      }
+
+      // put task just before insert task will be executed.
+      putter.push(
+        gitDDB.put({ _id: 'a', name: `9` }, { taskId: `9` }).catch(err => {
+          if (err instanceof Err.TaskCancelError) return false;
+        })
+      );
+      validResult.push({ _id: 'a' });
+
+      // Insert throws error
+      putter.push(gitDDB.insert({ _id: 'a', name: '10' }).catch(() => undefined));
+      validResult.push(undefined);
+
+      const results = await Promise.all(putter);
+
+      expect(results).toMatchObject(validResult);
+
+      const json = await gitDDB.get('a');
+      expect(json!.name).toEqual('9');
+
+      await gitDDB.destroy();
+    });
+
+    it('Set different debounceTime in each collection', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        debounceTime: 3000,
+        logLevel: 'trace',
+      });
+      await gitDDB.open();
+      const colA = gitDDB.collection('a', { debounceTime: 7000 });
+      const colB = gitDDB.collection('b', { debounceTime: 5000 });
+      const colC = gitDDB.collection('c', { debounceTime: 1000 });
+
+      const result: string[] = [];
+      colA
+        .put({ _id: 'a1' })
+        .then(() => result.push('a1'))
+        .catch(() => {});
+      colB
+        .put({ _id: 'b1' })
+        .then(() => result.push('b1'))
+        .catch(() => {});
+      colC
+        .put({ _id: 'c1' })
+        .then(() => result.push('c1'))
+        .catch(() => {});
+      colC
+        .put({ _id: 'c1' })
+        .then(() => result.push('c2'))
+        .catch(() => {});
+      await sleep(10000);
+
+      expect(result).toEqual(['c2', 'b1', 'a1']);
+      await gitDDB.destroy();
+    });
+
+    it('Collection debounceTime will be overwritten by method debounceTime', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        debounceTime: 3000,
+        logLevel: 'trace',
+      });
+      await gitDDB.open();
+      let skippedTask00 = false;
+      gitDDB.put({ _id: 'a', name: '0' }, { taskId: '0' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask00 = true;
+      });
+      let skippedTask01 = false;
+      gitDDB.put({ _id: 'a', name: '1' }, { taskId: '1' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask01 = true;
+      });
+      let skippedTask02 = false;
+      gitDDB.put({ _id: 'a', name: '2' }, { taskId: '2' }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask02 = true;
+      });
+
+      let skippedTask03 = false;
+      gitDDB.put({ _id: 'a', name: '3' }, { taskId: '3', debounceTime: 0 }).catch(err => {
+        if (err instanceof Err.TaskCancelError) skippedTask03 = true;
+      });
+      await sleep(1000);
+
+      expect(skippedTask00).toBeTruthy();
+      expect(skippedTask01).toBeTruthy();
+      expect(skippedTask02).toBeTruthy();
+      expect(skippedTask03).toBeFalsy();
+
+      const json = await gitDDB.get('a');
+      expect(json!.name).toEqual('3');
+
+      await gitDDB.destroy();
+    });
   });
 
   it('increments statistics: put', async () => {
