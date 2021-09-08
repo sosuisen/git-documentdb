@@ -40,3 +40,6 @@ dist/test/
 # api-extractor
 temp/
 etc/
+
+# script
+remove_remote_repositories.mjs
