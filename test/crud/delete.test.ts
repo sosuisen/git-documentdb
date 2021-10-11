@@ -13,7 +13,7 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import sinon from 'sinon';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
+import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../../src/const';
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { deleteImpl, deleteWorker } from '../../src/crud/delete';
@@ -67,7 +67,7 @@ describe('<crud/delete>', () => {
       // Call close() without await
       gitDDB.close().catch(() => {});
       const _id = 'prof01';
-      await expect(deleteImpl(gitDDB, '', _id, _id + JSON_EXT)).rejects.toThrowError(
+      await expect(deleteImpl(gitDDB, '', _id, _id + JSON_EXTENSION)).rejects.toThrowError(
         Err.DatabaseClosingError
       );
 
@@ -116,7 +116,7 @@ describe('<crud/delete>', () => {
       const putResult = await gitDDB.put(json);
 
       await expect(
-        deleteImpl(gitDDB, '', _id, _id + JSON_EXT + '_invalid')
+        deleteImpl(gitDDB, '', _id, _id + JSON_EXTENSION + '_invalid')
       ).rejects.toThrowError(Err.DocumentNotFoundError);
 
       await gitDDB.destroy();
@@ -139,7 +139,7 @@ describe('<crud/delete>', () => {
       // Delete
       const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
       const beforeTimestamp = Math.floor(Date.now() / 1000) * 1000;
-      const pickedDeleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXT);
+      const pickedDeleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXTENSION);
       const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
 
       const currentCommitOid = await git.resolveRef({
@@ -151,7 +151,7 @@ describe('<crud/delete>', () => {
       // Check NormalizedCommit
       expect(pickedDeleteResult.commit.oid).toBe(currentCommitOid);
       expect(pickedDeleteResult.commit.message).toBe(
-        `delete: ${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+        `delete: ${_id}${JSON_EXTENSION}(${oid.substr(0, SHORT_SHA_LENGTH)})`
       );
       expect(pickedDeleteResult.commit.parent).toEqual([prevCommitOid]);
       expect(pickedDeleteResult.commit.author.name).toEqual(gitDDB.author.name);
@@ -188,10 +188,10 @@ describe('<crud/delete>', () => {
 
       // Delete
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-      const pickedDeleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXT);
+      const pickedDeleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXTENSION);
 
       expect(pickedDeleteResult.commit.message).toEqual(
-        `delete: ${_id}${JSON_EXT}(${shortOid})`
+        `delete: ${_id}${JSON_EXTENSION}(${shortOid})`
       );
 
       // Check commit directly
@@ -201,7 +201,7 @@ describe('<crud/delete>', () => {
         dir: gitDDB.workingDir,
         oid: commitOid,
       });
-      expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
+      expect(commit.message).toEqual(`delete: ${_id}${JSON_EXTENSION}(${shortOid})\n`);
 
       await gitDDB.destroy();
     });
@@ -219,11 +219,11 @@ describe('<crud/delete>', () => {
       const putResult = await gitDDB.put(doc);
 
       // Delete
-      const deleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXT);
+      const deleteResult = await deleteImpl(gitDDB, '', _id, _id + JSON_EXTENSION);
 
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(deleteResult.fileOid).toBe(putResult.fileOid);
-      expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXT}(${shortOid})`);
+      expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXTENSION}(${shortOid})`);
 
       // Check commit directly
       const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
@@ -232,7 +232,7 @@ describe('<crud/delete>', () => {
         dir: gitDDB.workingDir,
         oid: commitOid,
       });
-      expect(commit.message).toEqual(`delete: ${_id}${JSON_EXT}(${shortOid})\n`);
+      expect(commit.message).toEqual(`delete: ${_id}${JSON_EXTENSION}(${shortOid})\n`);
 
       await gitDDB.destroy();
     });
@@ -269,17 +269,17 @@ describe('<crud/delete>', () => {
       ]);
 
       await Promise.all([
-        deleteImpl(gitDDB, '', _id_a, _id_a + JSON_EXT),
-        deleteImpl(gitDDB, '', _id_b, _id_b + JSON_EXT),
-        deleteImpl(gitDDB, '', _id_c01, _id_c01 + JSON_EXT),
-        deleteImpl(gitDDB, '', _id_c02, _id_c02 + JSON_EXT),
-        deleteImpl(gitDDB, '', _id_d, _id_d + JSON_EXT),
+        deleteImpl(gitDDB, '', _id_a, _id_a + JSON_EXTENSION),
+        deleteImpl(gitDDB, '', _id_b, _id_b + JSON_EXTENSION),
+        deleteImpl(gitDDB, '', _id_c01, _id_c01 + JSON_EXTENSION),
+        deleteImpl(gitDDB, '', _id_c02, _id_c02 + JSON_EXTENSION),
+        deleteImpl(gitDDB, '', _id_d, _id_d + JSON_EXTENSION),
       ]);
 
       await expect(gitDDB.findFatDoc({ recursive: true })).resolves.toEqual([
         {
           _id: _id_p,
-          name: _id_p + JSON_EXT,
+          name: _id_p + JSON_EXTENSION,
           fileOid: expect.stringMatching(/^[\da-z]{40}$/),
           type: 'json',
           doc: { _id: _id_p, name: name_p },
@@ -384,7 +384,7 @@ describe('<crud/delete>', () => {
       const stubEnsureDir = sandbox.stub(fs_module, 'remove');
       stubEnsureDir.rejects();
 
-      await expect(deleteWorker(gitDDB, '', 'prof01' + JSON_EXT, '')).rejects.toThrowError(
+      await expect(deleteWorker(gitDDB, '', 'prof01' + JSON_EXTENSION, '')).rejects.toThrowError(
         Err.CannotDeleteDataError
       );
       await gitDDB.destroy();

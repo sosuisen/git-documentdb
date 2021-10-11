@@ -17,7 +17,7 @@ import { Err } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Collection } from '../src/collection';
 import { toSortedJSONString } from '../src/utils';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -85,7 +85,7 @@ describe('<collection> update(jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -99,7 +99,7 @@ describe('<collection> update(jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXTENSION);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -147,7 +147,7 @@ describe('<collection> update(jsonDoc)', () => {
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     await gitDDB.destroy();
@@ -204,7 +204,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -218,7 +218,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXTENSION);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -259,7 +259,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     const _id = 'prof01';
-    const shortName = _id + JSON_EXT;
+    const shortName = _id + JSON_EXTENSION;
     const json = { _id, name: 'Shirase' };
     const insertResult = await col.insert(json);
 
@@ -286,7 +286,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXT}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -300,7 +300,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXT);
+    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXTENSION);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));

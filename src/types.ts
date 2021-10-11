@@ -196,9 +196,9 @@ export type Doc = JsonDoc | string | Uint8Array;
  * Metadata for JsonDoc
  *
  * @remarks
- * - _id: _id of a JSON document. This is a file name without .json extension.
+ * - _id: _id of a JSON document. This is a file name without ${JSON_EXTENSION} extension.
  *
- * - name: A file name in Git. e.g.) "foo.json", "bar/baz.json"
+ * - name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
  *
  * - fileOid: SHA-1 hash of Git object (40 characters)
  *
@@ -457,7 +457,7 @@ export type FindOptions = {
  * Result of put APIs (put, update, insert, putFatDoc, updateFatDoc, and insertFatDoc)
  *
  * @remarks
- * - _id: _id of a JSON document. This is a file name without .json extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
+ * - _id: _id of a JSON document. This is a file name without ${JSON_EXTENSION} extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
  *
  * - name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
  *
@@ -504,7 +504,7 @@ export type PutResultBinary = {
  * Result of delete()
  *
  * @remarks
- * - _id: _id of a JSON document. This is a file name without .json extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
+ * - _id: _id of a JSON document. This is a file name without ${JSON_EXTENSION} extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
  *
  * - name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
  *

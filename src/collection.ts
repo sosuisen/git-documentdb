@@ -37,7 +37,7 @@ import {
 import { GitDDBInterface } from './types_gitddb';
 import { Validator } from './validator';
 import { toSortedJSONString } from './utils';
-import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from './const';
+import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION } from './const';
 import { getImpl } from './crud/get';
 import { getHistoryImpl } from './crud/history';
 import { deleteImpl } from './crud/delete';
@@ -52,7 +52,7 @@ import { ICollection } from './types_collection';
  * @remarks
  * In a collection API, shortId (shortName) is used instead of _id (name).
  *
- * - shortId is a file path whose collectionPath and .json extension are omitted. (_id = collectionPath + shortId)
+ * - shortId is a file path whose collectionPath and JSON_EXTENSION extension are omitted. (_id = collectionPath + shortId)
  *
  * - shortName is a file path whose collectionPath is omitted. (name = collectionPath + shortName)
  *
@@ -229,10 +229,10 @@ export class Collection implements ICollection {
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
-   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}${jsonDoc._id}${JSON_EXTENSION}`.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -258,10 +258,10 @@ export class Collection implements ICollection {
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param shortId - shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}${JSON_EXTENSION}`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -323,14 +323,14 @@ export class Collection implements ICollection {
       if (!shortIdOrDoc) shortIdOrDoc = this.generateId();
       shortId = shortIdOrDoc;
       _id = this.collectionPath + shortId;
-      shortName = shortId + JSON_EXT;
+      shortName = shortId + JSON_EXTENSION;
       jsonDoc = jsonDocOrOptions as JsonDoc;
     }
     else {
       if (!shortIdOrDoc._id) shortIdOrDoc._id = this.generateId();
       shortId = shortIdOrDoc._id;
       _id = this.collectionPath + shortId;
-      shortName = shortId + JSON_EXT;
+      shortName = shortId + JSON_EXTENSION;
       jsonDoc = shortIdOrDoc as JsonDoc;
       options = jsonDocOrOptions as PutOptions;
     }
@@ -377,14 +377,14 @@ export class Collection implements ICollection {
   /**
    * Insert a JSON document
    *
-   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @remarks
    * - Throws SameIdExistsError when a document that has the same _id exists. It might be better to use put() instead of insert().
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}${JSON_EXTENSION}`.
    *
    * @param jsonDoc - See {@link JsonDoc} for restriction.
    *
@@ -414,12 +414,12 @@ export class Collection implements ICollection {
   /**
    * Insert a JSON document
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param shortId - shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @remarks
    * - Throws SameIdExistsError when a document that has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}${JSON_EXTENSION}`.
    *
    * - If shortId is undefined, it is automatically generated.
    *
@@ -490,12 +490,12 @@ export class Collection implements ICollection {
   /**
    * Update a JSON document
    *
-   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @remarks
    * - Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}${JSON_EXTENSION}`.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -525,12 +525,12 @@ export class Collection implements ICollection {
   /**
    * Update a JSON document
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param shortId - shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @remarks
    * - Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortId}${JSON_EXTENSION}`.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
@@ -599,14 +599,14 @@ export class Collection implements ICollection {
   /**
    * Insert data if not exists. Otherwise, update it.
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
+   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with ${JSON_EXTENSION} extension.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}${JSON_EXTENSION}`.
    *
    * - If shortName is undefined, it is automatically generated.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose ${JSON_EXTENSION} extension is omitted.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
@@ -650,13 +650,13 @@ export class Collection implements ICollection {
       data = doc;
     }
     else if (typeof doc === 'object') {
-      if (!shortName) shortName = this.generateId() + JSON_EXT;
+      if (!shortName) shortName = this.generateId() + JSON_EXTENSION;
       docType = 'json';
       // JsonDoc
-      if (!shortName.endsWith(JSON_EXT)) {
+      if (!shortName.endsWith(JSON_EXTENSION)) {
         return Promise.reject(new Err.InvalidJsonFileExtensionError());
       }
-      shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
+      shortId = shortName.replace(new RegExp(JSON_EXTENSION + '$'), '');
 
       // Validate JSON
       let clone;
@@ -725,16 +725,16 @@ export class Collection implements ICollection {
   /**
    * Insert a data
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
+   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with ${JSON_EXTENSION} extension.
    *
    * @remarks
    * - Throws SameIdExistsError when data that has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}${JSON_EXTENSION}`.
    *
    * - If shortName is undefined, it is automatically generated.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose ${JSON_EXTENSION} extension is omitted.
    *
    * @throws {@link Err.InvalidJsonObjectError}
    *
@@ -773,14 +773,14 @@ export class Collection implements ICollection {
   /**
    * Update a data
    *
-   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension.
+   * @param shortName - shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with ${JSON_EXTENSION} extension.
    *
    * @remarks
    * - Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}${JSON_EXTENSION}`.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+   * - _id property of a JsonDoc is automatically set or overwritten by shortName parameter whose ${JSON_EXTENSION} extension is omitted.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
@@ -821,7 +821,7 @@ export class Collection implements ICollection {
   /**
    * Get a JSON document
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param shortId - shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @returns
    *  - undefined if a specified document does not exist.
@@ -834,7 +834,7 @@ export class Collection implements ICollection {
    * @public
    */
   get (_id: string): Promise<JsonDoc | undefined> {
-    const shortName = _id + JSON_EXT;
+    const shortName = _id + JSON_EXTENSION;
     return getImpl(this._gitDDB, shortName, this.collectionPath, {
       forceDocType: 'json',
     }) as Promise<JsonDoc | undefined>;
@@ -848,7 +848,7 @@ export class Collection implements ICollection {
    * @returns
    *  - undefined if a specified data does not exist.
    *
-   *  - FatJsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
+   *  - FatJsonDoc if the file extension is JSON_EXTENSION. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -894,7 +894,7 @@ export class Collection implements ICollection {
   /**
    * Get an old revision of a JSON document
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param shortId - shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    * @param revision - Specify a number to go back to old revision. Default is 0.
    * See {@link git-documentdb#Collection.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
@@ -918,7 +918,7 @@ export class Collection implements ICollection {
     revision: number,
     historyOptions?: HistoryOptions
   ): Promise<JsonDoc | undefined> {
-    const shortName = shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXTENSION;
     return getImpl(
       this._gitDDB,
       shortName,
@@ -943,7 +943,7 @@ export class Collection implements ICollection {
    * @remarks
    *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - JsonDoc if the file extension is '.json'.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
+   *  - JsonDoc if the file extension is JSON_EXTENSION.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -985,7 +985,7 @@ export class Collection implements ICollection {
    * @remarks
    * - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
+   * @param shortId - shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension is omitted.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @returns Array of JsonDoc or undefined.
@@ -1029,7 +1029,7 @@ export class Collection implements ICollection {
     _id: string,
     historyOptions?: HistoryOptions
   ): Promise<(JsonDoc | undefined)[]> {
-    const shortName = _id + JSON_EXT;
+    const shortName = _id + JSON_EXTENSION;
     return getHistoryImpl(
       this._gitDDB,
       shortName,
@@ -1051,7 +1051,7 @@ export class Collection implements ICollection {
    * @returns Array of FatDoc or undefined.
    *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is '.json'.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
+   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is JSON_EXTENSION.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - Array of FatBinaryDoc if described in .gitattribtues, otherwise array of FatTextDoc.
    *
@@ -1080,7 +1080,7 @@ export class Collection implements ICollection {
   /**
    * Delete a JSON document
    *
-   * @param shortId - shortId is a file path whose collectionPath and .json extension is omitted.
+   * @param shortId - shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension is omitted.
    *
    * @throws {@link Err.UndefinedDocumentIdError}
    *
@@ -1100,7 +1100,7 @@ export class Collection implements ICollection {
   /**
    * Delete a document by _id property in JsonDoc
    *
-   * @param jsonDoc - JsonDoc whose _id is shortId. Only the _id property is referenced. shortId is a file path whose collectionPath and .json extension are omitted.
+   * @param jsonDoc - JsonDoc whose _id is shortId. Only the _id property is referenced. shortId is a file path whose collectionPath and ${JSON_EXTENSION} extension are omitted.
    *
    * @throws {@link Err.UndefinedDocumentIdError}
    *
@@ -1139,7 +1139,7 @@ export class Collection implements ICollection {
     else {
       return Promise.reject(new Err.UndefinedDocumentIdError());
     }
-    const shortName = shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXTENSION;
 
     return deleteImpl(this._gitDDB, this.collectionPath, shortId, shortName, options).then(
       res => {
@@ -1176,15 +1176,15 @@ export class Collection implements ICollection {
       return Promise.reject(new Err.UndefinedDocumentIdError());
     }
 
-    const docType: DocType = shortName.endsWith('.json') ? 'json' : 'text';
+    const docType: DocType = shortName.endsWith(JSON_EXTENSION) ? 'json' : 'text';
     if (docType === 'text') {
       // TODO: select binary or text by .gitattribtues
     }
-    const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
+    const shortId = shortName.replace(new RegExp(JSON_EXTENSION + '$'), '');
 
     return deleteImpl(this._gitDDB, this.collectionPath, shortId, shortName, options).then(
       res => {
-        // NOTE: Cannot detect JsonDoc whose file path does not end with '.json'
+        // NOTE: Cannot detect JsonDoc whose file path does not end with JSON_EXTENSION
         if (docType === 'json') {
           const deleteResult: DeleteResultJsonDoc = {
             ...res,

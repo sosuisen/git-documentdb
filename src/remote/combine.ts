@@ -21,7 +21,7 @@ import {
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
-import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXT } from '../const';
+import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXTENSION } from '../const';
 import { getAllMetadata, toSortedJSONString } from '../utils';
 import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 
@@ -102,7 +102,7 @@ export async function combineDatabaseWithTheirs (
 
       await fs.ensureDir(dir);
 
-      const docType: DocType = localFilePath.endsWith('.json') ? 'json' : 'text';
+      const docType: DocType = localFilePath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
       // eslint-disable-next-line max-depth
       if (docType === 'text') {
         // TODO: select binary or text by .gitattribtues
@@ -128,9 +128,9 @@ export async function combineDatabaseWithTheirs (
           if (doc._id !== undefined) {
             doc._id = _id + postfix;
           }
-          duplicatedFileName = _id + postfix + JSON_EXT;
+          duplicatedFileName = _id + postfix + JSON_EXTENSION;
           duplicatedFileId = _id + postfix;
-          duplicatedFileExt = JSON_EXT;
+          duplicatedFileExt = JSON_EXTENSION;
           fs.writeFileSync(
             path.resolve(remoteDir, duplicatedFileName),
             toSortedJSONString(doc)

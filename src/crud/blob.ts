@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import { readBlob, ReadBlobResult, resolveRef } from 'isomorphic-git';
-import { JSON_EXT } from '../const';
+import { JSON_EXTENSION } from '../const';
 import { utf8decode } from '../utils';
 import { Err } from '../error';
 import { FatBinaryDoc, FatDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
@@ -33,7 +33,7 @@ export function blobToJsonDoc (
     if (withMetadata) {
       const fatJsonDoc: FatJsonDoc = {
         _id: shortId,
-        name: shortId + JSON_EXT,
+        name: shortId + JSON_EXTENSION,
         fileOid: readBlobResult.oid,
         type: 'json',
         doc: jsonDoc,

@@ -29,7 +29,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
-import { JSON_EXT } from '../../src/const';
+import { JSON_EXTENSION } from '../../src/const';
 
 export const syncCombineBase = (
   connection: ConnectionSettings,
@@ -292,7 +292,7 @@ export const syncCombineBase = (
         expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
         // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
         jsonB1._id = jsonB1._id + '-from-' + dbIdB;
-        const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + JSON_EXT);
+        const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + JSON_EXTENSION);
 
         expect(syncResult).toEqual({
           action: 'combine database',
@@ -300,13 +300,13 @@ export const syncCombineBase = (
             {
               original: {
                 _id: jsonA1._id,
-                name: jsonA1._id + JSON_EXT,
+                name: jsonA1._id + JSON_EXTENSION,
                 fileOid: putResultA1.fileOid,
                 type: 'json',
               },
               duplicate: {
                 _id: jsonB1._id,
-                name: jsonB1._id + JSON_EXT,
+                name: jsonB1._id + JSON_EXTENSION,
                 fileOid: duplicatedB1?.fileOid,
                 type: 'json',
               },
@@ -361,7 +361,7 @@ export const syncCombineBase = (
         expect(getWorkingDirDocs(dbA)).toEqual([jsonA1]);
         // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
         jsonB1._id = jsonB1._id + '-from-' + dbIdB;
-        const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + JSON_EXT);
+        const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + JSON_EXTENSION);
 
         expect(syncResult).toEqual({
           action: 'combine database',
@@ -369,13 +369,13 @@ export const syncCombineBase = (
             {
               original: {
                 _id: jsonA1._id,
-                name: jsonA1._id + JSON_EXT,
+                name: jsonA1._id + JSON_EXTENSION,
                 fileOid: putResultA1.fileOid,
                 type: 'json',
               },
               duplicate: {
                 _id: jsonB1._id,
-                name: jsonB1._id + JSON_EXT,
+                name: jsonB1._id + JSON_EXTENSION,
                 fileOid: duplicatedB1?.fileOid,
                 type: 'json',
               },
@@ -435,7 +435,7 @@ export const syncCombineBase = (
         });
 
         jsonA1._id = jsonA1._id + '-from-' + dbIdA;
-        const duplicatedA1 = await dbA.getFatDoc(jsonA1._id + JSON_EXT);
+        const duplicatedA1 = await dbA.getFatDoc(jsonA1._id + JSON_EXTENSION);
 
         expect(getWorkingDirDocs(dbA)).toEqual([jsonA1, jsonB1, jsonB2]);
         // jsonA1 is duplicated with postfix due to combine-head-with-theirs strategy
@@ -448,13 +448,13 @@ export const syncCombineBase = (
           {
             original: {
               _id: jsonB1._id,
-              name: jsonB1._id + JSON_EXT,
+              name: jsonB1._id + JSON_EXTENSION,
               fileOid: putResultB1.fileOid,
               type: 'json',
             },
             duplicate: {
               _id: jsonA1._id,
-              name: jsonA1._id + JSON_EXT,
+              name: jsonA1._id + JSON_EXTENSION,
               fileOid: duplicatedA1?.fileOid,
               type: 'json',
             },

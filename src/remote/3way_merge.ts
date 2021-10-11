@@ -1,7 +1,7 @@
 import nodePath, { basename } from 'path';
 import git, { TreeEntry, WalkerEntry } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
+import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY, JSON_EXTENSION } from '../const';
 import { Err } from '../error';
 import {
   AcceptedConflict,
@@ -357,7 +357,7 @@ export async function threeWayMerge (
     AcceptedConflict | undefined
   ]
 > {
-  const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+  const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }

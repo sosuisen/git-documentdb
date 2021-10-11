@@ -6,6 +6,8 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
+import { JSON_EXTENSION } from './const';
+
 /* eslint-disable unicorn/custom-error-definition */
 
 /**
@@ -132,7 +134,7 @@ export namespace Err {
    */
   export class InvalidJsonFileExtensionError extends BaseError {
     constructor () {
-      super(`JSON file extension must be .json`);
+      super(`JSON file extension must be ${JSON_EXTENSION}`);
     }
   }
 

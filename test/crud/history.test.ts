@@ -23,7 +23,7 @@ import { GitDocumentDB } from '../../src/git_documentdb';
 import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
 import { getHistoryImpl, readOldBlob } from '../../src/crud/history';
 
-import { JSON_EXT } from '../../src/const';
+import { JSON_EXTENSION } from '../../src/const';
 import { addOneData, removeOneData } from '../utils';
 import { FatJsonDoc } from '../../src/types';
 
@@ -74,7 +74,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
-    const shortNameA = _idA + JSON_EXT;
+    const shortNameA = _idA + JSON_EXTENSION;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -82,7 +82,7 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.put(jsonA02);
     await gitDDB.put(jsonA03);
     const _idB = 'profB';
-    const shortNameB = _idB + JSON_EXT;
+    const shortNameB = _idB + JSON_EXTENSION;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
     await gitDDB.put(jsonB01);
@@ -124,7 +124,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
-    const shortNameA = _idA + JSON_EXT;
+    const shortNameA = _idA + JSON_EXTENSION;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -139,7 +139,7 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.put(jsonA03);
 
     const _idB = 'profB';
-    const shortNameB = _idB + JSON_EXT;
+    const shortNameB = _idB + JSON_EXTENSION;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
 
@@ -215,7 +215,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
-    const shortNameA = _idA + JSON_EXT;
+    const shortNameA = _idA + JSON_EXTENSION;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -297,7 +297,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
       await gitDDB.open();
       const _idA = 'profA';
-      const shortNameA = _idA + JSON_EXT;
+      const shortNameA = _idA + JSON_EXTENSION;
       const jsonA01 = { _id: _idA, name: 'v01' };
       const jsonA02 = { _id: _idA, name: 'v02' };
       const jsonA03 = { _id: _idA, name: 'v03' };
@@ -324,7 +324,7 @@ describe('<crud/history> getHistoryImpl', () => {
 
       await gitDDB.open();
       const _idA = 'profA';
-      const shortNameA = _idA + JSON_EXT;
+      const shortNameA = _idA + JSON_EXTENSION;
       const jsonA01 = { _id: _idA, name: 'v01' };
       const jsonA02 = { _id: _idA, name: 'v02' };
       const jsonA03 = { _id: _idA, name: 'v03' };
@@ -393,7 +393,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
@@ -412,7 +412,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await removeOneData(gitDDB, fullDocPath);
@@ -432,7 +432,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await removeOneData(gitDDB, fullDocPath);
@@ -455,7 +455,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -480,7 +480,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -505,7 +505,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -527,7 +527,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -565,7 +565,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
@@ -587,7 +587,7 @@ describe('<crud/history> readOldBlob()', () => {
     await gitDDB.open();
     const shortId = 'prof01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + shortId + JSON_EXT;
+    const fullDocPath = collectionPath + shortId + JSON_EXTENSION;
     const json01 = { _id: shortId, name: 'v01' };
     const json02 = { _id: shortId, name: 'v02' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -612,7 +612,7 @@ describe('<crud/history> readOldBlob()', () => {
 
     const targetId = '01';
     const collectionPath = '';
-    const fullDocPath = collectionPath + targetId + JSON_EXT;
+    const fullDocPath = collectionPath + targetId + JSON_EXTENSION;
 
     const json01 = { _id: targetId, name: 'v01' };
     const json02 = { _id: targetId, name: 'v02' };

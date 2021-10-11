@@ -16,7 +16,7 @@ import {
 } from '../src/types';
 import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { FILE_REMOVE_TIMEOUT, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../src/const';
+import { FILE_REMOVE_TIMEOUT, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
@@ -63,7 +63,7 @@ export function getChangedFileInsert (
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_EXT,
+      name: newDoc!._id + JSON_EXTENSION,
       fileOid: newResult!.fileOid,
       type: 'json',
       doc: newDoc,
@@ -81,14 +81,14 @@ export function getChangedFileUpdate (
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_EXT,
+      name: oldDoc!._id + JSON_EXTENSION,
       fileOid: oldResult!.fileOid,
       type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_EXT,
+      name: newDoc!._id + JSON_EXTENSION,
       fileOid: newResult!.fileOid,
       type: 'json',
       doc: newDoc,
@@ -104,7 +104,7 @@ export function getChangedFileDelete (
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_EXT,
+      name: oldDoc!._id + JSON_EXTENSION,
       fileOid: oldResult!.fileOid,
       type: 'json',
       doc: oldDoc,
@@ -120,7 +120,7 @@ export function getChangedFileInsertBySHA (
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_EXT,
+      name: newDoc!._id + JSON_EXTENSION,
       fileOid: newFileSHA,
       type: 'json',
       doc: newDoc,
@@ -138,14 +138,14 @@ export function getChangedFileUpdateBySHA (
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_EXT,
+      name: oldDoc!._id + JSON_EXTENSION,
       fileOid: oldFileSHA,
       type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_EXT,
+      name: newDoc!._id + JSON_EXTENSION,
       fileOid: newFileSHA,
       type: 'json',
       doc: newDoc,
@@ -161,7 +161,7 @@ export function getChangedFileDeleteBySHA (
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_EXT,
+      name: oldDoc!._id + JSON_EXTENSION,
       fileOid: oldFileSHA,
       type: 'json',
       doc: oldDoc,
@@ -376,7 +376,7 @@ export const compareWorkingDirAndBlobs = async (
 export const getWorkingDirDocs = (gitDDB: GitDocumentDB) => {
   return listFiles(gitDDB, gitDDB.workingDir).map(filepath => {
     const doc = fs.readJSONSync(gitDDB.workingDir + '/' + filepath);
-    doc._id = filepath.replace(new RegExp(JSON_EXT + '$'), '');
+    doc._id = filepath.replace(new RegExp(JSON_EXTENSION + '$'), '');
     return doc;
   });
 };

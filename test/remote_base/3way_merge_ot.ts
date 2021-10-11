@@ -33,7 +33,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 
-import { JSON_EXT } from '../../src/const';
+import { JSON_EXTENSION } from '../../src/const';
 
 export const threeWayMergeOtBase = (
   connection: ConnectionSettings,
@@ -100,7 +100,7 @@ export const threeWayMergeOtBase = (
         local: getCommitInfo([
           putResultA1,
           putResultA2,
-          `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${JSON_EXTENSION}(insert-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},ours-diff)`,
@@ -108,7 +108,7 @@ export const threeWayMergeOtBase = (
         remote: getCommitInfo([
           putResultB1,
           putResultB3,
-          `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${JSON_EXTENSION}(insert-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},ours-diff)`,
@@ -201,14 +201,14 @@ export const threeWayMergeOtBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1,
-          `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${JSON_EXTENSION}(insert-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},theirs-diff)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXT}(insert-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${JSON_EXTENSION}(insert-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},theirs-diff)`,
@@ -286,11 +286,11 @@ export const threeWayMergeOtBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours-diff)`,
+          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours-diff)`,
         ]),
         remote: getCommitInfo([
           deleteResultB1,
-          `resolve: 1${JSON_EXT}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours-diff)`,
+          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours-diff)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -373,11 +373,11 @@ export const threeWayMergeOtBase = (
         local: getCommitInfo([
           deleteResultA1,
           putResultA2,
-          `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours-diff)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours-diff)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXT}(update,${putResultB1.fileOid.substr(0, 7)},ours-diff)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours-diff)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);
@@ -479,14 +479,14 @@ export const threeWayMergeOtBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${JSON_EXTENSION}(update-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},theirs-diff)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXT}(update-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${JSON_EXTENSION}(update-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},theirs-diff)`,

@@ -24,7 +24,7 @@ import {
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { toSortedJSONString, utf8encode } from '../../src/utils';
-import { JSON_EXT } from '../../src/const';
+import { JSON_EXTENSION } from '../../src/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const git_module = require('isomorphic-git');
@@ -101,7 +101,7 @@ describe('<crud/blob>', () => {
       };
       expect(blobToJsonDoc(shortId, readBlobResult, true)).toEqual({
         _id: shortId,
-        name: shortId + JSON_EXT,
+        name: shortId + JSON_EXTENSION,
         fileOid,
         type: 'json',
         doc: json,

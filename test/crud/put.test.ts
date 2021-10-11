@@ -17,7 +17,7 @@ import { monotonicFactory } from 'ulid';
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { putImpl, putWorker } from '../../src/crud/put';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../../src/const';
+import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../../src/const';
 import { sleep, toSortedJSONString } from '../../src/utils';
 import { TaskMetadata } from '../../src/types';
 
@@ -64,7 +64,7 @@ describe('<crud/put> put', () => {
     gitDDB.close().catch(() => {});
     const _id = 'prof01';
     await expect(
-      putImpl(gitDDB, '', _id, _id + JSON_EXT, toSortedJSONString({ _id, name: 'shirase' }))
+      putImpl(gitDDB, '', _id, _id + JSON_EXTENSION, toSortedJSONString({ _id, name: 'shirase' }))
     ).rejects.toThrowError(Err.DatabaseClosingError);
 
     // wait close
@@ -96,7 +96,7 @@ describe('<crud/put> put', () => {
       gitDDB,
       '',
       _id,
-      _id + JSON_EXT,
+      _id + JSON_EXTENSION,
       toSortedJSONString(json)
     );
     const afterTimestamp = Math.floor(Date.now() / 1000) * 1000;
@@ -113,7 +113,7 @@ describe('<crud/put> put', () => {
     // Check NormalizedCommit
     expect(pickedPutResult.commit.oid).toBe(currentCommitOid);
     expect(pickedPutResult.commit.message).toBe(
-      `insert: ${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+      `insert: ${_id}${JSON_EXTENSION}(${oid.substr(0, SHORT_SHA_LENGTH)})`
     );
     expect(pickedPutResult.commit.parent).toEqual([prevCommitOid]);
     expect(pickedPutResult.commit.author.name).toEqual(gitDDB.author.name);
@@ -143,13 +143,13 @@ describe('<crud/put> put', () => {
       gitDDB,
       '',
       _id,
-      _id + JSON_EXT,
+      _id + JSON_EXTENSION,
       toSortedJSONString(json)
     );
 
     const shortOid = pickedPutResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(pickedPutResult.commit.message).toEqual(
-      `insert: ${_id}${JSON_EXT}(${shortOid})`
+      `insert: ${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     // Check commit directly
@@ -159,7 +159,7 @@ describe('<crud/put> put', () => {
       dir: gitDDB.workingDir,
       oid: commitOid,
     });
-    expect(commit.message).toEqual(`insert: ${_id}${JSON_EXT}(${shortOid})\n`);
+    expect(commit.message).toEqual(`insert: ${_id}${JSON_EXTENSION}(${shortOid})\n`);
     await gitDDB.destroy();
   });
 
@@ -172,19 +172,19 @@ describe('<crud/put> put', () => {
     await gitDDB.open();
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
-    await putImpl(gitDDB, '', _id, _id + JSON_EXT, toSortedJSONString(json));
+    await putImpl(gitDDB, '', _id, _id + JSON_EXTENSION, toSortedJSONString(json));
     // update
     const pickedPutResult = await putImpl(
       gitDDB,
       '',
       _id,
-      _id + JSON_EXT,
+      _id + JSON_EXTENSION,
       toSortedJSONString(json)
     );
 
     const shortOid = pickedPutResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(pickedPutResult.commit.message).toEqual(
-      `update: ${_id}${JSON_EXT}(${shortOid})`
+      `update: ${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     // Check commit directly
@@ -194,7 +194,7 @@ describe('<crud/put> put', () => {
       dir: gitDDB.workingDir,
       oid: commitOid,
     });
-    expect(commit.message).toEqual(`update: ${_id}${JSON_EXT}(${shortOid})\n`);
+    expect(commit.message).toEqual(`update: ${_id}${JSON_EXTENSION}(${shortOid})\n`);
     await gitDDB.destroy();
   });
 
@@ -211,11 +211,11 @@ describe('<crud/put> put', () => {
       gitDDB,
       '',
       _id,
-      _id + JSON_EXT,
+      _id + JSON_EXTENSION,
       toSortedJSONString(json)
     );
     const shortOid = pickedPutResult.fileOid.substr(0, SHORT_SHA_LENGTH);
-    const defaultCommitMessage = `insert: ${_id}${JSON_EXT}(${shortOid})`;
+    const defaultCommitMessage = `insert: ${_id}${JSON_EXTENSION}(${shortOid})`;
     expect(pickedPutResult.commit.message).toEqual(defaultCommitMessage);
 
     // Check commit directly
@@ -245,7 +245,7 @@ describe('<crud/put> put', () => {
         gitDDB,
         '',
         i.toString(),
-        i.toString() + JSON_EXT,
+        i.toString() + JSON_EXTENSION,
         toSortedJSONString({ _id: i.toString() }),
         {
           commitMessage: `${i}`,
@@ -276,7 +276,7 @@ describe('<crud/put> put', () => {
       gitDDB,
       '',
       _id,
-      _id + JSON_EXT,
+      _id + JSON_EXTENSION,
       toSortedJSONString(json),
       {
         commitMessage: myCommitMessage,
@@ -325,54 +325,54 @@ describe('<crud/put> put', () => {
     const json_p = { _id: _id_p, name: name_p };
 
     await Promise.all([
-      putImpl(gitDDB, '', _id_a, _id_a + JSON_EXT, toSortedJSONString(json_a)),
-      putImpl(gitDDB, '', _id_b, _id_b + JSON_EXT, toSortedJSONString(json_b)),
-      putImpl(gitDDB, '', _id_c01, _id_c01 + JSON_EXT, toSortedJSONString(json_c01)),
-      putImpl(gitDDB, '', _id_c02, _id_c02 + JSON_EXT, toSortedJSONString(json_c02)),
-      putImpl(gitDDB, '', _id_d, _id_d + JSON_EXT, toSortedJSONString(json_d)),
-      putImpl(gitDDB, '', _id_p, _id_p + JSON_EXT, toSortedJSONString(json_p)),
+      putImpl(gitDDB, '', _id_a, _id_a + JSON_EXTENSION, toSortedJSONString(json_a)),
+      putImpl(gitDDB, '', _id_b, _id_b + JSON_EXTENSION, toSortedJSONString(json_b)),
+      putImpl(gitDDB, '', _id_c01, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01)),
+      putImpl(gitDDB, '', _id_c02, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02)),
+      putImpl(gitDDB, '', _id_d, _id_d + JSON_EXTENSION, toSortedJSONString(json_d)),
+      putImpl(gitDDB, '', _id_p, _id_p + JSON_EXTENSION, toSortedJSONString(json_p)),
     ]);
 
     await expect(gitDDB.findFatDoc()).resolves.toEqual(
       expect.arrayContaining([
         {
           _id: _id_a,
-          name: _id_a + JSON_EXT,
+          name: _id_a + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
-          name: _id_b + JSON_EXT,
+          name: _id_b + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
-          name: _id_c01 + JSON_EXT,
+          name: _id_c01 + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
-          name: _id_c02 + JSON_EXT,
+          name: _id_c02 + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
-          name: _id_d + JSON_EXT,
+          name: _id_d + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,
         },
         {
           _id: _id_p,
-          name: _id_p + JSON_EXT,
+          name: _id_p + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_p) })).oid,
           type: 'json',
           doc: json_p,
@@ -398,7 +398,7 @@ describe('<crud/put> put', () => {
           gitDDB,
           '',
           i.toString(),
-          i.toString() + JSON_EXT,
+          i.toString() + JSON_EXTENSION,
           toSortedJSONString({ _id: i.toString() })
         )
       );
@@ -427,12 +427,12 @@ describe('<crud/put> put', () => {
         gitDDB,
         '',
         i.toString(),
-        i.toString() + JSON_EXT,
+        i.toString() + JSON_EXTENSION,
         toSortedJSONString({ _id: i.toString() })
       );
     }
     // The last put() with await keyword is resolved after all preceding (queued) Promises
-    await putImpl(gitDDB, '', '99', '99' + JSON_EXT, toSortedJSONString({ _id: '99' }));
+    await putImpl(gitDDB, '', '99', '99' + JSON_EXTENSION, toSortedJSONString({ _id: '99' }));
     const fatDocs = await gitDDB.find();
     expect(fatDocs.length).toBe(100);
 
@@ -449,13 +449,13 @@ describe('<crud/put> put', () => {
     const enqueueEvent: TaskMetadata[] = [];
     const id1 = gitDDB.taskQueue.newTaskId();
     const id2 = gitDDB.taskQueue.newTaskId();
-    await putImpl(gitDDB, '', '1', '1' + JSON_EXT, toSortedJSONString({ _id: '1' }), {
+    await putImpl(gitDDB, '', '1', '1' + JSON_EXTENSION, toSortedJSONString({ _id: '1' }), {
       taskId: id1,
       enqueueCallback: (taskMetadata: TaskMetadata) => {
         enqueueEvent.push(taskMetadata);
       },
     });
-    await putImpl(gitDDB, '', '2', '2' + JSON_EXT, toSortedJSONString({ _id: '2' }), {
+    await putImpl(gitDDB, '', '2', '2' + JSON_EXTENSION, toSortedJSONString({ _id: '2' }), {
       taskId: id2,
       enqueueCallback: (taskMetadata: TaskMetadata) => {
         enqueueEvent.push(taskMetadata);
@@ -483,7 +483,7 @@ describe('<crud/put> put', () => {
         gitDDB,
         '',
         i.toString(),
-        i.toString() + JSON_EXT,
+        i.toString() + JSON_EXTENSION,
         toSortedJSONString({ _id: i.toString() })
       ).catch(
         // eslint-disable-next-line no-loop-func
@@ -520,7 +520,7 @@ describe('<crud/put> putWorker', () => {
       putWorker(
         gitDDB,
         '',
-        'prof01' + JSON_EXT,
+        'prof01' + JSON_EXTENSION,
         '{ "_id": "prof01", "name": "Shirase" }',
         'message'
       )
@@ -535,7 +535,7 @@ describe('<crud/put> putWorker', () => {
       localDir,
     });
     await gitDDB.open();
-    const fullDocPath = 'prof01' + JSON_EXT;
+    const fullDocPath = 'prof01' + JSON_EXTENSION;
     await putWorker(
       gitDDB,
       '',
@@ -563,7 +563,7 @@ describe('<crud/put> putWorker', () => {
       localDir,
     });
     await gitDDB.open();
-    const fullDocPath = 'prof01' + JSON_EXT;
+    const fullDocPath = 'prof01' + JSON_EXTENSION;
     await expect(
       putWorker(
         gitDDB,
@@ -605,7 +605,7 @@ describe('<crud/put> putWorker', () => {
     await gitDDB.open();
 
     const json = { _id: 'prof01', name: 'Shirase' };
-    const fullDocPath = json._id + JSON_EXT;
+    const fullDocPath = json._id + JSON_EXTENSION;
     await putWorker(gitDDB, '', fullDocPath, toSortedJSONString(json), 'message');
     expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(
       toSortedJSONString(json)
@@ -623,7 +623,7 @@ describe('<crud/put> putWorker', () => {
     await gitDDB.open();
 
     const json = { _id: 'prof01', name: 'Shirase' };
-    const fullDocPath = json._id + JSON_EXT;
+    const fullDocPath = json._id + JSON_EXTENSION;
     await putWorker(gitDDB, '', fullDocPath, toSortedJSONString(json), 'message');
 
     const json2 = { _id: 'prof01', name: 'updated document' };
@@ -665,54 +665,54 @@ describe('<crud/put> putWorker', () => {
     const json_p = { _id: _id_p, name: name_p };
 
     await Promise.all([
-      putWorker(gitDDB, '', _id_a + JSON_EXT, toSortedJSONString(json_a), 'message'),
-      putWorker(gitDDB, '', _id_b + JSON_EXT, toSortedJSONString(json_b), 'message'),
-      putWorker(gitDDB, '', _id_c01 + JSON_EXT, toSortedJSONString(json_c01), 'message'),
-      putWorker(gitDDB, '', _id_c02 + JSON_EXT, toSortedJSONString(json_c02), 'message'),
-      putWorker(gitDDB, '', _id_d + JSON_EXT, toSortedJSONString(json_d), 'message'),
-      putWorker(gitDDB, '', _id_p + JSON_EXT, toSortedJSONString(json_p), 'message'),
+      putWorker(gitDDB, '', _id_a + JSON_EXTENSION, toSortedJSONString(json_a), 'message'),
+      putWorker(gitDDB, '', _id_b + JSON_EXTENSION, toSortedJSONString(json_b), 'message'),
+      putWorker(gitDDB, '', _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01), 'message'),
+      putWorker(gitDDB, '', _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02), 'message'),
+      putWorker(gitDDB, '', _id_d + JSON_EXTENSION, toSortedJSONString(json_d), 'message'),
+      putWorker(gitDDB, '', _id_p + JSON_EXTENSION, toSortedJSONString(json_p), 'message'),
     ]);
 
     await expect(gitDDB.findFatDoc()).resolves.toEqual(
       expect.arrayContaining([
         {
           _id: _id_a,
-          name: _id_a + JSON_EXT,
+          name: _id_a + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
-          name: _id_b + JSON_EXT,
+          name: _id_b + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
-          name: _id_c01 + JSON_EXT,
+          name: _id_c01 + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
-          name: _id_c02 + JSON_EXT,
+          name: _id_c02 + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
-          name: _id_d + JSON_EXT,
+          name: _id_d + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,
         },
         {
           _id: _id_p,
-          name: _id_p + JSON_EXT,
+          name: _id_p + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_p) })).oid,
           type: 'json',
           doc: json_p,

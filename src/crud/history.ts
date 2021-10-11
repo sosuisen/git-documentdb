@@ -11,7 +11,7 @@ import fs from 'fs-extra';
 import { Doc, DocType, FatDoc, GetOptions, HistoryFilter, HistoryOptions } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
-import { JSON_EXT } from '../const';
+import { JSON_EXTENSION } from '../const';
 import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
 
 /**
@@ -46,7 +46,7 @@ export async function getHistoryImpl (
   const fullDocPath = collectionPath + shortName;
 
   const docType: DocType =
-    options.forceDocType ?? (fullDocPath.endsWith('.json') ? 'json' : 'text');
+    options.forceDocType ?? (fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text');
 
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
@@ -88,7 +88,7 @@ export async function getHistoryImpl (
           docArray.push(undefined);
         }
         else if (docType === 'json') {
-          const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
+          const shortId = shortName.replace(new RegExp(JSON_EXTENSION + '$'), '');
 
           // eslint-disable-next-line max-depth
           if (withMetaData) {

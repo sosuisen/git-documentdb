@@ -66,6 +66,7 @@ export class Validator {
   static maxWorkingDirectoryLength () {
     // Trailing slash of workingDirectory is omitted.
     // Full path is `${_workingDirectory}/a.json`
+    // Don't care about '.md' for simplicity.
     const minimumMemberLength = 7; // '/a.json'
     return MAX_FILE_PATH_LENGTH - minimumMemberLength;
   }
@@ -77,6 +78,7 @@ export class Validator {
     // Suppose that collectionPath is normalized.
     // Trailing slash of workingDirectory is omitted.
     // Full path is `${_workingDirectory}/${collectionPath}${shortId}.json`
+    // Don't care about '.md' for simplicity.
     const minIdLength = 6; // 'a.json'
     return MAX_FILE_PATH_LENGTH - this._workingDirectory.length - 1 - minIdLength;
   }
@@ -91,6 +93,7 @@ export class Validator {
     // Suppose that collectionPath is normalized.
     // Trailing slash of workingDirectory is omitted.
     // Full path is `${_workingDirectory}/${collectionPath}${shortId}.json`
+    // Don't care about '.md' for simplicity.
     const extLength = 5; // '.json'
     return MAX_FILE_PATH_LENGTH - this._workingDirectory.length - 1 - extLength;
   }

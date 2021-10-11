@@ -21,7 +21,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
-import { JSON_EXT } from '../../src/const';
+import { JSON_EXTENSION } from '../../src/const';
 import { getHistoryImpl, readOldBlob } from '../../src/crud/history';
 
 export const networkHistoryBase = (
@@ -52,7 +52,7 @@ export const networkHistoryBase = (
       );
 
       const _id = 'prof';
-      const shortName = _id + JSON_EXT;
+      const shortName = _id + JSON_EXTENSION;
       const jsonA1 = { _id, name: 'A-1' };
       const jsonA2 = { _id, name: 'A-2' };
       const jsonA3 = { _id, name: 'A-3' };

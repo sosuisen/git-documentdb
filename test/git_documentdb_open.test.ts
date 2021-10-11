@@ -21,7 +21,7 @@ import {
   DATABASE_VERSION,
   FIRST_COMMIT_MESSAGE,
   GIT_DOCUMENTDB_INFO_ID,
-  JSON_EXT,
+  JSON_POSTFIX,
 } from '../src/const';
 import { sleep } from '../src/utils';
 
@@ -38,11 +38,11 @@ const monoId = () => {
 const localDir = `./test/database_open`;
 
 async function createDatabaseInfo (workingDir: string, info: string) {
-  const infoPath = path.resolve(workingDir, GIT_DOCUMENTDB_INFO_ID + JSON_EXT);
+  const infoPath = path.resolve(workingDir, GIT_DOCUMENTDB_INFO_ID + JSON_POSTFIX);
   await fs.ensureDir(path.dirname(infoPath));
   await git.init({ fs, dir: workingDir, defaultBranch: 'main' });
   await fs.writeFile(infoPath, info);
-  await git.add({ fs, dir: workingDir, filepath: GIT_DOCUMENTDB_INFO_ID + JSON_EXT });
+  await git.add({ fs, dir: workingDir, filepath: GIT_DOCUMENTDB_INFO_ID + JSON_POSTFIX });
   await git.commit({
     fs,
     dir: workingDir,

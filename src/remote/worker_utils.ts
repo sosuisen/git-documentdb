@@ -10,7 +10,7 @@ import nodePath from 'path';
 import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { normalizeCommit, toSortedJSONString, utf8decode } from '../utils';
-import { JSON_EXT } from '../const';
+import { JSON_EXTENSION } from '../const';
 import { Err } from '../error';
 import {
   ChangedFile,
@@ -55,7 +55,7 @@ export async function getFatDocFromData (
   let fatDoc: FatDoc;
   const { oid } = await git.hashBlob({ object: data });
   if (docType === 'json') {
-    const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
+    const _id = fullDocPath.replace(new RegExp(JSON_EXTENSION + '$'), '');
     if (typeof data !== 'string') {
       data = utf8decode(data);
     }
@@ -129,7 +129,7 @@ export function getFatDocFromReadBlobResult (
 ) {
   let fatDoc: FatDoc;
   if (docType === 'json') {
-    const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
+    const _id = fullDocPath.replace(new RegExp(JSON_EXTENSION + '$'), '');
     fatDoc = blobToJsonDoc(_id, readBlobResult, true) as FatJsonDoc;
   }
   else if (docType === 'text') {
@@ -169,7 +169,7 @@ export async function getChanges (
         a = null;
       }
 
-      const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+      const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
       if (docType === 'text') {
         // TODO: select binary or text by .gitattribtues
       }
@@ -237,7 +237,7 @@ export async function getAndWriteLocalChanges (
         return;
       }
 
-      const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+      const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
       if (docType === 'text') {
         // TODO: select binary or text by .gitattribtues
       }

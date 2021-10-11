@@ -17,7 +17,7 @@ import { sleep, toSortedJSONString } from '../../src/utils';
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { getImpl } from '../../src/crud/get';
-import { JSON_EXT } from '../../src/const';
+import { JSON_EXTENSION } from '../../src/const';
 import { addOneData, removeOneData } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -103,7 +103,7 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'prof01';
-    const shortName = shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXTENSION;
     const collectionPath = '';
     const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
@@ -122,7 +122,7 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'dir01/prof01';
-    const shortName = shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXTENSION;
     const collectionPath = '';
     const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
@@ -141,7 +141,7 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'dir01/prof01';
-    const shortName = shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXTENSION;
     const collectionPath = 'col01/col02/col03';
     const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
@@ -193,7 +193,7 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = 'prof01';
-    const shortName = shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXTENSION;
     const collectionPath = '';
     const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
@@ -216,7 +216,7 @@ describe('<crud/get> getImpl()', () => {
 
     await gitDDB.open();
     const shortId = '枕草子/春はあけぼの';
-    const shortName = shortId + JSON_EXT;
+    const shortName = shortId + JSON_EXTENSION;
     const collectionPath = '';
     const fullDocPath = collectionPath + shortName;
     const json = { _id: shortId, name: 'Shirase' };
@@ -236,7 +236,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
@@ -260,7 +260,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
@@ -288,7 +288,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
@@ -312,7 +312,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
@@ -335,7 +335,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
@@ -358,7 +358,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
@@ -383,7 +383,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
@@ -408,7 +408,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
@@ -433,7 +433,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json01 = { _id: shortId, name: 'v01' };
@@ -476,7 +476,7 @@ describe('<crud/get> getImpl()', () => {
 
       await gitDDB.open();
       const shortId = 'prof01';
-      const shortName = shortId + JSON_EXT;
+      const shortName = shortId + JSON_EXTENSION;
       const collectionPath = '';
       const fullDocPath = collectionPath + shortName;
       const json = { _id: shortId, name: 'Shirase' };
@@ -501,7 +501,7 @@ describe('<crud/get> getImpl()', () => {
     });
 
     const targetId = '01';
-    const targetName = targetId + JSON_EXT;
+    const targetName = targetId + JSON_EXTENSION;
     const collectionPath = '';
     const fullDocPath = collectionPath + targetName;
 

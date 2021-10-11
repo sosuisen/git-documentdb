@@ -13,7 +13,7 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { Collection } from '../src/collection';
-import { JSON_EXT } from '../src/const';
+import { JSON_EXTENSION } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
@@ -70,7 +70,7 @@ describe('<collection>', () => {
       const col = new Collection(gitDDB, 'col01');
       await addOneData(
         gitDDB,
-        col.collectionPath + 'invalidJSON' + JSON_EXT,
+        col.collectionPath + 'invalidJSON' + JSON_EXTENSION,
         'invalidJSON'
       );
 
@@ -117,27 +117,27 @@ describe('<collection>', () => {
 
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_b + JSON_EXT,
+        col.collectionPath + _id_b + JSON_EXTENSION,
         toSortedJSONString(json_b)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_a + JSON_EXT,
+        col.collectionPath + _id_a + JSON_EXTENSION,
         toSortedJSONString(json_a)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_d + JSON_EXT,
+        col.collectionPath + _id_d + JSON_EXTENSION,
         toSortedJSONString(json_d)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_c01 + JSON_EXT,
+        col.collectionPath + _id_c01 + JSON_EXTENSION,
         toSortedJSONString(json_c01)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_c02 + JSON_EXT,
+        col.collectionPath + _id_c02 + JSON_EXTENSION,
         toSortedJSONString(json_c02)
       );
 
@@ -180,37 +180,37 @@ describe('<collection>', () => {
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_b + JSON_EXT,
+          col.collectionPath + _id_b + JSON_EXTENSION,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_a + JSON_EXT,
+          col.collectionPath + _id_a + JSON_EXTENSION,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_d + JSON_EXT,
+          col.collectionPath + _id_d + JSON_EXTENSION,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c000 + JSON_EXT,
+          col.collectionPath + _id_c000 + JSON_EXTENSION,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c001 + JSON_EXT,
+          col.collectionPath + _id_c001 + JSON_EXTENSION,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c01 + JSON_EXT,
+          col.collectionPath + _id_c01 + JSON_EXTENSION,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c02 + JSON_EXT,
+          col.collectionPath + _id_c02 + JSON_EXTENSION,
           toSortedJSONString(json_c02)
         );
 
@@ -248,37 +248,37 @@ describe('<collection>', () => {
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_b + JSON_EXT,
+          col.collectionPath + _id_b + JSON_EXTENSION,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_a + JSON_EXT,
+          col.collectionPath + _id_a + JSON_EXTENSION,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_d + JSON_EXT,
+          col.collectionPath + _id_d + JSON_EXTENSION,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c000 + JSON_EXT,
+          col.collectionPath + _id_c000 + JSON_EXTENSION,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c001 + JSON_EXT,
+          col.collectionPath + _id_c001 + JSON_EXTENSION,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c01 + JSON_EXT,
+          col.collectionPath + _id_c01 + JSON_EXTENSION,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c02 + JSON_EXT,
+          col.collectionPath + _id_c02 + JSON_EXTENSION,
           toSortedJSONString(json_c02)
         );
 
@@ -319,37 +319,37 @@ describe('<collection>', () => {
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_b + JSON_EXT,
+          col.collectionPath + _id_b + JSON_EXTENSION,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_a + JSON_EXT,
+          col.collectionPath + _id_a + JSON_EXTENSION,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_d + JSON_EXT,
+          col.collectionPath + _id_d + JSON_EXTENSION,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c000 + JSON_EXT,
+          col.collectionPath + _id_c000 + JSON_EXTENSION,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c001 + JSON_EXT,
+          col.collectionPath + _id_c001 + JSON_EXTENSION,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c01 + JSON_EXT,
+          col.collectionPath + _id_c01 + JSON_EXTENSION,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c02 + JSON_EXT,
+          col.collectionPath + _id_c02 + JSON_EXTENSION,
           toSortedJSONString(json_c02)
         );
 
@@ -392,37 +392,37 @@ describe('<collection>', () => {
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_b + JSON_EXT,
+          col.collectionPath + _id_b + JSON_EXTENSION,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_a + JSON_EXT,
+          col.collectionPath + _id_a + JSON_EXTENSION,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_d + JSON_EXT,
+          col.collectionPath + _id_d + JSON_EXTENSION,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c000 + JSON_EXT,
+          col.collectionPath + _id_c000 + JSON_EXTENSION,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c001 + JSON_EXT,
+          col.collectionPath + _id_c001 + JSON_EXTENSION,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c01 + JSON_EXT,
+          col.collectionPath + _id_c01 + JSON_EXTENSION,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c02 + JSON_EXT,
+          col.collectionPath + _id_c02 + JSON_EXTENSION,
           toSortedJSONString(json_c02)
         );
 
@@ -460,37 +460,37 @@ describe('<collection>', () => {
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_b + JSON_EXT,
+          col.collectionPath + _id_b + JSON_EXTENSION,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_a + JSON_EXT,
+          col.collectionPath + _id_a + JSON_EXTENSION,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_d + JSON_EXT,
+          col.collectionPath + _id_d + JSON_EXTENSION,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c000 + JSON_EXT,
+          col.collectionPath + _id_c000 + JSON_EXTENSION,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c001 + JSON_EXT,
+          col.collectionPath + _id_c001 + JSON_EXTENSION,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c01 + JSON_EXT,
+          col.collectionPath + _id_c01 + JSON_EXTENSION,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c02 + JSON_EXT,
+          col.collectionPath + _id_c02 + JSON_EXTENSION,
           toSortedJSONString(json_c02)
         );
 
@@ -531,43 +531,43 @@ describe('<collection>', () => {
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_p + JSON_EXT,
+          col.collectionPath + _id_p + JSON_EXTENSION,
           toSortedJSONString(json_p)
         );
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_b + JSON_EXT,
+          col.collectionPath + _id_b + JSON_EXTENSION,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_a + JSON_EXT,
+          col.collectionPath + _id_a + JSON_EXTENSION,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_d + JSON_EXT,
+          col.collectionPath + _id_d + JSON_EXTENSION,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c000 + JSON_EXT,
+          col.collectionPath + _id_c000 + JSON_EXTENSION,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c001 + JSON_EXT,
+          col.collectionPath + _id_c001 + JSON_EXTENSION,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c01 + JSON_EXT,
+          col.collectionPath + _id_c01 + JSON_EXTENSION,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c02 + JSON_EXT,
+          col.collectionPath + _id_c02 + JSON_EXTENSION,
           toSortedJSONString(json_c02)
         );
 
@@ -608,43 +608,43 @@ describe('<collection>', () => {
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_p + JSON_EXT,
+          col.collectionPath + _id_p + JSON_EXTENSION,
           toSortedJSONString(json_p)
         );
 
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_b + JSON_EXT,
+          col.collectionPath + _id_b + JSON_EXTENSION,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_a + JSON_EXT,
+          col.collectionPath + _id_a + JSON_EXTENSION,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_d + JSON_EXT,
+          col.collectionPath + _id_d + JSON_EXTENSION,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c000 + JSON_EXT,
+          col.collectionPath + _id_c000 + JSON_EXTENSION,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c001 + JSON_EXT,
+          col.collectionPath + _id_c001 + JSON_EXTENSION,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c01 + JSON_EXT,
+          col.collectionPath + _id_c01 + JSON_EXTENSION,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          col.collectionPath + _id_c02 + JSON_EXT,
+          col.collectionPath + _id_c02 + JSON_EXTENSION,
           toSortedJSONString(json_c02)
         );
 
@@ -681,62 +681,62 @@ describe('<collection>', () => {
 
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_b + JSON_EXT,
+        col.collectionPath + _id_b + JSON_EXTENSION,
         toSortedJSONString(json_b)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_a + JSON_EXT,
+        col.collectionPath + _id_a + JSON_EXTENSION,
         toSortedJSONString(json_a)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_d + JSON_EXT,
+        col.collectionPath + _id_d + JSON_EXTENSION,
         toSortedJSONString(json_d)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_c01 + JSON_EXT,
+        col.collectionPath + _id_c01 + JSON_EXTENSION,
         toSortedJSONString(json_c01)
       );
       await addOneData(
         gitDDB,
-        col.collectionPath + _id_c02 + JSON_EXT,
+        col.collectionPath + _id_c02 + JSON_EXTENSION,
         toSortedJSONString(json_c02)
       );
 
       await expect(col.findFatDoc()).resolves.toEqual([
         {
           _id: _id_a,
-          name: _id_a + JSON_EXT,
+          name: _id_a + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a_,
         },
         {
           _id: _id_b,
-          name: _id_b + JSON_EXT,
+          name: _id_b + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b_,
         },
         {
           _id: _id_c01,
-          name: _id_c01 + JSON_EXT,
+          name: _id_c01 + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01_,
         },
         {
           _id: _id_c02,
-          name: _id_c02 + JSON_EXT,
+          name: _id_c02 + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02_,
         },
         {
           _id: _id_d,
-          name: _id_d + JSON_EXT,
+          name: _id_d + JSON_EXTENSION,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d_,

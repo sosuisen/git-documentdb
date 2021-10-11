@@ -7,7 +7,7 @@
  */
 
 import { ReadBlobResult } from 'isomorphic-git';
-import { JSON_EXT } from '../const';
+import { JSON_EXTENSION } from '../const';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import {
@@ -98,7 +98,7 @@ export async function getImpl (
   if (readBlobResult === undefined) return undefined;
 
   const docType: DocType =
-    options.forceDocType ?? (fullDocPath.endsWith('.json') ? 'json' : 'text');
+    options.forceDocType ?? (fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text');
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
@@ -107,7 +107,7 @@ export async function getImpl (
     if (internalOptions.oid !== '') {
       return blobToJsonDocWithoutOverwrittenId(readBlobResult);
     }
-    const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
+    const shortId = shortName.replace(new RegExp(JSON_EXTENSION + '$'), '');
     return blobToJsonDoc(shortId, readBlobResult, internalOptions.withMetadata);
   }
   else if (docType === 'text') {

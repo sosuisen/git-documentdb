@@ -13,7 +13,7 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { DeleteResultJsonDoc } from '../src/types';
-import { JSON_EXT, SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
@@ -104,7 +104,7 @@ describe('delete(shortId)', () => {
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: users/${_id}${JSON_EXT}(${shortOid})`
+      `delete: users/${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     // Check commit directly
@@ -114,7 +114,7 @@ describe('delete(shortId)', () => {
       dir: gitDDB.workingDir,
       oid: commitOid,
     });
-    expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXT}(${shortOid})\n`);
+    expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXTENSION}(${shortOid})\n`);
 
     await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(users.get(_id)).resolves.toBeUndefined();
@@ -153,7 +153,7 @@ describe('delete(shortId)', () => {
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})`
+      `delete: ${users.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     // Check commit directly
@@ -164,7 +164,7 @@ describe('delete(shortId)', () => {
       oid: commitOid,
     });
     expect(commit.message).toEqual(
-      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
+      `delete: ${users.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})\n`
     );
 
     await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
@@ -248,7 +248,7 @@ describe('delete(jsonDoc)', () => {
     // Check NormalizedCommit
     expect(deleteResult.commit.oid).toBe(currentCommitOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+      `delete: ${users.collectionPath}${_id}${JSON_EXTENSION}(${oid.substr(0, SHORT_SHA_LENGTH)})`
     );
     expect(deleteResult.commit.parent).toEqual([prevCommitOid]);
     expect(deleteResult.commit.author.name).toEqual(gitDDB.author.name);
@@ -316,11 +316,11 @@ describe('deleteFatDoc(name)', () => {
 
     const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXT)) as DeleteResultJsonDoc;
+    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXTENSION)) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: users/${_id}${JSON_EXT}(${shortOid})`
+      `delete: users/${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     // Check commit directly
@@ -330,7 +330,7 @@ describe('deleteFatDoc(name)', () => {
       dir: gitDDB.workingDir,
       oid: commitOid,
     });
-    expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXT}(${shortOid})\n`);
+    expect(commit.message).toEqual(`delete: users/${_id}${JSON_EXTENSION}(${shortOid})\n`);
 
     await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(users.get(_id)).resolves.toBeUndefined();
@@ -365,11 +365,11 @@ describe('deleteFatDoc(name)', () => {
 
     const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXT)) as DeleteResultJsonDoc;
+    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXTENSION)) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})`
+      `delete: ${users.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
     );
 
     // Check commit directly
@@ -380,7 +380,7 @@ describe('deleteFatDoc(name)', () => {
       oid: commitOid,
     });
     expect(commit.message).toEqual(
-      `delete: ${users.collectionPath}${_id}${JSON_EXT}(${shortOid})\n`
+      `delete: ${users.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})\n`
     );
 
     await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);

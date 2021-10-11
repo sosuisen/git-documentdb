@@ -23,7 +23,7 @@ import {
   NormalizedCommit,
   TextDocMetadata,
 } from './types';
-import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from './const';
+import { FRONT_MATTER_POSTFIX, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION, JSON_POSTFIX } from './const';
 
 /**
  * @internal
@@ -80,6 +80,18 @@ export function toSortedJSONString (obj: Record<string, any>) {
         : v,
     2
   );
+}
+
+export function toFrontMatterMarkdown (obj: Record<string, any>) {
+  const _body = typeof obj._body === 'string' ? obj._body : '';
+    
+}
+
+export function serializeJSON (obj: Record<string, any>) {
+  if (JSON_EXTENSION === FRONT_MATTER_POSTFIX) {
+    return toFrontMatterMarkdown(obj);
+  }
+  return toSortedJSONString(obj);
 }
 
 /**
@@ -141,12 +153,12 @@ export async function getAllMetadata (workingDir: string): Promise<DocMetadata[]
         // Skip if cannot read
         if (readBlobResult === undefined) continue;
 
-        const docType: DocType = fullDocPath.endsWith('.json') ? 'json' : 'text';
+        const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
         if (docType === 'text') {
           // TODO: select binary or text by .gitattribtues
         }
         if (docType === 'json') {
-          const _id = fullDocPath.replace(new RegExp(JSON_EXT + '$'), '');
+          const _id = fullDocPath.replace(new RegExp(JSON_EXTENSION + '$'), '');
           const meta: JsonDocMetadata = {
             _id,
             name: fullDocPath,

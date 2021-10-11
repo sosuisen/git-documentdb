@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import { readBlob, readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
-import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXT } from '../const';
+import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION } from '../const';
 import { Err } from '../error';
 import {
   Doc,
@@ -142,7 +142,7 @@ export async function findImpl (
         }
       }
       else {
-        if (findOnlyJson && !fullDocPath.endsWith('.json')) {
+        if (findOnlyJson && !fullDocPath.endsWith(JSON_EXTENSION)) {
           continue;
         }
         // eslint-disable-next-line no-await-in-loop
@@ -156,13 +156,14 @@ export async function findImpl (
         // Skip if cannot read
         if (readBlobResult) {
           const docType: DocType =
-            options.forceDocType ?? (fullDocPath.endsWith('.json') ? 'json' : 'text');
+            options.forceDocType ??
+            (fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text');
           if (docType === 'text') {
             // TODO: select binary or text by .gitattribtues
           }
           const shortName = fullDocPath.replace(new RegExp('^' + collectionPath), '');
           if (docType === 'json') {
-            const shortId = shortName.replace(new RegExp(JSON_EXT + '$'), '');
+            const shortId = shortName.replace(new RegExp(JSON_EXTENSION + '$'), '');
             if (withMetadata) {
               docs.push(blobToJsonDoc(shortId, readBlobResult, true) as FatJsonDoc);
             }
