@@ -7,6 +7,7 @@
  */
 
 import fs from 'fs-extra';
+import yaml from 'js-yaml';
 import {
   readBlob,
   ReadCommitResult,
@@ -23,7 +24,7 @@ import {
   NormalizedCommit,
   TextDocMetadata,
 } from './types';
-import { FRONT_MATTER_POSTFIX, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION, JSON_POSTFIX } from './const';
+import { FRONT_MATTER_POSTFIX, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION } from './const';
 
 /**
  * @internal
@@ -83,8 +84,10 @@ export function toSortedJSONString (obj: Record<string, any>) {
 }
 
 export function toFrontMatterMarkdown (obj: Record<string, any>) {
-  const _body = typeof obj._body === 'string' ? obj._body : '';
-    
+  const body = typeof obj._body === 'string' ? obj._body : '';
+  delete obj._body;
+  const frontMatter = '---\n' + yaml.dump(obj) + '---\n';
+  return frontMatter + body;
 }
 
 export function serializeJSON (obj: Record<string, any>) {
