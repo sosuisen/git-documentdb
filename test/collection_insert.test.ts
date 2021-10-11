@@ -101,7 +101,11 @@ describe('<collection> insert(jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXTENSION);
+    const filePath = path.resolve(
+      gitDDB.workingDir,
+      col.collectionPath,
+      _id + JSON_EXTENSION
+    );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -218,7 +222,11 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXTENSION);
+    const filePath = path.resolve(
+      gitDDB.workingDir,
+      col.collectionPath,
+      _id + JSON_EXTENSION
+    );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -300,7 +308,11 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
     expect(putResult.commit.committer.timestamp).toBeLessThanOrEqual(afterTimestamp);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, col.collectionPath, _id + JSON_EXTENSION);
+    const filePath = path.resolve(
+      gitDDB.workingDir,
+      col.collectionPath,
+      _id + JSON_EXTENSION
+    );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));

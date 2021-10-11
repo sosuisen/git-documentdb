@@ -248,7 +248,10 @@ describe('delete(jsonDoc)', () => {
     // Check NormalizedCommit
     expect(deleteResult.commit.oid).toBe(currentCommitOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${users.collectionPath}${_id}${JSON_EXTENSION}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+      `delete: ${users.collectionPath}${_id}${JSON_EXTENSION}(${oid.substr(
+        0,
+        SHORT_SHA_LENGTH
+      )})`
     );
     expect(deleteResult.commit.parent).toEqual([prevCommitOid]);
     expect(deleteResult.commit.author.name).toEqual(gitDDB.author.name);
@@ -316,7 +319,9 @@ describe('deleteFatDoc(name)', () => {
 
     const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXTENSION)) as DeleteResultJsonDoc;
+    const deleteResult = (await users.deleteFatDoc(
+      _id + JSON_EXTENSION
+    )) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(
@@ -365,7 +370,9 @@ describe('deleteFatDoc(name)', () => {
 
     const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
     // Delete
-    const deleteResult = (await users.deleteFatDoc(_id + JSON_EXTENSION)) as DeleteResultJsonDoc;
+    const deleteResult = (await users.deleteFatDoc(
+      _id + JSON_EXTENSION
+    )) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
     expect(deleteResult.commit.message).toBe(

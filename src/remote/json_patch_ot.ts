@@ -110,7 +110,7 @@ export class JsonPatchOT implements IJsonPatch {
         }
         const noBar = keys.slice(0, underBarStart);
         const underBar = keys.slice(underBarStart, keys.length);
-        sortedKeys = underBar.concat(noBar); // _1, _2, _3, 1, 2, 3
+        sortedKeys = [...underBar, ...noBar]; // _1, _2, _3, 1, 2, 3
       }
       else {
         sortedKeys = keys.sort();
@@ -120,10 +120,10 @@ export class JsonPatchOT implements IJsonPatch {
         if (Array.isArray(tree[key])) {
           const arr = tree[key] as any[];
           if (arr.length === 1) {
-            operations.push(insertOp(ancestors.concat(key), arr[0])!);
+            operations.push(insertOp([...ancestors, ...key], arr[0])!);
           }
           else if (arr.length === 2) {
-            operations.push(replaceOp(ancestors.concat(key), arr[0], arr[1])!);
+            operations.push(replaceOp([...ancestors, ...key], arr[0], arr[1])!);
           }
           else if (arr.length === 3) {
             const firstItem = arr[0];
@@ -134,7 +134,7 @@ export class JsonPatchOT implements IJsonPatch {
               if (!isTextPatch)
                 isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+? @@\n/m);
               if (isTextPatch) {
-                const textOp = this.getTextOp(ancestors.concat(key), firstItem);
+                const textOp = this.getTextOp([...ancestors, ...key], firstItem);
                 if (textOp) {
                   operations.push(textOp);
                 }
@@ -143,7 +143,7 @@ export class JsonPatchOT implements IJsonPatch {
           }
         }
         else if (typeof tree[key] === 'object') {
-          procTree(ancestors.concat(key), tree[key]);
+          procTree([...ancestors, ...key], tree[key]);
         }
       });
     };
@@ -264,7 +264,7 @@ export class JsonPatchOT implements IJsonPatch {
                 conflictedCommands.forEach(command => delete opElm[command]);
               }
               if (Object.keys(opElm).length > 0) {
-                const resolvedOp = pathFromRoot.concat(opElm);
+                const resolvedOp = [...pathFromRoot, ...opElm];
                 resolvedOperations.push(resolvedOp);
               }
             }

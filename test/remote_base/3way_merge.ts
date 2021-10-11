@@ -632,11 +632,17 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
         remote: getCommitInfo([
           deleteResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
       });
 
@@ -900,11 +906,17 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           deleteResultA1,
           putResultA2,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultA1.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultA1.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultA1.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultA1.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(2);
@@ -1353,11 +1365,17 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);
@@ -1691,11 +1709,17 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+            0,
+            7
+          )},theirs)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);

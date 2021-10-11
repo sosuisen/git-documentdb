@@ -64,7 +64,13 @@ describe('<crud/put> put', () => {
     gitDDB.close().catch(() => {});
     const _id = 'prof01';
     await expect(
-      putImpl(gitDDB, '', _id, _id + JSON_EXTENSION, toSortedJSONString({ _id, name: 'shirase' }))
+      putImpl(
+        gitDDB,
+        '',
+        _id,
+        _id + JSON_EXTENSION,
+        toSortedJSONString({ _id, name: 'shirase' })
+      )
     ).rejects.toThrowError(Err.DatabaseClosingError);
 
     // wait close
@@ -432,7 +438,13 @@ describe('<crud/put> put', () => {
       );
     }
     // The last put() with await keyword is resolved after all preceding (queued) Promises
-    await putImpl(gitDDB, '', '99', '99' + JSON_EXTENSION, toSortedJSONString({ _id: '99' }));
+    await putImpl(
+      gitDDB,
+      '',
+      '99',
+      '99' + JSON_EXTENSION,
+      toSortedJSONString({ _id: '99' })
+    );
     const fatDocs = await gitDDB.find();
     expect(fatDocs.length).toBe(100);
 
@@ -667,8 +679,20 @@ describe('<crud/put> putWorker', () => {
     await Promise.all([
       putWorker(gitDDB, '', _id_a + JSON_EXTENSION, toSortedJSONString(json_a), 'message'),
       putWorker(gitDDB, '', _id_b + JSON_EXTENSION, toSortedJSONString(json_b), 'message'),
-      putWorker(gitDDB, '', _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01), 'message'),
-      putWorker(gitDDB, '', _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02), 'message'),
+      putWorker(
+        gitDDB,
+        '',
+        _id_c01 + JSON_EXTENSION,
+        toSortedJSONString(json_c01),
+        'message'
+      ),
+      putWorker(
+        gitDDB,
+        '',
+        _id_c02 + JSON_EXTENSION,
+        toSortedJSONString(json_c02),
+        'message'
+      ),
       putWorker(gitDDB, '', _id_d + JSON_EXTENSION, toSortedJSONString(json_d), 'message'),
       putWorker(gitDDB, '', _id_p + JSON_EXTENSION, toSortedJSONString(json_p), 'message'),
     ]);

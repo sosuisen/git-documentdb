@@ -16,7 +16,11 @@ import {
 } from '../src/types';
 import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { FILE_REMOVE_TIMEOUT, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION } from '../src/const';
+import {
+  FILE_REMOVE_TIMEOUT,
+  GIT_DOCUMENTDB_METADATA_DIR,
+  JSON_EXTENSION,
+} from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;

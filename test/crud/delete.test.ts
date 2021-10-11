@@ -223,7 +223,9 @@ describe('<crud/delete>', () => {
 
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(deleteResult.fileOid).toBe(putResult.fileOid);
-      expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXTENSION}(${shortOid})`);
+      expect(deleteResult.commit.message).toBe(
+        `delete: ${_id}${JSON_EXTENSION}(${shortOid})`
+      );
 
       // Check commit directly
       const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
@@ -384,9 +386,9 @@ describe('<crud/delete>', () => {
       const stubEnsureDir = sandbox.stub(fs_module, 'remove');
       stubEnsureDir.rejects();
 
-      await expect(deleteWorker(gitDDB, '', 'prof01' + JSON_EXTENSION, '')).rejects.toThrowError(
-        Err.CannotDeleteDataError
-      );
+      await expect(
+        deleteWorker(gitDDB, '', 'prof01' + JSON_EXTENSION, '')
+      ).rejects.toThrowError(Err.CannotDeleteDataError);
       await gitDDB.destroy();
     });
   });

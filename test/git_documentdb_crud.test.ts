@@ -1377,7 +1377,9 @@ describe('<git_documentdb> delete(_id)', () => {
     const deleteResult = await gitDDB.delete(_id);
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
-    expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(deleteResult.commit.message).toBe(
+      `delete: ${_id}${JSON_EXTENSION}(${shortOid})`
+    );
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
@@ -1504,7 +1506,9 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
     const deleteResult = (await gitDDB.deleteFatDoc(name)) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
-    expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(deleteResult.commit.message).toBe(
+      `delete: ${_id}${JSON_EXTENSION}(${shortOid})`
+    );
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
