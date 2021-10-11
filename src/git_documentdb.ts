@@ -57,9 +57,11 @@ import {
   FILE_CREATE_TIMEOUT,
   FILE_REMOVE_TIMEOUT,
   FIRST_COMMIT_MESSAGE,
+  FRONT_MATTER_EXT,
   GIT_DOCUMENTDB_INFO_ID,
   JSON_EXT,
   SET_DATABASE_ID_MESSAGE,
+  setFileExt,
 } from './const';
 import { normalizeCommit, sleep, toSortedJSONString } from './utils';
 import { SyncEventInterface, SyncInterface } from './types_sync';
@@ -321,6 +323,8 @@ export class GitDocumentDB
         plainTextProperties: undefined,
       },
     };
+
+    setFileExt(options.serializeFormat === 'front-matter' ? FRONT_MATTER_EXT : JSON_EXT);
 
     // Get full-path
     this._workingDir = path.resolve(this._localDir, this._dbName);

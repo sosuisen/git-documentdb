@@ -52,6 +52,7 @@ export type DatabaseOptions = {
   dbName: string;
   logLevel?: TLogLevelName;
   schema?: Schema;
+  serializeFormat?: SerializeFormat;
 };
 
 /**
@@ -288,6 +289,11 @@ export type FatBinaryDoc = BinaryDocMetadata & {
  * @public
  */
 export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
+
+/**
+ * Format for serialization
+ */
+export type SerializeFormat = 'json' | 'front-matter';
 
 /**
  * CollectionPath

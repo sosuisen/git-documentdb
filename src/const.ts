@@ -66,6 +66,21 @@ export const JSON_EXT = '.json';
 /**
  * @public
  */
+export const FRONT_MATTER_EXT = '.md';
+/**
+ * !ALERT: It is not const for simplicity.
+ *
+ * @internal
+ */
+// eslint-disable-next-line import/no-mutable-exports, @typescript-eslint/naming-convention, prefer-const
+export let FILE_EXT = '.json';
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export const setFileExt = (ext: string) => {
+  FILE_EXT = ext;
+};
+/**
+ * @public
+ */
 export const MAX_FILE_PATH_LENGTH = 255;
 /**
  * @public
