@@ -85,8 +85,9 @@ export function toSortedJSONString (obj: Record<string, any>) {
 
 export function toFrontMatterMarkdown (obj: Record<string, any>) {
   const body = typeof obj._body === 'string' ? obj._body : '';
-  delete obj._body;
-  const frontMatter = '---\n' + yaml.dump(obj, { sortKeys: true }) + '---\n';
+  const clone = JSON.parse(JSON.stringify(obj));
+  delete clone._body;
+  const frontMatter = '---\n' + yaml.dump(clone, { sortKeys: true }) + '---\n';
   return frontMatter + body;
 }
 

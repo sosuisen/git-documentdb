@@ -14,8 +14,8 @@ import expect from 'expect';
 import fs from 'fs-extra';
 import { DeleteResultJsonDoc, PutResultJsonDoc } from '../src/types';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { sleep, toSortedJSONString } from '../src/utils';
-import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
+import { sleep, toFrontMatterMarkdown, toSortedJSONString } from '../src/utils';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 import { addOneData } from './utils';
 import { Err } from '../src/error';
 
@@ -91,6 +91,34 @@ describe('<git_documentdb> put(jsonDoc)', () => {
     const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
+
+    await gitDDB.destroy();
+  });
+
+  it('creates a Front Matter + Markdown file', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      serializeFormat: 'front-matter',
+    });
+    await gitDDB.open();
+    const _id = 'prof01';
+    // Check put operation
+    const json = { _id, name: 'Shirase', _body: 'Journey to the Antarctic' };
+    const putResult = await gitDDB.put(json);
+    const fileOid = (await git.hashBlob({ object: toFrontMatterMarkdown(json) })).oid;
+    const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
+    expect(putResult._id).toBe(_id);
+    expect(putResult.fileOid).toBe(fileOid);
+    expect(putResult.commit.message).toBe(
+      `insert: ${_id}${FRONT_MATTER_POSTFIX}(${shortOid})`
+    );
+
+    // fs.access() throw error when a file cannot be accessed.
+    const filePath = path.resolve(gitDDB.workingDir, _id + FRONT_MATTER_POSTFIX);
+    await expect(fs.access(filePath)).resolves.not.toThrowError();
+    expect(fs.readFileSync(filePath, 'utf8')).toBe(toFrontMatterMarkdown(json));
 
     await gitDDB.destroy();
   });

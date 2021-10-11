@@ -13,11 +13,11 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
-import { sleep, toSortedJSONString } from '../../src/utils';
+import { sleep, toFrontMatterMarkdown, toSortedJSONString } from '../../src/utils';
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { getImpl } from '../../src/crud/get';
-import { JSON_POSTFIX } from '../../src/const';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
 import { addOneData, removeOneData } from '../utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -867,6 +867,30 @@ describe('<crud/get> getImpl()', () => {
           }
         )
       ).resolves.toEqual(json14);
+    });
+  });
+
+  describe('Front-Matter + Markdown', () => {
+    it('returns latest JsonDoc under deep collectionPath', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serializeFormat: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const shortId = 'dir01/prof01';
+      const shortName = shortId + FRONT_MATTER_POSTFIX;
+      const collectionPath = 'col01/col02/col03';
+      const fullDocPath = collectionPath + shortName;
+      const json = { _id: shortId, name: 'Shirase', _body: 'Journey to the Antarctic' };
+      await addOneData(gitDDB, fullDocPath, toFrontMatterMarkdown(json));
+      await expect(
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      ).resolves.toEqual(json);
+
+      await gitDDB.destroy();
     });
   });
 });

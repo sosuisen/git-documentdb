@@ -23,8 +23,8 @@ import {
 } from '../../src/crud/blob';
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { toSortedJSONString, utf8encode } from '../../src/utils';
-import { JSON_POSTFIX } from '../../src/const';
+import { toFrontMatterMarkdown, toSortedJSONString, utf8encode } from '../../src/utils';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const git_module = require('isomorphic-git');
@@ -75,6 +75,69 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(blobToJsonDoc(shortId, readBlobResult, false, JSON_POSTFIX)).toEqual(json);
+    });
+
+    it('throws InvalidJsonObjectError when Front-Matter + Markdown is empty', async () => {
+      const shortId = 'foo';
+      const text = '';
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(() =>
+        blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)
+      ).toThrowError(Err.InvalidJsonObjectError);
+    });
+
+    it('throws InvalidJsonObjectError when Front-Matter does not end', async () => {
+      const shortId = 'foo';
+      const text = '---\na: foo';
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(() =>
+        blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)
+      ).toThrowError(Err.InvalidJsonObjectError);
+    });
+
+    it('returns JsonDoc of Front-Matter + Markdown', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, propA: 'A', propB: 'B', _body: 'foo\nbar' };
+      const text = toFrontMatterMarkdown(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual(
+        json
+      );
+    });
+
+    it('returns JsonDoc of Front-Matter + Markdown that ends with \n', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, propA: 'A', propB: 'B', _body: 'foo\nbar\n' };
+      const text = toFrontMatterMarkdown(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual(
+        json
+      );
+    });
+
+    it('returns JsonDoc of Front-Matter without Markdown', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, propA: 'A', propB: 'B' };
+      const text = toFrontMatterMarkdown(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual(
+        json
+      );
     });
 
     it('returns JsonDoc with overwritten _id', async () => {

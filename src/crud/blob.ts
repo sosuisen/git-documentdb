@@ -7,7 +7,9 @@
  */
 
 import fs from 'fs';
+import yaml from 'js-yaml';
 import { readBlob, ReadBlobResult, resolveRef } from 'isomorphic-git';
+import { FRONT_MATTER_POSTFIX } from '../const';
 import { utf8decode } from '../utils';
 import { Err } from '../error';
 import { FatBinaryDoc, FatDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
@@ -17,33 +19,78 @@ import { FatBinaryDoc, FatDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types'
  *
  * @throws {@link Err.InvalidJsonObjectError}
  */
+// eslint-disable-next-line complexity
 export function blobToJsonDoc (
   shortId: string,
   readBlobResult: ReadBlobResult,
   withMetadata: boolean,
   jsonExt: string
 ): FatJsonDoc | JsonDoc {
-  try {
-    const text = utf8decode(readBlobResult.blob);
-    const jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
-    if (jsonDoc._id !== undefined) {
-      // Overwrite _id property by shortId (_id without collectionPath) if JsonDoc is created by GitDocumentedDB (_id !== undefined).
-      jsonDoc._id = shortId;
+  const text = utf8decode(readBlobResult.blob);
+  let jsonDoc: JsonDoc;
+  if (jsonExt === FRONT_MATTER_POSTFIX) {
+    const mdArray = text.split('\n');
+    let yamlText = '';
+    let markdownText = '';
+    let startFrontMatter = false;
+    let endFrontMatter = false;
+    for (let i = 0; i < mdArray.length; i++) {
+      if (mdArray[i] === '---') {
+        if (!startFrontMatter) {
+          startFrontMatter = true;
+        }
+        else if (!endFrontMatter) {
+          endFrontMatter = true;
+        }
+        continue;
+      }
+      if (startFrontMatter && !endFrontMatter) {
+        if (yamlText !== '') {
+          yamlText += '\n';
+        }
+        yamlText += mdArray[i];
+      }
+      else if (endFrontMatter) {
+        if (markdownText !== '') {
+          markdownText += '\n';
+        }
+        markdownText += mdArray[i];
+      }
     }
-    if (withMetadata) {
-      const fatJsonDoc: FatJsonDoc = {
-        _id: shortId,
-        name: shortId + jsonExt,
-        fileOid: readBlobResult.oid,
-        type: 'json',
-        doc: jsonDoc,
-      };
-      return fatJsonDoc;
+    if (!endFrontMatter) {
+      throw new Err.InvalidJsonObjectError(shortId);
     }
-    return jsonDoc;
-  } catch {
-    throw new Err.InvalidJsonObjectError(shortId);
+    try {
+      jsonDoc = yaml.load(yamlText) as JsonDoc;
+    } catch {
+      throw new Err.InvalidJsonObjectError(shortId);
+    }
+    if (markdownText !== '') {
+      jsonDoc._body = markdownText;
+    }
   }
+  else {
+    try {
+      jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
+    } catch {
+      throw new Err.InvalidJsonObjectError(shortId);
+    }
+  }
+  if (jsonDoc._id !== undefined) {
+    // Overwrite _id property by shortId (_id without collectionPath) if JsonDoc is created by GitDocumentedDB (_id !== undefined).
+    jsonDoc._id = shortId;
+  }
+  if (withMetadata) {
+    const fatJsonDoc: FatJsonDoc = {
+      _id: shortId,
+      name: shortId + jsonExt,
+      fileOid: readBlobResult.oid,
+      type: 'json',
+      doc: jsonDoc,
+    };
+    return fatJsonDoc;
+  }
+  return jsonDoc;
 }
 
 /**
