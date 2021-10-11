@@ -156,7 +156,12 @@ export async function pushWorker (
     remoteChanges = undefined;
   }
   else {
-    remoteChanges = await getChanges(gitDDB.workingDir, remoteCommitOid, headCommitOid);
+    remoteChanges = await getChanges(
+      gitDDB.workingDir,
+      remoteCommitOid,
+      headCommitOid,
+      gitDDB.jsonExt
+    );
   }
 
   const syncResult: SyncResultPush = {

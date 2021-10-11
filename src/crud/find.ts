@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import { readBlob, readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
-import { GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION } from '../const';
+import { GIT_DOCUMENTDB_METADATA_DIR } from '../const';
 import { Err } from '../error';
 import {
   Doc,
@@ -34,6 +34,7 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
 export async function findImpl (
   gitDDB: GitDDBInterface,
   collectionPath: string,
+  jsonExt: string,
   findOnlyJson: boolean,
   withMetadata: boolean,
   options?: FindOptions
@@ -142,7 +143,7 @@ export async function findImpl (
         }
       }
       else {
-        if (findOnlyJson && !fullDocPath.endsWith(JSON_EXTENSION)) {
+        if (findOnlyJson && !fullDocPath.endsWith(jsonExt)) {
           continue;
         }
         // eslint-disable-next-line no-await-in-loop
@@ -156,19 +157,20 @@ export async function findImpl (
         // Skip if cannot read
         if (readBlobResult) {
           const docType: DocType =
-            options.forceDocType ??
-            (fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text');
+            options.forceDocType ?? (fullDocPath.endsWith(jsonExt) ? 'json' : 'text');
           if (docType === 'text') {
             // TODO: select binary or text by .gitattribtues
           }
           const shortName = fullDocPath.replace(new RegExp('^' + collectionPath), '');
           if (docType === 'json') {
-            const shortId = shortName.replace(new RegExp(JSON_EXTENSION + '$'), '');
+            const shortId = shortName.replace(new RegExp(jsonExt + '$'), '');
             if (withMetadata) {
-              docs.push(blobToJsonDoc(shortId, readBlobResult, true) as FatJsonDoc);
+              docs.push(
+                blobToJsonDoc(shortId, readBlobResult, true, jsonExt) as FatJsonDoc
+              );
             }
             else {
-              docs.push(blobToJsonDoc(shortId, readBlobResult, false) as JsonDoc);
+              docs.push(blobToJsonDoc(shortId, readBlobResult, false, jsonExt) as JsonDoc);
             }
           }
           else if (docType === 'text') {

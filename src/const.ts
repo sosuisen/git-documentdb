@@ -68,17 +68,6 @@ export const JSON_POSTFIX = '.json';
  */
 export const FRONT_MATTER_POSTFIX = '.md';
 /**
- * !ALERT: It is not const for simplicity.
- *
- * @internal
- */
-// eslint-disable-next-line import/no-mutable-exports, @typescript-eslint/naming-convention, prefer-const
-export let JSON_EXTENSION = JSON_POSTFIX;
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const setFileExt = (ext: string) => {
-  JSON_EXTENSION = ext;
-};
-/**
  * @public
  */
 export const MAX_FILE_PATH_LENGTH = 255;

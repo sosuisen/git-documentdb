@@ -15,7 +15,7 @@ import fs from 'fs-extra';
 import { DeleteResultJsonDoc, PutResultJsonDoc } from '../src/types';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { sleep, toSortedJSONString } from '../src/utils';
-import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 import { addOneData } from './utils';
 import { Err } from '../src/error';
 
@@ -85,10 +85,10 @@ describe('<git_documentdb> put(jsonDoc)', () => {
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
@@ -196,10 +196,10 @@ describe('<git_documentdb> put(_id, jsonDoc)', () => {
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
@@ -279,17 +279,17 @@ describe('<git_documentdb> putFatDoc(name, jsonDoc)', () => {
     });
     await gitDDB.open();
     const _id = 'prof01';
-    const name = _id + JSON_EXTENSION;
+    const name = _id + JSON_POSTFIX;
     const json = { _id, name: 'Shirase' };
     const putResult = (await gitDDB.putFatDoc(name, json)) as PutResultJsonDoc;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
 
@@ -312,10 +312,10 @@ describe('<git_documentdb> insert(jsonDoc)', () => {
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
@@ -357,10 +357,10 @@ describe('<git_documentdb> insert(_id, jsonDoc)', () => {
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
@@ -396,17 +396,17 @@ describe('<git_documentdb> insertFatDoc(name, jsonDoc)', () => {
     });
     await gitDDB.open();
     const _id = 'prof01';
-    const name = _id + JSON_EXTENSION;
+    const name = _id + JSON_POSTFIX;
     const json = { _id, name: 'Shirase' };
     const putResult = (await gitDDB.insertFatDoc(name, json)) as PutResultJsonDoc;
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(json) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`insert: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(json));
@@ -432,10 +432,10 @@ describe('<git_documentdb> update(jsonDoc)', () => {
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
@@ -480,10 +480,10 @@ describe('<git_documentdb> update(_id, jsonDoc', () => {
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
@@ -520,7 +520,7 @@ describe('<git_documentdb> updateFatDoc(name, jsonDoc', () => {
     });
     await gitDDB.open();
     const _id = 'prof01';
-    const name = _id + JSON_EXTENSION;
+    const name = _id + JSON_POSTFIX;
     const json = { _id, name: 'Shirase' };
     await gitDDB.insert(json);
     const jsonUpdated = { _id, name: 'updated' };
@@ -529,10 +529,10 @@ describe('<git_documentdb> updateFatDoc(name, jsonDoc', () => {
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult._id).toBe(_id);
     expect(putResult.fileOid).toBe(fileOid);
-    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_EXTENSION}(${shortOid})`);
+    expect(putResult.commit.message).toBe(`update: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // fs.access() throw error when a file cannot be accessed.
-    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_EXTENSION);
+    const filePath = path.resolve(gitDDB.workingDir, _id + JSON_POSTFIX);
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
     expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(jsonUpdated));
@@ -563,7 +563,7 @@ describe('<git_documentdb> get()', () => {
     });
     await gitDDB.open();
     const shortId = 'dir01/prof01';
-    const fullDocPath = shortId + JSON_EXTENSION;
+    const fullDocPath = shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
 
@@ -579,7 +579,7 @@ describe('<git_documentdb> get()', () => {
     });
     await gitDDB.open();
     const shortId = 'prof01';
-    const fullDocPath = shortId + JSON_EXTENSION;
+    const fullDocPath = shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
 
@@ -598,8 +598,8 @@ describe('<git_documentdb> getFatDoc()', () => {
     });
     await gitDDB.open();
     const shortId = 'prof01';
-    const shortName = shortId + JSON_EXTENSION;
-    const fullDocPath = shortId + JSON_EXTENSION;
+    const shortName = shortId + JSON_POSTFIX;
+    const fullDocPath = shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     const json02 = { _id: shortId, name: 'v2' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -638,7 +638,7 @@ describe('<git_documentdb> getDocByOid()', () => {
     });
     await gitDDB.open();
     const shortId = 'dir01/prof01';
-    const fullDocPath = shortId + JSON_EXTENSION;
+    const fullDocPath = shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
@@ -654,7 +654,7 @@ describe('<git_documentdb> getDocByOid()', () => {
     });
     await gitDDB.open();
     const shortId = 'dir01/prof01';
-    const fullDocPath = shortId + JSON_EXTENSION;
+    const fullDocPath = shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     await expect(gitDDB.getDocByOid('not exist', 'json')).resolves.toBeUndefined();
@@ -670,8 +670,8 @@ describe('<git_documentdb>', () => {
   });
 
   const targetId = '01';
-  const targetName = targetId + JSON_EXTENSION;
-  const fullDocPath = targetId + JSON_EXTENSION;
+  const targetName = targetId + JSON_POSTFIX;
+  const fullDocPath = targetId + JSON_POSTFIX;
 
   const json01 = { _id: targetId, name: 'v01' };
   const json02 = { _id: targetId, name: 'v02' };
@@ -1099,7 +1099,7 @@ describe('<git_documentdb> getFatDocHistory()', () => {
     await gitDDB.open();
 
     const _idA = 'profA';
-    const shortNameA = _idA + JSON_EXTENSION;
+    const shortNameA = _idA + JSON_POSTFIX;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -1107,7 +1107,7 @@ describe('<git_documentdb> getFatDocHistory()', () => {
     await gitDDB.put(jsonA02);
     await gitDDB.put(jsonA03);
     const _idB = 'profB';
-    const shortNameB = _idB + JSON_EXTENSION;
+    const shortNameB = _idB + JSON_POSTFIX;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
     await gitDDB.put(jsonB01);
@@ -1135,7 +1135,7 @@ describe('<git_documentdb> getFatDocHistory()', () => {
 
     await gitDDB.open();
     const _idA = 'profA';
-    const shortNameA = _idA + JSON_EXTENSION;
+    const shortNameA = _idA + JSON_POSTFIX;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -1150,7 +1150,7 @@ describe('<git_documentdb> getFatDocHistory()', () => {
     await gitDDB.put(jsonA03);
 
     const _idB = 'profB';
-    const shortNameB = _idB + JSON_EXTENSION;
+    const shortNameB = _idB + JSON_POSTFIX;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
 
@@ -1377,9 +1377,7 @@ describe('<git_documentdb> delete(_id)', () => {
     const deleteResult = await gitDDB.delete(_id);
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
-    expect(deleteResult.commit.message).toBe(
-      `delete: ${_id}${JSON_EXTENSION}(${shortOid})`
-    );
+    expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
@@ -1388,7 +1386,7 @@ describe('<git_documentdb> delete(_id)', () => {
       dir: gitDDB.workingDir,
       oid: commitOid,
     });
-    expect(commit.message).toEqual(`delete: ${_id}${JSON_EXTENSION}(${shortOid})\n`);
+    expect(commit.message).toEqual(`delete: ${_id}${JSON_POSTFIX}(${shortOid})\n`);
 
     await expect(gitDDB.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(gitDDB.get(_id)).resolves.toBeUndefined();
@@ -1468,7 +1466,7 @@ describe('<git_documentdb> delete(jsonDoc)', () => {
     // Check NormalizedCommit
     expect(deleteResult.commit.oid).toBe(currentCommitOid);
     expect(deleteResult.commit.message).toBe(
-      `delete: ${_id}${JSON_EXTENSION}(${oid.substr(0, SHORT_SHA_LENGTH)})`
+      `delete: ${_id}${JSON_POSTFIX}(${oid.substr(0, SHORT_SHA_LENGTH)})`
     );
     expect(deleteResult.commit.parent).toEqual([prevCommitOid]);
     expect(deleteResult.commit.author.name).toEqual(gitDDB.author.name);
@@ -1494,9 +1492,9 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
 
     await gitDDB.open();
     const _id = 'test/prof01';
-    const name = _id + JSON_EXTENSION;
+    const name = _id + JSON_POSTFIX;
     const _id2 = 'test/prof02';
-    const name2 = _id2 + JSON_EXTENSION;
+    const name2 = _id2 + JSON_POSTFIX;
 
     const putResult = await gitDDB.put({ _id: _id, name: 'Shirase' });
     await gitDDB.put({ _id: _id2, name: 'Soya' });
@@ -1506,9 +1504,7 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
     const deleteResult = (await gitDDB.deleteFatDoc(name)) as DeleteResultJsonDoc;
     expect(deleteResult._id).toBe(_id);
     expect(deleteResult.fileOid).toBe(putResult.fileOid);
-    expect(deleteResult.commit.message).toBe(
-      `delete: ${_id}${JSON_EXTENSION}(${shortOid})`
-    );
+    expect(deleteResult.commit.message).toBe(`delete: ${_id}${JSON_POSTFIX}(${shortOid})`);
 
     // Check commit directly
     const commitOid = await git.resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' });
@@ -1517,7 +1513,7 @@ describe('<git_documentdb> deleteFatDoc(name)', () => {
       dir: gitDDB.workingDir,
       oid: commitOid,
     });
-    expect(commit.message).toEqual(`delete: ${_id}${JSON_EXTENSION}(${shortOid})\n`);
+    expect(commit.message).toEqual(`delete: ${_id}${JSON_POSTFIX}(${shortOid})\n`);
 
     await expect(gitDDB.deleteFatDoc(name)).rejects.toThrowError(Err.DocumentNotFoundError);
     await expect(gitDDB.get(_id)).resolves.toBeUndefined();
@@ -1569,7 +1565,7 @@ describe('<git_documentdb>', () => {
       });
       await gitDDB.open();
 
-      await addOneData(gitDDB, 'invalidJSON' + JSON_EXTENSION, 'invalidJSON');
+      await addOneData(gitDDB, 'invalidJSON' + JSON_POSTFIX, 'invalidJSON');
 
       await expect(gitDDB.find()).rejects.toThrowError(Err.InvalidJsonObjectError);
 
@@ -1611,11 +1607,11 @@ describe('<git_documentdb>', () => {
       const json_c01_ = { _id: _id_c01, name: name_c01 };
       const json_c02_ = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       await expect(gitDDB.find()).resolves.toEqual([
         json_a_,
@@ -1653,13 +1649,13 @@ describe('<git_documentdb>', () => {
         const json_c01_ = { _id: _id_c01, name: name_c01 };
         const json_c02_ = { _id: _id_c02, name: name_c02 };
 
-        await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-        await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-        await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-        await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-        await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-        await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-        await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+        await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+        await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+        await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+        await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+        await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+        await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+        await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
         const prefix = 'citrus/';
 
@@ -1692,13 +1688,13 @@ describe('<git_documentdb>', () => {
         const json_c01_ = { _id: _id_c01, name: name_c01 };
         const json_c02_ = { _id: _id_c02, name: name_c02 };
 
-        await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-        await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-        await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-        await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-        await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-        await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-        await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+        await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+        await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+        await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+        await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+        await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+        await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+        await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
         const prefix = 'cit';
 
@@ -1734,13 +1730,13 @@ describe('<git_documentdb>', () => {
         const json_c01_ = { _id: _id_c01, name: name_c01 };
         const json_c02_ = { _id: _id_c02, name: name_c02 };
 
-        await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-        await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-        await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-        await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-        await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-        await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-        await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+        await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+        await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+        await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+        await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+        await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+        await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+        await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
         const prefix = 'citrus';
 
@@ -1778,13 +1774,13 @@ describe('<git_documentdb>', () => {
         const json_c01_ = { _id: _id_c01, name: name_c01 };
         const json_c02_ = { _id: _id_c02, name: name_c02 };
 
-        await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-        await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-        await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-        await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-        await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-        await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-        await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+        await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+        await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+        await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+        await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+        await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+        await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+        await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
         const prefix = 'citrus/y';
 
@@ -1817,13 +1813,13 @@ describe('<git_documentdb>', () => {
         const json_c01_ = { _id: _id_c01, name: name_c01 };
         const json_c02_ = { _id: _id_c02, name: name_c02 };
 
-        await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-        await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-        await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-        await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-        await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-        await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-        await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+        await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+        await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+        await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+        await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+        await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+        await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+        await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
         const prefix = 'not_exist/';
 
@@ -1859,15 +1855,15 @@ describe('<git_documentdb>', () => {
         const json_c01_ = { _id: _id_c01, name: name_c01 };
         const json_c02_ = { _id: _id_c02, name: name_c02 };
 
-        await addOneData(gitDDB, _id_p + JSON_EXTENSION, toSortedJSONString(json_p));
+        await addOneData(gitDDB, _id_p + JSON_POSTFIX, toSortedJSONString(json_p));
 
-        await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-        await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-        await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-        await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-        await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-        await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-        await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+        await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+        await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+        await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+        await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+        await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+        await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+        await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
         await expect(gitDDB.find({ prefix: 'pear/Japan' })).resolves.toEqual([json_p_]);
 
@@ -1893,44 +1889,44 @@ describe('<git_documentdb>', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       await expect(gitDDB.findFatDoc()).resolves.toEqual([
         {
           _id: _id_a,
-          name: _id_a + JSON_EXTENSION,
+          name: _id_a + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
-          name: _id_b + JSON_EXTENSION,
+          name: _id_b + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
-          name: _id_c01 + JSON_EXTENSION,
+          name: _id_c01 + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
-          name: _id_c02 + JSON_EXTENSION,
+          name: _id_c02 + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
-          name: _id_d + JSON_EXTENSION,
+          name: _id_d + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,

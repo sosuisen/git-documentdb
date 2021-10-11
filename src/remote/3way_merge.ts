@@ -1,7 +1,7 @@
 import nodePath, { basename } from 'path';
 import git, { TreeEntry, WalkerEntry } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY, JSON_EXTENSION } from '../const';
+import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
 import { Err } from '../error';
 import {
   AcceptedConflict,
@@ -15,7 +15,7 @@ import {
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { getFatDocFromData, writeBlobToFile } from './worker_utils';
-import { toSortedJSONString, utf8decode } from '../utils';
+import { serializeJSON, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { SyncInterface } from '../types_sync';
 import { isSameFatDoc } from '../crud/blob';
@@ -58,7 +58,8 @@ function getMergedJsonDoc (
   strategy: ConflictResolutionStrategyLabels,
   base: JsonDoc | undefined,
   ours: JsonDoc,
-  theirs: JsonDoc
+  theirs: JsonDoc,
+  jsonExt: string
 ): string {
   let result: { [key: string]: string };
   if (strategy === 'ours') {
@@ -88,7 +89,7 @@ function getMergedJsonDoc (
   else {
     throw new Err.InvalidConflictResolutionStrategyError();
   }
-  return toSortedJSONString(result);
+  return serializeJSON(result, jsonExt);
 }
 
 /**
@@ -157,7 +158,8 @@ function getMergedDocument (
   base: Uint8Array | undefined,
   ours: Uint8Array,
   theirs: Uint8Array,
-  docType: DocType
+  docType: DocType,
+  jsonExt: string
 ): string | Uint8Array {
   if (docType === 'json') {
     const oursDoc = JSON.parse(utf8decode(ours));
@@ -169,7 +171,15 @@ function getMergedDocument (
     else {
       baseDoc = undefined;
     }
-    return getMergedJsonDoc(jsonDiff, jsonPatch, strategy, baseDoc, oursDoc, theirsDoc);
+    return getMergedJsonDoc(
+      jsonDiff,
+      jsonPatch,
+      strategy,
+      baseDoc,
+      oursDoc,
+      theirsDoc,
+      jsonExt
+    );
   }
   else if (docType === 'text') {
     const oursDoc = utf8decode(ours);
@@ -357,7 +367,7 @@ export async function threeWayMerge (
     AcceptedConflict | undefined
   ]
 > {
-  const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
+  const docType: DocType = fullDocPath.endsWith(gitDDB.jsonExt) ? 'json' : 'text';
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
@@ -375,7 +385,12 @@ export async function threeWayMerge (
     // Write it to the index.
     // console.log(' #case 1 - Accept theirs (insert): ' + fullDocPath);
     const theirsData = (await theirs.content())!;
-    const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+    const theirsFatDoc = await getFatDocFromData(
+      theirsData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
     await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
     await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
     return [
@@ -399,7 +414,12 @@ export async function threeWayMerge (
     // It has already been added to the index.
     // console.log(' #case 2 - Accept ours (insert): ' + fullDocPath);
     const oursData = (await ours.content())!;
-    const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
+    const oursFatDoc = await getFatDocFromData(
+      oursData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
     return [
       {
         mode: (await ours.mode()).toString(8),
@@ -443,8 +463,18 @@ export async function threeWayMerge (
     // ! Conflict
     const oursData = (await ours.content())!;
     const theirsData = (await theirs.content())!;
-    const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
-    const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+    const oursFatDoc = await getFatDocFromData(
+      oursData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
+    const theirsFatDoc = await getFatDocFromData(
+      theirsData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
 
     const strategy = await getStrategy(
       conflictResolutionStrategy,
@@ -497,9 +527,10 @@ export async function threeWayMerge (
         undefined,
         oursData,
         theirsData,
-        docType
+        docType,
+        gitDDB.jsonExt
       );
-      resultFatDoc = await getFatDocFromData(data, fullDocPath, docType);
+      resultFatDoc = await getFatDocFromData(data, fullDocPath, docType, gitDDB.jsonExt);
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
       await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
@@ -546,7 +577,12 @@ export async function threeWayMerge (
     const baseOid = await base.oid();
     const theirsOid = await theirs.oid();
     const theirsData = (await theirs.content())!;
-    const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+    const theirsFatDoc = await getFatDocFromData(
+      theirsData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
 
     if (baseOid === theirsOid) {
       // A file has been removed from ours.
@@ -569,7 +605,12 @@ export async function threeWayMerge (
     if (strategy === 'ours' || strategy === 'ours-diff') {
       // console.log(' #case 8 - Conflict. Accept ours (delete): ' + fullDocPath);
       const baseData = (await base.content())!;
-      const baseFatDoc = await getFatDocFromData(baseData, fullDocPath, docType);
+      const baseFatDoc = await getFatDocFromData(
+        baseData,
+        fullDocPath,
+        docType,
+        gitDDB.jsonExt
+      );
       const acceptedConflict: AcceptedConflict = {
         fatDoc: baseFatDoc,
         strategy: strategy,
@@ -614,7 +655,12 @@ export async function threeWayMerge (
     const baseOid = await base.oid();
     const oursOid = await ours.oid();
     const oursData = (await ours.content())!;
-    const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
+    const oursFatDoc = await getFatDocFromData(
+      oursData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
 
     if (baseOid === oursOid) {
       // A file has been removed from theirs.
@@ -663,7 +709,12 @@ export async function threeWayMerge (
     else if (strategy === 'theirs' || strategy === 'theirs-diff') {
       // console.log(' #case 12 - Conflict. Accept theirs (delete): ' + fullDocPath);
       const baseData = (await base.content())!;
-      const baseFatDoc = await getFatDocFromData(baseData, fullDocPath, docType);
+      const baseFatDoc = await getFatDocFromData(
+        baseData,
+        fullDocPath,
+        docType,
+        gitDDB.jsonExt
+      );
       const acceptedConflicts: AcceptedConflict = {
         fatDoc: baseFatDoc,
         strategy: strategy,
@@ -708,9 +759,19 @@ export async function threeWayMerge (
     else if (baseOid === oursOid) {
       // console.log(' #case 14 - Accept theirs (update): ' + fullDocPath);
       const oursData = (await ours.content())!;
-      const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
+      const oursFatDoc = await getFatDocFromData(
+        oursData,
+        fullDocPath,
+        docType,
+        gitDDB.jsonExt
+      );
       const theirsData = (await theirs.content())!;
-      const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+      const theirsFatDoc = await getFatDocFromData(
+        theirsData,
+        fullDocPath,
+        docType,
+        gitDDB.jsonExt
+      );
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
       await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
       return [
@@ -732,9 +793,19 @@ export async function threeWayMerge (
     else if (baseOid === theirsOid) {
       // console.log(' #case 15 - Accept ours (update): ' + fullDocPath);
       const oursData = (await ours.content())!;
-      const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
+      const oursFatDoc = await getFatDocFromData(
+        oursData,
+        fullDocPath,
+        docType,
+        gitDDB.jsonExt
+      );
       const theirsData = (await theirs.content())!;
-      const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+      const theirsFatDoc = await getFatDocFromData(
+        theirsData,
+        fullDocPath,
+        docType,
+        gitDDB.jsonExt
+      );
       return [
         {
           mode: (await theirs.mode()).toString(8),
@@ -757,8 +828,18 @@ export async function threeWayMerge (
     const baseData = (await base.content())!;
     const oursData = (await ours.content())!;
     const theirsData = (await theirs.content())!;
-    const oursFatDoc = await getFatDocFromData(oursData, fullDocPath, docType);
-    const theirsFatDoc = await getFatDocFromData(theirsData, fullDocPath, docType);
+    const oursFatDoc = await getFatDocFromData(
+      oursData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
+    const theirsFatDoc = await getFatDocFromData(
+      theirsData,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
     const strategy = await getStrategy(
       conflictResolutionStrategy,
       oursFatDoc,
@@ -820,9 +901,15 @@ export async function threeWayMerge (
       baseData,
       oursData,
       theirsData,
-      docType
+      docType,
+      gitDDB.jsonExt
     );
-    const resultFatDoc = await getFatDocFromData(data, fullDocPath, docType);
+    const resultFatDoc = await getFatDocFromData(
+      data,
+      fullDocPath,
+      docType,
+      gitDDB.jsonExt
+    );
     await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
     await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 

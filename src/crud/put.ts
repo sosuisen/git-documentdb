@@ -181,8 +181,8 @@ export async function putWorker (
       oid: commitOid,
     });
     commit = normalizeCommit(readCommitResult);
-  } catch (err) {
-    throw new Err.CannotWriteDataError(err.message);
+  } catch (err: unknown) {
+    throw new Err.CannotWriteDataError((err as Error).message);
   }
 
   return {

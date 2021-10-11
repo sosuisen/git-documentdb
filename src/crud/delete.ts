@@ -160,8 +160,8 @@ export async function deleteWorker (
         /* not empty */
       });
     }
-  } catch (err) {
-    return Promise.reject(new Err.CannotDeleteDataError(err.message));
+  } catch (err: unknown) {
+    return Promise.reject(new Err.CannotDeleteDataError((err as Error).message));
   }
 
   return {

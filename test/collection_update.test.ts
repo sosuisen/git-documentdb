@@ -17,7 +17,7 @@ import { Err } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Collection } from '../src/collection';
 import { toSortedJSONString } from '../src/utils';
-import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -85,7 +85,7 @@ describe('<collection> update(jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -102,7 +102,7 @@ describe('<collection> update(jsonDoc)', () => {
     const filePath = path.resolve(
       gitDDB.workingDir,
       col.collectionPath,
-      _id + JSON_EXTENSION
+      _id + JSON_POSTFIX
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
@@ -151,7 +151,7 @@ describe('<collection> update(jsonDoc)', () => {
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     await gitDDB.destroy();
@@ -208,7 +208,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -225,7 +225,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
     const filePath = path.resolve(
       gitDDB.workingDir,
       col.collectionPath,
-      _id + JSON_EXTENSION
+      _id + JSON_POSTFIX
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
@@ -267,7 +267,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     const _id = 'prof01';
-    const shortName = _id + JSON_EXTENSION;
+    const shortName = _id + JSON_POSTFIX;
     const json = { _id, name: 'Shirase' };
     const insertResult = await col.insert(json);
 
@@ -294,7 +294,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `update: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -311,7 +311,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
     const filePath = path.resolve(
       gitDDB.workingDir,
       col.collectionPath,
-      _id + JSON_EXTENSION
+      _id + JSON_POSTFIX
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 

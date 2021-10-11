@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-spread */
 /* eslint-disable max-depth */
 import { editOp, insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
 import { uniCount } from 'unicount';
@@ -110,7 +111,7 @@ export class JsonPatchOT implements IJsonPatch {
         }
         const noBar = keys.slice(0, underBarStart);
         const underBar = keys.slice(underBarStart, keys.length);
-        sortedKeys = [...underBar, ...noBar]; // _1, _2, _3, 1, 2, 3
+        sortedKeys = underBar.concat(noBar); // _1, _2, _3, 1, 2, 3
       }
       else {
         sortedKeys = keys.sort();
@@ -120,10 +121,10 @@ export class JsonPatchOT implements IJsonPatch {
         if (Array.isArray(tree[key])) {
           const arr = tree[key] as any[];
           if (arr.length === 1) {
-            operations.push(insertOp([...ancestors, ...key], arr[0])!);
+            operations.push(insertOp(ancestors.concat(key), arr[0])!);
           }
           else if (arr.length === 2) {
-            operations.push(replaceOp([...ancestors, ...key], arr[0], arr[1])!);
+            operations.push(replaceOp(ancestors.concat(key), arr[0], arr[1])!);
           }
           else if (arr.length === 3) {
             const firstItem = arr[0];
@@ -134,7 +135,7 @@ export class JsonPatchOT implements IJsonPatch {
               if (!isTextPatch)
                 isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+? @@\n/m);
               if (isTextPatch) {
-                const textOp = this.getTextOp([...ancestors, ...key], firstItem);
+                const textOp = this.getTextOp(ancestors.concat(key), firstItem);
                 if (textOp) {
                   operations.push(textOp);
                 }
@@ -143,7 +144,7 @@ export class JsonPatchOT implements IJsonPatch {
           }
         }
         else if (typeof tree[key] === 'object') {
-          procTree([...ancestors, ...key], tree[key]);
+          procTree(ancestors.concat(key), tree[key]);
         }
       });
     };
@@ -209,10 +210,14 @@ export class JsonPatchOT implements IJsonPatch {
       else {
         transformedOp = type.transform(opOurs, opTheirs, 'right');
       }
-    } catch (err) {
-      if (err.conflict) {
+    } catch (err: unknown) {
+      if ((err as { conflict: any }).conflict) {
         // console.log('conflict: ' + JSON.stringify(err.conflict));
-        const conflict = err.conflict as { type: number; op1: any[]; op2: any[] };
+        const conflict = (err as { conflict: any }).conflict as {
+          type: number;
+          op1: any[];
+          op2: any[];
+        };
         let conflictedOperation;
 
         // Remove conflicted op from targetOperations
@@ -264,7 +269,7 @@ export class JsonPatchOT implements IJsonPatch {
                 conflictedCommands.forEach(command => delete opElm[command]);
               }
               if (Object.keys(opElm).length > 0) {
-                const resolvedOp = [...pathFromRoot, ...opElm];
+                const resolvedOp = pathFromRoot.concat(opElm);
                 resolvedOperations.push(resolvedOp);
               }
             }

@@ -24,7 +24,7 @@ import {
   NormalizedCommit,
   TextDocMetadata,
 } from './types';
-import { FRONT_MATTER_POSTFIX, GIT_DOCUMENTDB_METADATA_DIR, JSON_EXTENSION } from './const';
+import { FRONT_MATTER_POSTFIX, GIT_DOCUMENTDB_METADATA_DIR, JSON_POSTFIX } from './const';
 
 /**
  * @internal
@@ -86,12 +86,12 @@ export function toSortedJSONString (obj: Record<string, any>) {
 export function toFrontMatterMarkdown (obj: Record<string, any>) {
   const body = typeof obj._body === 'string' ? obj._body : '';
   delete obj._body;
-  const frontMatter = '---\n' + yaml.dump(obj) + '---\n';
+  const frontMatter = '---\n' + yaml.dump(obj, { sortKeys: true }) + '---\n';
   return frontMatter + body;
 }
 
-export function serializeJSON (obj: Record<string, any>) {
-  if (JSON_EXTENSION === FRONT_MATTER_POSTFIX) {
+export function serializeJSON (obj: Record<string, any>, jsonExt: string) {
+  if (jsonExt === FRONT_MATTER_POSTFIX) {
     return toFrontMatterMarkdown(obj);
   }
   return toSortedJSONString(obj);
@@ -103,7 +103,10 @@ export function serializeJSON (obj: Record<string, any>) {
  * @internal
  */
 // eslint-disable-next-line complexity
-export async function getAllMetadata (workingDir: string): Promise<DocMetadata[]> {
+export async function getAllMetadata (
+  workingDir: string,
+  jsonExt: string
+): Promise<DocMetadata[]> {
   const files: DocMetadata[] = [];
   const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'HEAD' }).catch(
     () => undefined
@@ -156,12 +159,12 @@ export async function getAllMetadata (workingDir: string): Promise<DocMetadata[]
         // Skip if cannot read
         if (readBlobResult === undefined) continue;
 
-        const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
+        const docType: DocType = fullDocPath.endsWith(jsonExt) ? 'json' : 'text';
         if (docType === 'text') {
           // TODO: select binary or text by .gitattribtues
         }
         if (docType === 'json') {
-          const _id = fullDocPath.replace(new RegExp(JSON_EXTENSION + '$'), '');
+          const _id = fullDocPath.replace(new RegExp(jsonExt + '$'), '');
           const meta: JsonDocMetadata = {
             _id,
             name: fullDocPath,

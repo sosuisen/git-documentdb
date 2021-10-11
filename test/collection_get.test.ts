@@ -12,7 +12,7 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { JSON_EXTENSION } from '../src/const';
+import { JSON_POSTFIX } from '../src/const';
 import { Collection } from '../src/collection';
 import { sleep, toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -69,7 +69,7 @@ describe('<collection> get()', () => {
     const col = new Collection(gitDDB, 'col01');
 
     const shortId = 'prof01';
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     await addOneData(gitDDB, fullDocPath, 'invalid data');
 
     await expect(col.get(shortId)).rejects.toThrowError(Err.InvalidJsonObjectError);
@@ -86,7 +86,7 @@ describe('<collection> get()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     const shortId = 'prof01';
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     const json02 = { _id: shortId, name: 'v2' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -119,7 +119,7 @@ describe('<collection> get()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     const shortId = 'prof01';
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     await removeOneData(gitDDB, fullDocPath);
@@ -137,7 +137,7 @@ describe('<collection> get()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
 
@@ -154,7 +154,7 @@ describe('<collection> get()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'dir01/dir02/dir03');
     const shortId = 'prof01';
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
 
@@ -174,8 +174,8 @@ describe('<collection> getFatDoc()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB);
     const shortId = 'prof01';
-    const shortName = shortId + JSON_EXTENSION;
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const shortName = shortId + JSON_POSTFIX;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     const json02 = { _id: shortId, name: 'v2' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
@@ -200,7 +200,7 @@ describe('<collection> getFatDoc()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB);
     const shortId = 'prof01';
-    const shortName = shortId + JSON_EXTENSION;
+    const shortName = shortId + JSON_POSTFIX;
 
     await expect(col.getFatDoc(shortName)).resolves.toBeUndefined();
     await gitDDB.destroy();
@@ -217,7 +217,7 @@ describe('<crud/get> getDocByOid()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     const { oid } = await git.hashBlob({ object: toSortedJSONString(json01) });
@@ -234,7 +234,7 @@ describe('<crud/get> getDocByOid()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const fullDocPath = col.collectionPath + shortId + JSON_EXTENSION;
+    const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json01));
     await expect(col.getDocByOid('not exist', 'json')).resolves.toBeUndefined();
@@ -250,7 +250,7 @@ describe('<crud/get> getDocByOid()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
-    const shortName = shortId + JSON_EXTENSION;
+    const shortName = shortId + JSON_POSTFIX;
     const fullDocPath = col.collectionPath + shortName;
     // JsonDoc without _id
     const json01 = { name: 'v1' };
@@ -269,10 +269,10 @@ describe('<crud/get>', () => {
   });
 
   const targetId = '01';
-  const targetName = targetId + JSON_EXTENSION;
+  const targetName = targetId + JSON_POSTFIX;
   const collectionPath = 'col01/';
   const col = new Collection(gitDDB, collectionPath);
-  const fullDocPath = collectionPath + targetId + JSON_EXTENSION;
+  const fullDocPath = collectionPath + targetId + JSON_POSTFIX;
 
   const json01 = { _id: collectionPath + targetId, name: 'v01' };
   const json02 = { _id: collectionPath + targetId, name: 'v02' };
@@ -720,7 +720,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     const col = new Collection(gitDDB, 'col01');
 
     const _idA = 'profA';
-    const shortNameA = _idA + JSON_EXTENSION;
+    const shortNameA = _idA + JSON_POSTFIX;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -728,7 +728,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     await col.put(jsonA02);
     await col.put(jsonA03);
     const _idB = 'profB';
-    const shortNameB = _idB + JSON_EXTENSION;
+    const shortNameB = _idB + JSON_POSTFIX;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
     await col.put(jsonB01);
@@ -757,7 +757,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     await gitDDB.open();
     const col = new Collection(gitDDB, 'col01');
     const _idA = 'profA';
-    const shortNameA = _idA + JSON_EXTENSION;
+    const shortNameA = _idA + JSON_POSTFIX;
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
     const jsonA03 = { _id: _idA, name: 'v03' };
@@ -772,7 +772,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     await col.put(jsonA03);
 
     const _idB = 'profB';
-    const shortNameB = _idB + JSON_EXTENSION;
+    const shortNameB = _idB + JSON_POSTFIX;
     const jsonB01 = { _id: _idB, name: 'v01' };
     const jsonB02 = { _id: _idB, name: 'v02' };
 

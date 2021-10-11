@@ -21,8 +21,8 @@ import {
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
-import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT, JSON_EXTENSION } from '../const';
-import { getAllMetadata, toSortedJSONString } from '../utils';
+import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT } from '../const';
+import { getAllMetadata, serializeJSON } from '../utils';
 import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 
 /**
@@ -90,8 +90,14 @@ export async function combineDatabaseWithTheirs (
       value: `refs/heads/${gitDDB.defaultBranch}`,
     });
 
-    const localMetadataList: DocMetadata[] = await getAllMetadata(gitDDB.workingDir);
-    const remoteMetadataList: DocMetadata[] = await getAllMetadata(remoteDir);
+    const localMetadataList: DocMetadata[] = await getAllMetadata(
+      gitDDB.workingDir,
+      gitDDB.jsonExt
+    );
+    const remoteMetadataList: DocMetadata[] = await getAllMetadata(
+      remoteDir,
+      gitDDB.jsonExt
+    );
     const remoteNames = remoteMetadataList.map(meta => meta.name);
 
     for (let i = 0; i < localMetadataList.length; i++) {
@@ -102,7 +108,7 @@ export async function combineDatabaseWithTheirs (
 
       await fs.ensureDir(dir);
 
-      const docType: DocType = localFilePath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
+      const docType: DocType = localFilePath.endsWith(gitDDB.jsonExt) ? 'json' : 'text';
       // eslint-disable-next-line max-depth
       if (docType === 'text') {
         // TODO: select binary or text by .gitattribtues
@@ -128,15 +134,16 @@ export async function combineDatabaseWithTheirs (
           if (doc._id !== undefined) {
             doc._id = _id + postfix;
           }
-          duplicatedFileName = _id + postfix + JSON_EXTENSION;
+          duplicatedFileName = _id + postfix + gitDDB.jsonExt;
           duplicatedFileId = _id + postfix;
-          duplicatedFileExt = JSON_EXTENSION;
+          duplicatedFileExt = gitDDB.jsonExt;
           fs.writeFileSync(
             path.resolve(remoteDir, duplicatedFileName),
-            toSortedJSONString(doc)
+            serializeJSON(doc, gitDDB.jsonExt)
           );
-          const duplicatedOid = (await git.hashBlob({ object: toSortedJSONString(doc) }))
-            .oid;
+          const duplicatedOid = (
+            await git.hashBlob({ object: serializeJSON(doc, gitDDB.jsonExt) })
+          ).oid;
           original = {
             _id,
             name: meta.name,

@@ -35,7 +35,7 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import { JSON_EXTENSION } from '../../src/const';
+import { JSON_POSTFIX } from '../../src/const';
 
 export const syncThreeWayMergeBase = (
   connection: ConnectionSettings,
@@ -114,12 +114,12 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           putResultA1,
           putResultA2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
           putResultB3,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);
@@ -204,12 +204,12 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           putResultA1,
           putResultA2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
           putResultB2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -281,11 +281,11 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultA1.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultA1.fileOid.substr(0, 7)},theirs)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultA1.fileOid.substr(0, 7)},theirs)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultA1.fileOid.substr(0, 7)},theirs)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);
@@ -370,12 +370,12 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           putResultA1,
           deleteResultA2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
           deleteResultB2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -459,12 +459,12 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
           deleteResultB2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -547,11 +547,11 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           deleteResultB1,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(delete,${deleteResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -632,14 +632,14 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(update,${putResultA1dash.fileOid.substr(
             0,
             7
           )},theirs)`,
         ]),
         remote: getCommitInfo([
           deleteResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(update,${putResultA1dash.fileOid.substr(
             0,
             7
           )},theirs)`,
@@ -724,11 +724,11 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           putResultA1,
           deleteResultA2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);
@@ -813,11 +813,11 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           deleteResultA1,
           putResultA2,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);
@@ -906,17 +906,11 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           deleteResultA1,
           putResultA2,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultA1.fileOid.substr(
-            0,
-            7
-          )},theirs)`,
+          `resolve: 1${JSON_POSTFIX}(delete,${deleteResultA1.fileOid.substr(0, 7)},theirs)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultA1.fileOid.substr(
-            0,
-            7
-          )},theirs)`,
+          `resolve: 1${JSON_POSTFIX}(delete,${deleteResultA1.fileOid.substr(0, 7)},theirs)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(2);
@@ -1003,12 +997,12 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           putResultA1,
           putResultA2dash,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
           putResultB2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -1096,12 +1090,12 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           putResultA1,
           putResultA2dash,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
           putResultB2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(1);
@@ -1192,12 +1186,12 @@ export const syncThreeWayMergeBase = (
         local: getCommitInfo([
           putResultA1,
           putResultA2dash,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
           putResultB2,
-          `resolve: 1${JSON_EXTENSION}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -1278,11 +1272,11 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -1365,14 +1359,14 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(update,${putResultA1dash.fileOid.substr(
             0,
             7
           )},theirs)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(update,${putResultA1dash.fileOid.substr(
             0,
             7
           )},theirs)`,
@@ -1477,25 +1471,25 @@ export const syncThreeWayMergeBase = (
           putResultA3dash,
           putResultA1dash,
           deleteResultA2,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultB1.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(delete,${deleteResultB1.fileOid.substr(
             0,
             7
-          )},ours), 2${JSON_EXTENSION}(update,${putResultB2.fileOid.substr(
+          )},ours), 2${JSON_POSTFIX}(update,${putResultB2.fileOid.substr(
             0,
             7
-          )},ours), 3${JSON_EXTENSION}(update,${putResultB3.fileOid.substr(0, 7)},ours)`,
+          )},ours), 3${JSON_POSTFIX}(update,${putResultB3.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB3,
           deleteResultB1,
           putResultB2,
-          `resolve: 1${JSON_EXTENSION}(delete,${deleteResultB1.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(delete,${deleteResultB1.fileOid.substr(
             0,
             7
-          )},ours), 2${JSON_EXTENSION}(update,${putResultB2.fileOid.substr(
+          )},ours), 2${JSON_POSTFIX}(update,${putResultB2.fileOid.substr(
             0,
             7
-          )},ours), 3${JSON_EXTENSION}(update,${putResultB3.fileOid.substr(0, 7)},ours)`,
+          )},ours), 3${JSON_POSTFIX}(update,${putResultB3.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -1613,11 +1607,11 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
+          `resolve: 1${JSON_POSTFIX}(update,${putResultB1.fileOid.substr(0, 7)},ours)`,
         ]),
       });
       expect(syncResult1.changes.local.length).toBe(0);
@@ -1709,14 +1703,14 @@ export const syncThreeWayMergeBase = (
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(update,${putResultA1dash.fileOid.substr(
             0,
             7
           )},theirs)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${JSON_EXTENSION}(update,${putResultA1dash.fileOid.substr(
+          `resolve: 1${JSON_POSTFIX}(update,${putResultA1dash.fileOid.substr(
             0,
             7
           )},theirs)`,

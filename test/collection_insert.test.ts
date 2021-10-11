@@ -14,7 +14,7 @@ import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { PutResultJsonDoc } from '../src/types';
 import { Collection } from '../src/collection';
-import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
@@ -87,7 +87,7 @@ describe('<collection> insert(jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -104,7 +104,7 @@ describe('<collection> insert(jsonDoc)', () => {
     const filePath = path.resolve(
       gitDDB.workingDir,
       col.collectionPath,
-      _id + JSON_EXTENSION
+      _id + JSON_POSTFIX
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
@@ -149,7 +149,7 @@ describe('<collection> insert(jsonDoc)', () => {
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
     expect(putResult.commit.message).toBe(
-      `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     await gitDDB.destroy();
@@ -208,7 +208,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -225,7 +225,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
     const filePath = path.resolve(
       gitDDB.workingDir,
       col.collectionPath,
-      _id + JSON_EXTENSION
+      _id + JSON_POSTFIX
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 
@@ -272,7 +272,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
 
     const col = new Collection(gitDDB, 'col01');
     const _id = 'prof01';
-    const shortName = _id + JSON_EXTENSION;
+    const shortName = _id + JSON_POSTFIX;
     const json = { _id, name: 'Shirase' };
     const internalJson = JSON.parse(JSON.stringify(json));
     internalJson._id = col.collectionPath + _id;
@@ -294,7 +294,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
-      `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+      `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
     );
 
     expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -311,7 +311,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
     const filePath = path.resolve(
       gitDDB.workingDir,
       col.collectionPath,
-      _id + JSON_EXTENSION
+      _id + JSON_POSTFIX
     );
     await expect(fs.access(filePath)).resolves.not.toThrowError();
 

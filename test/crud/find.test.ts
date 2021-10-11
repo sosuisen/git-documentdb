@@ -17,7 +17,6 @@ import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   FIRST_COMMIT_MESSAGE,
   GIT_DOCUMENTDB_INFO_ID,
-  JSON_EXTENSION,
   JSON_POSTFIX,
 } from '../../src/const';
 import { findImpl } from '../../src/crud/find';
@@ -81,7 +80,7 @@ describe('<crud/find> find()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).rejects.toThrowError(
       Err.DatabaseClosingError
     );
     while (gitDDB.isClosing) {
@@ -99,9 +98,9 @@ describe('<crud/find> find()', () => {
     });
     await gitDDB.open();
 
-    await addOneData(gitDDB, 'invalidJSON' + JSON_EXTENSION, 'invalidJSON');
+    await addOneData(gitDDB, 'invalidJSON' + JSON_POSTFIX, 'invalidJSON');
 
-    await expect(findImpl(gitDDB, '', true, false)).rejects.toThrowError(
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).rejects.toThrowError(
       Err.InvalidJsonObjectError
     );
 
@@ -138,11 +137,13 @@ describe('<crud/find> find()', () => {
 
     const _id = '1';
     const json = { _id };
-    await addOneData(gitDDB, _id + JSON_EXTENSION, toSortedJSONString(json));
+    await addOneData(gitDDB, _id + JSON_POSTFIX, toSortedJSONString(json));
 
     await gitDDB.open();
 
-    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([json]);
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
+      json,
+    ]);
 
     await gitDDB.destroy();
   });
@@ -157,7 +158,7 @@ describe('<crud/find> find()', () => {
 
     await gitDDB.open();
 
-    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([]);
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([]);
 
     await gitDDB.destroy();
   });
@@ -177,12 +178,12 @@ describe('<crud/find> find()', () => {
     const json_1 = { _id: _id_1, name: name_1 };
     const json_c = { _id: _id_c, name: name_c };
 
-    await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-    await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-    await addOneData(gitDDB, _id_1 + JSON_EXTENSION, toSortedJSONString(json_1));
-    await addOneData(gitDDB, _id_c + JSON_EXTENSION, toSortedJSONString(json_c));
+    await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_1 + JSON_POSTFIX, toSortedJSONString(json_1));
+    await addOneData(gitDDB, _id_c + JSON_POSTFIX, toSortedJSONString(json_c));
 
-    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
       json_1,
       json_a,
       json_b,
@@ -206,24 +207,21 @@ describe('<crud/find> find()', () => {
     const json_1 = { _id: _id_1, name: name_1 };
     const json_c = { _id: _id_c, name: name_c };
 
-    await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-    await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-    await addOneData(gitDDB, _id_1 + JSON_EXTENSION, toSortedJSONString(json_1));
-    await addOneData(gitDDB, _id_c + JSON_EXTENSION, toSortedJSONString(json_c));
+    await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_1 + JSON_POSTFIX, toSortedJSONString(json_1));
+    await addOneData(gitDDB, _id_c + JSON_POSTFIX, toSortedJSONString(json_c));
 
-    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
       json_1,
       json_a,
       json_b,
       json_c,
     ]);
 
-    await expect(findImpl(gitDDB, '', true, false, { descending: true })).resolves.toEqual([
-      json_c,
-      json_b,
-      json_a,
-      json_1,
-    ]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { descending: true })
+    ).resolves.toEqual([json_c, json_b, json_a, json_1]);
 
     await gitDDB.destroy();
   });
@@ -242,13 +240,13 @@ describe('<crud/find> find()', () => {
     const json_c01 = { _id: _id_c01, name: name_c01 };
     const json_c02 = { _id: _id_c02, name: name_c02 };
 
-    await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-    await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-    await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-    await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-    await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+    await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+    await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+    await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
-    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
       json_a,
       json_b,
       json_c01,
@@ -274,16 +272,15 @@ describe('<crud/find> find()', () => {
     const json_c01 = { _id: _id_c01, name: name_c01 };
     const json_c02 = { _id: _id_c02, name: name_c02 };
 
-    await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-    await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-    await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-    await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-    await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+    await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+    await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+    await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
-    await expect(findImpl(gitDDB, '', true, false, { recursive: false })).resolves.toEqual([
-      json_a,
-      json_b,
-    ]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { recursive: false })
+    ).resolves.toEqual([json_a, json_b]);
 
     await gitDDB.destroy();
   });
@@ -303,12 +300,15 @@ describe('<crud/find> find()', () => {
     const json_1 = { _id: _id_1, name: name_1 };
     const json_c = { _id: _id_c, name: name_c };
 
-    await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-    await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
+    await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+    await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
     await addOneData(gitDDB, _id_1, toSortedJSONString(json_1));
     await addOneData(gitDDB, _id_c, toSortedJSONString(json_c));
 
-    await expect(findImpl(gitDDB, '', true, false)).resolves.toEqual([json_a, json_b]);
+    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
+      json_a,
+      json_b,
+    ]);
 
     await gitDDB.destroy();
   });
@@ -330,20 +330,19 @@ describe('<crud/find> find()', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-      await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       const prefix = 'citrus/';
 
-      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([
-        json_c01,
-        json_c02,
-      ]);
+      await expect(
+        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+      ).resolves.toEqual([json_c01, json_c02]);
 
       await gitDDB.destroy();
     });
@@ -364,18 +363,18 @@ describe('<crud/find> find()', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-      await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       const prefix = 'cit';
 
       await expect(
-        findImpl(gitDDB, '', true, false, { prefix, recursive: false })
+        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix, recursive: false })
       ).resolves.toEqual([json_c000, json_c001]);
 
       await gitDDB.destroy();
@@ -397,22 +396,19 @@ describe('<crud/find> find()', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-      await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       const prefix = 'citrus';
 
-      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([
-        json_c000,
-        json_c001,
-        json_c01,
-        json_c02,
-      ]);
+      await expect(
+        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+      ).resolves.toEqual([json_c000, json_c001, json_c01, json_c02]);
 
       await gitDDB.destroy();
     });
@@ -433,19 +429,19 @@ describe('<crud/find> find()', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-      await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       const prefix = 'citrus/y';
 
-      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([
-        json_c02,
-      ]);
+      await expect(
+        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+      ).resolves.toEqual([json_c02]);
 
       await gitDDB.destroy();
     });
@@ -466,17 +462,19 @@ describe('<crud/find> find()', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-      await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       const prefix = 'not_exist/';
 
-      await expect(findImpl(gitDDB, '', true, false, { prefix })).resolves.toEqual([]);
+      await expect(
+        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+      ).resolves.toEqual([]);
 
       await gitDDB.destroy();
     });
@@ -498,23 +496,23 @@ describe('<crud/find> find()', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_p + JSON_EXTENSION, toSortedJSONString(json_p));
+      await addOneData(gitDDB, _id_p + JSON_POSTFIX, toSortedJSONString(json_p));
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c000 + JSON_EXTENSION, toSortedJSONString(json_c000));
-      await addOneData(gitDDB, _id_c001 + JSON_EXTENSION, toSortedJSONString(json_c001));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c000 + JSON_POSTFIX, toSortedJSONString(json_c000));
+      await addOneData(gitDDB, _id_c001 + JSON_POSTFIX, toSortedJSONString(json_c001));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       await expect(
-        findImpl(gitDDB, '', true, false, { prefix: 'pear/Japan' })
+        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix: 'pear/Japan' })
       ).resolves.toEqual([json_p]);
 
-      await expect(findImpl(gitDDB, '', true, false, { prefix: 'pear' })).resolves.toEqual([
-        json_p,
-      ]);
+      await expect(
+        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix: 'pear' })
+      ).resolves.toEqual([json_p]);
 
       await gitDDB.destroy();
     });
@@ -531,7 +529,9 @@ describe('<crud/find> find()', () => {
 
       await gitDDB.open();
 
-      await expect(findImpl(gitDDB, 'col01', true, false)).resolves.toEqual([]);
+      await expect(findImpl(gitDDB, 'col01', gitDDB.jsonExt, true, false)).resolves.toEqual(
+        []
+      );
 
       await gitDDB.destroy();
     });
@@ -557,33 +557,14 @@ describe('<crud/find> find()', () => {
       const json_1_ = { _id: _id_1, name: name_1 };
       const json_c_ = { _id: _id_c, name: name_c };
 
-      await addOneData(
-        gitDDB,
-        colPath + _id_b + JSON_EXTENSION,
-        toSortedJSONString(json_b)
-      );
-      await addOneData(
-        gitDDB,
-        colPath + _id_a + JSON_EXTENSION,
-        toSortedJSONString(json_a)
-      );
-      await addOneData(
-        gitDDB,
-        colPath + _id_1 + JSON_EXTENSION,
-        toSortedJSONString(json_1)
-      );
-      await addOneData(
-        gitDDB,
-        colPath + _id_c + JSON_EXTENSION,
-        toSortedJSONString(json_c)
-      );
+      await addOneData(gitDDB, colPath + _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, colPath + _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, colPath + _id_1 + JSON_POSTFIX, toSortedJSONString(json_1));
+      await addOneData(gitDDB, colPath + _id_c + JSON_POSTFIX, toSortedJSONString(json_c));
 
-      await expect(findImpl(gitDDB, colPath, true, false)).resolves.toEqual([
-        json_1_,
-        json_a_,
-        json_b_,
-        json_c_,
-      ]);
+      await expect(
+        findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false)
+      ).resolves.toEqual([json_1_, json_a_, json_b_, json_c_]);
 
       await gitDDB.destroy();
     });
@@ -609,39 +590,23 @@ describe('<crud/find> find()', () => {
       const json_c01_ = { _id: _id_c01, name: name_c01 };
       const json_c02_ = { _id: _id_c02, name: name_c02 };
 
+      await addOneData(gitDDB, colPath + _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, colPath + _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, colPath + _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
       await addOneData(
         gitDDB,
-        colPath + _id_b + JSON_EXTENSION,
-        toSortedJSONString(json_b)
-      );
-      await addOneData(
-        gitDDB,
-        colPath + _id_a + JSON_EXTENSION,
-        toSortedJSONString(json_a)
-      );
-      await addOneData(
-        gitDDB,
-        colPath + _id_d + JSON_EXTENSION,
-        toSortedJSONString(json_d)
-      );
-      await addOneData(
-        gitDDB,
-        colPath + _id_c01 + JSON_EXTENSION,
+        colPath + _id_c01 + JSON_POSTFIX,
         toSortedJSONString(json_c01)
       );
       await addOneData(
         gitDDB,
-        colPath + _id_c02 + JSON_EXTENSION,
+        colPath + _id_c02 + JSON_POSTFIX,
         toSortedJSONString(json_c02)
       );
 
-      await expect(findImpl(gitDDB, colPath, true, false)).resolves.toEqual([
-        json_a_,
-        json_b_,
-        json_c01_,
-        json_c02_,
-        json_d_,
-      ]);
+      await expect(
+        findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false)
+      ).resolves.toEqual([json_a_, json_b_, json_c01_, json_c02_, json_d_]);
 
       await gitDDB.destroy();
     });
@@ -674,46 +639,45 @@ describe('<crud/find> find()', () => {
 
         await addOneData(
           gitDDB,
-          colPath + _id_b + JSON_EXTENSION,
+          colPath + _id_b + JSON_POSTFIX,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_a + JSON_EXTENSION,
+          colPath + _id_a + JSON_POSTFIX,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_d + JSON_EXTENSION,
+          colPath + _id_d + JSON_POSTFIX,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c000 + JSON_EXTENSION,
+          colPath + _id_c000 + JSON_POSTFIX,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c001 + JSON_EXTENSION,
+          colPath + _id_c001 + JSON_POSTFIX,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c01 + JSON_EXTENSION,
+          colPath + _id_c01 + JSON_POSTFIX,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c02 + JSON_EXTENSION,
+          colPath + _id_c02 + JSON_POSTFIX,
           toSortedJSONString(json_c02)
         );
 
         const prefix = 'citrus/';
 
-        await expect(findImpl(gitDDB, colPath, true, false, { prefix })).resolves.toEqual([
-          json_c01_,
-          json_c02_,
-        ]);
+        await expect(
+          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+        ).resolves.toEqual([json_c01_, json_c02_]);
 
         await gitDDB.destroy();
       });
@@ -745,44 +709,47 @@ describe('<crud/find> find()', () => {
 
         await addOneData(
           gitDDB,
-          colPath + _id_b + JSON_EXTENSION,
+          colPath + _id_b + JSON_POSTFIX,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_a + JSON_EXTENSION,
+          colPath + _id_a + JSON_POSTFIX,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_d + JSON_EXTENSION,
+          colPath + _id_d + JSON_POSTFIX,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c000 + JSON_EXTENSION,
+          colPath + _id_c000 + JSON_POSTFIX,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c001 + JSON_EXTENSION,
+          colPath + _id_c001 + JSON_POSTFIX,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c01 + JSON_EXTENSION,
+          colPath + _id_c01 + JSON_POSTFIX,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c02 + JSON_EXTENSION,
+          colPath + _id_c02 + JSON_POSTFIX,
           toSortedJSONString(json_c02)
         );
 
         const prefix = 'cit';
 
         await expect(
-          findImpl(gitDDB, colPath, true, false, { prefix, recursive: false })
+          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, {
+            prefix,
+            recursive: false,
+          })
         ).resolves.toEqual([json_c000_, json_c001_]);
 
         await gitDDB.destroy();
@@ -815,48 +782,45 @@ describe('<crud/find> find()', () => {
 
         await addOneData(
           gitDDB,
-          colPath + _id_b + JSON_EXTENSION,
+          colPath + _id_b + JSON_POSTFIX,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_a + JSON_EXTENSION,
+          colPath + _id_a + JSON_POSTFIX,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_d + JSON_EXTENSION,
+          colPath + _id_d + JSON_POSTFIX,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c000 + JSON_EXTENSION,
+          colPath + _id_c000 + JSON_POSTFIX,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c001 + JSON_EXTENSION,
+          colPath + _id_c001 + JSON_POSTFIX,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c01 + JSON_EXTENSION,
+          colPath + _id_c01 + JSON_POSTFIX,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c02 + JSON_EXTENSION,
+          colPath + _id_c02 + JSON_POSTFIX,
           toSortedJSONString(json_c02)
         );
 
         const prefix = 'citrus';
 
-        await expect(findImpl(gitDDB, colPath, true, false, { prefix })).resolves.toEqual([
-          json_c000_,
-          json_c001_,
-          json_c01_,
-          json_c02_,
-        ]);
+        await expect(
+          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+        ).resolves.toEqual([json_c000_, json_c001_, json_c01_, json_c02_]);
 
         await gitDDB.destroy();
       });
@@ -888,45 +852,45 @@ describe('<crud/find> find()', () => {
 
         await addOneData(
           gitDDB,
-          colPath + _id_b + JSON_EXTENSION,
+          colPath + _id_b + JSON_POSTFIX,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_a + JSON_EXTENSION,
+          colPath + _id_a + JSON_POSTFIX,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_d + JSON_EXTENSION,
+          colPath + _id_d + JSON_POSTFIX,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c000 + JSON_EXTENSION,
+          colPath + _id_c000 + JSON_POSTFIX,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c001 + JSON_EXTENSION,
+          colPath + _id_c001 + JSON_POSTFIX,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c01 + JSON_EXTENSION,
+          colPath + _id_c01 + JSON_POSTFIX,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c02 + JSON_EXTENSION,
+          colPath + _id_c02 + JSON_POSTFIX,
           toSortedJSONString(json_c02)
         );
 
         const prefix = 'citrus/y';
 
-        await expect(findImpl(gitDDB, colPath, true, false, { prefix })).resolves.toEqual([
-          json_c02_,
-        ]);
+        await expect(
+          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+        ).resolves.toEqual([json_c02_]);
 
         await gitDDB.destroy();
       });
@@ -958,45 +922,45 @@ describe('<crud/find> find()', () => {
 
         await addOneData(
           gitDDB,
-          colPath + _id_b + JSON_EXTENSION,
+          colPath + _id_b + JSON_POSTFIX,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_a + JSON_EXTENSION,
+          colPath + _id_a + JSON_POSTFIX,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_d + JSON_EXTENSION,
+          colPath + _id_d + JSON_POSTFIX,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c000 + JSON_EXTENSION,
+          colPath + _id_c000 + JSON_POSTFIX,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c001 + JSON_EXTENSION,
+          colPath + _id_c001 + JSON_POSTFIX,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c01 + JSON_EXTENSION,
+          colPath + _id_c01 + JSON_POSTFIX,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c02 + JSON_EXTENSION,
+          colPath + _id_c02 + JSON_POSTFIX,
           toSortedJSONString(json_c02)
         );
 
         const prefix = 'not_exist/';
 
-        await expect(findImpl(gitDDB, colPath, true, false, { prefix })).resolves.toEqual(
-          []
-        );
+        await expect(
+          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+        ).resolves.toEqual([]);
 
         await gitDDB.destroy();
       });
@@ -1030,52 +994,52 @@ describe('<crud/find> find()', () => {
 
         await addOneData(
           gitDDB,
-          colPath + _id_p + JSON_EXTENSION,
+          colPath + _id_p + JSON_POSTFIX,
           toSortedJSONString(json_p)
         );
 
         await addOneData(
           gitDDB,
-          colPath + _id_b + JSON_EXTENSION,
+          colPath + _id_b + JSON_POSTFIX,
           toSortedJSONString(json_b)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_a + JSON_EXTENSION,
+          colPath + _id_a + JSON_POSTFIX,
           toSortedJSONString(json_a)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_d + JSON_EXTENSION,
+          colPath + _id_d + JSON_POSTFIX,
           toSortedJSONString(json_d)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c000 + JSON_EXTENSION,
+          colPath + _id_c000 + JSON_POSTFIX,
           toSortedJSONString(json_c000)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c001 + JSON_EXTENSION,
+          colPath + _id_c001 + JSON_POSTFIX,
           toSortedJSONString(json_c001)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c01 + JSON_EXTENSION,
+          colPath + _id_c01 + JSON_POSTFIX,
           toSortedJSONString(json_c01)
         );
         await addOneData(
           gitDDB,
-          colPath + _id_c02 + JSON_EXTENSION,
+          colPath + _id_c02 + JSON_POSTFIX,
           toSortedJSONString(json_c02)
         );
 
         await expect(
-          findImpl(gitDDB, colPath, true, false, { prefix: 'pear/Japan' })
+          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix: 'pear/Japan' })
         ).resolves.toEqual([json_p_]);
 
         await expect(
-          findImpl(gitDDB, colPath, true, false, { prefix: 'pear' })
+          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix: 'pear' })
         ).resolves.toEqual([json_p_]);
 
         await gitDDB.destroy();
@@ -1094,7 +1058,7 @@ describe('<crud/find> find()', () => {
 
       await gitDDB.open();
 
-      await expect(findImpl(gitDDB, '', true, true)).resolves.toEqual([]);
+      await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, true)).resolves.toEqual([]);
 
       await gitDDB.destroy();
     });
@@ -1113,44 +1077,44 @@ describe('<crud/find> find()', () => {
       const json_c01 = { _id: _id_c01, name: name_c01 };
       const json_c02 = { _id: _id_c02, name: name_c02 };
 
-      await addOneData(gitDDB, _id_b + JSON_EXTENSION, toSortedJSONString(json_b));
-      await addOneData(gitDDB, _id_a + JSON_EXTENSION, toSortedJSONString(json_a));
-      await addOneData(gitDDB, _id_d + JSON_EXTENSION, toSortedJSONString(json_d));
-      await addOneData(gitDDB, _id_c01 + JSON_EXTENSION, toSortedJSONString(json_c01));
-      await addOneData(gitDDB, _id_c02 + JSON_EXTENSION, toSortedJSONString(json_c02));
+      await addOneData(gitDDB, _id_b + JSON_POSTFIX, toSortedJSONString(json_b));
+      await addOneData(gitDDB, _id_a + JSON_POSTFIX, toSortedJSONString(json_a));
+      await addOneData(gitDDB, _id_d + JSON_POSTFIX, toSortedJSONString(json_d));
+      await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
+      await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
-      await expect(findImpl(gitDDB, '', true, true)).resolves.toEqual([
+      await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, true)).resolves.toEqual([
         {
           _id: _id_a,
-          name: _id_a + JSON_EXTENSION,
+          name: _id_a + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_a) })).oid,
           type: 'json',
           doc: json_a,
         },
         {
           _id: _id_b,
-          name: _id_b + JSON_EXTENSION,
+          name: _id_b + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_b) })).oid,
           type: 'json',
           doc: json_b,
         },
         {
           _id: _id_c01,
-          name: _id_c01 + JSON_EXTENSION,
+          name: _id_c01 + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c01) })).oid,
           type: 'json',
           doc: json_c01,
         },
         {
           _id: _id_c02,
-          name: _id_c02 + JSON_EXTENSION,
+          name: _id_c02 + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_c02) })).oid,
           type: 'json',
           doc: json_c02,
         },
         {
           _id: _id_d,
-          name: _id_d + JSON_EXTENSION,
+          name: _id_d + JSON_POSTFIX,
           fileOid: (await git.hashBlob({ object: toSortedJSONString(json_d) })).oid,
           type: 'json',
           doc: json_d,

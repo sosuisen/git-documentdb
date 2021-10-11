@@ -30,6 +30,7 @@ export interface GitDDBInterface {
   /***********************************************
    * Public properties (readonly)
    ***********************************************/
+  jsonExt: string;
   defaultBranch: string;
   localDir: string;
   dbName: string;

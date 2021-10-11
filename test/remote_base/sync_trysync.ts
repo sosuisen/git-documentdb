@@ -40,7 +40,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { sleep, toSortedJSONString } from '../../src/utils';
-import { JSON_EXTENSION } from '../../src/const';
+import { JSON_POSTFIX } from '../../src/const';
 import { Err } from '../../src/error';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -745,7 +745,7 @@ export const syncTrySyncBase = (
             {
               fatDoc: {
                 _id: jsonB1._id,
-                name: jsonB1._id + JSON_EXTENSION,
+                name: jsonB1._id + JSON_POSTFIX,
                 fileOid: putResultB1.fileOid,
                 type: 'json',
                 doc: jsonB1,

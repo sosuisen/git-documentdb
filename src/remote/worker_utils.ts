@@ -9,8 +9,7 @@
 import nodePath from 'path';
 import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
-import { normalizeCommit, toSortedJSONString, utf8decode } from '../utils';
-import { JSON_EXTENSION } from '../const';
+import { normalizeCommit, serializeJSON, utf8decode } from '../utils';
 import { Err } from '../error';
 import {
   ChangedFile,
@@ -50,12 +49,13 @@ export async function writeBlobToFile (
 export async function getFatDocFromData (
   data: string | Uint8Array,
   fullDocPath: string,
-  docType: DocType
+  docType: DocType,
+  jsonExt: string
 ) {
   let fatDoc: FatDoc;
   const { oid } = await git.hashBlob({ object: data });
   if (docType === 'json') {
-    const _id = fullDocPath.replace(new RegExp(JSON_EXTENSION + '$'), '');
+    const _id = fullDocPath.replace(new RegExp(jsonExt + '$'), '');
     if (typeof data !== 'string') {
       data = utf8decode(data);
     }
@@ -107,14 +107,15 @@ export async function getFatDocFromOid (
   workingDir: string,
   fullDocPath: string,
   fileOid: string,
-  docType: DocType
+  docType: DocType,
+  jsonExt: string
 ) {
   const readBlobResult = await git.readBlob({
     fs,
     dir: workingDir,
     oid: fileOid,
   });
-  return getFatDocFromReadBlobResult(fullDocPath, readBlobResult, docType);
+  return getFatDocFromReadBlobResult(fullDocPath, readBlobResult, docType, jsonExt);
 }
 
 /**
@@ -125,12 +126,13 @@ export async function getFatDocFromOid (
 export function getFatDocFromReadBlobResult (
   fullDocPath: string,
   readBlobResult: ReadBlobResult,
-  docType: DocType
+  docType: DocType,
+  jsonExt: string
 ) {
   let fatDoc: FatDoc;
   if (docType === 'json') {
-    const _id = fullDocPath.replace(new RegExp(JSON_EXTENSION + '$'), '');
-    fatDoc = blobToJsonDoc(_id, readBlobResult, true) as FatJsonDoc;
+    const _id = fullDocPath.replace(new RegExp(jsonExt + '$'), '');
+    fatDoc = blobToJsonDoc(_id, readBlobResult, true, jsonExt) as FatJsonDoc;
   }
   else if (docType === 'text') {
     fatDoc = blobToText(fullDocPath, readBlobResult, true) as FatTextDoc;
@@ -151,7 +153,8 @@ export function getFatDocFromReadBlobResult (
 export async function getChanges (
   workingDir: string,
   oldCommitOid: string | undefined,
-  newCommitOid: string
+  newCommitOid: string,
+  jsonExt: string
 ) {
   return await git.walk({
     fs,
@@ -169,7 +172,7 @@ export async function getChanges (
         a = null;
       }
 
-      const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
+      const docType: DocType = fullDocPath.endsWith(jsonExt) ? 'json' : 'text';
       if (docType === 'text') {
         // TODO: select binary or text by .gitattribtues
       }
@@ -188,20 +191,20 @@ export async function getChanges (
       if (bOid === undefined && aOid !== undefined) {
         change = {
           operation: 'delete',
-          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType, jsonExt),
         };
       }
       else if (aOid === undefined && bOid !== undefined) {
         change = {
           operation: 'insert',
-          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType, jsonExt),
         };
       }
       else if (aOid !== undefined && bOid !== undefined && aOid !== bOid) {
         change = {
           operation: 'update',
-          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
-          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType, jsonExt),
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType, jsonExt),
         };
       }
       else {
@@ -223,7 +226,8 @@ export async function getChanges (
 export async function getAndWriteLocalChanges (
   workingDir: string,
   oldCommitOid: string,
-  newCommitOid: string
+  newCommitOid: string,
+  jsonExt: string
 ) {
   return await git.walk({
     fs,
@@ -237,7 +241,7 @@ export async function getAndWriteLocalChanges (
         return;
       }
 
-      const docType: DocType = fullDocPath.endsWith(JSON_EXTENSION) ? 'json' : 'text';
+      const docType: DocType = fullDocPath.endsWith(jsonExt) ? 'json' : 'text';
       if (docType === 'text') {
         // TODO: select binary or text by .gitattribtues
       }
@@ -256,7 +260,7 @@ export async function getAndWriteLocalChanges (
       if (bOid === undefined && aOid !== undefined) {
         change = {
           operation: 'delete',
-          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType, jsonExt),
         };
         await git.remove({ fs, dir: workingDir, filepath: fullDocPath });
         const path = nodePath.resolve(workingDir, fullDocPath);
@@ -267,13 +271,13 @@ export async function getAndWriteLocalChanges (
       else if (aOid === undefined && bOid !== undefined) {
         change = {
           operation: 'insert',
-          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType, jsonExt),
         };
         if (change.new.type === 'json') {
           await writeBlobToFile(
             workingDir,
             fullDocPath,
-            toSortedJSONString(change.new.doc)
+            serializeJSON(change.new.doc, jsonExt)
           );
         }
         else if (change.new.type === 'text' || change.new.type === 'binary') {
@@ -284,14 +288,14 @@ export async function getAndWriteLocalChanges (
       else if (aOid !== undefined && bOid !== undefined && aOid !== bOid) {
         change = {
           operation: 'update',
-          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType),
-          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType),
+          old: await getFatDocFromOid(workingDir, fullDocPath, aOid, docType, jsonExt),
+          new: await getFatDocFromOid(workingDir, fullDocPath, bOid, docType, jsonExt),
         };
         if (change.new.type === 'json') {
           await writeBlobToFile(
             workingDir,
             fullDocPath,
-            toSortedJSONString(change.new.doc)
+            serializeJSON(change.new.doc, jsonExt)
           );
         }
         else if (change.new.type === 'text' || change.new.type === 'binary') {

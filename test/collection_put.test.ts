@@ -14,7 +14,7 @@ import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import { PutResultJsonDoc } from '../src/types';
 import { toSortedJSONString } from '../src/utils';
-import { JSON_EXTENSION, SHORT_SHA_LENGTH } from '../src/const';
+import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
 import { Collection } from '../src/collection';
@@ -247,7 +247,7 @@ describe('<collection>', () => {
         oid: commitOid,
       });
       expect(commit.message).toEqual(
-        `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})\n`
+        `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})\n`
       );
 
       // Check filename
@@ -255,7 +255,7 @@ describe('<collection>', () => {
       const filePath = path.resolve(
         gitDDB.workingDir,
         col.collectionPath,
-        _id + JSON_EXTENSION
+        _id + JSON_POSTFIX
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       // Read JSON and check doc._id
@@ -302,7 +302,7 @@ describe('<collection>', () => {
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
       );
 
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -319,7 +319,7 @@ describe('<collection>', () => {
       const filePath = path.resolve(
         gitDDB.workingDir,
         col.collectionPath,
-        _id + JSON_EXTENSION
+        _id + JSON_POSTFIX
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -345,7 +345,7 @@ describe('<collection>', () => {
           .oid;
         const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
         expect(putResult.commit.message).toBe(
-          `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+          `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
         );
 
         await gitDDB.destroy();
@@ -369,7 +369,7 @@ describe('<collection>', () => {
         // fs.access() throw error when a file cannot be accessed.
         const filePath = path.resolve(
           gitDDB.workingDir,
-          col.collectionPath + _id + JSON_EXTENSION
+          col.collectionPath + _id + JSON_POSTFIX
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
         // Read JSON and check doc._id
@@ -395,14 +395,14 @@ describe('<collection>', () => {
           await git.hashBlob({ object: toSortedJSONString(internalJson) })
         ).oid.substr(0, SHORT_SHA_LENGTH);
         expect(putResult.commit.message).toBe(
-          `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+          `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
         );
 
         // Check filename
         // fs.access() throw error when a file cannot be accessed.
         const filePath = path.resolve(
           gitDDB.workingDir,
-          col.collectionPath + _id + JSON_EXTENSION
+          col.collectionPath + _id + JSON_POSTFIX
         );
         await expect(fs.access(filePath)).resolves.not.toThrowError();
         expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -419,7 +419,7 @@ describe('<collection>', () => {
           oid: commitOid,
         });
         expect(commit.message).toEqual(
-          `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})\n`
+          `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})\n`
         );
 
         gitDDB.destroy();
@@ -505,7 +505,7 @@ describe('<collection>', () => {
 
         const putResult = await col.put(updatedJson);
         expect(putResult.commit.message).toBe(
-          `update: ${col.collectionPath}${_id}${JSON_EXTENSION}(${fileOid.substr(
+          `update: ${col.collectionPath}${_id}${JSON_POSTFIX}(${fileOid.substr(
             0,
             SHORT_SHA_LENGTH
           )})`
@@ -632,7 +632,7 @@ describe('<collection>', () => {
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
       );
 
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -649,7 +649,7 @@ describe('<collection>', () => {
       const filePath = path.resolve(
         gitDDB.workingDir,
         col.collectionPath,
-        _id + JSON_EXTENSION
+        _id + JSON_POSTFIX
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -705,14 +705,14 @@ describe('<collection>', () => {
 
       expect(putResult._id).toBe(_id);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
       );
 
       // _id of original json must not be overwritten
       expect(json._id).toBe('id-in-doc');
 
       // fs.access() throw error when a file cannot be accessed.
-      const fullDocPath = col.collectionPath + _id + JSON_EXTENSION;
+      const fullDocPath = col.collectionPath + _id + JSON_POSTFIX;
       const filePath = path.resolve(gitDDB.workingDir, fullDocPath);
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));
@@ -742,7 +742,7 @@ describe('<collection>', () => {
 
     const filePath = path.resolve(
       gitDDB.workingDir,
-      col.collectionPath + 'id' + JSON_EXTENSION
+      col.collectionPath + 'id' + JSON_POSTFIX
     );
     const jsonStr = fs.readFileSync(filePath, 'utf8');
     expect(jsonStr).toBe(`{
@@ -786,7 +786,7 @@ describe('<collection>', () => {
       const filePath = path.resolve(
         gitDDB.workingDir,
         col.collectionPath,
-        putResult._id + JSON_EXTENSION
+        putResult._id + JSON_POSTFIX
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
 
@@ -824,7 +824,7 @@ describe('<collection>', () => {
 
       const col = new Collection(gitDDB, 'col01');
       const _id = 'dir01/prof01';
-      const shortName = _id + JSON_EXTENSION;
+      const shortName = _id + JSON_POSTFIX;
       // Check put operation
       const json = { _id, name: 'Shirase' };
 
@@ -848,7 +848,7 @@ describe('<collection>', () => {
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(
-        `insert: ${col.collectionPath}${_id}${JSON_EXTENSION}(${shortOid})`
+        `insert: ${col.collectionPath}${_id}${JSON_POSTFIX}(${shortOid})`
       );
 
       expect(putResult.commit.parent).toEqual([prevCommitOid]);
@@ -865,7 +865,7 @@ describe('<collection>', () => {
       const filePath = path.resolve(
         gitDDB.workingDir,
         col.collectionPath,
-        _id + JSON_EXTENSION
+        _id + JSON_POSTFIX
       );
       await expect(fs.access(filePath)).resolves.not.toThrowError();
       expect(fs.readFileSync(filePath, 'utf8')).toBe(toSortedJSONString(internalJson));

@@ -24,7 +24,7 @@ import {
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { toSortedJSONString, utf8encode } from '../../src/utils';
-import { JSON_EXTENSION } from '../../src/const';
+import { JSON_POSTFIX } from '../../src/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const git_module = require('isomorphic-git');
@@ -61,9 +61,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(() => blobToJsonDoc(shortId, readBlobResult, false)).toThrowError(
-        Err.InvalidJsonObjectError
-      );
+      expect(() =>
+        blobToJsonDoc(shortId, readBlobResult, false, JSON_POSTFIX)
+      ).toThrowError(Err.InvalidJsonObjectError);
     });
 
     it('returns JsonDoc', async () => {
@@ -74,7 +74,7 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false)).toEqual(json);
+      expect(blobToJsonDoc(shortId, readBlobResult, false, JSON_POSTFIX)).toEqual(json);
     });
 
     it('returns JsonDoc with overwritten _id', async () => {
@@ -87,7 +87,7 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId2, readBlobResult, false)).toEqual(json2);
+      expect(blobToJsonDoc(shortId2, readBlobResult, false, JSON_POSTFIX)).toEqual(json2);
     });
 
     it('returns FatJsonDoc', async () => {
@@ -99,9 +99,9 @@ describe('<crud/blob>', () => {
         oid: fileOid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, true)).toEqual({
+      expect(blobToJsonDoc(shortId, readBlobResult, true, JSON_POSTFIX)).toEqual({
         _id: shortId,
-        name: shortId + JSON_EXTENSION,
+        name: shortId + JSON_POSTFIX,
         fileOid,
         type: 'json',
         doc: json,

@@ -147,7 +147,8 @@ export async function syncWorker (
     const localChanges = await getAndWriteLocalChanges(
       gitDDB.workingDir,
       oldCommitOid,
-      newCommitOid!
+      newCommitOid!,
+      gitDDB.jsonExt
     );
 
     const syncResultFastForwardMerge: SyncResult = {
