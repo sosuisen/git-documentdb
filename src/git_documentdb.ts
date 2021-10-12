@@ -41,6 +41,7 @@ import {
   PutResultJsonDoc,
   RemoteOptions,
   Schema,
+  SerializeFormat,
   SyncCallback,
   SyncEvent,
   SyncResult,
@@ -79,13 +80,14 @@ export function generateDatabaseId () {
   return ulid(Date.now());
 }
 
-const INITIAL_DATABASE_OPEN_RESULT = {
+const INITIAL_DATABASE_OPEN_RESULT: DatabaseOpenResult = {
   dbId: '',
   creator: '',
   version: '',
   isNew: false,
   isCreatedByGitDDB: true,
   isValidVersion: true,
+  serializeFormat: 'json',
 };
 
 /**
@@ -126,6 +128,11 @@ export class GitDocumentDB
   private _synchronizers: { [url: string]: Sync } = {};
 
   private _dbOpenResult: DatabaseOpenResult = { ...INITIAL_DATABASE_OPEN_RESULT };
+
+  /**
+   * Serialize format
+   */
+  private _serializeFormat: SerializeFormat = 'json';
 
   /***********************************************
    * Public properties (readonly)
@@ -330,8 +337,7 @@ export class GitDocumentDB
       },
     };
 
-    this._jsonExt =
-      options.serializeFormat === 'front-matter' ? FRONT_MATTER_POSTFIX : JSON_POSTFIX;
+    this._serializeFormat = options.serializeFormat ?? 'json';
 
     // Get full-path
     this._workingDir = path.resolve(this._localDir, this._dbName);
@@ -397,6 +403,7 @@ export class GitDocumentDB
       dbId: generateDatabaseId(),
       creator: DATABASE_CREATOR,
       version: DATABASE_VERSION,
+      serializeFormat: this._serializeFormat,
     };
 
     // Retry three times.
@@ -418,7 +425,7 @@ export class GitDocumentDB
       // eslint-disable-next-line no-await-in-loop
       const resInit = await git
         .init({ fs, dir: this._workingDir, defaultBranch: this.defaultBranch })
-        .catch(err => {
+        .catch((err: Error) => {
           if (i >= retry) throw err;
           return 'cannot_init';
         });
@@ -825,6 +832,7 @@ export class GitDocumentDB
    *
    * @internal
    */
+  // eslint-disable-next-line complexity
   async loadDbInfo () {
     let info: DatabaseInfo | undefined;
 
@@ -848,10 +856,19 @@ export class GitDocumentDB
       dbId: '',
       creator: '',
       version: '',
+      serializeFormat: this._serializeFormat,
     };
 
     info.creator ??= '';
     info.version ??= '';
+
+    info.serializeFormat ??= this._serializeFormat;
+
+    if (info.serializeFormat !== this._serializeFormat) {
+      // TODO: Change serialize format
+    }
+    this._jsonExt =
+      this._serializeFormat === 'front-matter' ? FRONT_MATTER_POSTFIX : JSON_POSTFIX;
 
     // Set dbId if not exists.
     if (!info.dbId) {

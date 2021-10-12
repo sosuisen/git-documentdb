@@ -160,6 +160,7 @@ describe('<git_documentdb>', () => {
         isNew: true,
         isCreatedByGitDDB: true,
         isValidVersion: true,
+        serializeFormat: 'json',
       });
 
       expect((dbOpenResult as DatabaseInfo).dbId).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
@@ -297,6 +298,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: true,
+        serializeFormat: 'json',
       });
       expect(gitDDB.isOpened).toBeTruthy();
 
@@ -333,6 +335,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: false,
         isValidVersion: false,
+        serializeFormat: 'json',
       });
       await gitDDB.destroy();
     });
@@ -363,6 +366,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: false,
+        serializeFormat: 'json',
       });
       await gitDDB.destroy();
     });
@@ -394,6 +398,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: true,
+        serializeFormat: 'json',
       });
     });
 
@@ -405,7 +410,26 @@ describe('<git_documentdb>', () => {
       });
 
       // Create db
-      await gitDDB.open();
+      const dbOpenResult = await gitDDB.open();
+      const newDbId = (dbOpenResult as DatabaseInfo).dbId;
+      await expect(gitDDB.open()).resolves.toMatchObject({
+        dbId: newDbId,
+        creator: DATABASE_CREATOR,
+        version: DATABASE_VERSION,
+        isNew: false,
+        isCreatedByGitDDB: true,
+        isValidVersion: true,
+      });
+      await gitDDB.destroy();
+    });
+
+    it('loads serializeFormat.', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serializeFormat: 'front-matter',
+      });
 
       const dbOpenResult = await gitDDB.open();
       const newDbId = (dbOpenResult as DatabaseInfo).dbId;
@@ -416,6 +440,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: true,
+        serializeFormat: 'front-matter',
       });
       await gitDDB.destroy();
     });
