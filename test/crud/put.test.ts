@@ -626,6 +626,27 @@ a: bar
     await gitDDB.close();
     await gitDDB.destroy();
   });
+
+  it('write markdown without front matter', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      serializeFormat: 'front-matter',
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      _id: 'foo',
+      _body: 'bar\nbaz',
+    });
+    const result = `bar
+baz`;
+    const fullDocPath = 'foo.md';
+    expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(result);
+
+    await gitDDB.close();
+    await gitDDB.destroy();
+  });
 });
 
 describe('<crud/put> putWorker', () => {

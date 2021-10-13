@@ -58,12 +58,23 @@ export function blobToJsonDoc (
       }
     }
     if (!endFrontMatter) {
-      throw new Err.InvalidJsonObjectError(shortId);
+      // throw new Err.InvalidJsonObjectError(shortId);
+      markdownText = text;
+      jsonDoc = {
+        _id: shortId,
+      };
     }
-    try {
-      jsonDoc = yaml.load(yamlText) as JsonDoc;
-    } catch {
-      throw new Err.InvalidJsonObjectError(shortId);
+    else {
+      try {
+        jsonDoc = yaml.load(yamlText) as JsonDoc;
+      } catch {
+        throw new Err.InvalidJsonObjectError(shortId);
+      }
+      if (jsonDoc === undefined) {
+        jsonDoc = {
+          _id: shortId,
+        };
+      }
     }
     if (markdownText !== '') {
       jsonDoc._body = markdownText;

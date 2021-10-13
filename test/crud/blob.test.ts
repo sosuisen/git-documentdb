@@ -77,28 +77,42 @@ describe('<crud/blob>', () => {
       expect(blobToJsonDoc(shortId, readBlobResult, false, JSON_POSTFIX)).toEqual(json);
     });
 
-    it('throws InvalidJsonObjectError when Front-Matter + Markdown is empty', async () => {
+    it('returns JsonDoc with only _id when Front-Matter + Markdown is empty', async () => {
       const shortId = 'foo';
       const text = '';
       const readBlobResult: ReadBlobResult = {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(() =>
-        blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)
-      ).toThrowError(Err.InvalidJsonObjectError);
+      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual({
+        _id: 'foo',
+      });
     });
 
-    it('throws InvalidJsonObjectError when Front-Matter does not end', async () => {
+    it('returns JsonDoc with only _id and _body when Front-Matter is empty', async () => {
+      const shortId = 'foo';
+      const text = 'bar\nbaz';
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual({
+        _id: 'foo',
+        _body: text,
+      });
+    });
+
+    it('returns JsonDoc with only _id and _body when Front-Matter does not end', async () => {
       const shortId = 'foo';
       const text = '---\na: foo';
       const readBlobResult: ReadBlobResult = {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(() =>
-        blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)
-      ).toThrowError(Err.InvalidJsonObjectError);
+      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual({
+        _id: 'foo',
+        _body: text,
+      });
     });
 
     it('returns JsonDoc of Front-Matter + Markdown', async () => {

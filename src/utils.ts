@@ -87,6 +87,17 @@ export function toFrontMatterMarkdown (obj: Record<string, any>) {
   const body = typeof obj._body === 'string' ? obj._body : '';
   const clone = JSON.parse(JSON.stringify(obj));
   delete clone._body;
+  let hasOnlyId = true;
+  for (const key of Object.keys(clone)) {
+    if (key !== '_id') {
+      hasOnlyId = false;
+      break;
+    }
+  }
+  if (hasOnlyId) {
+    return body;
+  }
+
   const frontMatter = '---\n' + yaml.dump(clone, { sortKeys: true }) + '---\n';
   return frontMatter + body;
 }
