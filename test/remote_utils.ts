@@ -4,6 +4,7 @@ import { Octokit } from '@octokit/rest';
 import git from 'isomorphic-git';
 import sinon from 'sinon';
 import expect from 'expect';
+import { textToJsonDoc } from '../src/crud/blob';
 import {
   ChangedFileDelete,
   ChangedFileInsert,
@@ -18,6 +19,7 @@ import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
 import {
   FILE_REMOVE_TIMEOUT,
+  FRONT_MATTER_POSTFIX,
   GIT_DOCUMENTDB_METADATA_DIR,
   JSON_POSTFIX,
 } from '../src/const';
@@ -61,13 +63,14 @@ export function getCommitInfo (resultOrMessage: (PutResult | DeleteResult | stri
  */
 export function getChangedFileInsert (
   newDoc: JsonDoc,
-  newResult: PutResult | DeleteResult
+  newResult: PutResult | DeleteResult,
+  jsonExt = JSON_POSTFIX
 ): ChangedFileInsert {
   return {
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_POSTFIX,
+      name: newDoc!._id + jsonExt,
       fileOid: newResult!.fileOid,
       type: 'json',
       doc: newDoc,
@@ -79,20 +82,21 @@ export function getChangedFileUpdate (
   oldDoc: JsonDoc,
   oldResult: PutResult | DeleteResult,
   newDoc: JsonDoc,
-  newResult: PutResult | DeleteResult
+  newResult: PutResult | DeleteResult,
+  jsonExt = JSON_POSTFIX
 ): ChangedFileUpdate {
   return {
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_POSTFIX,
+      name: oldDoc!._id + jsonExt,
       fileOid: oldResult!.fileOid,
       type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_POSTFIX,
+      name: newDoc!._id + jsonExt,
       fileOid: newResult!.fileOid,
       type: 'json',
       doc: newDoc,
@@ -102,13 +106,14 @@ export function getChangedFileUpdate (
 
 export function getChangedFileDelete (
   oldDoc: JsonDoc,
-  oldResult: PutResult | DeleteResult
+  oldResult: PutResult | DeleteResult,
+  jsonExt = JSON_POSTFIX
 ): ChangedFileDelete {
   return {
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_POSTFIX,
+      name: oldDoc!._id + jsonExt,
       fileOid: oldResult!.fileOid,
       type: 'json',
       doc: oldDoc,
@@ -118,13 +123,14 @@ export function getChangedFileDelete (
 
 export function getChangedFileInsertBySHA (
   newDoc: JsonDoc,
-  newFileSHA: string
+  newFileSHA: string,
+  jsonExt = JSON_POSTFIX
 ): ChangedFileInsert {
   return {
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_POSTFIX,
+      name: newDoc!._id + jsonExt,
       fileOid: newFileSHA,
       type: 'json',
       doc: newDoc,
@@ -136,20 +142,21 @@ export function getChangedFileUpdateBySHA (
   oldDoc: JsonDoc,
   oldFileSHA: string,
   newDoc: JsonDoc,
-  newFileSHA: string
+  newFileSHA: string,
+  jsonExt = JSON_POSTFIX
 ): ChangedFileUpdate {
   return {
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_POSTFIX,
+      name: oldDoc!._id + jsonExt,
       fileOid: oldFileSHA,
       type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + JSON_POSTFIX,
+      name: newDoc!._id + jsonExt,
       fileOid: newFileSHA,
       type: 'json',
       doc: newDoc,
@@ -159,13 +166,14 @@ export function getChangedFileUpdateBySHA (
 
 export function getChangedFileDeleteBySHA (
   oldDoc: JsonDoc,
-  oldFileSHA: string
+  oldFileSHA: string,
+  jsonExt = JSON_POSTFIX
 ): ChangedFileDelete {
   return {
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + JSON_POSTFIX,
+      name: oldDoc!._id + jsonExt,
       fileOid: oldFileSHA,
       type: 'json',
       doc: oldDoc,
@@ -377,10 +385,17 @@ export const compareWorkingDirAndBlobs = async (
   return true;
 };
 
-export const getWorkingDirDocs = (gitDDB: GitDocumentDB) => {
+export const getWorkingDirDocs = (gitDDB: GitDocumentDB, jsonExt = JSON_POSTFIX) => {
   return listFiles(gitDDB, gitDDB.workingDir).map(filepath => {
+    if (jsonExt === FRONT_MATTER_POSTFIX) {
+      const txt = fs.readFileSync(gitDDB.workingDir + '/' + filepath, { encoding: 'utf8' });
+      const doc = textToJsonDoc(txt, FRONT_MATTER_POSTFIX);
+      doc._id = filepath.replace(new RegExp(jsonExt + '$'), '');
+      return doc;
+    }
+
     const doc = fs.readJSONSync(gitDDB.workingDir + '/' + filepath);
-    doc._id = filepath.replace(new RegExp(JSON_POSTFIX + '$'), '');
+    doc._id = filepath.replace(new RegExp(jsonExt + '$'), '');
     return doc;
   });
 };

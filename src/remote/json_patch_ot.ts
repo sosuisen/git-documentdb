@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prefer-spread */
 /* eslint-disable max-depth */
-import { editOp, insertOp, JSONOp, moveOp, replaceOp, type } from 'ot-json1';
+import { editOp, insertOp, JSONOp, replaceOp, type } from 'ot-json1';
 import { uniCount } from 'unicount';
 import { ConflictResolutionStrategyLabels, IJsonPatch, JsonDoc } from '../types';
 import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';

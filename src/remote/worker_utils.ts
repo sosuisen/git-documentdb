@@ -21,7 +21,7 @@ import {
   JsonDoc,
   NormalizedCommit,
 } from '../types';
-import { blobToBinary, blobToJsonDoc, blobToText } from '../crud/blob';
+import { blobToBinary, blobToJsonDoc, blobToText, textToJsonDoc } from '../crud/blob';
 
 /**
  * Write blob to file system
@@ -60,7 +60,7 @@ export async function getFatDocFromData (
       data = utf8decode(data);
     }
     try {
-      const jsonDoc = (JSON.parse(data) as unknown) as JsonDoc;
+      const jsonDoc = (textToJsonDoc(data, jsonExt) as unknown) as JsonDoc;
       if (jsonDoc._id !== undefined) {
         // Overwrite _id property by _id if JsonDoc is created by GitDocumentedDB (_id !== undefined).
         jsonDoc._id = _id;

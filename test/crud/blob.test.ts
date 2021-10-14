@@ -193,9 +193,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(() => blobToJsonDocWithoutOverwrittenId(readBlobResult)).toThrowError(
-        Err.InvalidJsonObjectError
-      );
+      expect(() =>
+        blobToJsonDocWithoutOverwrittenId(readBlobResult, JSON_POSTFIX)
+      ).toThrowError(Err.InvalidJsonObjectError);
     });
 
     it('returns JsonDoc', async () => {
@@ -206,7 +206,20 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDocWithoutOverwrittenId(readBlobResult)).toEqual(json);
+      expect(blobToJsonDocWithoutOverwrittenId(readBlobResult, JSON_POSTFIX)).toEqual(json);
+    });
+
+    it('returns JsonDoc in FrontMatterMarkdown', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, name: 'bar' };
+      const text = toFrontMatterMarkdown(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(
+        blobToJsonDocWithoutOverwrittenId(readBlobResult, FRONT_MATTER_POSTFIX)
+      ).toEqual(json);
     });
   });
 

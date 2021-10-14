@@ -16,6 +16,7 @@ import expect from 'expect';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   ConnectionSettings,
+  RemoteOptions,
   Schema,
   SyncResultMergeAndPush,
   SyncResultResolveConflictsAndPush,
@@ -33,7 +34,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 
-import { JSON_POSTFIX } from '../../src/const';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
 
 export const threeWayMergeOtBase = (
   connection: ConnectionSettings,
@@ -532,6 +533,135 @@ export const threeWayMergeOtBase = (
       // Sync dbA
       const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
       expect(getWorkingDirDocs(dbA)).toEqual([mergedJson]);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
+    });
+
+    /**
+     * before:  jsonA1
+     * dbA   : +jsonA1
+     * dbB   :  jsonB1
+     * after :  mergedJson
+     *
+     * 3-way merge:
+     *   mergedJson:17 - Conflict. Accept theirs (update-merge)
+     */
+    it('resolves case 17 - Conflict. Accept theirs (update-merge) in FrontMatterMarkdown', async () => {
+      const schema: Schema = {
+        json: { plainTextProperties: { name: true } },
+      };
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir,
+        schema,
+        serializeFormat: 'front-matter',
+      });
+
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        includeCommits: true,
+        conflictResolutionStrategy: 'theirs-diff',
+        connection,
+      };
+
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'Hello, world!' };
+      const putResultA1 = await dbA.put(jsonA1);
+      await syncA.tryPush();
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir: localDir,
+        schema,
+        serializeFormat: 'front-matter',
+      });
+      // Clone dbA
+      await dbB.open();
+      const syncB = await dbB.sync({
+        ...syncA.options,
+        conflictResolutionStrategy: 'theirs-diff',
+      });
+
+      // A puts and pushes
+      const jsonA1dash = { _id: '1', name: 'Hello' };
+      const putResultA1dash = await dbA.put(jsonA1dash);
+      await syncA.tryPush();
+
+      // B puts
+      const jsonB1 = { _id: '1', name: 'Hello, world! Hello, Nara!' };
+      const putResultB1 = await dbB.put(jsonB1);
+
+      const mergedJson = { _id: '1', name: 'Hello Hello, Nara!' };
+
+      // It will occur conflict on id 1.json.
+      const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
+
+      const mergedDoc = await dbB.getFatDoc('1.md');
+
+      expect(syncResult1.action).toBe('resolve conflicts and push');
+      expect(syncResult1.commits).toMatchObject({
+        local: getCommitInfo([
+          putResultA1dash,
+          `resolve: 1${FRONT_MATTER_POSTFIX}(update-merge,${mergedDoc!.fileOid.substr(
+            0,
+            7
+          )},theirs-diff)`,
+        ]),
+        remote: getCommitInfo([
+          putResultB1,
+          `resolve: 1${FRONT_MATTER_POSTFIX}(update-merge,${mergedDoc!.fileOid.substr(
+            0,
+            7
+          )},theirs-diff)`,
+        ]),
+      });
+      expect(syncResult1.changes.local.length).toBe(1);
+      expect(syncResult1.changes.local).toEqual([
+        getChangedFileUpdateBySHA(
+          jsonB1,
+          putResultB1.fileOid,
+          mergedJson,
+          mergedDoc!.fileOid,
+          FRONT_MATTER_POSTFIX
+        ),
+      ]);
+
+      expect(syncResult1.changes.remote.length).toBe(1);
+      expect(syncResult1.changes.remote).toEqual([
+        getChangedFileUpdateBySHA(
+          jsonA1dash,
+          putResultA1dash.fileOid,
+          mergedJson,
+          mergedDoc!.fileOid,
+          FRONT_MATTER_POSTFIX
+        ),
+      ]);
+
+      expect(syncResult1.conflicts.length).toEqual(1);
+      expect(syncResult1.conflicts).toEqual([
+        {
+          fatDoc: mergedDoc,
+          strategy: 'theirs-diff',
+          operation: 'update-merge',
+        },
+      ]);
+      // Conflict occurs on 1.json
+
+      expect(getWorkingDirDocs(dbB, FRONT_MATTER_POSTFIX)).toEqual([mergedJson]);
+      // Sync dbA
+      const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
+      expect(getWorkingDirDocs(dbA, FRONT_MATTER_POSTFIX)).toEqual([mergedJson]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

@@ -105,7 +105,7 @@ export async function getImpl (
 
   if (docType === 'json') {
     if (internalOptions.oid !== '') {
-      return blobToJsonDocWithoutOverwrittenId(readBlobResult);
+      return blobToJsonDocWithoutOverwrittenId(readBlobResult, jsonExt);
     }
     const shortId = shortName.replace(new RegExp(jsonExt + '$'), '');
     return blobToJsonDoc(shortId, readBlobResult, internalOptions.withMetadata, jsonExt);

@@ -11,17 +11,23 @@ import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import { ulid } from 'ulid';
 import rimraf from 'rimraf';
+import { textToJsonDoc } from '../crud/blob';
 import {
   DocMetadata,
   DocType,
   DuplicatedFile,
+  JsonDoc,
   JsonDocMetadata,
   RemoteOptions,
   SyncResultCombineDatabase,
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
-import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT } from '../const';
+import {
+  DUPLICATED_FILE_POSTFIX,
+  FILE_REMOVE_TIMEOUT,
+  FRONT_MATTER_POSTFIX,
+} from '../const';
 import { getAllMetadata, serializeJSON } from '../utils';
 import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 
@@ -128,7 +134,18 @@ export async function combineDatabaseWithTheirs (
         const remoteFile = remoteMetadataList.find(data => data.name === meta.name);
 
         if (docType === 'json') {
-          const doc = fs.readJSONSync(localFilePath);
+          let doc: JsonDoc;
+          // eslint-disable-next-line max-depth
+          if (gitDDB.jsonExt === FRONT_MATTER_POSTFIX) {
+            const txt = fs.readFileSync(localFilePath, {
+              encoding: 'utf8',
+            });
+            doc = textToJsonDoc(txt, FRONT_MATTER_POSTFIX);
+          }
+          else {
+            doc = fs.readJSONSync(localFilePath);
+          }
+
           const _id = (meta as JsonDocMetadata)._id;
           // eslint-disable-next-line max-depth
           if (doc._id !== undefined) {

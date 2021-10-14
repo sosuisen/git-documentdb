@@ -15,18 +15,11 @@ import { Err } from '../error';
 import { FatBinaryDoc, FatDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
 
 /**
- * blobToJsonDoc
- *
+ * textToJsonDoc
  * @throws {@link Err.InvalidJsonObjectError}
  */
 // eslint-disable-next-line complexity
-export function blobToJsonDoc (
-  shortId: string,
-  readBlobResult: ReadBlobResult,
-  withMetadata: boolean,
-  jsonExt: string
-): FatJsonDoc | JsonDoc {
-  const text = utf8decode(readBlobResult.blob);
+export function textToJsonDoc (text: string, jsonExt: string, shortId?: string): JsonDoc {
   let jsonDoc: JsonDoc;
   if (jsonExt === FRONT_MATTER_POSTFIX) {
     const mdArray = text.split('\n');
@@ -58,11 +51,15 @@ export function blobToJsonDoc (
       }
     }
     if (!endFrontMatter) {
-      // throw new Err.InvalidJsonObjectError(shortId);
       markdownText = text;
-      jsonDoc = {
-        _id: shortId,
-      };
+      if (shortId !== undefined) {
+        jsonDoc = {
+          _id: shortId,
+        };
+      }
+      else {
+        jsonDoc = {};
+      }
     }
     else {
       try {
@@ -71,9 +68,14 @@ export function blobToJsonDoc (
         throw new Err.InvalidJsonObjectError(shortId);
       }
       if (jsonDoc === undefined) {
-        jsonDoc = {
-          _id: shortId,
-        };
+        if (shortId !== undefined) {
+          jsonDoc = {
+            _id: shortId,
+          };
+        }
+        else {
+          jsonDoc = {};
+        }
       }
     }
     if (markdownText !== '') {
@@ -87,6 +89,22 @@ export function blobToJsonDoc (
       throw new Err.InvalidJsonObjectError(shortId);
     }
   }
+  return jsonDoc;
+}
+
+/**
+ * blobToJsonDoc
+ *
+ * @throws {@link Err.InvalidJsonObjectError}
+ */
+export function blobToJsonDoc (
+  shortId: string,
+  readBlobResult: ReadBlobResult,
+  withMetadata: boolean,
+  jsonExt: string
+): FatJsonDoc | JsonDoc {
+  const text = utf8decode(readBlobResult.blob);
+  const jsonDoc = textToJsonDoc(text, jsonExt, shortId);
   if (jsonDoc._id !== undefined) {
     // Overwrite _id property by shortId (_id without collectionPath) if JsonDoc is created by GitDocumentedDB (_id !== undefined).
     jsonDoc._id = shortId;
@@ -109,16 +127,14 @@ export function blobToJsonDoc (
  *
  * @throws {@link Err.InvalidJsonObjectError}
  */
+// eslint-disable-next-line complexity
 export function blobToJsonDocWithoutOverwrittenId (
-  readBlobResult: ReadBlobResult
+  readBlobResult: ReadBlobResult,
+  jsonExt: string
 ): JsonDoc {
-  try {
-    const text = utf8decode(readBlobResult.blob);
-    const jsonDoc = (JSON.parse(text) as unknown) as JsonDoc;
-    return jsonDoc;
-  } catch (e) {
-    throw new Err.InvalidJsonObjectError('');
-  }
+  const text = utf8decode(readBlobResult.blob);
+  const jsonDoc = textToJsonDoc(text, jsonExt);
+  return jsonDoc;
 }
 
 /**

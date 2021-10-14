@@ -17,8 +17,9 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import parse from 'parse-git-config';
+import { textToJsonDoc } from '../../src/crud/blob';
 import { Err } from '../../src/error';
-import { ConnectionSettings, DuplicatedFile } from '../../src/types';
+import { ConnectionSettings, DuplicatedFile, RemoteOptions } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   compareWorkingDirAndBlobs,
@@ -29,7 +30,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
-import { JSON_POSTFIX } from '../../src/const';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
 
 export const syncCombineBase = (
   connection: ConnectionSettings,
@@ -50,7 +51,7 @@ export const syncCombineBase = (
     /**
      * Combine database
      */
-    describe('with NodeGit', () => {
+    describe('with same serializeFormat', () => {
       it('throws NoMergeBaseFoundError when combineDbStrategy is throw-error in [both] direction', async () => {
         const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
           combineDbStrategy: 'throw-error',
@@ -500,6 +501,101 @@ export const syncCombineBase = (
 
         const config = parse.sync({ cwd: dbB.workingDir, path: '.git/config' });
         expect(config.user).toEqual(author);
+
+        await destroyDBs([dbA, dbB]);
+      });
+    });
+    describe('with same serializeFormat', () => {
+      it('returns SyncResult with duplicates when combine-head-with-theirs with deep local and deep remote', async () => {
+        const remoteURL = remoteURLBase + serialId();
+        const dbNameA = serialId();
+        const dbA: GitDocumentDB = new GitDocumentDB({
+          dbName: dbNameA,
+          localDir,
+          serializeFormat: 'front-matter',
+        });
+
+        const options: RemoteOptions = {
+          remoteUrl: remoteURL,
+          combineDbStrategy: 'combine-head-with-theirs',
+          syncDirection: 'both',
+          connection,
+        };
+
+        await dbA.open();
+        const syncA = await dbA.sync(options);
+
+        const dbIdA = dbA.dbId;
+
+        const jsonA1 = { _id: 'deep/one', name: 'fromA' };
+        const putResultA1 = await dbA.put(jsonA1);
+        await syncA.trySync();
+
+        const dbNameB = serialId();
+        const dbB: GitDocumentDB = new GitDocumentDB({
+          dbName: dbNameB,
+          localDir,
+          serializeFormat: 'front-matter',
+        });
+        await dbB.open();
+
+        const dbIdB = dbB.dbId;
+        expect(dbIdB).not.toBe(dbIdA);
+
+        const jsonB1 = { _id: 'deep/one', name: 'fromB' };
+        await dbB.put(jsonB1);
+
+        const jsonB2 = { _id: '2', name: 'fromB' };
+        await dbB.put(jsonB2);
+
+        // Combine with remote db
+        const [sync, syncResult] = await dbB.sync(syncA.options, true);
+
+        expect(dbB.dbId).toBe(dbIdA);
+
+        // Put new doc to combined db.
+        const jsonB3 = { _id: '3', name: 'fromB' };
+        await dbB.put(jsonB3);
+
+        expect(getWorkingDirDocs(dbA, FRONT_MATTER_POSTFIX)).toEqual([jsonA1]);
+        // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
+        jsonB1._id = jsonB1._id + '-from-' + dbIdB;
+        const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + FRONT_MATTER_POSTFIX);
+
+        expect(syncResult).toEqual({
+          action: 'combine database',
+          duplicates: [
+            {
+              original: {
+                _id: jsonA1._id,
+                name: jsonA1._id + FRONT_MATTER_POSTFIX,
+                fileOid: putResultA1.fileOid,
+                type: 'json',
+              },
+              duplicate: {
+                _id: jsonB1._id,
+                name: jsonB1._id + FRONT_MATTER_POSTFIX,
+                fileOid: duplicatedB1?.fileOid,
+                type: 'json',
+              },
+            },
+          ],
+        });
+        expect(getWorkingDirDocs(dbB, FRONT_MATTER_POSTFIX)).toEqual([
+          jsonB2,
+          jsonB3,
+          jsonB1,
+          jsonA1,
+        ]);
+
+        const rawJSON = textToJsonDoc(
+          fs.readFileSync(dbB.workingDir + '/deep/one.md', { encoding: 'utf8' }),
+          FRONT_MATTER_POSTFIX
+        );
+        rawJSON._id = 'one'; // not 'deep/one'
+
+        await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+        await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
         await destroyDBs([dbA, dbB]);
       });

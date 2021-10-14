@@ -18,7 +18,7 @@ import { getFatDocFromData, writeBlobToFile } from './worker_utils';
 import { serializeJSON, utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { SyncInterface } from '../types_sync';
-import { isSameFatDoc } from '../crud/blob';
+import { isSameFatDoc, textToJsonDoc } from '../crud/blob';
 
 /**
  * @internal
@@ -162,11 +162,11 @@ function getMergedDocument (
   jsonExt: string
 ): string | Uint8Array {
   if (docType === 'json') {
-    const oursDoc = JSON.parse(utf8decode(ours));
-    const theirsDoc = JSON.parse(utf8decode(theirs));
+    const oursDoc = textToJsonDoc(utf8decode(ours), jsonExt);
+    const theirsDoc = textToJsonDoc(utf8decode(theirs), jsonExt);
     let baseDoc: JsonDoc | undefined;
     if (base) {
-      baseDoc = JSON.parse(utf8decode(base));
+      baseDoc = textToJsonDoc(utf8decode(base), jsonExt);
     }
     else {
       baseDoc = undefined;
