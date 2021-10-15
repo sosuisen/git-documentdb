@@ -11,6 +11,7 @@ import path from 'path';
 import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
+import { hmtid } from 'hmtid';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
 import { Collection } from '../src/collection';
@@ -79,6 +80,34 @@ describe('<collection>', () => {
     await gitDDB.destroy();
   });
 
+  describe('generates ID', () => {
+    it('using default ulid', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+      const col = new Collection(gitDDB, 'col01');
+      expect(col.generateId(1469918176385).startsWith('01ARYZ6S41')).toBeTruthy();
+      await gitDDB.destroy();
+    });
+
+    it('using hmtid', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        idGenerator: hmtid,
+      });
+      await gitDDB.open();
+      expect(
+        gitDDB.rootCollection.generateId(1469918176385).startsWith('20160730223616')
+      ).toBeTruthy();
+      await gitDDB.destroy();
+    });
+  });
+
   describe('parent', () => {
     it('sets parent', async () => {
       const dbName = monoId();
@@ -145,6 +174,26 @@ describe('<collection>', () => {
       expect(col02.options.namePrefix).toBe('root');
       expect(col03.options.namePrefix).toBe('col03');
       expect(col03dash.options.namePrefix).toBe('');
+
+      await gitDDB.destroy();
+    });
+
+    it('idGenerator option is inherited by child', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+      });
+      await gitDDB.open();
+
+      const root = await gitDDB.collection('', { idGenerator: hmtid });
+      const col01 = await root.collection('col01');
+      const col02 = await col01.collection('col02');
+
+      expect(gitDDB.rootCollection.generateId().length).toBe(26); // length of ulid
+      expect(root.generateId().length).toBe(22); // length of hmtid
+      expect(col01.generateId().length).toBe(22);
+      expect(col02.generateId().length).toBe(22);
 
       await gitDDB.destroy();
     });

@@ -333,6 +333,7 @@ export type CollectionPath = string;
 export type CollectionOptions = {
   namePrefix?: string;
   debounceTime?: number;
+  idGenerator?: () => string;
 };
 
 /**

@@ -366,6 +366,7 @@ export class GitDocumentDB
     const collectionOptions = {
       namePrefix: options?.namePrefix ?? '',
       debounceTime: options?.debounceTime ?? -1,
+      idGenerator: options?.idGenerator,
     };
     this._rootCollection = new Collection(this, '', undefined, collectionOptions);
 

@@ -28,7 +28,7 @@ export type ICollection = CollectionInterface &
     /***********************************************
      * Public methods
      ***********************************************/
-    generateId(): string;
+    generateId(seedTime?: number): string;
   };
 
 /**

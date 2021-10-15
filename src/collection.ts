@@ -136,7 +136,6 @@ export class Collection implements ICollection {
     this._gitDDB = gitDDB;
     this._collectionPath = Validator.normalizeCollectionPath(collectionPathFromParent);
     this._gitDDB.validator.validateCollectionPath(this.collectionPath);
-    this._monoID = monotonicFactory();
 
     if (parent === undefined) {
       this._parent = undefined;
@@ -150,6 +149,13 @@ export class Collection implements ICollection {
       this._parent = parent;
     }
     this._options = { ...parent?.options!, ...options };
+
+    if (this._options.idGenerator !== undefined) {
+      this._monoID = this._options.idGenerator;
+    }
+    else {
+      this._monoID = monotonicFactory();
+    }
   }
 
   /***********************************************
@@ -166,8 +172,11 @@ export class Collection implements ICollection {
    *
    * @public
    */
-  generateId () {
-    return this._options.namePrefix + this._monoID(Date.now());
+  generateId (seedTime?: number) {
+    if (seedTime === undefined) {
+      seedTime = Date.now();
+    }
+    return this._options.namePrefix + this._monoID(seedTime);
   }
 
   /**
