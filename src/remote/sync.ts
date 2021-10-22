@@ -59,7 +59,7 @@ import { Validator } from '../validator';
 import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_engine';
 
 /**
- * encodeToRemoteName
+ * encodeToGitRemoteName
  *
  * @remarks
  * The first default name of Git remote is "origin".

@@ -1167,4 +1167,33 @@ export const syncBase = (
 
     await destroyDBs([gitDDB, dbA, dbB]);
   });
+
+  it.only('set valid url after throwing RemoteErr.InvalidRepositoryURLError.', async () => {
+    const dbName = serialId();
+    const remoteURL = remoteURLBase + serialId();
+
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const options: RemoteOptions = {
+      remoteUrl: remoteURL,
+      connection,
+    };
+    const stubFetch = sandbox.stub(RemoteEngine[connection.engine!], 'fetch');
+    stubFetch.onFirstCall().rejects(new RemoteEngineErr.InvalidRepositoryURLError(''));
+
+    await expect(gitDDB.sync(options)).rejects.toThrowError(
+      RemoteErr.InvalidRepositoryURLError
+    );
+
+    sandbox.restore();
+
+    await expect(gitDDB.sync(options)).rejects.toThrowError(
+      Err.RemoteAlreadyRegisteredError
+    );
+
+    await gitDDB.destroy();
+  });
 };
