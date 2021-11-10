@@ -53,4 +53,7 @@ const connection: ConnectionSettingsGitHub = {
   personalAccessToken: token,
 };
 
-maybe('isomorphic-git', syncTryPushBase(connection, remoteURLBase, reposPrefix, localDir));
+maybe(
+  '@sosuisen/isomorphic-git',
+  syncTryPushBase(connection, remoteURLBase, reposPrefix, localDir)
+);

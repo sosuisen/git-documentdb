@@ -11,7 +11,7 @@
  */
 import { clearInterval, setInterval } from 'timers';
 import crypto from 'crypto';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
 import { name as default_engine_name } from '../plugin/remote-isomorphic-git';
 

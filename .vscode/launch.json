@@ -4,7 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/crud/blob.test.js"],
+    "options": ["test/remote_isomorphic_git/network_history.test.js"],
   }],
   "configurations": [
       {

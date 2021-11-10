@@ -7,7 +7,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 import path from 'path';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
 import { ulid } from 'ulid';
 import rimraf from 'rimraf';

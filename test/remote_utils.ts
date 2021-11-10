@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import sinon from 'sinon';
 import expect from 'expect';
 import { textToJsonDoc } from '../src/crud/blob';

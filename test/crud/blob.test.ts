@@ -8,7 +8,7 @@
  */
 
 import path from 'path';
-import git, { ReadBlobResult } from 'isomorphic-git';
+import git, { ReadBlobResult } from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import fs from 'fs-extra';
 import sinon from 'sinon';
@@ -27,7 +27,7 @@ import { toFrontMatterMarkdown, toSortedJSONString, utf8encode } from '../../src
 import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const git_module = require('isomorphic-git');
+const git_module = require('@sosuisen/isomorphic-git');
 
 const ulid = monotonicFactory();
 const monoId = () => {

@@ -8,7 +8,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import { normalizeCommit } from '../utils';
 import { SHORT_SHA_LENGTH } from '../const';
 import { NormalizedCommit, PutOptions, PutResult } from '../types';

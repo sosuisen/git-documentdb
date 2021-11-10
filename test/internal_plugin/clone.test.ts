@@ -19,7 +19,7 @@ import {
   InvalidURLFormatError,
   NetworkError,
 } from 'git-documentdb-remote-errors';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import sinon from 'sinon';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { clone } from '../../src/plugin/remote-isomorphic-git';

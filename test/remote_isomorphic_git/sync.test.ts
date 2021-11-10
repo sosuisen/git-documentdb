@@ -46,7 +46,10 @@ const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 const connection: ConnectionSettingsGitHub = {
   type: 'github',
   personalAccessToken: token,
-  engine: 'isomorphic-git',
+  engine: '@sosuisen/isomorphic-git',
 };
 
-maybe('isomorphic-git', syncBase(connection, remoteURLBase, reposPrefix, localDir, token));
+maybe(
+  '@sosuisen/isomorphic-git',
+  syncBase(connection, remoteURLBase, reposPrefix, localDir, token)
+);

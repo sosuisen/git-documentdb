@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import yaml from 'js-yaml';
-import { readBlob, ReadBlobResult, resolveRef } from 'isomorphic-git';
+import { readBlob, ReadBlobResult, resolveRef } from '@sosuisen/isomorphic-git';
 import { FRONT_MATTER_POSTFIX } from '../const';
 import { utf8decode } from '../utils';
 import { Err } from '../error';

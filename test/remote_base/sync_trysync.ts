@@ -12,7 +12,7 @@
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import sinon from 'sinon';

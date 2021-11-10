@@ -7,7 +7,7 @@
  * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
 import { SHORT_SHA_LENGTH } from '../const';
 import { normalizeCommit } from '../utils';

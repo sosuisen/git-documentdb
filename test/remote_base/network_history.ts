@@ -131,7 +131,7 @@ export const networkHistoryBase = (
   });
 
   describe('<remote/network_history> readOldBlob()', () => {
-    it('skips a merge commit', async () => {
+    it.only('skips a merge commit', async () => {
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,

@@ -14,7 +14,7 @@
  */
 
 import fs from 'fs-extra';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import parse from 'parse-git-config';
 import { textToJsonDoc } from '../../src/crud/blob';

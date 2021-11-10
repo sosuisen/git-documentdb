@@ -16,7 +16,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import { Octokit } from '@octokit/rest';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import sinon from 'sinon';
 import * as RemoteEngineErr from 'git-documentdb-remote-errors';

@@ -9,7 +9,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
@@ -28,7 +28,7 @@ import { addOneData, removeOneData } from '../utils';
 import { FatJsonDoc } from '../../src/types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const git_module = require('isomorphic-git');
+const git_module = require('@sosuisen/isomorphic-git');
 
 const ulid = monotonicFactory();
 const monoId = () => {

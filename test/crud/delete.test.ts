@@ -10,7 +10,7 @@
 import path from 'path';
 import { monotonicFactory } from 'ulid';
 import fs from 'fs-extra';
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import sinon from 'sinon';
 import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../../src/const';

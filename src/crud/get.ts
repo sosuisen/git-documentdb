@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
-import { ReadBlobResult } from 'isomorphic-git';
+import { ReadBlobResult } from '@sosuisen/isomorphic-git';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import {

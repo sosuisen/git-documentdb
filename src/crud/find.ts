@@ -7,7 +7,13 @@
  */
 
 import fs from 'fs';
-import { readBlob, readTree, resolveRef, TreeEntry, TreeObject } from 'isomorphic-git';
+import {
+  readBlob,
+  readTree,
+  resolveRef,
+  TreeEntry,
+  TreeObject,
+} from '@sosuisen/isomorphic-git';
 import { GIT_DOCUMENTDB_METADATA_DIR } from '../const';
 import { Err } from '../error';
 import {

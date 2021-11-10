@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 
-import { readTree, resolveRef } from 'isomorphic-git';
+import { readTree, resolveRef } from '@sosuisen/isomorphic-git';
 import { monotonicFactory, ULID } from 'ulid';
 import { Err } from './error';
 import {

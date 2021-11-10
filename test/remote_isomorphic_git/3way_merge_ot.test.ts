@@ -54,6 +54,6 @@ const connection: ConnectionSettingsGitHub = {
 };
 
 maybe(
-  'isomorphic-git',
+  '@sosuisen/isomorphic-git',
   threeWayMergeOtBase(connection, remoteURLBase, reposPrefix, localDir)
 );

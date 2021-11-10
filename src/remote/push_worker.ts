@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
-import git from 'isomorphic-git';
+import git from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
 import { GitDDBInterface } from '../types_gitddb';
 import {
