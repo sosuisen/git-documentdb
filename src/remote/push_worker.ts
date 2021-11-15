@@ -132,7 +132,7 @@ export async function pushWorker (
       sync.remoteName,
       gitDDB.defaultBranch,
       gitDDB.defaultBranch,
-      gitDDB.logger
+      gitDDB.tsLogger
     )
     .catch(err => err);
 

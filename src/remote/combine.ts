@@ -65,7 +65,7 @@ export async function combineDatabaseWithTheirs (
   const duplicates: DuplicatedFile[] = [];
   try {
     await RemoteEngine[remoteOptions.connection!.engine!]
-      .clone(remoteDir, remoteOptions, remoteName, gitDDB.logger)
+      .clone(remoteDir, remoteOptions, remoteName, gitDDB.tsLogger)
       .catch(err => {
         throw wrappingRemoteEngineError(err);
       });

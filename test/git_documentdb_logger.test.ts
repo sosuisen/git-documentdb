@@ -53,6 +53,29 @@ describe('<git_documentdb> logger', () => {
     const log = fs.readFileSync(logPath, 'utf-8');
     expect(log.startsWith('\u001b[43m\u001b[30mStart: put()\u001b[0m')).toBeTruthy();
 
+    fs.removeSync(logPath);
+    await gitDDB.destroy();
+  });
+
+  it('write log to a local file without color style', async () => {
+    const dbName = monoId();
+    const logPath = path.resolve(localDir + '/log.txt');
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      logLevel: 'silly',
+      logToTransport: (logObject: ILogObject) => {
+        fs.appendFileSync(logPath, logObject.argumentsArray[0] + '\n');
+      },
+      logColorEnabled: false,
+    });
+    await gitDDB.open();
+    await gitDDB.put({ _id: 'test' });
+
+    const log = fs.readFileSync(logPath, 'utf-8');
+    expect(log.startsWith('Start: put()')).toBeTruthy();
+
+    fs.removeSync(logPath);
     await gitDDB.destroy();
   });
 });

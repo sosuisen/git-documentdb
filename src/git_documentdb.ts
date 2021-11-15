@@ -200,6 +200,9 @@ export class GitDocumentDB
   }
 
   private _tsLogger!: Logger;
+  get tsLogger (): Logger {
+    return this._tsLogger;
+  }
 
   // Use definite assignment assertion
   private _logger: ColoredLogger = {
@@ -207,7 +210,7 @@ export class GitDocumentDB
       mes: string,
       colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
     ) => {
-      if (colorTag !== undefined) {
+      if (this._logColorEnabled && colorTag !== undefined) {
         this._tsLogger.silly(colorTag()`${mes}`);
       }
       else {
@@ -218,7 +221,7 @@ export class GitDocumentDB
       mes: string,
       colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
     ) => {
-      if (colorTag !== undefined) {
+      if (this._logColorEnabled && colorTag !== undefined) {
         this._tsLogger.debug(colorTag()`${mes}`);
       }
       else {
@@ -229,7 +232,7 @@ export class GitDocumentDB
       mes: string,
       colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
     ) => {
-      if (colorTag !== undefined) {
+      if (this._logColorEnabled && colorTag !== undefined) {
         this._tsLogger.trace(colorTag()`${mes}`);
       }
       else {
@@ -240,7 +243,7 @@ export class GitDocumentDB
       mes: string,
       colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
     ) => {
-      if (colorTag !== undefined) {
+      if (this._logColorEnabled && colorTag !== undefined) {
         this._tsLogger.info(colorTag()`${mes}`);
       }
       else {
@@ -251,7 +254,7 @@ export class GitDocumentDB
       mes: string,
       colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
     ) => {
-      if (colorTag !== undefined) {
+      if (this._logColorEnabled && colorTag !== undefined) {
         this._tsLogger.warn(colorTag()`${mes}`);
       }
       else {
@@ -262,7 +265,7 @@ export class GitDocumentDB
       mes: string,
       colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
     ) => {
-      if (colorTag !== undefined) {
+      if (this._logColorEnabled && colorTag !== undefined) {
         this._tsLogger.error(colorTag()`${mes}`);
       }
       else {
@@ -273,7 +276,7 @@ export class GitDocumentDB
       mes: string,
       colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
     ) => {
-      if (colorTag !== undefined) {
+      if (this._logColorEnabled && colorTag !== undefined) {
         this._tsLogger.fatal(colorTag()`${mes}`);
       }
       else {
@@ -357,6 +360,8 @@ export class GitDocumentDB
   get rootCollection (): ICollection {
     return this._rootCollection as ICollection;
   }
+
+  private _logColorEnabled: boolean;
 
   /***********************************************
    * Public properties
@@ -472,6 +477,8 @@ export class GitDocumentDB
 
     // Set logLevel after initializing taskQueue.
     this.logLevel = options.logLevel ?? DEFAULT_LOG_LEVEL;
+
+    this._logColorEnabled = options.logColorEnabled ?? true;
 
     const collectionOptions = {
       namePrefix: options?.namePrefix ?? '',

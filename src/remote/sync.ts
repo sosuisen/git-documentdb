@@ -490,7 +490,7 @@ export class Sync implements SyncInterface {
           this._gitDDB.workingDir,
           this._options,
           this.remoteName,
-          this._gitDDB.logger
+          this._gitDDB.tsLogger
         )
         .catch(err => err);
     }
@@ -505,7 +505,7 @@ export class Sync implements SyncInterface {
           this.remoteName,
           this._gitDDB.defaultBranch,
           this._gitDDB.defaultBranch,
-          this._gitDDB.logger
+          this._gitDDB.tsLogger
         )
         .catch(err => err);
     }

@@ -92,7 +92,7 @@ export async function syncWorker (
       sync.remoteName,
       gitDDB.defaultBranch,
       gitDDB.defaultBranch,
-      gitDDB.logger
+      gitDDB.tsLogger
     )
     .catch(err => {
       throw wrappingRemoteEngineError(err);

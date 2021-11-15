@@ -119,6 +119,7 @@ export const syncLiveBase = (
       const dbA: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameA,
         localDir: localDir,
+        logLevel: 'silly',
       });
       const interval = MINIMUM_SYNC_INTERVAL;
       const options: RemoteOptions = {
@@ -130,7 +131,6 @@ export const syncLiveBase = (
       };
       await dbA.open();
       const syncA = await dbA.sync(options);
-
       expect(syncA.options.live).toBeTruthy();
       const count = dbA.taskQueue.currentStatistics().sync;
       expect(syncA.pause()).toBeTruthy();

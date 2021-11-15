@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { TLogLevelName } from 'tslog';
+import { Logger, TLogLevelName } from 'tslog';
 import { TaskQueue } from './task_queue';
 import {
   ColoredLogger,
@@ -38,6 +38,7 @@ export interface GitDDBInterface {
   isOpened: boolean;
   workingDir: string;
   dbId: string;
+  tsLogger: Logger;
   logger: ColoredLogger;
   schema: Schema;
   taskQueue: TaskQueue;

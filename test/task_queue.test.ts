@@ -15,7 +15,7 @@ import { Logger } from 'tslog';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { sleep } from '../src/utils';
 import { TaskQueue } from '../src/task_queue';
-import { TaskMetadata } from '../src/types';
+import { ColoredLogger, TaskMetadata } from '../src/types';
 import { Err } from '../src/error';
 
 const ulid = monotonicFactory();
@@ -25,13 +25,93 @@ const monoId = () => {
 
 const localDir = './test/database_task_queue';
 
-const logger = new Logger({
+const tsLogger = new Logger({
   name: monoId(),
   minLevel: 'info',
   displayDateTime: false,
   displayFunctionName: false,
   displayFilePath: 'hidden',
 });
+
+const logger: ColoredLogger = {
+  silly: (
+    mes: string,
+    colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+  ) => {
+    if (colorTag !== undefined) {
+      tsLogger.silly(colorTag()`${mes}`);
+    }
+    else {
+      tsLogger.silly(mes);
+    }
+  },
+  debug: (
+    mes: string,
+    colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+  ) => {
+    if (colorTag !== undefined) {
+      tsLogger.debug(colorTag()`${mes}`);
+    }
+    else {
+      tsLogger.debug(mes);
+    }
+  },
+  trace: (
+    mes: string,
+    colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+  ) => {
+    if (colorTag !== undefined) {
+      tsLogger.trace(colorTag()`${mes}`);
+    }
+    else {
+      tsLogger.trace(mes);
+    }
+  },
+  info: (
+    mes: string,
+    colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+  ) => {
+    if (colorTag !== undefined) {
+      tsLogger.info(colorTag()`${mes}`);
+    }
+    else {
+      tsLogger.info(mes);
+    }
+  },
+  warn: (
+    mes: string,
+    colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+  ) => {
+    if (colorTag !== undefined) {
+      tsLogger.warn(colorTag()`${mes}`);
+    }
+    else {
+      tsLogger.warn(mes);
+    }
+  },
+  error: (
+    mes: string,
+    colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+  ) => {
+    if (colorTag !== undefined) {
+      tsLogger.error(colorTag()`${mes}`);
+    }
+    else {
+      tsLogger.error(mes);
+    }
+  },
+  fatal: (
+    mes: string,
+    colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+  ) => {
+    if (colorTag !== undefined) {
+      tsLogger.fatal(colorTag()`${mes}`);
+    }
+    else {
+      tsLogger.fatal(mes);
+    }
+  },
+};
 
 beforeEach(function () {
   // @ts-ignore

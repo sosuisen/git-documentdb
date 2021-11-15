@@ -49,7 +49,7 @@ export const syncCloneBase = (
         workingDir,
         syncA.options,
         'origin',
-        dbA.logger
+        dbA.tsLogger
       );
 
       const dbB = new GitDocumentDB({ localDir, dbName: dbNameB });

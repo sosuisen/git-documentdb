@@ -51,6 +51,8 @@ export type PluginTypes = 'db' | 'remote';
  *
  * logToTransport - logToTransport function for all log levels. See https://tslog.js.org/#/?id=transports
  *
+ * logColorEnabled - Enable color for console log. Default is true. When you write log into a file by logToTransport, false is recommended.
+ *
  * @public
  */
 export type DatabaseOptions = {
@@ -60,6 +62,7 @@ export type DatabaseOptions = {
   schema?: Schema;
   serializeFormat?: SerializeFormat;
   logToTransport?: (logObject: ILogObject) => void;
+  logColorEnabled?: boolean;
 };
 
 /**
