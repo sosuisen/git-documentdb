@@ -34,7 +34,7 @@ after(() => {
   fs.removeSync(path.resolve(localDir));
 });
 
-describe('<index> destroy()', () => {
+describe('<git_documentdb> destroy()', () => {
   it('closes and removes a database', async () => {
     const dbName = monoId();
 
