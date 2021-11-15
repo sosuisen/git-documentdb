@@ -6,7 +6,7 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { TLogLevelName } from 'tslog';
+import { ILogObject, TLogLevelName } from 'tslog';
 
 /**
  * Plugin types
@@ -45,6 +45,12 @@ export type PluginTypes = 'db' | 'remote';
  *
  * logLevel - Default is 'info'.
  *
+ * schema - Schema for a specific document type.
+ *
+ * serializeFormat - Format for serialization
+ *
+ * logToTransport - logToTransport function for all log levels. See https://tslog.js.org/#/?id=transports
+ *
  * @public
  */
 export type DatabaseOptions = {
@@ -53,6 +59,7 @@ export type DatabaseOptions = {
   logLevel?: TLogLevelName;
   schema?: Schema;
   serializeFormat?: SerializeFormat;
+  logToTransport?: (logObject: ILogObject) => void;
 };
 
 /**

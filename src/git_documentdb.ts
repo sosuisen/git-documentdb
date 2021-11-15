@@ -10,7 +10,7 @@ import path from 'path';
 import git from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
-import { Logger, TLogLevelName } from 'tslog';
+import { ILogObject, Logger, TLogLevelName } from 'tslog';
 import { ulid } from 'ulid';
 import { RemoteEngine } from './remote/remote_engine';
 import { Err } from './error';
@@ -220,6 +220,17 @@ export class GitDocumentDB
     return this._schema;
   }
 
+  private _logToTransport: ((logObject: ILogObject) => void) | undefined;
+  /**
+   * logToTransport function for all log levels. See https://tslog.js.org/#/?id=transports
+   *
+   * @readonly
+   * @public
+   */
+  get logToTransport (): ((logObject: ILogObject) => void) | undefined {
+    return this._logToTransport;
+  }
+
   private _taskQueue: TaskQueue;
   /**
    * Task queue
@@ -287,6 +298,20 @@ export class GitDocumentDB
       displayFunctionName: false,
       displayFilePath: 'hidden',
     });
+    if (this.logToTransport) {
+      this._logger.attachTransport(
+        {
+          silly: this.logToTransport,
+          debug: this.logToTransport,
+          trace: this.logToTransport,
+          info: this.logToTransport,
+          warn: this.logToTransport,
+          error: this.logToTransport,
+          fatal: this.logToTransport,
+        },
+        level
+      );
+    }
     if (this.taskQueue) this.taskQueue.setLogger(this._logger);
   }
 
@@ -336,6 +361,8 @@ export class GitDocumentDB
         plainTextProperties: undefined,
       },
     };
+
+    this._logToTransport = options.logToTransport;
 
     this._serializeFormat = options.serializeFormat ?? 'json';
 
