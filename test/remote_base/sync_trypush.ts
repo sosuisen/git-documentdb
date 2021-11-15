@@ -28,6 +28,7 @@ import {
 } from '../remote_utils';
 import {
   ConnectionSettings,
+  ConnectionSettingsGitHub,
   RemoteOptions,
   SyncResultCancel,
   SyncResultNop,
@@ -525,6 +526,59 @@ export const syncTryPushBase = (
         RemoteErr.UnfetchedCommitExistsError
       );
 
+      await destroyDBs([dbA, dbB]);
+    });
+
+    it('pushes some commits. All commits can be cloned.', async () => {
+      const remoteURL = remoteURLBase + serialId();
+
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir,
+      });
+      const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
+      const options = {
+        remoteUrl: remoteURL,
+        connection,
+        includeCommits: true,
+      };
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+
+      const jsonA1 = { _id: 'A1' };
+      const jsonA2 = { _id: 'A2' };
+      const jsonA3 = { _id: 'A3' };
+      const jsonA4 = { _id: 'A4' };
+      const jsonA5 = { _id: 'A5' };
+      const jsonA6 = { _id: 'A6' };
+      await dbA.put(jsonA1);
+      await syncA.tryPush();
+
+      await dbA.put(jsonA2);
+      await dbA.put(jsonA3);
+      await syncA.tryPush();
+
+      await dbA.put(jsonA4);
+      await dbA.put(jsonA5);
+      await dbA.put(jsonA6);
+      await syncA.tryPush();
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir,
+      });
+      // Clone dbA
+      await dbB.open();
+      await dbB.sync(options);
+      await expect(dbB.get('A1')).resolves.toEqual(jsonA1);
+      await expect(dbB.get('A2')).resolves.toEqual(jsonA2);
+      await expect(dbB.get('A3')).resolves.toEqual(jsonA3);
+      await expect(dbB.get('A4')).resolves.toEqual(jsonA4);
+      await expect(dbB.get('A5')).resolves.toEqual(jsonA5);
+      await expect(dbB.get('A6')).resolves.toEqual(jsonA6);
       await destroyDBs([dbA, dbB]);
     });
   });
