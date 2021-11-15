@@ -14,7 +14,7 @@ import { clearInterval, setInterval } from 'timers';
 import { decodeTime, monotonicFactory } from 'ulid';
 import { Logger } from 'tslog';
 import AsyncLock from 'async-lock';
-import { Task, TaskMetadata, TaskStatistics } from './types';
+import { ColoredLogger, Task, TaskMetadata, TaskStatistics } from './types';
 import { CONSOLE_STYLE, sleep } from './utils';
 import { Err } from './error';
 
@@ -28,7 +28,7 @@ export class TaskQueue {
   private _ulid = monotonicFactory();
   private _lock: AsyncLock | undefined = new AsyncLock();
 
-  private _logger: Logger;
+  private _logger: ColoredLogger;
 
   private _taskQueue: Task[] = [];
   private _isTaskQueueWorking = false;
@@ -61,7 +61,7 @@ export class TaskQueue {
    *
    * @public
    */
-  constructor (logger: Logger) {
+  constructor (logger: ColoredLogger) {
     this._logger = logger;
   }
 
@@ -70,7 +70,7 @@ export class TaskQueue {
    *
    * @internal
    */
-  setLogger (logger: Logger) {
+  setLogger (logger: ColoredLogger) {
     this._logger = logger;
   }
 
@@ -154,18 +154,17 @@ export class TaskQueue {
             task.enqueueCallback(taskMetadata);
           } catch (e) {
             this._logger.debug(
-              CONSOLE_STYLE.bgGreen()
-                .fgRed()
-                .tag()`Error in enqueueCallback (fullDocPath: ${
+              `Error in enqueueCallback (fullDocPath: ${
                 task.collectionPath! + task.shortName
-              }) ${e}`
+              }) ${e}`,
+              CONSOLE_STYLE.bgGreen().fgRed().tag
             );
           }
         }
       })
       .catch(e => {
         if (e instanceof Err.ConsecutiveSyncSkippedError) {
-          this._logger.debug(CONSOLE_STYLE.bgGreen().fgRed().tag()`${e.message}`);
+          this._logger.debug(e.message, CONSOLE_STYLE.bgGreen().fgRed().tag);
         }
         else {
           throw e;
@@ -373,18 +372,21 @@ export class TaskQueue {
       const syncRemoteName = this._currentTask.syncRemoteName;
 
       this._logger.debug(
-        CONSOLE_STYLE.bgYellow().fgBlack().tag()`Start: ${label}(${fullDocPath})`
+        `Start: ${label}(${fullDocPath})`,
+        CONSOLE_STYLE.bgYellow().fgBlack().tag
       );
 
       const beforeResolve = () => {
         this._logger.debug(
-          CONSOLE_STYLE.bgGreen().fgBlack().tag()`End: ${label}(${fullDocPath})`
+          `End: ${label}(${fullDocPath})`,
+          CONSOLE_STYLE.bgGreen().fgBlack().tag
         );
         this._statistics[label]++;
       };
       const beforeReject = () => {
         this._logger.debug(
-          CONSOLE_STYLE.bgGreen().fgRed().tag()`End with error: ${label}(${fullDocPath})`
+          `End with error: ${label}(${fullDocPath})`,
+          CONSOLE_STYLE.bgGreen().fgRed().tag
         );
         this._statistics[label]++;
       };

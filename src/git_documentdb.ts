@@ -19,6 +19,7 @@ import { Validator } from './validator';
 import {
   CollectionOptions,
   CollectionPath,
+  ColoredLogger,
   DatabaseCloseOption,
   DatabaseInfo,
   DatabaseOpenResult,
@@ -198,14 +199,96 @@ export class GitDocumentDB
     return this._dbOpenResult.dbId;
   }
 
-  private _logger!: Logger; // Use definite assignment assertion
+  private _tsLogger!: Logger;
+
+  // Use definite assignment assertion
+  private _logger: ColoredLogger = {
+    silly: (
+      mes: string,
+      colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+    ) => {
+      if (colorTag !== undefined) {
+        this._tsLogger.silly(colorTag()`${mes}`);
+      }
+      else {
+        this._tsLogger.silly(mes);
+      }
+    },
+    debug: (
+      mes: string,
+      colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+    ) => {
+      if (colorTag !== undefined) {
+        this._tsLogger.debug(colorTag()`${mes}`);
+      }
+      else {
+        this._tsLogger.debug(mes);
+      }
+    },
+    trace: (
+      mes: string,
+      colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+    ) => {
+      if (colorTag !== undefined) {
+        this._tsLogger.trace(colorTag()`${mes}`);
+      }
+      else {
+        this._tsLogger.trace(mes);
+      }
+    },
+    info: (
+      mes: string,
+      colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+    ) => {
+      if (colorTag !== undefined) {
+        this._tsLogger.info(colorTag()`${mes}`);
+      }
+      else {
+        this._tsLogger.info(mes);
+      }
+    },
+    warn: (
+      mes: string,
+      colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+    ) => {
+      if (colorTag !== undefined) {
+        this._tsLogger.warn(colorTag()`${mes}`);
+      }
+      else {
+        this._tsLogger.warn(mes);
+      }
+    },
+    error: (
+      mes: string,
+      colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+    ) => {
+      if (colorTag !== undefined) {
+        this._tsLogger.error(colorTag()`${mes}`);
+      }
+      else {
+        this._tsLogger.error(mes);
+      }
+    },
+    fatal: (
+      mes: string,
+      colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+    ) => {
+      if (colorTag !== undefined) {
+        this._tsLogger.fatal(colorTag()`${mes}`);
+      }
+      else {
+        this._tsLogger.fatal(mes);
+      }
+    },
+  };
+
   /**
    * Get logger
    *
    * @readonly
    * @public
    */
-  get logger (): Logger {
+  get logger (): ColoredLogger {
     return this._logger;
   }
 
@@ -291,7 +374,7 @@ export class GitDocumentDB
 
   set logLevel (level: TLogLevelName) {
     this._logLevel = level;
-    this._logger = new Logger({
+    this._tsLogger = new Logger({
       name: this._dbName,
       minLevel: level as TLogLevelName,
       displayDateTime: false,
@@ -299,7 +382,7 @@ export class GitDocumentDB
       displayFilePath: 'hidden',
     });
     if (this.logToTransport) {
-      this._logger.attachTransport(
+      this._tsLogger.attachTransport(
         {
           silly: this.logToTransport,
           debug: this.logToTransport,

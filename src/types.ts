@@ -1204,3 +1204,21 @@ export interface IJsonPatch {
     strategy?: ConflictResolutionStrategyLabels
   ): JsonDoc;
 }
+
+/**
+ * Colored log
+ */
+export type ColoredLog = (
+  mes: string,
+  colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
+) => void;
+
+export type ColoredLogger = {
+  silly: ColoredLog;
+  debug: ColoredLog;
+  trace: ColoredLog;
+  info: ColoredLog;
+  warn: ColoredLog;
+  error: ColoredLog;
+  fatal: ColoredLog;
+};

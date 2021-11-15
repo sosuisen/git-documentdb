@@ -806,9 +806,8 @@ export class Sync implements SyncInterface {
       return pushWorker(this._gitDDB, this, taskMetadata)
         .then((syncResultPush: SyncResultPush | SyncResultNop) => {
           this._gitDDB.logger.debug(
-            CONSOLE_STYLE.bgWhite().fgBlack().tag()`pushWorker: ${JSON.stringify(
-              syncResultPush
-            )}`
+            `pushWorker: ${JSON.stringify(syncResultPush)}`,
+            CONSOLE_STYLE.bgWhite().fgBlack().tag
           );
 
           if (syncResultPush.action === 'push') {
@@ -861,7 +860,8 @@ export class Sync implements SyncInterface {
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
       const result: SyncResultCancel = { action: 'canceled' };
       this._gitDDB.logger.debug(
-        CONSOLE_STYLE.bgWhite().fgBlack().tag()`pushWorker: ${JSON.stringify(result)}`
+        `pushWorker: ${JSON.stringify(result)}`,
+        CONSOLE_STYLE.bgWhite().fgBlack().tag
       );
       resolve(result);
     };
@@ -1022,7 +1022,8 @@ export class Sync implements SyncInterface {
             throw error;
           }
           this._gitDDB.logger.debug(
-            CONSOLE_STYLE.bgRed().tag()`...retrySync: ${this.currentRetries().toString()}`
+            `...retrySync: ${this.currentRetries().toString()}`,
+            CONSOLE_STYLE.bgRed().tag
           );
           // eslint-disable-next-line no-await-in-loop
           await sleep(this._options.retryInterval!);
@@ -1043,7 +1044,8 @@ export class Sync implements SyncInterface {
     // This line is reached when cancel() set _retrySyncCounter to 0;
     const cancel: SyncResultCancel = { action: 'canceled' };
     this._gitDDB.logger.debug(
-      CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(cancel)}`
+      `syncWorker: ${JSON.stringify(cancel)}`,
+      CONSOLE_STYLE.bgWhite().fgBlack().tag
     );
     this._retrySyncCounter = 0;
     return cancel;
@@ -1079,9 +1081,8 @@ export class Sync implements SyncInterface {
           // eslint-disable-next-line complexity
           .then((syncResult: SyncResult) => {
             this._gitDDB.logger.debug(
-              CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(
-                syncResult
-              )}`
+              `syncWorker: ${JSON.stringify(syncResult)}`,
+              CONSOLE_STYLE.bgWhite().fgBlack().tag
             );
 
             if (
@@ -1172,7 +1173,8 @@ export class Sync implements SyncInterface {
     const cancel = (resolve: (value: SyncResultCancel) => void) => () => {
       const result: SyncResultCancel = { action: 'canceled' };
       this._gitDDB.logger.debug(
-        CONSOLE_STYLE.bgWhite().fgBlack().tag()`syncWorker: ${JSON.stringify(result)}`
+        `syncWorker: ${JSON.stringify(result)}`,
+        CONSOLE_STYLE.bgWhite().fgBlack().tag
       );
       resolve(result);
     };

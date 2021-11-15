@@ -6,9 +6,10 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import { Logger, TLogLevelName } from 'tslog';
+import { TLogLevelName } from 'tslog';
 import { TaskQueue } from './task_queue';
 import {
+  ColoredLogger,
   DatabaseCloseOption,
   DatabaseOpenResult,
   NormalizedCommit,
@@ -37,7 +38,7 @@ export interface GitDDBInterface {
   isOpened: boolean;
   workingDir: string;
   dbId: string;
-  logger: Logger;
+  logger: ColoredLogger;
   schema: Schema;
   taskQueue: TaskQueue;
   isClosing: boolean;
