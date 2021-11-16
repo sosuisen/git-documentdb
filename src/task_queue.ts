@@ -116,6 +116,11 @@ export class TaskQueue {
     this._lock! // eslint-disable-next-line complexity
       .acquire('TaskQueue', () => {
         // Skip consecutive sync/push events
+        this._logger.debug(
+          `Try to push ${task.label}@${task.taskId} into ${JSON.stringify(
+            this._taskQueue
+          )}`
+        );
         if (
           (this._taskQueue.length === 0 &&
             this._currentTask?.syncRemoteName === task.syncRemoteName &&
@@ -372,20 +377,20 @@ export class TaskQueue {
       const syncRemoteName = this._currentTask.syncRemoteName;
 
       this._logger.debug(
-        `Start: ${label}(${fullDocPath})`,
+        `Start: ${label}(${fullDocPath})@${taskId}`,
         CONSOLE_STYLE.bgYellow().fgBlack().tag
       );
 
       const beforeResolve = () => {
         this._logger.debug(
-          `End: ${label}(${fullDocPath})`,
+          `End: ${label}(${fullDocPath})@${taskId}`,
           CONSOLE_STYLE.bgGreen().fgBlack().tag
         );
         this._statistics[label]++;
       };
       const beforeReject = () => {
         this._logger.debug(
-          `End with error: ${label}(${fullDocPath})`,
+          `End with error: ${label}(${fullDocPath})@${taskId}`,
           CONSOLE_STYLE.bgGreen().fgRed().tag
         );
         this._statistics[label]++;
@@ -401,6 +406,9 @@ export class TaskQueue {
       };
 
       this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {
+        this._logger.debug(
+          `Clear currentTask: ${this._currentTask?.label}@${this._currentTask?.taskId}`
+        );
         this._isTaskQueueWorking = false;
         this._currentTask = undefined;
       });
