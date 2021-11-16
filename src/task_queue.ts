@@ -117,9 +117,7 @@ export class TaskQueue {
       .acquire('TaskQueue', () => {
         // Skip consecutive sync/push events
         this._logger.debug(
-          `Try to push ${task.label}@${task.taskId} into ${JSON.stringify(
-            this._taskQueue
-          )}`
+          `Try to push ${task.label}@${task.taskId} into ${JSON.stringify(this._taskQueue)}`
         );
         if (
           (this._taskQueue.length === 0 &&
