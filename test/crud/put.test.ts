@@ -506,6 +506,44 @@ describe('<crud/put> put', () => {
   });
 });
 
+describe('<crud/put> put FatTextDoc', () => {
+  it('write text into .md without front-matter option', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const txt = 'Hello, world!';
+    const fullDocPath = 'foo.md';
+    await gitDDB.putFatDoc(fullDocPath, txt);
+    expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(txt);
+
+    await gitDDB.close();
+    await gitDDB.destroy();
+  });
+
+  it('write YAML into .yml without front-matter option', async () => {
+    const dbName = monoId();
+    const gitDDB: GitDocumentDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const yaml = `
+_id: foo
+a: aaa
+b: bbb
+`;
+    const fullDocPath = 'foo.yml';
+    await gitDDB.putFatDoc(fullDocPath, yaml);
+    expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(yaml);
+
+    await gitDDB.close();
+    await gitDDB.destroy();
+  });
+});
+
 describe('<crud/put> put to front matter', () => {
   it('write sorted front matter with markdown', async () => {
     const dbName = monoId();
