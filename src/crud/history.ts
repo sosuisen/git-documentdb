@@ -8,7 +8,15 @@
 
 import { log, readBlob, ReadBlobResult } from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
-import { Doc, DocType, FatDoc, GetOptions, HistoryFilter, HistoryOptions } from '../types';
+import {
+  Doc,
+  DocType,
+  FatDoc,
+  GetOptions,
+  HistoryFilter,
+  HistoryOptions,
+  SerializeFormat,
+} from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
@@ -27,7 +35,7 @@ export async function getHistoryImpl (
   gitDDB: GitDDBInterface,
   shortName: string,
   collectionPath: string,
-  jsonExt: string,
+  serializeFormat: SerializeFormat,
   historyOptions?: HistoryOptions,
   options?: GetOptions,
   withMetaData = false
@@ -46,7 +54,8 @@ export async function getHistoryImpl (
   const fullDocPath = collectionPath + shortName;
 
   const docType: DocType =
-    options.forceDocType ?? (fullDocPath.endsWith(jsonExt) ? 'json' : 'text');
+    options.forceDocType ??
+    (serializeFormat.hasObjectExtension(fullDocPath) ? 'json' : 'text');
 
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
@@ -88,14 +97,18 @@ export async function getHistoryImpl (
           docArray.push(undefined);
         }
         else if (docType === 'json') {
-          const shortId = shortName.replace(new RegExp(jsonExt + '$'), '');
+          const shortId = serializeFormat.removeExtension(shortName);
 
           // eslint-disable-next-line max-depth
           if (withMetaData) {
-            docArray.push(blobToJsonDoc(shortId, readBlobResult, true, jsonExt) as FatDoc);
+            docArray.push(
+              blobToJsonDoc(shortId, readBlobResult, true, serializeFormat) as FatDoc
+            );
           }
           else {
-            docArray.push(blobToJsonDoc(shortId, readBlobResult, false, jsonExt) as Doc);
+            docArray.push(
+              blobToJsonDoc(shortId, readBlobResult, false, serializeFormat) as Doc
+            );
           }
         }
         else if (docType === 'text') {

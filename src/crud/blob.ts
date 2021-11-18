@@ -12,16 +12,27 @@ import { readBlob, ReadBlobResult, resolveRef } from '@sosuisen/isomorphic-git';
 import { FRONT_MATTER_POSTFIX } from '../const';
 import { utf8decode } from '../utils';
 import { Err } from '../error';
-import { FatBinaryDoc, FatDoc, FatJsonDoc, FatTextDoc, JsonDoc } from '../types';
+import {
+  FatBinaryDoc,
+  FatDoc,
+  FatJsonDoc,
+  FatTextDoc,
+  JsonDoc,
+  SerializeFormat,
+} from '../types';
 
 /**
  * textToJsonDoc
  * @throws {@link Err.InvalidJsonObjectError}
  */
 // eslint-disable-next-line complexity
-export function textToJsonDoc (text: string, jsonExt: string, shortId?: string): JsonDoc {
+export function textToJsonDoc (
+  text: string,
+  serializeFormat: SerializeFormat,
+  shortId?: string
+): JsonDoc {
   let jsonDoc: JsonDoc;
-  if (jsonExt === FRONT_MATTER_POSTFIX) {
+  if (serializeFormat.format === 'front-matter') {
     const mdArray = text.split('\n');
     let yamlText = '';
     let markdownText = '';
@@ -101,10 +112,10 @@ export function blobToJsonDoc (
   shortId: string,
   readBlobResult: ReadBlobResult,
   withMetadata: boolean,
-  jsonExt: string
+  serializeFormat: SerializeFormat
 ): FatJsonDoc | JsonDoc {
   const text = utf8decode(readBlobResult.blob);
-  const jsonDoc = textToJsonDoc(text, jsonExt, shortId);
+  const jsonDoc = textToJsonDoc(text, serializeFormat, shortId);
   if (jsonDoc._id !== undefined) {
     // Overwrite _id property by shortId (_id without collectionPath) if JsonDoc is created by GitDocumentedDB (_id !== undefined).
     jsonDoc._id = shortId;
@@ -112,7 +123,7 @@ export function blobToJsonDoc (
   if (withMetadata) {
     const fatJsonDoc: FatJsonDoc = {
       _id: shortId,
-      name: shortId + jsonExt,
+      name: shortId + serializeFormat.extension(jsonDoc),
       fileOid: readBlobResult.oid,
       type: 'json',
       doc: jsonDoc,
@@ -130,10 +141,10 @@ export function blobToJsonDoc (
 // eslint-disable-next-line complexity
 export function blobToJsonDocWithoutOverwrittenId (
   readBlobResult: ReadBlobResult,
-  jsonExt: string
+  serializeFormat: SerializeFormat
 ): JsonDoc {
   const text = utf8decode(readBlobResult.blob);
-  const jsonDoc = textToJsonDoc(text, jsonExt);
+  const jsonDoc = textToJsonDoc(text, serializeFormat);
   return jsonDoc;
 }
 

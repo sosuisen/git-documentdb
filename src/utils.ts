@@ -88,9 +88,6 @@ export function toYAML (obj: Record<string, any>) {
 }
 
 export function toFrontMatterMarkdown (obj: Record<string, any>) {
-  if (obj._body === undefined) {
-    return toYAML(obj);
-  }
   const body = typeof obj._body === 'string' ? obj._body : '';
   const clone = JSON.parse(JSON.stringify(obj));
   delete clone._body;
@@ -107,13 +104,6 @@ export function toFrontMatterMarkdown (obj: Record<string, any>) {
 
   const frontMatter = '---\n' + yaml.dump(clone, { sortKeys: true }) + '---\n';
   return frontMatter + body;
-}
-
-export function serializeJSON (obj: Record<string, any>, jsonExt: string) {
-  if (jsonExt === FRONT_MATTER_POSTFIX) {
-    return toFrontMatterMarkdown(obj);
-  }
-  return toSortedJSONString(obj);
 }
 
 /**

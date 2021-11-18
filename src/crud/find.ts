@@ -25,6 +25,7 @@ import {
   FatTextDoc,
   FindOptions,
   JsonDoc,
+  SerializeFormat,
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
@@ -40,7 +41,7 @@ import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
 export async function findImpl (
   gitDDB: GitDDBInterface,
   collectionPath: string,
-  jsonExt: string,
+  serializeFormat: SerializeFormat,
   findOnlyJson: boolean,
   withMetadata: boolean,
   options?: FindOptions
@@ -149,7 +150,7 @@ export async function findImpl (
         }
       }
       else {
-        if (findOnlyJson && !fullDocPath.endsWith(jsonExt)) {
+        if (findOnlyJson && !serializeFormat.hasObjectExtension(fullDocPath)) {
           continue;
         }
         // eslint-disable-next-line no-await-in-loop
@@ -163,20 +164,23 @@ export async function findImpl (
         // Skip if cannot read
         if (readBlobResult) {
           const docType: DocType =
-            options.forceDocType ?? (fullDocPath.endsWith(jsonExt) ? 'json' : 'text');
+            options.forceDocType ??
+            (serializeFormat.hasObjectExtension(fullDocPath) ? 'json' : 'text');
           if (docType === 'text') {
             // TODO: select binary or text by .gitattribtues
           }
           const shortName = fullDocPath.replace(new RegExp('^' + collectionPath), '');
           if (docType === 'json') {
-            const shortId = shortName.replace(new RegExp(jsonExt + '$'), '');
+            const shortId = serializeFormat.removeExtension(shortName);
             if (withMetadata) {
               docs.push(
-                blobToJsonDoc(shortId, readBlobResult, true, jsonExt) as FatJsonDoc
+                blobToJsonDoc(shortId, readBlobResult, true, serializeFormat) as FatJsonDoc
               );
             }
             else {
-              docs.push(blobToJsonDoc(shortId, readBlobResult, false, jsonExt) as JsonDoc);
+              docs.push(
+                blobToJsonDoc(shortId, readBlobResult, false, serializeFormat) as JsonDoc
+              );
             }
           }
           else if (docType === 'text') {

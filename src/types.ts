@@ -311,10 +311,12 @@ export type SerializeFormatLabel = 'json' | 'front-matter';
  */
 export interface SerializeFormat {
   format: SerializeFormatLabel;
-  extForObj: string;
-  match: (name: string) => boolean;
-  removeExt: (name: string) => string;
-  serialize: (doc: JsonDoc) => string;
+  firstExtension: string;
+  secondExtension: string | undefined;
+  removeExtension: (path: string) => string;
+  extension: (doc: JsonDoc) => string;
+  hasObjectExtension: (path: string) => boolean;
+  serialize: (doc: JsonDoc) => { extension: string; data: string };
 }
 
 /**

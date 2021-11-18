@@ -16,6 +16,7 @@ import {
   GetInternalOptions,
   GetOptions,
   HistoryOptions,
+  SerializeFormat,
 } from '../types';
 import {
   blobToBinary,
@@ -39,7 +40,7 @@ export async function getImpl (
   gitDDB: GitDDBInterface,
   shortName: string,
   collectionPath: string,
-  jsonExt: string,
+  serializeFormat: SerializeFormat,
   options?: GetOptions,
   internalOptions?: GetInternalOptions,
   historyOptions?: HistoryOptions
@@ -98,17 +99,23 @@ export async function getImpl (
   if (readBlobResult === undefined) return undefined;
 
   const docType: DocType =
-    options.forceDocType ?? (fullDocPath.endsWith(jsonExt) ? 'json' : 'text');
+    options.forceDocType ??
+    (serializeFormat.hasObjectExtension(fullDocPath) ? 'json' : 'text');
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
 
   if (docType === 'json') {
     if (internalOptions.oid !== '') {
-      return blobToJsonDocWithoutOverwrittenId(readBlobResult, jsonExt);
+      return blobToJsonDocWithoutOverwrittenId(readBlobResult, serializeFormat);
     }
-    const shortId = shortName.replace(new RegExp(jsonExt + '$'), '');
-    return blobToJsonDoc(shortId, readBlobResult, internalOptions.withMetadata, jsonExt);
+    const shortId = serializeFormat.removeExtension(shortName);
+    return blobToJsonDoc(
+      shortId,
+      readBlobResult,
+      internalOptions.withMetadata,
+      serializeFormat
+    );
   }
   else if (docType === 'text') {
     return blobToText(shortName, readBlobResult, internalOptions.withMetadata);

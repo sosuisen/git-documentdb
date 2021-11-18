@@ -7,6 +7,7 @@
  */
 
 import { Logger, TLogLevelName } from 'tslog';
+import { SerializeFormatFrontMatter, SerializeFormatJSON } from './serialize_format';
 import { TaskQueue } from './task_queue';
 import {
   ColoredLogger,
@@ -16,6 +17,7 @@ import {
   OpenOptions,
   RemoteOptions,
   Schema,
+  SerializeFormatLabel,
   SyncResult,
 } from './types';
 import { ICollection } from './types_collection';
@@ -31,7 +33,7 @@ export interface GitDDBInterface {
   /***********************************************
    * Public properties (readonly)
    ***********************************************/
-  jsonExt: string;
+  serializeFormat: SerializeFormatJSON | SerializeFormatFrontMatter;
   defaultBranch: string;
   localDir: string;
   dbName: string;
