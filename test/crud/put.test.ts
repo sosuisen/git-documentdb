@@ -653,10 +653,8 @@ a: 春はあけぼの
       _id: 'foo',
       a: 'bar',
     });
-    const result = `---
-_id: foo
+    const result = `_id: foo
 a: bar
----
 `;
     const fullDocPath = 'foo.md';
     expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(result);

@@ -70,6 +70,10 @@ export const FRONT_MATTER_POSTFIX = '.md';
 /**
  * @public
  */
+export const YAML_POSTFIX = '.yml';
+/**
+ * @public
+ */
 export const MAX_FILE_PATH_LENGTH = 255;
 /**
  * @public

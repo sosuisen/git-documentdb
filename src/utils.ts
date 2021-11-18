@@ -83,7 +83,14 @@ export function toSortedJSONString (obj: Record<string, any>) {
   );
 }
 
+export function toYAML (obj: Record<string, any>) {
+  return yaml.dump(obj, { sortKeys: true });
+}
+
 export function toFrontMatterMarkdown (obj: Record<string, any>) {
+  if (obj._body === undefined) {
+    return toYAML(obj);
+  }
   const body = typeof obj._body === 'string' ? obj._body : '';
   const clone = JSON.parse(JSON.stringify(obj));
   delete clone._body;

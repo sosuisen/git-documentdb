@@ -304,7 +304,18 @@ export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
 /**
  * Format for serialization
  */
-export type SerializeFormat = 'json' | 'front-matter';
+export type SerializeFormatLabel = 'json' | 'front-matter';
+
+/**
+ * Interface for serialize format classes
+ */
+export interface SerializeFormat {
+  format: SerializeFormatLabel;
+  extForObj: string;
+  match: (name: string) => boolean;
+  removeExt: (name: string) => string;
+  serialize: (doc: JsonDoc) => string;
+}
 
 /**
  * CollectionPath

@@ -63,6 +63,7 @@ import {
   GIT_DOCUMENTDB_INFO_ID,
   JSON_POSTFIX,
   SET_DATABASE_ID_MESSAGE,
+  YAML_POSTFIX,
 } from './const';
 import { normalizeCommit, sleep, toSortedJSONString } from './utils';
 import { SyncEventInterface, SyncInterface } from './types_sync';
@@ -144,6 +145,11 @@ export class GitDocumentDB
   private _jsonExt = JSON_POSTFIX;
   get jsonExt (): string {
     return this._jsonExt;
+  }
+
+  private _jsonExtAnother = YAML_POSTFIX;
+  get jsonExtAnother (): string {
+    return this._jsonExtAnother;
   }
 
   /**
