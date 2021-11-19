@@ -641,7 +641,7 @@ a: 春はあけぼの
     await gitDDB.destroy();
   });
 
-  it('write front matter without markdown', async () => {
+  it('write yaml when no markdown', async () => {
     const dbName = monoId();
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
@@ -656,7 +656,7 @@ a: 春はあけぼの
     const result = `_id: foo
 a: bar
 `;
-    const fullDocPath = 'foo.md';
+    const fullDocPath = 'foo.yml';
     expect(readFileSync(path.resolve(gitDDB.workingDir, fullDocPath), 'utf8')).toBe(result);
 
     await gitDDB.close();

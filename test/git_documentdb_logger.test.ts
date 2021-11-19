@@ -42,7 +42,7 @@ describe('<git_documentdb> logger', () => {
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      logLevel: 'silly',
+      logLevel: 'debug',
       logToTransport: (logObject: ILogObject) => {
         fs.appendFileSync(logPath, logObject.argumentsArray[0] + '\n');
       },
@@ -51,8 +51,7 @@ describe('<git_documentdb> logger', () => {
     await gitDDB.put({ _id: 'test' });
 
     const log = fs.readFileSync(logPath, 'utf-8');
-    expect(log.startsWith('\u001b[43m\u001b[30mStart: put()\u001b[0m')).toBeTruthy();
-
+    expect(log.startsWith('\u001b[43m\u001b[30mStart: put()')).toBeTruthy();
     fs.removeSync(logPath);
     await gitDDB.destroy();
   });
@@ -63,7 +62,7 @@ describe('<git_documentdb> logger', () => {
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      logLevel: 'silly',
+      logLevel: 'debug',
       logToTransport: (logObject: ILogObject) => {
         fs.appendFileSync(logPath, logObject.argumentsArray[0] + '\n');
       },

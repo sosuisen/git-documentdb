@@ -91,7 +91,7 @@ const INITIAL_DATABASE_OPEN_RESULT: DatabaseOpenResult = {
   isNew: false,
   isCreatedByGitDDB: true,
   isValidVersion: true,
-  serializeFormat: new SerializeFormatJSON(),
+  serialize: 'json',
 };
 
 /**
@@ -131,7 +131,9 @@ export class GitDocumentDB
    ***********************************************/
   private _synchronizers: { [url: string]: Sync } = {};
 
-  private _dbOpenResult: DatabaseOpenResult = { ...INITIAL_DATABASE_OPEN_RESULT };
+  private _dbOpenResult: DatabaseOpenResult = {
+    ...INITIAL_DATABASE_OPEN_RESULT,
+  };
 
   /***********************************************
    * Public properties (readonly)
@@ -454,6 +456,9 @@ export class GitDocumentDB
     if (format === 'front-matter') {
       this._serializeFormat = new SerializeFormatFrontMatter();
     }
+    else {
+      this._serializeFormat = new SerializeFormatJSON();
+    }
 
     // Get full-path
     this._workingDir = path.resolve(this._localDir, this._dbName);
@@ -522,7 +527,7 @@ export class GitDocumentDB
       dbId: generateDatabaseId(),
       creator: DATABASE_CREATOR,
       version: DATABASE_VERSION,
-      serializeFormat: this._serializeFormat,
+      serialize: this._serializeFormat.format,
     };
 
     // Retry three times.
@@ -685,7 +690,9 @@ export class GitDocumentDB
 
       this._synchronizers = {};
 
-      this._dbOpenResult = { ...INITIAL_DATABASE_OPEN_RESULT };
+      this._dbOpenResult = {
+        ...INITIAL_DATABASE_OPEN_RESULT,
+      };
 
       this._isClosing = false;
     }
@@ -975,15 +982,15 @@ export class GitDocumentDB
       dbId: '',
       creator: '',
       version: '',
-      serializeFormat: this._serializeFormat,
+      serialize: this._serializeFormat.format,
     };
 
     info.creator ??= '';
     info.version ??= '';
 
-    info.serializeFormat ??= this._serializeFormat;
+    info.serialize ??= this._serializeFormat.format;
 
-    if (info.serializeFormat !== this._serializeFormat) {
+    if (info.serialize !== this._serializeFormat.format) {
       // TODO: Change serialize format
     }
 

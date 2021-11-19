@@ -13,6 +13,7 @@
  * These tests create a new repository on GitHub if not exists.
  */
 import expect from 'expect';
+import { SerializeFormatFrontMatter } from '../../src/serialize_format';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   ConnectionSettings,
@@ -633,7 +634,7 @@ export const threeWayMergeOtBase = (
           putResultB1.fileOid,
           mergedJson,
           mergedDoc!.fileOid,
-          FRONT_MATTER_POSTFIX
+          dbA.serializeFormat
         ),
       ]);
 
@@ -644,7 +645,7 @@ export const threeWayMergeOtBase = (
           putResultA1dash.fileOid,
           mergedJson,
           mergedDoc!.fileOid,
-          FRONT_MATTER_POSTFIX
+          dbA.serializeFormat
         ),
       ]);
 
@@ -658,10 +659,14 @@ export const threeWayMergeOtBase = (
       ]);
       // Conflict occurs on 1.json
 
-      expect(getWorkingDirDocs(dbB, FRONT_MATTER_POSTFIX)).toEqual([mergedJson]);
+      expect(getWorkingDirDocs(dbB, new SerializeFormatFrontMatter())).toEqual([
+        mergedJson,
+      ]);
       // Sync dbA
       const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
-      expect(getWorkingDirDocs(dbA, FRONT_MATTER_POSTFIX)).toEqual([mergedJson]);
+      expect(getWorkingDirDocs(dbA, new SerializeFormatFrontMatter())).toEqual([
+        mergedJson,
+      ]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();

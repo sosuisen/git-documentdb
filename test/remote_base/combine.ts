@@ -31,6 +31,7 @@ import {
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
 import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
+import { SerializeFormatFrontMatter } from '../../src/serialize_format';
 
 export const syncCombineBase = (
   connection: ConnectionSettings,
@@ -557,7 +558,7 @@ export const syncCombineBase = (
         const jsonB3 = { _id: '3', name: 'fromB' };
         await dbB.put(jsonB3);
 
-        expect(getWorkingDirDocs(dbA, FRONT_MATTER_POSTFIX)).toEqual([jsonA1]);
+        expect(getWorkingDirDocs(dbA, new SerializeFormatFrontMatter())).toEqual([jsonA1]);
         // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
         jsonB1._id = jsonB1._id + '-from-' + dbIdB;
         const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + FRONT_MATTER_POSTFIX);
@@ -581,7 +582,7 @@ export const syncCombineBase = (
             },
           ],
         });
-        expect(getWorkingDirDocs(dbB, FRONT_MATTER_POSTFIX)).toEqual([
+        expect(getWorkingDirDocs(dbB, new SerializeFormatFrontMatter())).toEqual([
           jsonB2,
           jsonB3,
           jsonB1,
@@ -590,7 +591,7 @@ export const syncCombineBase = (
 
         const rawJSON = textToJsonDoc(
           fs.readFileSync(dbB.workingDir + '/deep/one.md', { encoding: 'utf8' }),
-          FRONT_MATTER_POSTFIX
+          dbA.serializeFormat
         );
         rawJSON._id = 'one'; // not 'deep/one'
 

@@ -4,7 +4,7 @@ import { toFrontMatterMarkdown, toSortedJSONString, toYAML } from './utils';
 
 export class SerializeFormatJSON implements SerializeFormat {
   format: SerializeFormatLabel = 'json';
-  firstExtension = FRONT_MATTER_POSTFIX;
+  firstExtension = JSON_POSTFIX;
   secondExtension = undefined;
 
   extension () {

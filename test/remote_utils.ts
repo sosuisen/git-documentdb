@@ -18,12 +18,7 @@ import {
 } from '../src/types';
 import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
-import {
-  FILE_REMOVE_TIMEOUT,
-  FRONT_MATTER_POSTFIX,
-  GIT_DOCUMENTDB_METADATA_DIR,
-  JSON_POSTFIX,
-} from '../src/const';
+import { FILE_REMOVE_TIMEOUT, GIT_DOCUMENTDB_METADATA_DIR } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 import { SerializeFormatJSON } from '../src/serialize_format';
 

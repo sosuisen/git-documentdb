@@ -841,9 +841,9 @@ export class Collection implements ICollection {
    *
    * @public
    */
-  get (_id: string): Promise<JsonDoc | undefined> {
+  async get (_id: string): Promise<JsonDoc | undefined> {
     const shortName = _id + this._gitDDB.serializeFormat.firstExtension;
-    const result = getImpl(
+    const result = (await getImpl(
       this._gitDDB,
       shortName,
       this.collectionPath,
@@ -851,7 +851,7 @@ export class Collection implements ICollection {
       {
         forceDocType: 'json',
       }
-    ) as Promise<JsonDoc | undefined>;
+    )) as Promise<JsonDoc | undefined>;
     if (
       result === undefined &&
       this._gitDDB.serializeFormat.secondExtension !== undefined
@@ -888,8 +888,11 @@ export class Collection implements ICollection {
    *
    * @public
    */
-  getFatDoc (shortName: string, getOptions?: GetOptions): Promise<FatDoc | undefined> {
-    const result = getImpl(
+  async getFatDoc (
+    shortName: string,
+    getOptions?: GetOptions
+  ): Promise<FatDoc | undefined> {
+    const result = (await getImpl(
       this._gitDDB,
       shortName,
       this.collectionPath,
@@ -898,7 +901,7 @@ export class Collection implements ICollection {
       {
         withMetadata: true,
       }
-    ) as Promise<FatDoc | undefined>;
+    )) as Promise<FatDoc | undefined>;
     if (
       result === undefined &&
       this._gitDDB.serializeFormat.secondExtension !== undefined
@@ -968,13 +971,13 @@ export class Collection implements ICollection {
    *
    * @public
    */
-  getOldRevision (
+  async getOldRevision (
     shortId: string,
     revision: number,
     historyOptions?: HistoryOptions
   ): Promise<JsonDoc | undefined> {
     let shortName = shortId + this._gitDDB.serializeFormat.firstExtension;
-    const result = getImpl(
+    const result = (await getImpl(
       this._gitDDB,
       shortName,
       this.collectionPath,
@@ -985,7 +988,7 @@ export class Collection implements ICollection {
         revision: revision,
       },
       historyOptions
-    ) as Promise<JsonDoc | undefined>;
+    )) as Promise<JsonDoc | undefined>;
     if (result === undefined && this._gitDDB.serializeFormat !== undefined) {
       shortName = shortId + this._gitDDB.serializeFormat.secondExtension;
       return getImpl(
@@ -1201,7 +1204,7 @@ export class Collection implements ICollection {
     options?: DeleteOptions
   ): Promise<DeleteResultJsonDoc>;
 
-  delete (
+  async delete (
     shortIdOrDoc: string | JsonDoc,
     options?: DeleteOptions
   ): Promise<DeleteResultJsonDoc> {
@@ -1218,7 +1221,7 @@ export class Collection implements ICollection {
     let shortName = shortId + this._gitDDB.serializeFormat.firstExtension;
 
     let trySecondExtension = false;
-    const resultOrError = deleteImpl(
+    const resultOrError = await deleteImpl(
       this._gitDDB,
       this.collectionPath,
       shortId,
@@ -1259,6 +1262,7 @@ export class Collection implements ICollection {
         return deleteResult;
       });
     }
+    // eslint-disable-next-line promise/catch-or-return
     if (resultOrError instanceof Error) throw resultOrError;
 
     return resultOrError;

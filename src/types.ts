@@ -145,7 +145,7 @@ export type DatabaseInfo = {
   dbId: string;
   creator: string;
   version: string;
-  serializeFormat: SerializeFormat;
+  serialize: SerializeFormatLabel;
 };
 
 /**

@@ -12,7 +12,6 @@
 import { clearInterval, setInterval } from 'timers';
 
 import { decodeTime, monotonicFactory } from 'ulid';
-import { Logger } from 'tslog';
 import AsyncLock from 'async-lock';
 import { ColoredLogger, Task, TaskMetadata, TaskStatistics } from './types';
 import { CONSOLE_STYLE, sleep } from './utils';
@@ -116,7 +115,7 @@ export class TaskQueue {
     this._lock! // eslint-disable-next-line complexity
       .acquire('TaskQueue', () => {
         // Skip consecutive sync/push events
-        this._logger.debug(
+        this._logger.silly(
           `Try to push ${task.label}@${task.taskId} into ${JSON.stringify(this._taskQueue)}`
         );
         if (
@@ -404,7 +403,7 @@ export class TaskQueue {
       };
 
       this._currentTask.func(beforeResolve, beforeReject, taskMetadata).finally(() => {
-        this._logger.debug(
+        this._logger.silly(
           `Clear currentTask: ${this._currentTask?.label}@${this._currentTask?.taskId}`
         );
         this._isTaskQueueWorking = false;

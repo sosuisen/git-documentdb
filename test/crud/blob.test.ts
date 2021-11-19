@@ -24,7 +24,11 @@ import {
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { toFrontMatterMarkdown, toSortedJSONString, utf8encode } from '../../src/utils';
-import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
+import { JSON_POSTFIX } from '../../src/const';
+import {
+  SerializeFormatFrontMatter,
+  SerializeFormatJSON,
+} from '../../src/serialize_format';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const git_module = require('@sosuisen/isomorphic-git');
@@ -62,7 +66,7 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(() =>
-        blobToJsonDoc(shortId, readBlobResult, false, JSON_POSTFIX)
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatJSON())
       ).toThrowError(Err.InvalidJsonObjectError);
     });
 
@@ -74,7 +78,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false, JSON_POSTFIX)).toEqual(json);
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatJSON())
+      ).toEqual(json);
     });
 
     it('returns JsonDoc with only _id when Front-Matter + Markdown is empty', async () => {
@@ -84,7 +90,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual({
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+      ).toEqual({
         _id: 'foo',
       });
     });
@@ -96,7 +104,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual({
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+      ).toEqual({
         _id: 'foo',
         _body: text,
       });
@@ -109,7 +119,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual({
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+      ).toEqual({
         _id: 'foo',
         _body: text,
       });
@@ -123,9 +135,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual(
-        json
-      );
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+      ).toEqual(json);
     });
 
     it('returns JsonDoc of Front-Matter + Markdown that ends with \n', async () => {
@@ -136,9 +148,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual(
-        json
-      );
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+      ).toEqual(json);
     });
 
     it('returns JsonDoc of Front-Matter without Markdown', async () => {
@@ -149,9 +161,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, false, FRONT_MATTER_POSTFIX)).toEqual(
-        json
-      );
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+      ).toEqual(json);
     });
 
     it('returns JsonDoc with overwritten _id', async () => {
@@ -164,7 +176,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId2, readBlobResult, false, JSON_POSTFIX)).toEqual(json2);
+      expect(
+        blobToJsonDoc(shortId2, readBlobResult, false, new SerializeFormatJSON())
+      ).toEqual(json2);
     });
 
     it('returns FatJsonDoc', async () => {
@@ -176,7 +190,9 @@ describe('<crud/blob>', () => {
         oid: fileOid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDoc(shortId, readBlobResult, true, JSON_POSTFIX)).toEqual({
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, true, new SerializeFormatJSON())
+      ).toEqual({
         _id: shortId,
         name: shortId + JSON_POSTFIX,
         fileOid,
@@ -194,7 +210,7 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(() =>
-        blobToJsonDocWithoutOverwrittenId(readBlobResult, JSON_POSTFIX)
+        blobToJsonDocWithoutOverwrittenId(readBlobResult, new SerializeFormatJSON())
       ).toThrowError(Err.InvalidJsonObjectError);
     });
 
@@ -206,7 +222,9 @@ describe('<crud/blob>', () => {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
-      expect(blobToJsonDocWithoutOverwrittenId(readBlobResult, JSON_POSTFIX)).toEqual(json);
+      expect(
+        blobToJsonDocWithoutOverwrittenId(readBlobResult, new SerializeFormatJSON())
+      ).toEqual(json);
     });
 
     it('returns JsonDoc in FrontMatterMarkdown', async () => {
@@ -218,7 +236,7 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDocWithoutOverwrittenId(readBlobResult, FRONT_MATTER_POSTFIX)
+        blobToJsonDocWithoutOverwrittenId(readBlobResult, new SerializeFormatFrontMatter())
       ).toEqual(json);
     });
   });
