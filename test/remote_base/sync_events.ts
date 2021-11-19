@@ -1100,8 +1100,8 @@ export const syncEventsBase = (
       // eslint-disable-next-line no-unmodified-loop-condition
       while (!complete) {
         // eslint-disable-next-line no-await-in-loop
-        await sleep(1000);
-        sleepTime += 1000;
+        await sleep(700);
+        sleepTime += 700;
       }
 
       expect(complete).toBe(true);

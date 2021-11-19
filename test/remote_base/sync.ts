@@ -1160,7 +1160,7 @@ export const syncBase = (
     await dbB.put(jsonB2);
     await syncB.trySync();
 
-    await sleep(remoteOptions01.interval! * 2);
+    await sleep(remoteOptions01.interval! * 3);
 
     await expect(gitDDB.get('1')).resolves.toEqual(jsonA1);
     await expect(gitDDB.get('2')).resolves.toEqual(jsonB2);

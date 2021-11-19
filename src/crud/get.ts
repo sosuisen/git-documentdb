@@ -106,7 +106,11 @@ export async function getImpl (
   }
 
   if (docType === 'json') {
-    const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
+    const extMatch = fullDocPath.match(/.+(\..+?)$/)!;
+    let extension = '';
+    if (extMatch) {
+      extension = extMatch[1];
+    }
     if (internalOptions.oid !== '') {
       return blobToJsonDocWithoutOverwrittenId(readBlobResult, serializeFormat, extension);
     }
