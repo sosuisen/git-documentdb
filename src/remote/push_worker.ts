@@ -160,7 +160,7 @@ export async function pushWorker (
       gitDDB.workingDir,
       remoteCommitOid,
       headCommitOid,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
   }
 

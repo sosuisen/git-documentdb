@@ -32,8 +32,8 @@ export class SerializeFormatFrontMatter implements SerializeFormat {
   firstExtension = FRONT_MATTER_POSTFIX;
   secondExtension = YAML_POSTFIX;
 
-  extension (doc: JsonDoc) {
-    if (doc._body === undefined) return YAML_POSTFIX;
+  extension (doc?: JsonDoc) {
+    if (doc !== undefined && doc._body === undefined) return YAML_POSTFIX;
     return FRONT_MATTER_POSTFIX;
   }
 

@@ -80,9 +80,9 @@ describe('<crud/find> find()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).rejects.toThrowError(
-      Err.DatabaseClosingError
-    );
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).rejects.toThrowError(Err.DatabaseClosingError);
     while (gitDDB.isClosing) {
       // eslint-disable-next-line no-await-in-loop
       await sleep(100);
@@ -100,9 +100,9 @@ describe('<crud/find> find()', () => {
 
     await addOneData(gitDDB, 'invalidJSON' + JSON_POSTFIX, 'invalidJSON');
 
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).rejects.toThrowError(
-      Err.InvalidJsonObjectError
-    );
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).rejects.toThrowError(Err.InvalidJsonObjectError);
 
     await gitDDB.destroy();
   });
@@ -141,9 +141,9 @@ describe('<crud/find> find()', () => {
 
     await gitDDB.open();
 
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
-      json,
-    ]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).resolves.toEqual([json]);
 
     await gitDDB.destroy();
   });
@@ -158,7 +158,9 @@ describe('<crud/find> find()', () => {
 
     await gitDDB.open();
 
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).resolves.toEqual([]);
 
     await gitDDB.destroy();
   });
@@ -183,12 +185,9 @@ describe('<crud/find> find()', () => {
     await addOneData(gitDDB, _id_1 + JSON_POSTFIX, toSortedJSONString(json_1));
     await addOneData(gitDDB, _id_c + JSON_POSTFIX, toSortedJSONString(json_c));
 
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
-      json_1,
-      json_a,
-      json_b,
-      json_c,
-    ]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).resolves.toEqual([json_1, json_a, json_b, json_c]);
 
     await gitDDB.destroy();
   });
@@ -212,15 +211,12 @@ describe('<crud/find> find()', () => {
     await addOneData(gitDDB, _id_1 + JSON_POSTFIX, toSortedJSONString(json_1));
     await addOneData(gitDDB, _id_c + JSON_POSTFIX, toSortedJSONString(json_c));
 
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
-      json_1,
-      json_a,
-      json_b,
-      json_c,
-    ]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).resolves.toEqual([json_1, json_a, json_b, json_c]);
 
     await expect(
-      findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { descending: true })
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { descending: true })
     ).resolves.toEqual([json_c, json_b, json_a, json_1]);
 
     await gitDDB.destroy();
@@ -246,13 +242,9 @@ describe('<crud/find> find()', () => {
     await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
     await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
-      json_a,
-      json_b,
-      json_c01,
-      json_c02,
-      json_d,
-    ]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).resolves.toEqual([json_a, json_b, json_c01, json_c02, json_d]);
 
     await gitDDB.destroy();
   });
@@ -279,7 +271,7 @@ describe('<crud/find> find()', () => {
     await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
     await expect(
-      findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { recursive: false })
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { recursive: false })
     ).resolves.toEqual([json_a, json_b]);
 
     await gitDDB.destroy();
@@ -305,10 +297,9 @@ describe('<crud/find> find()', () => {
     await addOneData(gitDDB, _id_1, toSortedJSONString(json_1));
     await addOneData(gitDDB, _id_c, toSortedJSONString(json_c));
 
-    await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, false)).resolves.toEqual([
-      json_a,
-      json_b,
-    ]);
+    await expect(
+      findImpl(gitDDB, '', gitDDB.serializeFormat, true, false)
+    ).resolves.toEqual([json_a, json_b]);
 
     await gitDDB.destroy();
   });
@@ -341,7 +332,7 @@ describe('<crud/find> find()', () => {
       const prefix = 'citrus/';
 
       await expect(
-        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { prefix })
       ).resolves.toEqual([json_c01, json_c02]);
 
       await gitDDB.destroy();
@@ -374,7 +365,10 @@ describe('<crud/find> find()', () => {
       const prefix = 'cit';
 
       await expect(
-        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix, recursive: false })
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, {
+          prefix,
+          recursive: false,
+        })
       ).resolves.toEqual([json_c000, json_c001]);
 
       await gitDDB.destroy();
@@ -407,7 +401,7 @@ describe('<crud/find> find()', () => {
       const prefix = 'citrus';
 
       await expect(
-        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { prefix })
       ).resolves.toEqual([json_c000, json_c001, json_c01, json_c02]);
 
       await gitDDB.destroy();
@@ -440,7 +434,7 @@ describe('<crud/find> find()', () => {
       const prefix = 'citrus/y';
 
       await expect(
-        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { prefix })
       ).resolves.toEqual([json_c02]);
 
       await gitDDB.destroy();
@@ -473,7 +467,7 @@ describe('<crud/find> find()', () => {
       const prefix = 'not_exist/';
 
       await expect(
-        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix })
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { prefix })
       ).resolves.toEqual([]);
 
       await gitDDB.destroy();
@@ -507,11 +501,11 @@ describe('<crud/find> find()', () => {
       await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
       await expect(
-        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix: 'pear/Japan' })
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { prefix: 'pear/Japan' })
       ).resolves.toEqual([json_p]);
 
       await expect(
-        findImpl(gitDDB, '', gitDDB.jsonExt, true, false, { prefix: 'pear' })
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, false, { prefix: 'pear' })
       ).resolves.toEqual([json_p]);
 
       await gitDDB.destroy();
@@ -529,9 +523,9 @@ describe('<crud/find> find()', () => {
 
       await gitDDB.open();
 
-      await expect(findImpl(gitDDB, 'col01', gitDDB.jsonExt, true, false)).resolves.toEqual(
-        []
-      );
+      await expect(
+        findImpl(gitDDB, 'col01', gitDDB.serializeFormat, true, false)
+      ).resolves.toEqual([]);
 
       await gitDDB.destroy();
     });
@@ -563,7 +557,7 @@ describe('<crud/find> find()', () => {
       await addOneData(gitDDB, colPath + _id_c + JSON_POSTFIX, toSortedJSONString(json_c));
 
       await expect(
-        findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false)
+        findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false)
       ).resolves.toEqual([json_1_, json_a_, json_b_, json_c_]);
 
       await gitDDB.destroy();
@@ -605,7 +599,7 @@ describe('<crud/find> find()', () => {
       );
 
       await expect(
-        findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false)
+        findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false)
       ).resolves.toEqual([json_a_, json_b_, json_c01_, json_c02_, json_d_]);
 
       await gitDDB.destroy();
@@ -676,7 +670,7 @@ describe('<crud/find> find()', () => {
         const prefix = 'citrus/';
 
         await expect(
-          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+          findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false, { prefix })
         ).resolves.toEqual([json_c01_, json_c02_]);
 
         await gitDDB.destroy();
@@ -746,7 +740,7 @@ describe('<crud/find> find()', () => {
         const prefix = 'cit';
 
         await expect(
-          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, {
+          findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false, {
             prefix,
             recursive: false,
           })
@@ -819,7 +813,7 @@ describe('<crud/find> find()', () => {
         const prefix = 'citrus';
 
         await expect(
-          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+          findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false, { prefix })
         ).resolves.toEqual([json_c000_, json_c001_, json_c01_, json_c02_]);
 
         await gitDDB.destroy();
@@ -889,7 +883,7 @@ describe('<crud/find> find()', () => {
         const prefix = 'citrus/y';
 
         await expect(
-          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+          findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false, { prefix })
         ).resolves.toEqual([json_c02_]);
 
         await gitDDB.destroy();
@@ -959,7 +953,7 @@ describe('<crud/find> find()', () => {
         const prefix = 'not_exist/';
 
         await expect(
-          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix })
+          findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false, { prefix })
         ).resolves.toEqual([]);
 
         await gitDDB.destroy();
@@ -1035,11 +1029,13 @@ describe('<crud/find> find()', () => {
         );
 
         await expect(
-          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix: 'pear/Japan' })
+          findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false, {
+            prefix: 'pear/Japan',
+          })
         ).resolves.toEqual([json_p_]);
 
         await expect(
-          findImpl(gitDDB, colPath, gitDDB.jsonExt, true, false, { prefix: 'pear' })
+          findImpl(gitDDB, colPath, gitDDB.serializeFormat, true, false, { prefix: 'pear' })
         ).resolves.toEqual([json_p_]);
 
         await gitDDB.destroy();
@@ -1058,7 +1054,9 @@ describe('<crud/find> find()', () => {
 
       await gitDDB.open();
 
-      await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, true)).resolves.toEqual([]);
+      await expect(
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, true)
+      ).resolves.toEqual([]);
 
       await gitDDB.destroy();
     });
@@ -1083,7 +1081,9 @@ describe('<crud/find> find()', () => {
       await addOneData(gitDDB, _id_c01 + JSON_POSTFIX, toSortedJSONString(json_c01));
       await addOneData(gitDDB, _id_c02 + JSON_POSTFIX, toSortedJSONString(json_c02));
 
-      await expect(findImpl(gitDDB, '', gitDDB.jsonExt, true, true)).resolves.toEqual([
+      await expect(
+        findImpl(gitDDB, '', gitDDB.serializeFormat, true, true)
+      ).resolves.toEqual([
         {
           _id: _id_a,
           name: _id_a + JSON_POSTFIX,

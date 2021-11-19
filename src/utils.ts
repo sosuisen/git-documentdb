@@ -22,6 +22,7 @@ import {
   DocType,
   JsonDocMetadata,
   NormalizedCommit,
+  SerializeFormat,
   TextDocMetadata,
 } from './types';
 import { FRONT_MATTER_POSTFIX, GIT_DOCUMENTDB_METADATA_DIR, JSON_POSTFIX } from './const';
@@ -114,7 +115,7 @@ export function toFrontMatterMarkdown (obj: Record<string, any>) {
 // eslint-disable-next-line complexity
 export async function getAllMetadata (
   workingDir: string,
-  jsonExt: string
+  serializeFormat: SerializeFormat
 ): Promise<DocMetadata[]> {
   const files: DocMetadata[] = [];
   const commitOid = await resolveRef({ fs, dir: workingDir, ref: 'HEAD' }).catch(
@@ -168,12 +169,14 @@ export async function getAllMetadata (
         // Skip if cannot read
         if (readBlobResult === undefined) continue;
 
-        const docType: DocType = fullDocPath.endsWith(jsonExt) ? 'json' : 'text';
+        const docType: DocType = serializeFormat.hasObjectExtension(fullDocPath)
+          ? 'json'
+          : 'text';
         if (docType === 'text') {
           // TODO: select binary or text by .gitattribtues
         }
         if (docType === 'json') {
-          const _id = fullDocPath.replace(new RegExp(jsonExt + '$'), '');
+          const _id = serializeFormat.removeExtension(fullDocPath);
           const meta: JsonDocMetadata = {
             _id,
             name: fullDocPath,

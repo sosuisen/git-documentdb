@@ -28,7 +28,7 @@ import {
   FILE_REMOVE_TIMEOUT,
   FRONT_MATTER_POSTFIX,
 } from '../const';
-import { getAllMetadata, serializeJSON } from '../utils';
+import { getAllMetadata } from '../utils';
 import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 
 /**
@@ -98,11 +98,11 @@ export async function combineDatabaseWithTheirs (
 
     const localMetadataList: DocMetadata[] = await getAllMetadata(
       gitDDB.workingDir,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     const remoteMetadataList: DocMetadata[] = await getAllMetadata(
       remoteDir,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     const remoteNames = remoteMetadataList.map(meta => meta.name);
 
@@ -114,7 +114,9 @@ export async function combineDatabaseWithTheirs (
 
       await fs.ensureDir(dir);
 
-      const docType: DocType = localFilePath.endsWith(gitDDB.jsonExt) ? 'json' : 'text';
+      const docType: DocType = gitDDB.serializeFormat.hasObjectExtension(localFilePath)
+        ? 'json'
+        : 'text';
       // eslint-disable-next-line max-depth
       if (docType === 'text') {
         // TODO: select binary or text by .gitattribtues
@@ -136,11 +138,11 @@ export async function combineDatabaseWithTheirs (
         if (docType === 'json') {
           let doc: JsonDoc;
           // eslint-disable-next-line max-depth
-          if (gitDDB.jsonExt === FRONT_MATTER_POSTFIX) {
+          if (gitDDB.serializeFormat.format === 'front-matter') {
             const txt = fs.readFileSync(localFilePath, {
               encoding: 'utf8',
             });
-            doc = textToJsonDoc(txt, FRONT_MATTER_POSTFIX);
+            doc = textToJsonDoc(txt, gitDDB.serializeFormat);
           }
           else {
             doc = fs.readJSONSync(localFilePath);
@@ -151,15 +153,15 @@ export async function combineDatabaseWithTheirs (
           if (doc._id !== undefined) {
             doc._id = _id + postfix;
           }
-          duplicatedFileName = _id + postfix + gitDDB.jsonExt;
+          duplicatedFileName = _id + postfix + gitDDB.serializeFormat.extension(doc);
           duplicatedFileId = _id + postfix;
-          duplicatedFileExt = gitDDB.jsonExt;
+          duplicatedFileExt = gitDDB.serializeFormat.extension(doc);
           fs.writeFileSync(
             path.resolve(remoteDir, duplicatedFileName),
-            serializeJSON(doc, gitDDB.jsonExt)
+            gitDDB.serializeFormat.serialize(doc).data
           );
           const duplicatedOid = (
-            await git.hashBlob({ object: serializeJSON(doc, gitDDB.jsonExt) })
+            await git.hashBlob({ object: gitDDB.serializeFormat.serialize(doc).data })
           ).oid;
           original = {
             _id,

@@ -77,7 +77,7 @@ export const networkHistoryBase = (
         dbB,
         shortName,
         '',
-        dbB.jsonExt,
+        dbB.serializeFormat,
         undefined,
         undefined,
         true

@@ -60,7 +60,7 @@ export type DatabaseOptions = {
   dbName: string;
   logLevel?: TLogLevelName;
   schema?: Schema;
-  serializeFormat?: SerializeFormat;
+  serializeFormat?: SerializeFormatLabel;
   logToTransport?: (logObject: ILogObject) => void;
   logColorEnabled?: boolean;
 };
@@ -207,7 +207,7 @@ export type Doc = JsonDoc | string | Uint8Array;
  * Metadata for JsonDoc
  *
  * @remarks
- * - _id: _id of a JSON document. This is a file name without ${jsonExt} extension.
+ * - _id: _id of a JSON document. This is a file name without extension.
  *
  * - name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
  *
@@ -314,7 +314,7 @@ export interface SerializeFormat {
   firstExtension: string;
   secondExtension: string | undefined;
   removeExtension: (path: string) => string;
-  extension: (doc: JsonDoc) => string;
+  extension: (doc?: JsonDoc) => string;
   hasObjectExtension: (path: string) => boolean;
   serialize: (doc: JsonDoc) => { extension: string; data: string };
 }
@@ -482,7 +482,7 @@ export type FindOptions = {
  * Result of put APIs (put, update, insert, putFatDoc, updateFatDoc, and insertFatDoc)
  *
  * @remarks
- * - _id: _id of a JSON document. This is a file name without ${jsonExt} extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
+ * - _id: _id of a JSON document. This is a file name without extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
  *
  * - name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
  *
@@ -529,7 +529,7 @@ export type PutResultBinary = {
  * Result of delete()
  *
  * @remarks
- * - _id: _id of a JSON document. This is a file name without ${jsonExt} extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
+ * - _id: _id of a JSON document. This is a file name without extension. PutResult does not have _id if a document is not {@link JsonDoc} type.
  *
  * - name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
  *

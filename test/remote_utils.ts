@@ -14,6 +14,7 @@ import {
   PutResult,
   RemoteOptions,
   Schema,
+  SerializeFormat,
 } from '../src/types';
 import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -24,6 +25,7 @@ import {
   JSON_POSTFIX,
 } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
+import { SerializeFormatJSON } from '../src/serialize_format';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
@@ -64,13 +66,13 @@ export function getCommitInfo (resultOrMessage: (PutResult | DeleteResult | stri
 export function getChangedFileInsert (
   newDoc: JsonDoc,
   newResult: PutResult | DeleteResult,
-  jsonExt = JSON_POSTFIX
+  serializeFormat: SerializeFormat = new SerializeFormatJSON()
 ): ChangedFileInsert {
   return {
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + jsonExt,
+      name: newDoc!._id + serializeFormat.extension(newDoc),
       fileOid: newResult!.fileOid,
       type: 'json',
       doc: newDoc,
@@ -83,20 +85,20 @@ export function getChangedFileUpdate (
   oldResult: PutResult | DeleteResult,
   newDoc: JsonDoc,
   newResult: PutResult | DeleteResult,
-  jsonExt = JSON_POSTFIX
+  serializeFormat: SerializeFormat = new SerializeFormatJSON()
 ): ChangedFileUpdate {
   return {
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + jsonExt,
+      name: oldDoc!._id + serializeFormat.extension(oldDoc!),
       fileOid: oldResult!.fileOid,
       type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + jsonExt,
+      name: newDoc!._id + serializeFormat.extension(newDoc),
       fileOid: newResult!.fileOid,
       type: 'json',
       doc: newDoc,
@@ -107,13 +109,13 @@ export function getChangedFileUpdate (
 export function getChangedFileDelete (
   oldDoc: JsonDoc,
   oldResult: PutResult | DeleteResult,
-  jsonExt = JSON_POSTFIX
+  serializeFormat: SerializeFormat = new SerializeFormatJSON()
 ): ChangedFileDelete {
   return {
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + jsonExt,
+      name: oldDoc!._id + serializeFormat.extension(oldDoc),
       fileOid: oldResult!.fileOid,
       type: 'json',
       doc: oldDoc,
@@ -124,13 +126,13 @@ export function getChangedFileDelete (
 export function getChangedFileInsertBySHA (
   newDoc: JsonDoc,
   newFileSHA: string,
-  jsonExt = JSON_POSTFIX
+  serializeFormat: SerializeFormat = new SerializeFormatJSON()
 ): ChangedFileInsert {
   return {
     operation: 'insert',
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + jsonExt,
+      name: newDoc!._id + serializeFormat.extension(newDoc),
       fileOid: newFileSHA,
       type: 'json',
       doc: newDoc,
@@ -143,20 +145,20 @@ export function getChangedFileUpdateBySHA (
   oldFileSHA: string,
   newDoc: JsonDoc,
   newFileSHA: string,
-  jsonExt = JSON_POSTFIX
+  serializeFormat: SerializeFormat = new SerializeFormatJSON()
 ): ChangedFileUpdate {
   return {
     operation: 'update',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + jsonExt,
+      name: oldDoc!._id + serializeFormat.extension(oldDoc!),
       fileOid: oldFileSHA,
       type: 'json',
       doc: oldDoc!,
     },
     new: {
       _id: newDoc!._id,
-      name: newDoc!._id + jsonExt,
+      name: newDoc!._id + serializeFormat.extension(newDoc),
       fileOid: newFileSHA,
       type: 'json',
       doc: newDoc,
@@ -167,13 +169,13 @@ export function getChangedFileUpdateBySHA (
 export function getChangedFileDeleteBySHA (
   oldDoc: JsonDoc,
   oldFileSHA: string,
-  jsonExt = JSON_POSTFIX
+  serializeFormat: SerializeFormat = new SerializeFormatJSON()
 ): ChangedFileDelete {
   return {
     operation: 'delete',
     old: {
       _id: oldDoc!._id,
-      name: oldDoc!._id + jsonExt,
+      name: oldDoc!._id + serializeFormat.extension(oldDoc),
       fileOid: oldFileSHA,
       type: 'json',
       doc: oldDoc,
@@ -385,17 +387,20 @@ export const compareWorkingDirAndBlobs = async (
   return true;
 };
 
-export const getWorkingDirDocs = (gitDDB: GitDocumentDB, jsonExt = JSON_POSTFIX) => {
+export const getWorkingDirDocs = (
+  gitDDB: GitDocumentDB,
+  serializeFormat: SerializeFormat = new SerializeFormatJSON()
+) => {
   return listFiles(gitDDB, gitDDB.workingDir).map(filepath => {
-    if (jsonExt === FRONT_MATTER_POSTFIX) {
+    if (serializeFormat.format === 'front-matter') {
       const txt = fs.readFileSync(gitDDB.workingDir + '/' + filepath, { encoding: 'utf8' });
-      const doc = textToJsonDoc(txt, FRONT_MATTER_POSTFIX);
-      doc._id = filepath.replace(new RegExp(jsonExt + '$'), '');
+      const doc = textToJsonDoc(txt, serializeFormat);
+      doc._id = serializeFormat.removeExtension(filepath);
       return doc;
     }
 
     const doc = fs.readJSONSync(gitDDB.workingDir + '/' + filepath);
-    doc._id = filepath.replace(new RegExp(jsonExt + '$'), '');
+    doc._id = serializeFormat.removeExtension(filepath);
     return doc;
   });
 };

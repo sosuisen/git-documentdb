@@ -43,6 +43,7 @@ import {
   RemoteOptions,
   Schema,
   SerializeFormat,
+  SerializeFormatLabel,
   SyncCallback,
   SyncEvent,
   SyncResult,
@@ -72,6 +73,7 @@ import { CollectionInterface, ICollection } from './types_collection';
 import { blobToJsonDoc, readLatestBlob } from './crud/blob';
 
 import * as remote_isomorphic_git from './plugin/remote-isomorphic-git';
+import { SerializeFormatFrontMatter, SerializeFormatJSON } from './serialize_format';
 
 /**
  * Get database ID
@@ -89,7 +91,7 @@ const INITIAL_DATABASE_OPEN_RESULT: DatabaseOpenResult = {
   isNew: false,
   isCreatedByGitDDB: true,
   isValidVersion: true,
-  serializeFormat: 'json',
+  serializeFormat: new SerializeFormatJSON(),
 };
 
 /**
@@ -131,25 +133,15 @@ export class GitDocumentDB
 
   private _dbOpenResult: DatabaseOpenResult = { ...INITIAL_DATABASE_OPEN_RESULT };
 
-  /**
-   * Serialize format
-   */
-  private _serializeFormat: SerializeFormat = 'json';
-
   /***********************************************
    * Public properties (readonly)
    ***********************************************/
   /**
-   * File extension for serializing json object
+   * Serialize format for json object
    */
-  private _jsonExt = JSON_POSTFIX;
-  get jsonExt (): string {
-    return this._jsonExt;
-  }
-
-  private _jsonExtAnother = YAML_POSTFIX;
-  get jsonExtAnother (): string {
-    return this._jsonExtAnother;
+  private _serializeFormat!: SerializeFormatJSON | SerializeFormatFrontMatter;
+  get serializeFormat () {
+    return this._serializeFormat;
   }
 
   /**
@@ -458,7 +450,10 @@ export class GitDocumentDB
 
     this._logToTransport = options.logToTransport;
 
-    this._serializeFormat = options.serializeFormat ?? 'json';
+    const format: SerializeFormatLabel = options.serializeFormat ?? 'json';
+    if (format === 'front-matter') {
+      this._serializeFormat = new SerializeFormatFrontMatter();
+    }
 
     // Get full-path
     this._workingDir = path.resolve(this._localDir, this._dbName);
@@ -971,7 +966,7 @@ export class GitDocumentDB
           GIT_DOCUMENTDB_INFO_ID,
           readBlobResult,
           false,
-          JSON_POSTFIX
+          new SerializeFormatJSON()
         ) as DatabaseInfo;
       } catch (e) {}
     }
@@ -991,8 +986,6 @@ export class GitDocumentDB
     if (info.serializeFormat !== this._serializeFormat) {
       // TODO: Change serialize format
     }
-    this._jsonExt =
-      this._serializeFormat === 'front-matter' ? FRONT_MATTER_POSTFIX : JSON_POSTFIX;
 
     // Set dbId if not exists.
     if (!info.dbId) {
@@ -1036,10 +1029,10 @@ export class GitDocumentDB
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
-   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and ${jsonExt} extension are omitted.
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and extension are omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir}/${jsonDoc._id}${jsonExt}` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${jsonDoc._id}${extension}` on the file system.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -1067,10 +1060,10 @@ export class GitDocumentDB
   /**
    * Insert a JSON document if not exists. Otherwise, update it.
    *
-   * @param _id - _id is a file path whose ${jsonExt} extension is omitted.
+   * @param _id - _id is a file path whose extension is omitted.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}${jsonExt}` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}${extension}` on the file system.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -1114,14 +1107,14 @@ export class GitDocumentDB
   /**
    * Insert a JSON document
    *
-   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and ${jsonExt} extension are omitted.
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and extension are omitted.
    *
    * @remarks
    * - Throws SameIdExistsError when a document that has the same _id exists. It might be better to use put() instead of insert().
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${jsonDoc._id}${jsonExt}` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${jsonDoc._id}${extension}` on the file system.
    *
    * - This is an alias of GitDocumentDB#rootCollection.insert()
    *
@@ -1151,12 +1144,12 @@ export class GitDocumentDB
   /**
    * Insert a JSON document
    *
-   * @param _id - _id is a file path whose ${jsonExt} extension is omitted.
+   * @param _id - _id is a file path whose extension is omitted.
    *
    * @remarks
    * - Throws SameIdExistsError when a document that has the same id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}${jsonExt}` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}${extension}` on the file system.
    *
    * - If _id is undefined, it is automatically generated.
    *
@@ -1202,14 +1195,14 @@ export class GitDocumentDB
   /**
    * Update a JSON document
    *
-   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and ${jsonExt} extension are omitted.
+   * @param jsonDoc - JsonDoc whose _id is shortId. shortId is a file path whose collectionPath and extension are omitted.
    *
    * @remarks
    * - Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
    *
    * - If _id is undefined, it is automatically generated.
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}${jsonExt}` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}extension` on the file system.
    *
    * - This is an alias of GitDocumentDB#rootCollection.update()
    *
@@ -1237,12 +1230,12 @@ export class GitDocumentDB
   /**
    * Update a JSON document
    *
-   * @param _id - _id is a file path whose ${jsonExt} extension is omitted.
+   * @param _id - _id is a file path whose extension is omitted.
    *
    * @remarks
    * - Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}${jsonExt}` on the file system.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${_id}extension` on the file system.
    *
    * - An update operation is not skipped even if no change occurred on a specified document.
    *
@@ -1287,11 +1280,11 @@ export class GitDocumentDB
    * @param name - name is a file path.
    *
    * @remarks
-   * - The saved file path is `${GitDocumentDB#workingDir}/${name}${jsonExt}`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${name}extension`.
    *
    * - If a name parameter is undefined, it is automatically generated.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose ${jsonExt} extension is removed.
+   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose extension is removed.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
@@ -1331,11 +1324,11 @@ export class GitDocumentDB
    * @remarks
    * - Throws SameIdExistsError when data that has the same _id exists. It might be better to use put() instead of insert().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${name}${jsonExt}`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${name}extension`.
    *
    * - If a name parameter is undefined, it is automatically generated.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose ${jsonExt} extension is omitted.
+   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose extension is omitted.
    *
    * - This is an alias of GitDocumentDB#rootCollection.insertFatDoc()
    *
@@ -1374,9 +1367,9 @@ export class GitDocumentDB
    * @remarks
    * - Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
    *
-   * - The saved file path is `${GitDocumentDB#workingDir}/${name}${jsonExt}`.
+   * - The saved file path is `${GitDocumentDB#workingDir}/${name}extension`.
    *
-   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose ${jsonExt} extension is omitted.
+   * - _id property of a JsonDoc is automatically set or overwritten by name parameter whose extension is omitted.
    *
    * - An update operation is not skipped even if no change occurred on a specified data.
    *
@@ -1412,7 +1405,7 @@ export class GitDocumentDB
   /**
    * Get a JSON document
    *
-   * @param _id - _id is a file path whose ${jsonExt} extension is omitted.
+   * @param _id - _id is a file path whose extension is omitted.
    *
    * @returns
    * - undefined if a specified document does not exist.
@@ -1438,7 +1431,7 @@ export class GitDocumentDB
    * @returns
    *  - undefined if a specified data does not exist.
    *
-   *  - FatJsonDoc if the file extension is jsonExt. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
+   *  - FatJsonDoc if the file extension is SerializeFormat.extension. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -1477,7 +1470,7 @@ export class GitDocumentDB
   /**
    * Get an old revision of a document
    *
-   * @param _id - _id is a file path whose ${jsonExt} extension is omitted.
+   * @param _id - _id is a file path whose extension is omitted.
    * @param revision - Specify a number to go back to old revision. Default is 0.
    * See {@link git-documentdb#GitDocumentDB.getHistory} for the array of revisions.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
@@ -1517,7 +1510,7 @@ export class GitDocumentDB
    * @remarks
    *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - JsonDoc if the file extension is jsonExt.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
+   *  - JsonDoc if the file extension is SerializeFormat.extension.  Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
    *
@@ -1553,7 +1546,7 @@ export class GitDocumentDB
   /**
    * Get revision history of a document
    *
-   * @param _id - _id is a file path whose ${jsonExt} extension is omitted.
+   * @param _id - _id is a file path whose extension is omitted.
    * @param historyOptions - The array of revisions is filtered by HistoryOptions.filter.
    *
    * @remarks
@@ -1564,7 +1557,7 @@ export class GitDocumentDB
    * @returns Array of FatDoc or undefined.
    *  - undefined if a specified document does not exist or it is deleted.
    *
-   *  - JsonDoc if isJsonDocCollection is true or the file extension is jsonExt.
+   *  - JsonDoc if isJsonDocCollection is true or the file extension is SerializeFormat.extension.
    *
    *  - Uint8Array or string if isJsonDocCollection is false.
    *
@@ -1624,7 +1617,7 @@ export class GitDocumentDB
    * @returns Array of FatDoc or undefined.
    *  - undefined if a specified data does not exist or it is deleted.
    *
-   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is jsonExt. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
+   *  - Array of FatJsonDoc if isJsonDocCollection is true or the file extension is SerializeFormat.extension. Be careful that JsonDoc may not have _id property when an app other than GitDocumentDB creates it.
    *
    *  - Array of FatBinaryDoc if described in .gitattribtues, otherwise array of FatTextDoc.
    *
@@ -1646,7 +1639,7 @@ export class GitDocumentDB
   /**
    * Delete a JSON document
    *
-   * @param _id - _id is a file path whose ${jsonExt} extension is omitted.
+   * @param _id - _id is a file path whose extension is omitted.
    *
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.delete()
@@ -1669,7 +1662,7 @@ export class GitDocumentDB
   /**
    * Delete a document by _id property in JsonDoc
    *
-   * @param jsonDoc - Only the _id property of the JsonDoc is referenced. _id is a file path whose ${jsonExt} extension is omitted.
+   * @param jsonDoc - Only the _id property of the JsonDoc is referenced. _id is a file path whose extension is omitted.
    *
    * @remarks
    *  - This is an alias of GitDocumentDB#rootCollection.delete()

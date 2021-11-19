@@ -148,7 +148,7 @@ export async function syncWorker (
       gitDDB.workingDir,
       oldCommitOid,
       newCommitOid!,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
 
     const syncResultFastForwardMerge: SyncResult = {

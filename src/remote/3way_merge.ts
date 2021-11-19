@@ -12,10 +12,11 @@ import {
   FatDoc,
   IJsonPatch,
   JsonDoc,
+  SerializeFormat,
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { getFatDocFromData, writeBlobToFile } from './worker_utils';
-import { serializeJSON, utf8decode } from '../utils';
+import { utf8decode } from '../utils';
 import { JsonDiff } from './json_diff';
 import { SyncInterface } from '../types_sync';
 import { isSameFatDoc, textToJsonDoc } from '../crud/blob';
@@ -59,7 +60,7 @@ function getMergedJsonDoc (
   base: JsonDoc | undefined,
   ours: JsonDoc,
   theirs: JsonDoc,
-  jsonExt: string
+  serializeFormat: SerializeFormat
 ): string {
   let result: { [key: string]: string };
   if (strategy === 'ours') {
@@ -89,7 +90,7 @@ function getMergedJsonDoc (
   else {
     throw new Err.InvalidConflictResolutionStrategyError();
   }
-  return serializeJSON(result, jsonExt);
+  return serializeFormat.serialize(result).data;
 }
 
 /**
@@ -159,14 +160,14 @@ function getMergedDocument (
   ours: Uint8Array,
   theirs: Uint8Array,
   docType: DocType,
-  jsonExt: string
+  serializeFormat: SerializeFormat
 ): string | Uint8Array {
   if (docType === 'json') {
-    const oursDoc = textToJsonDoc(utf8decode(ours), jsonExt);
-    const theirsDoc = textToJsonDoc(utf8decode(theirs), jsonExt);
+    const oursDoc = textToJsonDoc(utf8decode(ours), serializeFormat);
+    const theirsDoc = textToJsonDoc(utf8decode(theirs), serializeFormat);
     let baseDoc: JsonDoc | undefined;
     if (base) {
-      baseDoc = textToJsonDoc(utf8decode(base), jsonExt);
+      baseDoc = textToJsonDoc(utf8decode(base), serializeFormat);
     }
     else {
       baseDoc = undefined;
@@ -178,7 +179,7 @@ function getMergedDocument (
       baseDoc,
       oursDoc,
       theirsDoc,
-      jsonExt
+      serializeFormat
     );
   }
   else if (docType === 'text') {
@@ -367,7 +368,9 @@ export async function threeWayMerge (
     AcceptedConflict | undefined
   ]
 > {
-  const docType: DocType = fullDocPath.endsWith(gitDDB.jsonExt) ? 'json' : 'text';
+  const docType: DocType = gitDDB.serializeFormat.hasObjectExtension(fullDocPath)
+    ? 'json'
+    : 'text';
   if (docType === 'text') {
     // TODO: select binary or text by .gitattribtues
   }
@@ -389,7 +392,7 @@ export async function threeWayMerge (
       theirsData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
     await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
@@ -418,7 +421,7 @@ export async function threeWayMerge (
       oursData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     return [
       {
@@ -467,13 +470,13 @@ export async function threeWayMerge (
       oursData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     const theirsFatDoc = await getFatDocFromData(
       theirsData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
 
     const strategy = await getStrategy(
@@ -528,9 +531,14 @@ export async function threeWayMerge (
         oursData,
         theirsData,
         docType,
-        gitDDB.jsonExt
+        gitDDB.serializeFormat
       );
-      resultFatDoc = await getFatDocFromData(data, fullDocPath, docType, gitDDB.jsonExt);
+      resultFatDoc = await getFatDocFromData(
+        data,
+        fullDocPath,
+        docType,
+        gitDDB.serializeFormat
+      );
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
       await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
@@ -581,7 +589,7 @@ export async function threeWayMerge (
       theirsData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
 
     if (baseOid === theirsOid) {
@@ -609,7 +617,7 @@ export async function threeWayMerge (
         baseData,
         fullDocPath,
         docType,
-        gitDDB.jsonExt
+        gitDDB.serializeFormat
       );
       const acceptedConflict: AcceptedConflict = {
         fatDoc: baseFatDoc,
@@ -659,7 +667,7 @@ export async function threeWayMerge (
       oursData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
 
     if (baseOid === oursOid) {
@@ -713,7 +721,7 @@ export async function threeWayMerge (
         baseData,
         fullDocPath,
         docType,
-        gitDDB.jsonExt
+        gitDDB.serializeFormat
       );
       const acceptedConflicts: AcceptedConflict = {
         fatDoc: baseFatDoc,
@@ -763,14 +771,14 @@ export async function threeWayMerge (
         oursData,
         fullDocPath,
         docType,
-        gitDDB.jsonExt
+        gitDDB.serializeFormat
       );
       const theirsData = (await theirs.content())!;
       const theirsFatDoc = await getFatDocFromData(
         theirsData,
         fullDocPath,
         docType,
-        gitDDB.jsonExt
+        gitDDB.serializeFormat
       );
       await writeBlobToFile(gitDDB.workingDir, fullDocPath, theirsData);
       await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
@@ -797,14 +805,14 @@ export async function threeWayMerge (
         oursData,
         fullDocPath,
         docType,
-        gitDDB.jsonExt
+        gitDDB.serializeFormat
       );
       const theirsData = (await theirs.content())!;
       const theirsFatDoc = await getFatDocFromData(
         theirsData,
         fullDocPath,
         docType,
-        gitDDB.jsonExt
+        gitDDB.serializeFormat
       );
       return [
         {
@@ -832,13 +840,13 @@ export async function threeWayMerge (
       oursData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     const theirsFatDoc = await getFatDocFromData(
       theirsData,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     const strategy = await getStrategy(
       conflictResolutionStrategy,
@@ -902,13 +910,13 @@ export async function threeWayMerge (
       oursData,
       theirsData,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     const resultFatDoc = await getFatDocFromData(
       data,
       fullDocPath,
       docType,
-      gitDDB.jsonExt
+      gitDDB.serializeFormat
     );
     await writeBlobToFile(gitDDB.workingDir, fullDocPath, data);
     await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });

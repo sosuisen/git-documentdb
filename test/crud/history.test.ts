@@ -92,7 +92,7 @@ describe('<crud/history> getHistoryImpl', () => {
       gitDDB,
       shortNameA,
       '',
-      gitDDB.jsonExt,
+      gitDDB.serializeFormat,
 
       undefined,
       undefined,
@@ -106,7 +106,7 @@ describe('<crud/history> getHistoryImpl', () => {
       gitDDB,
       shortNameB,
       '',
-      gitDDB.jsonExt,
+      gitDDB.serializeFormat,
       undefined,
       undefined,
       true
@@ -158,7 +158,7 @@ describe('<crud/history> getHistoryImpl', () => {
       gitDDB,
       shortNameA,
       '',
-      gitDDB.jsonExt,
+      gitDDB.serializeFormat,
       {
         filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
       },
@@ -173,7 +173,7 @@ describe('<crud/history> getHistoryImpl', () => {
       gitDDB,
       shortNameB,
       '',
-      gitDDB.jsonExt,
+      gitDDB.serializeFormat,
       {
         filter: [{ author: { name: 'authorB', email: 'authorEmailB' } }],
       },
@@ -202,7 +202,7 @@ describe('<crud/history> getHistoryImpl', () => {
       gitDDB,
       'invalid_id',
       '',
-      gitDDB.jsonExt,
+      gitDDB.serializeFormat,
       undefined,
       undefined,
       true
@@ -237,7 +237,7 @@ describe('<crud/history> getHistoryImpl', () => {
       gitDDB,
       shortNameA,
       '',
-      gitDDB.jsonExt,
+      gitDDB.serializeFormat,
       undefined,
       undefined,
       true
@@ -268,7 +268,7 @@ describe('<crud/history> getHistoryImpl', () => {
     // Call close() without await
     gitDDB.close().catch(() => {});
     await expect(
-      getHistoryImpl(gitDDB, '0.json', '', gitDDB.jsonExt, undefined, undefined, true)
+      getHistoryImpl(gitDDB, '0.json', '', gitDDB.serializeFormat, undefined, undefined, true)
     ).rejects.toThrowError(Err.DatabaseClosingError);
 
     while (gitDDB.isClosing) {
@@ -288,7 +288,7 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.putFatDoc('1.json', 'invalid json');
 
     await expect(
-      getHistoryImpl(gitDDB, '1.json', '', gitDDB.jsonExt, undefined, undefined, true)
+      getHistoryImpl(gitDDB, '1.json', '', gitDDB.serializeFormat, undefined, undefined, true)
     ).rejects.toThrowError(Err.InvalidJsonObjectError);
 
     await destroyDBs([gitDDB]);
@@ -313,7 +313,7 @@ describe('<crud/history> getHistoryImpl', () => {
       await gitDDB.put(jsonA03);
 
       // Get
-      const historyA = await getHistoryImpl(gitDDB, shortNameA, '', gitDDB.jsonExt);
+      const historyA = await getHistoryImpl(gitDDB, shortNameA, '', gitDDB.serializeFormat);
       expect(historyA.length).toBe(3);
       expect(historyA[0]).toMatchObject(jsonA03);
       expect(historyA[1]).toMatchObject(jsonA02);
@@ -347,7 +347,7 @@ describe('<crud/history> getHistoryImpl', () => {
         gitDDB,
         shortNameA,
         '',
-        gitDDB.jsonExt,
+        gitDDB.serializeFormat,
         undefined,
         undefined,
         false
@@ -379,7 +379,7 @@ describe('<crud/history> getHistoryImpl', () => {
         gitDDB,
         'invalid_id',
         '',
-        gitDDB.jsonExt,
+        gitDDB.serializeFormat,
         undefined,
         undefined,
         false

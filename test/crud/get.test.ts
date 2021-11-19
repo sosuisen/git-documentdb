@@ -65,7 +65,7 @@ describe('<crud/get> getImpl()', () => {
     }
     // Call close() without await
     gitDDB.close().catch(() => {});
-    await expect(getImpl(gitDDB, 'tmp', '', gitDDB.jsonExt)).rejects.toThrowError(
+    await expect(getImpl(gitDDB, 'tmp', '', gitDDB.serializeFormat)).rejects.toThrowError(
       Err.DatabaseClosingError
     );
     while (gitDDB.isClosing) {
@@ -90,7 +90,7 @@ describe('<crud/get> getImpl()', () => {
     await addOneData(gitDDB, fullDocPath, data);
 
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).rejects.toThrowError(Err.InvalidJsonObjectError);
 
     await gitDDB.destroy();
@@ -111,7 +111,7 @@ describe('<crud/get> getImpl()', () => {
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).resolves.toEqual(json);
 
     await gitDDB.destroy();
@@ -132,7 +132,7 @@ describe('<crud/get> getImpl()', () => {
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).resolves.toEqual(json);
 
     await gitDDB.destroy();
@@ -153,7 +153,7 @@ describe('<crud/get> getImpl()', () => {
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).resolves.toEqual(json);
 
     await gitDDB.destroy();
@@ -172,7 +172,7 @@ describe('<crud/get> getImpl()', () => {
     const shortName = 'prof01.json';
     const collectionPath = '';
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).resolves.toBeUndefined();
 
     await gitDDB.destroy();
@@ -190,7 +190,7 @@ describe('<crud/get> getImpl()', () => {
     const collectionPath = '';
 
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).resolves.toBeUndefined();
 
     await gitDDB.destroy();
@@ -215,7 +215,7 @@ describe('<crud/get> getImpl()', () => {
     stubReadBlob.rejects();
 
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).resolves.toBeUndefined();
 
     await gitDDB.destroy();
@@ -236,7 +236,7 @@ describe('<crud/get> getImpl()', () => {
     const json = { _id: shortId, name: 'Shirase' };
     await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
     await expect(
-      getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+      getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
     ).resolves.toEqual(json);
 
     await gitDDB.destroy();
@@ -259,7 +259,7 @@ describe('<crud/get> getImpl()', () => {
       const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, { oid })
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, { oid })
       ).resolves.toEqual(json);
 
       await gitDDB.destroy();
@@ -283,7 +283,7 @@ describe('<crud/get> getImpl()', () => {
       const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           withMetadata: true,
         })
       ).resolves.toEqual({
@@ -313,7 +313,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: -1,
         })
       ).resolves.toBeUndefined();
@@ -340,7 +340,7 @@ describe('<crud/get> getImpl()', () => {
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 0,
         })
       ).resolves.toBeUndefined();
@@ -365,7 +365,7 @@ describe('<crud/get> getImpl()', () => {
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 1,
         })
       ).resolves.toEqual(json);
@@ -392,7 +392,7 @@ describe('<crud/get> getImpl()', () => {
       await removeOneData(gitDDB, fullDocPath);
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 2,
         })
       ).resolves.toEqual(json01);
@@ -419,7 +419,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 2,
         })
       ).resolves.toEqual(json01);
@@ -446,7 +446,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 1,
         })
       ).resolves.toBeUndefined();
@@ -473,7 +473,7 @@ describe('<crud/get> getImpl()', () => {
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json02));
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 3,
         })
       ).resolves.toBeUndefined();
@@ -493,7 +493,7 @@ describe('<crud/get> getImpl()', () => {
       const collectionPath = '';
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 0,
         })
       ).resolves.toBeUndefined();
@@ -520,7 +520,7 @@ describe('<crud/get> getImpl()', () => {
       stubReadBlob.rejects();
 
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt, undefined, {
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
           revision: 0,
         })
       ).resolves.toBeUndefined();
@@ -799,7 +799,7 @@ describe('<crud/get> getImpl()', () => {
           gitDDB,
           targetName,
           collectionPath,
-          gitDDB.jsonExt,
+          gitDDB.serializeFormat,
           undefined,
           { revision: 0 },
           {
@@ -818,7 +818,7 @@ describe('<crud/get> getImpl()', () => {
           gitDDB,
           targetName,
           collectionPath,
-          gitDDB.jsonExt,
+          gitDDB.serializeFormat,
           undefined,
           { revision: 1 },
           {
@@ -839,7 +839,7 @@ describe('<crud/get> getImpl()', () => {
           gitDDB,
           targetName,
           collectionPath,
-          gitDDB.jsonExt,
+          gitDDB.serializeFormat,
           undefined,
           { revision: 0 },
           {
@@ -856,7 +856,7 @@ describe('<crud/get> getImpl()', () => {
           gitDDB,
           targetName,
           collectionPath,
-          gitDDB.jsonExt,
+          gitDDB.serializeFormat,
           undefined,
           { revision: 1 },
           {
@@ -926,7 +926,7 @@ b: bbb
       const json = { _id: shortId, name: 'Shirase', _body: 'Journey to the Antarctic' };
       await addOneData(gitDDB, fullDocPath, toFrontMatterMarkdown(json));
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.jsonExt)
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat)
       ).resolves.toEqual(json);
 
       await gitDDB.destroy();
