@@ -141,6 +141,7 @@ describe('<git_documentdb>', () => {
       });
 
       expect(stubEnsureDir.callCount).toBe(5); // try 1 + retry 3 + push_worker 1
+      await gitDDB.destroy();
     });
 
     it('creates a new repository.', async () => {
@@ -160,7 +161,7 @@ describe('<git_documentdb>', () => {
         isNew: true,
         isCreatedByGitDDB: true,
         isValidVersion: true,
-        serializeFormat: 'json',
+        serialize: 'json',
       });
 
       expect((dbOpenResult as DatabaseInfo).dbId).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/);
@@ -221,6 +222,7 @@ describe('<git_documentdb>', () => {
       });
 
       expect(stubInit.callCount).toBe(4); // try 1 + retry 3
+      await gitDDB.destroy();
     });
 
     it('succeeds after retry putWorker in createRepository.', async () => {
@@ -250,6 +252,8 @@ describe('<git_documentdb>', () => {
       });
 
       expect(stubPut.callCount).toBe(4); // try 1 + retry 3
+
+      gitDDB.destroy();
     });
   });
 
@@ -298,7 +302,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: true,
-        serializeFormat: 'json',
+        serialize: 'json',
       });
       expect(gitDDB.isOpened).toBeTruthy();
 
@@ -335,7 +339,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: false,
         isValidVersion: false,
-        serializeFormat: 'json',
+        serialize: 'json',
       });
       await gitDDB.destroy();
     });
@@ -366,7 +370,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: false,
-        serializeFormat: 'json',
+        serialize: 'json',
       });
       await gitDDB.destroy();
     });
@@ -398,8 +402,10 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: true,
-        serializeFormat: 'json',
+        serialize: 'json',
       });
+
+      await gitDDB.destroy();
     });
 
     it('opens db twice.', async () => {
@@ -428,7 +434,7 @@ describe('<git_documentdb>', () => {
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
-        serializeFormat: 'front-matter',
+        serialize: 'front-matter',
       });
 
       const dbOpenResult = await gitDDB.open();
@@ -440,7 +446,7 @@ describe('<git_documentdb>', () => {
         isNew: false,
         isCreatedByGitDDB: true,
         isValidVersion: true,
-        serializeFormat: 'front-matter',
+        serialize: 'front-matter',
       });
       await gitDDB.destroy();
     });
