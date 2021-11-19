@@ -259,7 +259,9 @@ describe('<crud/get> getImpl()', () => {
       const { oid } = await git.hashBlob({ object: toSortedJSONString(json) });
       await addOneData(gitDDB, fullDocPath, toSortedJSONString(json));
       await expect(
-        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, { oid })
+        getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat, undefined, {
+          oid,
+        })
       ).resolves.toEqual(json);
 
       await gitDDB.destroy();
@@ -915,7 +917,7 @@ b: bbb
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
-        serializeFormat: 'front-matter',
+        serialize: 'front-matter',
       });
 
       await gitDDB.open();

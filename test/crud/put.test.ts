@@ -550,7 +550,7 @@ describe('<crud/put> put to front matter', () => {
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      serializeFormat: 'front-matter',
+      serialize: 'front-matter',
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -585,7 +585,7 @@ The second line.`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      serializeFormat: 'front-matter',
+      serialize: 'front-matter',
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -620,7 +620,7 @@ The second line.`;
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      serializeFormat: 'front-matter',
+      serialize: 'front-matter',
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -646,7 +646,7 @@ a: 春はあけぼの
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      serializeFormat: 'front-matter',
+      serialize: 'front-matter',
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -668,7 +668,7 @@ a: bar
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      serializeFormat: 'front-matter',
+      serialize: 'front-matter',
     });
     await gitDDB.open();
     await gitDDB.put({

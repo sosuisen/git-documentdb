@@ -513,7 +513,7 @@ export const syncCombineBase = (
         const dbA: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameA,
           localDir,
-          serializeFormat: 'front-matter',
+          serialize: 'front-matter',
         });
 
         const options: RemoteOptions = {
@@ -536,7 +536,7 @@ export const syncCombineBase = (
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir,
-          serializeFormat: 'front-matter',
+          serialize: 'front-matter',
         });
         await dbB.open();
 

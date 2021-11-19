@@ -100,7 +100,7 @@ describe('<git_documentdb> put(jsonDoc)', () => {
     const gitDDB: GitDocumentDB = new GitDocumentDB({
       dbName,
       localDir,
-      serializeFormat: 'front-matter',
+      serialize: 'front-matter',
     });
     await gitDDB.open();
     const _id = 'prof01';

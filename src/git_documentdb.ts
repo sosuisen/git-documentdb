@@ -452,7 +452,7 @@ export class GitDocumentDB
 
     this._logToTransport = options.logToTransport;
 
-    const format: SerializeFormatLabel = options.serializeFormat ?? 'json';
+    const format: SerializeFormatLabel = options.serialize ?? 'json';
     if (format === 'front-matter') {
       this._serializeFormat = new SerializeFormatFrontMatter();
     }
@@ -623,7 +623,6 @@ export class GitDocumentDB
     if (this.isClosing) {
       throw new Err.DatabaseClosingError();
     }
-    this._taskQueue.start();
 
     if (this.isOpened) {
       this._dbOpenResult.isNew = false;
@@ -645,8 +644,11 @@ export class GitDocumentDB
         throw new Err.RepositoryNotFoundError(gitDir);
       }
     }
-
     await this.loadDbInfo();
+
+    // Start when no exception
+    this._taskQueue.start();
+
     return this._dbOpenResult;
   }
 

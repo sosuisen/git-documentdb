@@ -60,7 +60,7 @@ export type DatabaseOptions = {
   dbName: string;
   logLevel?: TLogLevelName;
   schema?: Schema;
-  serializeFormat?: SerializeFormatLabel;
+  serialize?: SerializeFormatLabel;
   logToTransport?: (logObject: ILogObject) => void;
   logColorEnabled?: boolean;
 };

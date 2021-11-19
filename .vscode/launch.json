@@ -4,7 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/crud/delete.test.js"],
+    "options": ["test/git_documentdb_open.test.js"],
   }],
   "configurations": [
       {

@@ -562,7 +562,7 @@ export const threeWayMergeOtBase = (
         dbName: dbNameA,
         localDir,
         schema,
-        serializeFormat: 'front-matter',
+        serialize: 'front-matter',
       });
 
       const options: RemoteOptions = {
@@ -585,7 +585,7 @@ export const threeWayMergeOtBase = (
         dbName: dbNameB,
         localDir: localDir,
         schema,
-        serializeFormat: 'front-matter',
+        serialize: 'front-matter',
       });
       // Clone dbA
       await dbB.open();
