@@ -142,7 +142,8 @@ export async function combineDatabaseWithTheirs (
             const txt = fs.readFileSync(localFilePath, {
               encoding: 'utf8',
             });
-            doc = textToJsonDoc(txt, gitDDB.serializeFormat);
+            const [, extension] = localFilePath.match(/.+(\..+?)$/)!;
+            doc = textToJsonDoc(txt, gitDDB.serializeFormat, extension);
           }
           else {
             doc = fs.readJSONSync(localFilePath);

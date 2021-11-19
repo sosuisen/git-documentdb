@@ -35,7 +35,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 
-import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../../src/const';
 
 export const threeWayMergeOtBase = (
   connection: ConnectionSettings,
@@ -577,7 +577,7 @@ export const threeWayMergeOtBase = (
 
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'Hello, world!' };
-      const putResultA1 = await dbA.put(jsonA1);
+      await dbA.put(jsonA1);
       await syncA.tryPush();
 
       const dbNameB = serialId();
@@ -605,23 +605,23 @@ export const threeWayMergeOtBase = (
 
       const mergedJson = { _id: '1', name: 'Hello Hello, Nara!' };
 
-      // It will occur conflict on id 1.json.
+      // It will occur conflict on id 1.yml.
       const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
 
-      const mergedDoc = await dbB.getFatDoc('1.md');
+      const mergedDoc = await dbB.getFatDoc('1.yml');
 
       expect(syncResult1.action).toBe('resolve conflicts and push');
       expect(syncResult1.commits).toMatchObject({
         local: getCommitInfo([
           putResultA1dash,
-          `resolve: 1${FRONT_MATTER_POSTFIX}(update-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${YAML_POSTFIX}(update-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},theirs-diff)`,
         ]),
         remote: getCommitInfo([
           putResultB1,
-          `resolve: 1${FRONT_MATTER_POSTFIX}(update-merge,${mergedDoc!.fileOid.substr(
+          `resolve: 1${YAML_POSTFIX}(update-merge,${mergedDoc!.fileOid.substr(
             0,
             7
           )},theirs-diff)`,

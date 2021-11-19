@@ -106,15 +106,17 @@ export async function getImpl (
   }
 
   if (docType === 'json') {
+    const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
     if (internalOptions.oid !== '') {
-      return blobToJsonDocWithoutOverwrittenId(readBlobResult, serializeFormat);
+      return blobToJsonDocWithoutOverwrittenId(readBlobResult, serializeFormat, extension);
     }
     const shortId = serializeFormat.removeExtension(shortName);
     return blobToJsonDoc(
       shortId,
       readBlobResult,
       internalOptions.withMetadata,
-      serializeFormat
+      serializeFormat,
+      extension
     );
   }
   else if (docType === 'text') {

@@ -171,15 +171,28 @@ export async function findImpl (
           }
           const shortName = fullDocPath.replace(new RegExp('^' + collectionPath), '');
           if (docType === 'json') {
+            const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
             const shortId = serializeFormat.removeExtension(shortName);
             if (withMetadata) {
               docs.push(
-                blobToJsonDoc(shortId, readBlobResult, true, serializeFormat) as FatJsonDoc
+                blobToJsonDoc(
+                  shortId,
+                  readBlobResult,
+                  true,
+                  serializeFormat,
+                  extension
+                ) as FatJsonDoc
               );
             }
             else {
               docs.push(
-                blobToJsonDoc(shortId, readBlobResult, false, serializeFormat) as JsonDoc
+                blobToJsonDoc(
+                  shortId,
+                  readBlobResult,
+                  false,
+                  serializeFormat,
+                  extension
+                ) as JsonDoc
               );
             }
           }

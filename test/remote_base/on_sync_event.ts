@@ -113,6 +113,8 @@ export const onSyncEventBase = (
         expect(() => {
           dbA.onSyncEvent('https://test.example.com', 'change', () => {});
         }).toThrowError(Err.UndefinedSyncError);
+
+        await destroyDBs([dbA]);
       });
 
       it('with sync', async () => {
@@ -202,6 +204,8 @@ export const onSyncEventBase = (
         expect(() => {
           dbA.offSyncEvent('https://test.example.com', 'change', () => {});
         }).toThrowError(Err.UndefinedSyncError);
+
+        await destroyDBs([dbA]);
       });
 
       it('with sync', async () => {
@@ -295,6 +299,8 @@ export const onSyncEventBase = (
         expect(() => {
           colA.onSyncEvent('https://test.example.com', 'change', () => {});
         }).toThrowError(Err.UndefinedSyncError);
+
+        await destroyDBs([dbA]);
       });
 
       it('with sync', async () => {
@@ -389,6 +395,8 @@ export const onSyncEventBase = (
         expect(() => {
           colA.offSyncEvent('https://test.example.com', 'change', () => {});
         }).toThrowError(Err.UndefinedSyncError);
+
+        await destroyDBs([dbA]);
       });
 
       it('with sync', async () => {

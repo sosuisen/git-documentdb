@@ -7,6 +7,7 @@
  */
 
 import nodePath from 'path';
+import { serialize } from 'v8';
 import git, { ReadBlobResult, ReadCommitResult } from '@sosuisen/isomorphic-git';
 import fs from 'fs-extra';
 import { normalizeCommit, utf8decode } from '../utils';
@@ -61,7 +62,12 @@ export async function getFatDocFromData (
       data = utf8decode(data);
     }
     try {
-      const jsonDoc = (textToJsonDoc(data, serializeFormat) as unknown) as JsonDoc;
+      const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
+      const jsonDoc = (textToJsonDoc(
+        data,
+        serializeFormat,
+        extension
+      ) as unknown) as JsonDoc;
       if (jsonDoc._id !== undefined) {
         // Overwrite _id property by _id if JsonDoc is created by GitDocumentedDB (_id !== undefined).
         jsonDoc._id = _id;
@@ -133,7 +139,14 @@ export function getFatDocFromReadBlobResult (
   let fatDoc: FatDoc;
   if (docType === 'json') {
     const _id = serializeFormat.removeExtension(fullDocPath);
-    fatDoc = blobToJsonDoc(_id, readBlobResult, true, serializeFormat) as FatJsonDoc;
+    const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
+    fatDoc = blobToJsonDoc(
+      _id,
+      readBlobResult,
+      true,
+      serializeFormat,
+      extension
+    ) as FatJsonDoc;
   }
   else if (docType === 'text') {
     fatDoc = blobToText(fullDocPath, readBlobResult, true) as FatTextDoc;

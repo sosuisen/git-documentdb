@@ -97,17 +97,30 @@ export async function getHistoryImpl (
           docArray.push(undefined);
         }
         else if (docType === 'json') {
+          const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
           const shortId = serializeFormat.removeExtension(shortName);
 
           // eslint-disable-next-line max-depth
           if (withMetaData) {
             docArray.push(
-              blobToJsonDoc(shortId, readBlobResult, true, serializeFormat) as FatDoc
+              blobToJsonDoc(
+                shortId,
+                readBlobResult,
+                true,
+                serializeFormat,
+                extension
+              ) as FatDoc
             );
           }
           else {
             docArray.push(
-              blobToJsonDoc(shortId, readBlobResult, false, serializeFormat) as Doc
+              blobToJsonDoc(
+                shortId,
+                readBlobResult,
+                false,
+                serializeFormat,
+                extension
+              ) as Doc
             );
           }
         }

@@ -30,7 +30,7 @@ import {
   removeRemoteRepositories,
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
-import { FRONT_MATTER_POSTFIX, JSON_POSTFIX } from '../../src/const';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../../src/const';
 import { SerializeFormatFrontMatter } from '../../src/serialize_format';
 
 export const syncCombineBase = (
@@ -561,7 +561,7 @@ export const syncCombineBase = (
         expect(getWorkingDirDocs(dbA, new SerializeFormatFrontMatter())).toEqual([jsonA1]);
         // jsonB1 is duplicated with postfix due to combine-head-with-theirs strategy
         jsonB1._id = jsonB1._id + '-from-' + dbIdB;
-        const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + FRONT_MATTER_POSTFIX);
+        const duplicatedB1 = await dbB.getFatDoc(jsonB1._id + YAML_POSTFIX);
 
         expect(syncResult).toEqual({
           action: 'combine database',
@@ -569,13 +569,13 @@ export const syncCombineBase = (
             {
               original: {
                 _id: jsonA1._id,
-                name: jsonA1._id + FRONT_MATTER_POSTFIX,
+                name: jsonA1._id + YAML_POSTFIX,
                 fileOid: putResultA1.fileOid,
                 type: 'json',
               },
               duplicate: {
                 _id: jsonB1._id,
-                name: jsonB1._id + FRONT_MATTER_POSTFIX,
+                name: jsonB1._id + YAML_POSTFIX,
                 fileOid: duplicatedB1?.fileOid,
                 type: 'json',
               },
@@ -589,17 +589,80 @@ export const syncCombineBase = (
           jsonA1,
         ]);
 
-        const rawJSON = textToJsonDoc(
-          fs.readFileSync(dbB.workingDir + '/deep/one.md', { encoding: 'utf8' }),
-          dbA.serializeFormat
-        );
-        rawJSON._id = 'one'; // not 'deep/one'
-
         await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
         await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
 
         await destroyDBs([dbA, dbB]);
       });
+    });
+
+    it('has another extension', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        combineDbStrategy: 'combine-head-with-theirs',
+        syncDirection: 'both',
+        connection,
+      };
+
+      await dbA.open();
+      const syncA = await dbA.sync(options);
+
+      const dbIdA = dbA.dbId;
+
+      const jsonA1 = { _id: 'deep/one', name: 'fromA', _body: 'foo' }; // FrontMatter + Markdown
+      await dbA.put(jsonA1);
+      await syncA.trySync();
+
+      const dbNameB = serialId();
+      const dbB: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameB,
+        localDir,
+        serialize: 'front-matter',
+      });
+      await dbB.open();
+
+      const dbIdB = dbB.dbId;
+      expect(dbIdB).not.toBe(dbIdA);
+
+      const jsonB1 = { _id: 'deep/one', name: 'fromB' }; // YAML
+      await dbB.put(jsonB1);
+
+      // Combine with remote db
+      const [sync, syncResult] = await dbB.sync(syncA.options, true);
+
+      expect(dbB.dbId).toBe(dbIdA);
+
+      expect(getWorkingDirDocs(dbA, new SerializeFormatFrontMatter())).toEqual([jsonA1]);
+
+      // Not duplicate because extension is different.
+      const fatDocA = await dbB.getFatDoc(jsonA1._id + FRONT_MATTER_POSTFIX);
+      expect(fatDocA?.doc).toEqual(jsonA1);
+
+      const fatDocB = await dbB.getFatDoc(jsonB1._id + YAML_POSTFIX);
+      expect(fatDocB?.doc).toEqual(jsonB1);
+
+      expect(syncResult).toEqual({
+        action: 'combine database',
+        duplicates: [],
+      });
+
+      expect(getWorkingDirDocs(dbB, new SerializeFormatFrontMatter())).toEqual([
+        jsonA1,
+        jsonB1,
+      ]);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
     });
   });
 };

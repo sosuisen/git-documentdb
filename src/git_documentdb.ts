@@ -975,7 +975,8 @@ export class GitDocumentDB
           GIT_DOCUMENTDB_INFO_ID,
           readBlobResult,
           false,
-          new SerializeFormatJSON()
+          new SerializeFormatJSON(),
+          JSON_POSTFIX
         ) as DatabaseInfo;
       } catch (e) {}
     }

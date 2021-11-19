@@ -16,7 +16,6 @@ import path from 'path';
 import { Octokit } from '@octokit/rest';
 import expect from 'expect';
 import fs from 'fs-extra';
-import { monotonicFactory } from 'ulid';
 import { Err } from '../../src/error';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../../src/const';
 import {

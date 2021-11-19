@@ -23,8 +23,13 @@ import {
 } from '../../src/crud/blob';
 import { Err } from '../../src/error';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { toFrontMatterMarkdown, toSortedJSONString, utf8encode } from '../../src/utils';
-import { JSON_POSTFIX } from '../../src/const';
+import {
+  toFrontMatterMarkdown,
+  toSortedJSONString,
+  toYAML,
+  utf8encode,
+} from '../../src/utils';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../../src/const';
 import {
   SerializeFormatFrontMatter,
   SerializeFormatJSON,
@@ -66,7 +71,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(() =>
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatJSON())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatJSON(),
+          JSON_POSTFIX
+        )
       ).toThrowError(Err.InvalidJsonObjectError);
     });
 
@@ -79,7 +90,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatJSON())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatJSON(),
+          JSON_POSTFIX
+        )
       ).toEqual(json);
     });
 
@@ -91,7 +108,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
       ).toEqual({
         _id: 'foo',
       });
@@ -105,7 +128,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
       ).toEqual({
         _id: 'foo',
         _body: text,
@@ -120,7 +149,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
       ).toEqual({
         _id: 'foo',
         _body: text,
@@ -136,7 +171,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
       ).toEqual(json);
     });
 
@@ -149,20 +190,32 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
       ).toEqual(json);
     });
 
-    it('returns JsonDoc of Front-Matter without Markdown', async () => {
+    it('returns JsonDoc of YAML without Markdown', async () => {
       const shortId = 'foo';
       const json = { _id: shortId, propA: 'A', propB: 'B' };
-      const text = toFrontMatterMarkdown(json);
+      const text = toYAML(json);
       const readBlobResult: ReadBlobResult = {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          YAML_POSTFIX
+        )
       ).toEqual(json);
     });
 
@@ -177,7 +230,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId2, readBlobResult, false, new SerializeFormatJSON())
+        blobToJsonDoc(
+          shortId2,
+          readBlobResult,
+          false,
+          new SerializeFormatJSON(),
+          JSON_POSTFIX
+        )
       ).toEqual(json2);
     });
 
@@ -191,7 +250,13 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDoc(shortId, readBlobResult, true, new SerializeFormatJSON())
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          true,
+          new SerializeFormatJSON(),
+          JSON_POSTFIX
+        )
       ).toEqual({
         _id: shortId,
         name: shortId + JSON_POSTFIX,
@@ -210,7 +275,11 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(() =>
-        blobToJsonDocWithoutOverwrittenId(readBlobResult, new SerializeFormatJSON())
+        blobToJsonDocWithoutOverwrittenId(
+          readBlobResult,
+          new SerializeFormatJSON(),
+          JSON_POSTFIX
+        )
       ).toThrowError(Err.InvalidJsonObjectError);
     });
 
@@ -223,20 +292,45 @@ describe('<crud/blob>', () => {
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDocWithoutOverwrittenId(readBlobResult, new SerializeFormatJSON())
+        blobToJsonDocWithoutOverwrittenId(
+          readBlobResult,
+          new SerializeFormatJSON(),
+          JSON_POSTFIX
+        )
       ).toEqual(json);
     });
 
     it('returns JsonDoc in FrontMatterMarkdown', async () => {
       const shortId = 'foo';
-      const json = { _id: shortId, name: 'bar' };
+      const json = { _id: shortId, name: 'bar', _body: 'baz' };
       const text = toFrontMatterMarkdown(json);
       const readBlobResult: ReadBlobResult = {
         oid: (await git.hashBlob({ object: text })).oid,
         blob: utf8encode(text),
       };
       expect(
-        blobToJsonDocWithoutOverwrittenId(readBlobResult, new SerializeFormatFrontMatter())
+        blobToJsonDocWithoutOverwrittenId(
+          readBlobResult,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
+      ).toEqual(json);
+    });
+
+    it('returns JsonDoc in YAML', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, name: 'bar' };
+      const text = toYAML(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(
+        blobToJsonDocWithoutOverwrittenId(
+          readBlobResult,
+          new SerializeFormatFrontMatter(),
+          YAML_POSTFIX
+        )
       ).toEqual(json);
     });
   });

@@ -389,7 +389,8 @@ export const getWorkingDirDocs = (
   return listFiles(gitDDB, gitDDB.workingDir).map(filepath => {
     if (serializeFormat.format === 'front-matter') {
       const txt = fs.readFileSync(gitDDB.workingDir + '/' + filepath, { encoding: 'utf8' });
-      const doc = textToJsonDoc(txt, serializeFormat);
+      const [, extension] = filepath.match(/.+(\..+?)$/)!;
+      const doc = textToJsonDoc(txt, serializeFormat, extension);
       doc._id = serializeFormat.removeExtension(filepath);
       return doc;
     }

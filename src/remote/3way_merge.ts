@@ -160,14 +160,15 @@ function getMergedDocument (
   ours: Uint8Array,
   theirs: Uint8Array,
   docType: DocType,
-  serializeFormat: SerializeFormat
+  serializeFormat: SerializeFormat,
+  extension = ''
 ): string | Uint8Array {
   if (docType === 'json') {
-    const oursDoc = textToJsonDoc(utf8decode(ours), serializeFormat);
-    const theirsDoc = textToJsonDoc(utf8decode(theirs), serializeFormat);
+    const oursDoc = textToJsonDoc(utf8decode(ours), serializeFormat, extension);
+    const theirsDoc = textToJsonDoc(utf8decode(theirs), serializeFormat, extension);
     let baseDoc: JsonDoc | undefined;
     if (base) {
-      baseDoc = textToJsonDoc(utf8decode(base), serializeFormat);
+      baseDoc = textToJsonDoc(utf8decode(base), serializeFormat, extension);
     }
     else {
       baseDoc = undefined;
@@ -523,6 +524,11 @@ export async function threeWayMerge (
     }
     else {
       // Diff and patch
+      const extensionMatch = fullDocPath.match(/.+(\..+?)$/);
+      let extension = '';
+      if (extensionMatch) {
+        extension = extensionMatch[1];
+      }
       const data = await getMergedDocument(
         sync.jsonDiff,
         sync.jsonPatch,
@@ -531,7 +537,8 @@ export async function threeWayMerge (
         oursData,
         theirsData,
         docType,
-        gitDDB.serializeFormat
+        gitDDB.serializeFormat,
+        extension
       );
       resultFatDoc = await getFatDocFromData(
         data,
@@ -902,6 +909,11 @@ export async function threeWayMerge (
       ];
     }
 
+    const extensionMatch = fullDocPath.match(/.+(\..+?)$/);
+    let extension = '';
+    if (extensionMatch) {
+      extension = extensionMatch[1];
+    }
     const data = await getMergedDocument(
       sync.jsonDiff,
       sync.jsonPatch,
@@ -910,7 +922,8 @@ export async function threeWayMerge (
       oursData,
       theirsData,
       docType,
-      gitDDB.serializeFormat
+      gitDDB.serializeFormat,
+      extension
     );
     const resultFatDoc = await getFatDocFromData(
       data,

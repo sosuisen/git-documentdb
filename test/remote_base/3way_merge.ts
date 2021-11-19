@@ -68,6 +68,8 @@ export const syncThreeWayMergeBase = (
         // @ts-ignore
         threeWayMerge(dbA, syncA, 'ours-diff', 'foo', undefined, undefined, undefined)
       ).rejects.toThrowError(Err.InvalidConflictStateError);
+
+      await destroyDBs([dbA, dbB]);
     });
 
     /**
