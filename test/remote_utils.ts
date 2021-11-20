@@ -15,6 +15,7 @@ import {
   RemoteOptions,
   Schema,
   SerializeFormat,
+  SerializeFormatLabel,
 } from '../src/types';
 import { SyncInterface } from '../src/types_sync';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -214,7 +215,8 @@ export async function createClonedDatabases (
   localDir: string,
   serialId: () => string,
   options?: RemoteOptions,
-  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
+  logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal',
+  serialize: SerializeFormatLabel = 'json'
 ): Promise<[GitDocumentDB, GitDocumentDB, SyncInterface, SyncInterface]> {
   const remoteURL = remoteURLBase + serialId();
 
@@ -224,6 +226,7 @@ export async function createClonedDatabases (
     dbName: dbNameA,
     localDir,
     logLevel: logLevel ?? 'info',
+    serialize,
   });
   options ??= {
     remoteUrl: remoteURL,
@@ -240,6 +243,7 @@ export async function createClonedDatabases (
     dbName: dbNameB,
     localDir,
     logLevel: logLevel ?? 'info',
+    serialize,
   });
   // Clone dbA
   await dbB.open();

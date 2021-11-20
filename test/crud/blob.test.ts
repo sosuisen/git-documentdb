@@ -219,6 +219,20 @@ describe('<crud/blob>', () => {
       ).toEqual(json);
     });
 
+    it('returns JsonDoc of Markdown when file extension is unknown', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, propA: 'A', propB: 'B' };
+      const jsonMarkdown = { _id: shortId, _body: '_id: foo\npropA: A\npropB: B\n' };
+      const text = toYAML(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(
+        blobToJsonDoc(shortId, readBlobResult, false, new SerializeFormatFrontMatter(), '')
+      ).toEqual(jsonMarkdown);
+    });
+
     it('returns JsonDoc with overwritten _id', async () => {
       const shortId = 'foo';
       const shortId2 = 'foo';
@@ -332,6 +346,24 @@ describe('<crud/blob>', () => {
           YAML_POSTFIX
         )
       ).toEqual(json);
+    });
+
+    it('returns JsonDoc of Markdown when shortId and file extension is unknown', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, propA: 'A', propB: 'B' };
+      const jsonMarkdown = { _body: '_id: foo\npropA: A\npropB: B\n' };
+      const text = toYAML(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(
+        blobToJsonDocWithoutOverwrittenId(
+          readBlobResult,
+          new SerializeFormatFrontMatter(),
+          ''
+        )
+      ).toEqual(jsonMarkdown);
     });
   });
 

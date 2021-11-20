@@ -35,7 +35,7 @@ import {
   getWorkingDirDocs,
   removeRemoteRepositories,
 } from '../remote_utils';
-import { JSON_POSTFIX } from '../../src/const';
+import { JSON_POSTFIX, YAML_POSTFIX } from '../../src/const';
 
 export const syncThreeWayMergeBase = (
   connection: ConnectionSettings,
@@ -1743,6 +1743,108 @@ export const syncThreeWayMergeBase = (
 
       expect(getWorkingDirDocs(dbA)).toEqual([jsonA1dash]);
       expect(getWorkingDirDocs(dbB)).toEqual([jsonA1dash]);
+
+      await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
+      await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
+
+      await destroyDBs([dbA, dbB]);
+    });
+  });
+
+  describe('with front-matter', () => {
+    /**
+     * before:
+     * dbA   :  jsonA1  jsonA2.yml
+     * dbB   :  jsonB1              jsonB2.md
+     * after :  jsonB1  jsonA2.yml  jsonB2.md
+     *
+     * 3-way merge:
+     *   jsonB1: 4 - Conflict. Accept ours (insert)
+     *   jsonA2: 1 - Accept theirs (insert)
+     *   jsonB2: 2 - Accept ours (insert)
+     */
+    it('files have the same name but different extension: resolves case 1 - Accept theirs (insert), case 2 - Accept ours (insert), case 4 - Conflict. Accept ours (insert)', async () => {
+      const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
+        remoteURLBase,
+        localDir,
+        serialId,
+        {
+          conflictResolutionStrategy: 'ours',
+          connection,
+        },
+        'info',
+        'front-matter'
+      );
+
+      // A puts and pushes
+      const jsonA1 = { _id: '1', name: 'fromA' };
+      const putResultA1 = await dbA.put(jsonA1);
+      const jsonA2 = { _id: '2', name: 'fromA' }; // 2.yml
+      const putResultA2 = await dbA.put(jsonA2);
+      await syncA.tryPush();
+
+      // B puts the same file
+      const jsonB1 = { _id: '1', name: 'fromB' };
+      const putResultB1 = await dbB.put(jsonB1);
+
+      // B puts a new file
+      const jsonB2 = { _id: '2', name: 'fromB', _body: 'bodyFromB' }; // 2.md
+      const putResultB2 = await dbB.put(jsonB2);
+
+      // It will occur conflict on id 1.json.
+      const syncResult1 = (await syncB.trySync()) as SyncResultResolveConflictsAndPush;
+      expect(syncResult1.action).toBe('resolve conflicts and push');
+      expect(syncResult1.commits).toMatchObject({
+        local: getCommitInfo([
+          putResultA1,
+          putResultA2,
+          `resolve: 1${YAML_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+        ]),
+        remote: getCommitInfo([
+          putResultB1,
+          putResultB2,
+          `resolve: 1${YAML_POSTFIX}(insert,${putResultB1.fileOid.substr(0, 7)},ours)`,
+        ]),
+      });
+      expect(syncResult1.changes.local.length).toBe(1);
+      expect(syncResult1.changes.local).toEqual([
+        getChangedFileInsert(jsonA2, putResultA2, dbA.serializeFormat),
+      ]);
+
+      expect(syncResult1.changes.remote.length).toBe(2);
+      expect(syncResult1.changes.remote).toEqual(
+        expect.arrayContaining([
+          getChangedFileInsert(jsonB2, putResultB2, dbB.serializeFormat),
+          getChangedFileUpdate(
+            jsonA1,
+            putResultA1,
+            jsonB1,
+            putResultB1,
+            dbA.serializeFormat
+          ),
+        ])
+      );
+
+      expect(syncResult1.conflicts.length).toEqual(1);
+      expect(syncResult1.conflicts).toEqual([
+        {
+          fatDoc: {
+            _id: '1',
+            name: '1.yml',
+            fileOid: putResultB1.fileOid,
+            type: 'json',
+            doc: jsonB1,
+          },
+          strategy: 'ours',
+          operation: 'insert',
+        },
+      ]);
+      // Conflict occurs on 1.json
+
+      expect(getWorkingDirDocs(dbB, dbB.serializeFormat)).toEqual([jsonB1, jsonB2, jsonA2]);
+      // Sync dbA
+      await syncA.trySync();
+      expect(getWorkingDirDocs(dbA, dbA.serializeFormat)).toEqual([jsonB1, jsonB2, jsonA2]);
 
       await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
       await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
