@@ -62,11 +62,12 @@ export function textToJsonDoc (
           // eslint-disable-next-line max-depth
           if (!startFrontMatter) {
             startFrontMatter = true;
+            continue;
           }
           else if (!endFrontMatter) {
             endFrontMatter = true;
+            continue;
           }
-          continue;
         }
         if (startFrontMatter && !endFrontMatter) {
           if (yamlText !== '') {
