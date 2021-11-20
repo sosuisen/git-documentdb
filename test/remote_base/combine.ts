@@ -17,7 +17,6 @@ import fs from 'fs-extra';
 import git from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import parse from 'parse-git-config';
-import { textToJsonDoc } from '../../src/crud/blob';
 import { Err } from '../../src/error';
 import { ConnectionSettings, DuplicatedFile, RemoteOptions } from '../../src/types';
 import { GitDocumentDB } from '../../src/git_documentdb';
@@ -506,7 +505,8 @@ export const syncCombineBase = (
         await destroyDBs([dbA, dbB]);
       });
     });
-    describe('with same serializeFormat', () => {
+
+    describe('with same serializeFormat (front-matter)', () => {
       it('returns SyncResult with duplicates when combine-head-with-theirs with deep local and deep remote', async () => {
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
@@ -596,7 +596,7 @@ export const syncCombineBase = (
       });
     });
 
-    it('has another extension', async () => {
+    it('includes files which have the same name with another extension (.md, .yml)', async () => {
       const remoteURL = remoteURLBase + serialId();
       const dbNameA = serialId();
       const dbA: GitDocumentDB = new GitDocumentDB({
@@ -617,7 +617,7 @@ export const syncCombineBase = (
 
       const dbIdA = dbA.dbId;
 
-      const jsonA1 = { _id: 'deep/one', name: 'fromA', _body: 'foo' }; // FrontMatter + Markdown
+      const jsonA1 = { _id: 'deep/one', name: 'fromA', _body: 'foo' }; // deep/one.md (FrontMatter + Markdown)
       await dbA.put(jsonA1);
       await syncA.trySync();
 
@@ -632,7 +632,7 @@ export const syncCombineBase = (
       const dbIdB = dbB.dbId;
       expect(dbIdB).not.toBe(dbIdA);
 
-      const jsonB1 = { _id: 'deep/one', name: 'fromB' }; // YAML
+      const jsonB1 = { _id: 'deep/one', name: 'fromB' }; // deep/one.yml (YAML)
       await dbB.put(jsonB1);
 
       // Combine with remote db
