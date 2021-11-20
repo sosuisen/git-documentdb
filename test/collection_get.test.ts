@@ -12,9 +12,9 @@ import fs from 'fs-extra';
 import git from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { JSON_POSTFIX } from '../src/const';
+import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../src/const';
 import { Collection } from '../src/collection';
-import { sleep, toSortedJSONString } from '../src/utils';
+import { sleep, toFrontMatterMarkdown, toSortedJSONString, toYAML } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
 import { addOneData, removeOneData } from './utils';
@@ -161,6 +161,53 @@ describe('<collection> get()', () => {
     // @ts-ignore
     await expect(col.get(shortId, 'invalid')).resolves.toEqual(json01);
     await gitDDB.destroy();
+  });
+
+  describe('with front-matter', () => {
+    it('returns foo.yml', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const shortId = 'foo';
+      const shortNameYAML = shortId + YAML_POSTFIX;
+      const fullDocPathYAML = shortNameYAML;
+      const jsonYAML = { _id: shortId, name: 'Shirase' };
+      await addOneData(gitDDB, fullDocPathYAML, toYAML(jsonYAML)); // save foo.yml
+
+      await expect(gitDDB.get(shortId)).resolves.toEqual(jsonYAML);
+
+      await gitDDB.destroy();
+    });
+
+    it('returns foo.md if both foo.md and foo.yml exist', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const shortId = 'foo';
+      const shortNameYAML = shortId + YAML_POSTFIX;
+      const fullDocPathYAML = shortNameYAML;
+      const jsonYAML = { _id: shortId, name: 'Shirase' };
+      await addOneData(gitDDB, fullDocPathYAML, toYAML(jsonYAML)); // save foo.yml
+
+      const shortNameMD = shortId + FRONT_MATTER_POSTFIX;
+      const fullDocPathMD = shortNameMD;
+      const jsonMD = { _id: shortId, name: 'Shirase', _body: 'var' };
+      await addOneData(gitDDB, fullDocPathMD, toFrontMatterMarkdown(jsonMD)); // save foo.md
+
+      await expect(gitDDB.get(shortId)).resolves.toEqual(jsonMD);
+
+      await gitDDB.destroy();
+    });
   });
 });
 

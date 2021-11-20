@@ -200,6 +200,25 @@ describe('<crud/blob>', () => {
       ).toEqual(json);
     });
 
+    it('returns JsonDoc of Front-Matter and Markdown witch stats with ---', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, propA: 'A', propB: 'B', _body: '---\nfoo\nbar' };
+      const text = toFrontMatterMarkdown(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
+      ).toEqual(json);
+    });
+
     it('returns JsonDoc of YAML without Markdown', async () => {
       const shortId = 'foo';
       const json = { _id: shortId, propA: 'A', propB: 'B' };

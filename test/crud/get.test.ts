@@ -872,45 +872,6 @@ describe('<crud/get> getImpl()', () => {
     });
   });
 
-  describe('<crud/put> get FatTextDoc', () => {
-    it('get text from .md without front-matter option', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const txt = 'Hello, world!';
-      const fullDocPath = 'foo.md';
-      await gitDDB.putFatDoc(fullDocPath, txt);
-      const fatDoc = await gitDDB.getFatDoc(fullDocPath);
-      expect(fatDoc?.doc).toBe(txt);
-      await gitDDB.close();
-      await gitDDB.destroy();
-    });
-
-    it('get YAML from .yml without front-matter option', async () => {
-      const dbName = monoId();
-      const gitDDB: GitDocumentDB = new GitDocumentDB({
-        dbName,
-        localDir,
-      });
-      await gitDDB.open();
-      const yaml = `
-_id: foo
-a: aaa
-b: bbb
-`;
-      const fullDocPath = 'foo.yml';
-      await gitDDB.putFatDoc(fullDocPath, yaml);
-      const fatDoc = await gitDDB.getFatDoc(fullDocPath);
-      expect(fatDoc?.doc).toBe(yaml);
-
-      await gitDDB.close();
-      await gitDDB.destroy();
-    });
-  });
-
   describe('Front-Matter + Markdown', () => {
     it('returns latest JsonDoc under deep collectionPath', async () => {
       const dbName = monoId();

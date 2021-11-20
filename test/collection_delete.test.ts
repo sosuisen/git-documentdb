@@ -13,7 +13,12 @@ import git from '@sosuisen/isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { DeleteResultJsonDoc } from '../src/types';
-import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
+import {
+  FRONT_MATTER_POSTFIX,
+  JSON_POSTFIX,
+  SHORT_SHA_LENGTH,
+  YAML_POSTFIX,
+} from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
@@ -212,6 +217,72 @@ describe('delete(shortId)', () => {
     expect(commit.message).toEqual(`${commitMessage}\n`);
 
     await gitDDB.destroy();
+  });
+
+  describe('with front-matter', () => {
+    it('delete .md', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const users = new Collection(gitDDB, 'users');
+      const json = { _id: 'foo', name: 'var', _body: 'baz' };
+      const putResult = await users.put(json); // save .md
+      const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+      // @ts-ignore
+      const deleteResult: DeleteResultJsonDoc = await users.delete('foo');
+      expect(deleteResult._id).toBe(json._id);
+      expect(deleteResult.fileOid).toBe(putResult.fileOid);
+      expect(deleteResult.commit.message).toBe(
+        `delete: users/${json._id}${FRONT_MATTER_POSTFIX}(${shortOid})`
+      );
+      await gitDDB.destroy();
+    });
+
+    it('delete .yml by fallback', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const users = new Collection(gitDDB, 'users');
+      const json = { _id: 'foo', name: 'var' };
+      const putResult = await users.put(json); // save .yml
+      const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
+      // @ts-ignore
+      const deleteResult: DeleteResultJsonDoc = await users.delete('foo');
+      expect(deleteResult._id).toBe(json._id);
+      expect(deleteResult.fileOid).toBe(putResult.fileOid);
+      expect(deleteResult.commit.message).toBe(
+        `delete: users/${json._id}${YAML_POSTFIX}(${shortOid})`
+      );
+      await gitDDB.destroy();
+    });
+
+    it('throws DocumentNotFoundError', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const users = new Collection(gitDDB, 'users');
+      // @ts-ignore
+      await expect(users.delete({ _id: 'Shirase' })).rejects.toThrowError(
+        Err.DocumentNotFoundError
+      );
+
+      await gitDDB.destroy();
+    });
   });
 });
 
