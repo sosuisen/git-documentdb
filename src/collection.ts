@@ -842,7 +842,7 @@ export class Collection implements ICollection {
    * @public
    */
   async get (_id: string): Promise<JsonDoc | undefined> {
-    const shortName = _id + this._gitDDB.serializeFormat.firstExtension;
+    let shortName = _id + this._gitDDB.serializeFormat.firstExtension;
     const result = (await getImpl(
       this._gitDDB,
       shortName,
@@ -856,6 +856,7 @@ export class Collection implements ICollection {
       result === undefined &&
       this._gitDDB.serializeFormat.secondExtension !== undefined
     ) {
+      shortName = _id + this._gitDDB.serializeFormat.secondExtension;
       return getImpl(
         this._gitDDB,
         shortName,
