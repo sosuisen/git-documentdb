@@ -128,14 +128,13 @@ export async function putWorker (
   });
 
   try {
-    await fs.writeFile(filePath, data);
-
     const headCommit = await git
       .resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' })
       .catch(() => undefined);
 
-    const oldEntry =
-      headCommit === undefined
+    const oldEntryExists = fs.existsSync(filePath);
+    /*
+      const oldEntry = headCommit === undefined
         ? undefined
         : await git
           .readBlob({
@@ -145,8 +144,8 @@ export async function putWorker (
             filepath: fullDocPath,
           })
           .catch(() => undefined);
-
-    if (oldEntry) {
+      */
+    if (oldEntryExists) {
       if (insertOrUpdate === 'insert') return Promise.reject(new Err.SameIdExistsError());
       insertOrUpdate ??= 'update';
     }
@@ -155,6 +154,7 @@ export async function putWorker (
         return Promise.reject(new Err.DocumentNotFoundError());
       insertOrUpdate ??= 'insert';
     }
+    await fs.writeFile(filePath, data);
 
     await git.add({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
