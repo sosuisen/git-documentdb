@@ -33,7 +33,7 @@ import {
 import { readOldBlob } from './history';
 
 /**
- * Read file from working directory.
+ * Read json file from working directory.
  * This is x10 faster than readBlob() from loose object,
  * x100 faster than readBlob() from packed object.
  *
@@ -88,6 +88,66 @@ export async function getJsonDocFromWorkingDir (
     jsonDoc._id = shortId;
   }
   return jsonDoc;
+}
+
+/**
+ * Read text file from working directory.
+ * This is x10 faster than readBlob() from loose object,
+ * x100 faster than readBlob() from packed object.
+ *
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.InvalidJsonObjectError}
+ */
+export async function getTextDocFromWorkingDir (
+  gitDDB: GitDDBInterface,
+  shortName: string,
+  collectionPath: string,
+  serializeFormat: SerializeFormat
+): Promise<string | undefined> {
+  if (gitDDB.isClosing) {
+    throw new Err.DatabaseClosingError();
+  }
+  if (!gitDDB.isOpened) {
+    return Promise.reject(new Err.RepositoryNotOpenError());
+  }
+  const fullDocPath = collectionPath + shortName;
+  const textDoc = await fs
+    .readFile(gitDDB.workingDir + '/' + fullDocPath, 'utf-8')
+    .catch(() => {
+      return undefined;
+    });
+  if (textDoc === undefined) return undefined;
+  return textDoc;
+}
+
+/**
+ * Read binary file from working directory.
+ * This is x10 faster than readBlob() from loose object,
+ * x100 faster than readBlob() from packed object.
+ *
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.InvalidJsonObjectError}
+ */
+export async function getBinaryDocFromWorkingDir (
+  gitDDB: GitDDBInterface,
+  shortName: string,
+  collectionPath: string,
+  serializeFormat: SerializeFormat
+): Promise<Uint8Array | undefined> {
+  if (gitDDB.isClosing) {
+    throw new Err.DatabaseClosingError();
+  }
+  if (!gitDDB.isOpened) {
+    return Promise.reject(new Err.RepositoryNotOpenError());
+  }
+  const fullDocPath = collectionPath + shortName;
+  const binaryDoc = await fs.readFile(gitDDB.workingDir + '/' + fullDocPath).catch(() => {
+    return undefined;
+  });
+  if (binaryDoc === undefined) return undefined;
+  return binaryDoc;
 }
 
 /**
