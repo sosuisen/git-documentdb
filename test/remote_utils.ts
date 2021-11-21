@@ -22,6 +22,7 @@ import { GitDocumentDB } from '../src/git_documentdb';
 import { FILE_REMOVE_TIMEOUT, GIT_DOCUMENTDB_METADATA_DIR } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 import { SerializeFormatJSON } from '../src/serialize_format';
+import { TLogLevelName } from 'tslog';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
@@ -184,7 +185,8 @@ export async function createDatabase (
   localDir: string,
   serialId: () => string,
   options?: RemoteOptions,
-  schema?: Schema
+  schema?: Schema,
+  logLevel: TLogLevelName = 'info'
 ): Promise<[GitDocumentDB, SyncInterface]> {
   const remoteURL = remoteURLBase + serialId();
 
@@ -194,6 +196,7 @@ export async function createDatabase (
     dbName: dbNameA,
     localDir,
     schema,
+    logLevel,
   });
   options ??= {
     remoteUrl: remoteURL,

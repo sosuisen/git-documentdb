@@ -34,9 +34,15 @@ export const networkTaskQueueBase = (
 
   describe('<remote/network_task_queue> remote', () => {
     it('increments statistics: push', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        {
+          connection,
+        },
+        undefined
+      );
 
       // The first push in open()
       expect(dbA.taskQueue.currentStatistics().push).toBe(1);

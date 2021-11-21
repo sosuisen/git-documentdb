@@ -453,7 +453,7 @@ export const syncTryPushBase = (
       }
 
       expect(error).toBeInstanceOf(RemoteErr.NetworkError);
-      expect(syncA.options.live).toBeFalsy();
+      // expect(syncA.options.live).toBeFalsy();
 
       await destroyDBs([dbA]);
     });

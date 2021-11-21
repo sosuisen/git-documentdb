@@ -897,8 +897,8 @@ export class Sync implements SyncInterface {
           }
         }
       }
-      // Fatal error. Don't retry.
-      this.pause();
+      // Fatal error. Don't retry?
+      // this.pause();
       throw resultOrError;
     }
 
@@ -1018,7 +1018,7 @@ export class Sync implements SyncInterface {
         if (error instanceof RemoteErr.UnfetchedCommitExistsError) {
           this._retrySyncCounter--;
           if (this._retrySyncCounter === 0) {
-            this.pause();
+            // this.pause();
             throw error;
           }
           this._gitDDB.logger.debug(
@@ -1031,7 +1031,7 @@ export class Sync implements SyncInterface {
         else {
           // Throw error
           this._retrySyncCounter = 0;
-          this.pause();
+          // this.pause();
           throw error;
         }
       }

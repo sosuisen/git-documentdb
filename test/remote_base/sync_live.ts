@@ -61,7 +61,6 @@ export const syncLiveBase = (
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
-
       expect(syncA.options.live).toBeTruthy();
       expect(syncA.options.interval).toBe(interval);
 
