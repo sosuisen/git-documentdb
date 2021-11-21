@@ -32,7 +32,7 @@ beforeEach(function () {
 });
 
 after(() => {
-  fs.removeSync(path.resolve(localDir));
+//  fs.removeSync(path.resolve(localDir));
 });
 
 describe('<collection> get()', () => {
@@ -164,6 +164,26 @@ describe('<collection> get()', () => {
   });
 
   describe('with front-matter', () => {
+    it('returns front-matter', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const shortId = 'foo';
+      const shortName = shortId + FRONT_MATTER_POSTFIX;
+      const fullDocPath = shortName;
+      const json = { _id: shortId, name: 'var', _body: 'baz' };
+      await addOneData(gitDDB, fullDocPath, toFrontMatterMarkdown(json)); // save foo.md
+
+      await expect(gitDDB.get(shortId)).resolves.toEqual(json);
+
+      await gitDDB.destroy();
+    });
+
     it('returns foo.yml', async () => {
       const dbName = monoId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
