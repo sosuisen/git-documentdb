@@ -32,7 +32,7 @@ beforeEach(function () {
 });
 
 after(() => {
-//  fs.removeSync(path.resolve(localDir));
+  fs.removeSync(path.resolve(localDir));
 });
 
 describe('<collection> get()', () => {
