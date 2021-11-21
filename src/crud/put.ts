@@ -133,18 +133,7 @@ export async function putWorker (
       .catch(() => undefined);
 
     const oldEntryExists = fs.existsSync(filePath);
-    /*
-      const oldEntry = headCommit === undefined
-        ? undefined
-        : await git
-          .readBlob({
-            fs,
-            dir: gitDDB.workingDir,
-            oid: headCommit,
-            filepath: fullDocPath,
-          })
-          .catch(() => undefined);
-      */
+
     if (oldEntryExists) {
       if (insertOrUpdate === 'insert') return Promise.reject(new Err.SameIdExistsError());
       insertOrUpdate ??= 'update';
