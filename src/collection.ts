@@ -37,7 +37,7 @@ import {
 import { GitDDBInterface } from './types_gitddb';
 import { Validator } from './validator';
 import { GIT_DOCUMENTDB_METADATA_DIR } from './const';
-import { getImpl } from './crud/get';
+import { getImpl, getJsonDocFromWorkingDir } from './crud/get';
 import { getHistoryImpl } from './crud/history';
 import { deleteImpl } from './crud/delete';
 import { findImpl } from './crud/find';
@@ -843,28 +843,22 @@ export class Collection implements ICollection {
    */
   async get (_id: string): Promise<JsonDoc | undefined> {
     let shortName = _id + this._gitDDB.serializeFormat.firstExtension;
-    const result = (await getImpl(
+    const result = (await getJsonDocFromWorkingDir(
       this._gitDDB,
       shortName,
       this.collectionPath,
-      this._gitDDB.serializeFormat,
-      {
-        forceDocType: 'json',
-      }
+      this._gitDDB.serializeFormat
     )) as Promise<JsonDoc | undefined>;
     if (
       result === undefined &&
       this._gitDDB.serializeFormat.secondExtension !== undefined
     ) {
       shortName = _id + this._gitDDB.serializeFormat.secondExtension;
-      return getImpl(
+      return getJsonDocFromWorkingDir(
         this._gitDDB,
         shortName,
         this.collectionPath,
-        this._gitDDB.serializeFormat,
-        {
-          forceDocType: 'json',
-        }
+        this._gitDDB.serializeFormat
       ) as Promise<JsonDoc | undefined>;
     }
     return result;

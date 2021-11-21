@@ -6,6 +6,8 @@
  * found in the LICENSE file in the root directory of gitDDB source tree.
  */
 
+import path from 'path';
+import fs from 'fs-extra';
 import { ReadBlobResult } from '@sosuisen/isomorphic-git';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
@@ -16,6 +18,7 @@ import {
   GetInternalOptions,
   GetOptions,
   HistoryOptions,
+  JsonDoc,
   SerializeFormat,
 } from '../types';
 import {
@@ -25,8 +28,67 @@ import {
   blobToText,
   readBlobByOid,
   readLatestBlob,
+  textToJsonDoc,
 } from './blob';
 import { readOldBlob } from './history';
+
+/**
+ * Read file from working directory.
+ * This is x10 faster than readBlob() from loose object,
+ * x100 faster than readBlob() from packed object.
+ *
+ * @throws {@link Err.DatabaseClosingError}
+ * @throws {@link Err.RepositoryNotOpenError}
+ * @throws {@link Err.InvalidJsonObjectError}
+ */
+export async function getJsonDocFromWorkingDir (
+  gitDDB: GitDDBInterface,
+  shortName: string,
+  collectionPath: string,
+  serializeFormat: SerializeFormat
+): Promise<JsonDoc | undefined> {
+  if (gitDDB.isClosing) {
+    throw new Err.DatabaseClosingError();
+  }
+  if (!gitDDB.isOpened) {
+    return Promise.reject(new Err.RepositoryNotOpenError());
+  }
+  const fullDocPath = collectionPath + shortName;
+  const shortId = serializeFormat.removeExtension(shortName);
+
+  if (serializeFormat.format === 'json') {
+    const jsonDoc = await fs.readJSON(gitDDB.workingDir + '/' + fullDocPath).catch(err => {
+      if (err instanceof SyntaxError) {
+        throw new Err.InvalidJsonObjectError(shortId);
+      }
+      else return undefined;
+    });
+    if (jsonDoc === undefined) return undefined;
+    if (jsonDoc._id !== undefined) {
+      // Overwrite _id property by shortId (_id without collectionPath) if JsonDoc is created by GitDocumentedDB (_id !== undefined).
+      jsonDoc._id = shortId;
+    }
+    return jsonDoc;
+  }
+
+  const extMatch = fullDocPath.match(/.+(\..+?)$/)!;
+  let extension = '';
+  if (extMatch) {
+    extension = extMatch[1];
+  }
+  const text = await fs
+    .readFile(gitDDB.workingDir + '/' + fullDocPath, 'utf-8')
+    .catch(() => {
+      return undefined;
+    });
+  if (text === undefined) return undefined;
+  const jsonDoc = textToJsonDoc(text, serializeFormat, extension, shortId);
+  if (jsonDoc._id !== undefined) {
+    // Overwrite _id property by shortId (_id without collectionPath) if JsonDoc is created by GitDocumentedDB (_id !== undefined).
+    jsonDoc._id = shortId;
+  }
+  return jsonDoc;
+}
 
 /**
  * Common implementation of get-like commands
