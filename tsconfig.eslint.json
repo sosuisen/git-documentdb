@@ -4,6 +4,7 @@
     "src/**/*",
     "test/**/*",
     "test_plugin/**/*",
+    "benchmark/**/*",
     "webpack.*"
   ],
 }
