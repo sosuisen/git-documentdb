@@ -29,6 +29,11 @@ import {
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { blobToBinary, blobToJsonDoc, blobToText } from './blob';
+import {
+  getBinaryDocFromWorkingDir,
+  getJsonDocFromWorkingDir,
+  getTextDocFromWorkingDir,
+} from './get';
 
 /**
  * Implementation of find()
@@ -153,27 +158,28 @@ export async function findImpl (
         if (findOnlyJson && !serializeFormat.hasObjectExtension(fullDocPath)) {
           continue;
         }
-        // eslint-disable-next-line no-await-in-loop
-        const readBlobResult = await readBlob({
-          fs,
-          dir: gitDDB.workingDir,
-          oid: commitOid,
-          filepath: fullDocPath,
-        }).catch(() => undefined);
 
-        // Skip if cannot read
-        if (readBlobResult) {
-          const docType: DocType =
-            options.forceDocType ??
-            (serializeFormat.hasObjectExtension(fullDocPath) ? 'json' : 'text');
-          if (docType === 'text') {
-            // TODO: select binary or text by .gitattribtues
-          }
-          const shortName = fullDocPath.replace(new RegExp('^' + collectionPath), '');
-          if (docType === 'json') {
-            const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
-            const shortId = serializeFormat.removeExtension(shortName);
-            if (withMetadata) {
+        const docType: DocType =
+          options.forceDocType ??
+          (serializeFormat.hasObjectExtension(fullDocPath) ? 'json' : 'text');
+        if (docType === 'text') {
+          // TODO: select binary or text by .gitattribtues
+        }
+        const shortName = fullDocPath.replace(new RegExp('^' + collectionPath), '');
+
+        if (docType === 'json') {
+          const [, extension] = fullDocPath.match(/.+(\..+?)$/)!;
+          const shortId = serializeFormat.removeExtension(shortName);
+          if (withMetadata) {
+            // eslint-disable-next-line no-await-in-loop
+            const readBlobResult = await readBlob({
+              fs,
+              dir: gitDDB.workingDir,
+              oid: commitOid,
+              filepath: fullDocPath,
+            }).catch(() => undefined);
+            // Skip if cannot read
+            if (readBlobResult) {
               docs.push(
                 blobToJsonDoc(
                   shortId,
@@ -184,33 +190,69 @@ export async function findImpl (
                 ) as FatJsonDoc
               );
             }
-            else {
-              docs.push(
-                blobToJsonDoc(
-                  shortId,
-                  readBlobResult,
-                  false,
-                  serializeFormat,
-                  extension
-                ) as JsonDoc
-              );
-            }
           }
-          else if (docType === 'text') {
-            if (withMetadata) {
+          else {
+            docs.push(
+              // eslint-disable-next-line no-await-in-loop
+              (await getJsonDocFromWorkingDir(
+                gitDDB,
+                shortName,
+                collectionPath,
+                serializeFormat
+              )) as JsonDoc
+            );
+          }
+        }
+        else if (docType === 'text') {
+          if (withMetadata) {
+            // eslint-disable-next-line no-await-in-loop
+            const readBlobResult = await readBlob({
+              fs,
+              dir: gitDDB.workingDir,
+              oid: commitOid,
+              filepath: fullDocPath,
+            }).catch(() => undefined);
+            // Skip if cannot read
+            if (readBlobResult) {
               docs.push(blobToText(shortName, readBlobResult, true) as FatTextDoc);
             }
-            else {
-              docs.push(blobToText(shortName, readBlobResult, false) as string);
-            }
           }
-          else if (docType === 'binary') {
-            if (withMetadata) {
+          else {
+            docs.push(
+              // eslint-disable-next-line no-await-in-loop
+              (await getTextDocFromWorkingDir(
+                gitDDB,
+                shortName,
+                collectionPath,
+                serializeFormat
+              )) as string
+            );
+          }
+        }
+        else if (docType === 'binary') {
+          if (withMetadata) {
+            // eslint-disable-next-line no-await-in-loop
+            const readBlobResult = await readBlob({
+              fs,
+              dir: gitDDB.workingDir,
+              oid: commitOid,
+              filepath: fullDocPath,
+            }).catch(() => undefined);
+            // Skip if cannot read
+            if (readBlobResult) {
               docs.push(blobToBinary(shortName, readBlobResult, true) as FatBinaryDoc);
             }
-            else {
-              docs.push(blobToBinary(shortName, readBlobResult, false) as Uint8Array);
-            }
+          }
+          else {
+            docs.push(
+              // eslint-disable-next-line no-await-in-loop
+              (await getBinaryDocFromWorkingDir(
+                gitDDB,
+                shortName,
+                collectionPath,
+                serializeFormat
+              )) as Uint8Array
+            );
           }
         }
       }
