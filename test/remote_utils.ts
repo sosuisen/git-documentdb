@@ -4,6 +4,7 @@ import { Octokit } from '@octokit/rest';
 import git from '@sosuisen/isomorphic-git';
 import sinon from 'sinon';
 import expect from 'expect';
+import { TLogLevelName } from 'tslog';
 import { textToJsonDoc } from '../src/crud/blob';
 import {
   ChangedFileDelete,
@@ -22,7 +23,6 @@ import { GitDocumentDB } from '../src/git_documentdb';
 import { FILE_REMOVE_TIMEOUT, GIT_DOCUMENTDB_METADATA_DIR } from '../src/const';
 import { RemoteRepository } from '../src/remote/remote_repository';
 import { SerializeFormatJSON } from '../src/serialize_format';
-import { TLogLevelName } from 'tslog';
 
 const token = process.env.GITDDB_PERSONAL_ACCESS_TOKEN!;
 
