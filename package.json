@@ -1,6 +1,6 @@
 {
   "name": "git-documentdb",
-  "version": "0.4.7-alpha.9",
+  "version": "0.4.7-alpha.10",
   "description": "Offline-first database that syncs with Git",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -65,7 +65,7 @@
     "eslint-plugin-prettierx": "^0.14.0",
     "eslint-plugin-unicorn": "^36.0.0",
     "expect": "^27.0.2",
-    "git-documentdb-plugin-remote-nodegit": "^1.0.4",
+    "git-documentdb-plugin-remote-nodegit": "^1.0.5-alpha.0",
     "hmtid": "^0.1.0",
     "mocha": "^8.3.2",
     "nyc": "^15.1.0",
