@@ -268,7 +268,15 @@ describe('<crud/history> getHistoryImpl', () => {
     // Call close() without await
     gitDDB.close().catch(() => {});
     await expect(
-      getHistoryImpl(gitDDB, '0.json', '', gitDDB.serializeFormat, undefined, undefined, true)
+      getHistoryImpl(
+        gitDDB,
+        '0.json',
+        '',
+        gitDDB.serializeFormat,
+        undefined,
+        undefined,
+        true
+      )
     ).rejects.toThrowError(Err.DatabaseClosingError);
 
     while (gitDDB.isClosing) {
@@ -288,7 +296,15 @@ describe('<crud/history> getHistoryImpl', () => {
     await gitDDB.putFatDoc('1.json', 'invalid json');
 
     await expect(
-      getHistoryImpl(gitDDB, '1.json', '', gitDDB.serializeFormat, undefined, undefined, true)
+      getHistoryImpl(
+        gitDDB,
+        '1.json',
+        '',
+        gitDDB.serializeFormat,
+        undefined,
+        undefined,
+        true
+      )
     ).rejects.toThrowError(Err.InvalidJsonObjectError);
 
     await destroyDBs([gitDDB]);
