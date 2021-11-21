@@ -41,13 +41,13 @@ async function bench () {
     });
   }
 
-  console.time('Load from blob');
+  console.time('Load by API');
   for (let i = 0; i < 100; i++) {
     // eslint-disable-next-line no-await-in-loop
     const json = await gitDDB.get(`${i}`);
     if (json!._id !== `${i}`) console.error('Error');
   }
-  console.timeEnd('Load from blob');
+  console.timeEnd('Load by API');
 
   console.time('Load from file');
   for (let i = 100; i < 200; i++) {
@@ -56,13 +56,13 @@ async function bench () {
   }
   console.timeEnd('Load from file');
 
-  console.time('Load large file from blob');
+  console.time('Load large file by API');
   for (let i = 0; i < 100; i++) {
     // eslint-disable-next-line no-await-in-loop
     const json = await gitDDB.get(`large-${i}`);
     if (json!._id !== `large-${i}`) console.error('Error');
   }
-  console.timeEnd('Load large file from blob');
+  console.timeEnd('Load large file by API');
 
   console.time('Load large file from file');
   for (let i = 100; i < 200; i++) {
