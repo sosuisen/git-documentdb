@@ -60,11 +60,9 @@ import {
   FILE_CREATE_TIMEOUT,
   FILE_REMOVE_TIMEOUT,
   FIRST_COMMIT_MESSAGE,
-  FRONT_MATTER_POSTFIX,
   GIT_DOCUMENTDB_INFO_ID,
   JSON_POSTFIX,
   SET_DATABASE_ID_MESSAGE,
-  YAML_POSTFIX,
 } from './const';
 import { normalizeCommit, sleep, toSortedJSONString } from './utils';
 import { SyncEventInterface, SyncInterface } from './types_sync';

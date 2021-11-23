@@ -23,11 +23,7 @@ import {
 } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
-import {
-  DUPLICATED_FILE_POSTFIX,
-  FILE_REMOVE_TIMEOUT,
-  FRONT_MATTER_POSTFIX,
-} from '../const';
+import { DUPLICATED_FILE_POSTFIX, FILE_REMOVE_TIMEOUT } from '../const';
 import { getAllMetadata } from '../utils';
 import { RemoteEngine, wrappingRemoteEngineError } from './remote_engine';
 

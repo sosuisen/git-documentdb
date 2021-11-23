@@ -100,7 +100,27 @@ describe('<crud/blob>', () => {
       ).toEqual(json);
     });
 
-    it('returns JsonDoc with only _id when Front-Matter + Markdown is empty', async () => {
+    it('returns JsonDoc with only _id when YAML_POSTFIX and Front-Matter + Markdown is empty', async () => {
+      const shortId = 'foo';
+      const text = '';
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          YAML_POSTFIX
+        )
+      ).toEqual({
+        _id: 'foo',
+      });
+    });
+
+    it('returns JsonDoc with only _id and _body when FRONT_MATTER_POSTFIX and Front-Matter + Markdown is empty', async () => {
       const shortId = 'foo';
       const text = '';
       const readBlobResult: ReadBlobResult = {
@@ -117,6 +137,7 @@ describe('<crud/blob>', () => {
         )
       ).toEqual({
         _id: 'foo',
+        _body: '',
       });
     });
 
@@ -165,6 +186,25 @@ describe('<crud/blob>', () => {
     it('returns JsonDoc of Front-Matter + Markdown', async () => {
       const shortId = 'foo';
       const json = { _id: shortId, propA: 'A', propB: 'B', _body: 'foo\nbar' };
+      const text = toFrontMatterMarkdown(json);
+      const readBlobResult: ReadBlobResult = {
+        oid: (await git.hashBlob({ object: text })).oid,
+        blob: utf8encode(text),
+      };
+      expect(
+        blobToJsonDoc(
+          shortId,
+          readBlobResult,
+          false,
+          new SerializeFormatFrontMatter(),
+          FRONT_MATTER_POSTFIX
+        )
+      ).toEqual(json);
+    });
+
+    it('returns JsonDoc of Front-Matter + Markdown when _body is empty', async () => {
+      const shortId = 'foo';
+      const json = { _id: shortId, propA: 'A', propB: 'B', _body: '' };
       const text = toFrontMatterMarkdown(json);
       const readBlobResult: ReadBlobResult = {
         oid: (await git.hashBlob({ object: text })).oid,

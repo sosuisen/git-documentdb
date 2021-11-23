@@ -25,7 +25,7 @@ import {
   SerializeFormat,
   TextDocMetadata,
 } from './types';
-import { FRONT_MATTER_POSTFIX, GIT_DOCUMENTDB_METADATA_DIR, JSON_POSTFIX } from './const';
+import { GIT_DOCUMENTDB_METADATA_DIR } from './const';
 
 /**
  * @internal
