@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prefer-spread */
 /* eslint-disable max-depth */
-import { editOp, insertOp, JSONOp, replaceOp, type } from 'ot-json1';
+import { editOp, insertOp, JSONOp, removeOp, replaceOp, type } from 'ot-json1';
 import { uniCount } from 'unicount';
 import { ConflictResolutionStrategyLabels, IJsonPatch, JsonDoc } from '../types';
 import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
@@ -102,6 +102,7 @@ export class JsonPatchOT implements IJsonPatch {
       const keys = Object.keys(tree);
       let sortedKeys: string[];
       if (keys.includes('_t')) {
+        // is Array
         keys.sort(); // 1, 2, 3, _1, _2, _3
         let underBarStart = 0;
         for (underBarStart = 0; underBarStart < keys.length; underBarStart++) {
@@ -114,6 +115,7 @@ export class JsonPatchOT implements IJsonPatch {
         sortedKeys = underBar.concat(noBar); // _1, _2, _3, 1, 2, 3
       }
       else {
+        // is Object
         sortedKeys = keys.sort();
       }
       // eslint-disable-next-line complexity
@@ -128,7 +130,10 @@ export class JsonPatchOT implements IJsonPatch {
           }
           else if (arr.length === 3) {
             const firstItem = arr[0];
-            if (typeof firstItem === 'string') {
+            if (arr[1] === 0 && arr[2] === 0) {
+              operations.push(removeOp(ancestors.concat(key)));
+            }
+            else if (typeof firstItem === 'string') {
               let isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+?,\d+? @@\n/m);
               if (!isTextPatch)
                 isTextPatch = firstItem.match(/^@@ -\d+? \+\d+?,\d+? @@\n/m);
@@ -177,12 +182,14 @@ export class JsonPatchOT implements IJsonPatch {
     if (docTheirs === undefined || diffTheirs === undefined) {
       return (type.apply(docOurs, this.fromDiff(diffOurs)) as unknown) as JsonDoc;
     }
-    // console.log(diffOurs);
-    // console.log(diffTheirs);
+    // console.log(JSON.stringify(diffOurs));
+    // console.log(JSON.stringify(diffTheirs));
     const opOurs = this.fromDiff(diffOurs);
+    // console.log('opOurs: ' + JSON.stringify(opOurs) + '\n');
     const opTheirs = this.fromDiff(diffTheirs);
+    // console.log('opTheirs: ' + JSON.stringify(opTheirs) + '\n');
     const transformedOp = this.transform(opTheirs, opOurs, strategy!);
-    // console.log('# transformed: ' + JSON.stringify(transformedOp));
+    // console.log('# transformed: ' + JSON.stringify(transformedOp) + '\n');
     let newDoc: JsonDoc;
     if (strategy.startsWith('ours')) {
       newDoc = (type.apply(docOurs, transformedOp!) as unknown) as JsonDoc;

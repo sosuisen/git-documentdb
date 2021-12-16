@@ -103,6 +103,24 @@ describe('<remote/ot> OT', () => {
       );
     });
 
+    it('patches from diff (delete)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        age: 'Nara prefecture',
+        year: 1887,
+        current: true,
+      };
+      const newDoc = {
+        _id: 'nara',
+        age: 'Nara prefecture',
+        year: 1887,
+      };
+
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
     it('merges independent changes (create)', () => {
       const base = {
         _id: 'nara',
@@ -1272,6 +1290,66 @@ sighed Meg, looking down at her old dress.`,
       // console.log(patchTheirs);
 
       expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+    });
+
+    it('merge complex structure including delete operation', () => {
+      const docOurs = {
+        _id: 'note/n2021-10-12-15-30-30-_YFSS58F/c2021-12-06-05-54-52-GE43E73',
+        condition: { locked: false },
+        date: { createdDate: '2021-12-06 05:54:52', modifiedDate: '2021-12-15 00:31:28' },
+        geometry: { height: 900, width: 461, x: 706, y: 80, z: 5804 },
+        label: {
+          enabled: false,
+          status: 'closedLabel',
+          text: 'foo',
+        },
+        style: { backgroundColor: '#ffdd9e', opacity: 1, uiColor: '#f5d498', zoom: 0.85 },
+      };
+
+      const docTheirs = {};
+
+      const newDoc = {
+        _id: 'note/n2021-10-12-15-30-30-_YFSS58F/c2021-12-06-05-54-52-GE43E73',
+        condition: { locked: false },
+        date: { createdDate: '2021-12-06 05:54:52', modifiedDate: '2021-12-15 00:31:28' },
+        geometry: { height: 900, width: 461, x: 1459, y: 180, z: 5953 },
+        label: {
+          enabled: false,
+          status: 'openedSticker',
+          x: 1562,
+          y: 144,
+          height: 92,
+          width: 329,
+          text: 'foo bar',
+        },
+        style: { backgroundColor: '#fff8d0', opacity: 1, uiColor: '#fff8d0', zoom: 0.85 },
+      };
+
+      const diffOurs = {
+        date: { modifiedDate: ['2021-12-15 00:31:17', '2021-12-15 00:31:28'] },
+        label: {
+          height: [64, 0, 0],
+          width: [461, 0, 0],
+          x: [706, 0, 0],
+          y: [80, 0, 0],
+          zoom: [0.85, 0, 0],
+        },
+      };
+      const diffTheirs = {
+        date: { modifiedDate: ['2021-12-15 00:31:17', '2021-12-15 07:36:11'] },
+        geometry: { x: [706, 1459], y: [80, 180], z: [5804, 5953] },
+        label: {
+          height: [64, 92],
+          status: ['closedLabel', 'openedSticker'],
+          text: ['foo', 'foo bar'],
+          width: [461, 329],
+          x: [706, 1562],
+          y: [80, 144],
+        },
+        style: { backgroundColor: ['#ffdd9e', '#fff8d0'], uiColor: ['#f5d498', '#fff8d0'] },
+      };
+
+      expect(jPatch.patch(docOurs, diffOurs, docTheirs, diffTheirs)).toStrictEqual(newDoc);
     });
   });
 
