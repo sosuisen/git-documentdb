@@ -13,7 +13,78 @@ const textOTDiff = new JsonDiff({
 const jPatch = new JsonPatchOT();
 
 describe('<remote/ot> OT', () => {
-  describe('for primitive', () => {
+  describe('apply', () => {
+    it('apply op', () => {
+      const oldDoc = {
+        _id: 'oldId',
+      };
+      const op = ['_id', { r: true, i: 'newId' }];
+
+      expect(jPatch.apply(oldDoc, op)).toStrictEqual({
+        _id: 'newId',
+      });
+    });
+
+    it('apply complex op', () => {
+      const oldDoc = {
+        _id: 'old',
+        collapsedList: [163, 339, 451, 559, 604],
+        condition: {},
+        geometry: { height: 686, width: 410, x: 390, y: 4, z: 8931 },
+        label: {
+          height: 64,
+          status: 'closed',
+          text: 'old',
+          width: 400,
+          x: 390,
+          y: 4,
+          zoom: 1,
+        },
+      };
+
+      const op = [
+        [
+          'collapsedList',
+          [0, { r: true }],
+          [1, { r: true }],
+          [2, { r: true }],
+          [3, { r: true }],
+          [4, { r: true }],
+        ],
+        [
+          'geometry',
+          ['height', { r: true, i: 980 }],
+          ['width', { r: true, i: 650 }],
+          ['z', { r: true, i: 8937 }],
+        ],
+        [
+          'label',
+          'text',
+          {
+            r: true,
+            i: 'updated',
+          },
+        ],
+      ];
+
+      const newDoc = {
+        _id: 'old',
+        collapsedList: [],
+        condition: {},
+        geometry: { height: 980, width: 650, x: 390, y: 4, z: 8937 },
+        label: {
+          height: 64,
+          status: 'closed',
+          text: 'updated',
+          width: 400,
+          x: 390,
+          y: 4,
+          zoom: 1,
+        },
+      };
+      expect(jPatch.apply(oldDoc, op)).toStrictEqual(newDoc);
+    });
+
     it('applies patch (create)', () => {
       const oldDoc = {
         _id: 'nara',
@@ -46,7 +117,188 @@ describe('<remote/ot> OT', () => {
       ];
       expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
     });
+  });
 
+  describe('for array', () => {
+    it('patches from diff (new property)', () => {
+      const oldDoc = {
+        _id: 'nara',
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Toshodaiji', 'Todaiji', 'Yakushiji'],
+      };
+
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it('patches from diff (delete property)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Toshodaiji', 'Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+      };
+
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it('patches from diff (insert at first)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Toshodaiji', 'Todaiji', 'Yakushiji'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('patches from diff (insert at middle)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Toshodaiji', 'Yakushiji'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('patches from diff (insert at last)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('patches from diff (insert two members)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Toshodaiji', 'Kofukuji', 'Yakushiji'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('patches from diff (moving)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Yakushiji', 'Todaiji'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      // { temple: { _t: 'a', _1: [ '', 0, 3 ] } }
+      // [ '', 0, 3 ]
+      //  The first member is always ''.
+      //  The second member 0 represents destinationIndex
+      //  The last member 3 is the magical number that indicates "array move"
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('patches from diff (deleting)', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji'],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('patches from diff (nesting arrays)', () => {
+      const oldDoc = {
+        cherry: [
+          ['NaraPark', 'double cherry blossoms'],
+          ['MtYoshino', 'cherry blossoms'],
+        ],
+      };
+      const newDoc = {
+        cherry: [
+          ['NaraPark', 'double cherry blossoms'],
+          ['MtYoshino', 'awesome cherry blossoms'],
+        ],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('of objects', () => {
+      const oldDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'NaraPark', flower: ['cherry blossoms'] },
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+        ],
+      };
+
+      const newDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+          { place: 'NaraPark', flower: ['double cherry blossoms', 'Japanese apricot'] },
+        ],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('of objects by objectHash', () => {
+      const myDiff = new JsonDiff({
+        idOfSubtree: ['place'],
+      });
+
+      const oldDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'NaraPark', flower: ['cherry blossoms'] },
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+        ],
+      };
+
+      const newDoc = {
+        _id: 'nara',
+        site: [
+          { place: 'MtYoshino', flower: ['cherry blossoms'] },
+          { place: 'NaraPark', flower: ['double cherry blossoms', 'Japanese apricot'] },
+        ],
+      };
+      const diff = myDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+  });
+
+  describe('for object', () => {
     it('returns patch from diff (create)', () => {
       const oldDoc = {
         _id: 'nara',

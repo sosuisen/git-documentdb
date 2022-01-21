@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prefer-spread */
 /* eslint-disable max-depth */
-import { editOp, insertOp, JSONOp, removeOp, replaceOp, type } from 'ot-json1';
+import { editOp, insertOp, JSONOp, moveOp, removeOp, replaceOp, type } from 'ot-json1';
 import { uniCount } from 'unicount';
 import { ConflictResolutionStrategyLabels, IJsonPatch, JsonDoc } from '../types';
 import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
@@ -8,7 +8,7 @@ import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
 export class JsonPatchOT implements IJsonPatch {
   constructor () {}
 
-  private _textCreateOp (path: string[], startNum: number, str: string): JSONOp {
+  private _textCreateOp (path: (string | number)[], startNum: number, str: string): JSONOp {
     if (startNum > 0) {
       return editOp(path, 'text-unicode', [startNum, str]);
     }
@@ -16,7 +16,7 @@ export class JsonPatchOT implements IJsonPatch {
   }
 
   private _textReplaceOp (
-    path: string[],
+    path: (string | number)[],
     startNum: number,
     from: string,
     to: string
@@ -27,7 +27,7 @@ export class JsonPatchOT implements IJsonPatch {
     return editOp(path, 'text-unicode', [{ d: uniCount(from) }, to]);
   }
 
-  private _textDeleteOp (path: string[], startNum: number, str: string) {
+  private _textDeleteOp (path: (string | number)[], startNum: number, str: string) {
     if (startNum > 0) {
       return editOp(path, 'text-unicode', [startNum, { d: uniCount(str) }]);
     }
@@ -35,7 +35,7 @@ export class JsonPatchOT implements IJsonPatch {
   }
 
   // eslint-disable-next-line complexity
-  getTextOp (path: string[], text: string): JSONOp {
+  getTextOp (path: (string | number)[], text: string): JSONOp {
     // From text patch
     const operators: JSONOp[] = [];
     const lines = text.split('\n');
@@ -98,11 +98,13 @@ export class JsonPatchOT implements IJsonPatch {
 
   fromDiff (diff: { [key: string]: any }): JSONOp {
     const operations: JSONOp[] = [];
-    const procTree = (ancestors: string[], tree: JsonDoc) => {
+    const procTree = (ancestors: (string | number)[], tree: JsonDoc) => {
       const keys = Object.keys(tree);
-      let sortedKeys: string[];
-      if (keys.includes('_t')) {
+      let sortedKeys: (string | number)[];
+      const isArray = keys.includes('_t');
+      if (isArray) {
         // is Array
+        // underscore _ means 'remove' operation
         keys.sort(); // 1, 2, 3, _1, _2, _3
         let underBarStart = 0;
         for (underBarStart = 0; underBarStart < keys.length; underBarStart++) {
@@ -123,15 +125,31 @@ export class JsonPatchOT implements IJsonPatch {
         if (Array.isArray(tree[key])) {
           const arr = tree[key] as any[];
           if (arr.length === 1) {
+            if (isArray && typeof key === 'string') {
+              key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
+            }
             operations.push(insertOp(ancestors.concat(key), arr[0])!);
           }
           else if (arr.length === 2) {
+            if (isArray && typeof key === 'string') {
+              key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
+            }
             operations.push(replaceOp(ancestors.concat(key), arr[0], arr[1])!);
           }
           else if (arr.length === 3) {
             const firstItem = arr[0];
+            if (isArray && typeof key === 'string') {
+              key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
+            }
             if (arr[1] === 0 && arr[2] === 0) {
+              // Deleted
+              // See https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
               operations.push(removeOp(ancestors.concat(key)));
+            }
+            else if (arr[0] === '' && arr[2] === 3) {
+              // Moved
+              // See https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
+              operations.push(moveOp(ancestors.concat(key), ancestors.concat(arr[1])));
             }
             else if (typeof firstItem === 'string') {
               let isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+?,\d+? @@\n/m);
@@ -149,6 +167,9 @@ export class JsonPatchOT implements IJsonPatch {
           }
         }
         else if (typeof tree[key] === 'object') {
+          if (isArray && typeof key === 'string') {
+            key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
+          }
           procTree(ancestors.concat(key), tree[key]);
         }
       });
