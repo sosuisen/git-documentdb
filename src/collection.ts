@@ -8,6 +8,7 @@
 
 import fs from 'fs';
 
+import path from 'path';
 import { readTree, resolveRef } from '@sosuisen/isomorphic-git';
 import { monotonicFactory, ULID } from 'ulid';
 import { Err } from './error';
@@ -1215,52 +1216,29 @@ export class Collection implements ICollection {
     }
     let shortName = shortId + this._gitDDB.serializeFormat.firstExtension;
 
-    let trySecondExtension = false;
-    const resultOrError = await deleteImpl(
+    // Check if file exists for deleting FrontMatter
+    if (this._gitDDB.serializeFormat.secondExtension !== undefined) {
+      const fullDocPath = this.collectionPath + shortName;
+      const filePath = path.resolve(this._gitDDB.workingDir, fullDocPath);
+      if (!fs.existsSync(filePath)) {
+        shortName = shortId + this._gitDDB.serializeFormat.secondExtension;
+      }
+    }
+
+    return await deleteImpl(
       this._gitDDB,
       this.collectionPath,
       shortId,
       shortName,
       options
-    )
-      .then(res => {
-        const deleteResult: PutResultJsonDoc = {
-          ...res,
-          _id: shortId,
-          type: 'json',
-        };
-        return deleteResult;
-      })
-      .catch(err => {
-        if (
-          err instanceof Err.DocumentNotFoundError &&
-          this._gitDDB.serializeFormat.secondExtension !== undefined
-        )
-          trySecondExtension = true;
-        return err;
-      });
-
-    if (trySecondExtension) {
-      shortName = shortId + this._gitDDB.serializeFormat.secondExtension;
-      return deleteImpl(
-        this._gitDDB,
-        this.collectionPath,
-        shortId,
-        shortName,
-        options
-      ).then(res => {
-        const deleteResult: PutResultJsonDoc = {
-          ...res,
-          _id: shortId,
-          type: 'json',
-        };
-        return deleteResult;
-      });
-    }
-    // eslint-disable-next-line promise/catch-or-return
-    if (resultOrError instanceof Error) throw resultOrError;
-
-    return resultOrError;
+    ).then(res => {
+      const deleteResult: PutResultJsonDoc = {
+        ...res,
+        _id: shortId,
+        type: 'json',
+      };
+      return deleteResult;
+    });
   }
 
   /**
