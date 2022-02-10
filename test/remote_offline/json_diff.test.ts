@@ -16,6 +16,10 @@ const textOTDiff = new JsonDiff({
 });
 
 describe('<remote/diff> diff', () => {
+  it('Equal', () => {
+    expect(textOTDiff.diff({}, {})).toBeUndefined();
+  });
+
   describe('primitives', () => {
     it('adding values', () => {
       const oldDoc = {

@@ -97,6 +97,7 @@ export class JsonPatchOT implements IJsonPatch {
   }
 
   fromDiff (diff: { [key: string]: any }): JSONOp {
+    if (diff === undefined) return null; // Do not be undefined. Use null.
     const operations: JSONOp[] = [];
     const procTree = (ancestors: (string | number)[], tree: JsonDoc) => {
       const keys = Object.keys(tree);

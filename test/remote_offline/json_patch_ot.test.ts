@@ -25,6 +25,16 @@ describe('<remote/ot> OT', () => {
       });
     });
 
+    it('apply empty op', () => {
+      const oldDoc = {
+        _id: 'oldId',
+      };
+      // Do not be undefined. Use null.
+      expect(jPatch.apply(oldDoc, null)).toStrictEqual({
+        _id: 'oldId',
+      });
+    });
+
     it('apply complex op', () => {
       const oldDoc = {
         _id: 'old',
@@ -116,6 +126,22 @@ describe('<remote/ot> OT', () => {
         ['year2', { i: 710 }],
       ];
       expect(jPatch.apply(oldDoc, patch)).toStrictEqual(newDoc);
+    });
+  });
+
+  describe('patch', () => {
+    it('patches from undefined diff', () => {
+      const oldDoc = {
+        _id: 'nara',
+      };
+      const newDoc = {
+        _id: 'nara',
+      };
+      // primitiveDiff.diff(oldDoc, newDoc) will return undefined.
+      expect(primitiveDiff.diff(oldDoc, newDoc)).toBeUndefined();
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
     });
   });
 
