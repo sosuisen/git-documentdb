@@ -228,6 +228,27 @@ describe('<collection> get()', () => {
 
       await gitDDB.destroy();
     });
+
+    it('returns _body with _id when .md does not have front matter', async () => {
+      const dbName = monoId();
+      const gitDDB: GitDocumentDB = new GitDocumentDB({
+        dbName,
+        localDir,
+        serialize: 'front-matter',
+      });
+
+      await gitDDB.open();
+      const shortId = 'foo';
+      const shortNameMD = shortId + '.md';
+      const fullDocPathMD = shortNameMD;
+      const md = 'Hello';
+      const jsonMD = { _id: 'foo', _body: md };
+      await addOneData(gitDDB, fullDocPathMD, md); // save foo.md
+
+      await expect(gitDDB.get(shortId)).resolves.toEqual(jsonMD);
+
+      await gitDDB.destroy();
+    });
   });
 });
 
