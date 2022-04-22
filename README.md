@@ -29,7 +29,7 @@ https://gitddb.com/docs/api/git-documentdb.gitdocumentdb
 # Usage
 ## Getting started
 ### **Prerequisite**
-Node.js 12 or later
+Node.js v12 - v16
 ### **Installation**
 ```
 npm i git-documentdb
