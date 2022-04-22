@@ -322,6 +322,21 @@ describe('<remote/ot> OT', () => {
       const diff = myDiff.diff(oldDoc, newDoc)!;
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
+
+    it.only('delete two and add new one', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Toshodaiji', 'Todaiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Yakushiji'],
+      };
+
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
   });
 
   describe('for object', () => {
