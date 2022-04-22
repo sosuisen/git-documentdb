@@ -329,5 +329,41 @@ export const syncLiveBase = (
 
       await destroyDBs([dbA]);
     });
+
+    it('runBeforeLiveSync', async () => {
+      const remoteURL = remoteURLBase + serialId();
+      const dbNameA = serialId();
+
+      const dbA: GitDocumentDB = new GitDocumentDB({
+        dbName: dbNameA,
+        localDir: localDir,
+      });
+      const interval = MINIMUM_SYNC_INTERVAL;
+      const options: RemoteOptions = {
+        remoteUrl: remoteURL,
+        live: true,
+        syncDirection: 'both',
+        interval,
+        connection,
+      };
+      await dbA.open();
+      const executed: number[] = [];
+      const syncA = await dbA.sync(options);
+      syncA.runBeforeLiveSync = () => {
+        executed.push(0);
+      };
+      syncA.on('start', () => {
+        executed.push(1);
+      });
+      syncA.on('error', (err: Error) => {
+        console.log(err);
+      });
+
+      await sleep(interval * 5);
+      executed.length = 6;
+      expect(JSON.stringify(executed)).toBe('[0,1,0,1,0,1]');
+
+      await destroyDBs([dbA]);
+    });
   });
 };

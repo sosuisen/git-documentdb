@@ -38,6 +38,8 @@ export interface SyncInterface {
   /***********************************************
    * Public properties
    ***********************************************/
+  runBeforeLiveSync: (() => void) | undefined;
+
   /**
    * @internal
    */

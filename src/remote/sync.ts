@@ -238,6 +238,7 @@ export class Sync implements SyncInterface {
   private _syncTimer: NodeJS.Timeout | undefined;
   private _retrySyncCounter = 0; // Decremental count
   private _isClosed = false;
+
   /***********************************************
    * Public properties (readonly)
    ***********************************************/
@@ -299,6 +300,14 @@ export class Sync implements SyncInterface {
   /***********************************************
    * Public properties
    ***********************************************/
+
+  /**
+   * runBeforeLiveSync
+   *
+   * This function is executed just before each automated(live) synchronization event is queued.
+   * Set undefined to stop it.
+   */
+  public runBeforeLiveSync: (() => void) | undefined = undefined;
 
   /**
    * SyncEvent handlers
@@ -415,7 +424,7 @@ export class Sync implements SyncInterface {
   }
 
   /***********************************************
-   * Public properties
+   * Public methods
    ***********************************************/
 
   /**
@@ -637,6 +646,13 @@ export class Sync implements SyncInterface {
           listener.func();
         });
         this._syncTimer = setInterval(() => {
+          if (this.runBeforeLiveSync !== undefined) {
+            try {
+              this.runBeforeLiveSync();
+            } catch (e) {
+              this._gitDDB.logger.debug('Error in runBeforeLiveSync: ' + e);
+            }
+          }
           if (this._options.syncDirection === 'push') {
             this.tryPushImpl(true).catch(() => undefined);
           }
