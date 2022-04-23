@@ -80,7 +80,7 @@ export const syncTrySyncBase = (
      * dbA   :
      * after :
      */
-    it.only('returns SyncResultNop when no commit', async () => {
+    it('returns SyncResultNop when no commit', async () => {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
       });
