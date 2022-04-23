@@ -59,7 +59,10 @@ export const syncTrySyncBase = (
 
   // Use sandbox to restore stub and spy in parallel mocha tests
   let sandbox: sinon.SinonSandbox;
-  beforeEach(function () {
+  beforeEach(async function () {
+    // To avoid secondary rate limit of GitHub
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     sandbox = sinon.createSandbox();
   });
 
@@ -77,7 +80,7 @@ export const syncTrySyncBase = (
      * dbA   :
      * after :
      */
-    it('returns SyncResultNop when no commit', async () => {
+    it.only('returns SyncResultNop when no commit', async () => {
       const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
         connection,
       });

@@ -48,7 +48,10 @@ export const syncBase = (
 
   // Use sandbox to restore stub and spy in parallel mocha tests
   let sandbox: sinon.SinonSandbox;
-  beforeEach(function () {
+  beforeEach(async function () {
+    // To avoid secondary rate limit of GitHub
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     sandbox = sinon.createSandbox();
   });
 
