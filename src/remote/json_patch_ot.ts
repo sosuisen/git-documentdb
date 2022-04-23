@@ -121,6 +121,7 @@ export class JsonPatchOT implements IJsonPatch {
         // is Object
         sortedKeys = keys.sort();
       }
+      let removeOffset = 0;
       // eslint-disable-next-line complexity
       sortedKeys.forEach(key => {
         if (Array.isArray(tree[key])) {
@@ -145,7 +146,13 @@ export class JsonPatchOT implements IJsonPatch {
             if (arr[1] === 0 && arr[2] === 0) {
               // Deleted
               // See https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
-              operations.push(removeOp(ancestors.concat(key)));
+              if (typeof key === 'string') {
+                operations.push(removeOp(ancestors.concat(key)));
+              }
+              else {
+                operations.push(removeOp(ancestors.concat((key as number) - removeOffset)));
+                removeOffset++;
+              }
             }
             else if (arr[0] === '' && arr[2] === 3) {
               // Moved
@@ -186,7 +193,8 @@ export class JsonPatchOT implements IJsonPatch {
      * Use a nested array format instead. e.g.) ['x', ['y', {i:2}]].
      * type.compose converts the flat array format to the nested array format.
      */
-    return operations.reduce(type.compose, null);
+    const reducedOperations = operations.reduce(type.compose, null);
+    return reducedOperations;
   }
 
   apply (doc: JsonDoc, op: JSONOp): JsonDoc {
