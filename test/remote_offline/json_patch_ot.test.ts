@@ -263,7 +263,7 @@ describe('<remote/ot> OT', () => {
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it('delete', () => {
+    it('delete one', () => {
       const oldDoc = {
         _id: 'nara',
         temple: ['Todaiji', 'Yakushiji'],
@@ -276,7 +276,20 @@ describe('<remote/ot> OT', () => {
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it.only('clear array', () => {
+    it.only('delete two', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji'],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('clear array', () => {
       const oldDoc = {
         _id: 'nara',
         temple: ['Todaiji', 'Yakushiji'],
