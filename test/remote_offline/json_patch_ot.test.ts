@@ -244,6 +244,20 @@ describe('<remote/ot> OT', () => {
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
+    it('insert two members at a distance', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Toshodaiji', 'Yakushiji', 'Kofukuji'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
     it('move', () => {
       const oldDoc = {
         _id: 'nara',
@@ -263,7 +277,7 @@ describe('<remote/ot> OT', () => {
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it('delete', () => {
+    it('delete one', () => {
       const oldDoc = {
         _id: 'nara',
         temple: ['Todaiji', 'Yakushiji'],
@@ -276,7 +290,33 @@ describe('<remote/ot> OT', () => {
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it.only('clear array', () => {
+    it('delete two', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Todaiji'],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('delete two at a distance', () => {
+      const oldDoc = {
+        _id: 'nara',
+        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        temple: ['Yakushiji'],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('clear array', () => {
       const oldDoc = {
         _id: 'nara',
         temple: ['Todaiji', 'Yakushiji'],
@@ -334,7 +374,7 @@ describe('<remote/ot> OT', () => {
       );
     });
 
-    it.only('delete two and add new one', () => {
+    it('delete two and add new one', () => {
       const oldDoc = {
         _id: 'nara',
         temple: ['Toshodaiji', 'Todaiji'],
