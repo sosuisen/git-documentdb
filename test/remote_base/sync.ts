@@ -46,6 +46,11 @@ export const syncBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
+
   // Use sandbox to restore stub and spy in parallel mocha tests
   let sandbox: sinon.SinonSandbox;
   beforeEach(function () {
@@ -149,7 +154,7 @@ export const syncBase = (
    */
   describe('<remote/sync> constructor', () => {
     it('set live to false by default', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -167,7 +172,7 @@ export const syncBase = (
     });
 
     it('set syncDirection to both by default', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -185,7 +190,7 @@ export const syncBase = (
     });
 
     it('set combineDbStrategy to combine-head-with-theirs by default', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -203,7 +208,7 @@ export const syncBase = (
     });
 
     it('set includeCommits to false by default', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -221,7 +226,7 @@ export const syncBase = (
     });
 
     it('set conflictResolutionStrategy to ours-diff by default', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -239,7 +244,7 @@ export const syncBase = (
     });
 
     it('accepts remoteURL which ends with .git', async () => {
-      const remoteURL = remoteURLBase + serialId() + '.git';
+      const remoteURL = remoteURLBase + commonId() + '.git';
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -273,7 +278,7 @@ export const syncBase = (
     });
 
     it('throws IntervalTooSmallError when interval is less than minimumSyncInterval.', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -305,7 +310,7 @@ export const syncBase = (
     });
 
     it('throws SyncIntervalLessThanOrEqualToRetryIntervalError', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -367,7 +372,7 @@ export const syncBase = (
 
     it('throws RemoteErr.InvalidRepositoryURLError.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -388,7 +393,7 @@ export const syncBase = (
 
     it('throws RemoteErr.InvalidSSHKeyPathError.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -409,7 +414,7 @@ export const syncBase = (
 
     it('throws RemoteErr.InvalidAuthenticationTypeError.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -434,7 +439,7 @@ export const syncBase = (
 
     it('throws RemoteErr.HTTPError401AuthorizationRequired.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -459,7 +464,7 @@ export const syncBase = (
 
     it('throws NetworkError', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -481,7 +486,7 @@ export const syncBase = (
     });
 
     it('throws CannotCreateRemoteRepositoryError', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const dbNameA = serialId();
 
@@ -536,7 +541,7 @@ export const syncBase = (
     });
 
     it('sets Git remote in .git/config', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const dbNameA = serialId();
 
@@ -585,7 +590,7 @@ export const syncBase = (
     });
 
     it('skip setting origin when it already exists.', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
 
       const dbNameA = serialId();
 
@@ -829,7 +834,7 @@ export const syncBase = (
     });
 
     it('throws PushNotAllowedError when syncDirection is pull', async () => {
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const dbName = serialId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
@@ -1091,7 +1096,7 @@ export const syncBase = (
   describe('<remote/sync> syncImpl()', () => {
     it('throws RepositoryNotOpenError.', async () => {
       const dbName = serialId();
-      const remoteURL = remoteURLBase + serialId();
+      const remoteURL = remoteURLBase + commonId();
       const gitDDB: GitDocumentDB = new GitDocumentDB({
         dbName,
         localDir,
