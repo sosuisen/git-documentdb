@@ -8,7 +8,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import { ReadBlobResult } from '@sosuisen/isomorphic-git';
+import { ReadBlobResult } from 'isomorphic-git';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import {

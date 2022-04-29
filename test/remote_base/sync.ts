@@ -16,7 +16,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import { Octokit } from '@octokit/rest';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import expect from 'expect';
 import sinon from 'sinon';
 import * as RemoteEngineErr from 'git-documentdb-remote-errors';
@@ -53,9 +53,9 @@ export const syncBase = (
 
   // Use sandbox to restore stub and spy in parallel mocha tests
   let sandbox: sinon.SinonSandbox;
-  beforeEach(async function () {
+  beforeEach(function () {
     // To avoid secondary rate limit of GitHub
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // await new Promise(resolve => setTimeout(resolve, 3000));
 
     sandbox = sinon.createSandbox();
   });
@@ -817,6 +817,7 @@ export const syncBase = (
         remoteURLBase,
         localDir,
         serialId,
+        commonId,
         {
           syncDirection: 'both',
           connection,

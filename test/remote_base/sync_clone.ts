@@ -11,10 +11,13 @@
  * Test clone
  * by using GitHub Personal Access Token
  */
-import path from 'path';
-import fs from 'fs-extra';
 import expect from 'expect';
-import { createDatabase, destroyDBs, removeRemoteRepositories } from '../remote_utils';
+import {
+  createDatabase,
+  destroyDBs,
+  removeRemoteRepositories,
+  resetRemoteCommonRepository,
+} from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { RemoteEngine } from '../../src/remote/remote_engine';
 import { ConnectionSettings } from '../../src/types';
@@ -30,15 +33,27 @@ export const syncCloneBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
+
   before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
   describe('<remote/clone> clone', () => {
     it('clones a repository', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
       await syncA.tryPush();

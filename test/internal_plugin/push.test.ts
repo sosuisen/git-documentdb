@@ -8,7 +8,7 @@
  */
 
 import path from 'path';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import {
@@ -583,11 +583,12 @@ maybe('<internal_plugin/remote-isomorphic-git> push', () => {
         remoteURLBase,
         localDir,
         serialId,
+        serialId,
         {
           connection: {
             type: 'github',
             personalAccessToken: token,
-            engine: '@sosuisen/isomorphic-git',
+            engine: 'isomorphic-git',
           },
         }
       );
@@ -618,7 +619,7 @@ maybe('<internal_plugin/remote-isomorphic-git> push', () => {
         connection: {
           type: 'github',
           personalAccessToken: token,
-          engine: '@sosuisen/isomorphic-git',
+          engine: 'isomorphic-git',
         },
       };
       await dbA.open();
@@ -643,7 +644,7 @@ maybe('<internal_plugin/remote-isomorphic-git> push', () => {
             connection: {
               type: 'github',
               personalAccessToken: token,
-              engine: '@sosuisen/isomorphic-git',
+              engine: 'isomorphic-git',
             },
           }),
           push(dbB.workingDir, {
@@ -651,7 +652,7 @@ maybe('<internal_plugin/remote-isomorphic-git> push', () => {
             connection: {
               type: 'github',
               personalAccessToken: token,
-              engine: '@sosuisen/isomorphic-git',
+              engine: 'isomorphic-git',
             },
           }),
         ])

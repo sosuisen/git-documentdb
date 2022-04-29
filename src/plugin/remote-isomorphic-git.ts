@@ -7,7 +7,7 @@
  */
 
 import fs from 'fs';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import { Logger } from 'tslog';
 import {
   CannotConnectError,
@@ -21,7 +21,7 @@ import {
   NetworkError,
   UnfetchedCommitExistsError,
 } from 'git-documentdb-remote-errors';
-import httpClient from '@sosuisen/isomorphic-git/http/node';
+import httpClient from 'isomorphic-git/http/node';
 import { ConnectionSettingsGitHub, RemoteOptions } from '../types';
 import { NETWORK_RETRY, NETWORK_RETRY_INTERVAL } from '../const';
 import { sleep } from '../utils';
@@ -36,7 +36,7 @@ export const type = 'remote';
  * @public
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export const name = '@sosuisen/isomorphic-git';
+export const name = 'isomorphic-git';
 
 /**
  * Insert credential options for GitHub

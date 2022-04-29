@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import fs from 'fs-extra';
 import { Octokit } from '@octokit/rest';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import sinon from 'sinon';
 import expect from 'expect';
 import { TLogLevelName } from 'tslog';
+import httpClient from 'isomorphic-git/http/node';
+import { createCredentialCallback, push } from '../src/plugin/remote-isomorphic-git';
+import { Sync } from '../src/remote/sync';
 import { textToJsonDoc } from '../src/crud/blob';
 import {
   ChangedFileDelete,
   ChangedFileInsert,
   ChangedFileUpdate,
+  DatabaseOpenResult,
   DeleteResult,
   JsonDoc,
   PutResult,
@@ -180,17 +184,57 @@ export function getChangedFileDeleteBySHA (
   };
 }
 
+export async function resetRemoteCommonRepository (
+  remoteURLBase: string,
+  localDir: string,
+  localId: () => string,
+  remoteId: () => string
+): Promise<void> {
+  const dbName = remoteId();
+
+  // Create empty repository
+  const db: GitDocumentDB = new GitDocumentDB({
+    dbName: 'common_' + localId(),
+    localDir,
+  });
+  await db.open();
+  const remoteURL = remoteURLBase + remoteId();
+  const options: RemoteOptions = {
+    remoteUrl: remoteURL,
+    connection: { type: 'github', personalAccessToken: token },
+  };
+  const sync = new Sync(db, options);
+  await createGitRemote(db.workingDir, remoteURL, sync.remoteName);
+
+  const cred = createCredentialCallback(options);
+  const pushOption: any = {
+    fs,
+    dir: db.workingDir,
+    http: httpClient,
+    url: remoteURL,
+    ref: 'main',
+    remote: 'origin',
+    remoteRef: 'main',
+    force: true, // force overwrite by empty repository
+    onAuth: cred,
+  };
+  const res = await git.push(pushOption).catch(err => err);
+
+  await db.destroy().catch(e => {});
+}
+
 export async function createDatabase (
   remoteURLBase: string,
   localDir: string,
-  serialId: () => string,
+  localId: () => string,
+  remoteId: () => string,
   options?: RemoteOptions,
   schema?: Schema,
   logLevel: TLogLevelName = 'info'
 ): Promise<[GitDocumentDB, SyncInterface]> {
-  const remoteURL = remoteURLBase + serialId();
+  const remoteURL = remoteURLBase + remoteId();
 
-  const dbNameA = serialId();
+  const dbNameA = localId();
 
   const dbA: GitDocumentDB = new GitDocumentDB({
     dbName: dbNameA,
@@ -216,14 +260,15 @@ export async function createDatabase (
 export async function createClonedDatabases (
   remoteURLBase: string,
   localDir: string,
-  serialId: () => string,
+  localId: () => string,
+  remoteId: () => string,
   options?: RemoteOptions,
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal',
   serialize: SerializeFormatLabel = 'json'
 ): Promise<[GitDocumentDB, GitDocumentDB, SyncInterface, SyncInterface]> {
-  const remoteURL = remoteURLBase + serialId();
+  const remoteURL = remoteURLBase + remoteId();
 
-  const dbNameA = serialId();
+  const dbNameA = localId();
 
   const dbA: GitDocumentDB = new GitDocumentDB({
     dbName: dbNameA,
@@ -241,7 +286,7 @@ export async function createClonedDatabases (
   options.includeCommits ??= true;
   await dbA.open();
   await dbA.sync(options);
-  const dbNameB = serialId();
+  const dbNameB = localId();
   const dbB: GitDocumentDB = new GitDocumentDB({
     dbName: dbNameB,
     localDir,

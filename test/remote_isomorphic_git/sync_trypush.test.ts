@@ -54,6 +54,6 @@ const connection: ConnectionSettingsGitHub = {
 };
 
 maybe(
-  '@sosuisen/isomorphic-git',
+  'isomorphic-git',
   syncTryPushBase(connection, remoteURLBase, reposPrefix, localDir)
 );

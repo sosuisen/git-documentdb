@@ -1,5 +1,5 @@
 import nodePath, { basename } from 'path';
-import git, { TreeEntry, WalkerEntry } from '@sosuisen/isomorphic-git';
+import git, { TreeEntry, WalkerEntry } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
 import { Err } from '../error';

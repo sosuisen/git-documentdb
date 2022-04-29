@@ -10,7 +10,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import expect from 'expect';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import {
   HTTPError401AuthorizationRequired,
   HTTPError404NotFound,

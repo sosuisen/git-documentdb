@@ -15,7 +15,12 @@
 
 import expect from 'expect';
 import { ConnectionSettings } from '../../src/types';
-import { createDatabase, destroyDBs, removeRemoteRepositories } from '../remote_utils';
+import {
+  createDatabase,
+  destroyDBs,
+  removeRemoteRepositories,
+  resetRemoteCommonRepository,
+} from '../remote_utils';
 
 export const networkTaskQueueBase = (
   connection: ConnectionSettings,
@@ -28,6 +33,11 @@ export const networkTaskQueueBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
+
   before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
@@ -37,6 +47,7 @@ export const networkTaskQueueBase = (
       const [dbA, syncA] = await createDatabase(
         remoteURLBase,
         localDir,
+        serialId,
         serialId,
         {
           connection,
@@ -56,9 +67,16 @@ export const networkTaskQueueBase = (
     });
 
     it('increments statistics: sync', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       expect(dbA.taskQueue.currentStatistics().sync).toBe(0);
 
@@ -69,9 +87,15 @@ export const networkTaskQueueBase = (
     });
 
     it('clear() statistics', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        serialId,
+        {
+          connection,
+        }
+      );
 
       await syncA.trySync();
       expect(dbA.taskQueue.currentStatistics()).toEqual({

@@ -14,7 +14,7 @@
  */
 
 import fs from 'fs-extra';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import expect from 'expect';
 import parse from 'parse-git-config';
 import { Err } from '../../src/error';
@@ -27,6 +27,7 @@ import {
   destroyRemoteRepository,
   getWorkingDirDocs,
   removeRemoteRepositories,
+  resetRemoteCommonRepository,
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
 import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../../src/const';
@@ -43,6 +44,11 @@ export const syncCombineBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
+
   before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
@@ -53,11 +59,18 @@ export const syncCombineBase = (
      */
     describe('with same serializeFormat', () => {
       it('throws NoMergeBaseFoundError when combineDbStrategy is throw-error in [both] direction', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'throw-error',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'throw-error',
+            syncDirection: 'both',
+            connection,
+          }
+        );
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -78,11 +91,18 @@ export const syncCombineBase = (
       });
 
       it('commits with valid commit message for combine-head-with-theirs', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -116,11 +136,18 @@ export const syncCombineBase = (
       });
 
       it('succeeds when combine-head-with-theirs with empty local and empty remote', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -148,11 +175,18 @@ export const syncCombineBase = (
       });
 
       it('succeeds combine-head-with-theirs with empty local and not empty remote', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
 
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -184,11 +218,18 @@ export const syncCombineBase = (
       });
 
       it('succeeds when combine-head-with-theirs with not empty local and empty remote', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({
@@ -219,11 +260,18 @@ export const syncCombineBase = (
       });
 
       it('succeeds when combine-head-with-theirs with deep local and deep remote', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
         const jsonA1 = { _id: 'deep/one', name: 'fromA' };
         await dbA.put(jsonA1);
         await syncA.trySync();
@@ -254,11 +302,18 @@ export const syncCombineBase = (
       });
 
       it('returns SyncResult with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
         const dbIdA = dbA.dbId;
 
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -323,11 +378,18 @@ export const syncCombineBase = (
       });
 
       it('returns SyncResult with duplicates when combine-head-with-theirs with deep local and deep remote', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
         const dbIdA = dbA.dbId;
 
         const jsonA1 = { _id: 'deep/one', name: 'fromA' };
@@ -395,11 +457,18 @@ export const syncCombineBase = (
       });
 
       it('invokes combine event with duplicates when combine-head-with-theirs with not empty local and not empty remote', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
         let duplicatedFiles: DuplicatedFile[] = [];
         syncA.on('combine', (duplicates: DuplicatedFile[]) => {
           duplicatedFiles = [...duplicates];
@@ -475,11 +544,18 @@ export const syncCombineBase = (
       });
 
       it('copies author from local repository', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          combineDbStrategy: 'combine-head-with-theirs',
-          syncDirection: 'both',
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            combineDbStrategy: 'combine-head-with-theirs',
+            syncDirection: 'both',
+            connection,
+          }
+        );
 
         const dbNameB = serialId();
         const dbB: GitDocumentDB = new GitDocumentDB({

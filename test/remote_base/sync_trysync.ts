@@ -12,7 +12,7 @@
  * by using GitHub Personal Access Token
  * These tests create a new repository on GitHub if not exists.
  */
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import sinon from 'sinon';
@@ -38,6 +38,7 @@ import {
   getCommitInfo,
   getWorkingDirDocs,
   removeRemoteRepositories,
+  resetRemoteCommonRepository,
 } from '../remote_utils';
 import { sleep, toSortedJSONString } from '../../src/utils';
 import { JSON_POSTFIX } from '../../src/const';
@@ -57,11 +58,16 @@ export const syncTrySyncBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
+
   // Use sandbox to restore stub and spy in parallel mocha tests
   let sandbox: sinon.SinonSandbox;
-  beforeEach(async function () {
+  beforeEach(function () {
     // To avoid secondary rate limit of GitHub
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // await new Promise(resolve => setTimeout(resolve, 3000));
 
     sandbox = sinon.createSandbox();
   });
@@ -81,9 +87,16 @@ export const syncTrySyncBase = (
      * after :
      */
     it('returns SyncResultNop when no commit', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       const syncResult1 = (await syncA.trySync()) as SyncResultPush;
 
@@ -101,9 +114,16 @@ export const syncTrySyncBase = (
        * after :  jsonA1
        */
       it('which includes one remote creation when a local db creates a document', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            connection,
+          }
+        );
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -131,9 +151,16 @@ export const syncTrySyncBase = (
        * after :
        */
       it('which includes one remote delete when a local db deletes a document', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            connection,
+          }
+        );
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -164,9 +191,16 @@ export const syncTrySyncBase = (
        * after :  jsonA1
        */
       it('which includes one remote update when a local db a document', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            connection,
+          }
+        );
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         const putResultA1 = await dbA.put(jsonA1);
@@ -200,10 +234,12 @@ export const syncTrySyncBase = (
        * after :  jsonA1
        */
       it('which includes one local creation when a remote db creates a document', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           { connection }
         );
         // A puts and pushes
@@ -241,10 +277,12 @@ export const syncTrySyncBase = (
        * after :  jsonA1  jsonA2
        */
       it('which includes two local creations when a remote db creates two documents', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -322,10 +360,12 @@ export const syncTrySyncBase = (
        * after :  jsonA1  jsonB2
        */
       it('which includes local and remote creations when a remote db creates a document and a local db creates another document', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           { connection }
         );
         // A puts and pushes
@@ -375,10 +415,12 @@ export const syncTrySyncBase = (
        * after :  jsonA1  jsonA2  jsonB3  jsonB4
        */
       it('which includes two local creations and two remote creations when a remote db creates two documents and a local db creates two different documents', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           { connection }
         );
 
@@ -437,10 +479,12 @@ export const syncTrySyncBase = (
        * after :  jsonA1
        */
       it('which does not include changes after a remote db creates a document and a local db creates exactly the same document', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           { connection }
         );
 
@@ -479,9 +523,16 @@ export const syncTrySyncBase = (
        * after :  jsonA1
        */
       it('which does not include changes after a remote db updates a document and a local db updates exactly the same update', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            connection,
+          }
+        );
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -533,9 +584,16 @@ export const syncTrySyncBase = (
        * after :          jsonA2
        */
       it('which include a local create and a remote delete when a remote db creates a document and a local db deletes another document', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            connection,
+          }
+        );
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -595,9 +653,16 @@ export const syncTrySyncBase = (
        * after :          jsonB2
        */
       it('which include a remote create and a local delete when a remote db deletes a document and a local db creates another document', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            connection,
+          }
+        );
 
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
@@ -659,9 +724,16 @@ export const syncTrySyncBase = (
        * after :
        */
       it('which does not include changes when a remote db deletes a document and a local db deletes the same document', async () => {
-        const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-          connection,
-        });
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const [dbA, syncA] = await createDatabase(
+          remoteURLBase,
+          localDir,
+          serialId,
+          commonId,
+          {
+            connection,
+          }
+        );
         // A puts and pushes
         const jsonA1 = { _id: '1', name: 'fromA' };
         await dbA.put(jsonA1);
@@ -709,7 +781,8 @@ export const syncTrySyncBase = (
 
     describe('returns SyncResolveConflictAndPush', () => {
       it('when two databases put the same _id document', async () => {
-        const remoteURL = remoteURLBase + serialId();
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const remoteURL = remoteURLBase + commonId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameA,
@@ -764,9 +837,16 @@ export const syncTrySyncBase = (
     });
 
     it('skips consecutive sync tasks', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
       const results: SyncResult[] = [];
 
       for (let i = 0; i < 3; i++) {
@@ -793,9 +873,16 @@ export const syncTrySyncBase = (
     });
 
     it('skips consecutive sync tasks after crud tasks', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       for (let i = 0; i < 10; i++) {
@@ -826,9 +913,16 @@ export const syncTrySyncBase = (
     });
 
     it('skips consecutive put tasks mixed with sync tasks', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       const putter: Promise<any>[] = [];
       const validResult: (boolean | Record<string, any>)[] = [];
@@ -890,9 +984,16 @@ export const syncTrySyncBase = (
     });
 
     it('syncs files under .gitddb', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
       const dbNameB = serialId();
       const dbB: GitDocumentDB = new GitDocumentDB({
         dbName: dbNameB,
@@ -928,11 +1029,18 @@ export const syncTrySyncBase = (
     });
 
     it('pauses live sync after error', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        live: true,
-        interval: 3000,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+          live: true,
+          interval: 3000,
+        }
+      );
       expect(syncA.options.live).toBeTruthy();
 
       dbA.put({ name: 'fromA' });
@@ -963,6 +1071,8 @@ export const syncTrySyncBase = (
      */
     describe('Retry trySync', () => {
       it('does not retry when retry option is 0 after UnfetchedCommitExistsError', async () => {
+        // Cannot use common repository when syncDirection is 'push'
+        // await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
@@ -995,6 +1105,8 @@ export const syncTrySyncBase = (
       });
 
       it('retries every retry interval and fails after UnfetchedCommitExistsError', async () => {
+        // Cannot use common repository when syncDirection is 'push'
+        // await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
@@ -1031,6 +1143,8 @@ export const syncTrySyncBase = (
       });
 
       it('retries every retry interval and succeeds after UnfetchedCommitExistsError', async () => {
+        // Cannot use common repository when syncDirection is 'push'
+        // await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const remoteURL = remoteURLBase + serialId();
         const dbNameA = serialId();
         const dbA: GitDocumentDB = new GitDocumentDB({
@@ -1073,7 +1187,8 @@ export const syncTrySyncBase = (
       });
 
       it('Race condition of two trySync() calls does not throw UnfetchedCommitExistsError.', async () => {
-        const remoteURL = remoteURLBase + serialId();
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const remoteURL = remoteURLBase + commonId();
         const dbNameA = serialId();
 
         const dbA: GitDocumentDB = new GitDocumentDB({

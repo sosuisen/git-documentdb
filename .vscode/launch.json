@@ -4,7 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/remote_offline/json_patch_ot.test.js"],
+    "options": ["test/remote_isomorphic_git/sync_trysync.test.js"],
   }],
   "configurations": [
       {

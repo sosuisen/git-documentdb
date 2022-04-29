@@ -26,6 +26,7 @@ import {
   getChangedFileInsert,
   getCommitInfo,
   removeRemoteRepositories,
+  resetRemoteCommonRepository,
 } from '../remote_utils';
 import { sleep } from '../../src/utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
@@ -41,6 +42,11 @@ export const onSyncEventBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
+
   before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
@@ -48,10 +54,12 @@ export const onSyncEventBase = (
   describe('<remote/on_sync_event> GitDocumentDB', () => {
     describe('onSyncEvent', () => {
       it('with remoteURL', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -118,10 +126,12 @@ export const onSyncEventBase = (
       });
 
       it('with sync', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -174,10 +184,12 @@ export const onSyncEventBase = (
 
     describe('offSyncEvent', () => {
       it('with remoteURL', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -209,10 +221,12 @@ export const onSyncEventBase = (
       });
 
       it('with sync', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -232,10 +246,12 @@ export const onSyncEventBase = (
   describe('<remote/on_sync_event> Collection', () => {
     describe('onSyncEvent', () => {
       it('with remoteURL', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -304,10 +320,12 @@ export const onSyncEventBase = (
       });
 
       it('with sync', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -363,10 +381,12 @@ export const onSyncEventBase = (
 
     describe('offSyncEvent', () => {
       it('with remoteURL', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -400,10 +420,12 @@ export const onSyncEventBase = (
       });
 
       it('with sync', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }

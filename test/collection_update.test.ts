@@ -8,7 +8,7 @@
  */
 
 import path from 'path';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';

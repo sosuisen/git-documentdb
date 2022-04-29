@@ -33,6 +33,7 @@ import {
   getCommitInfo,
   getWorkingDirDocs,
   removeRemoteRepositories,
+  resetRemoteCommonRepository,
 } from '../remote_utils';
 
 import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../../src/const';
@@ -46,6 +47,10 @@ export const threeWayMergeOtBase = (
   let idCounter = 0;
   const serialId = () => {
     return `${reposPrefix}${idCounter++}`;
+  };
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
   };
 
   before(async () => {
@@ -65,10 +70,12 @@ export const threeWayMergeOtBase = (
      *   jsonB3: 2 - Accept ours (insert)
      */
     it('resolves case 1 - Accept theirs (insert), case 2 - Accept ours (insert), case 4 - Conflict. Accept ours (insert-merge)', async () => {
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId,
+        commonId,
         {
           conflictResolutionStrategy: 'ours-diff',
           connection,
@@ -173,10 +180,12 @@ export const threeWayMergeOtBase = (
      *   jsonA1: 5 - Conflict. Accept theirs (insert)
      */
     it('resolves case 5 - Conflict. Accept theirs (insert)', async () => {
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId,
+        commonId,
         {
           conflictResolutionStrategy: 'theirs-diff',
           connection,
@@ -257,10 +266,17 @@ export const threeWayMergeOtBase = (
      *  jsonA1: 8 - Conflict. Accept ours (delete)
      */
     it('resolves case 8 - Conflict. Accept ours (delete)', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflictResolutionStrategy: 'ours-diff',
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          conflictResolutionStrategy: 'ours-diff',
+          connection,
+        }
+      );
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
@@ -347,10 +363,17 @@ export const threeWayMergeOtBase = (
      *  jsonA2:  1 - Accept theirs (insert)
      */
     it('resolves case 11 - Conflict. Accept ours (update), case 1 - Accept theirs (insert), ', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        conflictResolutionStrategy: 'ours-diff',
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          conflictResolutionStrategy: 'ours-diff',
+          connection,
+        }
+      );
       // A puts and pushes
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
@@ -439,10 +462,12 @@ export const threeWayMergeOtBase = (
       const schema: Schema = {
         json: { plainTextProperties: { name: true } },
       };
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
       const [dbA, syncA] = await createDatabase(
         remoteURLBase,
         localDir,
         serialId,
+        commonId,
         {
           conflictResolutionStrategy: 'theirs-diff',
           connection,
@@ -829,10 +854,12 @@ export const threeWayMergeOtBase = (
         const schema: Schema = {
           json: { plainTextProperties: { name: true } },
         };
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, syncA] = await createDatabase(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             conflictResolutionStrategy: 'ours-diff',
             connection,
@@ -898,10 +925,12 @@ export const threeWayMergeOtBase = (
         const schema: Schema = {
           json: { plainTextProperties: { name: true } },
         };
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, syncA] = await createDatabase(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             conflictResolutionStrategy: 'ours-diff',
             connection,
@@ -967,10 +996,12 @@ export const threeWayMergeOtBase = (
         const schema: Schema = {
           json: { plainTextProperties: { name: true } },
         };
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, syncA] = await createDatabase(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             conflictResolutionStrategy: 'ours-diff',
             connection,

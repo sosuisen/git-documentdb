@@ -13,7 +13,7 @@ import {
   resolveRef,
   TreeEntry,
   TreeObject,
-} from '@sosuisen/isomorphic-git';
+} from 'isomorphic-git';
 import { GIT_DOCUMENTDB_METADATA_DIR } from '../const';
 import { Err } from '../error';
 import {

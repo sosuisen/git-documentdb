@@ -25,6 +25,7 @@ import {
   getCommitInfo,
   getWorkingDirDocs,
   removeRemoteRepositories,
+  resetRemoteCommonRepository,
 } from '../remote_utils';
 import {
   ConnectionSettings,
@@ -47,12 +48,15 @@ export const syncTryPushBase = (
   const serialId = () => {
     return `${reposPrefix}${idCounter++}`;
   };
-
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
   // Use sandbox to restore stub and spy in parallel mocha tests
   let sandbox: sinon.SinonSandbox;
-  beforeEach(async function () {
+  beforeEach(function () {
     // To avoid secondary rate limit of GitHub
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // await new Promise(resolve => setTimeout(resolve, 3000));
 
     sandbox = sinon.createSandbox();
   });
@@ -72,9 +76,16 @@ export const syncTryPushBase = (
      * after :  jsonA1
      */
     it('changes one remote insertion when pushes after one put()', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       // Put and push
       const jsonA1 = { _id: '1', name: 'fromA' };
@@ -106,9 +117,16 @@ export const syncTryPushBase = (
      * after :  jsonA1
      */
     it('does not change remote when pushes after put() the same document again', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
       await syncA.tryPush();
@@ -144,9 +162,16 @@ export const syncTryPushBase = (
      * after :  jsonA1
      */
     it('changes one remote update when pushes after put() updated document', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResultA1 = await dbA.put(jsonA1);
       await syncA.tryPush();
@@ -184,9 +209,16 @@ export const syncTryPushBase = (
      * after :  jsonA1  jsonA2
      */
     it('changes one remote insertion when pushes after put() another document', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
       await syncA.tryPush();
@@ -226,9 +258,16 @@ export const syncTryPushBase = (
      * after2:  jsonA1  jsonA2  jsonA3
      */
     it('changes two remote insertions when pushes after put() two documents', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       // Two put commands and push
       const jsonA1 = { _id: '1', name: 'fromA' };
@@ -266,9 +305,16 @@ export const syncTryPushBase = (
      * after : +jsonA1  jsonA2
      */
     it('changes one remote insertion and one remote update when pushes after put() updated document and another document', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       const putResult1 = await dbA.put(jsonA1);
@@ -309,9 +355,16 @@ export const syncTryPushBase = (
      * after :
      */
     it('changes one remote delete when pushes after one delete()', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -350,9 +403,16 @@ export const syncTryPushBase = (
      * after :
      */
     it('does not change remote when pushes after put() and delete()', async function () {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       // Put and delete the same document
@@ -400,9 +460,16 @@ export const syncTryPushBase = (
     });
 
     it('skips consecutive push tasks', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
 
       const jsonA1 = { _id: '1', name: 'fromA' };
       await dbA.put(jsonA1);
@@ -430,12 +497,18 @@ export const syncTryPushBase = (
     });
 
     it('pauses live push after error', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        live: true,
-        interval: 3000,
-        syncDirection: 'push',
-      });
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        serialId,
+        {
+          connection,
+          live: true,
+          interval: 3000,
+          syncDirection: 'push',
+        }
+      );
       expect(syncA.options.live).toBeTruthy();
 
       dbA.put({ name: 'fromA' });

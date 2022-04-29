@@ -9,7 +9,7 @@
 import fs from 'fs';
 
 import path from 'path';
-import { readTree, resolveRef } from '@sosuisen/isomorphic-git';
+import { readTree, resolveRef } from 'isomorphic-git';
 import { monotonicFactory, ULID } from 'ulid';
 import { Err } from './error';
 import {

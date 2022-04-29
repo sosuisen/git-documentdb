@@ -19,6 +19,7 @@ import {
   createClonedDatabases,
   destroyDBs,
   removeRemoteRepositories,
+  resetRemoteCommonRepository,
 } from '../remote_utils';
 import { sleep, toSortedJSONString, utf8encode } from '../../src/utils';
 import { JSON_POSTFIX } from '../../src/const';
@@ -35,16 +36,23 @@ export const networkHistoryBase = (
     return `${reposPrefix}${idCounter++}`;
   };
 
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
+  };
+
   before(async () => {
     await removeRemoteRepositories(reposPrefix);
   });
 
   describe('<remote/network_history> getHistoryImpl', () => {
     it('gets all revisions sorted by date from merged commit', async () => {
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId,
+        commonId,
         {
           conflictResolutionStrategy: 'ours',
           connection,
@@ -132,10 +140,12 @@ export const networkHistoryBase = (
 
   describe('<remote/network_history> readOldBlob()', () => {
     it('skips a merge commit', async () => {
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId,
+        commonId,
         {
           conflictResolutionStrategy: 'ours',
           connection,

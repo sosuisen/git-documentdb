@@ -15,7 +15,7 @@ import {
   resolveRef,
   TreeEntry,
   TreeObject,
-} from '@sosuisen/isomorphic-git';
+} from 'isomorphic-git';
 import {
   BinaryDocMetadata,
   DocMetadata,

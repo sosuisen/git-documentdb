@@ -37,6 +37,7 @@ import {
   getCommitInfo,
   getWorkingDirDocs,
   removeRemoteRepositories,
+  resetRemoteCommonRepository,
 } from '../remote_utils';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { RemoteErr } from '../../src/remote/remote_engine';
@@ -55,6 +56,11 @@ export const syncEventsBase = (
   let idCounter = 0;
   const serialId = () => {
     return `${reposPrefix}${idCounter++}`;
+  };
+
+  // Use commonId to reduce API calls to GitHub
+  const commonId = () => {
+    return `${reposPrefix}common`;
   };
 
   // Use sandbox to restore stub and spy in parallel mocha tests
@@ -77,10 +83,12 @@ export const syncEventsBase = (
      */
     describe('change', () => {
       it('occurs once', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           { connection }
         );
 
@@ -124,10 +132,12 @@ export const syncEventsBase = (
       });
 
       it('is propagated between local and remote sites', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           { connection }
         );
 
@@ -195,10 +205,12 @@ export const syncEventsBase = (
        * after :                 jsonB3
        */
       it('occurs with every retry', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -232,10 +244,12 @@ export const syncEventsBase = (
       });
 
       it('is followed by localChange', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -285,10 +299,12 @@ export const syncEventsBase = (
        * after :                 jsonB3
        */
       it('occurs localChanges when SyncResultMergeAndPushError', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -320,10 +336,12 @@ export const syncEventsBase = (
       });
 
       it('is followed by remoteChange', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -372,10 +390,12 @@ export const syncEventsBase = (
        * after :                 jsonB3
        */
       it('occurs remoteChanges after SyncResultMergeAndPushError', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -413,10 +433,12 @@ export const syncEventsBase = (
 
     describe('filtered by collectionPath', () => {
       it('occurs change and localChange events', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -514,10 +536,12 @@ export const syncEventsBase = (
       });
 
       it('occurs change events with update and delete', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -582,10 +606,12 @@ export const syncEventsBase = (
       });
 
       it('occurs change and remoteChange events by trySync', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -680,10 +706,12 @@ export const syncEventsBase = (
       });
 
       it('occurs change and remoteChange events by tryPush', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -778,10 +806,12 @@ export const syncEventsBase = (
       });
 
       it('occurs change, localChange, and remoteChange events by merge and push', async () => {
+        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
+          commonId,
           {
             connection,
           }
@@ -905,10 +935,12 @@ export const syncEventsBase = (
     });
 
     it('pause and resume', async () => {
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
       const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
         remoteURLBase,
         localDir,
         serialId,
+        commonId,
         {
           connection,
           includeCommits: true,
@@ -997,12 +1029,19 @@ export const syncEventsBase = (
     });
 
     it('starts once', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        includeCommits: true,
-        live: true,
-        interval: 3000,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+          includeCommits: true,
+          live: true,
+          interval: 3000,
+        }
+      );
 
       let start = false;
       syncA.on('start', () => {
@@ -1027,12 +1066,19 @@ export const syncEventsBase = (
 
     it('starts repeatedly', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        includeCommits: true,
-        live: true,
-        interval,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+          includeCommits: true,
+          live: true,
+          interval,
+        }
+      );
 
       let counter = 0;
       syncA.on('start', () => {
@@ -1048,12 +1094,19 @@ export const syncEventsBase = (
 
     it('starts event returns taskMetaData and current retries', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        includeCommits: true,
-        live: true,
-        interval,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+          includeCommits: true,
+          live: true,
+          interval,
+        }
+      );
 
       let counter = 0;
       let taskId = '';
@@ -1075,12 +1128,19 @@ export const syncEventsBase = (
 
     it('completes once', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        includeCommits: true,
-        live: true,
-        interval,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+          includeCommits: true,
+          live: true,
+          interval,
+        }
+      );
 
       let startTaskId = '';
       syncA.on('start', (taskMetadata: TaskMetadata) => {
@@ -1113,12 +1173,19 @@ export const syncEventsBase = (
 
     it('completes repeatedly', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        includeCommits: true,
-        live: true,
-        interval,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+          includeCommits: true,
+          live: true,
+          interval,
+        }
+      );
 
       let counter = 0;
       syncA.on('complete', () => {
@@ -1133,17 +1200,29 @@ export const syncEventsBase = (
     });
 
     it('error', async () => {
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        serialId,
+        {
+          connection,
+        }
+      );
       await dbA.put({ _id: '1', name: 'fromA' });
       await syncA.trySync();
 
       await destroyRemoteRepository(syncA.remoteURL);
       // Create different repository with the same repository name.
-      const [dbB, syncB] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-      });
+      const [dbB, syncB] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+        }
+      );
       await dbB.put({ _id: '1', name: 'fromB' });
       await syncB.trySync();
 
@@ -1173,12 +1252,19 @@ export const syncEventsBase = (
 
     it('on and off', async () => {
       const interval = MINIMUM_SYNC_INTERVAL;
-      const [dbA, syncA] = await createDatabase(remoteURLBase, localDir, serialId, {
-        connection,
-        includeCommits: true,
-        live: true,
-        interval,
-      });
+      await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+      const [dbA, syncA] = await createDatabase(
+        remoteURLBase,
+        localDir,
+        serialId,
+        commonId,
+        {
+          connection,
+          includeCommits: true,
+          live: true,
+          interval,
+        }
+      );
 
       let counter = 0;
       const increment = () => {

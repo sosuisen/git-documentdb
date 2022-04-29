@@ -7,7 +7,7 @@
  */
 
 import path from 'path';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import fs from 'fs-extra';
 import rimraf from 'rimraf';
 import { ILogObject, Logger, TLogLevelName } from 'tslog';

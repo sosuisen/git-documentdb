@@ -9,7 +9,7 @@
 
 import path from 'path';
 import fs from 'fs-extra';
-import git from '@sosuisen/isomorphic-git';
+import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../src/const';

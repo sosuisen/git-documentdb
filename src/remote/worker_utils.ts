@@ -8,7 +8,7 @@
 
 import nodePath from 'path';
 import { serialize } from 'v8';
-import git, { ReadBlobResult, ReadCommitResult } from '@sosuisen/isomorphic-git';
+import git, { ReadBlobResult, ReadCommitResult } from 'isomorphic-git';
 import fs from 'fs-extra';
 import { normalizeCommit, utf8decode } from '../utils';
 import { Err } from '../error';
