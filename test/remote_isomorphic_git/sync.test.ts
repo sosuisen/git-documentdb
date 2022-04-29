@@ -49,7 +49,4 @@ const connection: ConnectionSettingsGitHub = {
   engine: 'isomorphic-git',
 };
 
-maybe(
-  'isomorphic-git',
-  syncBase(connection, remoteURLBase, reposPrefix, localDir, token)
-);
+maybe('isomorphic-git', syncBase(connection, remoteURLBase, reposPrefix, localDir, token));

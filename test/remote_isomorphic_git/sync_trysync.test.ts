@@ -30,7 +30,7 @@ before(() => {
 });
 
 after(() => {
-//  fs.removeSync(path.resolve(localDir));
+  //  fs.removeSync(path.resolve(localDir));
 });
 
 // This test needs environment variables:
@@ -53,7 +53,4 @@ const connection: ConnectionSettingsGitHub = {
   personalAccessToken: token,
 };
 
-maybe(
-  'isomorphic-git',
-  syncTrySyncBase(connection, remoteURLBase, reposPrefix, localDir)
-);
+maybe('isomorphic-git', syncTrySyncBase(connection, remoteURLBase, reposPrefix, localDir));
