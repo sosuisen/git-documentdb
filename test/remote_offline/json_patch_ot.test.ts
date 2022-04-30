@@ -427,7 +427,6 @@ describe('<remote/ot> OT', () => {
       const newDoc = {
         number: ['3', '2'],
       };
-
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
         newDoc
       );
@@ -440,7 +439,6 @@ describe('<remote/ot> OT', () => {
       const newDoc = {
         number: ['2', '3'],
       };
-
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
         newDoc
       );
@@ -481,8 +479,6 @@ describe('<remote/ot> OT', () => {
         _id: 'nara',
         number: ['2', '4', '3'],
       };
-      console.log(primitiveDiff.diff(oldDoc, newDoc));
-
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
         newDoc
       );
@@ -526,14 +522,27 @@ describe('<remote/ot> OT', () => {
       );
     });
 
-    it.only('add the first, then move the last to the second', () => {
+    it('add the first, then move the last to the second', () => {
       const oldDoc = {
         number: ['1', '2', '3'],
       };
       const newDoc = {
         number: ['4', '3', '2', '1'],
       };
-      console.log(primitiveDiff.diff(oldDoc, newDoc)!);
+      console.log(primitiveDiff.diff(oldDoc, newDoc));
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it('add the second, add the third, remove the last, then move the first to the last', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['3', '4', '5', '1'],
+      };
+      console.log(primitiveDiff.diff(oldDoc, newDoc));
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
         newDoc
       );

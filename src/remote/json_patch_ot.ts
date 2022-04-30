@@ -101,56 +101,59 @@ export class JsonPatchOT implements IJsonPatch {
     const operations: JSONOp[] = [];
     const procTree = (ancestors: (string | number)[], tree: JsonDoc) => {
       const keys = Object.keys(tree);
-      let sortedKeys: (string | number)[];
+      let sortedKeys: (string | number)[] = [];
       const isArray = keys.includes('_t');
+
+      const nest: string[] = [];
+      const insOp: string[] = [];
+      const replOp: string[] = [];
+      const remOp: string[] = [];
+      const movOp: string[] = [];
+      const txtOp: string[] = [];
+
       if (isArray) {
         // is Array
         // underscore _ means 'remove' or 'move' operation
         keys.sort(); // 1, 2, 3, _1, _2, _3
+        // console.log('## start parse keys: ' + JSON.stringify(keys));
         let underBarStart = 0;
         for (underBarStart = 0; underBarStart < keys.length; underBarStart++) {
           if (keys[underBarStart].startsWith('_')) {
             break;
           }
         }
-        const noBar = keys.slice(0, underBarStart);
-        // eslint-disable-next-line complexity
-        const underBar = keys.slice(underBarStart, keys.length).sort((a, b) => {
-          // Delete commands must be before move commands
-          if (
-            Array.isArray(tree[a]) &&
-            tree[a].length === 3 &&
-            tree[a][1] === 0 &&
-            tree[a][2] === 0
-          ) {
-            // a is delete
-            if (
-              Array.isArray(tree[a]) &&
-              tree[b].length === 3 &&
-              tree[b][1] === 0 &&
-              tree[b][2] === 0
-            ) {
-              // b is also delete
-              return parseInt(a.slice(1), 10) - parseInt(b.slice(1), 10);
-            }
-            // b is move
-            return -1;
-          }
-          // a is move
-          if (
-            Array.isArray(tree[a]) &&
-            tree[b].length === 3 &&
-            tree[b][1] === 0 &&
-            tree[b][2] === 0
-          ) {
-            // b is delete
-            return 1;
-          }
-          // b is also move
-          // sort by destination position
-          return tree[a][1] - tree[b][1];
+
+        // no bar: insert/replace/text
+        keys.slice(0, underBarStart).forEach(key => {
+          if (!Array.isArray(tree[key])) nest.push(key);
+          else if (tree[key].length === 1) insOp.push(key);
+          else if (tree[key].length === 2) replOp.push(key);
+          else if (tree[key].length === 3 && typeof tree[key][0] === 'string')
+            txtOp.push(key);
         });
-        sortedKeys = underBar.concat(noBar); // _1, _2, _3, 1, 2, 3
+
+        // underBar: remove/move
+        // eslint-disable-next-line complexity
+        keys.slice(underBarStart, keys.length).forEach(key => {
+          if (!Array.isArray(tree[key])) nest.push(key);
+          else if (tree[key].length === 3) {
+            const arr = tree[key];
+            if (arr[1] === 0 && arr[2] === 0) remOp.push(key);
+            else if (arr[0] === '' && arr[2] === 3) movOp.push(key);
+          }
+        });
+        movOp.sort(
+          (a, b) =>
+            // sort by destination position
+            tree[a][1] - tree[b][1]
+        );
+        insOp.sort(
+          (a, b) =>
+            // sort by destination position
+            parseInt(a, 10) - parseInt(b, 10)
+        );
+        // sort order: replace, text, remove, insert, move
+        sortedKeys = sortedKeys.concat(replOp, txtOp, remOp, movOp, insOp, nest);
       }
       else {
         // is Object
@@ -161,17 +164,33 @@ export class JsonPatchOT implements IJsonPatch {
       const movedOperation: { from: number; to: number }[] = [];
       // eslint-disable-next-line complexity
       sortedKeys.forEach(key => {
+        // console.log('# ' + key);
         if (Array.isArray(tree[key])) {
           const arr = tree[key] as any[];
           if (arr.length === 1) {
+            // Insert
             if (isArray && typeof key === 'string') {
               key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
             }
-            operations.push(insertOp(ancestors.concat(key), arr[0])!);
-            console.log('## insert:' + key);
-            insertedIndex.push(key);
+            if (isArray) {
+              let dstOffset = 0;
+              movOp.forEach(mop => {
+                const from = parseInt(mop, 10);
+                const to = tree[mop][1] as number;
+                if (from < (key as number) && to > key) dstOffset++;
+                if (from > (key as number) && to < key) dstOffset--;
+              });
+              operations.push(
+                insertOp(ancestors.concat((key as number) + dstOffset), arr[0])!
+              );
+              insertedIndex.push(key);
+            }
+            else {
+              operations.push(insertOp(ancestors.concat(key), arr[0])!);
+            }
           }
           else if (arr.length === 2) {
+            // Replace
             if (isArray && typeof key === 'string') {
               key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
             }
@@ -183,18 +202,15 @@ export class JsonPatchOT implements IJsonPatch {
               key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
             }
             if (arr[1] === 0 && arr[2] === 0) {
-              // Deleted
+              // Remove
               // See https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
               if (typeof key === 'string') {
-                // Delete property
+                // Remove property
                 operations.push(removeOp(ancestors.concat(key)));
               }
               else {
-                // Delete from array
-                let offset = -removedIndex.length;
-                insertedIndex.forEach(index => {
-                  if (parseInt(index as string, 10) < parseInt(key as string, 10)) offset++;
-                });
+                // Remove from array
+                const offset = -removedIndex.length;
                 operations.push(removeOp(ancestors.concat((key as number) + offset)));
                 removedIndex.push(key);
               }
@@ -202,24 +218,39 @@ export class JsonPatchOT implements IJsonPatch {
             else if (arr[0] === '' && arr[2] === 3) {
               // Moved
               // See https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
+              if (isArray) {
+                let offset = 0;
+                removedIndex.forEach(index => {
+                  if (parseInt(index as string, 10) <= parseInt(key as string, 10))
+                    offset--;
+                });
+                /*
+                insertedIndex.forEach(index => {
+                  if (parseInt(index as string, 10) <= parseInt(key as string, 10))
+                    offset++;
+                });
+                */
+                movedOperation.forEach(mop => {
+                  if (mop.from < (key as number) && mop.to > arr[1]) offset--;
+                  if (mop.from > (key as number) && mop.to < arr[1]) offset++;
+                });
 
-              // Move先のインデックスが小さい操作から順に処理
-              console.log("## " + insertedIndex);
-              let offset = 0;
-              insertedIndex.forEach(index => {
-                if (parseInt(index as string, 10) < parseInt(key as string, 10)) offset++;
-              });
-              removedIndex.forEach(index => {
-                if (parseInt(index as string, 10) < parseInt(key as string, 10)) offset--;
-              });
-              movedOperation.forEach(mop => {
-                if (mop.from < (key as number) && mop.to > arr[1]) offset--;
-                if (mop.from > (key as number) && mop.to < arr[1]) offset++;
-              });
-              operations.push(
-                moveOp(ancestors.concat((key as number) + offset), ancestors.concat(arr[1]))
-              );
-              movedOperation.push({ from: key as number, to: arr[1] });
+                let dstOffset = 0;
+                insOp.forEach(iop => {
+                  if (parseInt(iop as string, 10) <= parseInt(arr[1] as string, 10))
+                    dstOffset--;
+                });
+                operations.push(
+                  moveOp(
+                    ancestors.concat((key as number) + offset),
+                    ancestors.concat((arr[1] as number) + dstOffset)
+                  )
+                );
+                movedOperation.push({ from: key as number, to: arr[1] });
+              }
+              else {
+                operations.push(moveOp(ancestors.concat(key), ancestors.concat(arr[1])));
+              }
             }
             else if (typeof firstItem === 'string') {
               let isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+?,\d+? @@\n/m);
