@@ -190,12 +190,10 @@ describe('<remote/ot> OT', () => {
 
     it('insert at first', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Toshodaiji', 'Todaiji', 'Yakushiji'],
+        number: ['3', '1', '2'],
       };
 
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
@@ -204,12 +202,10 @@ describe('<remote/ot> OT', () => {
 
     it('insert at middle', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Toshodaiji', 'Yakushiji'],
+        number: ['1', '3', '2'],
       };
 
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
@@ -218,12 +214,10 @@ describe('<remote/ot> OT', () => {
 
     it('insert at last', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+        number: ['1', '2', '3'],
       };
 
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
@@ -232,12 +226,10 @@ describe('<remote/ot> OT', () => {
 
     it('insert two members', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Toshodaiji', 'Kofukuji', 'Yakushiji'],
+        number: ['1', '3', '4', '2'],
       };
 
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
@@ -246,58 +238,161 @@ describe('<remote/ot> OT', () => {
 
     it('insert two members at a distance', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Toshodaiji', 'Yakushiji', 'Kofukuji'],
+        number: ['1', '3', '2', '4'],
       };
 
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it('move', () => {
+    it('move from the first to the last(1)', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2', '3'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Yakushiji', 'Todaiji'],
+        number: ['2', '3', '1'],
       };
 
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
-      // { temple: { _t: 'a', _1: [ '', 0, 3 ] } }
-      // [ '', 0, 3 ]
+      // console.log(diff);
+      // { number: { _t: 'a', _0: [ '', 2, 3 ] } }
       //  The first member is always ''.
       //  The second member 0 represents destinationIndex
       //  The last member 3 is the magical number that indicates "array move"
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it('delete one', () => {
+    it('move from the first to the last(2)', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2', '3', '4'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Todaiji'],
+        number: ['2', '3', '4', '1'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('move from the last to the first(1)', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['3', '1', '2'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      // console.log(diff);
+      // { number: { _t: 'a', _2: [ '', 0, 3 ] } }
+      //  The first member is always ''.
+      //  The second member 0 represents destinationIndex
+      //  The last member 3 is the magical number that indicates "array move"
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('move from the last to the first(2)', () => {
+      const oldDoc = {
+        number: ['1', '2', '3', '4'],
+      };
+      const newDoc = {
+        number: ['4', '1', '2', '3'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('replace the last with the first(1)', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['3', '2', '1'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('replace the last with the first(2)', () => {
+      const oldDoc = {
+        number: ['1', '2', '3', '4'],
+      };
+      const newDoc = {
+        number: ['4', '2', '3', '1'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('reverse', () => {
+      const oldDoc = {
+        number: ['1', '2', '3', '4'],
+      };
+      const newDoc = {
+        number: ['4', '3', '2', '1'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('shuffle', () => {
+      const oldDoc = {
+        number: ['1', '2', '3', '4', '5'],
+      };
+      const newDoc = {
+        number: ['4', '3', '2', '5', '1'],
+      };
+
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('delete one', () => {
+      const oldDoc = {
+        number: ['1', '2'],
+      };
+      const newDoc = {
+        number: ['1'],
       };
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it('delete two', () => {
+    it('delete middle one', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+        number: ['1', '2', '3'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Todaiji'],
+        number: ['1', '3'],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('delete the last two', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['1'],
+      };
+      const diff = primitiveDiff.diff(oldDoc, newDoc)!;
+      expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
+    });
+
+    it('delete the first two', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['3'],
       };
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
@@ -305,12 +400,10 @@ describe('<remote/ot> OT', () => {
 
     it('delete two at a distance', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji', 'Toshodaiji'],
+        number: ['1', '2', '3'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Yakushiji'],
+        number: ['2'],
       };
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
@@ -318,25 +411,21 @@ describe('<remote/ot> OT', () => {
 
     it('clear array', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: [],
+        number: [],
       };
       const diff = primitiveDiff.diff(oldDoc, newDoc)!;
       expect(jPatch.patch(oldDoc, diff)).toStrictEqual(newDoc);
     });
 
-    it('delete one and add new one at the first position', () => {
+    it('delete one, then add new one at the first position', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Toshodaiji', 'Todaiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Yakushiji', 'Todaiji'],
+        number: ['3', '2'],
       };
 
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
@@ -344,14 +433,12 @@ describe('<remote/ot> OT', () => {
       );
     });
 
-    it('delete one and add new one at the last position', () => {
+    it('delete the first, then add the last', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Toshodaiji', 'Todaiji'],
+        number: ['1', '2'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Todaiji', 'Yakushiji'],
+        number: ['2', '3'],
       };
 
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
@@ -359,14 +446,12 @@ describe('<remote/ot> OT', () => {
       );
     });
 
-    it('delete one and add new one', () => {
+    it('delete one, then add new one', () => {
       const oldDoc = {
-        _id: 'nara',
-        temple: ['Toshodaiji'],
+        number: ['1'],
       };
       const newDoc = {
-        _id: 'nara',
-        temple: ['Yakushiji'],
+        number: ['2'],
       };
 
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
@@ -374,16 +459,81 @@ describe('<remote/ot> OT', () => {
       );
     });
 
-    it('delete two and add new one', () => {
+    it('delete two, then add new one', () => {
+      const oldDoc = {
+        number: ['1', '2'],
+      };
+      const newDoc = {
+        number: ['3'],
+      };
+
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it('delete the first, then move the third to the second', () => {
       const oldDoc = {
         _id: 'nara',
-        temple: ['Toshodaiji', 'Todaiji'],
+        number: ['1', '2', '3', '4'],
       };
       const newDoc = {
         _id: 'nara',
-        temple: ['Yakushiji'],
+        number: ['2', '4', '3'],
       };
+      console.log(primitiveDiff.diff(oldDoc, newDoc));
 
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it('delete the third, then move the first to the last', () => {
+      const oldDoc = {
+        _id: 'nara',
+        number: ['1', '2', '3', '4'],
+      };
+      const newDoc = {
+        _id: 'nara',
+        number: ['2', '4', '1'],
+      };
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it('delete the first, then move the last to the first', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['3', '2'],
+      };
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it('delete the second, then move the last to the first', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['3', '1'],
+      };
+      expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
+        newDoc
+      );
+    });
+
+    it.only('add the first, then move the last to the second', () => {
+      const oldDoc = {
+        number: ['1', '2', '3'],
+      };
+      const newDoc = {
+        number: ['4', '3', '2', '1'],
+      };
+      console.log(primitiveDiff.diff(oldDoc, newDoc)!);
       expect(jPatch.patch(oldDoc, primitiveDiff.diff(oldDoc, newDoc)!)).toStrictEqual(
         newDoc
       );

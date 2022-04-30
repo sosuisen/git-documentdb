@@ -105,7 +105,7 @@ export class JsonPatchOT implements IJsonPatch {
       const isArray = keys.includes('_t');
       if (isArray) {
         // is Array
-        // underscore _ means 'remove' operation
+        // underscore _ means 'remove' or 'move' operation
         keys.sort(); // 1, 2, 3, _1, _2, _3
         let underBarStart = 0;
         for (underBarStart = 0; underBarStart < keys.length; underBarStart++) {
@@ -114,14 +114,51 @@ export class JsonPatchOT implements IJsonPatch {
           }
         }
         const noBar = keys.slice(0, underBarStart);
-        const underBar = keys.slice(underBarStart, keys.length);
+        // eslint-disable-next-line complexity
+        const underBar = keys.slice(underBarStart, keys.length).sort((a, b) => {
+          // Delete commands must be before move commands
+          if (
+            Array.isArray(tree[a]) &&
+            tree[a].length === 3 &&
+            tree[a][1] === 0 &&
+            tree[a][2] === 0
+          ) {
+            // a is delete
+            if (
+              Array.isArray(tree[a]) &&
+              tree[b].length === 3 &&
+              tree[b][1] === 0 &&
+              tree[b][2] === 0
+            ) {
+              // b is also delete
+              return parseInt(a.slice(1), 10) - parseInt(b.slice(1), 10);
+            }
+            // b is move
+            return -1;
+          }
+          // a is move
+          if (
+            Array.isArray(tree[a]) &&
+            tree[b].length === 3 &&
+            tree[b][1] === 0 &&
+            tree[b][2] === 0
+          ) {
+            // b is delete
+            return 1;
+          }
+          // b is also move
+          // sort by destination position
+          return tree[a][1] - tree[b][1];
+        });
         sortedKeys = underBar.concat(noBar); // _1, _2, _3, 1, 2, 3
       }
       else {
         // is Object
         sortedKeys = keys.sort();
       }
-      let removeOffset = 0;
+      const removedIndex: (string | number)[] = [];
+      const insertedIndex: (string | number)[] = [];
+      const movedOperation: { from: number; to: number }[] = [];
       // eslint-disable-next-line complexity
       sortedKeys.forEach(key => {
         if (Array.isArray(tree[key])) {
@@ -131,6 +168,8 @@ export class JsonPatchOT implements IJsonPatch {
               key = parseInt(key.replace(/^_/, ''), 10); // Remove heading underscore
             }
             operations.push(insertOp(ancestors.concat(key), arr[0])!);
+            console.log('## insert:' + key);
+            insertedIndex.push(key);
           }
           else if (arr.length === 2) {
             if (isArray && typeof key === 'string') {
@@ -147,17 +186,40 @@ export class JsonPatchOT implements IJsonPatch {
               // Deleted
               // See https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
               if (typeof key === 'string') {
+                // Delete property
                 operations.push(removeOp(ancestors.concat(key)));
               }
               else {
-                operations.push(removeOp(ancestors.concat((key as number) - removeOffset)));
-                removeOffset++;
+                // Delete from array
+                let offset = -removedIndex.length;
+                insertedIndex.forEach(index => {
+                  if (parseInt(index as string, 10) < parseInt(key as string, 10)) offset++;
+                });
+                operations.push(removeOp(ancestors.concat((key as number) + offset)));
+                removedIndex.push(key);
               }
             }
             else if (arr[0] === '' && arr[2] === 3) {
               // Moved
               // See https://github.com/benjamine/jsondiffpatch/blob/master/docs/deltas.md
-              operations.push(moveOp(ancestors.concat(key), ancestors.concat(arr[1])));
+
+              // Move先のインデックスが小さい操作から順に処理
+              console.log("## " + insertedIndex);
+              let offset = 0;
+              insertedIndex.forEach(index => {
+                if (parseInt(index as string, 10) < parseInt(key as string, 10)) offset++;
+              });
+              removedIndex.forEach(index => {
+                if (parseInt(index as string, 10) < parseInt(key as string, 10)) offset--;
+              });
+              movedOperation.forEach(mop => {
+                if (mop.from < (key as number) && mop.to > arr[1]) offset--;
+                if (mop.from > (key as number) && mop.to < arr[1]) offset++;
+              });
+              operations.push(
+                moveOp(ancestors.concat((key as number) + offset), ancestors.concat(arr[1]))
+              );
+              movedOperation.push({ from: key as number, to: arr[1] });
             }
             else if (typeof firstItem === 'string') {
               let isTextPatch = firstItem.match(/^@@ -\d+?,\d+? \+\d+?,\d+? @@\n/m);
