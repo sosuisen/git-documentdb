@@ -636,7 +636,7 @@ describe('<remote/ot> OT', () => {
     });
 
     describe('merge:', () => {
-      it('merges move and replace', () => {
+      it('replacing take precedence over moving', () => {
         const base = {
           number: ['1', '2', '3'],
         };
@@ -663,15 +663,11 @@ describe('<remote/ot> OT', () => {
         // console.log(diffOurs);
         const diffTheirs = primitiveDiff.diff(base, theirs);
         // console.log(diffTheirs);
-        const patchOurs = jPatch.fromDiff(diffOurs!);
-        // console.log(patchOurs);
-        const patchTheirs = jPatch.fromDiff(diffTheirs!);
-        // console.log(patchTheirs);
 
         expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
       });
 
-      it('merges move and replace (reverse)', () => {
+      it('replacing take precedence over moving (reverse)', () => {
         const base = {
           number: ['1', '2', '3'],
         };
@@ -686,6 +682,10 @@ describe('<remote/ot> OT', () => {
           number: ['3', '1', '2'],
         };
 
+        /**
+         * Result is not ['4', '1', '2' ],
+         * Replacing take precedence over moving
+         */
         const merged = {
           number: ['1', '2', '4'],
         };
@@ -702,25 +702,155 @@ describe('<remote/ot> OT', () => {
         expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
       });
 
-      it.only('merges move and replace, another case', () => {
+      it('removing take precedence over moving', () => {
         const base = {
-          number: ['1', '2', '3', '4'],
+          number: ['1', '2', '3'],
+        };
+
+        // remove
+        const ours = {
+          number: ['1', '2'],
+        };
+
+        // move
+        const theirs = {
+          number: ['3', '1', '2'],
+        };
+
+        // Removing take precedence over moving
+        const merged = {
+          number: ['1', '2'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('removing take precedence over moving (reverse)', () => {
+        const base = {
+          number: ['1', '2', '3'],
         };
 
         // move
         const ours = {
-          number: ['5', '1', '2', '3'],
+          number: ['3', '1', '2'],
+        };
+
+        // remove
+        const theirs = {
+          number: ['1', '2'],
+        };
+
+        // Removing take precedence over moving
+        const merged = {
+          number: ['1', '2'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merges remove and replace', () => {
+        const base = {
+          number: ['1', '2', '3'],
+        };
+
+        const ours = {
+          number: ['1', '2'],
+        };
+
+        const theirs = {
+          number: ['1', '2', '4'],
+        };
+
+        const merged = {
+          number: ['1', '2', '4'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merges insert and remove', () => {
+        const base = {
+          number: ['1', '2', '3'],
+        };
+
+        const ours = {
+          number: ['1', '2'],
+        };
+
+        const theirs = {
+          number: ['4', '1', '2', '3'],
+        };
+
+        const merged = {
+          number: ['4', '1', '2'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it.only('merges move and move', () => {
+        const base = {
+          number: ['1', '2', '3', '4', '5'],
+        };
+
+        const ours = {
+          number: ['5', '3', '2', '4', '1'],
+        };
+
+        const theirs = {
+          number: ['3', '4', '1', '5', '2'],
+        };
+
+        const merged = {
+          number: ['5', '3', '2', '4', '1'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merging insert operations results in duplicate members', () => {
+        const base = {
+          number: ['1', '2'],
+        };
+
+        // move
+        const ours = {
+          number: ['1', '2', '3'],
         };
 
         // replace
         const theirs = {
-          number: ['1', '2', '3', '5'],
+          number: ['3', '1', '2'],
         };
 
-        // TODO:
-        // 5 is duplicated.
+        // 3 is duplicated.
         const merged = {
-          number: ['5', '1', '2', '3', '5'],
+          number: ['3', '1', '2', '3'],
         };
 
         const diffOurs = primitiveDiff.diff(base, ours);

@@ -341,6 +341,7 @@ export class JsonPatchOT implements IJsonPatch {
         transformedOp = type.transform(opOurs, opTheirs, 'right');
       }
     } catch (err: unknown) {
+      // console.log('conflict: ' + JSON.stringify(err));
       if ((err as { conflict: any }).conflict) {
         // console.log('conflict: ' + JSON.stringify((err as { conflict: any }).conflict));
         const conflict = (err as { conflict: any }).conflict as {
