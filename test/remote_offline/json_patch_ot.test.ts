@@ -636,6 +636,87 @@ describe('<remote/ot> OT', () => {
     });
 
     describe('merge:', () => {
+      it('merges insert and insert', () => {
+        const base = {
+          number: ['1', '2', '3'],
+        };
+
+        // move
+        const ours = {
+          number: ['1', '2', '4', '3'],
+        };
+
+        // replace
+        const theirs = {
+          number: ['1', '2', '3', '5'],
+        };
+
+        const merged = {
+          number: ['1', '2', '4', '3', '5'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merges insert and insert (2)', () => {
+        const base = {
+          number: ['1', '2', '3'],
+        };
+
+        // move
+        const ours = {
+          number: ['1', '2', '4', '3'],
+        };
+
+        // replace
+        const theirs = {
+          number: ['1', '2', '5', '3'],
+        };
+
+        const merged = {
+          number: ['1', '2', '4', '5', '3'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merges remove and remove', () => {
+        const base = {
+          number: ['1', '2', '3'],
+        };
+
+        // move
+        const ours = {
+          number: ['1', '2'],
+        };
+
+        // replace
+        const theirs = {
+          number: ['1', '3'],
+        };
+
+        const merged = {
+          number: ['1'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
       it('replacing take precedence over moving', () => {
         const base = {
           number: ['1', '2', '3'],
@@ -808,7 +889,42 @@ describe('<remote/ot> OT', () => {
         expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
       });
 
-      it.only('merges move and move', () => {
+      it('merges move and move the same', () => {
+        /**
+         * See https://github.com/ottypes/json1#limitations.
+         * > We're missing a conflict for situations
+         * > when two operations both move the same object to different locations.
+         * > Currently the left operation will silently 'win'
+         * > and the other operation's move will be discarded.
+         * > But this behaviour should be user configurable
+         */
+        const base = {
+          number: ['1', '2', '3', '4', '5'],
+        };
+
+        const ours = {
+          number: ['5', '2', '3', '4', '1'],
+        };
+
+        // Move the same to another position
+        const theirs = {
+          number: ['1', '2', '3', '5', '4'],
+        };
+
+        // Ours wins silently.
+        const merged = {
+          number: ['5', '2', '3', '4', '1'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merges move all and move all', () => {
         const base = {
           number: ['1', '2', '3', '4', '5'],
         };
@@ -821,8 +937,55 @@ describe('<remote/ot> OT', () => {
           number: ['3', '4', '1', '5', '2'],
         };
 
+        /*
+         * TODO:
+         * The results are not predictable.
+         * JSON1 can not merge moves well.
+         * See https://github.com/ottypes/json1#limitations.
+         * > We're missing a conflict for situations
+         * > when two operations both move the same object to different locations.
+         * > Currently the left operation will silently 'win'
+         * > and the other operation's move will be discarded.
+         * > But this behaviour should be user configurable
+         */
         const merged = {
           number: ['5', '3', '2', '4', '1'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merges move all and move all (2)', () => {
+        const base = {
+          number: ['1', '2', '3', '4', '5'],
+        };
+
+        const ours = {
+          number: ['3', '4', '1', '5', '2'],
+        };
+
+        const theirs = {
+          number: ['5', '3', '2', '4', '1'],
+        };
+
+        /*
+         * TODO:
+         * The results are not predictable.
+         * JSON1 can not merge moves well.
+         * See https://github.com/ottypes/json1#limitations.
+         * > We're missing a conflict for situations
+         * > when two operations both move the same object to different locations.
+         * > Currently the left operation will silently 'win'
+         * > and the other operation's move will be discarded.
+         * > But this behaviour should be user configurable
+         */
+        const merged = {
+          number: ['5', '3', '4', '1', '2'],
         };
 
         const diffOurs = primitiveDiff.diff(base, ours);
