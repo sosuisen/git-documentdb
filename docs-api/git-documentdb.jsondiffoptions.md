@@ -1,20 +1,20 @@
 ---
-sidebar_label: JsonDiffOptions type
-title: JsonDiffOptions type
+sidebar_label: JsonDiffPatchOptions type
+title: JsonDiffPatchOptions type
 hide_title: true
 ---
 
-[Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [JsonDiffOptions](./git-documentdb.jsondiffoptions.md)
+[Home](./index.md) &gt; [git-documentdb](./git-documentdb.md) &gt; [JsonDiffPatchOptions](./git-documentdb.JsonDiffPatchOptions.md)
 
-## JsonDiffOptions type
+## JsonDiffPatchOptions type
 
-JsonDiffOptions
+JsonDiffPatchOptions
 
 <b>Signature:</b>
 
 ```typescript
-export declare type JsonDiffOptions = {
-    idOfSubtree?: string[];
+export declare type JsonDiffPatchOptions = {
+    keyInArrayedObject?: string[];
     plainTextProperties?: {
         [key: string]: any;
     };

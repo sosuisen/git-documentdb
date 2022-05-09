@@ -443,7 +443,7 @@ export class GitDocumentDB
 
     this._schema = options.schema ?? {
       json: {
-        idOfSubtree: undefined,
+        keyInArrayedObject: undefined,
         plainTextProperties: undefined,
       },
     };

@@ -113,7 +113,7 @@ Offline-first Database that Syncs with Git
 |  [HistoryFilter](./git-documentdb.historyfilter.md) | Filter for file history |
 |  [HistoryOptions](./git-documentdb.historyoptions.md) | Options for getHistory() and getFatDocHistory() |
 |  [ICollection](./git-documentdb.icollection.md) | Type for Collection Class |
-|  [JsonDiffOptions](./git-documentdb.jsondiffoptions.md) | JsonDiffOptions |
+|  [JsonDiffPatchOptions](./git-documentdb.JsonDiffPatchOptions.md) | JsonDiffPatchOptions |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | The type for a JSON document that is stored in a database |
 |  [JsonDocMetadata](./git-documentdb.jsondocmetadata.md) | Metadata for JsonDoc |
 |  [NormalizedCommit](./git-documentdb.normalizedcommit.md) | Normalized Commit |

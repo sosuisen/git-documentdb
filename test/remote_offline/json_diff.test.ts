@@ -395,7 +395,7 @@ describe('<remote/diff> diff', () => {
 
     it('of object by objectHash', () => {
       const myDiff = new JsonDiff({
-        idOfSubtree: ['place'],
+        keyInArrayedObject: ['place'],
       });
 
       const oldDoc = {

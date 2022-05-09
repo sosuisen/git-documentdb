@@ -1,20 +1,20 @@
 import { create } from '@sosuisen/jsondiffpatch';
-import { JsonDiffOptions, JsonDoc } from '../types';
+import { JsonDiffPatchOptions, JsonDoc } from '../types';
 
 const JSON_DIFF_MINIMUM_TEXT_LENGTH = Number.MAX_SAFE_INTEGER;
 
 export class JsonDiff {
   private _jsonDiffPatch;
-  constructor (options?: JsonDiffOptions) {
+  constructor (options?: JsonDiffPatchOptions) {
     options ??= {
-      idOfSubtree: undefined,
+      keyInArrayedObject: undefined,
       plainTextProperties: undefined,
     };
-    options.idOfSubtree ??= [];
+    options.keyInArrayedObject ??= [];
 
     const objectHash = (obj: { [key: string]: any }, index: number) => {
-      for (let i = 0; i < options!.idOfSubtree!.length; i++) {
-        const id = obj[options!.idOfSubtree![i]];
+      for (let i = 0; i < options!.keyInArrayedObject!.length; i++) {
+        const id = obj[options!.keyInArrayedObject![i]];
         if (id !== undefined) {
           return id;
         }

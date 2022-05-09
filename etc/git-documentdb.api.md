@@ -752,8 +752,8 @@ export interface IJsonPatch {
 export const JSON_EXT = ".json";
 
 // @public
-export type JsonDiffOptions = {
-    idOfSubtree?: string[];
+export type JsonDiffPatchOptions = {
+    keyInArrayedObject?: string[];
     plainTextProperties?: {
         [key: string]: any;
     };
@@ -949,7 +949,7 @@ export class RemoteRepository {
 
 // @public
 export type Schema = {
-    json: JsonDiffOptions;
+    json: JsonDiffPatchOptions;
 };
 
 // @public (undocumented)

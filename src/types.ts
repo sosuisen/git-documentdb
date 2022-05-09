@@ -83,18 +83,20 @@ export type OpenOptions = {
  * @public
  */
 export type Schema = {
-  json: JsonDiffOptions;
+  json: JsonDiffPatchOptions;
 };
 
 /**
- * JsonDiffOptions
+ * JsonDiffPatchOptions
  *
  * @remarks
- *  - plainTextProperties: Only property whose key matches plainTextProperties uses text diff and patch algorithm (google-diff-match-patch).
+ *  - plainTextProperties: Only property whose key matches plainTextProperties uses text-diff-and-patch algorithm (google-diff-match-patch).
+ *  - keyInArrayedObject: To diff between arrays that contain objects as elements, you must specify a key in the object. See https://github.com/benjamine/jsondiffpatch/blob/master/docs/arrays.md#an-object-hash
+ *  - keyOfUniqueArray: Set a key of a unique array. Unique array never include duplicated members after JSON patch.
  *
  * @example
  * ```
- * e.g.
+ * Example of plainTextProperties:
  * { a: { b: true }, c: true } matches 'b' (whose ancestor is only 'a') and 'c'.
  * { a: { _all: true } } matches all child properties of 'a'.
  * { a: { _regex: /abc/ } } matches child properties of 'a' which match /abc/.
@@ -102,8 +104,9 @@ export type Schema = {
  *
  * @public
  */
-export type JsonDiffOptions = {
-  idOfSubtree?: string[];
+export type JsonDiffPatchOptions = {
+  keyInArrayedObject?: string[];
+  keyOfUniqueArray?: string[];
   plainTextProperties?: { [key: string]: any };
 };
 

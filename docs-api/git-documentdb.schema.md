@@ -14,10 +14,10 @@ Schema for specific document type
 
 ```typescript
 export declare type Schema = {
-    json: JsonDiffOptions;
+    json: JsonDiffPatchOptions;
 };
 ```
 <b>References:</b>
 
-[JsonDiffOptions](./git-documentdb.jsondiffoptions.md)
+[JsonDiffPatchOptions](./git-documentdb.JsonDiffPatchOptions.md)
 

@@ -612,7 +612,7 @@ describe('<remote/ot> OT', () => {
 
     it('of objects by objectHash', () => {
       const myDiff = new JsonDiff({
-        idOfSubtree: ['place'],
+        keyInArrayedObject: ['place'],
       });
 
       const oldDoc = {
