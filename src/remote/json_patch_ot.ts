@@ -342,7 +342,7 @@ export class JsonPatchOT implements IJsonPatch {
       }
     } catch (err: unknown) {
       if ((err as { conflict: any }).conflict) {
-        // console.log('conflict: ' + JSON.stringify(err.conflict));
+        // console.log('conflict: ' + JSON.stringify((err as { conflict: any }).conflict));
         const conflict = (err as { conflict: any }).conflict as {
           type: number;
           op1: any[];
