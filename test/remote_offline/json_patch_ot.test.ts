@@ -12,6 +12,10 @@ const textOTDiff = new JsonDiff({
 
 const jPatch = new JsonPatchOT();
 
+const jPatchUniqueArray = new JsonPatchOT({
+  keyOfUniqueArray: ['unique'],
+});
+
 describe('<remote/ot> OT', () => {
   describe('apply:', () => {
     it('apply op', () => {
@@ -995,7 +999,9 @@ describe('<remote/ot> OT', () => {
 
         expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
       });
+    });
 
+    describe('duplicated members in array', () => {
       it('merging insert operations results in duplicate members', () => {
         const base = {
           number: ['1', '2'],
@@ -1020,12 +1026,295 @@ describe('<remote/ot> OT', () => {
         // console.log(diffOurs);
         const diffTheirs = primitiveDiff.diff(base, theirs);
         // console.log(diffTheirs);
-        const patchOurs = jPatch.fromDiff(diffOurs!);
-        // console.log(patchOurs);
-        const patchTheirs = jPatch.fromDiff(diffTheirs!);
-        // console.log(patchTheirs);
 
         expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merging insert operations results in duplicate members (2)', () => {
+        const base = {
+          number: ['1', '2'],
+        };
+
+        // move
+        const ours = {
+          number: ['1', '2', '3'],
+        };
+
+        // replace
+        const theirs = {
+          number: ['1', '2', '3'],
+        };
+
+        // 3 is duplicated.
+        const merged = {
+          number: ['1', '2', '3', '3'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatch.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(merged);
+      });
+
+      it('merging insert operations by unique array', () => {
+        const base = {
+          unique: ['1', '2'],
+        };
+
+        const ours = {
+          unique: ['1', '2', '3'],
+        };
+
+        const theirs = {
+          unique: ['3', '1', '2'],
+        };
+
+        // Result is ['3', '1', '2', '3'] if not unique array.
+        // ours-diff strategy is applied to remove the first '3'.
+        const merged = {
+          unique: ['1', '2', '3'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatchUniqueArray.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(
+          merged
+        );
+      });
+
+      it('merging insert operations by unique array (reverse)', () => {
+        const base = {
+          unique: ['1', '2'],
+        };
+
+        const ours = {
+          unique: ['3', '1', '2'],
+        };
+
+        const theirs = {
+          unique: ['1', '2', '3'],
+        };
+
+        // Result is ['3', '1', '2', '3'] if not unique array.
+        // ours-diff strategy is applied to remove the last '3'.
+        const merged = {
+          unique: ['3', '1', '2'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatchUniqueArray.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(
+          merged
+        );
+      });
+
+      it('merging insert operations by unique array (2)', () => {
+        const base = {
+          unique: ['1', '2'],
+        };
+
+        const ours = {
+          unique: ['1', '2', '3'],
+        };
+
+        const theirs = {
+          unique: ['1', '2', '3'],
+        };
+
+        // Result is ['1', '2', '3', '3'] if not unique array.
+        // ours-diff strategy is applied to remove the last '3'.
+        const merged = {
+          unique: ['1', '2', '3'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatchUniqueArray.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(
+          merged
+        );
+      });
+
+      it('merging insert operations by unique array and theirs-diff', () => {
+        const base = {
+          unique: ['1', '2'],
+        };
+
+        const ours = {
+          unique: ['1', '2', '3'],
+        };
+
+        const theirs = {
+          unique: ['3', '1', '2'],
+        };
+
+        // Result is ['3', '1', '2', '3'] if not unique array.
+        // theirs-diff strategy is applied to remove the last '3'.
+        const merged = {
+          unique: ['3', '1', '2'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(
+          jPatchUniqueArray.patch(ours, diffOurs!, theirs, diffTheirs, 'theirs-diff')
+        ).toStrictEqual(merged);
+      });
+
+      it('merging insert operations by unique array and theirs-diff (reverse)', () => {
+        const base = {
+          unique: ['1', '2'],
+        };
+
+        const ours = {
+          unique: ['3', '1', '2'],
+        };
+
+        const theirs = {
+          unique: ['1', '2', '3'],
+        };
+
+        // Result is ['3', '1', '2', '3'] if not unique array.
+        // theirs-diff strategy is applied to remove the first '3'.
+        const merged = {
+          unique: ['1', '2', '3'],
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(
+          jPatchUniqueArray.patch(ours, diffOurs!, theirs, diffTheirs, 'theirs-diff')
+        ).toStrictEqual(merged);
+      });
+
+      it('merging insert operations by unique array in a deep subtree', () => {
+        const base = {
+          a: 'a',
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['1', '2'],
+            },
+          },
+        };
+
+        const ours = {
+          a: 'a',
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['1', '2', '3'],
+            },
+          },
+        };
+
+        const theirs = {
+          a: 'a',
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['3', '1', '2'],
+            },
+          },
+        };
+
+        // Result is ['3', '1', '2', '3'] if not unique array.
+        // ours-diff strategy is applied to remove the first '3'.
+        const merged = {
+          a: 'a',
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['1', '2', '3'],
+            },
+          },
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatchUniqueArray.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(
+          merged
+        );
+      });
+
+      it('multiple unique array appears', () => {
+        const base = {
+          unique: ['1', '2'],
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['1', '2'],
+            },
+          },
+        };
+
+        const ours = {
+          unique: ['1', '2', '3'],
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['1', '2', '3'],
+            },
+          },
+        };
+
+        const theirs = {
+          unique: ['3', '1', '2'],
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['3', '1', '2'],
+            },
+          },
+        };
+
+        // Result is ['3', '1', '2', '3'] if not unique array.
+        // ours-diff strategy is applied to remove the first '3'.
+        const merged = {
+          unique: ['1', '2', '3'],
+          b: {
+            c: 'c',
+            d: {
+              e: 'e',
+              unique: ['1', '2', '3'],
+            },
+          },
+        };
+
+        const diffOurs = primitiveDiff.diff(base, ours);
+        // console.log(diffOurs);
+        const diffTheirs = primitiveDiff.diff(base, theirs);
+        // console.log(diffTheirs);
+
+        expect(jPatchUniqueArray.patch(ours, diffOurs!, theirs, diffTheirs)).toStrictEqual(
+          merged
+        );
       });
     });
   });

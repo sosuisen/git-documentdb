@@ -2,11 +2,24 @@
 /* eslint-disable max-depth */
 import { editOp, insertOp, JSONOp, moveOp, removeOp, replaceOp, type } from 'ot-json1';
 import { uniCount } from 'unicount';
-import { ConflictResolutionStrategyLabels, IJsonPatch, JsonDoc } from '../types';
+import {
+  ConflictResolutionStrategyLabels,
+  IJsonPatch,
+  JsonDiffPatchOptions,
+  JsonDoc,
+} from '../types';
 import { DEFAULT_CONFLICT_RESOLUTION_STRATEGY } from '../const';
 
 export class JsonPatchOT implements IJsonPatch {
-  constructor () {}
+  private _keyOfUniqueArray: string[];
+
+  constructor (options?: JsonDiffPatchOptions) {
+    options ??= {
+      keyOfUniqueArray: undefined,
+    };
+    this._keyOfUniqueArray =
+      options.keyOfUniqueArray !== undefined ? options.keyOfUniqueArray : [];
+  }
 
   private _textCreateOp (path: (string | number)[], startNum: number, str: string): JSONOp {
     if (startNum > 0) {
@@ -294,6 +307,7 @@ export class JsonPatchOT implements IJsonPatch {
     return (type.apply(doc, op) as unknown) as JsonDoc;
   }
 
+  // eslint-disable-next-line complexity
   patch (
     docOurs: JsonDoc,
     diffOurs: { [key: string]: any },
@@ -321,6 +335,75 @@ export class JsonPatchOT implements IJsonPatch {
       // console.log('# apply to: ' + JSON.stringify(docTheirs));
       newDoc = (type.apply(docTheirs, transformedOp!) as unknown) as JsonDoc;
     }
+
+    if (this._keyOfUniqueArray !== undefined && this._keyOfUniqueArray.length > 0) {
+      const ourTrees: JsonDoc[] = [docOurs];
+      const theirTrees: JsonDoc[] = [docTheirs];
+      const trees: JsonDoc[] = [newDoc];
+      while (trees.length > 0) {
+        const currentTree = trees.pop();
+        const currentOurTree = ourTrees.pop();
+        const currentTheirTree = theirTrees.pop();
+        if (
+          currentTree === undefined ||
+          currentOurTree === undefined ||
+          currentTheirTree === undefined
+        )
+          break;
+
+        Object.keys(currentTree!).forEach(key => {
+          if (!Array.isArray(currentTree![key]) && typeof currentTree![key] === 'object') {
+            trees.push(currentTree![key]);
+            ourTrees.push(currentOurTree![key]);
+            theirTrees.push(currentTheirTree![key]);
+          }
+          else if (this._keyOfUniqueArray.includes(key)) {
+            const array = currentTree![key] as any[];
+            const ourArray = currentOurTree![key] as any[];
+            const theirArray = currentTheirTree![key] as any[];
+            if (Array.isArray(array)) {
+              // eslint-disable-next-line complexity
+              const unique = array.filter((x, i, self) => {
+                if (self.indexOf(x) === i && i !== self.lastIndexOf(x)) {
+                  if (
+                    strategy!.startsWith('ours') &&
+                    ourArray.indexOf(x) <= theirArray.indexOf(x)
+                  ) {
+                    return true;
+                  }
+                  else if (
+                    strategy!.startsWith('theirs') &&
+                    ourArray.indexOf(x) > theirArray.indexOf(x)
+                  ) {
+                    return true;
+                  }
+                  return false;
+                }
+                else if (self.indexOf(x) !== i && i === self.lastIndexOf(x)) {
+                  if (
+                    strategy!.startsWith('ours') &&
+                    ourArray.indexOf(x) > theirArray.indexOf(x)
+                  ) {
+                    return true;
+                  }
+                  else if (
+                    strategy!.startsWith('theirs') &&
+                    ourArray.indexOf(x) <= theirArray.indexOf(x)
+                  ) {
+                    return true;
+                  }
+                  return false;
+                }
+
+                return true;
+              });
+              currentTree![key] = unique;
+            }
+          }
+        });
+      }
+    }
+
     return newDoc;
   }
 

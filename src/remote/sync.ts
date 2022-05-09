@@ -408,7 +408,7 @@ export class Sync implements SyncInterface {
     this._options.conflictResolutionStrategy ??= DEFAULT_CONFLICT_RESOLUTION_STRATEGY;
 
     this.jsonDiff = new JsonDiff(gitDDB.schema.json);
-    this.jsonPatch = new JsonPatchOT();
+    this.jsonPatch = new JsonPatchOT(gitDDB.schema.json);
 
     this._options.connection ??= { type: 'none' };
     this._options.connection.engine ??= default_engine_name;
