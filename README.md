@@ -19,7 +19,7 @@ Use GitDocumentDB to ...
 
 :arrows_counterclockwise: Integrate CI/CD pipelines through GitHub.
 
-:dromedary_camel: Get revision history of a document.
+:dromedary_camel: Get the revision history of a document.
 
 [(More...)](https://gitddb.com/)
 
@@ -230,6 +230,7 @@ https://github.com/sosuisen/inventory-manager
   - Remove native module (NodeGit) from default install :feet:
   - Add plugin system for remote connection (isomorphic-git or NodeGit) :feet:
   - Connect with SSH key pair :feet:
+  - Add Front-Matter-Markdown format :feet:
   - Connect to GitHub with OAuth :dog2:(Next)
   - Work on browser
 
