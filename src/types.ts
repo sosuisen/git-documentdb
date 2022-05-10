@@ -91,7 +91,9 @@ export type Schema = {
  *
  * @remarks
  *  - plainTextProperties: Only property whose key matches plainTextProperties uses text-diff-and-patch algorithm (google-diff-match-patch).
+ *
  *  - keyInArrayedObject: To diff between arrays that contain objects as elements, you must specify a key in the object. See https://github.com/benjamine/jsondiffpatch/blob/master/docs/arrays.md#an-object-hash
+ *
  *  - keyOfUniqueArray: Set a key of a unique array. Unique array never include duplicated members after JSON patch.
  *
  * @example
@@ -141,6 +143,8 @@ export type DatabaseOpenResult = DatabaseInfo & {
  * - creator: A creator of the database. Default is 'GitDocumentDB'. 'GitDocumentDB' ensures that the repository is created according to the GitDocumentDB scheme.
  *
  * - version: A version of the GitDocumentDB specification. The version can be used for database migration.
+ *
+ * - serialize: Serialize format of the database.
  *
  * @public
  */
@@ -306,11 +310,15 @@ export type FatDoc = FatJsonDoc | FatTextDoc | FatBinaryDoc;
 
 /**
  * Format for serialization
+ *
+ * @public
  */
 export type SerializeFormatLabel = 'json' | 'front-matter';
 
 /**
  * Interface for serialize format classes
+ *
+ * @internal
  */
 export interface SerializeFormat {
   format: SerializeFormatLabel;
@@ -1226,12 +1234,19 @@ export interface IJsonPatch {
 
 /**
  * Colored log
+ *
+ * @internal
  */
 export type ColoredLog = (
   mes: string,
   colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string
 ) => void;
 
+/**
+ * Colored logger
+ *
+ * @internal
+ */
 export type ColoredLogger = {
   silly: ColoredLog;
   debug: ColoredLog;

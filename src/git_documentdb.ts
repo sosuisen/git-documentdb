@@ -198,6 +198,12 @@ export class GitDocumentDB
   }
 
   private _tsLogger!: Logger;
+  /**
+   * Get logger
+   *
+   * @readonly
+   * @public
+   */
   get tsLogger (): Logger {
     return this._tsLogger;
   }
