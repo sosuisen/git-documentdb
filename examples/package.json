@@ -8,13 +8,14 @@
     "start": "npm run build && node dist/index.js",
     "collection": "npm run build && node dist/collection.js",
     "sync": "rm -rf ./git-documentdb/ && npm run build && node dist/sync.js",
-    "plugin": "npm run build && node dist/plugin.js"
+    "plugin": "npm run build && node dist/plugin.js",
+    "clear": "npx rimraf node_modules"
   },
   "author": "",
   "license": "MPL-2.0",
   "dependencies": {
     "git-documentdb": "file:..",
-    "git-documentdb-plugin-remote-nodegit": "^1.0.5-alpha.0"
+    "git-documentdb-plugin-remote-nodegit": "^1.0.4"
   },
   "devDependencies": {
     "typescript": "^4.1.3"
