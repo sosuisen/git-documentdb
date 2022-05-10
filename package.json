@@ -1,6 +1,6 @@
 {
   "name": "git-documentdb",
-  "version": "0.4.7-beta.1",
+  "version": "0.4.7",
   "description": "Offline-first database that syncs with Git",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "rm -rf dist/* && npm run lint && tsc --project src/tsconfig.json",
-    "doc": "npm run build && npm run api-extractor && npm run crlf",
+    "doc": "npm run build && rm -rf docs-api/* && npm run api-extractor && npm run crlf",
     "mocha-parallel": "npm run rm-test-db && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha",
     "mocha-no-parallel": "npm run rm-test-db && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha --retries 0 --no-parallel",
     "mocha-unit-parallel": "npm run rm-test-db && npx cross-env TS_NODE_FILES=true TS_NODE_PROJECT=tsconfig.mocha.json mocha --retries 0",
