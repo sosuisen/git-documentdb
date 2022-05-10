@@ -13,5 +13,5 @@ Get logger
 <b>Signature:</b>
 
 ```typescript
-get logger(): Logger;
+get logger(): ColoredLogger;
 ```

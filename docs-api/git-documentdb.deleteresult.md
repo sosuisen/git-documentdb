@@ -21,7 +21,7 @@ export declare type DeleteResult = DeleteResultJsonDoc | DeleteResultText | Dele
 
 ## Remarks
 
-- \_id: \_id of a JSON document. This is a file name without .json extension. PutResult does not have \_id if a document is not [JsonDoc](./git-documentdb.jsondoc.md) type.
+- \_id: \_id of a JSON document. This is a file name without extension. PutResult does not have \_id if a document is not [JsonDoc](./git-documentdb.jsondoc.md) type.
 
 - name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
 

@@ -20,7 +20,7 @@ getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | und
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string | \_id is a file path whose .json extension is omitted. |
+|  \_id | string | \_id is a file path whose extension is omitted. |
 |  historyOptions | [HistoryOptions](./git-documentdb.historyoptions.md) | The array of revisions is filtered by HistoryOptions.filter. |
 
 <b>Returns:</b>
@@ -29,7 +29,7 @@ Promise&lt;([JsonDoc](./git-documentdb.jsondoc.md) \| undefined)\[\]&gt;
 
 Array of FatDoc or undefined. - undefined if a specified document does not exist or it is deleted.
 
-- JsonDoc if isJsonDocCollection is true or the file extension is '.json'.
+- JsonDoc if isJsonDocCollection is true or the file extension is SerializeFormat.extension.
 
 - Uint8Array or string if isJsonDocCollection is false.
 

@@ -23,9 +23,9 @@ export declare type JsonDocMetadata = {
 
 ## Remarks
 
-- \_id: \_id of a JSON document. This is a file name without .json extension.
+- \_id: \_id of a JSON document. This is a file name without extension.
 
-- name: A file name in Git. e.g.) "foo.json", "bar/baz.json"
+- name: A file name in Git. e.g.) "foo.json", "bar/baz.md"
 
 - fileOid: SHA-1 hash of Git object (40 characters)
 

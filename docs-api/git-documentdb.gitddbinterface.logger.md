@@ -11,5 +11,5 @@ hide_title: true
 <b>Signature:</b>
 
 ```typescript
-logger: Logger;
+logger: ColoredLogger;
 ```

@@ -8,7 +8,7 @@ hide_title: true
 
 ## encodeToGitRemoteName() function
 
-encodeToRemoteName
+encodeToGitRemoteName
 
 <b>Signature:</b>
 

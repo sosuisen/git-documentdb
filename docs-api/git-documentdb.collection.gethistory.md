@@ -27,11 +27,13 @@ getHistory(_id: string, historyOptions?: HistoryOptions): Promise<(JsonDoc | und
 
 Promise&lt;([JsonDoc](./git-documentdb.jsondoc.md) \| undefined)\[\]&gt;
 
-Array of JsonDoc or undefined. - undefined if a specified document does not exist or it is deleted.
+Array of JsonDoc or undefined if a specified document does not exist or it is deleted.
 
 ## Remarks
 
 - By default, revisions are sorted by reverse chronological order. However, keep in mind that Git dates may not be consistent across repositories.
+
+- If serializeFormat is front-matter, this function can't work for .yml files. Use getFatDocHistory() instead. e.g.) foo.yml
 
 ## Example
 

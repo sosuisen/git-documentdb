@@ -4,6 +4,7 @@
 
 ```ts
 
+import { ILogObject } from 'tslog';
 import { JSONOp } from 'ot-json1';
 import { Logger } from 'tslog';
 import { TLogLevelName } from 'tslog';
@@ -56,7 +57,7 @@ export class Collection implements ICollection {
     deleteFatDoc(shortName: string, options?: DeleteOptions): Promise<DeleteResult>;
     find(options?: FindOptions): Promise<JsonDoc[]>;
     findFatDoc(options?: FindOptions): Promise<FatDoc[]>;
-    generateId(): string;
+    generateId(seedTime?: number): string;
     get(_id: string): Promise<JsonDoc | undefined>;
     getCollections(dirPath?: string): Promise<ICollection[]>;
     getDocByOid(fileOid: string, docType?: DocType): Promise<Doc | undefined>;
@@ -108,10 +109,29 @@ export interface CollectionInterface {
 export type CollectionOptions = {
     namePrefix?: string;
     debounceTime?: number;
+    idGenerator?: () => string;
 };
 
 // @public
 export type CollectionPath = string;
+
+// Warning: (ae-internal-missing-underscore) The name "ColoredLog" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export type ColoredLog = (mes: string, colorTag?: () => (literals: TemplateStringsArray, ...placeholders: any[]) => string) => void;
+
+// Warning: (ae-internal-missing-underscore) The name "ColoredLogger" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export type ColoredLogger = {
+    silly: ColoredLog;
+    debug: ColoredLog;
+    trace: ColoredLog;
+    info: ColoredLog;
+    warn: ColoredLog;
+    error: ColoredLog;
+    fatal: ColoredLog;
+};
 
 // @public
 export type CombineDbStrategies = 'throw-error' | 'combine-head-with-ours' | 'combine-head-with-theirs' | 'combine-history-with-ours' | 'combine-history-with-theirs' | 'replace-with-ours' | 'replace-with-theirs';
@@ -219,6 +239,7 @@ export type DatabaseInfo = {
     dbId: string;
     creator: string;
     version: string;
+    serialize: SerializeFormatLabel;
 };
 
 // @public
@@ -234,6 +255,9 @@ export type DatabaseOptions = {
     dbName: string;
     logLevel?: TLogLevelName;
     schema?: Schema;
+    serialize?: SerializeFormatLabel;
+    logToTransport?: (logObject: ILogObject) => void;
+    logColorEnabled?: boolean;
 };
 
 // @public (undocumented)
@@ -548,6 +572,9 @@ export type FindOptions = {
 // @public (undocumented)
 export const FIRST_COMMIT_MESSAGE = "first commit";
 
+// @public (undocumented)
+export const FRONT_MATTER_POSTFIX = ".md";
+
 // Warning: (ae-internal-missing-underscore) The name "generateDatabaseId" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -591,6 +618,7 @@ export interface GitDDBInterface {
     dbId: string;
     // (undocumented)
     dbName: string;
+    // (undocumented)
     defaultBranch: string;
     // (undocumented)
     destroy(options: DatabaseCloseOption): Promise<{
@@ -612,8 +640,10 @@ export interface GitDDBInterface {
     loadDbInfo(): void;
     // (undocumented)
     localDir: string;
+    // Warning: (ae-incompatible-release-tags) The symbol "logger" is marked as @public, but its signature references "ColoredLogger" which is marked as @internal
+    //
     // (undocumented)
-    logger: Logger;
+    logger: ColoredLogger;
     logLevel: TLogLevelName;
     open(options?: OpenOptions): Promise<DatabaseOpenResult>;
     // (undocumented)
@@ -624,12 +654,17 @@ export interface GitDDBInterface {
     saveAuthor(): Promise<void>;
     // (undocumented)
     schema: Schema;
+    // Warning: (ae-forgotten-export) The symbol "SerializeFormatJSON" needs to be exported by the entry point main.d.ts
+    // Warning: (ae-forgotten-export) The symbol "SerializeFormatFrontMatter" needs to be exported by the entry point main.d.ts
+    serializeFormat: SerializeFormatJSON | SerializeFormatFrontMatter;
     // (undocumented)
     sync(options: RemoteOptions, getSyncResult: boolean): Promise<[SyncInterface, SyncResult]>;
     // (undocumented)
     sync(options: RemoteOptions): Promise<SyncInterface>;
     // (undocumented)
     taskQueue: TaskQueue;
+    // (undocumented)
+    tsLogger: Logger;
     // (undocumented)
     validator: Validator;
     // (undocumented)
@@ -680,9 +715,11 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     // @internal
     loadDbInfo(): Promise<void>;
     get localDir(): string;
-    get logger(): Logger;
+    // Warning: (ae-incompatible-release-tags) The symbol "logger" is marked as @public, but its signature references "ColoredLogger" which is marked as @internal
+    get logger(): ColoredLogger;
     get logLevel(): TLogLevelName;
     set logLevel(level: TLogLevelName);
+    get logToTransport(): ((logObject: ILogObject) => void) | undefined;
     // @eventProperty
     offSyncEvent(remoteURL: string, event: SyncEvent, callback: SyncCallback): void;
     // @eventProperty
@@ -701,9 +738,12 @@ export class GitDocumentDB implements GitDDBInterface, CRUDInterface, Collection
     get rootCollection(): ICollection;
     saveAuthor(): Promise<void>;
     get schema(): Schema;
+    // (undocumented)
+    get serializeFormat(): SerializeFormatJSON | SerializeFormatFrontMatter;
     sync(options: RemoteOptions): Promise<Sync>;
     sync(options: RemoteOptions, getSyncResult: boolean): Promise<[Sync, SyncResult]>;
     get taskQueue(): TaskQueue;
+    get tsLogger(): Logger;
     update(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     update(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
     updateFatDoc(name: string | undefined | null, doc: JsonDoc | string | Uint8Array, options?: PutOptions): Promise<PutResult>;
@@ -733,7 +773,7 @@ export type ICollection = CollectionInterface & CRUDInterface & SyncEventInterfa
     options: CollectionOptions;
     collectionPath: string;
     parent: ICollection | undefined;
-    generateId(): string;
+    generateId(seedTime?: number): string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "IJsonPatch" should be prefixed with an underscore because the declaration is marked as @internal
@@ -749,11 +789,12 @@ export interface IJsonPatch {
 }
 
 // @public (undocumented)
-export const JSON_EXT = ".json";
+export const JSON_POSTFIX = ".json";
 
 // @public
 export type JsonDiffPatchOptions = {
     keyInArrayedObject?: string[];
+    keyOfUniqueArray?: string[];
     plainTextProperties?: {
         [key: string]: any;
     };
@@ -952,6 +993,32 @@ export type Schema = {
     json: JsonDiffPatchOptions;
 };
 
+// Warning: (ae-internal-missing-underscore) The name "SerializeFormat" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface SerializeFormat {
+    // (undocumented)
+    extension: (doc?: JsonDoc) => string;
+    // (undocumented)
+    firstExtension: string;
+    // (undocumented)
+    format: SerializeFormatLabel;
+    // (undocumented)
+    hasObjectExtension: (path: string) => boolean;
+    // (undocumented)
+    removeExtension: (path: string) => string;
+    // (undocumented)
+    secondExtension: string | undefined;
+    // (undocumented)
+    serialize: (doc: JsonDoc) => {
+        extension: string;
+        data: string;
+    };
+}
+
+// @public
+export type SerializeFormatLabel = 'json' | 'front-matter';
+
 // @public (undocumented)
 export const SET_DATABASE_ID_MESSAGE = "set database id";
 
@@ -1023,6 +1090,7 @@ export class Sync implements SyncInterface {
         interval?: number;
         retry?: number;
     }): boolean;
+    runBeforeLiveSync: (() => void) | undefined;
     tryPush(): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
     // @internal
     tryPushImpl(calledAsPeriodicTask: boolean): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
@@ -1150,6 +1218,7 @@ export interface SyncInterface {
         interval?: number;
         retry?: number;
     }): void;
+    runBeforeLiveSync: (() => void) | undefined;
     // (undocumented)
     tryPush(): Promise<SyncResultPush | SyncResultCancel | SyncResultNop>;
     // (undocumented)
@@ -1290,7 +1359,8 @@ export type TaskMetadata = {
 
 // @public
 export class TaskQueue {
-    constructor(logger: Logger);
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ColoredLogger" which is marked as @internal
+    constructor(logger: ColoredLogger);
     currentStatistics(): TaskStatistics;
     currentTaskId(): string | undefined;
     getEnqueueTime(): string;
@@ -1300,7 +1370,7 @@ export class TaskQueue {
     // @internal
     pushToTaskQueue(task: Task): void;
     // @internal
-    setLogger(logger: Logger): void;
+    setLogger(logger: ColoredLogger): void;
     start(): void;
     stop(): void;
     // @internal (undocumented)
@@ -1358,6 +1428,9 @@ export function wrappingRemoteEngineError(remoteEngineError: BaseError): Error;
 
 // @public
 export type WriteOperation = 'insert' | 'update' | 'delete' | 'insert-merge' | 'update-merge';
+
+// @public (undocumented)
+export const YAML_POSTFIX = ".yml";
 
 // Warnings were encountered during analysis:
 //

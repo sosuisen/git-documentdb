@@ -20,7 +20,7 @@ insert(jsonDoc: JsonDoc, options?: PutOptions): Promise<PutResultJsonDoc>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | JsonDoc whose \_id is shortId. shortId is a file path whose collectionPath and .json extension are omitted. |
+|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | JsonDoc whose \_id is shortId. shortId is a file path whose collectionPath and extension are omitted. |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
 <b>Returns:</b>
@@ -33,7 +33,7 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 - If \_id is undefined, it is automatically generated.
 
-- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}.json` .
+- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${jsonDoc._id}${extension}` .
 
 ## Exceptions
 

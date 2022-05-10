@@ -27,6 +27,7 @@ export interface SyncInterface
 |  [remoteName](./git-documentdb.syncinterface.remotename.md) | string |  |
 |  [remoteRepository](./git-documentdb.syncinterface.remoterepository.md) | [RemoteRepository](./git-documentdb.remoterepository.md) |  |
 |  [remoteURL](./git-documentdb.syncinterface.remoteurl.md) | string | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties (readonly) \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
+|  [runBeforeLiveSync](./git-documentdb.syncinterface.runbeforelivesync.md) | (() =&gt; void) \| undefined | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 
 ## Methods
 

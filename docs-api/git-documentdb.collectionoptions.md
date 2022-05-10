@@ -16,6 +16,7 @@ Options for Collection constructor
 export declare type CollectionOptions = {
     namePrefix?: string;
     debounceTime?: number;
+    idGenerator?: () => string;
 };
 ```
 

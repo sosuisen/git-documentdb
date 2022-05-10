@@ -23,7 +23,7 @@ export declare class Collection implements ICollection
 
 In a collection API, shortId (shortName) is used instead of \_id (name).
 
-- shortId is a file path whose collectionPath and .json extension are omitted. (\_id = collectionPath + shortId)
+- shortId is a file path whose collectionPath and extension are omitted. (\_id = collectionPath + shortId)
 
 - shortName is a file path whose collectionPath is omitted. (name = collectionPath + shortName)
 
@@ -67,7 +67,7 @@ gitDDB.collection('Nara').get({ _id: 'flower' }); // returns { _id: 'flower', na
 |  [deleteFatDoc(shortName, options)](./git-documentdb.collection.deletefatdoc.md) |  | Delete a data |
 |  [find(options)](./git-documentdb.collection.find.md) |  | Get all the JSON documents |
 |  [findFatDoc(options)](./git-documentdb.collection.findfatdoc.md) |  | Get all the FatDoc data |
-|  [generateId()](./git-documentdb.collection.generateid.md) |  | Generate new \_id as monotonic ULID |
+|  [generateId(seedTime)](./git-documentdb.collection.generateid.md) |  | Generate new \_id as monotonic ULID |
 |  [get(\_id)](./git-documentdb.collection.get.md) |  | Get a JSON document |
 |  [getCollections(dirPath)](./git-documentdb.collection.getcollections.md) |  | Get collections directly under the specified dirPath. |
 |  [getDocByOid(fileOid, docType)](./git-documentdb.collection.getdocbyoid.md) |  | Get a Doc which has specified oid |

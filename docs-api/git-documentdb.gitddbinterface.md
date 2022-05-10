@@ -24,15 +24,17 @@ export interface GitDDBInterface
 |  [committer](./git-documentdb.gitddbinterface.committer.md) | { name: string; email: string; } |  |
 |  [dbId](./git-documentdb.gitddbinterface.dbid.md) | string |  |
 |  [dbName](./git-documentdb.gitddbinterface.dbname.md) | string |  |
-|  [defaultBranch](./git-documentdb.gitddbinterface.defaultbranch.md) | string | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties (readonly) \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
+|  [defaultBranch](./git-documentdb.gitddbinterface.defaultbranch.md) | string |  |
 |  [isClosing](./git-documentdb.gitddbinterface.isclosing.md) | boolean |  |
 |  [isOpened](./git-documentdb.gitddbinterface.isopened.md) | boolean |  |
 |  [localDir](./git-documentdb.gitddbinterface.localdir.md) | string |  |
-|  [logger](./git-documentdb.gitddbinterface.logger.md) | Logger |  |
+|  [logger](./git-documentdb.gitddbinterface.logger.md) | ColoredLogger |  |
 |  [logLevel](./git-documentdb.gitddbinterface.loglevel.md) | TLogLevelName | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 |  [rootCollection](./git-documentdb.gitddbinterface.rootcollection.md) | [ICollection](./git-documentdb.icollection.md) |  |
 |  [schema](./git-documentdb.gitddbinterface.schema.md) | [Schema](./git-documentdb.schema.md) |  |
+|  [serializeFormat](./git-documentdb.gitddbinterface.serializeformat.md) | SerializeFormatJSON \| SerializeFormatFrontMatter | \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* Public properties (readonly) \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* |
 |  [taskQueue](./git-documentdb.gitddbinterface.taskqueue.md) | [TaskQueue](./git-documentdb.taskqueue.md) |  |
+|  [tsLogger](./git-documentdb.gitddbinterface.tslogger.md) | Logger |  |
 |  [validator](./git-documentdb.gitddbinterface.validator.md) | [Validator](./git-documentdb.validator.md) |  |
 |  [workingDir](./git-documentdb.gitddbinterface.workingdir.md) | string |  |
 

@@ -17,7 +17,7 @@ export declare type ICollection = CollectionInterface & CRUDInterface & SyncEven
     options: CollectionOptions;
     collectionPath: string;
     parent: ICollection | undefined;
-    generateId(): string;
+    generateId(seedTime?: number): string;
 };
 ```
 <b>References:</b>

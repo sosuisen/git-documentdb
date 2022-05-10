@@ -19,5 +19,5 @@ export declare type Schema = {
 ```
 <b>References:</b>
 
-[JsonDiffPatchOptions](./git-documentdb.JsonDiffPatchOptions.md)
+[JsonDiffPatchOptions](./git-documentdb.jsondiffpatchoptions.md)
 

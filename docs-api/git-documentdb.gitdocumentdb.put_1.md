@@ -20,7 +20,7 @@ put(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): Pro
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string \| undefined \| null | \_id is a file path whose .json extension is omitted. |
+|  \_id | string \| undefined \| null | \_id is a file path whose extension is omitted. |
 |  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) |  |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
@@ -30,7 +30,7 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 ## Remarks
 
-- The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
+- The saved file path is `${GitDocumentDB#workingDir}/${_id}${extension}` on the file system.
 
 - If \_id is undefined, it is automatically generated.
 

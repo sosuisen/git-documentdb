@@ -20,7 +20,7 @@ getOldRevision(_id: string, revision: number, historyOptions?: HistoryOptions): 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string | \_id is a file path whose .json extension is omitted. |
+|  \_id | string | \_id is a file path whose extension is omitted. |
 |  revision | number | Specify a number to go back to old revision. Default is 0. See [GitDocumentDB.getHistory()](./git-documentdb.gitdocumentdb.gethistory.md) for the array of revisions. |
 |  historyOptions | [HistoryOptions](./git-documentdb.historyoptions.md) | The array of revisions is filtered by HistoryOptions.filter. |
 

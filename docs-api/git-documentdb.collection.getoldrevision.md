@@ -20,7 +20,7 @@ getOldRevision(shortId: string, revision: number, historyOptions?: HistoryOption
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  shortId | string | shortId is a file path whose collectionPath and .json extension are omitted. |
+|  shortId | string | shortId is a file path whose collectionPath and extension are omitted. |
 |  revision | number | Specify a number to go back to old revision. Default is 0. See [Collection.getHistory()](./git-documentdb.collection.gethistory.md) for the array of revisions. |
 |  historyOptions | [HistoryOptions](./git-documentdb.historyoptions.md) | The array of revisions is filtered by HistoryOptions.filter. |
 
@@ -31,6 +31,8 @@ Promise&lt;[JsonDoc](./git-documentdb.jsondoc.md) \| undefined&gt;
 ## Remarks
 
 - undefined if a specified document does not exist or it is deleted.
+
+- If serializeFormat is front-matter, this function can't correctly distinguish files that has the same \_id but different extension. Use getFatDocOldRevision() instead. e.g.) foo.md and foo.yml
 
 ## Example
 

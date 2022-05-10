@@ -20,7 +20,7 @@ updateFatDoc(shortName: string | undefined | null, doc: JsonDoc | string | Uint8
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  shortName | string \| undefined \| null | shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with .json extension. |
+|  shortName | string \| undefined \| null | shortName is a file path whose collectionPath is omitted. shortName of JsonDoc must ends with extension. |
 |  doc | [JsonDoc](./git-documentdb.jsondoc.md) \| string \| Uint8Array |  |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
@@ -32,9 +32,9 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
 - Throws DocumentNotFoundError if a specified data does not exist. It might be better to use put() instead of update().
 
-- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}.json` .
+- The saved file path is `${GitDocumentDB#workingDir}/${Collection#collectionPath}/${shortName}${extension}` .
 
-- \_id property of a JsonDoc is automatically set or overwritten by shortName parameter whose .json extension is omitted.
+- \_id property of a JsonDoc is automatically set or overwritten by shortName parameter whose extension is omitted.
 
 - An update operation is not skipped even if no change occurred on a specified data.
 

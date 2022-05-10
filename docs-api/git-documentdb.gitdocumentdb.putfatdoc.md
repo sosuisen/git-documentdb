@@ -30,11 +30,11 @@ Promise&lt;[PutResult](./git-documentdb.putresult.md) &gt;
 
 ## Remarks
 
-- The saved file path is `${GitDocumentDB#workingDir}/${name}.json` .
+- The saved file path is `${GitDocumentDB#workingDir}/${name}extension` .
 
 - If a name parameter is undefined, it is automatically generated.
 
-- \_id property of a JsonDoc is automatically set or overwritten by name parameter whose .json extension is removed.
+- \_id property of a JsonDoc is automatically set or overwritten by name parameter whose extension is removed.
 
 - An update operation is not skipped even if no change occurred on a specified data.
 

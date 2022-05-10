@@ -25,7 +25,7 @@ Offline-first Database that Syncs with Git
 
 |  Function | Description |
 |  --- | --- |
-|  [encodeToGitRemoteName(remoteURL)](./git-documentdb.encodetogitremotename.md) | encodeToRemoteName |
+|  [encodeToGitRemoteName(remoteURL)](./git-documentdb.encodetogitremotename.md) | encodeToGitRemoteName |
 
 ## Interfaces
 
@@ -59,9 +59,10 @@ Offline-first Database that Syncs with Git
 |  [FILE\_CREATE\_TIMEOUT](./git-documentdb.file_create_timeout.md) |  |
 |  [FILE\_REMOVE\_TIMEOUT](./git-documentdb.file_remove_timeout.md) |  |
 |  [FIRST\_COMMIT\_MESSAGE](./git-documentdb.first_commit_message.md) |  |
+|  [FRONT\_MATTER\_POSTFIX](./git-documentdb.front_matter_postfix.md) |  |
 |  [GIT\_DOCUMENTDB\_INFO\_ID](./git-documentdb.git_documentdb_info_id.md) |  |
 |  [GIT\_DOCUMENTDB\_METADATA\_DIR](./git-documentdb.git_documentdb_metadata_dir.md) |  |
-|  [JSON\_EXT](./git-documentdb.json_ext.md) |  |
+|  [JSON\_POSTFIX](./git-documentdb.json_postfix.md) |  |
 |  [MAX\_FILE\_PATH\_LENGTH](./git-documentdb.max_file_path_length.md) |  |
 |  [MINIMUM\_SYNC\_INTERVAL](./git-documentdb.minimum_sync_interval.md) |  |
 |  [NETWORK\_RETRY\_INTERVAL](./git-documentdb.network_retry_interval.md) |  |
@@ -71,6 +72,7 @@ Offline-first Database that Syncs with Git
 |  [RemoteEngine](./git-documentdb.remoteengine.md) | RemoteEngine |
 |  [SET\_DATABASE\_ID\_MESSAGE](./git-documentdb.set_database_id_message.md) |  |
 |  [SHORT\_SHA\_LENGTH](./git-documentdb.short_sha_length.md) |  |
+|  [YAML\_POSTFIX](./git-documentdb.yaml_postfix.md) |  |
 
 ## Type Aliases
 
@@ -113,7 +115,7 @@ Offline-first Database that Syncs with Git
 |  [HistoryFilter](./git-documentdb.historyfilter.md) | Filter for file history |
 |  [HistoryOptions](./git-documentdb.historyoptions.md) | Options for getHistory() and getFatDocHistory() |
 |  [ICollection](./git-documentdb.icollection.md) | Type for Collection Class |
-|  [JsonDiffPatchOptions](./git-documentdb.JsonDiffPatchOptions.md) | JsonDiffPatchOptions |
+|  [JsonDiffPatchOptions](./git-documentdb.jsondiffpatchoptions.md) | JsonDiffPatchOptions |
 |  [JsonDoc](./git-documentdb.jsondoc.md) | The type for a JSON document that is stored in a database |
 |  [JsonDocMetadata](./git-documentdb.jsondocmetadata.md) | Metadata for JsonDoc |
 |  [NormalizedCommit](./git-documentdb.normalizedcommit.md) | Normalized Commit |
@@ -126,6 +128,7 @@ Offline-first Database that Syncs with Git
 |  [PutResultText](./git-documentdb.putresulttext.md) |  |
 |  [RemoteOptions](./git-documentdb.remoteoptions.md) | Options for Sync class |
 |  [Schema](./git-documentdb.schema.md) | Schema for specific document type |
+|  [SerializeFormatLabel](./git-documentdb.serializeformatlabel.md) | Format for serialization |
 |  [SyncCallback](./git-documentdb.synccallback.md) | Union type of SyncEventCallbacks |
 |  [SyncChangeCallback](./git-documentdb.syncchangecallback.md) | Callback of 'change' event |
 |  [SyncCombineDatabaseCallback](./git-documentdb.synccombinedatabasecallback.md) | Callback of 'combine' event |

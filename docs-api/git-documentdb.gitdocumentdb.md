@@ -41,11 +41,14 @@ Call open() before using DB.
 |  [isClosing](./git-documentdb.gitdocumentdb.isclosing.md) |  | boolean | DB is going to close |
 |  [isOpened](./git-documentdb.gitdocumentdb.isopened.md) |  | boolean | Test if a database is opened |
 |  [localDir](./git-documentdb.gitdocumentdb.localdir.md) |  | string | A local directory path that stores repositories of GitDocumentDB |
-|  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | Logger | Get logger |
+|  [logger](./git-documentdb.gitdocumentdb.logger.md) |  | ColoredLogger | Get logger |
 |  [logLevel](./git-documentdb.gitdocumentdb.loglevel.md) |  | TLogLevelName | logLevel ('silly' \| 'trace' \| 'debug' \| 'info' \| 'warn' \| 'error' \| 'fatal') |
+|  [logToTransport](./git-documentdb.gitdocumentdb.logtotransport.md) |  | ((logObject: ILogObject) =&gt; void) \| undefined | logToTransport function for all log levels. See https://tslog.js.org/\#/?id=transports |
 |  [rootCollection](./git-documentdb.gitdocumentdb.rootcollection.md) |  | [ICollection](./git-documentdb.icollection.md) | Default collection whose collectionPath is ''. |
 |  [schema](./git-documentdb.gitdocumentdb.schema.md) |  | [Schema](./git-documentdb.schema.md) | Schema for specific document type |
+|  [serializeFormat](./git-documentdb.gitdocumentdb.serializeformat.md) |  | SerializeFormatJSON \| SerializeFormatFrontMatter |  |
 |  [taskQueue](./git-documentdb.gitdocumentdb.taskqueue.md) |  | [TaskQueue](./git-documentdb.taskqueue.md) | Task queue |
+|  [tsLogger](./git-documentdb.gitdocumentdb.tslogger.md) |  | Logger | Get logger |
 |  [validator](./git-documentdb.gitdocumentdb.validator.md) |  | [Validator](./git-documentdb.validator.md) | Name validator |
 |  [workingDir](./git-documentdb.gitdocumentdb.workingdir.md) |  | string | Get a full path of the current Git working directory |
 

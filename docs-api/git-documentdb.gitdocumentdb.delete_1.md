@@ -20,7 +20,7 @@ delete(jsonDoc: JsonDoc, options?: DeleteOptions): Promise<DeleteResultJsonDoc>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | Only the \_id property of the JsonDoc is referenced. \_id is a file path whose .json extension is omitted. |
+|  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) | Only the \_id property of the JsonDoc is referenced. \_id is a file path whose extension is omitted. |
 |  options | [DeleteOptions](./git-documentdb.deleteoptions.md) |  |
 
 <b>Returns:</b>

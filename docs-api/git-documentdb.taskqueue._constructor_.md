@@ -13,14 +13,14 @@ Constructor
 <b>Signature:</b>
 
 ```typescript
-constructor(logger: Logger);
+constructor(logger: ColoredLogger);
 ```
 
 ## Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  logger | Logger |  |
+|  logger | ColoredLogger |  |
 
 ## Remarks
 

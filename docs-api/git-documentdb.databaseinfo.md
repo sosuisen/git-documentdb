@@ -17,8 +17,12 @@ export declare type DatabaseInfo = {
     dbId: string;
     creator: string;
     version: string;
+    serialize: SerializeFormatLabel;
 };
 ```
+<b>References:</b>
+
+[SerializeFormatLabel](./git-documentdb.serializeformatlabel.md)
 
 ## Remarks
 
@@ -31,4 +35,6 @@ export declare type DatabaseInfo = {
 - creator: A creator of the database. Default is 'GitDocumentDB'. 'GitDocumentDB' ensures that the repository is created according to the GitDocumentDB scheme.
 
 - version: A version of the GitDocumentDB specification. The version can be used for database migration.
+
+- serialize: Serialize format of the database.
 

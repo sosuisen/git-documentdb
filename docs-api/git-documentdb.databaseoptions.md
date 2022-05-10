@@ -18,11 +18,14 @@ export declare type DatabaseOptions = {
     dbName: string;
     logLevel?: TLogLevelName;
     schema?: Schema;
+    serialize?: SerializeFormatLabel;
+    logToTransport?: (logObject: ILogObject) => void;
+    logColorEnabled?: boolean;
 };
 ```
 <b>References:</b>
 
-[Schema](./git-documentdb.schema.md)
+[Schema](./git-documentdb.schema.md) , [SerializeFormatLabel](./git-documentdb.serializeformatlabel.md)
 
 ## Remarks
 
@@ -51,4 +54,12 @@ dbName - A name of a git repository
 - dbName does not allow '.' and '..'.
 
 logLevel - Default is 'info'.
+
+schema - Schema for a specific document type.
+
+serializeFormat - Format for serialization
+
+logToTransport - logToTransport function for all log levels. See https://tslog.js.org/\#/?id=transports
+
+logColorEnabled - Enable color for console log. Default is true. When you write log into a file by logToTransport, false is recommended.
 

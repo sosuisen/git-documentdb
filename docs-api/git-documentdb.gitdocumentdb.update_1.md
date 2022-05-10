@@ -20,7 +20,7 @@ update(_id: string | undefined | null, jsonDoc: JsonDoc, options?: PutOptions): 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string \| undefined \| null | \_id is a file path whose .json extension is omitted. |
+|  \_id | string \| undefined \| null | \_id is a file path whose extension is omitted. |
 |  jsonDoc | [JsonDoc](./git-documentdb.jsondoc.md) |  |
 |  options | [PutOptions](./git-documentdb.putoptions.md) |  |
 
@@ -32,7 +32,7 @@ Promise&lt;[PutResultJsonDoc](./git-documentdb.putresultjsondoc.md) &gt;
 
 - Throws DocumentNotFoundError if a specified document does not exist. It might be better to use put() instead of update().
 
-- The saved file path is `${GitDocumentDB#workingDir}/${_id}.json` on the file system.
+- The saved file path is `${GitDocumentDB#workingDir}/${_id}extension` on the file system.
 
 - An update operation is not skipped even if no change occurred on a specified document.
 

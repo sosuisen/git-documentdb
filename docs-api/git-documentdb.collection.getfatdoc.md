@@ -29,7 +29,7 @@ Promise&lt;[FatDoc](./git-documentdb.fatdoc.md) \| undefined&gt;
 
 - undefined if a specified data does not exist.
 
-- FatJsonDoc if the file extension is '.json'. Be careful that JsonDoc may not have \_id property when an app other than GitDocumentDB creates it.
+- FatJsonDoc if the file extension is SerializeFormat.extension. Be careful that JsonDoc may not have \_id property when an app other than GitDocumentDB creates it.
 
 - FatBinaryDoc if described in .gitattribtues, otherwise FatTextDoc.
 

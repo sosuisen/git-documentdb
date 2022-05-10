@@ -20,7 +20,7 @@ get(_id: string): Promise<JsonDoc | undefined>;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  \_id | string | \_id is a file path whose .json extension is omitted. |
+|  \_id | string | \_id is a file path whose extension is omitted. |
 
 <b>Returns:</b>
 

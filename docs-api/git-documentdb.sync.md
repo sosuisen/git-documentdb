@@ -36,6 +36,7 @@ export declare class Sync implements SyncInterface
 |  [remoteName](./git-documentdb.sync.remotename.md) |  | string | remoteName |
 |  [remoteRepository](./git-documentdb.sync.remoterepository.md) |  | [RemoteRepository](./git-documentdb.remoterepository.md) | Remote repository |
 |  [remoteURL](./git-documentdb.sync.remoteurl.md) |  | string | remoteURL |
+|  [runBeforeLiveSync](./git-documentdb.sync.runbeforelivesync.md) |  | (() =&gt; void) \| undefined | runBeforeLiveSync This function is executed just before each automated(live) synchronization event is queued. Set undefined to stop it. |
 
 ## Methods
 

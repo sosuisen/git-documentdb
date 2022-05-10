@@ -13,8 +13,15 @@ Generate new \_id as monotonic ULID
 <b>Signature:</b>
 
 ```typescript
-generateId(): string;
+generateId(seedTime?: number): string;
 ```
+
+## Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  seedTime | number |  |
+
 <b>Returns:</b>
 
 string
