@@ -85,7 +85,7 @@ export function toSortedJSONString (obj: Record<string, any>) {
 }
 
 export function toYAML (obj: Record<string, any>) {
-  return yaml.dump(obj, { sortKeys: true });
+  return yaml.dump(obj, { sortKeys: true, lineWidth: -1 });
 }
 
 export function toFrontMatterMarkdown (obj: Record<string, any>) {
