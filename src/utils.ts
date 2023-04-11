@@ -103,7 +103,8 @@ export function toFrontMatterMarkdown (obj: Record<string, any>) {
     return body;
   }
 
-  const frontMatter = '---\n' + yaml.dump(clone, { sortKeys: true, lineWidth: -1 }) + '---\n';
+  const frontMatter =
+    '---\n' + yaml.dump(clone, { sortKeys: true, lineWidth: -1 }) + '---\n';
   return frontMatter + body;
 }
 
