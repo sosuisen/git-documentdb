@@ -84,7 +84,7 @@
     "fs-extra": "^9.1.0",
     "git-documentdb-plugin-remote-nodegit": "^1.0.4",
     "git-documentdb-remote-errors": "^1.0.3",
-    "isomorphic-git": "^1.17.1",
+    "isomorphic-git": "^1.23.0",
     "js-yaml": "^4.1.0",
     "ot-json1": "^1.0.2",
     "rimraf": "^3.0.2",
