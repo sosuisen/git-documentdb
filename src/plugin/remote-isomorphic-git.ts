@@ -166,7 +166,7 @@ export async function clone (
         }
         break;
 
-      case error.startsWith('HttpError: HTTP Error: 401 Authorization Required'):
+      case error.startsWith('HttpError: HTTP Error: 401'):
         throw new HTTPError401AuthorizationRequired(error);
 
       case error.startsWith('HttpError: HTTP Error: 404 Not Found'):
@@ -280,7 +280,7 @@ export async function checkFetch (
         }
         break;
 
-      case error.startsWith('HttpError: HTTP Error: 401 Authorization Required'):
+      case error.startsWith('HttpError: HTTP Error: 401'):
         throw new HTTPError401AuthorizationRequired(error);
 
       case error.startsWith('HttpError: HTTP Error: 404 Not Found'):
@@ -393,7 +393,7 @@ export async function fetch (
         }
         break;
 
-      case error.startsWith('HttpError: HTTP Error: 401 Authorization Required'):
+      case error.startsWith('HttpError: HTTP Error: 401'):
         throw new HTTPError401AuthorizationRequired(error);
 
       case error.startsWith('HttpError: HTTP Error: 404 Not Found'):
@@ -511,7 +511,7 @@ export async function push (
         }
         break;
 
-      case error.startsWith('HttpError: HTTP Error: 401 Authorization Required'):
+      case error.startsWith('HttpError: HTTP Error: 401'):
         throw new HTTPError401AuthorizationRequired(error);
 
       case error.startsWith('HttpError: HTTP Error: 404 Not Found'):
