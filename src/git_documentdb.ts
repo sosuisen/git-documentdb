@@ -13,6 +13,7 @@ import rimraf from 'rimraf';
 import { ILogObject, Logger, TLogLevelName } from 'tslog';
 import { ulid } from 'ulid';
 import { RemoteEngine } from './remote/remote_engine';
+import { SearchEngine } from './search/search_engine';
 import { Err } from './error';
 import { Collection } from './collection';
 import { Validator } from './validator';
@@ -71,6 +72,7 @@ import { CollectionInterface, ICollection } from './types_collection';
 import { blobToJsonDoc, readLatestBlob } from './crud/blob';
 
 import * as remote_isomorphic_git from './plugin/remote-isomorphic-git';
+import * as search_elasticlunr from './plugin/search-elasticlunr';
 import { SerializeFormatFrontMatter, SerializeFormatJSON } from './serialize_format';
 
 /**
@@ -112,6 +114,17 @@ export class GitDocumentDB
           // Set to Remote object
           // @ts-ignore
           RemoteEngine[obj.name][id] = obj[id];
+        });
+      }
+    }
+    else if (type === 'search') {
+      if (obj.name !== undefined) {
+        // @ts-ignore
+        SearchEngine[obj.name] = {};
+        Object.keys(obj).forEach(function (id) {
+          // Set to Remote object
+          // @ts-ignore
+          SearchEngine[obj.name][id] = obj[id];
         });
       }
     }
@@ -504,6 +517,15 @@ export class GitDocumentDB
       // @ts-ignore
       // eslint-disable-next-line import/namespace
       RemoteEngine[remote_isomorphic_git.name][id] = remote_isomorphic_git[id];
+    });
+
+    // @ts-ignore
+    SearchEngine[search_elasticlunr.name] = {};
+    Object.keys(search_elasticlunr).forEach(function (id) {
+      // Set to Search object
+      // @ts-ignore
+      // eslint-disable-next-line import/namespace
+      SearchEngine[search_elasticlunr.name][id] = search_elasticlunr[id];
     });
   }
 

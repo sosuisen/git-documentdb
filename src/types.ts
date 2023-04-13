@@ -13,7 +13,7 @@ import { ILogObject, TLogLevelName } from 'tslog';
  *
  * @public
  */
-export type PluginTypes = 'db' | 'remote';
+export type PluginTypes = 'db' | 'remote' | 'search';
 
 /**
  * Database Options
