@@ -225,22 +225,21 @@ https://github.com/sosuisen/inventory-manager
   - Automated conflict resolution :feet:
   - Automated JSON diff and patch :feet:
   - Automated combining of inconsistent repositories :feet:
-- v0.4 Work on both Node.js and browser
+- v0.4 Many data types and connection methods
   - API renewal to manage any data types :feet:
   - Remove native module (NodeGit) from default install :feet:
   - Add plugin system for remote connection (isomorphic-git or NodeGit) :feet:
   - Connect with SSH key pair :feet:
   - Add Front-Matter-Markdown format :feet:
-  - Connect to GitHub with OAuth :dog2:(Next)
-  - Work on browser
-
+- v0.5 Search
+  - Indexed Search :dog2:(Next)
 - Until v1.0
+  - Connect to GitHub with OAuth
+  - Work on browser
   - Sync any data types
   - Replication
-  - Grep
   - Transaction (bulk)
-  - Tag
-  - Indexed Search
+  
   - GitLab and Bitbucket
   - Push server
   - Migration
