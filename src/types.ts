@@ -1256,3 +1256,30 @@ export type ColoredLogger = {
   error: ColoredLog;
   fatal: ColoredLog;
 };
+
+/**
+ * Search Target
+ *
+ * @remarks
+ *  - collectionName: A name of target collection. '/' means the rootCollection.
+ *
+ *  - targetProperties: An array of JsonDoc keys to index. Only properties with a string as value can be added to the index. e.g.) ['name', 'schedule.date'] (Currently only top-level properties are valid)
+ *
+ *  - indexFilePath: A full path of the index file. The path should be out of the workingDir.
+ * @public
+ */
+export type SearchTarget = {
+  collectionName: string;
+  targetProperties: string[];
+  indexFilePath: string;
+  option?: JsonDoc;
+};
+
+/**
+ * Search Options
+ *
+ * @public
+ */
+export type SearchEngineOptions = {
+  targets: SearchTarget[];
+};
