@@ -29,20 +29,21 @@ export const type = 'search';
  * @public
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export const name = 'elasticlunr';
+export const name = 'full-text';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 let _gitDDB: GitDDBInterface;
 let searchTargets: { [key: string]: SearchTarget };
 let indexes: { [key: string]: any };
 
-export function open(
+export function openOrCreate (
   gitDDB: GitDDBInterface,
+  collectionName: string,
   searchEngineOptions: SearchEngineOptions
 ): void {
   _gitDDB = gitDDB;
 
   searchEngineOptions.targets.forEach(searchTarget => {
-    const collectionName = searchTarget.collectionName;
     searchTargets[collectionName] = searchTarget;
     if (!fs.existsSync(searchTarget.indexFilePath)) {
       indexes[collectionName] = elasticlunr(function () {
@@ -76,7 +77,7 @@ export function open(
   });
 }
 
-export function close() {
+export function close () {
   const zip = new AdmZip();
   Object.keys(searchTargets).forEach(collectionName => {
     zip.addFile(
@@ -88,10 +89,10 @@ export function close() {
   });
 }
 
-export function addIndex(json: JsonDoc): void { }
+export function addIndex (json: JsonDoc): void {}
 
-export function updateIndex(json: JsonDoc): void { }
+export function updateIndex (json: JsonDoc): void {}
 
-export function deleteIndex(json: JsonDoc): void { }
+export function deleteIndex (json: JsonDoc): void {}
 
-export function search(json: JsonDoc): void { }
+export function search (json: JsonDoc): void {}

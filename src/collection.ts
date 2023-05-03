@@ -45,6 +45,7 @@ import { findImpl } from './crud/find';
 import { putImpl } from './crud/put';
 import { SyncInterface } from './types_sync';
 import { ICollection } from './types_collection';
+import { SearchEngine } from './search/search_engine';
 
 /**
  * Documents under a collectionPath are gathered together in a collection.
@@ -155,6 +156,17 @@ export class Collection implements ICollection {
     }
     else {
       this._monoID = monotonicFactory();
+    }
+
+    if (this._options.searchEngineOptions !== undefined) {
+      if (this._options.searchEngineOptions.name === undefined) {
+        this._options.searchEngineOptions.name = 'full-text';
+      }
+      SearchEngine[this._options.searchEngineOptions.name].openOrCreate(
+        this._gitDDB,
+        this._collectionPath,
+        this._options.searchEngineOptions
+      );
     }
   }
 

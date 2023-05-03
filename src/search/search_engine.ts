@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 import { GitDDBInterface } from '../types_gitddb';
 import { JsonDoc, SearchEngineOptions, SearchIndexInterface } from '../types';
 
@@ -8,16 +6,21 @@ import { JsonDoc, SearchEngineOptions, SearchIndexInterface } from '../types';
  *
  * @public
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export const SearchEngine: { [searchEngineName: string]: SearchEngineInterface } = {};
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const collectionEnginesMap: { [collectionName: string]: string[] } = {};
 
 /**
  * Map collectionName to searchEngine
  * This will be called by SearchEngine plugins
  */
-export function addMapFromCollectionToSearchEngine(collectionName: string, searchEngineName: string): void {
-  if (!collectionEnginesMap[collectionName]){
+export function addMapFromCollectionToSearchEngine (
+  collectionName: string,
+  searchEngineName: string
+): void {
+  if (!collectionEnginesMap[collectionName]) {
     collectionEnginesMap[collectionName] = [];
   }
   collectionEnginesMap[collectionName].push(searchEngineName);
@@ -30,37 +33,40 @@ class SearchIndexClass implements SearchIndexInterface {
   /**
    * Return search engines
    */
-  private getSearchEngines = (collectionName: string) : SearchEngineInterface[] => {
-    return collectionEnginesMap[collectionName]?.map(engineName => SearchEngine[engineName]);
-  }
+  private _getSearchEngines = (collectionName: string): SearchEngineInterface[] => {
+    return collectionEnginesMap[collectionName]?.map(
+      engineName => SearchEngine[engineName]
+    );
+  };
 
-  add (collectionName: string, json: JsonDoc): void {
-    this.getSearchEngines(collectionName).forEach(engine => {
-      engine.add(collectionName, json);
-    });
-  } 
-
-  update (collectionName: string, json: JsonDoc): void {
-    this.getSearchEngines(collectionName).forEach(engine => {
-      engine.add(collectionName, json);
+  addIndex (collectionName: string, json: JsonDoc): void {
+    this._getSearchEngines(collectionName).forEach(engine => {
+      engine.addIndex(collectionName, json);
     });
   }
 
-  delete (collectionName: string, json: JsonDoc): void {
-    this.getSearchEngines(collectionName).forEach(engine => {
-      engine.add(collectionName, json);
+  updateIndex (collectionName: string, json: JsonDoc): void {
+    this._getSearchEngines(collectionName).forEach(engine => {
+      engine.addIndex(collectionName, json);
+    });
+  }
+
+  deleteIndex (collectionName: string, json: JsonDoc): void {
+    this._getSearchEngines(collectionName).forEach(engine => {
+      engine.addIndex(collectionName, json);
     });
   }
 
   search (collectionName: string, json: JsonDoc): JsonDoc[] {
     const jsonDoc: JsonDoc[] = [];
-    this.getSearchEngines(collectionName).forEach(engine => {
+    this._getSearchEngines(collectionName).forEach(engine => {
       jsonDoc.push(...engine.search(collectionName, json));
     });
     return jsonDoc;
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export const SearchIndex: SearchIndexInterface = new SearchIndexClass();
 
 /**
@@ -71,6 +77,10 @@ export const SearchIndex: SearchIndexInterface = new SearchIndexClass();
 export interface SearchEngineInterface extends SearchIndexInterface {
   type: string;
   name: string;
-  open: (gitDDB: GitDDBInterface, options: SearchEngineOptions) => void;
+  openOrCreate: (
+    gitDDB: GitDDBInterface,
+    collectionName: string,
+    options: SearchEngineOptions
+  ) => void;
   close: () => void;
 }

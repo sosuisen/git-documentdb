@@ -507,6 +507,7 @@ export class GitDocumentDB
       namePrefix: options?.namePrefix ?? '',
       debounceTime: options?.debounceTime ?? -1,
       idGenerator: options?.idGenerator,
+      searchEngineOptions: options?.searchEngineOptions,
     };
     this._rootCollection = new Collection(this, '', undefined, collectionOptions);
 
