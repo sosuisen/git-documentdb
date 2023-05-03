@@ -7,6 +7,7 @@
  */
 
 import { ILogObject, TLogLevelName } from 'tslog';
+import { GitDDBInterface } from './types_gitddb';
 
 /**
  * Plugin types
@@ -1263,14 +1264,15 @@ export type ColoredLogger = {
  * @remarks
  *  - collectionName: A name of target collection. '/' means the rootCollection.
  *
- *  - targetProperties: An array of JsonDoc keys to index. Only properties with a string as value can be added to the index. e.g.) ['name', 'schedule.date'] (Currently only top-level properties are valid)
+ *  - targetProperties: Only property whose key matches targetProperties is indexed. The value of the property must be string.  
+ *   e.g)  { a: { b: true }, c: true } matches 'b' (whose ancestor is only 'a') and 'c'.
  *
  *  - indexFilePath: A full path of the index file. The path should be out of the workingDir.
  * @public
  */
 export type SearchTarget = {
   collectionName: string;
-  targetProperties: string[];
+  targetProperties: { [key: string]: any };
   indexFilePath: string;
   option?: JsonDoc;
 };
@@ -1283,3 +1285,16 @@ export type SearchTarget = {
 export type SearchEngineOptions = {
   targets: SearchTarget[];
 };
+
+/**
+ * SearchIndexInterface
+ *
+ * @public
+ */
+export interface SearchIndexInterface {
+  add: (collectionName: string, json: JsonDoc) => void;
+  update: (collectionName: string, json: JsonDoc) => void;
+  delete: (collectionName: string, json: JsonDoc) => void;
+  search: (collectionName: string, json: JsonDoc) => JsonDoc[];
+}
+
