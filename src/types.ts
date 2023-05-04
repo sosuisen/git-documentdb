@@ -1262,14 +1262,14 @@ export type ColoredLogger = {
  * Search Target
  *
  * @remarks
- *  - targetProperties: Only property whose key matches targetProperties is indexed. The value of the property must be string.  
- *   e.g)  { a: { b: true }, c: true } matches 'b' (whose ancestor is only 'a') and 'c'.
+ *  - targetProperties: Only property whose key matches targetProperties is indexed. The value of the property must be string.
+ *   e.g)  ['profile.name', 'address'] matches { profile: { name: value1 }, address: value2 }
  *
  *  - indexFilePath: A full path of the index file. The path should be out of the workingDir.
  * @public
  */
 export type SearchTarget = {
-  targetProperties: { [key: string]: any };
+  targetProperties: string[];
   indexFilePath: string;
 };
 

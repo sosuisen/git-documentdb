@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -9,6 +10,7 @@
 import fs from 'fs-extra';
 import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
+import { Logger } from 'tslog';
 import { JsonDoc, SearchEngineOptions, SearchTarget } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 
@@ -19,19 +21,24 @@ stemmer(elasticlunr);
 lunr_ja(elasticlunr);
 lunr_multi(elasticlunr);
 
+const logger = new Logger({
+  name: 'plugin-nodegit',
+  minLevel: 'trace',
+  displayDateTime: false,
+  displayFunctionName: false,
+  displayFilePath: 'hidden',
+});
+
 /*
  * @public
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const type = 'search';
 
 /**
  * @public
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const name = 'full-text';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 let _gitDDB: GitDDBInterface;
 let searchTargets: { [key: string]: SearchTarget };
 let indexes: { [key: string]: any };
@@ -50,17 +57,12 @@ export function openOrCreate (
         // @ts-ignore
         this.use(elasticlunr.multiLanguage('en', 'ja'));
 
-        /**
-         * @TODO
-         * ここで対象のプロパティを設定すること
-         */
-
+        searchTarget.targetProperties.forEach(propName => {
+          // @ts-ignore
+          this.addField(propName);
+        });
         // @ts-ignore
-        this.addField('title');
-        // @ts-ignore
-        this.addField('body');
-        // @ts-ignore
-        this.setRef('id');
+        this.setRef('_id');
         this.saveDocument(false);
       });
     }
@@ -77,6 +79,18 @@ export function openOrCreate (
   });
 }
 
+const getTargetValue = (propName: string, jsonDoc: JsonDoc) => {
+  let val = '';
+  try {
+    val = (propName
+      .split('.')
+      .reduce((prevVal, curVal) => prevVal[curVal], jsonDoc) as unknown) as string;
+  } catch {
+    logger.error(`search-elasticlunr: property does not exist: ${propName}`);
+  }
+  return val;
+};
+
 export function close () {
   const zip = new AdmZip();
   Object.keys(searchTargets).forEach(collectionName => {
@@ -89,10 +103,16 @@ export function close () {
   });
 }
 
-export function addIndex (json: JsonDoc): void {}
+export function addIndex (collectionName: string, json: JsonDoc): void {
+  const doc: JsonDoc = { _id: json._id };
+  searchTargets[collectionName].targetProperties.forEach(propName => {
+    doc[propName] = getTargetValue(propName, json);
+  });
+  indexes[collectionName].addDoc(doc);
+}
 
-export function updateIndex (json: JsonDoc): void {}
+export function updateIndex (collectionName: string, json: JsonDoc): void {}
 
-export function deleteIndex (json: JsonDoc): void {}
+export function deleteIndex (collectionName: string, json: JsonDoc): void {}
 
-export function search (json: JsonDoc): void {}
+export function search (collectionName: string, json: JsonDoc): void {}
