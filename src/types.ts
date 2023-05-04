@@ -1259,16 +1259,19 @@ export type ColoredLogger = {
 };
 
 /**
- * Search Target
+ * Search Index
  *
  * @remarks
+ *  - indexName: Name to be specified as search target.
+ *
  *  - targetProperties: Only property whose key matches targetProperties is indexed. The value of the property must be string.
  *   e.g)  ['profile.name', 'address'] matches { profile: { name: value1 }, address: value2 }
  *
  *  - indexFilePath: A full path of the index file. The path should be out of the workingDir.
  * @public
  */
-export type SearchTarget = {
+export type SearchIndex = {
+  indexName: string;
   targetProperties: string[];
   indexFilePath: string;
 };
@@ -1283,7 +1286,7 @@ export type SearchTarget = {
  */
 export type SearchEngineOptions = {
   name?: string;
-  targets: SearchTarget[];
+  indexes: SearchIndex[];
 };
 
 /**
@@ -1295,5 +1298,12 @@ export interface SearchIndexInterface {
   addIndex: (collectionName: string, json: JsonDoc) => void;
   updateIndex: (collectionName: string, json: JsonDoc) => void;
   deleteIndex: (collectionName: string, json: JsonDoc) => void;
-  search: (collectionName: string, json: JsonDoc) => JsonDoc[];
+  search: (collectionName: string, indexName: string, json: JsonDoc) => JsonDoc[];
 }
+
+/**
+ * IsSearchIndexCreated
+ *
+ * @public
+ */
+export type IsSearchIndexCreated = boolean[];

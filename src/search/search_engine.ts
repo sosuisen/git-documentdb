@@ -1,5 +1,10 @@
 import { GitDDBInterface } from '../types_gitddb';
-import { JsonDoc, SearchEngineOptions, SearchIndexInterface } from '../types';
+import {
+  IsSearchIndexCreated,
+  JsonDoc,
+  SearchEngineOptions,
+  SearchIndexInterface,
+} from '../types';
 
 /**
  * SearchEngine
@@ -57,10 +62,10 @@ class SearchIndexClass implements SearchIndexInterface {
     });
   }
 
-  search (collectionName: string, json: JsonDoc): JsonDoc[] {
+  search (collectionName: string, indexName: string, json: JsonDoc): JsonDoc[] {
     const jsonDoc: JsonDoc[] = [];
     this._getSearchEngines(collectionName).forEach(engine => {
-      jsonDoc.push(...engine.search(collectionName, json));
+      jsonDoc.push(...engine.search(collectionName, indexName, json));
     });
     return jsonDoc;
   }
@@ -81,6 +86,6 @@ export interface SearchEngineInterface extends SearchIndexInterface {
     gitDDB: GitDDBInterface,
     collectionName: string,
     options: SearchEngineOptions
-  ) => void;
-  close: () => void;
+  ) => IsSearchIndexCreated;
+  serialize: () => void;
 }

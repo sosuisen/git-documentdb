@@ -11,7 +11,7 @@ import fs from 'fs-extra';
 import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
-import { JsonDoc, SearchEngineOptions, SearchTarget } from '../types';
+import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndex } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 
 import stemmer from './lunr.stemmer.support.js';
@@ -40,24 +40,30 @@ export const type = 'search';
 export const name = 'full-text';
 
 let _gitDDB: GitDDBInterface;
-let searchTargets: { [key: string]: SearchTarget };
-let indexes: { [key: string]: any };
+const searchIndexes: {
+  [collectionName: string]: { [indexName: string]: SearchIndex };
+} = {};
+const indexes: { [collectionName: string]: { [indexName: string]: any } } = {};
 
 export function openOrCreate (
   gitDDB: GitDDBInterface,
   collectionName: string,
   searchEngineOptions: SearchEngineOptions
-): void {
+): IsSearchIndexCreated {
   _gitDDB = gitDDB;
 
-  searchEngineOptions.targets.forEach(searchTarget => {
-    searchTargets[collectionName] = searchTarget;
-    if (!fs.existsSync(searchTarget.indexFilePath)) {
-      indexes[collectionName] = elasticlunr(function () {
+  const results: IsSearchIndexCreated = [];
+  searchEngineOptions.indexes.forEach(searchIndex => {
+    if (searchIndexes[collectionName] === undefined) searchIndexes[collectionName] = {};
+    searchIndexes[collectionName][searchIndex.indexName] = searchIndex;
+
+    if (!fs.existsSync(searchIndex.indexFilePath)) {
+      if (indexes[collectionName] === undefined) indexes[collectionName] = {};
+      indexes[collectionName][searchIndex.indexName] = elasticlunr(function () {
         // @ts-ignore
         this.use(elasticlunr.multiLanguage('en', 'ja'));
 
-        searchTarget.targetProperties.forEach(propName => {
+        searchIndex.targetProperties.forEach(propName => {
           // @ts-ignore
           this.addField(propName);
         });
@@ -65,18 +71,26 @@ export function openOrCreate (
         this.setRef('_id');
         this.saveDocument(false);
       });
+      results.push(true);
     }
     else {
-      const zip = new AdmZip(searchTarget.indexFilePath);
+      const zip = new AdmZip(searchIndex.indexFilePath);
       const zipEntries = zip.getEntries();
       zipEntries.forEach(function (zipEntry) {
-        if (zipEntry.entryName === 'index.txt') {
+        if (zipEntry.entryName === 'index.json') {
           const json = zipEntry.getData().toString('utf8');
+          elasticlunr(function () {
+            // @ts-ignore
+            this.use(elasticlunr.multiLanguage('en', 'ja'));
+            this.saveDocument(false);
+          });
           indexes[collectionName] = elasticlunr.Index.load(JSON.parse(json));
         }
       });
+      results.push(false);
     }
   });
+  return results;
 }
 
 const getTargetValue = (propName: string, jsonDoc: JsonDoc) => {
@@ -91,24 +105,28 @@ const getTargetValue = (propName: string, jsonDoc: JsonDoc) => {
   return val;
 };
 
-export function close () {
+export function serialize (): void {
   const zip = new AdmZip();
-  Object.keys(searchTargets).forEach(collectionName => {
-    zip.addFile(
-      'index.txt',
-      Buffer.from(JSON.stringify(indexes[collectionName]), 'utf8'),
-      'index of lunr'
-    );
-    zip.writeZip(searchTargets[collectionName].indexFilePath);
+  Object.keys(searchIndexes).forEach(collectionName => {
+    Object.keys(searchIndexes[collectionName]).forEach(indexName => {
+      zip.addFile(
+        'index.json',
+        Buffer.from(JSON.stringify(indexes[collectionName][indexName]), 'utf8'),
+        'index of lunr'
+      );
+      zip.writeZip(searchIndexes[collectionName][indexName].indexFilePath);
+    });
   });
 }
 
 export function addIndex (collectionName: string, json: JsonDoc): void {
-  const doc: JsonDoc = { _id: json._id };
-  searchTargets[collectionName].targetProperties.forEach(propName => {
-    doc[propName] = getTargetValue(propName, json);
+  Object.keys(searchIndexes[collectionName]).forEach(indexName => {
+    const doc: JsonDoc = { _id: json._id };
+    searchIndexes[collectionName][indexName].targetProperties.forEach(propName => {
+      doc[propName] = getTargetValue(propName, json);
+    });
+    indexes[collectionName].addDoc(doc);
   });
-  indexes[collectionName].addDoc(doc);
 }
 
 export function updateIndex (collectionName: string, json: JsonDoc): void {}
