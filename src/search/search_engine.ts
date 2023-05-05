@@ -1,12 +1,6 @@
+import { IsSearchIndexCreated, SearchIndexInterface, SearchResult } from '../types_search';
 import { GitDDBInterface } from '../types_gitddb';
-import {
-  IsSearchIndexCreated,
-  JsonDoc,
-  SearchEngineOptions,
-  SearchIndexInterface,
-  SearchResult,
-} from '../types';
-import { ICollection } from '../types_collection';
+import { JsonDoc, SearchEngineOptions } from '../types';
 
 /**
  * SearchEngine
@@ -47,19 +41,19 @@ class SearchInterfaceClass implements SearchIndexInterface {
   };
 
   addIndex (collectionName: string, json: JsonDoc): void {
-    this._getSearchEngines(collectionName).forEach(engine => {
+    this._getSearchEngines(collectionName)?.forEach(engine => {
       engine.addIndex(collectionName, json);
     });
   }
 
   updateIndex (collectionName: string, oldJson: JsonDoc, newJson: JsonDoc): void {
-    this._getSearchEngines(collectionName).forEach(engine => {
+    this._getSearchEngines(collectionName)?.forEach(engine => {
       engine.updateIndex(collectionName, oldJson, newJson);
     });
   }
 
   deleteIndex (collectionName: string, json: JsonDoc): void {
-    this._getSearchEngines(collectionName).forEach(engine => {
+    this._getSearchEngines(collectionName)?.forEach(engine => {
       engine.deleteIndex(collectionName, json);
     });
   }
@@ -71,7 +65,7 @@ class SearchInterfaceClass implements SearchIndexInterface {
     useOr = false
   ): SearchResult[] {
     const result: SearchResult[] = [];
-    this._getSearchEngines(collectionName).forEach(engine => {
+    this._getSearchEngines(collectionName)?.forEach(engine => {
       result.push(...engine.search(collectionName, indexName, keyword, useOr));
     });
     return result;

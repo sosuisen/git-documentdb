@@ -374,8 +374,6 @@ export class Collection implements ICollection {
     };
     options.debounceTime ??= this._options.debounceTime;
 
-    SearchInterface.addIndex(this.collectionPath, clone);
-
     return putImpl(
       this._gitDDB,
       this.collectionPath,

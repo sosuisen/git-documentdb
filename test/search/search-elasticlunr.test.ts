@@ -369,9 +369,8 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     openOrCreate('book', searchEngineOptions);
 
-    // match
     addIndex('book', {
-      _id: '1',
+      _id: 'book/1',
       title: 'hello world',
       body: 'planet',
     });
@@ -513,11 +512,11 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const bookCol = gitDDB.collection('book');
     await bookCol.put({
-      _id: '1',
+      _id: 'book/1',
       title: 'hello',
     });
     await bookCol.put({
-      _id: '2',
+      _id: 'book/2',
       title: 'world',
     });
     await gitDDB.close();

@@ -14,6 +14,7 @@ import { SHORT_SHA_LENGTH } from '../const';
 import { NormalizedCommit, PutOptions, PutResult } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
+import { SearchInterface } from '../search/search_engine';
 
 /**
  * Common implementation of put-like commands.

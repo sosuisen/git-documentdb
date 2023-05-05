@@ -226,7 +226,7 @@ export function search (
   indexName: string,
   keyword: string,
   useOr = false
-): SearchResult {
+): SearchResult[] {
   let bool = 'AND';
   if (useOr) bool = 'OR';
   const fields: { [propname: string]: { boost: number } } = {};
@@ -238,9 +238,16 @@ export function search (
     fields[propName] = { boost };
     boost++;
   });
-  return indexes[collectionPath][indexName].search(keyword, {
+  const results = indexes[collectionPath][indexName].search(keyword, {
     fields,
     expand: true,
     bool,
-  });
+  }) as SearchResult[];
+  if (collectionPath !== '') {
+    results.forEach(res => {
+      const shortId = res.ref.substring(collectionPath.length + 1);
+      res.ref = shortId;
+    });
+  }
+  return results;
 }
