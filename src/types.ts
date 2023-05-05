@@ -1298,7 +1298,7 @@ export interface SearchIndexInterface {
   addIndex: (collectionName: string, json: JsonDoc) => void;
   updateIndex: (collectionName: string, json: JsonDoc) => void;
   deleteIndex: (collectionName: string, json: JsonDoc) => void;
-  search: (collectionName: string, indexName: string, json: JsonDoc) => JsonDoc[];
+  search: (collectionName: string, indexName: string, keyword: string) => SearchResult[];
 }
 
 /**
@@ -1307,3 +1307,8 @@ export interface SearchIndexInterface {
  * @public
  */
 export type IsSearchIndexCreated = boolean[];
+
+export type SearchResult = {
+  ref: string,
+  score: number,
+};

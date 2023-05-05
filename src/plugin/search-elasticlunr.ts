@@ -9,10 +9,10 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import elasticlunr from 'elasticlunr';
+import elasticlunr, { SearchResults } from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
-import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndex } from '../types';
+import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndex, SearchResult } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 
 import stemmer from './elasticlunr/lunr.stemmer.support.js';
@@ -158,4 +158,18 @@ export function updateIndex (collectionName: string, json: JsonDoc): void {}
 
 export function deleteIndex (collectionName: string, json: JsonDoc): void {}
 
-export function search (collectionName: string, json: JsonDoc): void {}
+export function search (collectionName: string, indexName: string, keyword: string): SearchResult {
+  const fields: { [propname: string]: { 'boost': number }} = {};
+  // The earlier the element is in the array, 
+  // the higher the boost priority (boost).
+  const props = [...searchIndexes[collectionName][indexName].targetProperties];
+  let boost = 1;
+  props.reverse().forEach( propName => {
+    fields[propName] = { boost };
+    boost++;
+  });
+  return indexes[collectionName][indexName].search(keyword, {
+    fields,
+    expand: true,
+  });
+}

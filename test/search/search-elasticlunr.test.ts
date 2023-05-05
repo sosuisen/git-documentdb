@@ -99,7 +99,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     expect(isCreated).toEqual([false]);
     // Cannot read property of index directry.
     // Use stringify and parse.
-    console.log(JSON.stringify(indexes));
+    // console.log(JSON.stringify(indexes));
     const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
@@ -137,9 +137,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     // Use stringify and parse.
     const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"title":1}},"length":1,"save":false},"index":{"title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
-    expect(indexObj.documentStore.docs).toEqual({"1": null});
+    expect(indexObj.documentStore.docs).toEqual({ "1": null });
     expect(indexObj.index['title'].root["x"]).toEqual(
-      {"docs":{"1":{"tf":1}},"df":1}
+      { "docs": { "1": { "tf": 1 } }, "df": 1 }
     );
     await gitDDB.destroy();
   });
@@ -174,14 +174,90 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     // Cannot read property of index directry.
     // Use stringify and parse.
     const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
-    console.log(JSON.stringify(indexes['']['title']));
+    // console.log(JSON.stringify(indexes['']['title']));
     // {"version":"0.9.5","fields":["book.title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"book.title":1}},"length":1,"save":false},"index":{"book.title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
-    expect(indexObj.documentStore.docs).toEqual({"1": null});
+    expect(indexObj.documentStore.docs).toEqual({ "1": null });
     expect(indexObj.index['book.title'].root["x"]).toEqual(
-      {"docs":{"1":{"tf":1}},"df":1}
+      { "docs": { "1": { "tf": 1 } }, "df": 1 }
     );
     await gitDDB.destroy();
   });
+
+  it('search', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      indexes: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate(gitDDB, '', searchEngineOptions);
+
+    addIndex('', {
+      _id: '1',
+      title: 'hello',
+    });
+
+    addIndex('', {
+      _id: '2',
+      title: 'world',
+    });
+
+    expect(search('', 'title', 'hello')).toEqual([{ ref: '1', score: 1 }]);
+    expect(search('', 'title', 'world')).toEqual([{ ref: '2', score: 1 }]);
+
+    await gitDDB.destroy();
+  });
+
+
+  it('boosting search', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      indexes: [
+        {
+          indexName: 'title',
+          targetProperties: ['title', 'body'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate(gitDDB, '', searchEngineOptions);
+
+    addIndex('', {
+      _id: '1',
+      title: 'hello',
+      body: 'world',
+    });
+
+    addIndex('', {
+      _id: '2',
+      title: 'world',
+      body: 'hello',
+    });
+
+    expect(search('', 'title', 'hello')).toEqual([{ ref: '1', score: 2 }, { ref: '2', score: 1 }]);
+
+    await gitDDB.destroy();
+  });
+
+
 
 });
 

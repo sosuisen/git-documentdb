@@ -4,6 +4,7 @@ import {
   JsonDoc,
   SearchEngineOptions,
   SearchIndexInterface,
+  SearchResult,
 } from '../types';
 
 /**
@@ -62,12 +63,12 @@ class SearchIndexClass implements SearchIndexInterface {
     });
   }
 
-  search (collectionName: string, indexName: string, json: JsonDoc): JsonDoc[] {
-    const jsonDoc: JsonDoc[] = [];
+  search (collectionName: string, indexName: string, keyword: string): SearchResult[] {
+    const result: SearchResult[] = [];
     this._getSearchEngines(collectionName).forEach(engine => {
-      jsonDoc.push(...engine.search(collectionName, indexName, json));
+      result.push(...engine.search(collectionName, indexName, keyword));
     });
-    return jsonDoc;
+    return result;
   }
 }
 
