@@ -1,4 +1,4 @@
-import { JsonDoc } from './types';
+import { JsonDoc, SearchIndexConfig } from './types';
 import { GitDDBInterface } from './types_gitddb';
 import { SearchResult } from './types_search_api';
 
@@ -11,24 +11,37 @@ import { SearchResult } from './types_search_api';
  * @public
  */
 export interface SearchIndexInterface {
-  addIndex: (collectionPath: string, jsonDoc: JsonDoc) => void;
-  updateIndex: (collectionPath: string, oldJsonDoc: JsonDoc, newJsonDoc: JsonDoc) => void;
-  deleteIndex: (collectionPath: string, jsonDoc: JsonDoc) => void;
+  config: (indexName: string) => SearchIndexConfig;
+  indexes: (indexName: string) => any;
+  addIndex: (
+    collectionPath: string,
+    jsonDoc: JsonDoc,
+    configs: { [indexName: string]: SearchIndexConfig },
+    indexes: { [indexName: string]: any }
+  ) => void;
+  updateIndex: (
+    collectionPath: string,
+    oldJsonDoc: JsonDoc,
+    newJsonDoc: JsonDoc,
+    configs: { [indexName: string]: SearchIndexConfig },
+    indexes: { [indexName: string]: any }
+  ) => void;
+  deleteIndex: (
+    collectionPath: string,
+    jsonDoc: JsonDoc,
+    configs: { [indexName: string]: SearchIndexConfig },
+    indexes: { [indexName: string]: any }
+  ) => void;
   search: (
     collectionPath: string,
     indexName: string,
     keyword: string,
-    useOr: boolean
+    useOr: boolean,
+    configs: { [indexName: string]: SearchIndexConfig },
+    indexes: { [indexName: string]: any }
   ) => SearchResult[];
   serialize: () => void;
   close: () => void;
   destroy: () => void;
   rebuild: (gitDDB: GitDDBInterface) => Promise<void>;
 }
-
-/**
- * IsSearchIndexCreated
- *
- * @public
- */
-export type IsSearchIndexCreated = boolean[];

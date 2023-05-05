@@ -48,7 +48,7 @@ import { ICollection } from './types_collection';
 import {
   addMapFromCollectionToSearchEngine,
   SearchEngine,
-  SearchInterface,
+  SearchIndexClass,
 } from './search/search_engine';
 import { SearchResult } from './types_search_api';
 
@@ -80,6 +80,8 @@ export class Collection implements ICollection {
   private _gitDDB: GitDDBInterface;
 
   private _monoID: ULID;
+
+  private _searchIndex?: SearchIndexClass | undefined = undefined;
 
   /***********************************************
    * Public properties (readonly)
@@ -171,7 +173,7 @@ export class Collection implements ICollection {
         this._collectionPath,
         this._options.searchEngineOptions.name
       );
-      SearchEngine[this._options.searchEngineOptions.name].openOrCreate(
+      this._searchIndex = SearchEngine[this._options.searchEngineOptions.name].openOrCreate(
         this._collectionPath,
         this._options.searchEngineOptions
       );
@@ -400,10 +402,10 @@ export class Collection implements ICollection {
 
       clone._id = shortId;
       if (putResult.oldDoc === undefined) {
-        SearchInterface.addIndex(this.collectionPath, clone);
+        this._searchIndex?.addIndex(this.collectionPath, clone);
       }
       else {
-        SearchInterface.updateIndex(
+        this._searchIndex?.updateIndex(
           this.collectionPath,
           putResult.oldDoc as JsonDoc,
           clone
@@ -747,10 +749,10 @@ export class Collection implements ICollection {
 
         clone._id = shortId;
         if (putResult.oldDoc === undefined) {
-          SearchInterface.addIndex(this.collectionPath, clone);
+          this._searchIndex?.addIndex(this.collectionPath, clone);
         }
         else {
-          SearchInterface.updateIndex(
+          this._searchIndex?.updateIndex(
             this.collectionPath,
             putResult.oldDoc as JsonDoc,
             clone
@@ -1286,7 +1288,7 @@ export class Collection implements ICollection {
 
       const clone = JSON.parse(JSON.stringify(deleteResult.oldDoc));
       clone._id = shortId;
-      SearchInterface.deleteIndex(this.collectionPath, clone);
+      this._searchIndex?.deleteIndex(this.collectionPath, clone);
 
       return deleteResult;
     });
@@ -1333,7 +1335,10 @@ export class Collection implements ICollection {
             _id: shortId,
           };
 
-          SearchInterface.deleteIndex(this.collectionPath, deleteResult.oldDoc as JsonDoc);
+          this._searchIndex?.deleteIndex(
+            this.collectionPath,
+            deleteResult.oldDoc as JsonDoc
+          );
 
           return deleteResult;
         }
@@ -1398,11 +1403,15 @@ export class Collection implements ICollection {
   }
 
   search (indexName: string, keyword: string, useOr = false): SearchResult[] {
-    return SearchInterface.search(this._collectionPath, indexName, keyword, useOr);
+    if (this._searchIndex === undefined) return [];
+    return this._searchIndex?.search(this._collectionPath, indexName, keyword, useOr);
   }
 
   rebuildIndex (): Promise<void> {
-    return SearchInterface.rebuild(this._gitDDB);
+    if (this._searchIndex === undefined) {
+      return Promise.resolve();
+    }
+    return this._searchIndex?.rebuild(this._gitDDB);
   }
 
   /***********************************************

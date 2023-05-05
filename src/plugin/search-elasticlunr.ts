@@ -12,13 +12,14 @@ import fs from 'fs-extra';
 import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
+import { SearchIndexClass } from '../search/search_engine';
 import { JsonDoc, SearchEngineOptions, SearchIndexConfig } from '../types';
 
 import stemmer from './elasticlunr/lunr.stemmer.support.js';
 import lunr_ja from './elasticlunr/lunr.ja.js';
 import lunr_multi from './elasticlunr/lunr.multi.js';
 import { GitDDBInterface } from '../types_gitddb';
-import { IsSearchIndexCreated } from '../types_search';
+import { SearchIndexInterface } from '../types_search';
 import { SearchResult } from '../types_search_api';
 
 stemmer(elasticlunr);
@@ -43,29 +44,17 @@ export const type = 'search';
  */
 export const name = 'full-text';
 
-let searchIndexConfigs: {
-  [collectionPath: string]: { [indexName: string]: SearchIndexConfig };
-} = {};
-// SearchEngineInterface does not have indexes method.
-// Export indexes only for test.
-// eslint-disable-next-line import/no-mutable-exports
-export let indexes: { [collectionPath: string]: { [indexName: string]: any } } = {};
-
 export function openOrCreate (
   collectionPath: string,
   searchEngineOptions: SearchEngineOptions
-): IsSearchIndexCreated {
-  searchIndexConfigs = {};
-  indexes = {};
+): SearchIndexClass {
+  const searchIndexConfigs: { [indexName: string]: SearchIndexConfig } = {};
+  const indexes: { [indexName: string]: any } = {};
 
-  const results: IsSearchIndexCreated = [];
   searchEngineOptions.configs.forEach(searchIndexConfig => {
-    if (searchIndexConfigs[collectionPath] === undefined)
-      searchIndexConfigs[collectionPath] = {};
-    searchIndexConfigs[collectionPath][searchIndexConfig.indexName] = searchIndexConfig;
+    searchIndexConfigs[searchIndexConfig.indexName] = searchIndexConfig;
 
     if (!fs.existsSync(searchIndexConfig.indexFilePath)) {
-      if (indexes[collectionPath] === undefined) indexes[collectionPath] = {};
       indexes[collectionPath][searchIndexConfig.indexName] = elasticlunr(function () {
         // @ts-ignore
         this.use(elasticlunr.multiLanguage('en', 'ja'));
@@ -78,7 +67,6 @@ export function openOrCreate (
         this.setRef('_id');
         this.saveDocument(false);
       });
-      results.push(true);
     }
     else {
       const zip = new AdmZip(searchIndexConfig.indexFilePath);
@@ -97,10 +85,9 @@ export function openOrCreate (
           );
         }
       });
-      results.push(false);
     }
   });
-  return results;
+  return new SearchIndexClass(searchEngineOptions.name!, searchIndexConfigs, indexes);
 }
 
 const getTargetValue = (propName: string, jsonDoc: JsonDoc) => {
@@ -183,13 +170,18 @@ export async function rebuild (gitDDB: GitDDBInterface): Promise<void> {
   }
 }
 
-export function addIndex (collectionPath: string, json: JsonDoc): void {
-  Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
+export function addIndex (
+  collectionPath: string,
+  json: JsonDoc,
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any }
+): void {
+  Object.keys(indexes).forEach(indexName => {
     const doc: JsonDoc = { _id: json._id };
-    searchIndexConfigs[collectionPath][indexName].targetProperties.forEach(propName => {
+    configs[indexName].targetProperties.forEach(propName => {
       doc[propName] = getTargetValue(propName, json);
     });
-    indexes[collectionPath][indexName].addDoc(doc);
+    indexes[indexName].addDoc(doc);
   });
 }
 

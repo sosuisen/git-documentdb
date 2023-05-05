@@ -1,6 +1,6 @@
 import { IsSearchIndexCreated, SearchIndexInterface } from '../types_search';
 import { GitDDBInterface } from '../types_gitddb';
-import { JsonDoc, SearchEngineOptions } from '../types';
+import { JsonDoc, SearchEngineOptions, SearchIndexConfig } from '../types';
 import { SearchResult } from '../types_search_api';
 
 /**
@@ -33,32 +33,56 @@ export function addMapFromCollectionToSearchEngine (
 /**
  * Wrapper class for search engines
  */
-class SearchInterfaceClass implements SearchIndexInterface {
-  /**
-   * Return search engines
-   */
-  private _getSearchEngines = (collectionPath: string): SearchEngineInterface[] => {
-    return collectionEnginesMap[collectionPath]?.map(
-      engineName => SearchEngine[engineName]
-    );
-  };
+export class SearchIndexClass implements SearchIndexInterface {
+  private _configs: { [indexName: string]: SearchIndexConfig } = {};
+  private _indexes: { [indexName: string]: any } = {};
+
+  private _engineName = '';
+
+  config (indexName: string): SearchIndexConfig {
+    return this._configs[indexName];
+  }
+
+  indexes (indexName: string): any {
+    return this._indexes[indexName];
+  }
+
+  constructor (
+    engineName: string,
+    configs: { [indexName: string]: SearchIndexConfig },
+    indexes: { [indexName: string]: any }
+  ) {
+    this._engineName = engineName;
+    this._configs = configs;
+    this._indexes = indexes;
+  }
 
   addIndex (collectionPath: string, json: JsonDoc): void {
-    this._getSearchEngines(collectionPath)?.forEach(engine => {
-      engine.addIndex(collectionPath, json);
-    });
+    SearchEngine[this._engineName].addIndex(
+      collectionPath,
+      json,
+      this._configs,
+      this._indexes
+    );
   }
 
   updateIndex (collectionPath: string, oldJson: JsonDoc, newJson: JsonDoc): void {
-    this._getSearchEngines(collectionPath)?.forEach(engine => {
-      engine.updateIndex(collectionPath, oldJson, newJson);
-    });
+    SearchEngine[this._engineName].updateIndex(
+      collectionPath,
+      oldJson,
+      newJson,
+      this._configs,
+      this._indexes
+    );
   }
 
   deleteIndex (collectionPath: string, json: JsonDoc): void {
-    this._getSearchEngines(collectionPath)?.forEach(engine => {
-      engine.deleteIndex(collectionPath, json);
-    });
+    SearchEngine[this._engineName].deleteIndex(
+      collectionPath,
+      json,
+      this._configs,
+      this._indexes
+    );
   }
 
   search (
@@ -67,11 +91,14 @@ class SearchInterfaceClass implements SearchIndexInterface {
     keyword: string,
     useOr = false
   ): SearchResult[] {
-    const result: SearchResult[] = [];
-    this._getSearchEngines(collectionPath)?.forEach(engine => {
-      result.push(...engine.search(collectionPath, indexName, keyword, useOr));
-    });
-    return result;
+    return SearchEngine[this._engineName].search(
+      collectionPath,
+      indexName,
+      keyword,
+      useOr,
+      this._configs,
+      this._indexes
+    );
   }
 
   serialize (): void {
@@ -100,9 +127,6 @@ class SearchInterfaceClass implements SearchIndexInterface {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const SearchInterface: SearchIndexInterface = new SearchInterfaceClass();
-
 /**
  * SearchEngineInterface
  *
@@ -114,8 +138,5 @@ export const SearchInterface: SearchIndexInterface = new SearchInterfaceClass();
 export interface SearchEngineInterface extends SearchIndexInterface {
   type: string;
   name: string;
-  openOrCreate: (
-    collectionPath: string,
-    options: SearchEngineOptions
-  ) => IsSearchIndexCreated;
+  openOrCreate: (collectionPath: string, options: SearchEngineOptions) => SearchIndexClass;
 }
