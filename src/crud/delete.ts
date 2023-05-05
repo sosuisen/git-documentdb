@@ -14,6 +14,7 @@ import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import { DeleteOptions, DeleteResult, NormalizedCommit } from '../types';
 import { normalizeCommit } from '../utils';
+import { getImpl } from './get';
 
 /**
  * Implementation of delete()
@@ -35,7 +36,7 @@ export function deleteImpl (
   shortId: string | undefined,
   shortName: string,
   options?: DeleteOptions
-): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
+): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name' | 'oldDoc'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new Err.DatabaseClosingError());
   }
@@ -92,7 +93,7 @@ export async function deleteWorker (
   collectionPath: string,
   shortName: string,
   commitMessage: string
-): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name'>> {
+): Promise<Pick<DeleteResult, 'commit' | 'fileOid' | 'name' | 'oldDoc'>> {
   if (gitDDB === undefined) {
     throw new Err.UndefinedDBError();
   }
@@ -111,16 +112,18 @@ export async function deleteWorker (
     .catch(() => undefined);
   if (headCommit === undefined) throw new Err.DocumentNotFoundError();
 
-  const { oid } = await git
-    .readBlob({
-      fs,
-      dir: gitDDB.workingDir,
-      oid: headCommit,
-      filepath: fullDocPath,
-    })
-    .catch(() => {
-      throw new Err.DocumentNotFoundError();
-    });
+  const oldDoc = await getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat);
+  if (oldDoc === undefined) {
+    throw new Err.DocumentNotFoundError();
+  }
+  // getImpl() also calls git.readBlob().
+  // Find a good way to handle this inefficient process.
+  const { oid } = await git.readBlob({
+    fs,
+    dir: gitDDB.workingDir,
+    oid: headCommit,
+    filepath: fullDocPath,
+  });
   const fileOid = oid;
   await git.remove({ fs, dir: gitDDB.workingDir, filepath: fullDocPath });
 
@@ -168,5 +171,6 @@ export async function deleteWorker (
     fileOid,
     commit,
     name: shortName,
+    oldDoc,
   };
 }

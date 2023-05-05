@@ -11,10 +11,12 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import { normalizeCommit } from '../utils';
 import { SHORT_SHA_LENGTH } from '../const';
-import { NormalizedCommit, PutOptions, PutResult } from '../types';
+import { Doc, NormalizedCommit, PutOptions, PutResult } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
 import { SearchInterface } from '../search/search_engine';
+import { blobToJsonDocWithoutOverwrittenId, readLatestBlob } from './blob';
+import { getImpl } from './get';
 
 /**
  * Common implementation of put-like commands.
@@ -40,7 +42,7 @@ export function putImpl (
   shortName: string,
   data: Uint8Array | string,
   options?: PutOptions
-): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name'>> {
+): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name' | 'oldDoc'>> {
   if (gitDDB.isClosing) {
     return Promise.reject(new Err.DatabaseClosingError());
   }
@@ -113,7 +115,7 @@ export async function putWorker (
   data: Uint8Array | string,
   commitMessage: string,
   insertOrUpdate?: 'insert' | 'update'
-): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name'>> {
+): Promise<Pick<PutResult, 'commit' | 'fileOid' | 'name' | 'oldDoc'>> {
   if (gitDDB === undefined) {
     throw new Err.UndefinedDBError();
   }
@@ -128,14 +130,18 @@ export async function putWorker (
     throw new Err.CannotCreateDirectoryError(err.message);
   });
 
+  let oldDoc: Doc | undefined;
   try {
     const headCommit = await git
       .resolveRef({ fs, dir: gitDDB.workingDir, ref: 'HEAD' })
       .catch(() => undefined);
 
-    const oldEntryExists = fs.existsSync(filePath);
+    // const oldEntryExists = fs.existsSync(filePath);
+    if (gitDDB.isOpened) {
+      oldDoc = await getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat);
+    }
 
-    if (oldEntryExists) {
+    if (oldDoc) {
       if (insertOrUpdate === 'insert') return Promise.reject(new Err.SameIdExistsError());
       insertOrUpdate ??= 'update';
     }
@@ -179,5 +185,6 @@ export async function putWorker (
     fileOid,
     commit,
     name: shortName,
+    oldDoc,
   };
 }

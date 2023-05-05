@@ -503,6 +503,15 @@ export class GitDocumentDB
 
     this._logColorEnabled = options.logColorEnabled ?? true;
 
+    // @ts-ignore
+    SearchEngine[search_elasticlunr.name] = {};
+    Object.keys(search_elasticlunr).forEach(function (id) {
+      // Set to Search object
+      // @ts-ignore
+      // eslint-disable-next-line import/namespace
+      SearchEngine[search_elasticlunr.name][id] = search_elasticlunr[id];
+    });
+
     const collectionOptions = {
       namePrefix: options?.namePrefix ?? '',
       debounceTime: options?.debounceTime ?? -1,
@@ -518,15 +527,6 @@ export class GitDocumentDB
       // @ts-ignore
       // eslint-disable-next-line import/namespace
       RemoteEngine[remote_isomorphic_git.name][id] = remote_isomorphic_git[id];
-    });
-
-    // @ts-ignore
-    SearchEngine[search_elasticlunr.name] = {};
-    Object.keys(search_elasticlunr).forEach(function (id) {
-      // Set to Search object
-      // @ts-ignore
-      // eslint-disable-next-line import/namespace
-      SearchEngine[search_elasticlunr.name][id] = search_elasticlunr[id];
     });
   }
 

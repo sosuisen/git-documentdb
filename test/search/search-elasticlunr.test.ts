@@ -370,7 +370,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     openOrCreate('book', searchEngineOptions);
 
     addIndex('book', {
-      _id: 'book/1',
+      _id: '1',
       title: 'hello world',
       body: 'planet',
     });
@@ -440,7 +440,6 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       _id: '1',
       title: 'hello',
     });
-    console.log(JSON.stringify(indexes[''].title));
 
     updateIndex(
       '',
@@ -512,11 +511,11 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const bookCol = gitDDB.collection('book');
     await bookCol.put({
-      _id: 'book/1',
+      _id: '1',
       title: 'hello',
     });
     await bookCol.put({
-      _id: 'book/2',
+      _id: '2',
       title: 'world',
     });
     await gitDDB.close();
@@ -571,6 +570,109 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
     expect(indexObj.ref).toBe('_id');
+
+    await gitDDB.destroy();
+  });
+
+  it('put', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      // name: 'full-text'
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      searchEngineOptions,
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      _id: '1',
+      title: 'x',
+    });
+
+    // Cannot read property of index directry.
+    // Use stringify and parse.
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    expect(indexObj.documentStore.docs).toEqual({ '1': null });
+    expect(indexObj.index.title.root.x).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
+
+    await gitDDB.destroy();
+  });
+
+  it('update', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      // name: 'full-text'
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      searchEngineOptions,
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      _id: '1',
+      title: 'x',
+    });
+
+    await gitDDB.put({
+      _id: '1',
+      title: 'y',
+    });
+
+    // Cannot read property of index directry.
+    // Use stringify and parse.
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    expect(indexObj.index.title.root.x).toEqual({ docs: {}, df: 0 });
+    expect(indexObj.index.title.root.y).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
+
+    await gitDDB.destroy();
+  });
+
+  it('delete', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      // name: 'full-text'
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      searchEngineOptions,
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      _id: '1',
+      title: 'x',
+    });
+
+    await gitDDB.delete('1');
+
+    // Cannot read property of index directry.
+    // Use stringify and parse.
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    expect(indexObj.documentStore.docs).toEqual({});
+    expect(indexObj.index.title.root.x).toEqual({ docs: {}, df: 0 });
 
     await gitDDB.destroy();
   });

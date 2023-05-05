@@ -533,6 +533,8 @@ export type FindOptions = {
  *
  * - commit: Git commit object of this put operation.
  *
+ * - oldDoc: Old document if exists. oldDoc is undefined if action is not update but insert.
+ *
  * @public
  */
 export type PutResult = PutResultJsonDoc | PutResultText | PutResultBinary;
@@ -546,6 +548,7 @@ export type PutResultJsonDoc = {
   fileOid: string;
   commit: NormalizedCommit;
   type: 'json';
+  oldDoc: Doc | undefined;
 };
 
 /**
@@ -556,6 +559,7 @@ export type PutResultText = {
   fileOid: string;
   commit: NormalizedCommit;
   type: 'text';
+  oldDoc: Doc | undefined;
 };
 
 /**
@@ -566,6 +570,7 @@ export type PutResultBinary = {
   fileOid: string;
   commit: NormalizedCommit;
   type: 'binary';
+  oldDoc: Doc | undefined;
 };
 
 /**
@@ -593,6 +598,7 @@ export type DeleteResultJsonDoc = {
   fileOid: string;
   commit: NormalizedCommit;
   type: 'json';
+  oldDoc: Doc;
 };
 
 /**
@@ -603,6 +609,7 @@ export type DeleteResultText = {
   fileOid: string;
   commit: NormalizedCommit;
   type: 'text';
+  oldDoc: Doc;
 };
 
 /**
@@ -613,6 +620,7 @@ export type DeleteResultBinary = {
   fileOid: string;
   commit: NormalizedCommit;
   type: 'binary';
+  oldDoc: Doc;
 };
 
 /**

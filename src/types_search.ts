@@ -5,7 +5,7 @@ import { GitDDBInterface } from './types_gitddb';
  * SearchIndexInterface
  *
  * @remarks
- *  - Notice that _id in JsonDoc includes collectionPath
+ *  - Notice that _id in JsonDoc does not include collectionPath
  *
  * @public
  */

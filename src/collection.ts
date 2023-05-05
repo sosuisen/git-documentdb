@@ -45,7 +45,11 @@ import { findImpl } from './crud/find';
 import { putImpl } from './crud/put';
 import { SyncInterface } from './types_sync';
 import { ICollection } from './types_collection';
-import { SearchEngine, SearchInterface } from './search/search_engine';
+import {
+  addMapFromCollectionToSearchEngine,
+  SearchEngine,
+  SearchInterface,
+} from './search/search_engine';
 
 /**
  * Documents under a collectionPath are gathered together in a collection.
@@ -162,6 +166,10 @@ export class Collection implements ICollection {
       if (this._options.searchEngineOptions.name === undefined) {
         this._options.searchEngineOptions.name = 'full-text';
       }
+      addMapFromCollectionToSearchEngine(
+        this._collectionPath,
+        this._options.searchEngineOptions.name
+      );
       SearchEngine[this._options.searchEngineOptions.name].openOrCreate(
         this._collectionPath,
         this._options.searchEngineOptions
@@ -333,6 +341,7 @@ export class Collection implements ICollection {
     let _id: string;
     let jsonDoc: JsonDoc;
 
+    let clone: JsonDoc;
     // Resolve overloads
     if (
       typeof shortIdOrDoc === 'string' ||
@@ -353,7 +362,6 @@ export class Collection implements ICollection {
     }
 
     // JSON
-    let clone;
     try {
       clone = JSON.parse(JSON.stringify(jsonDoc));
     } catch (err) {
@@ -388,6 +396,19 @@ export class Collection implements ICollection {
         name: shortName,
         type: 'json',
       };
+
+      clone._id = shortId;
+      if (putResult.oldDoc === undefined) {
+        SearchInterface.addIndex(this.collectionPath, clone);
+      }
+      else {
+        SearchInterface.updateIndex(
+          this.collectionPath,
+          putResult.oldDoc as JsonDoc,
+          clone
+        );
+      }
+
       return putResult;
     });
   }
@@ -656,6 +677,7 @@ export class Collection implements ICollection {
     let data: Uint8Array | string;
     let docType: DocType;
 
+    let clone: JsonDoc;
     // Resolve overloads
     if (typeof doc === 'string') {
       if (!shortName) shortName = this.generateId();
@@ -678,7 +700,6 @@ export class Collection implements ICollection {
       shortId = shortName.replace(new RegExp(extension + '$'), '');
 
       // Validate JSON
-      let clone;
       try {
         clone = JSON.parse(JSON.stringify(doc));
       } catch (err) {
@@ -722,6 +743,19 @@ export class Collection implements ICollection {
           type: 'json',
           _id: shortId!,
         };
+
+        clone._id = shortId;
+        if (putResult.oldDoc === undefined) {
+          SearchInterface.addIndex(this.collectionPath, clone);
+        }
+        else {
+          SearchInterface.updateIndex(
+            this.collectionPath,
+            putResult.oldDoc as JsonDoc,
+            clone
+          );
+        }
+
         return putResult;
       }
       else if (docType === 'text') {
@@ -1243,11 +1277,16 @@ export class Collection implements ICollection {
       shortName,
       options
     ).then(res => {
-      const deleteResult: PutResultJsonDoc = {
+      const deleteResult: DeleteResultJsonDoc = {
         ...res,
         _id: shortId,
         type: 'json',
       };
+
+      const clone = JSON.parse(JSON.stringify(deleteResult.oldDoc));
+      clone._id = shortId;
+      SearchInterface.deleteIndex(this.collectionPath, clone);
+
       return deleteResult;
     });
   }
@@ -1292,6 +1331,9 @@ export class Collection implements ICollection {
             type: 'json',
             _id: shortId,
           };
+
+          SearchInterface.deleteIndex(this.collectionPath, deleteResult.oldDoc as JsonDoc);
+
           return deleteResult;
         }
         else if (docType === 'text') {

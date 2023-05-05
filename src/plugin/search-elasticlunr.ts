@@ -243,11 +243,14 @@ export function search (
     expand: true,
     bool,
   }) as SearchResult[];
+
+  /*
   if (collectionPath !== '') {
     results.forEach(res => {
       const shortId = res.ref.substring(collectionPath.length + 1);
       res.ref = shortId;
     });
   }
+  */
   return results;
 }
