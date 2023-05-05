@@ -255,7 +255,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     await gitDDB.destroy();
   });
-  
+
   it('search by AND', async () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
@@ -295,7 +295,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.destroy();
   });
 
- it('search by OR', async () => {
+  it('search by OR', async () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
@@ -333,6 +333,86 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     await gitDDB.destroy();
   });
+
+  it('delete', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate('', searchEngineOptions);
+
+    addIndex('', {
+      _id: '1',
+      title: 'hello',
+    });
+    // console.log(JSON.stringify(indexes['']['title']));
+
+    deleteIndex('', {
+      _id: '1',
+      title: 'hello',
+    });
+    //    console.log(JSON.stringify(indexes['']['title']));
+    expect(search('', 'title', 'hello')).toEqual([]);
+
+    await gitDDB.destroy();
+  });
+
+  it.only('update', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate('', searchEngineOptions);
+
+    addIndex('', {
+      _id: '1',
+      title: 'hello',
+    });
+    console.log(JSON.stringify(indexes['']['title']));
+
+    updateIndex('', {
+      _id: '1',
+      title: 'hello',
+    }, {
+      _id: '1',
+      title: 'こんにちは',
+    });
+
+    console.log(JSON.stringify(indexes['']['title']));
+    expect(search('', 'title', 'hello')).toEqual([]);
+    expect(search('', 'title', 'こんにちは')).toMatchObject([{ ref: '1' }]);
+
+    await gitDDB.destroy();
+
+  });
+
+  it('rebuild', async () => { });
 
 });
 

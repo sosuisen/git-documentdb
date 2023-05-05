@@ -7,6 +7,7 @@
  */
 
 import { ILogObject, TLogLevelName } from 'tslog';
+import { GitDDBInterface } from './types_gitddb';
 
 /**
  * Plugin types
@@ -1296,12 +1297,13 @@ export type SearchEngineOptions = {
  */
 export interface SearchIndexInterface {
   addIndex: (collectionName: string, json: JsonDoc) => void;
-  updateIndex: (collectionName: string, json: JsonDoc) => void;
+  updateIndex: (collectionName: string, oldJson: JsonDoc, newJson: JsonDoc) => void;
   deleteIndex: (collectionName: string, json: JsonDoc) => void;
   search: (collectionName: string, indexName: string, keyword: string, useOr: boolean) => SearchResult[];
   serialize: () => void;
   close: () => void;
-  destroy: (collectionName: string) => void;
+  destroy: () => void;
+  rebuild: (gitDDB: GitDDBInterface) => void;
 }
 
 /**

@@ -9,7 +9,7 @@
 
 import fs from 'fs-extra';
 import path from 'path';
-import elasticlunr, { SearchResults } from 'elasticlunr';
+import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
 import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndexConfig, SearchResult } from '../types';
@@ -17,7 +17,7 @@ import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndexConfig, 
 import stemmer from './elasticlunr/lunr.stemmer.support.js';
 import lunr_ja from './elasticlunr/lunr.ja.js';
 import lunr_multi from './elasticlunr/lunr.multi.js';
-import index from 'isomorphic-git';
+import { CollectionInterface } from '../types_collection';
 
 stemmer(elasticlunr);
 lunr_ja(elasticlunr);
@@ -135,12 +135,39 @@ export function close (): void {
 }
 
 export function destroy (): void {
-  close();
   Object.keys(searchIndexConfigs).forEach(collectionName => {
     Object.keys(searchIndexConfigs[collectionName]).forEach(indexName => {
       fs.removeSync(path.resolve(searchIndexConfigs[collectionName][indexName].indexFilePath));
     });
   });
+  close();
+}
+
+export async function rebuild (gitDDB: CollectionInterface): Promise<void> {
+  for (const collectionName of Object.keys(searchIndexConfigs)) {
+    for (const indexName of Object.keys(searchIndexConfigs[collectionName])) {
+      const searchIndexConfig = searchIndexConfigs[collectionName][indexName];
+      if (indexes[collectionName] === undefined) indexes[collectionName] = {};
+      indexes[collectionName][indexName] = elasticlunr(function () {
+        // @ts-ignore
+        this.use(elasticlunr.multiLanguage('en', 'ja'));
+
+        searchIndexConfig.targetProperties.forEach(propName => {
+          // @ts-ignore
+          this.addField(propName);
+        });
+        // @ts-ignore
+        this.setRef('_id');
+        this.saveDocument(false);
+      });
+      // コレクションにドキュメント追加
+      const collection = gitDDB.collection(collectionName);
+      const docs = await collection.find();
+      docs.forEach(doc => {
+        indexes[collectionName][indexName].addDoc(doc);
+      });
+    }
+  }
 }
 
 export function addIndex (collectionName: string, json: JsonDoc): void {
@@ -153,13 +180,18 @@ export function addIndex (collectionName: string, json: JsonDoc): void {
   });
 }
 
-export function updateIndex (collectionName: string, json: JsonDoc): void {
+export function updateIndex (collectionName: string, oldJson: JsonDoc, newJson: JsonDoc): void {
   Object.keys(searchIndexConfigs[collectionName]).forEach(indexName => {
-    const doc: JsonDoc = { _id: json._id };
+    const oldDoc: JsonDoc = { _id: oldJson._id };
     searchIndexConfigs[collectionName][indexName].targetProperties.forEach(propName => {
-      doc[propName] = getTargetValue(propName, json);
+      oldDoc[propName] = getTargetValue(propName, oldJson);
     });
-    indexes[collectionName][indexName].updateDoc(doc);
+    indexes[collectionName][indexName].removeDoc(oldDoc);
+    const newDoc: JsonDoc = { _id: newJson._id };
+    searchIndexConfigs[collectionName][indexName].targetProperties.forEach(propName => {
+      newDoc[propName] = getTargetValue(propName, newJson);
+    });
+    indexes[collectionName][indexName].addDoc(newDoc);
   });
 }
 

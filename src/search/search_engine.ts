@@ -22,7 +22,7 @@ const collectionEnginesMap: { [collectionName: string]: string[] } = {};
  * Map collectionName to searchEngine
  * This will be called by SearchEngine plugins
  */
-export function addMapFromCollectionToSearchEngine (
+export function addMapFromCollectionToSearchEngine(
   collectionName: string,
   searchEngineName: string
 ): void {
@@ -45,25 +45,25 @@ class SearchInterfaceClass implements SearchIndexInterface {
     );
   };
 
-  addIndex (collectionName: string, json: JsonDoc): void {
+  addIndex(collectionName: string, json: JsonDoc): void {
     this._getSearchEngines(collectionName).forEach(engine => {
       engine.addIndex(collectionName, json);
     });
   }
 
-  updateIndex (collectionName: string, json: JsonDoc): void {
+  updateIndex (collectionName: string, oldJson: JsonDoc, newJson: JsonDoc): void {
     this._getSearchEngines(collectionName).forEach(engine => {
-      engine.addIndex(collectionName, json);
+      engine.updateIndex(collectionName, oldJson, newJson);
     });
   }
 
-  deleteIndex (collectionName: string, json: JsonDoc): void {
+  deleteIndex(collectionName: string, json: JsonDoc): void {
     this._getSearchEngines(collectionName).forEach(engine => {
-      engine.addIndex(collectionName, json);
+      engine.deleteIndex(collectionName, json);
     });
   }
 
-  search (collectionName: string, indexName: string, keyword: string, useOr = false): SearchResult[] {
+  search(collectionName: string, indexName: string, keyword: string, useOr = false): SearchResult[] {
     const result: SearchResult[] = [];
     this._getSearchEngines(collectionName).forEach(engine => {
       result.push(...engine.search(collectionName, indexName, keyword, useOr));
@@ -71,9 +71,29 @@ class SearchInterfaceClass implements SearchIndexInterface {
     return result;
   }
 
-  serialize(): void{}
-  close(): void{}
-  destroy(collectionName: string): void{}
+  serialize(): void {
+    Object.values(SearchEngine).forEach(engine => {
+      engine.serialize();
+    });
+  }
+
+  close(): void {
+    Object.values(SearchEngine).forEach(engine => {
+      engine.close();
+    });
+  }
+
+  destroy(): void {
+    Object.values(SearchEngine).forEach(engine => {
+      engine.destroy();
+    });
+  }
+
+  rebuild(gitDDB: GitDDBInterface): void {
+    Object.values(SearchEngine).forEach(engine => {
+      engine.rebuild(gitDDB);
+    });
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
