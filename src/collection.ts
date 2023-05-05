@@ -163,7 +163,6 @@ export class Collection implements ICollection {
         this._options.searchEngineOptions.name = 'full-text';
       }
       SearchEngine[this._options.searchEngineOptions.name].openOrCreate(
-        this._gitDDB,
         this._collectionPath,
         this._options.searchEngineOptions
       );

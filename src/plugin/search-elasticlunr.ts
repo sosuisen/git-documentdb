@@ -13,11 +13,11 @@ import elasticlunr, { SearchResults } from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
 import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndex, SearchResult } from '../types';
-import { GitDDBInterface } from '../types_gitddb';
 
 import stemmer from './elasticlunr/lunr.stemmer.support.js';
 import lunr_ja from './elasticlunr/lunr.ja.js';
 import lunr_multi from './elasticlunr/lunr.multi.js';
+import index from 'isomorphic-git';
 
 stemmer(elasticlunr);
 lunr_ja(elasticlunr);
@@ -41,21 +41,20 @@ export const type = 'search';
  */
 export const name = 'full-text';
 
-let _gitDDB: GitDDBInterface;
-const searchIndexes: {
+let searchIndexes: {
   [collectionName: string]: { [indexName: string]: SearchIndex };
 } = {};
 // SearchEngineInterface does not have indexes method.
 // Export indexes only for test.
-export const indexes: { [collectionName: string]: { [indexName: string]: any } } = {};
+export let indexes: { [collectionName: string]: { [indexName: string]: any } } = {};
 
 export function openOrCreate (
-  gitDDB: GitDDBInterface,
   collectionName: string,
   searchEngineOptions: SearchEngineOptions
 ): IsSearchIndexCreated {
-  _gitDDB = gitDDB;
-
+  searchIndexes = {};
+  indexes = {};
+  
   const results: IsSearchIndexCreated = [];
   searchEngineOptions.indexes.forEach(searchIndex => {
     if (searchIndexes[collectionName] === undefined) searchIndexes[collectionName] = {};
@@ -158,7 +157,9 @@ export function updateIndex (collectionName: string, json: JsonDoc): void {}
 
 export function deleteIndex (collectionName: string, json: JsonDoc): void {}
 
-export function search (collectionName: string, indexName: string, keyword: string): SearchResult {
+export function search (collectionName: string, indexName: string, keyword: string, useOr = false): SearchResult {
+  let bool = "AND";
+  if (useOr) bool = "OR";
   const fields: { [propname: string]: { 'boost': number }} = {};
   // The earlier the element is in the array, 
   // the higher the boost priority (boost).
@@ -171,5 +172,6 @@ export function search (collectionName: string, indexName: string, keyword: stri
   return indexes[collectionName][indexName].search(keyword, {
     fields,
     expand: true,
+    bool,
   });
 }

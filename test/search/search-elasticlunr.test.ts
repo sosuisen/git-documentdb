@@ -63,7 +63,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate(gitDDB, '', searchEngineOptions);
+    openOrCreate('', searchEngineOptions);
     // Cannot read property of index directry.
     // Use stringify and parse.
     const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
@@ -90,12 +90,12 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       localDir,
     });
     await gitDDB.open();
-    let isCreated = openOrCreate(gitDDB, '', searchEngineOptions);
+    let isCreated = openOrCreate('', searchEngineOptions);
     expect(isCreated).toEqual([true]);
     serialize();
     close();
 
-    isCreated = openOrCreate(gitDDB, '', searchEngineOptions);
+    isCreated = openOrCreate('', searchEngineOptions);
     expect(isCreated).toEqual([false]);
     // Cannot read property of index directry.
     // Use stringify and parse.
@@ -126,7 +126,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate(gitDDB, '', searchEngineOptions);
+    openOrCreate('', searchEngineOptions);
 
     addIndex('', {
       _id: '1',
@@ -162,7 +162,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate(gitDDB, '', searchEngineOptions);
+    openOrCreate('', searchEngineOptions);
 
     addIndex('', {
       _id: '1',
@@ -201,7 +201,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate(gitDDB, '', searchEngineOptions);
+    openOrCreate('', searchEngineOptions);
 
     addIndex('', {
       _id: '1',
@@ -218,7 +218,6 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     await gitDDB.destroy();
   });
-
 
   it('boosting search', async () => {
     const dbName = monoId();
@@ -238,7 +237,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate(gitDDB, '', searchEngineOptions);
+    openOrCreate('', searchEngineOptions);
 
     addIndex('', {
       _id: '1',
@@ -256,8 +255,84 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     await gitDDB.destroy();
   });
+  
+  it('search by AND', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      indexes: [
+        {
+          indexName: 'title',
+          targetProperties: ['title', 'body'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate('', searchEngineOptions);
 
+    // match
+    addIndex('', {
+      _id: '1',
+      title: 'hello world',
+      body: 'planet',
+    });
 
+    // do not match
+    addIndex('', {
+      _id: '2',
+      title: 'hello',
+      body: 'world',
+    });
+
+    expect(search('', 'title', 'hello world')).toMatchObject([{ ref: '1' }]);
+
+    await gitDDB.destroy();
+  });
+
+ it('search by OR', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      indexes: [
+        {
+          indexName: 'title',
+          targetProperties: ['title', 'body'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate('', searchEngineOptions);
+
+    // match
+    addIndex('', {
+      _id: '1',
+      title: 'hello world',
+      body: 'planet',
+    });
+
+    // do not match
+    addIndex('', {
+      _id: '2',
+      title: 'hello',
+      body: 'world',
+    });
+
+    expect(search('', 'title', 'hello world', true)).toMatchObject([{ ref: '1' }, { ref: '2' }]);
+
+    await gitDDB.destroy();
+  });
 
 });
 

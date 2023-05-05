@@ -63,10 +63,10 @@ class SearchIndexClass implements SearchIndexInterface {
     });
   }
 
-  search (collectionName: string, indexName: string, keyword: string): SearchResult[] {
+  search (collectionName: string, indexName: string, keyword: string, useOr = false): SearchResult[] {
     const result: SearchResult[] = [];
     this._getSearchEngines(collectionName).forEach(engine => {
-      result.push(...engine.search(collectionName, indexName, keyword));
+      result.push(...engine.search(collectionName, indexName, keyword, useOr));
     });
     return result;
   }
@@ -87,7 +87,6 @@ export interface SearchEngineInterface extends SearchIndexInterface {
   type: string;
   name: string;
   openOrCreate: (
-    gitDDB: GitDDBInterface,
     collectionName: string,
     options: SearchEngineOptions
   ) => IsSearchIndexCreated;
