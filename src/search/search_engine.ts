@@ -77,6 +77,9 @@ export const SearchIndex: SearchIndexInterface = new SearchIndexClass();
 /**
  * SearchEngineInterface
  *
+ * @remarks
+ *  - destroy: Close indexes and delete serialized index files.
+ * 
  * @public
  */
 export interface SearchEngineInterface extends SearchIndexInterface {
@@ -88,4 +91,6 @@ export interface SearchEngineInterface extends SearchIndexInterface {
     options: SearchEngineOptions
   ) => IsSearchIndexCreated;
   serialize: () => void;
+  close: () => void;
+  destroy: (collectionName: string) => void;
 }

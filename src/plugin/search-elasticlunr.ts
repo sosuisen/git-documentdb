@@ -8,15 +8,17 @@
  */
 
 import fs from 'fs-extra';
+import path from 'path';
 import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
 import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndex } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 
-import stemmer from './lunr.stemmer.support.js';
-import lunr_ja from './lunr.ja.js';
-import lunr_multi from './lunr.multi.js';
+import stemmer from './elasticlunr/lunr.stemmer.support.js';
+import lunr_ja from './elasticlunr/lunr.ja.js';
+import lunr_multi from './elasticlunr/lunr.multi.js';
+
 stemmer(elasticlunr);
 lunr_ja(elasticlunr);
 lunr_multi(elasticlunr);
@@ -43,7 +45,9 @@ let _gitDDB: GitDDBInterface;
 const searchIndexes: {
   [collectionName: string]: { [indexName: string]: SearchIndex };
 } = {};
-const indexes: { [collectionName: string]: { [indexName: string]: any } } = {};
+// SearchEngineInterface does not have indexes method.
+// Export indexes only for test.
+export const indexes: { [collectionName: string]: { [indexName: string]: any } } = {};
 
 export function openOrCreate (
   gitDDB: GitDDBInterface,
@@ -84,7 +88,8 @@ export function openOrCreate (
             this.use(elasticlunr.multiLanguage('en', 'ja'));
             this.saveDocument(false);
           });
-          indexes[collectionName] = elasticlunr.Index.load(JSON.parse(json));
+          if (indexes[collectionName] === undefined) indexes[collectionName] = {};
+          indexes[collectionName][searchIndex.indexName] = elasticlunr.Index.load(JSON.parse(json));
         }
       });
       results.push(false);
@@ -115,6 +120,26 @@ export function serialize (): void {
         'index of lunr'
       );
       zip.writeZip(searchIndexes[collectionName][indexName].indexFilePath);
+    });
+  });
+}
+
+export function close (): void {
+  Object.keys(searchIndexes).forEach(collectionName => {
+    Object.keys(searchIndexes[collectionName]).forEach(indexName => {
+      delete searchIndexes[collectionName][indexName];
+      delete indexes[collectionName][indexName];
+    });
+    delete searchIndexes[collectionName];
+    delete indexes[collectionName];
+  });
+}
+
+export function destroy (): void {
+  close();
+  Object.keys(searchIndexes).forEach(collectionName => {
+    Object.keys(searchIndexes[collectionName]).forEach(indexName => {
+      fs.removeSync(path.resolve(searchIndexes[collectionName][indexName].indexFilePath));
     });
   });
 }
