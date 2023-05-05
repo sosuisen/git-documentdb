@@ -138,7 +138,9 @@ export async function putWorker (
 
     // const oldEntryExists = fs.existsSync(filePath);
     if (gitDDB.isOpened) {
-      oldDoc = await getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat);
+      try {
+        oldDoc = await getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat);
+      } catch {}
     }
 
     if (oldDoc) {

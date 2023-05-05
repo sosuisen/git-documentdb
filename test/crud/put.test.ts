@@ -258,7 +258,9 @@ describe('<crud/put> put', () => {
           commitMessage: `${i}`,
         }
       )
-        .then(res => results.push(Number.parseInt(res.commit.message, 10)))
+        .then(res => {
+          results.push(Number.parseInt(res.commit.message, 10));
+        })
         .catch(() => {});
     }
     // close() can wait results of all Promises if timeout is set to large number.

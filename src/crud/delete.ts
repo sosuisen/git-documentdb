@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -112,7 +113,10 @@ export async function deleteWorker (
     .catch(() => undefined);
   if (headCommit === undefined) throw new Err.DocumentNotFoundError();
 
-  const oldDoc = await getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat);
+  let oldDoc;
+  try {
+    oldDoc = await getImpl(gitDDB, shortName, collectionPath, gitDDB.serializeFormat);
+  } catch {}
   if (oldDoc === undefined) {
     throw new Err.DocumentNotFoundError();
   }
