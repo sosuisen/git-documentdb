@@ -107,6 +107,82 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     await gitDDB.destroy();
   });
+
+  it('add index to the first level property', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      indexes: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate(gitDDB, '', searchEngineOptions);
+
+    addIndex('', {
+      _id: '1',
+      title: 'x',
+    });
+
+    // Cannot read property of index directry.
+    // Use stringify and parse.
+    const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
+    // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"title":1}},"length":1,"save":false},"index":{"title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
+    expect(indexObj.documentStore.docs).toEqual({"1": null});
+    expect(indexObj.index['title'].root["x"]).toEqual(
+      {"docs":{"1":{"tf":1}},"df":1}
+    );
+    await gitDDB.destroy();
+  });
+
+  it('add index to the second level property', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      indexes: [
+        {
+          indexName: 'title',
+          targetProperties: ['book.title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate(gitDDB, '', searchEngineOptions);
+
+    addIndex('', {
+      _id: '1',
+      book: {
+        title: 'x',
+      },
+    });
+
+    // Cannot read property of index directry.
+    // Use stringify and parse.
+    const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
+    console.log(JSON.stringify(indexes['']['title']));
+    // {"version":"0.9.5","fields":["book.title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"book.title":1}},"length":1,"save":false},"index":{"book.title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
+    expect(indexObj.documentStore.docs).toEqual({"1": null});
+    expect(indexObj.index['book.title'].root["x"]).toEqual(
+      {"docs":{"1":{"tf":1}},"df":1}
+    );
+    await gitDDB.destroy();
+  });
+
 });
 
 describe('<search/elasticlunr> call through GitDocumentDB', () => {

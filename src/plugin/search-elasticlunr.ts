@@ -150,7 +150,7 @@ export function addIndex (collectionName: string, json: JsonDoc): void {
     searchIndexes[collectionName][indexName].targetProperties.forEach(propName => {
       doc[propName] = getTargetValue(propName, json);
     });
-    indexes[collectionName].addDoc(doc);
+    indexes[collectionName][indexName].addDoc(doc);
   });
 }
 
