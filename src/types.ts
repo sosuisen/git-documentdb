@@ -1270,7 +1270,7 @@ export type ColoredLogger = {
  *  - indexFilePath: A full path of the index file. The path should be out of the workingDir.
  * @public
  */
-export type SearchIndex = {
+export type SearchIndexConfig = {
   indexName: string;
   targetProperties: string[];
   indexFilePath: string;
@@ -1286,7 +1286,7 @@ export type SearchIndex = {
  */
 export type SearchEngineOptions = {
   name?: string;
-  indexes: SearchIndex[];
+  configs: SearchIndexConfig[];
 };
 
 /**

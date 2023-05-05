@@ -35,7 +35,7 @@ export function addMapFromCollectionToSearchEngine (
 /**
  * Wrapper class for search engines
  */
-class SearchIndexClass implements SearchIndexInterface {
+class SearchInterfaceClass implements SearchIndexInterface {
   /**
    * Return search engines
    */
@@ -73,7 +73,7 @@ class SearchIndexClass implements SearchIndexInterface {
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export const SearchIndex: SearchIndexInterface = new SearchIndexClass();
+export const SearchInterface: SearchIndexInterface = new SearchInterfaceClass();
 
 /**
  * SearchEngineInterface

@@ -49,7 +49,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title'],
@@ -77,7 +77,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title'],
@@ -112,7 +112,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title'],
@@ -148,7 +148,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['book.title'],
@@ -187,7 +187,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title'],
@@ -223,7 +223,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title', 'body'],
@@ -260,7 +260,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title', 'body'],
@@ -299,7 +299,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title', 'body'],
@@ -341,7 +341,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       // name: 'full-text'
-      indexes: [
+      configs: [
         {
           indexName: 'title',
           targetProperties: ['title'],
