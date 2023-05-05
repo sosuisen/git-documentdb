@@ -1,6 +1,7 @@
-import { IsSearchIndexCreated, SearchIndexInterface, SearchResult } from '../types_search';
+import { IsSearchIndexCreated, SearchIndexInterface } from '../types_search';
 import { GitDDBInterface } from '../types_gitddb';
 import { JsonDoc, SearchEngineOptions } from '../types';
+import { SearchResult } from '../types_search_api';
 
 /**
  * SearchEngine
@@ -24,7 +25,9 @@ export function addMapFromCollectionToSearchEngine (
   if (!collectionEnginesMap[collectionPath]) {
     collectionEnginesMap[collectionPath] = [];
   }
-  collectionEnginesMap[collectionPath].push(searchEngineName);
+  if (!collectionEnginesMap[collectionPath].includes(searchEngineName)) {
+    collectionEnginesMap[collectionPath].push(searchEngineName);
+  }
 }
 
 /**

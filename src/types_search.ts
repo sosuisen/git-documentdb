@@ -1,5 +1,6 @@
 import { JsonDoc } from './types';
 import { GitDDBInterface } from './types_gitddb';
+import { SearchResult } from './types_search_api';
 
 /**
  * SearchIndexInterface
@@ -31,14 +32,3 @@ export interface SearchIndexInterface {
  * @public
  */
 export type IsSearchIndexCreated = boolean[];
-
-/**
- * SearchResult
- *
- * @remarks
- *  - ref is shortId. Notice that shortId does not include collectionPath.
- */
-export type SearchResult = {
-  ref: string;
-  score: number;
-};

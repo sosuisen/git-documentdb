@@ -50,6 +50,7 @@ import {
   SearchEngine,
   SearchInterface,
 } from './search/search_engine';
+import { SearchResult } from './types_search_api';
 
 /**
  * Documents under a collectionPath are gathered together in a collection.
@@ -1394,6 +1395,14 @@ export class Collection implements ICollection {
       true,
       options
     ) as Promise<FatDoc[]>;
+  }
+
+  search (indexName: string, keyword: string, useOr = false): SearchResult[] {
+    return SearchInterface.search(this._collectionPath, indexName, keyword, useOr);
+  }
+
+  rebuildIndex (): Promise<void> {
+    return SearchInterface.rebuild(this._gitDDB);
   }
 
   /***********************************************

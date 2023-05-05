@@ -367,15 +367,15 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('book', searchEngineOptions);
+    openOrCreate('book/', searchEngineOptions);
 
-    addIndex('book', {
+    addIndex('book/', {
       _id: '1',
       title: 'hello world',
       body: 'planet',
     });
 
-    expect(search('book', 'title', 'hello world')).toMatchObject([{ ref: '1' }]);
+    expect(search('book/', 'title', 'hello world')).toMatchObject([{ ref: '1' }]);
 
     await gitDDB.destroy();
   });
@@ -536,10 +536,10 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
         },
       ],
     };
-    openOrCreate('book', searchEngineOptions);
+    openOrCreate('book/', searchEngineOptions);
     await rebuild(gitDDB2);
-    expect(search('book', 'title', 'hello')).toMatchObject([{ ref: '1' }]);
-    expect(search('book', 'title', 'world')).toMatchObject([{ ref: '2' }]);
+    expect(search('book/', 'title', 'hello')).toMatchObject([{ ref: '1' }]);
+    expect(search('book/', 'title', 'world')).toMatchObject([{ ref: '2' }]);
     await gitDDB2.destroy();
   });
 });
@@ -675,5 +675,51 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     expect(indexObj.index.title.root.x).toEqual({ docs: {}, df: 0 });
 
     await gitDDB.destroy();
+  });
+
+  it('rebuild collection', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      // name: 'full-text'
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB.open();
+    const bookCol = gitDDB.collection('book', {
+      searchEngineOptions,
+    });
+    await bookCol.put({
+      _id: '1',
+      title: 'hello',
+    });
+    await bookCol.put({
+      _id: '2',
+      title: 'world',
+    });
+
+    await gitDDB.close();
+
+    const gitDDB2 = new GitDocumentDB({
+      dbName,
+      localDir,
+    });
+    await gitDDB2.open();
+    const bookCol2 = gitDDB2.collection('book', {
+      searchEngineOptions,
+    });
+    await bookCol2.rebuildIndex();
+
+    expect(bookCol2.search('title', 'hello')).toMatchObject([{ ref: '1' }]);
+    expect(bookCol2.search('title', 'world')).toMatchObject([{ ref: '2' }]);
+    await gitDDB2.destroy();
   });
 });

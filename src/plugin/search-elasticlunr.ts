@@ -18,7 +18,8 @@ import stemmer from './elasticlunr/lunr.stemmer.support.js';
 import lunr_ja from './elasticlunr/lunr.ja.js';
 import lunr_multi from './elasticlunr/lunr.multi.js';
 import { GitDDBInterface } from '../types_gitddb';
-import { IsSearchIndexCreated, SearchResult } from '../types_search';
+import { IsSearchIndexCreated } from '../types_search';
+import { SearchResult } from '../types_search_api';
 
 stemmer(elasticlunr);
 lunr_ja(elasticlunr);

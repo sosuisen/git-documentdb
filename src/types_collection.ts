@@ -8,6 +8,7 @@
 
 import { CollectionOptions, CollectionPath } from './types';
 import { CRUDInterface } from './types_crud_interface';
+import { SearchAPI } from './types_search_api';
 import { SyncEventInterface } from './types_sync';
 
 /**
@@ -17,7 +18,8 @@ import { SyncEventInterface } from './types_sync';
  */
 export type ICollection = CollectionInterface &
   CRUDInterface &
-  SyncEventInterface & {
+  SyncEventInterface &
+  SearchAPI & {
     /***********************************************
      * Public properties (readonly)
      ***********************************************/
