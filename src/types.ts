@@ -1299,6 +1299,9 @@ export interface SearchIndexInterface {
   updateIndex: (collectionName: string, json: JsonDoc) => void;
   deleteIndex: (collectionName: string, json: JsonDoc) => void;
   search: (collectionName: string, indexName: string, keyword: string, useOr: boolean) => SearchResult[];
+  serialize: () => void;
+  close: () => void;
+  destroy: (collectionName: string) => void;
 }
 
 /**

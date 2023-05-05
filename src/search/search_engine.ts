@@ -70,6 +70,10 @@ class SearchInterfaceClass implements SearchIndexInterface {
     });
     return result;
   }
+
+  serialize(): void{}
+  close(): void{}
+  destroy(collectionName: string): void{}
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -90,7 +94,4 @@ export interface SearchEngineInterface extends SearchIndexInterface {
     collectionName: string,
     options: SearchEngineOptions
   ) => IsSearchIndexCreated;
-  serialize: () => void;
-  close: () => void;
-  destroy: (collectionName: string) => void;
 }
