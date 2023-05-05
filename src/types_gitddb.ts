@@ -17,7 +17,6 @@ import {
   OpenOptions,
   RemoteOptions,
   Schema,
-  SerializeFormatLabel,
   SyncResult,
 } from './types';
 import { ICollection } from './types_collection';

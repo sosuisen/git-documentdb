@@ -7,8 +7,6 @@
  */
 
 import { ILogObject, TLogLevelName } from 'tslog';
-import { GitDDBInterface } from './types_gitddb';
-import { ICollection } from './types_collection';
 
 /**
  * Plugin types
@@ -355,6 +353,37 @@ export interface SerializeFormat {
  * @public
  */
 export type CollectionPath = string;
+
+/**
+ * Search Index
+ *
+ * @remarks
+ *  - indexName: Name to be specified as search target.
+ *
+ *  - targetProperties: Only property whose key matches targetProperties is indexed. The value of the property must be string.
+ *   e.g)  ['profile.name', 'address'] matches { profile: { name: value1 }, address: value2 }
+ *
+ *  - indexFilePath: A full path of the index file. The path should be out of the workingDir.
+ * @public
+ */
+export type SearchIndexConfig = {
+  indexName: string;
+  targetProperties: string[];
+  indexFilePath: string;
+};
+
+/**
+ * Search Options
+ *
+ * @remarks
+ *  - name: A name of SearchEngine. Default is 'full-text'.
+ *
+ * @public
+ */
+export type SearchEngineOptions = {
+  name?: string;
+  configs: SearchIndexConfig[];
+};
 
 /**
  * Options for Collection constructor
@@ -1258,72 +1287,4 @@ export type ColoredLogger = {
   warn: ColoredLog;
   error: ColoredLog;
   fatal: ColoredLog;
-};
-
-/**
- * Search Index
- *
- * @remarks
- *  - indexName: Name to be specified as search target.
- *
- *  - targetProperties: Only property whose key matches targetProperties is indexed. The value of the property must be string.
- *   e.g)  ['profile.name', 'address'] matches { profile: { name: value1 }, address: value2 }
- *
- *  - indexFilePath: A full path of the index file. The path should be out of the workingDir.
- * @public
- */
-export type SearchIndexConfig = {
-  indexName: string;
-  targetProperties: string[];
-  indexFilePath: string;
-};
-
-/**
- * Search Options
- *
- * @remarks
- *  - name: A name of SearchEngine. Default is 'full-text'.
- *
- * @public
- */
-export type SearchEngineOptions = {
-  name?: string;
-  configs: SearchIndexConfig[];
-};
-
-/**
- * SearchIndexInterface
- *
- * @remarks
- *  - _id in JsonDoc does not include collectionPath
- *
- * @public
- */
-export interface SearchIndexInterface {
-  addIndex: (collectionPath: string, jsonDoc: JsonDoc) => void;
-  updateIndex: (collectionPath: string, oldJsonDoc: JsonDoc, newJsonDoc: JsonDoc) => void;
-  deleteIndex: (collectionPath: string, jsonDoc: JsonDoc) => void;
-  search: (collectionPath: string, indexName: string, keyword: string, useOr: boolean) => SearchResult[];
-  serialize: () => void;
-  close: () => void;
-  destroy: () => void;
-  rebuild: (gitDDB: GitDDBInterface) => Promise<void>;
-}
-
-/**
- * IsSearchIndexCreated
- *
- * @public
- */
-export type IsSearchIndexCreated = boolean[];
-
-/**
- * SearchResult
- * 
- * @remarks
- *  - ref shows _id. _id does not include collectionPath.
- */
-export type SearchResult = {
-  ref: string,
-  score: number,
 };

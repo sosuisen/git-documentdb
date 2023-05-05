@@ -45,7 +45,7 @@ import { findImpl } from './crud/find';
 import { putImpl } from './crud/put';
 import { SyncInterface } from './types_sync';
 import { ICollection } from './types_collection';
-import { SearchEngine } from './search/search_engine';
+import { SearchEngine, SearchInterface } from './search/search_engine';
 
 /**
  * Documents under a collectionPath are gathered together in a collection.
@@ -373,6 +373,8 @@ export class Collection implements ICollection {
       debounceTime: undefined,
     };
     options.debounceTime ??= this._options.debounceTime;
+
+    SearchInterface.addIndex(this.collectionPath, clone);
 
     return putImpl(
       this._gitDDB,

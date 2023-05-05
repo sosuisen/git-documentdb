@@ -23,7 +23,7 @@ const collectionEnginesMap: { [collectionName: string]: string[] } = {};
  * Map collectionName to searchEngine
  * This will be called by SearchEngine plugins
  */
-export function addMapFromCollectionToSearchEngine(
+export function addMapFromCollectionToSearchEngine (
   collectionName: string,
   searchEngineName: string
 ): void {
@@ -46,7 +46,7 @@ class SearchInterfaceClass implements SearchIndexInterface {
     );
   };
 
-  addIndex(collectionName: string, json: JsonDoc): void {
+  addIndex (collectionName: string, json: JsonDoc): void {
     this._getSearchEngines(collectionName).forEach(engine => {
       engine.addIndex(collectionName, json);
     });
@@ -58,13 +58,18 @@ class SearchInterfaceClass implements SearchIndexInterface {
     });
   }
 
-  deleteIndex(collectionName: string, json: JsonDoc): void {
+  deleteIndex (collectionName: string, json: JsonDoc): void {
     this._getSearchEngines(collectionName).forEach(engine => {
       engine.deleteIndex(collectionName, json);
     });
   }
 
-  search(collectionName: string, indexName: string, keyword: string, useOr = false): SearchResult[] {
+  search (
+    collectionName: string,
+    indexName: string,
+    keyword: string,
+    useOr = false
+  ): SearchResult[] {
     const result: SearchResult[] = [];
     this._getSearchEngines(collectionName).forEach(engine => {
       result.push(...engine.search(collectionName, indexName, keyword, useOr));
@@ -72,26 +77,27 @@ class SearchInterfaceClass implements SearchIndexInterface {
     return result;
   }
 
-  serialize(): void {
+  serialize (): void {
     Object.values(SearchEngine).forEach(engine => {
       engine.serialize();
     });
   }
 
-  close(): void {
+  close (): void {
     Object.values(SearchEngine).forEach(engine => {
       engine.close();
     });
   }
 
-  destroy(): void {
+  destroy (): void {
     Object.values(SearchEngine).forEach(engine => {
       engine.destroy();
     });
   }
 
-  async rebuild(gitDDB: GitDDBInterface): Promise<void> {
+  async rebuild (gitDDB: GitDDBInterface): Promise<void> {
     for (const engine of Object.values(SearchEngine)) {
+      // eslint-disable-next-line no-await-in-loop
       await engine.rebuild(gitDDB);
     }
   }
@@ -105,7 +111,7 @@ export const SearchInterface: SearchIndexInterface = new SearchInterfaceClass();
  *
  * @remarks
  *  - destroy: Close indexes and delete serialized index files.
- * 
+ *
  * @public
  */
 export interface SearchEngineInterface extends SearchIndexInterface {

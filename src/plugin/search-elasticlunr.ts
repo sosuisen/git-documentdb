@@ -7,17 +7,18 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import fs from 'fs-extra';
 import path from 'path';
+import fs from 'fs-extra';
 import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
-import { IsSearchIndexCreated, JsonDoc, SearchEngineOptions, SearchIndexConfig, SearchResult } from '../types';
+import { JsonDoc, SearchEngineOptions, SearchIndexConfig } from '../types';
 
 import stemmer from './elasticlunr/lunr.stemmer.support.js';
 import lunr_ja from './elasticlunr/lunr.ja.js';
 import lunr_multi from './elasticlunr/lunr.multi.js';
 import { GitDDBInterface } from '../types_gitddb';
+import { IsSearchIndexCreated, SearchResult } from '../types_search';
 
 stemmer(elasticlunr);
 lunr_ja(elasticlunr);
@@ -46,6 +47,7 @@ let searchIndexConfigs: {
 } = {};
 // SearchEngineInterface does not have indexes method.
 // Export indexes only for test.
+// eslint-disable-next-line import/no-mutable-exports
 export let indexes: { [collectionPath: string]: { [indexName: string]: any } } = {};
 
 export function openOrCreate (
@@ -57,7 +59,8 @@ export function openOrCreate (
 
   const results: IsSearchIndexCreated = [];
   searchEngineOptions.configs.forEach(searchIndexConfig => {
-    if (searchIndexConfigs[collectionPath] === undefined) searchIndexConfigs[collectionPath] = {};
+    if (searchIndexConfigs[collectionPath] === undefined)
+      searchIndexConfigs[collectionPath] = {};
     searchIndexConfigs[collectionPath][searchIndexConfig.indexName] = searchIndexConfig;
 
     if (!fs.existsSync(searchIndexConfig.indexFilePath)) {
@@ -88,7 +91,9 @@ export function openOrCreate (
             this.saveDocument(false);
           });
           if (indexes[collectionPath] === undefined) indexes[collectionPath] = {};
-          indexes[collectionPath][searchIndexConfig.indexName] = elasticlunr.Index.load(JSON.parse(json));
+          indexes[collectionPath][searchIndexConfig.indexName] = elasticlunr.Index.load(
+            JSON.parse(json)
+          );
         }
       });
       results.push(false);
@@ -137,7 +142,9 @@ export function close (): void {
 export function destroy (): void {
   Object.keys(searchIndexConfigs).forEach(collectionPath => {
     Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
-      fs.removeSync(path.resolve(searchIndexConfigs[collectionPath][indexName].indexFilePath));
+      fs.removeSync(
+        path.resolve(searchIndexConfigs[collectionPath][indexName].indexFilePath)
+      );
     });
   });
   close();
@@ -165,7 +172,9 @@ export async function rebuild (gitDDB: GitDDBInterface): Promise<void> {
       if (collectionPath !== '') {
         collection = collection.collection(collectionPath);
       }
+      // eslint-disable-next-line no-await-in-loop
       const docs = await collection.find();
+      // eslint-disable-next-line no-loop-func
       docs.forEach(doc => {
         indexes[collectionPath][indexName].addDoc(doc);
       });
@@ -183,7 +192,11 @@ export function addIndex (collectionPath: string, json: JsonDoc): void {
   });
 }
 
-export function updateIndex (collectionPath: string, oldJson: JsonDoc, newJson: JsonDoc): void {
+export function updateIndex (
+  collectionPath: string,
+  oldJson: JsonDoc,
+  newJson: JsonDoc
+): void {
   Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
     const oldDoc: JsonDoc = { _id: oldJson._id };
     searchIndexConfigs[collectionPath][indexName].targetProperties.forEach(propName => {
@@ -208,15 +221,20 @@ export function deleteIndex (collectionPath: string, json: JsonDoc): void {
   });
 }
 
-export function search (collectionPath: string, indexName: string, keyword: string, useOr = false): SearchResult {
-  let bool = "AND";
-  if (useOr) bool = "OR";
-  const fields: { [propname: string]: { 'boost': number }} = {};
-  // The earlier the element is in the array, 
+export function search (
+  collectionPath: string,
+  indexName: string,
+  keyword: string,
+  useOr = false
+): SearchResult {
+  let bool = 'AND';
+  if (useOr) bool = 'OR';
+  const fields: { [propname: string]: { boost: number } } = {};
+  // The earlier the element is in the array,
   // the higher the boost priority (boost).
   const props = [...searchIndexConfigs[collectionPath][indexName].targetProperties];
   let boost = 1;
-  props.reverse().forEach( propName => {
+  props.reverse().forEach(propName => {
     fields[propName] = { boost };
     boost++;
   });

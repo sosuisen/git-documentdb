@@ -7,14 +7,25 @@
  * found in the LICENSE file in the root directory of this source tree.
  */
 
-import expect from 'expect';
 import path from 'path';
+import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { SearchEngineOptions } from '../../src/types';
-import { indexes, openOrCreate, serialize, close, destroy, rebuild, addIndex, updateIndex, deleteIndex, search } from '../../src/plugin/search-elasticlunr';
+import {
+  addIndex,
+  close,
+  deleteIndex,
+  destroy,
+  indexes,
+  openOrCreate,
+  rebuild,
+  search,
+  serialize,
+  updateIndex,
+} from '../../src/plugin/search-elasticlunr';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -65,10 +76,10 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     openOrCreate('', searchEngineOptions);
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
-    expect(indexObj.ref).toBe("_id");
+    expect(indexObj.ref).toBe('_id');
     await gitDDB.destroy();
   });
 
@@ -99,10 +110,10 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     // Cannot read property of index directry.
     // Use stringify and parse.
     // console.log(JSON.stringify(indexes));
-    const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
-    expect(indexObj.ref).toBe("_id");
+    expect(indexObj.ref).toBe('_id');
 
     await gitDDB.destroy();
   });
@@ -134,12 +145,10 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"title":1}},"length":1,"save":false},"index":{"title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
-    expect(indexObj.documentStore.docs).toEqual({ "1": null });
-    expect(indexObj.index['title'].root["x"]).toEqual(
-      { "docs": { "1": { "tf": 1 } }, "df": 1 }
-    );
+    expect(indexObj.documentStore.docs).toEqual({ '1': null });
+    expect(indexObj.index.title.root.x).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
     await gitDDB.destroy();
   });
 
@@ -172,13 +181,14 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
     // console.log(JSON.stringify(indexes['']['title']));
     // {"version":"0.9.5","fields":["book.title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"book.title":1}},"length":1,"save":false},"index":{"book.title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
-    expect(indexObj.documentStore.docs).toEqual({ "1": null });
-    expect(indexObj.index['book.title'].root["x"]).toEqual(
-      { "docs": { "1": { "tf": 1 } }, "df": 1 }
-    );
+    expect(indexObj.documentStore.docs).toEqual({ '1': null });
+    expect(indexObj.index['book.title'].root.x).toEqual({
+      docs: { '1': { tf: 1 } },
+      df: 1,
+    });
     await gitDDB.destroy();
   });
 
@@ -250,7 +260,10 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       body: 'hello',
     });
 
-    expect(search('', 'title', 'hello')).toEqual([{ ref: '1', score: 2 }, { ref: '2', score: 1 }]);
+    expect(search('', 'title', 'hello')).toEqual([
+      { ref: '1', score: 2 },
+      { ref: '2', score: 1 },
+    ]);
 
     await gitDDB.destroy();
   });
@@ -328,7 +341,10 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       body: 'world',
     });
 
-    expect(search('', 'title', 'hello world', true)).toMatchObject([{ ref: '1' }, { ref: '2' }]);
+    expect(search('', 'title', 'hello world', true)).toMatchObject([
+      { ref: '1' },
+      { ref: '2' },
+    ]);
 
     await gitDDB.destroy();
   });
@@ -363,7 +379,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     expect(search('book', 'title', 'hello world')).toMatchObject([{ ref: '1' }]);
 
     await gitDDB.destroy();
-  }); 
+  });
 
   it('delete', async () => {
     const dbName = monoId();
@@ -425,22 +441,25 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       _id: '1',
       title: 'hello',
     });
-    console.log(JSON.stringify(indexes['']['title']));
+    console.log(JSON.stringify(indexes[''].title));
 
-    updateIndex('', {
-      _id: '1',
-      title: 'hello',
-    }, {
-      _id: '1',
-      title: 'こんにちは',
-    });
+    updateIndex(
+      '',
+      {
+        _id: '1',
+        title: 'hello',
+      },
+      {
+        _id: '1',
+        title: 'こんにちは',
+      }
+    );
 
     // console.log(JSON.stringify(indexes['']['title']));
     expect(search('', 'title', 'hello')).toEqual([]);
     expect(search('', 'title', 'こんにちは')).toMatchObject([{ ref: '1' }]);
 
     await gitDDB.destroy();
-
   });
 
   it('rebuild rootCollection', async () => {
@@ -460,7 +479,6 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       title: 'world',
     });
     await gitDDB.close();
-
 
     const gitDDB2 = new GitDocumentDB({
       dbName,
@@ -526,7 +544,6 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     expect(search('book', 'title', 'world')).toMatchObject([{ ref: '2' }]);
     await gitDDB2.destroy();
   });
-
 });
 
 describe('<search/elasticlunr> call through GitDocumentDB', () => {
@@ -551,10 +568,10 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     await gitDDB.open();
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes['']['title']));
+    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
-    expect(indexObj.ref).toBe("_id");
+    expect(indexObj.ref).toBe('_id');
 
     await gitDDB.destroy();
   });
