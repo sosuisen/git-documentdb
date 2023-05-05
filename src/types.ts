@@ -8,6 +8,7 @@
 
 import { ILogObject, TLogLevelName } from 'tslog';
 import { GitDDBInterface } from './types_gitddb';
+import { ICollection } from './types_collection';
 
 /**
  * Plugin types
@@ -1293,17 +1294,20 @@ export type SearchEngineOptions = {
 /**
  * SearchIndexInterface
  *
+ * @remarks
+ *  - _id in JsonDoc does not include collectionPath
+ *
  * @public
  */
 export interface SearchIndexInterface {
-  addIndex: (collectionName: string, json: JsonDoc) => void;
-  updateIndex: (collectionName: string, oldJson: JsonDoc, newJson: JsonDoc) => void;
-  deleteIndex: (collectionName: string, json: JsonDoc) => void;
-  search: (collectionName: string, indexName: string, keyword: string, useOr: boolean) => SearchResult[];
+  addIndex: (collectionPath: string, jsonDoc: JsonDoc) => void;
+  updateIndex: (collectionPath: string, oldJsonDoc: JsonDoc, newJsonDoc: JsonDoc) => void;
+  deleteIndex: (collectionPath: string, jsonDoc: JsonDoc) => void;
+  search: (collectionPath: string, indexName: string, keyword: string, useOr: boolean) => SearchResult[];
   serialize: () => void;
   close: () => void;
   destroy: () => void;
-  rebuild: (gitDDB: GitDDBInterface) => void;
+  rebuild: (gitDDB: GitDDBInterface) => Promise<void>;
 }
 
 /**
@@ -1313,6 +1317,12 @@ export interface SearchIndexInterface {
  */
 export type IsSearchIndexCreated = boolean[];
 
+/**
+ * SearchResult
+ * 
+ * @remarks
+ *  - ref shows _id. _id does not include collectionPath.
+ */
 export type SearchResult = {
   ref: string,
   score: number,

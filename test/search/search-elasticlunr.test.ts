@@ -14,8 +14,7 @@ import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { SearchEngineOptions } from '../../src/types';
-import { SearchEngine } from '../../src/search/search_engine';
-import { indexes, openOrCreate, serialize, close, destroy, addIndex, updateIndex, deleteIndex, search } from '../../src/plugin/search-elasticlunr';
+import { indexes, openOrCreate, serialize, close, destroy, rebuild, addIndex, updateIndex, deleteIndex, search } from '../../src/plugin/search-elasticlunr';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -334,6 +333,38 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.destroy();
   });
 
+  it('search collection', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title', 'body'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    openOrCreate('book', searchEngineOptions);
+
+    // match
+    addIndex('book', {
+      _id: '1',
+      title: 'hello world',
+      body: 'planet',
+    });
+
+    expect(search('book', 'title', 'hello world')).toMatchObject([{ ref: '1' }]);
+
+    await gitDDB.destroy();
+  }); 
+
   it('delete', async () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
@@ -370,7 +401,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.destroy();
   });
 
-  it.only('update', async () => {
+  it('update', async () => {
     const dbName = monoId();
     const searchEngineOptions: SearchEngineOptions = {
       name: 'full-text',
@@ -404,7 +435,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       title: 'こんにちは',
     });
 
-    console.log(JSON.stringify(indexes['']['title']));
+    // console.log(JSON.stringify(indexes['']['title']));
     expect(search('', 'title', 'hello')).toEqual([]);
     expect(search('', 'title', 'こんにちは')).toMatchObject([{ ref: '1' }]);
 
@@ -412,7 +443,89 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   });
 
-  it('rebuild', async () => { });
+  it('rebuild rootCollection', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      _id: '1',
+      title: 'hello',
+    });
+    await gitDDB.put({
+      _id: '2',
+      title: 'world',
+    });
+    await gitDDB.close();
+
+
+    const gitDDB2 = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB2.open();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    openOrCreate('', searchEngineOptions);
+    await rebuild(gitDDB2);
+    expect(search('', 'title', 'hello')).toMatchObject([{ ref: '1' }]);
+    expect(search('', 'title', 'world')).toMatchObject([{ ref: '2' }]);
+    await gitDDB2.destroy();
+  });
+
+  it('rebuild collection', async () => {
+    const dbName = monoId();
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB.open();
+    const bookCol = gitDDB.collection('book');
+    await bookCol.put({
+      _id: '1',
+      title: 'hello',
+    });
+    await bookCol.put({
+      _id: '2',
+      title: 'world',
+    });
+    await gitDDB.close();
+
+    const gitDDB2 = new GitDocumentDB({
+      dbName,
+      localDir,
+      // no SearchEngineOptions
+    });
+    await gitDDB2.open();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    openOrCreate('book', searchEngineOptions);
+    await rebuild(gitDDB2);
+    expect(search('book', 'title', 'hello')).toMatchObject([{ ref: '1' }]);
+    expect(search('book', 'title', 'world')).toMatchObject([{ ref: '2' }]);
+    await gitDDB2.destroy();
+  });
 
 });
 

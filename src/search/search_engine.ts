@@ -6,6 +6,7 @@ import {
   SearchIndexInterface,
   SearchResult,
 } from '../types';
+import { ICollection } from '../types_collection';
 
 /**
  * SearchEngine
@@ -89,10 +90,10 @@ class SearchInterfaceClass implements SearchIndexInterface {
     });
   }
 
-  rebuild(gitDDB: GitDDBInterface): void {
-    Object.values(SearchEngine).forEach(engine => {
-      engine.rebuild(gitDDB);
-    });
+  async rebuild(gitDDB: GitDDBInterface): Promise<void> {
+    for (const engine of Object.values(SearchEngine)) {
+      await engine.rebuild(gitDDB);
+    }
   }
 }
 
