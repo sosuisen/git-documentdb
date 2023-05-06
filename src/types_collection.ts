@@ -8,7 +8,7 @@
 
 import { CollectionOptions, CollectionPath } from './types';
 import { CRUDInterface } from './types_crud_interface';
-import { SearchAPI } from './types_search_api';
+import { SearchAPI } from './types_search';
 import { SyncEventInterface } from './types_sync';
 
 /**

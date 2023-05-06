@@ -12,15 +12,13 @@ import fs from 'fs-extra';
 import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
-import { SearchIndexClass } from '../search/search_engine';
 import { JsonDoc, SearchEngineOptions, SearchIndexConfig } from '../types';
 
 import stemmer from './elasticlunr/lunr.stemmer.support.js';
 import lunr_ja from './elasticlunr/lunr.ja.js';
 import lunr_multi from './elasticlunr/lunr.multi.js';
-import { GitDDBInterface } from '../types_gitddb';
-import { SearchIndexInterface } from '../types_search';
-import { SearchResult } from '../types_search_api';
+import { SearchIndexInterface, SearchResult } from '../types_search';
+import { ICollection } from '../types_collection';
 
 stemmer(elasticlunr);
 lunr_ja(elasticlunr);
@@ -44,10 +42,16 @@ export const type = 'search';
  */
 export const name = 'full-text';
 
+/**
+ * openOrCreatre
+ * @param collection
+ * @param searchEngineOptions
+ * @returns SearchIndexInterface
+ */
 export function openOrCreate (
-  collectionPath: string,
+  collection: ICollection,
   searchEngineOptions: SearchEngineOptions
-): SearchIndexClass {
+): SearchIndexInterface {
   const searchIndexConfigs: { [indexName: string]: SearchIndexConfig } = {};
   const indexes: { [indexName: string]: any } = {};
 
@@ -55,7 +59,7 @@ export function openOrCreate (
     searchIndexConfigs[searchIndexConfig.indexName] = searchIndexConfig;
 
     if (!fs.existsSync(searchIndexConfig.indexFilePath)) {
-      indexes[collectionPath][searchIndexConfig.indexName] = elasticlunr(function () {
+      indexes[searchIndexConfig.indexName] = elasticlunr(function () {
         // @ts-ignore
         this.use(elasticlunr.multiLanguage('en', 'ja'));
 
@@ -79,16 +83,69 @@ export function openOrCreate (
             this.use(elasticlunr.multiLanguage('en', 'ja'));
             this.saveDocument(false);
           });
-          if (indexes[collectionPath] === undefined) indexes[collectionPath] = {};
-          indexes[collectionPath][searchIndexConfig.indexName] = elasticlunr.Index.load(
-            JSON.parse(json)
-          );
+          indexes[searchIndexConfig.indexName] = elasticlunr.Index.load(JSON.parse(json));
         }
       });
     }
   });
-  return new SearchIndexClass(searchEngineOptions.name!, searchIndexConfigs, indexes);
+  return new SearchIndexClass(collection, searchIndexConfigs, indexes);
 }
+
+/**
+ * Wrapper class for search indexes
+ */
+class SearchIndexClass implements SearchIndexInterface {
+  private _configs: { [indexName: string]: SearchIndexConfig } = {};
+  private _indexes: { [indexName: string]: any } = {};
+
+  private _collection: ICollection;
+
+  constructor (
+    collection: ICollection,
+    configs: { [indexName: string]: SearchIndexConfig },
+    indexes: { [indexName: string]: any }
+  ) {
+    this._collection = collection;
+    this._configs = configs;
+    this._indexes = indexes;
+  }
+
+  addIndex (json: JsonDoc): void {
+    addIndexImpl(json, this._configs, this._indexes);
+  }
+
+  updateIndex (oldJson: JsonDoc, newJson: JsonDoc): void {
+    updateIndexImpl(oldJson, newJson, this._configs, this._indexes);
+  }
+
+  deleteIndex (json: JsonDoc): void {
+    deleteIndexImpl(json, this._configs, this._indexes);
+  }
+
+  search (indexName: string, keyword: string, useOr = false): SearchResult[] {
+    return searchImpl(indexName, keyword, this._configs, this._indexes, useOr);
+  }
+
+  serialize (): Promise<void> {
+    return serializeImpl(this._configs, this._indexes);
+  }
+
+  close (): void {
+    closeImpl(this._configs, this._indexes);
+  }
+
+  destroy (): void {
+    destroyImpl(this._configs, this._indexes);
+  }
+
+  async rebuild (): Promise<void> {
+    await rebuild(this._collection, this._configs, this._indexes);
+  }
+}
+
+/**
+ * Implementations
+ */
 
 const getTargetValue = (propName: string, jsonDoc: JsonDoc) => {
   let val = '';
@@ -102,76 +159,74 @@ const getTargetValue = (propName: string, jsonDoc: JsonDoc) => {
   return val;
 };
 
-export function serialize (): void {
+function serializeImpl (
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any }
+): Promise<void> {
   const zip = new AdmZip();
-  Object.keys(searchIndexConfigs).forEach(collectionPath => {
-    Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
-      zip.addFile(
-        'index.json',
-        Buffer.from(JSON.stringify(indexes[collectionPath][indexName]), 'utf8'),
-        'index of lunr'
-      );
-      zip.writeZip(searchIndexConfigs[collectionPath][indexName].indexFilePath);
-    });
+  Object.keys(configs).forEach(indexName => {
+    zip.addFile(
+      'index.json',
+      Buffer.from(JSON.stringify(indexes[indexName]), 'utf8'),
+      'index of lunr'
+    );
+    zip.writeZip(configs[indexName].indexFilePath);
   });
+  return Promise.resolve();
 }
 
-export function close (): void {
-  Object.keys(searchIndexConfigs).forEach(collectionPath => {
-    Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
-      delete searchIndexConfigs[collectionPath][indexName];
-      delete indexes[collectionPath][indexName];
-    });
-    delete searchIndexConfigs[collectionPath];
-    delete indexes[collectionPath];
+function closeImpl (
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any }
+): void {
+  Object.keys(configs).forEach(indexName => {
+    delete configs[indexName];
+    delete indexes[indexName];
   });
+  configs = {};
+  indexes = {};
 }
 
-export function destroy (): void {
-  Object.keys(searchIndexConfigs).forEach(collectionPath => {
-    Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
-      fs.removeSync(
-        path.resolve(searchIndexConfigs[collectionPath][indexName].indexFilePath)
-      );
-    });
+function destroyImpl (
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any }
+): void {
+  Object.keys(configs).forEach(indexName => {
+    fs.removeSync(path.resolve(configs[indexName].indexFilePath));
   });
-  close();
+  closeImpl(configs, indexes);
 }
 
-export async function rebuild (gitDDB: GitDDBInterface): Promise<void> {
-  for (const collectionPath of Object.keys(searchIndexConfigs)) {
-    for (const indexName of Object.keys(searchIndexConfigs[collectionPath])) {
-      const searchIndexConfig = searchIndexConfigs[collectionPath][indexName];
-      if (indexes[collectionPath] === undefined) indexes[collectionPath] = {};
-      indexes[collectionPath][indexName] = elasticlunr(function () {
+async function rebuild (
+  collection: ICollection,
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any }
+): Promise<void> {
+  for (const indexName of Object.keys(configs)) {
+    const searchIndexConfig = configs[indexName];
+    indexes[indexName] = elasticlunr(function () {
+      // @ts-ignore
+      this.use(elasticlunr.multiLanguage('en', 'ja'));
+
+      searchIndexConfig.targetProperties.forEach(propName => {
         // @ts-ignore
-        this.use(elasticlunr.multiLanguage('en', 'ja'));
-
-        searchIndexConfig.targetProperties.forEach(propName => {
-          // @ts-ignore
-          this.addField(propName);
-        });
-        // @ts-ignore
-        this.setRef('_id');
-        this.saveDocument(false);
+        this.addField(propName);
       });
-      // コレクションにドキュメント追加
-      let collection = gitDDB.rootCollection;
-      if (collectionPath !== '') {
-        collection = collection.collection(collectionPath);
-      }
-      // eslint-disable-next-line no-await-in-loop
-      const docs = await collection.find();
-      // eslint-disable-next-line no-loop-func
-      docs.forEach(doc => {
-        indexes[collectionPath][indexName].addDoc(doc);
-      });
-    }
+      // @ts-ignore
+      this.setRef('_id');
+      this.saveDocument(false);
+    });
+    // コレクションにドキュメント追加
+    // eslint-disable-next-line no-await-in-loop
+    const docs = await collection.find();
+    // eslint-disable-next-line no-loop-func
+    docs.forEach(doc => {
+      indexes[indexName].addDoc(doc);
+    });
   }
 }
 
-export function addIndex (
-  collectionPath: string,
+function addIndexImpl (
   json: JsonDoc,
   configs: { [indexName: string]: SearchIndexConfig },
   indexes: { [indexName: string]: any }
@@ -185,39 +240,45 @@ export function addIndex (
   });
 }
 
-export function updateIndex (
-  collectionPath: string,
+function updateIndexImpl (
   oldJson: JsonDoc,
-  newJson: JsonDoc
+  newJson: JsonDoc,
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any }
 ): void {
-  Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
+  Object.keys(configs).forEach(indexName => {
     const oldDoc: JsonDoc = { _id: oldJson._id };
-    searchIndexConfigs[collectionPath][indexName].targetProperties.forEach(propName => {
+    configs[indexName].targetProperties.forEach(propName => {
       oldDoc[propName] = getTargetValue(propName, oldJson);
     });
-    indexes[collectionPath][indexName].removeDoc(oldDoc);
+    indexes[indexName].removeDoc(oldDoc);
     const newDoc: JsonDoc = { _id: newJson._id };
-    searchIndexConfigs[collectionPath][indexName].targetProperties.forEach(propName => {
+    configs[indexName].targetProperties.forEach(propName => {
       newDoc[propName] = getTargetValue(propName, newJson);
     });
-    indexes[collectionPath][indexName].addDoc(newDoc);
+    indexes[indexName].addDoc(newDoc);
   });
 }
 
-export function deleteIndex (collectionPath: string, json: JsonDoc): void {
-  Object.keys(searchIndexConfigs[collectionPath]).forEach(indexName => {
+function deleteIndexImpl (
+  json: JsonDoc,
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any }
+): void {
+  Object.keys(configs).forEach(indexName => {
     const doc: JsonDoc = { _id: json._id };
-    searchIndexConfigs[collectionPath][indexName].targetProperties.forEach(propName => {
+    configs[indexName].targetProperties.forEach(propName => {
       doc[propName] = getTargetValue(propName, json);
     });
-    indexes[collectionPath][indexName].removeDoc(doc);
+    indexes[indexName].removeDoc(doc);
   });
 }
 
-export function search (
-  collectionPath: string,
+function searchImpl (
   indexName: string,
   keyword: string,
+  configs: { [indexName: string]: SearchIndexConfig },
+  indexes: { [indexName: string]: any },
   useOr = false
 ): SearchResult[] {
   let bool = 'AND';
@@ -225,25 +286,17 @@ export function search (
   const fields: { [propname: string]: { boost: number } } = {};
   // The earlier the element is in the array,
   // the higher the boost priority (boost).
-  const props = [...searchIndexConfigs[collectionPath][indexName].targetProperties];
+  const props = [...configs[indexName].targetProperties];
   let boost = 1;
   props.reverse().forEach(propName => {
     fields[propName] = { boost };
     boost++;
   });
-  const results = indexes[collectionPath][indexName].search(keyword, {
+  const results = indexes[indexName].search(keyword, {
     fields,
     expand: true,
     bool,
   }) as SearchResult[];
 
-  /*
-  if (collectionPath !== '') {
-    results.forEach(res => {
-      const shortId = res.ref.substring(collectionPath.length + 1);
-      res.ref = shortId;
-    });
-  }
-  */
   return results;
 }

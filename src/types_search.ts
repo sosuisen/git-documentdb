@@ -1,6 +1,12 @@
-import { JsonDoc, SearchIndexConfig } from './types';
-import { GitDDBInterface } from './types_gitddb';
-import { SearchResult } from './types_search_api';
+/**
+ * GitDocumentDB
+ * Copyright (c) Hidekazu Kubota
+ *
+ * This source code is licensed under the Mozilla Public License Version 2.0
+ * found in the LICENSE file in the root directory of this source tree.
+ */
+
+import { JsonDoc } from './types';
 
 /**
  * SearchIndexInterface
@@ -8,40 +14,37 @@ import { SearchResult } from './types_search_api';
  * @remarks
  *  - Notice that _id in JsonDoc does not include collectionPath
  *
+ *  - destroy: Close indexes and delete serialized index files.
+ *
  * @public
  */
 export interface SearchIndexInterface {
-  config: (indexName: string) => SearchIndexConfig;
-  indexes: (indexName: string) => any;
-  addIndex: (
-    collectionPath: string,
-    jsonDoc: JsonDoc,
-    configs: { [indexName: string]: SearchIndexConfig },
-    indexes: { [indexName: string]: any }
-  ) => void;
-  updateIndex: (
-    collectionPath: string,
-    oldJsonDoc: JsonDoc,
-    newJsonDoc: JsonDoc,
-    configs: { [indexName: string]: SearchIndexConfig },
-    indexes: { [indexName: string]: any }
-  ) => void;
-  deleteIndex: (
-    collectionPath: string,
-    jsonDoc: JsonDoc,
-    configs: { [indexName: string]: SearchIndexConfig },
-    indexes: { [indexName: string]: any }
-  ) => void;
-  search: (
-    collectionPath: string,
-    indexName: string,
-    keyword: string,
-    useOr: boolean,
-    configs: { [indexName: string]: SearchIndexConfig },
-    indexes: { [indexName: string]: any }
-  ) => SearchResult[];
-  serialize: () => void;
+  addIndex: (jsonDoc: JsonDoc) => void;
+  updateIndex: (oldJsonDoc: JsonDoc, newJsonDoc: JsonDoc) => void;
+  deleteIndex: (jsonDoc: JsonDoc) => void;
+  search: (indexName: string, keyword: string, useOr: boolean) => SearchResult[];
+  serialize: () => Promise<void>;
   close: () => void;
   destroy: () => void;
-  rebuild: (gitDDB: GitDDBInterface) => Promise<void>;
+  rebuild: () => Promise<void>;
+}
+
+/**
+ * SearchResult
+ *
+ * @remarks
+ *  - ref is shortId. Notice that shortId does not include collectionPath.
+ */
+export type SearchResult = {
+  ref: string;
+  score: number;
+};
+
+/**
+ * SearchAPI
+ */
+export interface SearchAPI {
+  search: (indexName: string, keyword: string, useOr?: boolean) => SearchResult[];
+  rebuildIndex: () => Promise<void>;
+  serializeIndex: () => Promise<void>;
 }

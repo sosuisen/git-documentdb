@@ -45,12 +45,8 @@ import { findImpl } from './crud/find';
 import { putImpl } from './crud/put';
 import { SyncInterface } from './types_sync';
 import { ICollection } from './types_collection';
-import {
-  addMapFromCollectionToSearchEngine,
-  SearchEngine,
-  SearchIndexClass,
-} from './search/search_engine';
-import { SearchResult } from './types_search_api';
+import { SearchEngine } from './search/search_engine';
+import { SearchIndexInterface, SearchResult } from './types_search';
 
 /**
  * Documents under a collectionPath are gathered together in a collection.
@@ -81,7 +77,7 @@ export class Collection implements ICollection {
 
   private _monoID: ULID;
 
-  private _searchIndex?: SearchIndexClass | undefined = undefined;
+  private _searchIndex?: SearchIndexInterface | undefined = undefined;
 
   /***********************************************
    * Public properties (readonly)
@@ -169,12 +165,8 @@ export class Collection implements ICollection {
       if (this._options.searchEngineOptions.name === undefined) {
         this._options.searchEngineOptions.name = 'full-text';
       }
-      addMapFromCollectionToSearchEngine(
-        this._collectionPath,
-        this._options.searchEngineOptions.name
-      );
       this._searchIndex = SearchEngine[this._options.searchEngineOptions.name].openOrCreate(
-        this._collectionPath,
+        this,
         this._options.searchEngineOptions
       );
     }
@@ -402,14 +394,10 @@ export class Collection implements ICollection {
 
       clone._id = shortId;
       if (putResult.oldDoc === undefined) {
-        this._searchIndex?.addIndex(this.collectionPath, clone);
+        this._searchIndex?.addIndex(clone);
       }
       else {
-        this._searchIndex?.updateIndex(
-          this.collectionPath,
-          putResult.oldDoc as JsonDoc,
-          clone
-        );
+        this._searchIndex?.updateIndex(putResult.oldDoc as JsonDoc, clone);
       }
 
       return putResult;
@@ -749,14 +737,10 @@ export class Collection implements ICollection {
 
         clone._id = shortId;
         if (putResult.oldDoc === undefined) {
-          this._searchIndex?.addIndex(this.collectionPath, clone);
+          this._searchIndex?.addIndex(clone);
         }
         else {
-          this._searchIndex?.updateIndex(
-            this.collectionPath,
-            putResult.oldDoc as JsonDoc,
-            clone
-          );
+          this._searchIndex?.updateIndex(putResult.oldDoc as JsonDoc, clone);
         }
 
         return putResult;
@@ -1288,7 +1272,7 @@ export class Collection implements ICollection {
 
       const clone = JSON.parse(JSON.stringify(deleteResult.oldDoc));
       clone._id = shortId;
-      this._searchIndex?.deleteIndex(this.collectionPath, clone);
+      this._searchIndex?.deleteIndex(clone);
 
       return deleteResult;
     });
@@ -1335,10 +1319,7 @@ export class Collection implements ICollection {
             _id: shortId,
           };
 
-          this._searchIndex?.deleteIndex(
-            this.collectionPath,
-            deleteResult.oldDoc as JsonDoc
-          );
+          this._searchIndex?.deleteIndex(deleteResult.oldDoc as JsonDoc);
 
           return deleteResult;
         }
@@ -1404,14 +1385,21 @@ export class Collection implements ICollection {
 
   search (indexName: string, keyword: string, useOr = false): SearchResult[] {
     if (this._searchIndex === undefined) return [];
-    return this._searchIndex?.search(this._collectionPath, indexName, keyword, useOr);
+    return this._searchIndex?.search(indexName, keyword, useOr);
   }
 
   rebuildIndex (): Promise<void> {
     if (this._searchIndex === undefined) {
       return Promise.resolve();
     }
-    return this._searchIndex?.rebuild(this._gitDDB);
+    return this._searchIndex?.rebuild();
+  }
+
+  serializeIndex (): Promise<void> {
+    if (this._searchIndex === undefined) {
+      return Promise.resolve();
+    }
+    return this._searchIndex?.serialize();
   }
 
   /***********************************************
