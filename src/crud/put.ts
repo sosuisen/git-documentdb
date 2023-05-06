@@ -14,8 +14,6 @@ import { SHORT_SHA_LENGTH } from '../const';
 import { Doc, NormalizedCommit, PutOptions, PutResult } from '../types';
 import { GitDDBInterface } from '../types_gitddb';
 import { Err } from '../error';
-import { SearchInterface } from '../search/search_engine';
-import { blobToJsonDocWithoutOverwrittenId, readLatestBlob } from './blob';
 import { getImpl } from './get';
 
 /**

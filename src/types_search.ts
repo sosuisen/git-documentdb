@@ -22,7 +22,7 @@ export interface SearchIndexInterface {
   addIndex: (jsonDoc: JsonDoc) => void;
   updateIndex: (oldJsonDoc: JsonDoc, newJsonDoc: JsonDoc) => void;
   deleteIndex: (jsonDoc: JsonDoc) => void;
-  search: (indexName: string, keyword: string, useOr: boolean) => SearchResult[];
+  search: (indexName: string, keyword: string, useOr?: boolean) => SearchResult[];
   serialize: () => Promise<void>;
   close: () => void;
   destroy: () => void;
@@ -45,6 +45,7 @@ export type SearchResult = {
  */
 export interface SearchAPI {
   search: (indexName: string, keyword: string, useOr?: boolean) => SearchResult[];
+  searchIndex: () => SearchIndexInterface | undefined;
   rebuildIndex: () => Promise<void>;
   serializeIndex: () => Promise<void>;
 }

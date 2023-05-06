@@ -1388,6 +1388,10 @@ export class Collection implements ICollection {
     return this._searchIndex?.search(indexName, keyword, useOr);
   }
 
+  searchIndex (): SearchIndexInterface | undefined {
+    return this._searchIndex;
+  }
+
   rebuildIndex (): Promise<void> {
     if (this._searchIndex === undefined) {
       return Promise.resolve();

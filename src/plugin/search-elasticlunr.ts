@@ -91,12 +91,27 @@ export function openOrCreate (
   return new SearchIndexClass(collection, searchIndexConfigs, indexes);
 }
 
+export interface SearchIndexClassInterface {
+  config: () => { [indexName: string]: SearchIndexConfig };
+  indexes: () => { [indexName: string]: any };
+}
+
 /**
  * Wrapper class for search indexes
  */
-class SearchIndexClass implements SearchIndexInterface {
+class SearchIndexClass implements SearchIndexInterface, SearchIndexClassInterface {
   private _configs: { [indexName: string]: SearchIndexConfig } = {};
   private _indexes: { [indexName: string]: any } = {};
+
+  // for tests
+  config (): { [indexName: string]: SearchIndexConfig } {
+    return this._configs;
+  }
+
+  // for tests
+  indexes (): { [indexName: string]: any } {
+    return this._indexes;
+  }
 
   private _collection: ICollection;
 

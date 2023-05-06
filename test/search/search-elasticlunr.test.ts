@@ -12,19 +12,12 @@ import expect from 'expect';
 import fs from 'fs-extra';
 import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
+import { SearchIndexInterface } from '../../src/types_search';
 import { GitDocumentDB } from '../../src/git_documentdb';
 import { SearchEngineOptions } from '../../src/types';
 import {
-  addIndex,
-  close,
-  deleteIndex,
-  destroy,
-  indexes,
   openOrCreate,
-  rebuild,
-  search,
-  serialize,
-  updateIndex,
+  SearchIndexClassInterface,
 } from '../../src/plugin/search-elasticlunr';
 
 const ulid = monotonicFactory();
@@ -73,10 +66,13 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface;
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
     expect(indexObj.ref).toBe('_id');
@@ -100,17 +96,19 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       localDir,
     });
     await gitDDB.open();
-    let isCreated = openOrCreate('', searchEngineOptions);
-    expect(isCreated).toEqual([true]);
-    serialize();
-    close();
+    const searchIndex = openOrCreate(gitDDB.rootCollection, searchEngineOptions);
+    searchIndex.serialize();
+    searchIndex.close();
 
-    isCreated = openOrCreate('', searchEngineOptions);
-    expect(isCreated).toEqual([false]);
+    const searchIndex2 = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface;
+
     // Cannot read property of index directry.
     // Use stringify and parse.
     // console.log(JSON.stringify(indexes));
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const indexObj = JSON.parse(JSON.stringify(searchIndex2.indexes().title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
     expect(indexObj.ref).toBe('_id');
@@ -136,16 +134,19 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'x',
     });
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"title":1}},"length":1,"save":false},"index":{"title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.documentStore.docs).toEqual({ '1': null });
     expect(indexObj.index.title.root.x).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
@@ -170,9 +171,12 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       book: {
         title: 'x',
@@ -181,7 +185,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     // console.log(JSON.stringify(indexes['']['title']));
     // {"version":"0.9.5","fields":["book.title"],"ref":"_id","documentStore":{"docs":{"1":null},"docInfo":{"1":{"book.title":1}},"length":1,"save":false},"index":{"book.title":{"root":{"docs":{},"df":0,"x":{"docs":{"1":{"tf":1}},"df":1}}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.documentStore.docs).toEqual({ '1': null });
@@ -210,20 +214,23 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'hello',
     });
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '2',
       title: 'world',
     });
 
-    expect(search('', 'title', 'hello')).toEqual([{ ref: '1', score: 1 }]);
-    expect(search('', 'title', 'world')).toEqual([{ ref: '2', score: 1 }]);
+    expect(searchIndex.search('title', 'hello')).toEqual([{ ref: '1', score: 1 }]);
+    expect(searchIndex.search('title', 'world')).toEqual([{ ref: '2', score: 1 }]);
 
     await gitDDB.destroy();
   });
@@ -246,21 +253,24 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'hello',
       body: 'world',
     });
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '2',
       title: 'world',
       body: 'hello',
     });
 
-    expect(search('', 'title', 'hello')).toEqual([
+    expect(searchIndex.search('title', 'hello')).toEqual([
       { ref: '1', score: 2 },
       { ref: '2', score: 1 },
     ]);
@@ -286,23 +296,26 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     // match
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'hello world',
       body: 'planet',
     });
 
     // do not match
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '2',
       title: 'hello',
       body: 'world',
     });
 
-    expect(search('', 'title', 'hello world')).toMatchObject([{ ref: '1' }]);
+    expect(searchIndex.search('title', 'hello world')).toMatchObject([{ ref: '1' }]);
 
     await gitDDB.destroy();
   });
@@ -325,23 +338,26 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     // match
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'hello world',
       body: 'planet',
     });
 
     // do not match
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '2',
       title: 'hello',
       body: 'world',
     });
 
-    expect(search('', 'title', 'hello world', true)).toMatchObject([
+    expect(searchIndex.search('title', 'hello world', true)).toMatchObject([
       { ref: '1' },
       { ref: '2' },
     ]);
@@ -367,15 +383,18 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('book/', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.collection('book'),
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
-    addIndex('book/', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'hello world',
       body: 'planet',
     });
 
-    expect(search('book/', 'title', 'hello world')).toMatchObject([{ ref: '1' }]);
+    expect(searchIndex.search('title', 'hello world')).toMatchObject([{ ref: '1' }]);
 
     await gitDDB.destroy();
   });
@@ -398,20 +417,23 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'hello',
     });
     // console.log(JSON.stringify(indexes['']['title']));
 
-    deleteIndex('', {
+    searchIndex.deleteIndex({
       _id: '1',
       title: 'hello',
     });
     //    console.log(JSON.stringify(indexes['']['title']));
-    expect(search('', 'title', 'hello')).toEqual([]);
+    expect(searchIndex.search('title', 'hello')).toEqual([]);
 
     await gitDDB.destroy();
   });
@@ -434,15 +456,17 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB.open();
-    openOrCreate('', searchEngineOptions);
+    const searchIndex = (openOrCreate(
+      gitDDB.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
-    addIndex('', {
+    searchIndex.addIndex({
       _id: '1',
       title: 'hello',
     });
 
-    updateIndex(
-      '',
+    searchIndex.updateIndex(
       {
         _id: '1',
         title: 'hello',
@@ -454,8 +478,8 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     );
 
     // console.log(JSON.stringify(indexes['']['title']));
-    expect(search('', 'title', 'hello')).toEqual([]);
-    expect(search('', 'title', 'こんにちは')).toMatchObject([{ ref: '1' }]);
+    expect(searchIndex.search('title', 'hello')).toEqual([]);
+    expect(searchIndex.search('title', 'こんにちは')).toMatchObject([{ ref: '1' }]);
 
     await gitDDB.destroy();
   });
@@ -494,10 +518,14 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
         },
       ],
     };
-    openOrCreate('', searchEngineOptions);
-    await rebuild(gitDDB2);
-    expect(search('', 'title', 'hello')).toMatchObject([{ ref: '1' }]);
-    expect(search('', 'title', 'world')).toMatchObject([{ ref: '2' }]);
+    const searchIndex = (openOrCreate(
+      gitDDB2.rootCollection,
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
+
+    await searchIndex.rebuild();
+    expect(searchIndex.search('title', 'hello')).toMatchObject([{ ref: '1' }]);
+    expect(searchIndex.search('title', 'world')).toMatchObject([{ ref: '2' }]);
     await gitDDB2.destroy();
   });
 
@@ -536,10 +564,14 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
         },
       ],
     };
-    openOrCreate('book/', searchEngineOptions);
-    await rebuild(gitDDB2);
-    expect(search('book/', 'title', 'hello')).toMatchObject([{ ref: '1' }]);
-    expect(search('book/', 'title', 'world')).toMatchObject([{ ref: '2' }]);
+    const searchIndex = (openOrCreate(
+      gitDDB2.collection('book'),
+      searchEngineOptions
+    ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
+
+    await searchIndex.rebuild();
+    expect(searchIndex.search('title', 'hello')).toMatchObject([{ ref: '1' }]);
+    expect(searchIndex.search('title', 'world')).toMatchObject([{ ref: '2' }]);
     await gitDDB2.destroy();
   });
 });
@@ -566,7 +598,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     await gitDDB.open();
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;
+    const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
     expect(indexObj.ref).toBe('_id');
@@ -599,7 +632,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;    
+    const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     expect(indexObj.documentStore.docs).toEqual({ '1': null });
     expect(indexObj.index.title.root.x).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
 
@@ -636,7 +670,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;   
+    const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     expect(indexObj.index.title.root.x).toEqual({ docs: {}, df: 0 });
     expect(indexObj.index.title.root.y).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
 
@@ -670,7 +705,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const indexObj = JSON.parse(JSON.stringify(indexes[''].title));
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;    
+    const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     expect(indexObj.documentStore.docs).toEqual({});
     expect(indexObj.index.title.root.x).toEqual({ docs: {}, df: 0 });
 

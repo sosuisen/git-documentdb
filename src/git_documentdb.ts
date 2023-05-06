@@ -74,7 +74,7 @@ import { blobToJsonDoc, readLatestBlob } from './crud/blob';
 import * as remote_isomorphic_git from './plugin/remote-isomorphic-git';
 import * as search_elasticlunr from './plugin/search-elasticlunr';
 import { SerializeFormatFrontMatter, SerializeFormatJSON } from './serialize_format';
-import { SearchAPI, SearchResult } from './types_search_api';
+import { SearchAPI, SearchIndexInterface, SearchResult } from './types_search';
 
 /**
  * Get database ID
@@ -1798,10 +1798,23 @@ export class GitDocumentDB
   }
 
   /**
+   * searchIndex
+   *
+   * @returns SearchIndexInterface
+   */
+  searchIndex (): SearchIndexInterface | undefined {
+    return this.rootCollection.searchIndex();
+  }
+
+  /**
    * rebuildIndex
    */
   rebuildIndex (): Promise<void> {
     return this.rootCollection.rebuildIndex();
+  }
+
+  serializeIndex (): Promise<void> {
+    return this.rootCollection.serializeIndex();
   }
 
   /***********************************************
