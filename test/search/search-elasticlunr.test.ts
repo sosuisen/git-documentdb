@@ -606,7 +606,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOption,
+      searchEngineOptions: [searchEngineOption],
     });
     // SearchEngine['full-text'].openOrCreate(gitDDB, ', searchEngineOptions) will be called in gitDDB.open()
     await gitDDB.open();
@@ -638,7 +638,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOption,
+      searchEngineOptions: [searchEngineOption],
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -673,7 +673,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOption,
+      searchEngineOptions: [searchEngineOption],
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -713,7 +713,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOption,
+      searchEngineOptions: [searchEngineOption],
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -750,6 +750,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
+      searchEngineOptions: [searchEngineOption],
     });
     await gitDDB.open();
     const bookCol = gitDDB.collection('book', {
@@ -769,6 +770,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB2 = new GitDocumentDB({
       dbName,
       localDir,
+      searchEngineOptions: [searchEngineOption],
     });
     await gitDDB2.open();
     const bookCol2 = gitDDB2.collection('book', {
@@ -797,7 +799,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOption,
+      searchEngineOptions: [searchEngineOption],
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -813,7 +815,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB2 = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOption,
+      searchEngineOptions: [searchEngineOption],
     });
     await gitDDB2.open();
 

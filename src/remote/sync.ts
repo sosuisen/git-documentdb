@@ -980,7 +980,7 @@ export class Sync implements SyncInterface {
       );
       for (const collection of collections) {
         // eslint-disable-next-line no-await-in-loop
-        await collection.searchIndex()?.rebuild()；
+        await collection.searchIndex()?.rebuild();
       }
     }
     else if (
@@ -1044,10 +1044,12 @@ export class Sync implements SyncInterface {
             if (changedFile.old.type === 'json') {
               this._gitDDB.rootCollection.searchIndex()?.deleteIndex(changedFile.old.doc);
             }
-            // eslint-disable-next-line no-await-in-loop
-            const collections = await ((this
-              ._gitDDB as unknown) as ICollection).getCollections('');
-            collections.forEach(collection => {
+
+            // Do not use getCollection() because a collection will be disappeared
+            // when directory is empty by removing.
+            //  const collections = await ((this
+            //    ._gitDDB as unknown) as ICollection).getCollections('');
+            Object.values(this._gitDDB.collectionCache).forEach(collection => {
               if (
                 collection.searchIndex() !== undefined &&
                 changedFile.old.type === 'json'
