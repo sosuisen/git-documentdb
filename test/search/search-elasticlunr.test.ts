@@ -753,9 +753,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
       searchEngineOptions: [searchEngineOption],
     });
     await gitDDB.open();
-    const bookCol = gitDDB.collection('book', {
-      searchEngineOption,
-    });
+    const bookCol = gitDDB.collection('book');
     await bookCol.put({
       _id: '1',
       title: 'hello',
@@ -773,9 +771,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
       searchEngineOptions: [searchEngineOption],
     });
     await gitDDB2.open();
-    const bookCol2 = gitDDB2.collection('book', {
-      searchEngineOption,
-    });
+    const bookCol2 = gitDDB2.collection('book');
     await bookCol2.rebuildIndex();
 
     expect(bookCol2.search('title', 'hello')).toMatchObject([{ ref: '1' }]);
@@ -823,5 +819,42 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     expect(gitDDB2.search('title', 'world')).toMatchObject([{ ref: '2' }]);
 
     await gitDDB2.destroy();
+  });
+});
+
+describe('<search/elasticlunr> large db', () => {
+  it.only('rebuild collection', async () => {
+    const dbName = monoId();
+    const searchEngineOption: SearchEngineOption = {
+      collectionPath: 'card',
+      // engineName: 'full-text''
+      configs: [
+        {
+          indexName: '_body',
+          targetProperties: ['_body'],
+          indexFilePath: '../book001_index.zip',
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName: 'book001',
+      localDir: 'C:\\Users\\hidek\\AppData\\Local\\petasti_data\\',
+      searchEngineOptions: [searchEngineOption],
+      serialize: 'front-matter',
+    });
+    await gitDDB.open();
+    const bookCol = gitDDB.collection('card');
+    console.time('rebuild');
+    await bookCol.rebuildIndex();
+    console.timeEnd('rebuild');
+    const searchResults = bookCol.search('_body', '#journal');
+    for (const result of searchResults) {
+      // eslint-disable-next-line no-await-in-loop
+      const doc = await bookCol.get(result.ref);
+      const _body = doc!._body as string;
+      console.log('######### ' + result.score);
+      console.log(_body.substring(0, 140) + '/n');
+    }
+    await gitDDB.close();
   });
 });
