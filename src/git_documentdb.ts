@@ -15,7 +15,7 @@ import { ulid } from 'ulid';
 import { RemoteEngine } from './remote/remote_engine';
 import { SearchEngine } from './search/search_engine';
 import { Err } from './error';
-import { Collection } from './collection';
+import { createCollection } from './collection';
 import { Validator } from './validator';
 import {
   CollectionOptions,
@@ -373,7 +373,7 @@ export class GitDocumentDB
     return this._validator;
   }
 
-  private _rootCollection: Collection;
+  private _rootCollection: ICollection;
   /**
    * Default collection whose collectionPath is ''.
    *
@@ -447,6 +447,11 @@ export class GitDocumentDB
   };
 
   /**
+   * Cache of collections
+   */
+  collectionCache: { [collectionPath: string]: ICollection } = {};
+
+  /**
    * Constructor
    *
    * @remarks
@@ -518,13 +523,14 @@ export class GitDocumentDB
       SearchEngine[search_elasticlunr.name][id] = search_elasticlunr[id];
     });
 
+    this.collectionCache = {};
     const collectionOptions = {
       namePrefix: options?.namePrefix ?? '',
       debounceTime: options?.debounceTime ?? -1,
       idGenerator: options?.idGenerator,
       searchEngineOptions: options?.searchEngineOptions,
     };
-    this._rootCollection = new Collection(this, '', undefined, collectionOptions);
+    this._rootCollection = createCollection(this, '', undefined, collectionOptions);
 
     // @ts-ignore
     RemoteEngine[remote_isomorphic_git.name] = {};
@@ -732,6 +738,8 @@ export class GitDocumentDB
         }
       });
 
+      this.collectionCache = {};
+
       this._synchronizers = {};
 
       this._dbOpenResult = {
@@ -821,8 +829,8 @@ export class GitDocumentDB
    *
    * @public
    */
-  collection (collectionPath: CollectionPath, options?: CollectionOptions): Collection {
-    return new Collection(this, collectionPath, this.rootCollection, options);
+  collection (collectionPath: CollectionPath, options?: CollectionOptions): ICollection {
+    return createCollection(this, collectionPath, this.rootCollection, options);
   }
 
   /**

@@ -13,7 +13,7 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { FRONT_MATTER_POSTFIX, JSON_POSTFIX, YAML_POSTFIX } from '../src/const';
-import { Collection } from '../src/collection';
+import { Collection, createCollection } from '../src/collection';
 import { sleep, toFrontMatterMarkdown, toSortedJSONString, toYAML } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
@@ -43,7 +43,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
       col.put({ _id: i.toString(), name: i.toString() }).catch(() => {});
@@ -66,7 +66,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
 
     const shortId = 'prof01';
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
@@ -84,7 +84,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const shortId = 'prof01';
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
@@ -103,7 +103,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const shortId = 'prof01';
 
     await expect(col.get(shortId)).resolves.toBeUndefined();
@@ -117,7 +117,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const shortId = 'prof01';
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
@@ -135,7 +135,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
+    const col = createCollection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
@@ -152,7 +152,7 @@ describe('<collection> get()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'dir01/dir02/dir03');
+    const col = createCollection(gitDDB, 'dir01/dir02/dir03');
     const shortId = 'prof01';
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
@@ -260,7 +260,7 @@ describe('<collection> getFatDoc()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = createCollection(gitDDB);
     const shortId = 'prof01';
     const shortName = shortId + JSON_POSTFIX;
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
@@ -286,7 +286,7 @@ describe('<collection> getFatDoc()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB);
+    const col = createCollection(gitDDB);
     const shortId = 'prof01';
     const shortName = shortId + JSON_POSTFIX;
 
@@ -303,7 +303,7 @@ describe('<crud/get> getDocByOid()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
+    const col = createCollection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
@@ -320,7 +320,7 @@ describe('<crud/get> getDocByOid()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
+    const col = createCollection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
     const fullDocPath = col.collectionPath + shortId + JSON_POSTFIX;
     const json01 = { _id: shortId, name: 'v1' };
@@ -336,7 +336,7 @@ describe('<crud/get> getDocByOid()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03/');
+    const col = createCollection(gitDDB, 'col01/col02/col03/');
     const shortId = 'dir01/prof01';
     const shortName = shortId + JSON_POSTFIX;
     const fullDocPath = col.collectionPath + shortName;
@@ -359,7 +359,7 @@ describe('<crud/get>', () => {
   const targetId = '01';
   const targetName = targetId + JSON_POSTFIX;
   const collectionPath = 'col01/';
-  const col = new Collection(gitDDB, collectionPath);
+  const col = createCollection(gitDDB, collectionPath);
   const fullDocPath = collectionPath + targetId + JSON_POSTFIX;
 
   const json01 = { _id: collectionPath + targetId, name: 'v01' };
@@ -805,7 +805,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
 
     const _idA = 'profA';
     const shortNameA = _idA + JSON_POSTFIX;
@@ -843,7 +843,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _idA = 'profA';
     const shortNameA = _idA + JSON_POSTFIX;
     const jsonA01 = { _id: _idA, name: 'v01' };
@@ -896,7 +896,7 @@ describe('<crud/get> getFatDocHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
     await col.put(jsonA01);
@@ -914,7 +914,7 @@ describe('<crud/get> getFatDocHistory()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
 
     for (let i = 0; i < 100; i++) {
       // put() will throw Error after the database is closed by force.
@@ -940,7 +940,7 @@ describe('<crud/get> getFatDocHistory()', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     await col.putFatDoc('1.json', 'invalid json');
 
     await expect(col.getFatDocHistory('1.json')).rejects.toThrowError(
@@ -960,7 +960,7 @@ describe('<crud/get> getHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
 
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
@@ -996,7 +996,7 @@ describe('<crud/get> getHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
     const jsonA02 = { _id: _idA, name: 'v02' };
@@ -1047,7 +1047,7 @@ describe('<crud/get> getHistory()', () => {
     });
 
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _idA = 'profA';
     const jsonA01 = { _id: _idA, name: 'v01' };
     await col.put(jsonA01);

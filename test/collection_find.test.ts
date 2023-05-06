@@ -12,7 +12,7 @@ import fs from 'fs-extra';
 import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
-import { Collection } from '../src/collection';
+import { Collection, createCollection } from '../src/collection';
 import { JSON_POSTFIX } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -67,7 +67,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       await addOneData(
         gitDDB,
         col.collectionPath + 'invalidJSON' + JSON_POSTFIX,
@@ -88,7 +88,7 @@ describe('<collection>', () => {
       });
 
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       await expect(col.find()).resolves.toEqual([]);
 
       await gitDDB.destroy();
@@ -101,7 +101,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
 
       const json_b = { _id: col.collectionPath + _id_b, name: name_b };
       const json_a = { _id: col.collectionPath + _id_a, name: name_a };
@@ -160,7 +160,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
 
         const json_b = { _id: col.collectionPath + _id_b, name: name_b };
         const json_a = { _id: col.collectionPath + _id_a, name: name_a };
@@ -228,7 +228,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
 
         const json_b = { _id: col.collectionPath + _id_b, name: name_b };
         const json_a = { _id: col.collectionPath + _id_a, name: name_a };
@@ -299,7 +299,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
 
         const json_b = { _id: col.collectionPath + _id_b, name: name_b };
         const json_a = { _id: col.collectionPath + _id_a, name: name_a };
@@ -372,7 +372,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
 
         const json_b = { _id: col.collectionPath + _id_b, name: name_b };
         const json_a = { _id: col.collectionPath + _id_a, name: name_a };
@@ -440,7 +440,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
 
         const json_b = { _id: col.collectionPath + _id_b, name: name_b };
         const json_a = { _id: col.collectionPath + _id_a, name: name_a };
@@ -508,7 +508,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
 
         const json_p = { _id: col.collectionPath + _id_p, name: name_p };
 
@@ -585,7 +585,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01/col02/col03');
+        const col = createCollection(gitDDB, 'col01/col02/col03');
 
         const json_p = { _id: col.collectionPath + _id_p, name: name_p };
 
@@ -665,7 +665,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
 
       const json_b = { _id: col.collectionPath + _id_b, name: name_b };
       const json_a = { _id: col.collectionPath + _id_a, name: name_a };

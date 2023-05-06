@@ -22,7 +22,7 @@ import {
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
-import { Collection } from '../src/collection';
+import { Collection, createCollection } from '../src/collection';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -49,7 +49,7 @@ describe('delete(shortId)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
     // @ts-ignore
     await expect(users.delete()).rejects.toThrowError(Err.UndefinedDocumentIdError);
 
@@ -64,7 +64,7 @@ describe('delete(shortId)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
     // @ts-ignore
     await expect(users.delete({ name: 'Shirase' })).rejects.toThrowError(
       Err.UndefinedDocumentIdError
@@ -82,7 +82,7 @@ describe('delete(shortId)', () => {
 
     await gitDDB.open();
     const _id = 'test/prof01';
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
     await expect(users.delete(_id)).rejects.toThrowError(Err.DocumentNotFoundError);
 
     await gitDDB.destroy();
@@ -96,7 +96,7 @@ describe('delete(shortId)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
     const _id = 'test/prof01';
     const _id2 = 'test/prof02';
 
@@ -145,7 +145,7 @@ describe('delete(shortId)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'col01/col02/col03/users');
+    const users = createCollection(gitDDB, 'col01/col02/col03/users');
     const _id = 'test/prof01';
     const _id2 = 'test/prof02';
 
@@ -196,7 +196,7 @@ describe('delete(shortId)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
 
     const _id = 'test/prof01';
     await users.put({ _id: _id, name: 'shirase' });
@@ -229,7 +229,7 @@ describe('delete(shortId)', () => {
       });
 
       await gitDDB.open();
-      const users = new Collection(gitDDB, 'users');
+      const users = createCollection(gitDDB, 'users');
       const json = { _id: 'foo', name: 'var', _body: 'baz' };
       const putResult = await users.put(json); // save .md
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
@@ -252,7 +252,7 @@ describe('delete(shortId)', () => {
       });
 
       await gitDDB.open();
-      const users = new Collection(gitDDB, 'users');
+      const users = createCollection(gitDDB, 'users');
       const json = { _id: 'foo', name: 'var' };
       const putResult = await users.put(json); // save .yml
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
@@ -275,7 +275,7 @@ describe('delete(shortId)', () => {
       });
 
       await gitDDB.open();
-      const users = new Collection(gitDDB, 'users');
+      const users = createCollection(gitDDB, 'users');
       // @ts-ignore
       await expect(users.delete({ _id: 'Shirase' })).rejects.toThrowError(
         Err.DocumentNotFoundError
@@ -295,7 +295,7 @@ describe('delete(jsonDoc)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
 
     const _id = 'dir01/prof01';
     const json = { _id: _id, name: 'shirase' };
@@ -346,7 +346,7 @@ describe('delete(jsonDoc)', () => {
 
     await gitDDB.open();
     const _id = 'test/prof01';
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
     const json = { _id, name: 'Shirase' };
     const anotherJson = { _id, name: 'Soya' };
     await users.put(json);
@@ -366,7 +366,7 @@ describe('deleteFatDoc(name)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
     // @ts-ignore
     await expect(users.deleteFatDoc()).rejects.toThrowError(Err.UndefinedDocumentIdError);
 
@@ -381,7 +381,7 @@ describe('deleteFatDoc(name)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'users');
+    const users = createCollection(gitDDB, 'users');
     const _id = 'test/prof01';
     const _id2 = 'test/prof02';
 
@@ -432,7 +432,7 @@ describe('deleteFatDoc(name)', () => {
     });
 
     await gitDDB.open();
-    const users = new Collection(gitDDB, 'col01/col02/col03/users');
+    const users = createCollection(gitDDB, 'col01/col02/col03/users');
     const _id = 'test/prof01';
     const _id2 = 'test/prof02';
 

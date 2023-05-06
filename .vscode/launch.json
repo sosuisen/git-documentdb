@@ -4,7 +4,7 @@
     "type": "pickString",
     "id": "choice",
     "description": "select a file",
-    "options": ["test/search/search-elasticlunr.test.js"],
+    "options": ["test/search/search-elasticlunr.test.js", "test/remote_isomorphic_git/sync_search_index.test.js"],
   }],
   "configurations": [
       {

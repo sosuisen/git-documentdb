@@ -49,6 +49,32 @@ import { SearchEngine } from './search/search_engine';
 import { SearchIndexInterface, SearchResult } from './types_search';
 
 /**
+ * createCollection
+ *
+ * @param collectionPathFromParent - A relative collectionPath from a parent collection.
+ * @param parent - A parent collection of this collection.
+ *
+ * @throws {@link Err.InvalidCollectionPathCharacterError}
+ * @throws {@link Err.InvalidCollectionPathLengthError}
+ *
+ * @public
+ */
+export function createCollection (
+  gitDDB: GitDDBInterface,
+  collectionPathFromParent?: CollectionPath,
+  parent?: ICollection,
+  options?: CollectionOptions
+): ICollection {
+  const colPath = Validator.normalizeCollectionPath(collectionPathFromParent);
+  if (gitDDB.collectionCache[colPath]) {
+    return gitDDB.collectionCache[colPath];
+  }
+  const col = new Collection(gitDDB, collectionPathFromParent, parent, options);
+  gitDDB.collectionCache[colPath] = col;
+  return col;
+}
+
+/**
  * Documents under a collectionPath are gathered together in a collection.
  *
  * @remarks
@@ -206,7 +232,7 @@ export class Collection implements ICollection {
    * @public
    */
   collection (collectionPath: CollectionPath, options?: CollectionOptions): ICollection {
-    return new Collection(this._gitDDB, collectionPath, this, options) as ICollection;
+    return createCollection(this._gitDDB, collectionPath, this, options) as ICollection;
   }
 
   /**
@@ -220,7 +246,7 @@ export class Collection implements ICollection {
   async getCollections (dirPath = ''): Promise<ICollection[]> {
     dirPath = Validator.normalizeCollectionPath(this.collectionPath + dirPath);
     dirPath = dirPath.slice(0, -1);
-    const collections: Collection[] = [];
+    const collections: ICollection[] = [];
 
     let commitOid;
     try {
@@ -242,11 +268,11 @@ export class Collection implements ICollection {
       const fullDocPath = dirPath !== '' ? `${dirPath}/${entry.path}` : entry.path;
       if (entry.type === 'tree') {
         if (fullDocPath !== GIT_DOCUMENTDB_METADATA_DIR) {
-          collections.push(new Collection(this._gitDDB, fullDocPath));
+          collections.push(createCollection(this._gitDDB, fullDocPath));
         }
       }
     }
-    return collections as ICollection[];
+    return collections;
   }
 
   /***********************************************

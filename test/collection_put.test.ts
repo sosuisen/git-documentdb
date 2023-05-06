@@ -18,7 +18,7 @@ import { toSortedJSONString } from '../src/utils';
 import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 import { GitDocumentDB } from '../src/git_documentdb';
 import { Err } from '../src/error';
-import { Collection } from '../src/collection';
+import { Collection, createCollection } from '../src/collection';
 import { Validator } from '../src/validator';
 
 const ulid = monotonicFactory();
@@ -50,7 +50,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       // @ts-ignore
       await expect(col.put(undefined)).rejects.toThrowError(Err.InvalidJsonObjectError);
       await gitDDB.destroy();
@@ -63,31 +63,34 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const json = { name: 'Shirase' };
       const putResult = await col.put(json);
-      expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
-      await expect(col.get(putResult._id)).resolves.toEqual({
-        ...json,
-        _id: putResult._id,
-      });
-
+      if (putResult.type === 'json') {
+        expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+        await expect(col.get(putResult._id)).resolves.toEqual({
+          ...json,
+          _id: putResult._id,
+        });
+      }
       const json2 = { _id: '', name: 'Shirase' };
       const putResult2 = await col.put(json2);
-      expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
-      await expect(col.get(putResult2._id)).resolves.toEqual({
-        ...json2,
-        _id: putResult2._id,
-      });
-
+      if (putResult2.type === 'json') {
+        expect(putResult2._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+        await expect(col.get(putResult2._id)).resolves.toEqual({
+          ...json2,
+          _id: putResult2._id,
+        });
+      }
       const json3 = { _id: null, name: 'Shirase' };
       const putResult3 = await col.put(json2);
-      expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
-      await expect(col.get(putResult3._id)).resolves.toEqual({
-        ...json3,
-        _id: putResult3._id,
-      });
-
+      if (putResult3.type === 'json') {
+        expect(putResult3._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
+        await expect(col.get(putResult3._id)).resolves.toEqual({
+          ...json3,
+          _id: putResult3._id,
+        });
+      }
       await gitDDB.destroy();
     });
 
@@ -98,7 +101,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       // JSON.stringify() throws error if an object is recursive.
       const obj1 = { obj: {} };
       const obj2 = { obj: obj1 };
@@ -116,7 +119,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       // JSON.stringify() throws error if an object has a bigint value
       const obj1 = { bigint: BigInt(9007199254740991) };
       await expect(col.put({ _id: 'prof01', obj: obj1 })).rejects.toThrowError(
@@ -135,7 +138,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const obj1 = { func: () => {}, symbol: Symbol('foo'), undef: undefined };
       const _id = 'prof01';
       const json = { _id, obj: obj1 };
@@ -155,7 +158,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       await expect(
         col.put({ _id: '<angleBrackets>', name: 'Shirase' })
       ).rejects.toThrowError(Err.InvalidIdCharacterError);
@@ -175,7 +178,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const validator = new Validator(gitDDB.workingDir);
       const maxIdLen = validator.maxIdLength() - col.collectionPath.length;
       let _id = '';
@@ -202,7 +205,7 @@ describe('<collection>', () => {
       });
 
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       await expect(col.put({ _id: '/headingSlash', name: 'Shirase' })).rejects.toThrowError(
         Err.InvalidCollectionPathCharacterError
       );
@@ -217,7 +220,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const _id = '-.()[]_';
       await expect(col.put({ _id: _id, name: 'Shirase' })).resolves.toMatchObject({
         _id: expect.stringMatching(/^-.\(\)\[]_$/),
@@ -233,7 +236,7 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const _id = '春はあけぼの';
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const putResult = await col.put({ _id: _id, name: 'Shirase' });
       const shortOid = putResult.fileOid.substr(0, SHORT_SHA_LENGTH);
       expect(putResult).toMatchObject({
@@ -278,7 +281,7 @@ describe('<collection>', () => {
         ref: 'HEAD',
       });
 
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const _id = 'prof01';
       // Check put operation
       const json = { _id, name: 'Shirase' };
@@ -298,8 +301,9 @@ describe('<collection>', () => {
       const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) }))
         .oid;
       const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
-
-      expect(putResult._id).toBe(_id);
+      if (putResult.type === 'json') {
+        expect(putResult._id).toBe(_id);
+      }
       expect(putResult.fileOid).toBe(fileOid);
       expect(putResult.commit.oid).toBe(currentCommitOid);
       expect(putResult.commit.message).toBe(
@@ -336,7 +340,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
         const _id = 'dir01/prof01';
         const json = { _id, name: 'Shirase' };
         const putResult = await col.put(json);
@@ -359,7 +363,7 @@ describe('<collection>', () => {
           localDir,
         });
         await gitDDB.open();
-        const col = new Collection(gitDDB, 'col01');
+        const col = createCollection(gitDDB, 'col01');
         const _id = 'dir01/prof01';
         const json = { _id, name: 'Shirase' };
         await col.put(json);
@@ -528,7 +532,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       // JSON.stringify() throws error if an object has a bigint value
       const json = { bigint: BigInt(9007199254740991) };
       // @ts-ignore
@@ -545,7 +549,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const json = { name: 'Shirase' };
       const putResult = await col.put(undefined, json);
       expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
@@ -581,7 +585,7 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const namePrefix = 'item';
-      const col = new Collection(gitDDB, 'col01', undefined, { namePrefix });
+      const col = createCollection(gitDDB, 'col01', undefined, { namePrefix });
       const json = { name: 'Shirase' };
       const putResult = await col.put(undefined, json);
       expect(putResult._id.startsWith(namePrefix)).toBeTruthy();
@@ -603,7 +607,7 @@ describe('<collection>', () => {
       });
       await gitDDB.open();
       const namePrefix = 'item';
-      const col = new Collection(gitDDB, 'col01', undefined, {
+      const col = createCollection(gitDDB, 'col01', undefined, {
         namePrefix,
         idGenerator: hmtid,
       });
@@ -633,7 +637,7 @@ describe('<collection>', () => {
         ref: 'HEAD',
       });
 
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const _id = 'dir01/prof01';
       // Check put operation
       const json = { _id, name: 'Shirase' };
@@ -690,7 +694,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const _id = 'prof01';
       const json = { _id, name: 'Shirase' };
       const commitMessage = 'message';
@@ -721,7 +725,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const _id = 'id-in-the-first-argument';
       const json = { _id: 'id-in-doc', name: 'Shirase' };
       const putResult = await col.put(_id, json);
@@ -754,7 +758,7 @@ describe('<collection>', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     await col.put({
       'b': 'b',
       'c': 'c',
@@ -799,7 +803,7 @@ describe('<collection>', () => {
         localDir,
       });
       await gitDDB.open();
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const json = { name: 'Shirase' };
       const putResult = (await col.putFatDoc(undefined, json)) as PutResultJsonDoc;
       expect(putResult._id).toMatch(/^[\dA-HJKMNP-TV-Z]{26}$/); // Match ULID
@@ -848,7 +852,7 @@ describe('<collection>', () => {
         ref: 'HEAD',
       });
 
-      const col = new Collection(gitDDB, 'col01');
+      const col = createCollection(gitDDB, 'col01');
       const _id = 'dir01/prof01';
       const shortName = _id + JSON_POSTFIX;
       // Check put operation

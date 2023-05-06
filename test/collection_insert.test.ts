@@ -13,7 +13,7 @@ import git from 'isomorphic-git';
 import expect from 'expect';
 import { monotonicFactory } from 'ulid';
 import { PutResultJsonDoc } from '../src/types';
-import { Collection } from '../src/collection';
+import { Collection, createCollection } from '../src/collection';
 import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 import { toSortedJSONString } from '../src/utils';
 import { GitDocumentDB } from '../src/git_documentdb';
@@ -43,7 +43,7 @@ describe('<collection> insert(jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     await col.insert({ _id: 'prof01' });
     await expect(col.insert({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
       Err.SameIdExistsError
@@ -64,7 +64,7 @@ describe('<collection> insert(jsonDoc)', () => {
       ref: 'HEAD',
     });
 
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
 
@@ -83,7 +83,9 @@ describe('<collection> insert(jsonDoc)', () => {
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
 
-    expect(putResult._id).toBe(_id);
+    if (putResult.type === 'json') {
+      expect(putResult._id).toBe(_id);
+    }
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
@@ -120,7 +122,7 @@ describe('<collection> insert(jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const commitMessage = 'message';
     const json = { _id, name: 'Shirase' };
@@ -139,7 +141,7 @@ describe('<collection> insert(jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03');
+    const col = createCollection(gitDDB, 'col01/col02/col03');
     const _id = 'prof01';
     const commitMessage = 'message';
     const json = { _id, name: 'Shirase' };
@@ -164,7 +166,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     await col.insert('prof01', { name: 'Shirase' });
     await expect(col.insert('prof01', { name: 'Shirase' })).rejects.toThrowError(
       Err.SameIdExistsError
@@ -185,7 +187,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
       ref: 'HEAD',
     });
 
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     const internalJson = JSON.parse(JSON.stringify(json));
@@ -241,7 +243,7 @@ describe('<collection> insert(shortId, jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const commitMessage = 'message';
     const json = { _id, name: 'Shirase' };
@@ -270,7 +272,7 @@ describe('<collection> insertFatDoc(shortName, jsonDoc)', () => {
       ref: 'HEAD',
     });
 
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const shortName = _id + JSON_POSTFIX;
     const json = { _id, name: 'Shirase' };

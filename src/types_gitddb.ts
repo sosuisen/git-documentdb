@@ -62,6 +62,8 @@ export interface GitDDBInterface {
     email: string;
   };
 
+  collectionCache: { [collectionPath: string]: ICollection };
+
   /***********************************************
    * Public methods
    ***********************************************/

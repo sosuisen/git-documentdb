@@ -15,7 +15,7 @@ import { monotonicFactory } from 'ulid';
 import { PutResultJsonDoc } from '../src/types';
 import { Err } from '../src/error';
 import { GitDocumentDB } from '../src/git_documentdb';
-import { Collection } from '../src/collection';
+import { Collection, createCollection } from '../src/collection';
 import { toSortedJSONString } from '../src/utils';
 import { JSON_POSTFIX, SHORT_SHA_LENGTH } from '../src/const';
 
@@ -43,7 +43,7 @@ describe('<collection> update(jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     await expect(col.update({ _id: 'prof01', name: 'Shirase' })).rejects.toThrowError(
       Err.DocumentNotFoundError
     );
@@ -57,7 +57,7 @@ describe('<collection> update(jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     const insertResult = await col.insert(json);
@@ -81,7 +81,9 @@ describe('<collection> update(jsonDoc)', () => {
     const fileOid = (await git.hashBlob({ object: toSortedJSONString(internalJson) })).oid;
     const shortOid = fileOid.substr(0, SHORT_SHA_LENGTH);
 
-    expect(putResult._id).toBe(_id);
+    if (putResult.type === 'json') {
+      expect(putResult._id).toBe(_id);
+    }
     expect(putResult.fileOid).toBe(fileOid);
     expect(putResult.commit.oid).toBe(currentCommitOid);
     expect(putResult.commit.message).toBe(
@@ -118,7 +120,7 @@ describe('<collection> update(jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     await col.insert(json);
@@ -139,7 +141,7 @@ describe('<collection> update(jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01/col02/col03');
+    const col = createCollection(gitDDB, 'col01/col02/col03');
     const _id = 'prof01';
     const commitMessage = 'message';
     const json = { _id, name: 'Shirase' };
@@ -166,7 +168,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     await expect(
       col.update('prof01', { _id: 'prof01', name: 'Shirase' })
     ).rejects.toThrowError(Err.DocumentNotFoundError);
@@ -180,7 +182,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     const insertResult = await col.insert(json);
@@ -241,7 +243,7 @@ describe('<collection> update(shortId, jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const json = { _id, name: 'Shirase' };
     await col.insert(json);
@@ -265,7 +267,7 @@ describe('<collection> updateFatDoc(shortName, jsonDoc)', () => {
       localDir,
     });
     await gitDDB.open();
-    const col = new Collection(gitDDB, 'col01');
+    const col = createCollection(gitDDB, 'col01');
     const _id = 'prof01';
     const shortName = _id + JSON_POSTFIX;
     const json = { _id, name: 'Shirase' };
