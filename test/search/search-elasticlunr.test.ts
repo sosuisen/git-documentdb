@@ -762,4 +762,45 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     expect(bookCol2.search('title', 'world')).toMatchObject([{ ref: '2' }]);
     await gitDDB2.destroy();
   });
+
+  it('auto serialization before closing', async () => {
+    const dbName = monoId();
+    const searchEngineOptions: SearchEngineOptions = {
+      name: 'full-text',
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      searchEngineOptions,
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      _id: '1',
+      title: 'hello',
+    });
+    await gitDDB.put({
+      _id: '2',
+      title: 'world',
+    });
+    await gitDDB.close();
+
+    const gitDDB2 = new GitDocumentDB({
+      dbName,
+      localDir,
+      searchEngineOptions,
+    });
+    await gitDDB2.open();
+
+    expect(gitDDB2.search('title', 'hello')).toMatchObject([{ ref: '1' }]);
+    expect(gitDDB2.search('title', 'world')).toMatchObject([{ ref: '2' }]);
+
+    await gitDDB2.destroy();
+  });
 });

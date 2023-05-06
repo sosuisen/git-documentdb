@@ -723,6 +723,15 @@ export class GitDocumentDB
     } finally {
       this.taskQueue.stop();
 
+      if (this.rootCollection.searchIndex !== undefined) {
+        this.rootCollection.serializeIndex();
+      }
+      (await this.getCollections()).forEach(collection => {
+        if (collection.searchIndex !== undefined) {
+          collection.serializeIndex();
+        }
+      });
+
       this._synchronizers = {};
 
       this._dbOpenResult = {
