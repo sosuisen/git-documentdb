@@ -1,3 +1,4 @@
+/* eslint-disable max-depth */
 /**
  * GitDocumentDB
  * Copyright (c) Hidekazu Kubota
@@ -57,6 +58,7 @@ import { JsonPatchOT } from './json_patch_ot';
 import { combineDatabaseWithTheirs } from './combine';
 import { Validator } from '../validator';
 import { RemoteEngine, RemoteErr, wrappingRemoteEngineError } from './remote_engine';
+import { ICollection } from '../types_collection';
 
 /**
  * encodeToGitRemoteName
@@ -1029,6 +1031,95 @@ export class Sync implements SyncInterface {
         }
       }
 
+      if (result !== undefined) {
+        // Update search index
+        if (
+          result.action !== 'nop' &&
+          result.action !== 'push' &&
+          result.action !== 'combine database' &&
+          result.action !== 'canceled'
+        ) {
+          if (result.changes.local) {
+            for (const changedFile of result.changes.local) {
+              if (changedFile.operation === 'insert') {
+                if (changedFile.new.type === 'json') {
+                  this._gitDDB.rootCollection.searchIndex()?.addIndex(changedFile.new.doc);
+                }
+                // eslint-disable-next-line no-await-in-loop
+                const collections = await ((this
+                  ._gitDDB as unknown) as ICollection).getCollections('');
+                collections.forEach(collection => {
+                  if (
+                    collection.searchIndex() !== undefined &&
+                    changedFile.new.type === 'json'
+                  ) {
+                    if (changedFile.new._id.startsWith(collection.collectionPath)) {
+                      const clone = JSON.parse(JSON.stringify(changedFile.new.doc));
+                      clone._id = changedFile.new._id.substring(
+                        collection.collectionPath.length
+                      );
+                      collection.searchIndex()?.addIndex(clone);
+                    }
+                  }
+                });
+              }
+              else if (changedFile.operation === 'update') {
+                if (changedFile.old.type === 'json' && changedFile.new.type === 'json') {
+                  this._gitDDB.rootCollection
+                    .searchIndex()
+                    ?.updateIndex(changedFile.old.doc, changedFile.new.doc);
+                }
+                // eslint-disable-next-line no-await-in-loop
+                const collections = await ((this
+                  ._gitDDB as unknown) as ICollection).getCollections('');
+                collections.forEach(collection => {
+                  if (
+                    collection.searchIndex() !== undefined &&
+                    changedFile.old.type === 'json' &&
+                    changedFile.new.type === 'json'
+                  ) {
+                    if (changedFile.new._id.startsWith(collection.collectionPath)) {
+                      const cloneOld = JSON.parse(JSON.stringify(changedFile.old.doc));
+                      const cloneNew = JSON.parse(JSON.stringify(changedFile.new.doc));
+                      const shortId = changedFile.new._id.substring(
+                        collection.collectionPath.length
+                      );
+                      cloneOld._id = shortId;
+                      cloneNew._id = shortId;
+                      collection.searchIndex()?.updateIndex(cloneOld, cloneNew);
+                    }
+                  }
+                });
+              }
+              else if (changedFile.operation === 'delete') {
+                if (changedFile.old.type === 'json') {
+                  this._gitDDB.rootCollection
+                    .searchIndex()
+                    ?.deleteIndex(changedFile.old.doc);
+                }
+                // eslint-disable-next-line no-await-in-loop
+                const collections = await ((this
+                  ._gitDDB as unknown) as ICollection).getCollections('');
+                collections.forEach(collection => {
+                  if (
+                    collection.searchIndex() !== undefined &&
+                    changedFile.old.type === 'json'
+                  ) {
+                    if (changedFile.old._id.startsWith(collection.collectionPath)) {
+                      const clone = JSON.parse(JSON.stringify(changedFile.old.doc));
+                      clone._id = changedFile.old._id.substring(
+                        collection.collectionPath.length
+                      );
+                      collection.searchIndex()?.deleteIndex(clone);
+                    }
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+
       if (error !== undefined) {
         this._gitDDB.logger.debug('trySync failed: ' + error.message);
         if (error instanceof RemoteErr.UnfetchedCommitExistsError) {
@@ -1054,6 +1145,7 @@ export class Sync implements SyncInterface {
       else if (result !== undefined) {
         // No error
         this._retrySyncCounter = 0;
+
         return result;
       }
     }

@@ -220,8 +220,14 @@ export class Collection implements ICollection {
   async getCollections (dirPath = ''): Promise<ICollection[]> {
     dirPath = Validator.normalizeCollectionPath(this.collectionPath + dirPath);
     dirPath = dirPath.slice(0, -1);
+    const collections: Collection[] = [];
 
-    const commitOid = await resolveRef({ fs, dir: this._gitDDB.workingDir, ref: 'main' });
+    let commitOid;
+    try {
+      commitOid = await resolveRef({ fs, dir: this._gitDDB.workingDir, ref: 'main' });
+    } catch {
+      return collections;
+    }
 
     const treeResult = await readTree({
       fs,
@@ -231,8 +237,6 @@ export class Collection implements ICollection {
     }).catch(() => undefined);
 
     const rootTree = treeResult?.tree ?? [];
-
-    const collections: Collection[] = [];
 
     for (const entry of rootTree) {
       const fullDocPath = dirPath !== '' ? `${dirPath}/${entry.path}` : entry.path;
