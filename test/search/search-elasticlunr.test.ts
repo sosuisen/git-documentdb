@@ -598,7 +598,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     await gitDDB.open();
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface &
+      SearchIndexInterface;
     const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     // {"version":"0.9.5","fields":["title"],"ref":"_id","documentStore":{"docs":{},"docInfo":{},"length":0,"save":false},"index":{"title":{"root":{"docs":{},"df":0}}},"pipeline":["lunr-multi-trimmer-en-ja","stopWordFilter-jp","stopWordFilter","stemmer","stemmer-jp"]}
     expect(indexObj.fields).toEqual(['title']);
@@ -632,7 +633,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;    
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface &
+      SearchIndexInterface;
     const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     expect(indexObj.documentStore.docs).toEqual({ '1': null });
     expect(indexObj.index.title.root.x).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
@@ -670,7 +672,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;   
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface &
+      SearchIndexInterface;
     const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     expect(indexObj.index.title.root.x).toEqual({ docs: {}, df: 0 });
     expect(indexObj.index.title.root.y).toEqual({ docs: { '1': { tf: 1 } }, df: 1 });
@@ -705,7 +708,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
     // Cannot read property of index directry.
     // Use stringify and parse.
-    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface & SearchIndexInterface;    
+    const searchIndex = gitDDB.rootCollection.searchIndex() as SearchIndexClassInterface &
+      SearchIndexInterface;
     const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes().title));
     expect(indexObj.documentStore.docs).toEqual({});
     expect(indexObj.index.title.root.x).toEqual({ docs: {}, df: 0 });
