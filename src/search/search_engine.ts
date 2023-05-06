@@ -8,7 +8,7 @@
 
 import { ICollection } from '../types_collection';
 import { SearchIndexInterface } from '../types_search';
-import { SearchEngineOptions } from '../types';
+import { SearchEngineOption } from '../types';
 
 /**
  * SearchEngine
@@ -28,6 +28,6 @@ export interface SearchEngineInterface {
   name: string;
   openOrCreate: (
     collection: ICollection,
-    options: SearchEngineOptions
+    options: SearchEngineOption
   ) => SearchIndexInterface;
 }

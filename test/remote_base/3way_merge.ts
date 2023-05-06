@@ -1893,6 +1893,7 @@ export const syncThreeWayMergeBase = (
           connection,
         },
         'info',
+        undefined,
         'front-matter'
       );
 

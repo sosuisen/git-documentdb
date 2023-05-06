@@ -524,13 +524,27 @@ export class GitDocumentDB
     });
 
     this.collectionCache = {};
-    const collectionOptions = {
+
+    options?.searchEngineOptions?.forEach(searchEngineOption => {
+      const collectionOptions: CollectionOptions = {
+        namePrefix: options?.namePrefix ?? '',
+        debounceTime: options?.debounceTime ?? -1,
+        idGenerator: options?.idGenerator,
+        searchEngineOption,
+      };
+      createCollection(
+        this,
+        searchEngineOption.collectionPath,
+        undefined,
+        collectionOptions
+      );
+    });
+
+    this._rootCollection = createCollection(this, '', undefined, {
       namePrefix: options?.namePrefix ?? '',
       debounceTime: options?.debounceTime ?? -1,
       idGenerator: options?.idGenerator,
-      searchEngineOptions: options?.searchEngineOptions,
-    };
-    this._rootCollection = createCollection(this, '', undefined, collectionOptions);
+    });
 
     // @ts-ignore
     RemoteEngine[remote_isomorphic_git.name] = {};

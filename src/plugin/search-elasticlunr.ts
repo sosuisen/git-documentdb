@@ -12,7 +12,7 @@ import fs from 'fs-extra';
 import elasticlunr from 'elasticlunr';
 import AdmZip from 'adm-zip';
 import { Logger } from 'tslog';
-import { JsonDoc, SearchEngineOptions, SearchIndexConfig } from '../types';
+import { JsonDoc, SearchEngineOption, SearchIndexConfig } from '../types';
 
 import stemmer from './elasticlunr/lunr.stemmer.support.js';
 import lunr_ja from './elasticlunr/lunr.ja.js';
@@ -50,12 +50,12 @@ export const name = 'full-text';
  */
 export function openOrCreate (
   collection: ICollection,
-  searchEngineOptions: SearchEngineOptions
+  searchEngineOption: SearchEngineOption
 ): SearchIndexInterface {
   const searchIndexConfigs: { [indexName: string]: SearchIndexConfig } = {};
   const indexes: { [indexName: string]: any } = {};
 
-  searchEngineOptions.configs.forEach(searchIndexConfig => {
+  searchEngineOption.configs.forEach(searchIndexConfig => {
     searchIndexConfigs[searchIndexConfig.indexName] = searchIndexConfig;
 
     if (!fs.existsSync(searchIndexConfig.indexFilePath)) {

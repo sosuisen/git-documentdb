@@ -14,11 +14,13 @@ import {
   ChangedFileInsert,
   ChangedFileUpdate,
   DatabaseOpenResult,
+  DatabaseOptions,
   DeleteResult,
   JsonDoc,
   PutResult,
   RemoteOptions,
   Schema,
+  SearchEngineOption,
   SerializeFormat,
   SerializeFormatLabel,
 } from '../src/types';
@@ -230,18 +232,27 @@ export async function createDatabase (
   remoteId: () => string,
   options?: RemoteOptions,
   schema?: Schema,
+  searchEngineOption?: SearchEngineOption,
   logLevel: TLogLevelName = 'info'
 ): Promise<[GitDocumentDB, SyncInterface]> {
   const remoteURL = remoteURLBase + remoteId();
 
   const dbNameA = localId();
 
-  const dbA: GitDocumentDB = new GitDocumentDB({
+  searchEngineOption?.configs.forEach(config => {
+    config.indexFilePath = localDir + `/${dbNameA}_${config.indexName}_index.zip`;
+  });
+  const dbOptionsA: DatabaseOptions = {
     dbName: dbNameA,
     localDir,
     schema,
     logLevel,
-  });
+  };
+  if (searchEngineOption) {
+    dbOptionsA.searchEngineOptions = [searchEngineOption];
+  }
+
+  const dbA: GitDocumentDB = new GitDocumentDB(dbOptionsA);
   options ??= {
     remoteUrl: remoteURL,
     connection: { type: 'github', personalAccessToken: token },
@@ -264,18 +275,26 @@ export async function createClonedDatabases (
   remoteId: () => string,
   options?: RemoteOptions,
   logLevel?: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal',
+  searchEngineOption?: SearchEngineOption,
   serialize: SerializeFormatLabel = 'json'
 ): Promise<[GitDocumentDB, GitDocumentDB, SyncInterface, SyncInterface]> {
   const remoteURL = remoteURLBase + remoteId();
 
   const dbNameA = localId();
 
-  const dbA: GitDocumentDB = new GitDocumentDB({
+  searchEngineOption?.configs.forEach(config => {
+    config.indexFilePath = localDir + `/${dbNameA}_${config.indexName}_index.zip`;
+  });
+  const dbOptionsA: DatabaseOptions = {
     dbName: dbNameA,
     localDir,
     logLevel: logLevel ?? 'info',
     serialize,
-  });
+  };
+  if (searchEngineOption) {
+    dbOptionsA.searchEngineOptions = [searchEngineOption];
+  }
+  const dbA: GitDocumentDB = new GitDocumentDB(dbOptionsA);
   options ??= {
     remoteUrl: remoteURL,
     connection: { type: 'github', personalAccessToken: token },
@@ -286,13 +305,23 @@ export async function createClonedDatabases (
   options.includeCommits ??= true;
   await dbA.open();
   await dbA.sync(options);
+
   const dbNameB = localId();
-  const dbB: GitDocumentDB = new GitDocumentDB({
+
+  searchEngineOption?.configs.forEach(config => {
+    config.indexFilePath = localDir + `/${dbNameA}_${config.indexName}_index.zip`;
+  });
+  const dbOptionsB: DatabaseOptions = {
     dbName: dbNameB,
     localDir,
     logLevel: logLevel ?? 'info',
     serialize,
-  });
+  };
+  if (searchEngineOption) {
+    dbOptionsB.searchEngineOptions = [searchEngineOption];
+  }
+  const dbB: GitDocumentDB = new GitDocumentDB(dbOptionsB);
+
   // Clone dbA
   await dbB.open();
   await dbB.sync(options);

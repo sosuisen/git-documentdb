@@ -187,14 +187,13 @@ export class Collection implements ICollection {
       this._monoID = monotonicFactory();
     }
 
-    if (this._options.searchEngineOptions !== undefined) {
-      if (this._options.searchEngineOptions.name === undefined) {
-        this._options.searchEngineOptions.name = 'full-text';
+    if (this._options.searchEngineOption !== undefined) {
+      if (this._options.searchEngineOption.engineName === undefined) {
+        this._options.searchEngineOption.engineName = 'full-text';
       }
-      this._searchIndex = SearchEngine[this._options.searchEngineOptions.name].openOrCreate(
-        this,
-        this._options.searchEngineOptions
-      );
+      this._searchIndex = SearchEngine[
+        this._options.searchEngineOption.engineName
+      ].openOrCreate(this, this._options.searchEngineOption);
     }
   }
 

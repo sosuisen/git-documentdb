@@ -63,6 +63,7 @@ export type DatabaseOptions = {
   serialize?: SerializeFormatLabel;
   logToTransport?: (logObject: ILogObject) => void;
   logColorEnabled?: boolean;
+  searchEngineOptions?: SearchEngineOption[];
 };
 
 /**
@@ -373,15 +374,16 @@ export type SearchIndexConfig = {
 };
 
 /**
- * Search Options
+ * Search Engine Option
  *
  * @remarks
- *  - name: A name of SearchEngine. Default is 'full-text'.
+ *  - engineName: A name of SearchEngine. Default is 'full-text'.
  *
  * @public
  */
-export type SearchEngineOptions = {
-  name?: string;
+export type SearchEngineOption = {
+  engineName?: string;
+  collectionPath: string;
   configs: SearchIndexConfig[];
 };
 
@@ -393,13 +395,15 @@ export type SearchEngineOptions = {
  *
  * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds in the collection. Default is -1 (do not debounce).
  *
+ * - searchEngineOption: Do not set this option when you call createCollection(). This must be set via DatabaseOptions.
+ *
  * @public
  */
 export type CollectionOptions = {
   namePrefix?: string;
   debounceTime?: number;
   idGenerator?: () => string;
-  searchEngineOptions?: SearchEngineOptions;
+  searchEngineOption?: SearchEngineOption;
 };
 
 /**

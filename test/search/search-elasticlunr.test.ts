@@ -14,11 +14,11 @@ import { monotonicFactory } from 'ulid';
 import sinon from 'sinon';
 import { SearchIndexInterface } from '../../src/types_search';
 import { GitDocumentDB } from '../../src/git_documentdb';
-import { SearchEngineOptions } from '../../src/types';
 import {
   openOrCreate,
   SearchIndexClassInterface,
 } from '../../src/plugin/search-elasticlunr';
+import { SearchEngineOption } from '../../src/types';
 
 const ulid = monotonicFactory();
 const monoId = () => {
@@ -50,8 +50,9 @@ after(() => {
 describe('<search/elasticlunr> call search-elasticlunr directly', () => {
   it('create index', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -68,7 +69,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface;
     // Cannot read property of index directry.
     // Use stringify and parse.
@@ -81,8 +82,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('load index', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -96,13 +98,13 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       localDir,
     });
     await gitDDB.open();
-    const searchIndex = openOrCreate(gitDDB.rootCollection, searchEngineOptions);
+    const searchIndex = openOrCreate(gitDDB.rootCollection, searchEngineOption);
     searchIndex.serialize();
     searchIndex.close();
 
     const searchIndex2 = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface;
 
     // Cannot read property of index directry.
@@ -118,8 +120,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('add index to the first level property', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -136,7 +139,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     searchIndex.addIndex({
@@ -155,8 +158,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('add index to the second level property', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -173,7 +177,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     searchIndex.addIndex({
@@ -198,8 +202,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('search', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -216,7 +221,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     searchIndex.addIndex({
@@ -237,8 +242,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('boosting search', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -255,7 +261,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     searchIndex.addIndex({
@@ -280,8 +286,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('search by AND', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -298,7 +305,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     // match
@@ -322,8 +329,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('search by OR', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -340,7 +348,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     // match
@@ -367,8 +375,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('search collection', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: 'book',
       configs: [
         {
           indexName: 'title',
@@ -385,7 +394,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.collection('book'),
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     searchIndex.addIndex({
@@ -401,8 +410,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('delete', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -419,7 +429,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     searchIndex.addIndex({
@@ -440,8 +450,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 
   it('update', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -458,7 +469,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     await gitDDB.open();
     const searchIndex = (openOrCreate(
       gitDDB.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     searchIndex.addIndex({
@@ -508,8 +519,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB2.open();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -520,7 +532,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     };
     const searchIndex = (openOrCreate(
       gitDDB2.rootCollection,
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     await searchIndex.rebuild();
@@ -554,8 +566,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
       // no SearchEngineOptions
     });
     await gitDDB2.open();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: 'book',
       configs: [
         {
           indexName: 'title',
@@ -566,7 +579,7 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
     };
     const searchIndex = (openOrCreate(
       gitDDB2.collection('book'),
-      searchEngineOptions
+      searchEngineOption
     ) as unknown) as SearchIndexClassInterface & SearchIndexInterface;
 
     await searchIndex.rebuild();
@@ -579,8 +592,9 @@ describe('<search/elasticlunr> call search-elasticlunr directly', () => {
 describe('<search/elasticlunr> call through GitDocumentDB', () => {
   it('create index in GitDocumentDB#open', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      // name: 'full-text'
+    const searchEngineOption: SearchEngineOption = {
+      // engineName: 'full-text''
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -592,9 +606,9 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOptions,
+      searchEngineOption,
     });
-    // SearchEngine['full-text'].openOrCreate(gitDDB, '', searchEngineOptions) will be called in gitDDB.open()
+    // SearchEngine['full-text'].openOrCreate(gitDDB, ', searchEngineOptions) will be called in gitDDB.open()
     await gitDDB.open();
     // Cannot read property of index directry.
     // Use stringify and parse.
@@ -610,8 +624,9 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
   it('put', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      // name: 'full-text'
+    const searchEngineOption: SearchEngineOption = {
+      // engineName: 'full-text''
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -623,7 +638,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOptions,
+      searchEngineOption,
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -644,8 +659,9 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
   it('update', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      // name: 'full-text'
+    const searchEngineOption: SearchEngineOption = {
+      // engineName: 'full-text''
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -657,7 +673,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOptions,
+      searchEngineOption,
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -683,8 +699,9 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
   it('delete', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      // name: 'full-text'
+    const searchEngineOption: SearchEngineOption = {
+      // engineName: 'full-text''
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -696,7 +713,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOptions,
+      searchEngineOption,
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -719,8 +736,9 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
   it('rebuild collection', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      // name: 'full-text'
+    const searchEngineOption: SearchEngineOption = {
+      collectionPath: 'book',
+      // engineName: 'full-text''
       configs: [
         {
           indexName: 'title',
@@ -735,7 +753,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     });
     await gitDDB.open();
     const bookCol = gitDDB.collection('book', {
-      searchEngineOptions,
+      searchEngineOption,
     });
     await bookCol.put({
       _id: '1',
@@ -754,7 +772,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     });
     await gitDDB2.open();
     const bookCol2 = gitDDB2.collection('book', {
-      searchEngineOptions,
+      searchEngineOption,
     });
     await bookCol2.rebuildIndex();
 
@@ -765,8 +783,9 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 
   it('auto serialization before closing', async () => {
     const dbName = monoId();
-    const searchEngineOptions: SearchEngineOptions = {
-      name: 'full-text',
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
       configs: [
         {
           indexName: 'title',
@@ -778,7 +797,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOptions,
+      searchEngineOption,
     });
     await gitDDB.open();
     await gitDDB.put({
@@ -794,7 +813,7 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
     const gitDDB2 = new GitDocumentDB({
       dbName,
       localDir,
-      searchEngineOptions,
+      searchEngineOption,
     });
     await gitDDB2.open();
 

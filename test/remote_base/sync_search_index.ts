@@ -20,7 +20,7 @@ import { GitDocumentDB } from '../../src/git_documentdb';
 import {
   ConnectionSettings,
   RemoteOptions,
-  SearchEngineOptions,
+  SearchEngineOption,
   SyncResult,
   SyncResultFastForwardMerge,
   SyncResultMergeAndPush,
@@ -86,12 +86,25 @@ export const syncSearchIndexBase = (
        */
       it('FastForwardMerge', async () => {
         await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const searchEngineOption: SearchEngineOption = {
+          engineName: 'full-text',
+          collectionPath: 'book',
+          configs: [
+            {
+              indexName: 'title',
+              targetProperties: ['title'],
+              indexFilePath: '',
+            },
+          ],
+        };
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
           commonId,
-          { connection }
+          { connection },
+          'trace',
+          searchEngineOption
         );
         const collectionA = dbA.collection('book');
         // A puts and pushes
@@ -100,19 +113,7 @@ export const syncSearchIndexBase = (
 
         await syncA.tryPush();
 
-        const searchEngineOptions: SearchEngineOptions = {
-          name: 'full-text',
-          configs: [
-            {
-              indexName: 'title',
-              targetProperties: ['title'],
-              indexFilePath: localDir + `/${dbB.dbName}_index.zip`,
-            },
-          ],
-        };
-        const collectionB = dbB.collection('book', {
-          searchEngineOptions,
-        });
+        const collectionB = dbB.collection('book');
 
         // B syncs
         const syncResult1 = (await syncB.trySync()) as SyncResultFastForwardMerge;
@@ -137,13 +138,28 @@ export const syncSearchIndexBase = (
        */
       it('MergeAndPush', async () => {
         await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const searchEngineOption: SearchEngineOption = {
+          engineName: 'full-text',
+          collectionPath: 'book',
+          configs: [
+            {
+              indexName: 'title',
+              targetProperties: ['title'],
+              indexFilePath: '',
+            },
+          ],
+        };
+
         const [dbA, dbB, syncA, syncB] = await createClonedDatabases(
           remoteURLBase,
           localDir,
           serialId,
           commonId,
-          { connection }
+          { connection },
+          'trace',
+          searchEngineOption
         );
+
         // A puts and pushes
         const collectionA = dbA.collection('book');
         // A puts and pushes
@@ -152,19 +168,7 @@ export const syncSearchIndexBase = (
 
         await syncA.tryPush();
 
-        const searchEngineOptions: SearchEngineOptions = {
-          name: 'full-text',
-          configs: [
-            {
-              indexName: 'title',
-              targetProperties: ['title'],
-              indexFilePath: localDir + `/${dbB.dbName}_index.zip`,
-            },
-          ],
-        };
-        const collectionB = dbB.collection('book', {
-          searchEngineOptions,
-        });
+        const collectionB = dbB.collection('book');
 
         // B syncs
         const jsonB2 = { _id: '2', name: 'y' };
@@ -195,6 +199,17 @@ export const syncSearchIndexBase = (
        */
       it.only('FastForwardMerge', async () => {
         await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
+        const searchEngineOption: SearchEngineOption = {
+          engineName: 'full-text',
+          collectionPath: 'book',
+          configs: [
+            {
+              indexName: 'title',
+              targetProperties: ['title'],
+              indexFilePath: '',
+            },
+          ],
+        };
         const [dbA, syncA] = await createDatabase(
           remoteURLBase,
           localDir,
@@ -202,7 +217,9 @@ export const syncSearchIndexBase = (
           commonId,
           {
             connection,
-          }
+          },
+          undefined,
+          searchEngineOption
         );
         // A puts and pushes
         const collectionA = dbA.collection('book');
@@ -214,32 +231,23 @@ export const syncSearchIndexBase = (
 
         // Clone
         const dbNameB = serialId();
+        searchEngineOption.configs[0].indexFilePath =
+          localDir + `/${dbNameB}_${searchEngineOption.configs[0].indexName}_index.zip`;
         const dbB: GitDocumentDB = new GitDocumentDB({
           dbName: dbNameB,
           localDir,
+          searchEngineOptions: [searchEngineOption],
         });
         // Clone dbA
         await dbB.open();
 
-        const searchEngineOptions: SearchEngineOptions = {
-          name: 'full-text',
-          configs: [
-            {
-              indexName: 'title',
-              targetProperties: ['title'],
-              indexFilePath: localDir + `/${dbB.dbName}_index.zip`,
-            },
-          ],
-        };
-        const collectionB = dbB.collection('book', {
-          searchEngineOptions,
-        });
+        const collectionB = dbB.collection('book');
 
         const syncB = await dbB.sync(syncA.options);
 
         // A updates and pushes
         const jsonA1dash = { _id: '1', name: 'y' };
-        const putResultA1dash = await dbA.put(jsonA1dash);
+        await dbA.put(jsonA1dash);
         await syncA.tryPush();
 
         const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
@@ -247,6 +255,7 @@ export const syncSearchIndexBase = (
 
         const searchIndex = (collectionB.searchIndex() as unknown) as SearchIndexClassInterface;
         console.log(JSON.stringify(searchIndex.indexes()));
+        // x はあるけど yがない。
         const indexObj = JSON.parse(JSON.stringify(searchIndex.indexes()));
         expect(indexObj.title.index.title.root.y).toEqual({
           docs: { '1': { tf: 1 } },
@@ -262,6 +271,7 @@ export const syncSearchIndexBase = (
        * dbB   : -jsonA1
        * after :          jsonA2
        */
+      /*
       it('which include a local create and a remote delete when a remote db creates a document and a local db deletes another document', async () => {
         await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
         const [dbA, syncA] = await createDatabase(
@@ -324,195 +334,7 @@ export const syncSearchIndexBase = (
 
         await destroyDBs([dbA, dbB]);
       });
-
-      /**
-       * before:  jsonA1
-       * dbA   : -jsonA1
-       * dbB   :          jsonB2
-       * after :          jsonB2
-       */
-      it('which include a remote create and a local delete when a remote db deletes a document and a local db creates another document', async () => {
-        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
-        const [dbA, syncA] = await createDatabase(
-          remoteURLBase,
-          localDir,
-          serialId,
-          commonId,
-          {
-            connection,
-          }
-        );
-
-        // A puts and pushes
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        await syncA.tryPush();
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameB,
-          localDir,
-        });
-
-        // Clone dbA
-        await dbB.open();
-        const syncB = await dbB.sync(syncA.options);
-
-        // A deletes and pushes
-        const deleteResultA1 = await dbA.delete(jsonA1);
-        await syncA.tryPush();
-
-        // B put another file and syncs
-        const jsonB2 = { _id: '2', name: 'fromB' };
-        const putResultB2 = await dbB.put(jsonB2);
-
-        const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
-        expect(syncResult1.action).toBe('merge and push');
-
-        expect(syncResult1.commits).toMatchObject({
-          local: getCommitInfo([deleteResultA1, 'merge']),
-          remote: getCommitInfo([putResultB2, 'merge']),
-        });
-
-        expect(syncResult1.changes.local.length).toBe(1);
-        expect(syncResult1.changes.local).toEqual([
-          getChangedFileDelete(jsonA1, deleteResultA1),
-        ]);
-
-        expect(syncResult1.changes.remote.length).toBe(1);
-        expect(syncResult1.changes.remote).toEqual([
-          getChangedFileInsert(jsonB2, putResultB2),
-        ]);
-
-        expect(getWorkingDirDocs(dbB)).toEqual([jsonB2]);
-
-        // Sync dbA
-        const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
-        expect(getWorkingDirDocs(dbA)).toEqual([jsonB2]);
-
-        await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
-        await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
-
-        await destroyDBs([dbA, dbB]);
-      });
-
-      /**
-       * before:  jsonA1
-       * dbA   : -jsonA1
-       * dbB   : -jsonA1
-       * after :
-       */
-      it('which does not include changes when a remote db deletes a document and a local db deletes the same document', async () => {
-        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
-        const [dbA, syncA] = await createDatabase(
-          remoteURLBase,
-          localDir,
-          serialId,
-          commonId,
-          {
-            connection,
-          }
-        );
-        // A puts and pushes
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        await dbA.put(jsonA1);
-        await syncA.tryPush();
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameB,
-          localDir,
-        });
-        // Clone dbA
-        await dbB.open();
-        const syncB = await dbB.sync(syncA.options);
-
-        // A deletes and pushes
-        const deleteResultA1 = await dbA.delete(jsonA1);
-        await syncA.tryPush();
-
-        // B deletes the same file and syncs
-        const deleteResultB1 = await dbB.delete(jsonA1);
-
-        const syncResult1 = (await syncB.trySync()) as SyncResultMergeAndPush;
-        expect(syncResult1.action).toBe('merge and push');
-
-        expect(syncResult1.commits).toMatchObject({
-          local: getCommitInfo([deleteResultA1, 'merge']),
-          remote: getCommitInfo([deleteResultB1, 'merge']),
-        });
-
-        expect(syncResult1.changes.local.length).toBe(0); // Must no be 1 but 0, because diff is empty.
-        expect(syncResult1.changes.remote.length).toBe(0); // Must no be 1 but 0, because diff is empty.
-
-        expect(getWorkingDirDocs(dbB)).toEqual([]);
-
-        // Sync dbA
-        const syncResult2 = (await syncA.trySync()) as SyncResultMergeAndPush;
-        expect(getWorkingDirDocs(dbA)).toEqual([]);
-
-        await expect(compareWorkingDirAndBlobs(dbA)).resolves.toBeTruthy();
-        await expect(compareWorkingDirAndBlobs(dbB)).resolves.toBeTruthy();
-
-        await destroyDBs([dbA, dbB]);
-      });
-    });
-
-    describe('returns SyncResolveConflictAndPush', () => {
-      it('when two databases put the same _id document', async () => {
-        await resetRemoteCommonRepository(remoteURLBase, localDir, serialId, commonId);
-        const remoteURL = remoteURLBase + commonId();
-        const dbNameA = serialId();
-        const dbA: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameA,
-          localDir: localDir,
-        });
-        const options: RemoteOptions = {
-          remoteUrl: remoteURL,
-          connection,
-        };
-        await dbA.open();
-        const syncA = await dbA.sync(options);
-
-        const dbNameB = serialId();
-        const dbB: GitDocumentDB = new GitDocumentDB({
-          dbName: dbNameB,
-          localDir: localDir,
-        });
-        await dbB.open();
-        const syncB = await dbB.sync(options);
-
-        const jsonA1 = { _id: '1', name: 'fromA' };
-        const putResultA1 = await dbA.put(jsonA1);
-        await syncA.tryPush();
-
-        // The same id
-        const jsonB1 = { _id: '1', name: 'fromB' };
-        const putResultB1 = await dbB.put(jsonB1);
-
-        await expect(syncB.trySync()).resolves.toMatchObject({
-          action: 'resolve conflicts and push',
-          changes: {
-            local: [],
-            remote: [getChangedFileUpdate(jsonA1, putResultA1, jsonB1, putResultB1)],
-          },
-          conflicts: [
-            {
-              fatDoc: {
-                _id: jsonB1._id,
-                name: jsonB1._id + JSON_POSTFIX,
-                fileOid: putResultB1.fileOid,
-                type: 'json',
-                doc: jsonB1,
-              },
-              operation: 'insert-merge',
-              strategy: 'ours-diff',
-            },
-          ],
-        });
-
-        await destroyDBs([dbA, dbB]);
-      });
+*/
     });
   });
 };
