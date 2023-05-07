@@ -894,7 +894,7 @@ describe('<search/elasticlunr> large db', () => {
     const result = gitDDB2.search('title', 'hello');
     expect(result[0].ref).toEqual('1');
     expect(fs.existsSync(searchEngineOption.configs[0].indexFilePath)).toBe(true);
-    gitDDB2.rootCollection.searchIndex?.destroy();
+    gitDDB2.rootCollection.searchIndex()?.destroy();
     expect(fs.existsSync(searchEngineOption.configs[0].indexFilePath)).toBe(false);
 
     await gitDDB2.destroy();
