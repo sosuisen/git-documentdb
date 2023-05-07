@@ -823,7 +823,8 @@ describe('<search/elasticlunr> call through GitDocumentDB', () => {
 });
 
 describe('<search/elasticlunr> large db', () => {
-  it.only('rebuild collection', async () => {
+  /*
+  it('rebuild collection', async () => {
     const dbName = monoId();
     const searchEngineOption: SearchEngineOption = {
       collectionPath: 'card',
@@ -856,5 +857,46 @@ describe('<search/elasticlunr> large db', () => {
       console.log(_body.substring(0, 140) + '/n');
     }
     await gitDDB.close();
+  });
+  */
+
+  it('delete index', async () => {
+    const dbName = monoId();
+    const searchEngineOption: SearchEngineOption = {
+      engineName: 'full-text',
+      collectionPath: '',
+      configs: [
+        {
+          indexName: 'title',
+          targetProperties: ['title'],
+          indexFilePath: localDir + `/${dbName}_index.zip`,
+        },
+      ],
+    };
+    const gitDDB = new GitDocumentDB({
+      dbName,
+      localDir,
+      searchEngineOptions: [searchEngineOption],
+    });
+    await gitDDB.open();
+    await gitDDB.put({
+      _id: '1',
+      title: 'hello',
+    });
+    await gitDDB.close();
+
+    const gitDDB2 = new GitDocumentDB({
+      dbName,
+      localDir,
+      searchEngineOptions: [searchEngineOption],
+    });
+    await gitDDB2.open();
+    const result = gitDDB2.search('title', 'hello');
+    expect(result[0].ref).toEqual('1');
+    expect(fs.existsSync(searchEngineOption.configs[0].indexFilePath)).toBe(true);
+    gitDDB2.rootCollection.searchIndex?.destroy();
+    expect(fs.existsSync(searchEngineOption.configs[0].indexFilePath)).toBe(false);
+
+    await gitDDB2.destroy();
   });
 });
