@@ -395,7 +395,7 @@ export type SearchEngineOption = {
  *
  * - debounceTime: put/insert/update operations for the same document are debounced by specified milliseconds in the collection. Default is -1 (do not debounce).
  *
- * - searchEngineOption: Do not set this option when you call createCollection(). This must be set via DatabaseOptions.
+ * - searchEngineOptions: Do not set this option when you call createCollection(). This must be set via DatabaseOptions.
  *
  * @public
  */

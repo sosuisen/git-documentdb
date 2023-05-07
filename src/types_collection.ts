@@ -40,5 +40,5 @@ export type ICollection = CollectionInterface &
  */
 export interface CollectionInterface {
   collection(collectionPath: CollectionPath, options?: CollectionOptions): ICollection;
-  getCollections(dirPath: string): Promise<ICollection[]>;
+  getCollections(dirPath?: string): Promise<ICollection[]>;
 }
